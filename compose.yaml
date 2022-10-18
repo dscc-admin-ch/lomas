@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  ung20:
+    image: ung20
+    build:
+      dockerfile: ./Dockerfile
+    container_name: ung20
+    env_file:
+      - .env
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - ./src:/code/

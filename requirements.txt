@@ -1,0 +1,12 @@
+# diffprivlib==0.5.2
+fastapi==0.85.0
+numpy==1.21.4
+opendp==0.5.0
+pandas==1.4.0
+pydantic==1.8.2
+requests==2.22.0
+uvicorn==0.15.0
+smartnoise-sql==0.2.5
+smartnoise-synth==0.3.0
+python-multipart==0.0.5
+setuptools==65.4.1

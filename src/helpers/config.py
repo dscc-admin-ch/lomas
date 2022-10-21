@@ -10,7 +10,7 @@ OBLV_CONFIG_PATH = '/usr/runtime.yaml'
 def yaml_config(settings: BaseSettings) -> Dict[str, Any]:
     try:
         with open(OBLV_CONFIG_PATH, 'r') as f:
-            config_data = yaml.safe_load(f)
+            config_data = yaml.safe_load(f)["runtime_args"]["settings"]
     except:
         config_data = {}
     return config_data

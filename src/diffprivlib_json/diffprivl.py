@@ -1,11 +1,13 @@
-import json
+from io import BytesIO
+import pickle
 from typing import List
-from diffprivlib import models
-from sklearn.pipeline import Pipeline
+
+from fastapi.responses import StreamingResponse
 import numpy as np
 import pandas as pd
-import pickle
 import pkg_resources
+from diffprivlib import models
+from sklearn.pipeline import Pipeline
 
 DIFFPRIVLIBP_VERSION = pkg_resources.get_distribution("diffprivlib").version
 
@@ -81,25 +83,19 @@ def dppipe_predict(pipeline_json):
 
     dp_model = DiffPrivPipe(pipeline_json)
     
-    full_model_path = "filename2"
-    print(dp_model.dp_pipeline)
-    with open(full_model_path, "wb") as model_file:
-        pickle.dump(dp_model.dp_pipeline, model_file)
-
-    print(dp_model.dp_pipeline)
+    pickled_model = pickle.dumps(dp_model.dp_pipeline)
+    dp_model_score = dp_model.dp_pipeline.score(
+        dp_model.X_test, dp_model.y_test) * 100
+    reponse_log = {
+        "score": dp_model_score,
+        "model_pickle": pickled_model
+    }
+    #Taking buget from BudgetAccountant of first pipeline models 
+    budget = dp_model.dp_pipeline.steps[0][1].accountant.spent_budget
+    
     # print(dp_model.dp_pipeline.score(
     #     dp_model.X_test, dp_model.y_test) * 100)
-    return full_model_path
-    #Creating model file 
-    # stream = io.StringIO()
-    # CSV creation
-    # predicted_res = dp.predict()
-     
-    # predicted_res = pd.DataFrame(predicted_res).to_csv(stream, index=False)
-    # response = StreamingResponse(
-    #     iter([stream.getvalue()]),
-    #     media_type="text/csv"
-    # )
-    # response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_predictions.csv"
-    
-    return response
+    response = StreamingResponse(BytesIO(pickled_model))
+    response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
+
+    return response, budget

@@ -1,6 +1,6 @@
 from io import BytesIO
 import pickle
-from typing import List
+from fastapi import HTTPException
 
 from fastapi.responses import StreamingResponse
 import numpy as np
@@ -9,23 +9,39 @@ import pkg_resources
 from diffprivlib import models
 from sklearn.pipeline import Pipeline
 
+import globals
+from loggr import LOG
+import diffprivlib
+
 DIFFPRIVLIBP_VERSION = pkg_resources.get_distribution("diffprivlib").version
 
 diffpriv_map = {
-    'GaussianNB': models.GaussianNB,
-    'KMeans': models.KMeans,
-    'LinearRegression': models.LinearRegression,
-    'LogisticRegression': models.LogisticRegression,
-    'PCA': models.PCA,
-    'RandomForestClassifier': models.RandomForestClassifier,
-    'StandardScaler': models.StandardScaler
+    '_dpl_type:GaussianNB': models.GaussianNB,
+    '_dpl_type:KMeans': models.KMeans,
+    '_dpl_type:LinearRegression': models.LinearRegression,
+    '_dpl_type:LogisticRegression': models.LogisticRegression,
+    '_dpl_type:PCA': models.PCA,
+    '_dpl_type:RandomForestClassifier': models.RandomForestClassifier,
+    '_dpl_type:StandardScaler': models.StandardScaler
 }
 
 #mapping for json key:py_type:tuple to tuple type in python dict
 json_pytype_mapping = {
     "tuple": tuple
 }
+X_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
+                         usecols=(0, 4, 10, 11, 12), delimiter=", ")
 
+y_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
+                        usecols=14, dtype=str, delimiter=", ")
+
+X_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
+                    usecols=(0, 4, 10, 11, 12), delimiter=", ", skiprows=1)
+
+y_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
+                    usecols=14, dtype=str, delimiter=", ", skiprows=1)
+# Must trim trailing period "." from label
+y_test = np.array([a[:-1] for a in y_test])
 class DiffPrivPipe:
     X_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
                          usecols=(0, 4, 10, 11, 12), delimiter=", ")
@@ -73,10 +89,10 @@ class DiffPrivPipe:
         return dp_pipeline
 
     def fit(self):
-        self.dp_pipeline.fit(self.X_train, self.y_train)
+        self.dp_pipeline.fit(globals.TRAIN_X.to_numpy(), globals.TRAIN_Y.to_numpy())
     
     def predict(self):
-        return self.dp_pipeline.predict(self.X_test)
+        return self.dp_pipeline.predict(globals.TEST_X.to_numpy())
 
 
 def dppipe_predict(pipeline_json):
@@ -85,7 +101,7 @@ def dppipe_predict(pipeline_json):
     
     pickled_model = pickle.dumps(dp_model.dp_pipeline)
     dp_model_score = dp_model.dp_pipeline.score(
-        dp_model.X_test, dp_model.y_test) * 100
+        globals.TEST_X.to_numpy(), globals.TEST_Y.to_numpy()) * 100
     reponse_log = {
         "score": dp_model_score,
         "model_pickle": pickled_model
@@ -99,3 +115,86 @@ def dppipe_predict(pipeline_json):
     response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
 
     return response, budget
+
+def dppipe_deserielize_train(pipeline_json):
+    try: 
+        dp_pipe = deserialize_pipeline(pipeline_json)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as exc:
+        LOG.error(exc)
+        raise exc
+
+    dp_pipe.fit(X_train, y_train) 
+
+    pickled_pipe = pickle.dumps(dp_pipe)
+
+    accuracy = dp_pipe.score(
+        X_test, y_test) * 100
+
+    pkl_response = StreamingResponse(BytesIO(bytes(pickled_pipe)))
+    pkl_response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
+
+    spent_budget = {
+        "epsilon": 0,
+        "delta": 0
+    }
+    for step in dp_pipe.steps:
+        spent_budget["epsilon"] += step[1].accountant.spent_budget[0][0]
+        spent_budget["delta"] += step[1].accountant.spent_budget[0][1]
+
+    db_response = {
+        "pickled_pipe" : pickled_pipe,
+        "accuracy": accuracy
+    }
+    return pkl_response, spent_budget, db_response
+
+
+
+from sklearn.pipeline import Pipeline
+import diffprivlib
+import json
+
+class DPL_Decoder(json.JSONDecoder):
+  def __init__(self, *args, **kwargs):
+    json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+  def object_hook(self, dct):
+    if "_tuple" in dct.keys():
+      return tuple(dct["_items"])
+
+    for k, v in dct.items():
+      if type(v) is str:
+        if v[:10] == "_dpl_type:":
+          try:
+            dct[k] = getattr(diffprivlib.models, v[10:])
+          except Exception as e:
+            print(e)
+
+        elif v[:14] == "_dpl_instance:":
+          try:
+            dct[k] = getattr(diffprivlib, v[14:])()
+          except Exception as e:
+            print(e)
+
+    return dct
+
+def deserialize_pipeline(dct_str):
+  dct = json.loads(dct_str, cls=DPL_Decoder)
+  if "module" in dct.keys():
+    if dct["module"] != "diffprivlib":
+      raise ValueError("JSON 'module' not equal to 'diffprivlib', maybe you sent the request to the wrong path.")
+  else:
+    raise ValueError("Key 'module' not in submitted json request.")
+
+  if "version" in dct.keys():
+    if dct["version"] != diffprivlib.__version__:
+      raise ValueError(f"The version of requested does not match the version available: {diffprivlib.__version__}.")
+  else:
+    raise ValueError("Key 'version' not in submitted json request.")
+
+  print(dct)
+
+  return Pipeline(
+      [(val["name"], val["type"](**val["params"])) for val in dct["pipeline"]]
+  )

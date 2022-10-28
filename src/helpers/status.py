@@ -2,6 +2,8 @@ from fastapi import HTTPException
 from typing import List, Callable
 from datetime import datetime
 
+from loggr import LOG
+
 class IndividualStatus():
     name: str
     metric: Callable
@@ -46,6 +48,7 @@ class PartyStatus():
 
     def __init__(self, party_list: List[str], ranking_method: Callable):
         self._status = [IndividualStatus(name=p, metric=ranking_method) for p in party_list]
+        LOG.info(party_list)
 
     def __getitem__(self, key):
         if isinstance(key, str):

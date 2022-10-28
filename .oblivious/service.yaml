@@ -1,7 +1,7 @@
 auth:
 - auth_name: default
   auth_type: signed_headers
-base_image: ubuntu_18_04_proxy_python_3_8
+base_image: oblv_ubuntu_18_04_proxy_python_3_8
 build_args:
 - name: example
   required_arg: false

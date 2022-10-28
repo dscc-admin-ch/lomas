@@ -1,29 +1,69 @@
 example_diffprivlib = {
-    "pipeline": [
-        {
-            "name": "scaler",
-            "model": "StandardScaler",
-            "epsilon": 0.1,
-            "args": [],
-            "kwargs": {
-                "bounds:py_type:tuple": [[17, 1, 0, 0, 1], [90, 160, 10000, 4356, 99]],
-                "epsilon": 2,
-            },
+  "module": "diffprivlib",
+  "version": "0.5.2",
+  "pipeline": [
+    {
+      "type": "_dpl_type:StandardScaler",
+      "name": "scaler",
+      "params": {
+        "with_mean": True,
+        "with_std": True,
+        "copy": True,
+        "epsilon": 1,
+        "bounds": {
+          "_tuple": True,
+          "_items": [
+            [
+              17,
+              1,
+              0,
+              0,
+              1
+            ],
+            [
+              90,
+              160,
+              10000,
+              4356,
+              99
+            ]
+          ]
         },
-        {
-            "name": "pca",
-            "model": "PCA",
-            "args": [2],
-            "kwargs": {"data_norm": 5, "centered": True, "epsilon": 2},
-        },
-        {
-            "name": "lr",
-            "model": "LogisticRegression",
-            "args": [],
-            "kwargs": {"data_norm": 5, "epsilon": 1},
-        },
-    ],
-    "version": "0.5.2",
+        "accountant": "_dpl_instance:BudgetAccountant"
+      }
+    },
+    {
+      "type": "_dpl_type:PCA",
+      "name": "pca",
+      "params": {
+        "n_components": 2,
+        "copy": True,
+        "whiten": False,
+        "random_state": None,
+        "centered": True,
+        "epsilon": 1,
+        "data_norm": 5,
+        "bounds": None,
+        "accountant": "_dpl_instance:BudgetAccountant"
+      }
+    },
+    {
+      "type": "_dpl_type:LogisticRegression",
+      "name": "lr",
+      "params": {
+        "tol": 0.0001,
+        "C": 1,
+        "fit_intercept": True,
+        "max_iter": 100,
+        "verbose": 0,
+        "warm_start": False,
+        "n_jobs": None,
+        "epsilon": 1,
+        "data_norm": 5,
+        "accountant": "_dpl_instance:BudgetAccountant"
+      }
+    }
+  ]
 }
 
 

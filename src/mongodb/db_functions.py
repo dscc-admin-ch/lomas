@@ -104,6 +104,12 @@ def db_get_leaderboard():
     return [x for x in res]
 
 def db_get_last_submission(team_name):
+    team = queries_coll.find_one({"team_name": team_name}, {
+                                "_id": 0, "accuracy": 1})
+
+    if not team:
+        return None
+        
     res = queries_coll.aggregate([{"$match":{"team_name": team_name}},{
         "$project":{
             "timestamp": {"$ifNull": [{"$arrayElemAt":["$submissions.timestamp",-1]}, 0]},

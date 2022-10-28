@@ -33,54 +33,31 @@ class OpenDPInp(BasicModel):
     version: str
     ast: OpenDPAST
 
-    
-# version: 0.3.0
-# ast:
-#   func: make_chain_tt
-#   module: comb
-#   type: Transformation
-#   args:
-#   - func: make_select_column
-#   module: trans
-#   type: Transformation
-#   args: []
-#   kwargs:
-#       key: income
-#       TOA: py_type: str
-#   - func: make_split_dataframe
-#   module: trans
-#   type: Transformation
-#   args: []
-#   kwargs:
-#       separator: ","
-#       col_names:
-#       - hello
-#       - world
-#   kwargs: {}
 
 
 class DiffPrivLibModel(BasicModel):
     name: str
-    model: str 
+    type: str 
     # epsilon: float = Field(..., gt=0, le=10) #Could take single epsilon value and divide by len of pipeline to set epsilon for individual pipeline
-    args: List
-    kwargs: dict
+    params: dict
     
-    @validator('model')
-    def validate_model(cls, model):
-        if model not in diffpriv_map.keys():
-            raise ValueError(f"'{model}' is not one of {list(diffpriv_map.keys())}.")
-        return model
-    
-    @validator('kwargs')
-    def validate_epsilon(cls, kwargs):
-        return kwargs
+    @validator('type')
+    def validate_model(cls, type):
+        if type not in diffpriv_map.keys():
+            raise ValueError(f"'{type}' is not one of {list(diffpriv_map.keys())}.")
+        return type
+
 
 
 class DiffPrivLibInp(BasicModel):
+    module: str 
     pipeline: List[DiffPrivLibModel]
     version: str
 
+    @validator('module')
+    def valid_module(cls, module):
+        if module != "diffprivlib":
+            raise ValueError(f"'{module}' is not diffprivlib.")
 
 class SNSQLInp(BasicModel):
     query_str: str

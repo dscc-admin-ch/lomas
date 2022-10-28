@@ -67,6 +67,10 @@ traffic:
     port: 443
     type: tcp
   - domain: stage-un-g20-nov22.cluster-clagiea8p62e.eu-west-1.docdb.amazonaws.com
+    name: document_db_cluster
+    port: 27017
+    type: tcp
+  - domain: stage-un-g20-nov22.clagiea8p62e.eu-west-1.docdb.amazonaws.com
     name: document_db
     port: 27017
     type: tcp

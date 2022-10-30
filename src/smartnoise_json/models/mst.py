@@ -12,7 +12,7 @@ from pydantic import BaseModel, ValidationError, validator
 import pandas as pd
 
 # the opendp smartnoise synth data package
-import snsynth
+from snsynth import Synthesizer
 # from snsynth.mst import MSTSynthesizer
 import json
 import tempfile
@@ -46,13 +46,13 @@ class MST(SDModel):
             "data_meta": tfile.name
         }
         
-        self._model = snsynth.Synthesizer.create('mst',Domains, epsilon=1.0, verbose=True)
+        self._model = Synthesizer.create('mst', epsilon=2)
         #TODO - Currently MST fails 
         # MSTSynthesizer(domains_dict=Domains, 
         #                    domain='data_meta',
         #                    epsilon=self.epsilon)
 
-        self._model.fit(self.data.to_numpy(), preprocessor_eps=1)
+        self._model.fit_sample(self.data, preprocessor_eps=1)
 
     def sample(self, num_samples: int) -> pd.DataFrame:
         # you should use the model etc trained in the self.fit() to 

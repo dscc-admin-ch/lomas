@@ -1,6 +1,3 @@
-import time
-from dbm.ndbm import library
-
 import yaml
 
 from . import queries_coll

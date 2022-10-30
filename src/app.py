@@ -19,7 +19,7 @@ from mongodb.db_functions import (db_add_query, db_add_submission,
                                   db_get_delta, db_get_last_submission,
                                   db_get_leaderboard, db_get_score)
 from mongodb.db_models import QueryDBInput, SubmissionDBInput
-from mongodb import client
+from opendp_json.opdp import opendp_constructor, opendp_apply
 # from oracle.stats import DPStats
 from oracle.accuracy import accuracy as oracle_accuracy
 from smartnoise_json.synth import synth
@@ -131,24 +131,29 @@ def configure(
 @app.post("/opendp", tags=["OBLV_PARTICIPANT_USER"])
 def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_name: str = Header(None)):
     
-    return des_trans_ret(pipeline_json)
+    try:
+       opendp_pipe = opendp_constructor(pipeline_json.toJSONStr())
+    except Exception as e:
+        raise HTTPException(500, "Failed while contructing opendp pipeline with error: " + str(e))
+    print(opendp_pipe)
     
-    pass# reconstruct the obj from the json string
-    # print(pipeline_json.toJSONStr())
-    # print(type(pipeline_json.toJSONStr()))
-    # test = opendp_constructor(pipeline_json.toJSONStr(), ptype="json")
-    
-    # print(test.__dict__)
-    # # res = opendp_constructor(example_opendp, ptype="json")
-    # return str(test) # save the 
+    response = opendp_apply(opendp_pipe)
+    query = QueryDBInput(x_oblv_user_name,pipeline_json,"diffprivlib")
+    query.query.epsilon = 2
+    query.query.delta = 2
+    query.query.response = str(response)
+    db_add_query(query)
+
+
+    return response
 
 
 @app.post("/diffprivlib", tags=["OBLV_PARTICIPANT_USER"])
-def diffprivlib_handler(pipeline_json: str = Body(example_diffprivlib), 
+def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib), 
                             x_oblv_user_name: str = Header(...)):
     # if pipeline_json.version != DIFFPRIVLIBP_VERSION:
     #     raise HTTPException(422, f"For DiffPrivLib version {pipeline_json.version} is not supported, we currently have version:{DIFFPRIVLIBP_VERSION}")
-    response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json)
+    response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
     # print(x_oblv_user_name)
     query = QueryDBInput(x_oblv_user_name,pipeline_json,"diffprivlib")
     query.query.epsilon = spent_budget["epsilon"]

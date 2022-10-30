@@ -41,11 +41,11 @@ class DiffPrivLibModel(BasicModel):
     # epsilon: float = Field(..., gt=0, le=10) #Could take single epsilon value and divide by len of pipeline to set epsilon for individual pipeline
     params: dict
     
-    @validator('type')
-    def validate_model(cls, type):
-        if type not in diffpriv_map.keys():
-            raise ValueError(f"'{type}' is not one of {list(diffpriv_map.keys())}.")
-        return type
+    # @validator('type')
+    # def validate_model(cls, type):
+    #     if type not in diffpriv_map.keys():
+    #         raise ValueError(f"'{type}' is not one of {list(diffpriv_map.keys())}.")
+    #     return type
 
 
 
@@ -58,6 +58,7 @@ class DiffPrivLibInp(BasicModel):
     def valid_module(cls, module):
         if module != "diffprivlib":
             raise ValueError(f"'{module}' is not diffprivlib.")
+        return module
 
 class SNSQLInp(BasicModel):
     query_str: str

@@ -1,7 +1,7 @@
-# diffprivlib==0.6.0
+# diffprivlib==0.5.2
 fastapi==0.85.0
 numpy==1.21.6
-opendp==0.5.0
+# opendp==0.6.1
 pandas==1.5.0
 pydantic==1.8.2
 requests==2.22.0

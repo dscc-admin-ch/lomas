@@ -14,9 +14,12 @@ RUN pip install git+https://github.com/ryan112358/private-pgm.git
 RUN git clone https://github.com/opendp/smartnoise-sdk.git
 RUN cd smartnoise-sdk/synth && python -m pip install .
 
+RUN rm -rf smartnoise-sdk
+
 RUN git clone https://github.com/IBM/differential-privacy-library
 RUN cd differential-privacy-library && pip install .
 
+RUN rm -rf differential-privacy-library
 
 COPY ./src/ /code/
 

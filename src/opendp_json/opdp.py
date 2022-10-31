@@ -1,7 +1,6 @@
-from . import OPENDP_VERSION
-import opendp.comb as comb
-import opendp.meas as meas
-import opendp.trans as trans
+import opendp.combinators as comb
+import opendp.measurements as meas
+import opendp.transformations  as trans
 from opendp.mod import enable_features
 enable_features('contrib')
 # print("comb:", comb)
@@ -70,9 +69,9 @@ def tree_walker(branch):
 def opendp_constructor(parse_str: str):
     obj = json.loads(parse_str, object_hook=jsonOpenDPDecoder)
 
-    if obj["version"] != OPENDP_VERSION:
+    if obj["version"] != globals.OPENDP_VERSION:
         raise ValueError(
-            f"OpenDP version in parsed object ({obj['version']}) does not match the current installation ({OPENDP_VERSION})."
+            f"OpenDP version in parsed object ({obj['version']}) does not match the current installation ({globals.OPENDP_VERSION})."
             )
     
     return tree_walker(obj["ast"])

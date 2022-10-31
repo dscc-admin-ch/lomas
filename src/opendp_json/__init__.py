@@ -1,5 +1,4 @@
-from opendp_json.opendp_logger.json_constructor import OPENDP_VERSION, opendp_constructor
-
+# from opendp_json.opendp_logger.json_constructor import OPENDP_VERSION, opendp_constructor
 
 # from dp_serial.server import opendp
 

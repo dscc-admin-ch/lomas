@@ -74,3 +74,7 @@ traffic:
     name: document_db
     port: 27017
     type: tcp
+  - domain: archive.ics.uci.edu
+    name: diffpriv_data
+    port: 443
+    type: tcp

@@ -11,12 +11,13 @@ from typing import Dict, List
 from pydantic import BaseModel, ValidationError, validator
 import pandas as pd
 import numpy as np
-import traceback
+
 
 # the opendp smartnoise synth data package
-from snsynth.pytorch.nn import PATECTGAN as snsynth_PATECTGAN
-from snsynth.pytorch import PytorchDPSynthesizer
-from snsynth.preprocessors.data_transformer import BaseTransformer
+from snsynth import Synthesizer
+# from snsynth.pytorch.nn import PATECTGAN as snsynth_PATECTGAN
+# from snsynth.pytorch import PytorchDPSynthesizer
+# from snsynth.preprocessors.data_transformer import BaseTransformer
 
 
 class PATECTGAN(SDModel):
@@ -32,13 +33,16 @@ class PATECTGAN(SDModel):
         # the function should have no return, only fit any internals 
         # eg self._model etc as required for sampling
         
-        self._model = PytorchDPSynthesizer(self.epsilon, snsynth_PATECTGAN(), None)
-        #TODO BaseTransformer no longer exists, need to update 
-        self._model.fit(
-            self.data, 
-            categorical_columns=list(self.data.columns),
-            transformer=BaseTransformer
-            )
+        self._model = Synthesizer.create("patectgan", epsilon=self.epsilon, verbose=True)
+        self._model.fit(self.data, preprocessor_eps=1.0)
+
+        # self._model = PytorchDPSynthesizer(self.epsilon, snsynth_PATECTGAN(), None)
+        # #TODO BaseTransformer no longer exists, need to update 
+        # self._model.fit(
+        #     self.data, 
+        #     categorical_columns=list(self.data.columns),
+        #     transformer=BaseTransformer
+        #     )
 
 
 

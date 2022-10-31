@@ -3,6 +3,7 @@ from helpers.leaderboard import LeaderBoard
 from smartnoise_json.stats import DPStats
 import pandas as pd 
 import traceback 
+import pkg_resources
 
 from mongodb import client
 from loggr import LOG
@@ -19,6 +20,7 @@ TEST_Y: pd.DataFrame = None
 SERVER_STATE: dict = {"state": ["NA"], "message": ["NA"], "live": False}
 LIVE: bool = False
 
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 
 def set_TRAIN(csv_file: UploadFile):
     global TRAIN
@@ -141,8 +143,14 @@ def check_start_condition():
                 QUERIER = DPStats(TRAIN)
                 LOG.info("Competition started")
             else:
-                SERVER_STATE["state"].append("Leaderboard is None")
-                SERVER_STATE["message"].append(str(LEADERBOARD))
+                # SERVER_STATE["state"].append("Leaderboard is None")
+                # SERVER_STATE["message"].append(str(LEADERBOARD))
+                LIVE = True
+                SERVER_STATE["state"].append("LIVE")
+                SERVER_STATE["message"].append("Competition Started")
+                SERVER_STATE["live"] = LIVE
+                QUERIER = DPStats(TRAIN)
+                LOG.info("Competition started")
         else:
             SERVER_STATE["state"].append("TRAIN value is None")
             SERVER_STATE["message"].append("Competition not started!")

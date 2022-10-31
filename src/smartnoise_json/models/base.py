@@ -15,7 +15,7 @@ class SDModel(ABC):
 
     def __init__(self, data: pd.DataFrame, epsilon: float):
         #self.params = params
-        # self.epsilon = epsilon
+        self.epsilon = epsilon
         #self.data = data
 
         # create a column mapping from catagorical to ints [1,2,3,4....]

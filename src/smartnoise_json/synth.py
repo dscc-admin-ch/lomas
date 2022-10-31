@@ -1,7 +1,7 @@
 from .models.mwem import MWEM
 # from .models.dpctgan import DPCTGAN
 from .models.mst import MST
-# from .models.patectgan import PATECTGAN
+from .models.patectgan import PATECTGAN
 
 import globals  
 
@@ -12,7 +12,7 @@ synth_map = {
     "MWEM": MWEM,
     # "dpctgan": DPCTGAN,
     "MST": MST,
-    # "patectgan": PATECTGAN
+    "PATECTGAN": PATECTGAN
 }
 # synth_map = {
 #     'mwem': {

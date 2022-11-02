@@ -1,2 +1,3 @@
 #!/bin/sh
-python /code/uvicorn_serve.py
+cd /code
+python uvicorn_serve.py

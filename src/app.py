@@ -1,14 +1,12 @@
 from fastapi import (Body, Depends, FastAPI, File, Header, HTTPException,
                      Request, UploadFile)
-from fastapi.responses import StreamingResponse
-from io import BytesIO
 # LEADERBOARD, QUERIER, TRAIN, TEST, LIVE, set_TRAIN, set_TEST
 import globals
 from loggr import LOG
 import helpers.config as config
 from diffprivlib_json.diffprivl import DIFFPRIVLIBP_VERSION, dppipe_predict, dppipe_deserielize_train
 from example_inputs import (example_diffprivlib, example_opendp,
-                            example_opendp_str)
+                            example_smartnoise_sql, example_smartnoise_synth)
 from helpers.depends import (competition_live, competition_prereq,
                              submit_limitter)
 from helpers.leaderboard import LeaderBoard
@@ -39,8 +37,6 @@ from smartnoise_json.synth import synth
 
 
 
-
-
 app = FastAPI()
 # a simple hack to hinder the timing attackers in the audience
 @app.middleware('http')
@@ -48,21 +44,15 @@ async def middleware(request: Request, call_next):
     # print(request.__dict__)
     return await anti_timing_att(request, call_next)
 
-@app.get("/")
-def hello():
-    # db_add_teams()
-    # db_get_last_query_time("Alice")
-    print(db_get_last_submission("Bob"))
-    print(db_get_last_submission("Alice"))
-    return "Hello"
 
 @app.on_event("startup")
 def startup_event():
+    db_add_teams()
     LOG.info("Loading datasets")
     try:
         globals.set_datasets_fromDB()
     except Exception as e:
-        LOG.error("Failed at startup:" + str(e))
+        LOG.exception("Failed at startup:" + str(e))
         globals.SERVER_STATE["state"].append("Loading datasets at Startup Failure")
         globals.SERVER_STATE["message"].append(str(e))
     else:
@@ -122,7 +112,7 @@ def configure(
         config_.parties,
         slack_path 
     )
-    LOG.info("blabla")
+
     globals.check_start_condition()
 
     return "ok"
@@ -135,13 +125,18 @@ def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_
        opendp_pipe = opendp_constructor(pipeline_json.toJSONStr())
     except Exception as e:
         raise HTTPException(500, "Failed while contructing opendp pipeline with error: " + str(e))
-    print(opendp_pipe)
     
-    response = opendp_apply(opendp_pipe)
-    query = QueryDBInput(x_oblv_user_name,pipeline_json,"diffprivlib")
+    try:
+        response = opendp_apply(opendp_pipe)
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
+        
+    query = QueryDBInput(x_oblv_user_name,pipeline_json,"opendp")
     query.query.epsilon = 2
     query.query.delta = 2
-    query.query.response = str(response)
+    query.query.response = str(response.__dir__)
+    print(response)
     db_add_query(query)
 
 
@@ -153,22 +148,31 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
                             x_oblv_user_name: str = Header(...)):
     # if pipeline_json.version != DIFFPRIVLIBP_VERSION:
     #     raise HTTPException(422, f"For DiffPrivLib version {pipeline_json.version} is not supported, we currently have version:{DIFFPRIVLIBP_VERSION}")
-    response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
+    try:
+        response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, f"Error message: {e}")
     # print(x_oblv_user_name)
     query = QueryDBInput(x_oblv_user_name,pipeline_json,"diffprivlib")
     query.query.epsilon = spent_budget["epsilon"]
     query.query.delta = spent_budget["delta"]
-    query.query.response = str(db_response)
+    print(db_response)
+    query.query.response = db_response
     db_add_query(query)
 
     return response
     
 @app.post("/smartnoise_synth", tags=["OBLV_PARTICIPANT_USER"])
-async def smartnoise_synth_handler(model_json: SNSynthInp, x_oblv_user_name: str = Header(None)):
+async def smartnoise_synth_handler(model_json: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
     #Check for params
     # params = {}
     # create synthetic data using the specified model
-    response = synth(model_json.model, model_json.epsilon)
+    try:
+        response = synth(model_json.model, model_json.epsilon, model_json.delta)
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, f"Error message: {str(e)}")
     query = QueryDBInput(x_oblv_user_name,model_json.toJSON(),"smartnoise_synth")
     # query.query.epsilon = 10
     # query.query.delta = 10
@@ -179,23 +183,29 @@ async def smartnoise_synth_handler(model_json: SNSynthInp, x_oblv_user_name: str
     return response
 
 @app.post("/smartnoise_sql_cost", tags=["OBLV_PARTICIPANT_USER"])
-def smartnoise_sql_cost(query_json: SNSQLInp, x_oblv_user_name: str = Header(None)):
-    response = globals.QUERIER.cost(query_json.query_str, query_json.epsilon, query_json.delta)
+def smartnoise_sql_cost(query_json: SNSQLInp = Body(example_smartnoise_sql), x_oblv_user_name: str = Header(None)):
+    try:
+        response = globals.QUERIER.cost(query_json.query_str, query_json.epsilon, query_json.delta)
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
     
     return response
 
 #estimate SQL query cost --- so that users can calculate before spending actually ----- 
 @app.post("/smartnoise_sql", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
-def smartnoise_sql_handler(query_json: SNSQLInp, x_oblv_user_name: str = Header(None)):
+def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), x_oblv_user_name: str = Header(None)):
     # Aggregate SQL-query on the ground truth data
-    response = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
-    query = QueryDBInput(x_oblv_user_name,query_json.toJSON(),"smartnoise")
-    # query.query.epsilon = 10
-    # query.query.delta = 10
-    # query.query.response = {"key": "value"}
+    try:
+        response, privacy_cost = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
+    query = QueryDBInput(x_oblv_user_name,query_json.toJSON(),"smartnoise_sql")
+    query.query.epsilon = privacy_cost[0]
+    query.query.delta = privacy_cost[1]
+    query.query.response = response
     db_add_query(query)
-    # Not needed anymore
-    # globals.LEADERBOARD.update_eps(x_oblv_user_name, query_json.epsilon)
     return response
 
 

@@ -27,8 +27,8 @@ class MSTParams(BaseModel):
 
 class MST(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float):
-        return super().__init__(data, epsilon)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
+        return super().__init__(data, epsilon, delta)
 
     def fit(self) -> None:
         # the data to fit is in self._data and is a dataframe
@@ -46,13 +46,13 @@ class MST(SDModel):
             "data_meta": tfile.name
         }
         
-        self._model = Synthesizer.create('mst', epsilon=2)
+        self._model = Synthesizer.create('mst', epsilon=self.epsilon, delta=self.delta)
         #TODO - Currently MST fails 
         # MSTSynthesizer(domains_dict=Domains, 
         #                    domain='data_meta',
         #                    epsilon=self.epsilon)
 
-        self._model.fit_sample(self.data, preprocessor_eps=1)
+        self._model.fit(self.data, preprocessor_eps=1)
 
     def sample(self, num_samples: int) -> pd.DataFrame:
         # you should use the model etc trained in the self.fit() to 

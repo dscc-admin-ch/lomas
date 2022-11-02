@@ -144,7 +144,7 @@ def dppipe_deserielize_train(pipeline_json):
         spent_budget["delta"] += step[1].accountant.spent_budget[0][1]
 
     db_response = {
-        "pickled_pipe" : pickled_pipe,
+        "pickled_pipe" : str(pickled_pipe),
         "accuracy": accuracy
     }
     return pkl_response, spent_budget, db_response

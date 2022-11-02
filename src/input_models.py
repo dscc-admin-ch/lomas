@@ -69,6 +69,7 @@ class SNSQLInp(BasicModel):
 class SNSynthInp(BasicModel):
     model: str
     epsilon: float = Field(..., gt=0, le=10)
+    delta: float = 0
     params: dict = {}
 
     @validator('model')

@@ -57,9 +57,10 @@ class DPStats():
 
         try:
             result = reader.execute(query_str)
+            privacy_cost = reader.get_privacy_cost(query_str)
         except Exception as err:
             print(traceback.format_exc())
             raise HTTPException(400, "Error executing query: " + query_str + ": " + str(err))
         
-        return result
+        return result, privacy_cost
 

@@ -1,9 +1,22 @@
 runtime_args:
   settings:
     parties:
-      - Alice
-      - Bob
-      - Charlie
+      - team_name : Alice
+        country: UK
+        all_female: true
+        all_student: true
+      - team_name : Bob
+        country: US
+        all_female: true
+        all_student: true
+      - team_name : Charlie
+        country: UK
+        all_female: true
+        all_student: true
+      - team_name : NewUser
+        country: India
+        all_female: false
+        all_student: false
     rank_coef: 500
     
   MDDB_USER: "oblivious"

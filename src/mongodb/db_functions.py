@@ -68,16 +68,19 @@ def db_add_teams():
     data = {}
     with open('/usr/runtime.yaml', 'r') as f:
         data = yaml.safe_load(f)["runtime_args"]["settings"]
-    for team_name in data['parties']:
-        queries_coll.update_one({"team_name": team_name},{
+    for team in data['parties']:
+        queries_coll.update_one({"team_name": team["team_name"]},{
         "$setOnInsert": {
-            "team_name": team_name,
+            "team_name": team["team_name"],
             "queries": [],
             "submissions": [],
             "total_epsilon": 0,
             "total_delta": 0,
             "accuracy": 0,
-            "score": 0
+            "score": 0,
+            "all_female": team["all_female"],
+            "all_student": team["all_student"],
+            "country": team["country"]
         }
     },upsert=True)
     return True

@@ -15,20 +15,20 @@ def db_add_query(input: QueryDBInput):
 
 def db_get_budget(team_name: str):
     res = queries_coll.find_one({"team_name": team_name}, {
-                                "_id": 0, "epsilon": 1})
+                                "_id": 0, "total_epsilon": 1, "total_delta": 1, })
     if (res == None):
         return f"no entry with team name: '{team_name}'"
     print(type(res))
-    return res["epsilon"]
+    return res["total_epsilon"]
 
 
 def db_get_delta(team_name: str):
     res = queries_coll.find_one({"team_name": team_name}, {
-                                "_id": 0, "delta": 1})
+                                "_id": 0, "total_delta": 1})
     if (res == None):
         return f"no entry with team name: '{team_name}'"
     # print(type(res))
-    return res["delta"]
+    return res["total_delta"]
 
 
 def db_get_accuracy(team_name: str):
@@ -67,20 +67,20 @@ def db_add_submission(team_name: str, input: SubmissionDBInput):
 def db_add_teams():
     data = {}
     with open('/usr/runtime.yaml', 'r') as f:
-        data = yaml.safe_load(f, yaml.Loader)
-    db_data = []
-    for x in data['parties']:
-        db_data.append({
-            "team_name": x,
+        data = yaml.safe_load(f)["runtime_args"]["settings"]
+    for team_name in data['parties']:
+        queries_coll.update_one({"team_name": team_name},{
+        "$setOnInsert": {
+            "team_name": team_name,
             "queries": [],
             "submissions": [],
-            "epsilon": 0,
-            "delta": 0,
+            "total_epsilon": 0,
+            "total_delta": 0,
             "accuracy": 0,
             "score": 0
-        })
-    queries_coll.insert_many(db_data)
-    return
+        }
+    },upsert=True)
+    return True
 
 
 def db_get_leaderboard():

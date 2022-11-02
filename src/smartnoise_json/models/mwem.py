@@ -29,15 +29,15 @@ class MWEMParams(BaseModel):
 
 class MWEM(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float):
-        return super().__init__(data, epsilon)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
+        return super().__init__(data, epsilon, delta)
 
     def fit(self) -> None:
         # the data to fit is in self.data and is a dataframe
         # the function should have no return, only fit any internals 
         # eg self._model etc as required for sampling
         
-        self._model = snsynth.Synthesizer.create('mwem', epsilon=1.0)
+        self._model = snsynth.Synthesizer.create('mwem', epsilon=self.epsilon)
         self._model.fit(self.data.to_numpy())
 
     def sample(self, num_samples: int) -> pd.DataFrame:

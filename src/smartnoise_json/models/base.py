@@ -13,9 +13,10 @@ import io
 
 class SDModel(ABC):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
         #self.params = params
         self.epsilon = epsilon
+        self.delta = delta
         #self.data = data
 
         # create a column mapping from catagorical to ints [1,2,3,4....]

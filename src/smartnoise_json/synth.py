@@ -37,6 +37,6 @@ synth_map = {
 #         'class': 'snsynth.pytorch.nn.pategan.PATEGAN'
 #     }
 # }
-def synth(synth_type:str, eps:float, params: Dict[str, int] = {}):
-    sd = synth_map[synth_type](globals.TRAIN, eps)
+def synth(synth_type:str, eps:float, delta: float, params: Dict[str, int] = {}):
+    sd = synth_map[synth_type](globals.TRAIN, eps, delta)
     return sd.export()

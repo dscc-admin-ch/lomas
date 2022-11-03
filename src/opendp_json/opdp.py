@@ -78,4 +78,4 @@ def opendp_constructor(parse_str: str):
 
 
 def opendp_apply(opdp_pipe):
-    return opdp_pipe("1,2,3,4")
+    return opdp_pipe(globals.TRAIN.to_csv())

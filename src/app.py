@@ -264,21 +264,23 @@ def score(
 @app.post(
     "/submit", 
     dependencies=[
-        # Depends(competition_live), 
+        Depends(competition_live), 
         Depends(submit_limitter)
     ],
     tags=["OBLV_PARTICIPANT_USER"]
     )
 def submit(
-    # file: UploadFile = File(...),
+    file: UploadFile = File(...),
     x_oblv_user_name: str = Header(None)
     ):
-    # print(f"Recieved submission from {x_oblv_user_name}")
-    # return oracle_accuracy(file, x_oblv_user_name)
-
+    LOG.info(f"Recieved submission from {x_oblv_user_name}")
     #TODO :CALCULATE SCORE
-    # db_add_submission(x_oblv_user_name, SubmissionDBInput(18, 39))
-    return #oracle_accuracy(file, x_oblv_user_name)
+
+    acc, score = oracle_accuracy(file, x_oblv_user_name)
+    db_add_submission(x_oblv_user_name, SubmissionDBInput(acc, score))
+
+    return f"Submission accepted. This submission had an accuracy of {acc}. Your total score is: {score}"
+    
 
 
 @app.get(

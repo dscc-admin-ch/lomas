@@ -1,8 +1,9 @@
 from fastapi import UploadFile, HTTPException
 import pandas as pd
-
+import numpy as np
 # from globals import TEST, LEADERBOARD
 import globals
+from mongodb.db_functions import db_get_budget, db_get_delta
 
 def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
     # now create a temperary dataframe
@@ -29,7 +30,11 @@ def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
     
     acc = (joint_data["submitted"] == joint_data["labels"]).mean()
 
-    globals.LEADERBOARD.update_acc(x_oblv_user_name, acc)
-    score = globals.LEADERBOARD.get_score(x_oblv_user_name)
+    eps = db_get_budget(x_oblv_user_name)
+    delta = db_get_delta(x_oblv_user_name)
+    score = get_score(eps, delta, globals.TEST.shape[0])
 
-    return f"Submission accepted. This submission had an accuracy of {acc}. Your total score is: {score}"
+    return acc, score
+
+def get_score(eps, delta, D, eps_sigma=100, delta_alpha=5, delta_beta=3):
+  return - (eps/eps_sigma) - (1 - np.exp( - delta_alpha*delta*D))**delta_beta

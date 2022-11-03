@@ -38,7 +38,9 @@ class SubmissionDBInput(BasicModel):
     accuracy: float = 0
     timestamp: float = time.time()
     score: float = 0
-    
+    epsilon: float = 0
+    delta: float = 0
+
     def __init__(self,accuracy,score):
         super().__init__()
         self.accuracy = accuracy

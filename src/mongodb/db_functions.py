@@ -18,7 +18,6 @@ def db_get_budget(team_name: str):
                                 "_id": 0, "total_epsilon": 1, "total_delta": 1, })
     if (res == None or res == {}):
         return f"no entry with team name: '{team_name}'"
-    print(type(res))
     return res["total_epsilon"]
 
 
@@ -27,7 +26,6 @@ def db_get_delta(team_name: str):
                                 "_id": 0, "total_delta": 1})
     if (res == None or res == {}):
         return f"no entry with team name: '{team_name}'"
-    # print(type(res))
     return res["total_delta"]
 
 
@@ -36,7 +34,6 @@ def db_get_accuracy(team_name: str):
                                 "_id": 0, "accuracy": 1})
     if (res == None or res == {}):
         return f"no entry with team name: '{team_name}'"
-    # print(type(res))
     return res["accuracy"]
 
 
@@ -51,6 +48,10 @@ def db_add_submission(team_name: str, input: SubmissionDBInput):
     # print(input)
     score = db_get_score(team_name)
     accuracy = db_get_accuracy(team_name)
+    epsilon = db_get_budget(team_name)
+    delta = db_get_delta(team_name)
+    input.epsilon = epsilon
+    input.delta = delta
     accuracy, score = (input.accuracy, input.score) if input.score > score else (accuracy, score)
     # score = input.score if input.score > score else score
     queries_coll.update_one({"team_name": team_name}, {

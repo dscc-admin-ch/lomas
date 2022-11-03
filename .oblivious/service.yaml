@@ -32,6 +32,12 @@ paths:
   path: /smartnoise_sql
   short_description: endpoint to query data using Smartnoise-sql
 - access: participant
+  path: /smartnoise_sql_cost
+  short_description: endpoint to get cost for Smartnoise-sql query
+- access: participant
+  path: /state
+  short_description: endpoint to get cost for Smartnoise-sql query
+- access: participant
   path: /smartnoise_synth
   short_description: endpoint to generate synthetic data using Smartnoise-synth
 - access: participant

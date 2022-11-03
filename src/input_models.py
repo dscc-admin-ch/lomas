@@ -63,13 +63,13 @@ class DiffPrivLibInp(BasicModel):
 class SNSQLInp(BasicModel):
     query_str: str
     epsilon: float = Field(..., gt=0, le=10)
-    delta: float = 0
+    delta: float = Field(..., gt=0, le=2)
 
  
 class SNSynthInp(BasicModel):
     model: str
     epsilon: float = Field(..., gt=0, le=10)
-    delta: float = 0
+    delta: float = Field(..., gt=0, le=2)
     params: dict = {}
 
     @validator('model')

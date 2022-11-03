@@ -47,7 +47,17 @@ async def middleware(request: Request, call_next):
 
 @app.on_event("startup")
 def startup_event():
-    db_add_teams()
+    LOG.info("Loading teams")
+    try:
+        db_add_teams()
+    except Exception as e:
+        LOG.exception("Failed while loading teams at startup:" + str(e))
+        globals.SERVER_STATE["state"].append("Loading teams at Startup Failure")
+        globals.SERVER_STATE["message"].append(str(e))
+    else:
+        globals.SERVER_STATE["state"].append("Teams Loaded")
+        globals.SERVER_STATE["message"].append("Success!")
+    
     LOG.info("Loading datasets")
     try:
         globals.set_datasets_fromDB()
@@ -212,7 +222,7 @@ def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), 
 
 
 @app.get(
-    "/budget", 
+    "/total_epsilon", 
     dependencies=[Depends(competition_live)],
     tags=["OBLV_PARTICIPANT_USER"]
     )
@@ -232,7 +242,7 @@ def accuracy(
     return db_get_accuracy(x_oblv_user_name)
 
 @app.get(
-    "/delta", 
+    "/total_delta", 
     dependencies=[Depends(competition_live)],
     tags=["OBLV_PARTICIPANT_USER"]
     )

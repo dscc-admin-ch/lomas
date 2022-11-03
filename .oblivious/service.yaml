@@ -23,8 +23,7 @@ paths:
   short_description: endpoint to configure parties
 - access: participant
   path: /opendp
-  short_description: endpoint to run differentially private opendp transformations
-    on data
+  short_description: endpoint to run differentially private opendp transformations on data
 - access: participant
   path: /diffprivlib
   short_description: endpoint to train pipeline using diffprivlib differentially private
@@ -36,7 +35,10 @@ paths:
   path: /smartnoise_synth
   short_description: endpoint to generate synthetic data using Smartnoise-synth
 - access: participant
-  path: /budget
+  path: /total_epsilon
+  short_description: endpoint to get epsilon
+- access: participant
+  path: /total_delta
   short_description: endpoint to get epsilon
 - access: participant
   path: /accuracy

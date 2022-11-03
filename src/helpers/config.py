@@ -21,7 +21,7 @@ class TimeAttack(BaseModel):
     magnitude: float
 
 class Settings(BaseSettings):
-    parties: List[str] 
+    parties: List[dict] 
     rank_coef: float 
     time_attack: TimeAttack = None
 

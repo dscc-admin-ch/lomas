@@ -76,77 +76,26 @@ async def get_state(x_oblv_user_name: str = Header(None)):
         "requested_by": x_oblv_user_name,
         "state": globals.SERVER_STATE
     }
-@app.post(
-    "/train_data", 
-    dependencies=[Depends(competition_prereq)],
-    tags=["OBLV_ADMIN_USER"]
-    )
-def upload_train_data(
-    file: UploadFile = File(...),
-    x_oblv_user_name: str = Header(None)
-    ):
-    globals.set_TRAIN(file)
-
-    globals.check_start_condition()
-
-    return 'ok'
-
-@app.post(
-    "/test_data", 
-    dependencies=[Depends(competition_prereq)],
-    tags=["OBLV_ADMIN_USER"]
-    )
-def upload_test_data(
-    file: UploadFile = File(...),
-    x_oblv_user_name: str = Header(None)
-    ):
-    globals.set_TEST(file)
-
-    globals.check_start_condition()
-
-    return 'ok'
-
-@app.get(
-    "/start", 
-    dependencies=[Depends(competition_prereq)],
-    tags=["OBLV_ADMIN_USER"]
-    )
-def configure(
-    # slack_path:str,
-    x_oblv_user_name: str = Header(None)
-    ):
-    slack_path = "TV19HHM24/B044ZGKDNP6/5iikIvB7AP85eJZ7y4UgwQFs"
-    config_ = config.get_settings()
-    
-    globals.LEADERBOARD = LeaderBoard(
-        config_.parties,
-        slack_path 
-    )
-
-    globals.check_start_condition()
-
-    return "ok"
 
 
 @app.post("/opendp", tags=["OBLV_PARTICIPANT_USER"])
 def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_name: str = Header(None)):
     
     try:
-       opendp_pipe = opendp_constructor(pipeline_json.toJSONStr())
+        opendp_pipe = opendp_constructor(pipeline_json.toJSONStr())
     except Exception as e:
         raise HTTPException(500, "Failed while contructing opendp pipeline with error: " + str(e))
     
     try:
-        response = opendp_apply(opendp_pipe)
+        response, privacy_map = opendp_apply(opendp_pipe)
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))
         
     query = QueryDBInput(x_oblv_user_name,pipeline_json,"opendp")
-    query.query.epsilon = 2
-    query.query.delta = 2
-    query.query.response = str(response.__dir__)
-    print(response)
+    query.query.epsilon = privacy_map[0]
+    query.query.delta = privacy_map[1]
+    query.query.response = str(response)
     db_add_query(query)
 
 
@@ -167,29 +116,20 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
     query = QueryDBInput(x_oblv_user_name,pipeline_json,"diffprivlib")
     query.query.epsilon = spent_budget["epsilon"]
     query.query.delta = spent_budget["delta"]
-    print(db_response)
     query.query.response = db_response
     db_add_query(query)
 
     return response
     
 @app.post("/smartnoise_synth", tags=["OBLV_PARTICIPANT_USER"])
-async def smartnoise_synth_handler(model_json: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
-    #Check for params
-    # params = {}
-    # create synthetic data using the specified model
+def smartnoise_synth_handler(model_json: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
     try:
         response = synth(model_json.model, model_json.epsilon, model_json.delta)
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, f"Error message: {str(e)}")
     query = QueryDBInput(x_oblv_user_name,model_json.toJSON(),"smartnoise_synth")
-    # query.query.epsilon = 10
-    # query.query.delta = 10
-    # query.query.response = {"key": "value"}
     db_add_query(query)
-    # Not needed anymore
-    # globals.LEADERBOARD.update_eps(x_oblv_user_name, model_json.epsilon)
     return response
 
 @app.post("/smartnoise_sql_cost", tags=["OBLV_PARTICIPANT_USER"])

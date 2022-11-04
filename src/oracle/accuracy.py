@@ -32,9 +32,9 @@ def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
 
     eps = db_get_budget(x_oblv_user_name)
     delta = db_get_delta(x_oblv_user_name)
-    score = get_score(eps, delta, globals.TEST.shape[0])
+    score = acc + get_loss(eps, delta, globals.TEST.shape[0])
 
     return acc, score
 
-def get_score(eps, delta, D, eps_sigma=100, delta_alpha=5, delta_beta=3):
+def get_loss(eps, delta, D, eps_sigma=100, delta_alpha=5, delta_beta=3):
   return - (eps/eps_sigma) - (1 - np.exp( - delta_alpha*delta*D))**delta_beta

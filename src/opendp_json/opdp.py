@@ -27,6 +27,8 @@ def cast_str_to_type(d):
     return d
 
 def jsonOpenDPDecoder(obj):
+    if "_tuple" in obj.keys():
+        return tuple(obj["_items"])
     if isinstance(obj, dict):
         return cast_str_to_type(obj)
     return obj
@@ -58,11 +60,6 @@ def tree_walker(branch):
         module = comb
     else:
         raise ValueError(f"Type {branch['type']} not in Literal[\"Transformation\", \"Measurement\", \"Combination\"].")
-    
-    print(module)
-    print(dir(module))
-    import inspect
-    print(inspect.getsource(getattr(module, branch["func"])))
 
     return getattr(module, branch["func"])(*branch["args"], **branch["kwargs"])
 
@@ -78,4 +75,11 @@ def opendp_constructor(parse_str: str):
 
 
 def opendp_apply(opdp_pipe):
-    return opdp_pipe(globals.TRAIN.to_csv())
+    release_data = opdp_pipe(453.2)
+    try:
+        privacy_map = opdp_pipe.map(d_in=1.)
+        print(privacy_map)
+    except Exception as e:
+        globals.LOG.exception(e)
+        raise Exception('Error obtaining privacy map for the chain. Please ensure methods are in correct order. Error:' + str(e))
+    return release_data, privacy_map

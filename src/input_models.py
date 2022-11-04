@@ -23,7 +23,7 @@ class OpenDPAST(BasicModel):
     func: str
     module: str
     type: str
-    args: List = []
+    args: dict = {}
     kwargs: dict = {}
 
     

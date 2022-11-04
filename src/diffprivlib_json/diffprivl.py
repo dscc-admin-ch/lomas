@@ -193,8 +193,6 @@ def deserialize_pipeline(dct_str):
   else:
     raise ValueError("Key 'version' not in submitted json request.")
 
-  print(dct)
-
   return Pipeline(
       [(val["name"], val["type"](**val["params"])) for val in dct["pipeline"]]
   )

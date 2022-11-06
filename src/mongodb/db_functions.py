@@ -1,5 +1,5 @@
 import yaml
-
+from fastapi import HTTPException
 from . import queries_coll
 from .db_models import QueryDBInput, SubmissionDBInput
 
@@ -17,7 +17,7 @@ def db_get_budget(team_name: str):
     res = queries_coll.find_one({"team_name": team_name}, {
                                 "_id": 0, "total_epsilon": 1, "total_delta": 1, })
     if (res == None or res == {}):
-        return f"no entry with team name: '{team_name}'"
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
     return res["total_epsilon"]
 
 
@@ -25,7 +25,7 @@ def db_get_delta(team_name: str):
     res = queries_coll.find_one({"team_name": team_name}, {
                                 "_id": 0, "total_delta": 1})
     if (res == None or res == {}):
-        return f"no entry with team name: '{team_name}'"
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
     return res["total_delta"]
 
 
@@ -33,7 +33,7 @@ def db_get_accuracy(team_name: str):
     res = queries_coll.find_one({"team_name": team_name}, {
                                 "_id": 0, "accuracy": 1})
     if (res == None or res == {}):
-        return f"no entry with team name: '{team_name}'"
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
     return res["accuracy"]
 
 
@@ -41,7 +41,7 @@ def db_get_score(team_name: str):
     res = queries_coll.find_one(
         {"team_name": team_name}, {"_id": 0, "score": 1})
     if (res == None or res == {}):
-        return f"no entry with team name: '{team_name}'"
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
     return res["score"]
 
 def db_add_submission(team_name: str, input: SubmissionDBInput):

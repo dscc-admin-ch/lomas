@@ -3,6 +3,7 @@ import opendp.measurements as meas
 import opendp.transformations  as trans
 from opendp.mod import enable_features
 enable_features('contrib')
+from fastapi import HTTPException
 # print("comb:", comb)
 # print("meas:", meas)
 # print("trans:", trans)
@@ -75,11 +76,14 @@ def opendp_constructor(parse_str: str):
 
 
 def opendp_apply(opdp_pipe):
-    release_data = opdp_pipe(453.2)
     try:
-        privacy_map = opdp_pipe.map(d_in=1.)
-        print(privacy_map)
+        release_data = opdp_pipe(globals.TRAIN.to_csv())
     except Exception as e:
         globals.LOG.exception(e)
-        raise Exception('Error obtaining privacy map for the chain. Please ensure methods are in correct order. Error:' + str(e))
-    return release_data, privacy_map
+        raise HTTPException(400, "Failed when applying chain to data with error: " + str(e))
+    try:
+        e, d = opdp_pipe.map(d_in=1.)
+    except Exception as e:
+        globals.LOG.exception(e)
+        raise HTTPException(400, 'Error obtaining privacy map for the chain. Please ensure methods are in correct order. Error:' + str(e))
+    return release_data, (e,d)

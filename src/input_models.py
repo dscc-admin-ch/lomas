@@ -63,13 +63,14 @@ class DiffPrivLibInp(BasicModel):
 class SNSQLInp(BasicModel):
     query_str: str
     epsilon: float = Field(..., gt=0, le=10)
-    delta: float = Field(..., gt=0, le=2)
+    delta: float = Field(..., gt=0, le=0.0001)
 
  
 class SNSynthInp(BasicModel):
     model: str
     epsilon: float = Field(..., gt=0, le=10)
-    delta: float = Field(..., gt=0, le=2)
+    delta: float = 0
+    select_cols: List = []
     params: dict = {}
 
     @validator('model')
@@ -78,23 +79,8 @@ class SNSynthInp(BasicModel):
             raise ValueError(f"'{model}' is not one of {list(synth_map.keys())}.")
         return model
 
-
-
-# ast:
-#   from:
-#     args: !!python/tuple []
-#     func: make_split_dataframe
-#     kwargs:
-#       col_names:
-#       - hello
-#       - world
-#       separator: ','
-#     type: Transformation
-#   to:
-#     args: !!python/tuple []
-#     func: make_select_column
-#     kwargs:
-#       TOA: !!python/name:builtins.str ''
-#       key: income
-#     type: Transformation
-# version: 0.5.0
+    @validator('delta')
+    def valid_delta(cls, delta, values):
+        if values["model"] != "MWEM" and (not delta > 0 or not delta <= 0.0001):
+            raise ValueError("Please provide a valid delta value it should be greater than 0 and less than 0.0001. User provided: " + str(delta))
+        return delta

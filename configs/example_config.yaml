@@ -5,20 +5,29 @@ runtime_args:
         country: UK
         all_female: true
         all_student: true
+        location: Remote
       - team_name : Bob
         country: US
         all_female: true
         all_student: true
+        location: Remote
       - team_name : Charlie
         country: UK
         all_female: true
         all_student: true
+        location: Remote
       - team_name : NewUser
         country: India
         all_female: false
         all_student: false
+        location: Remote
+      - team_name : UserwithLLoc
+        country: India
+        all_female: false
+        all_student: false
+        location: Harvard John A. Paulson School Of Engineering and Applied Sciences (Boston area)
     rank_coef: 500
-    
+  MDDB_DBNAME : datasets
   MDDB_USER: "oblivious"
   MDDB_PASS: "<mongo_pass>"
   MDDB_URL: "stage-un-g20-nov22.cluster-clagiea8p62e.eu-west-1.docdb.amazonaws.com:27017/?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false"

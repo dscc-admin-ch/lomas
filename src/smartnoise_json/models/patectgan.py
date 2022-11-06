@@ -22,19 +22,19 @@ from snsynth import Synthesizer
 
 class PATECTGAN(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
         # params will be ignored as no optional params in model
         params = {}
 
-        return super().__init__(data, epsilon, delta)
+        return super().__init__(data, epsilon, delta, select_cols)
 
     def fit(self) -> None:
         # the data to fit is in self._data and is a dataframe
         # the function should have no return, only fit any internals 
         # eg self._model etc as required for sampling
         
-        self._model = Synthesizer.create("patectgan", epsilon=self.epsilon, delta=self.delta, verbose=True)
-        self._model.fit(self.data, preprocessor_eps=1.0)
+        self._model = Synthesizer.create("patectgan", epsilon=self.epsilon, delta=self.delta)
+        self._model.fit(self.data, preprocessor_eps=2.0)
         # self._model = PytorchDPSynthesizer(self.epsilon, snsynth_PATECTGAN(), None)
         # #TODO BaseTransformer no longer exists, need to update 
         # self._model.fit(

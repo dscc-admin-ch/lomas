@@ -115,6 +115,10 @@ def dppipe_deserielize_train(pipeline_json):
         spent_budget["epsilon"] += step[1].accountant.spent_budget[0][0]
         spent_budget["delta"] += step[1].accountant.spent_budget[0][1]
 
+    if spent_budget["epsilon"] > globals.EPSILON_LIMIT:
+        raise HTTPException(400, f"Pipeline constructed uses epsilon > {globals.EPSILON_LIMIT}, please update and retry")
+    if spent_budget["delta"] > globals.DELTA_LIMIT:
+        raise HTTPException(400, f"Pipeline constructed uses delta > {globals.DELTA_LIMIT}, please update and retry")
     db_response = {
         "pickled_pipe" : str(pickled_pipe),
         "accuracy": accuracy
@@ -141,13 +145,13 @@ class DPL_Decoder(json.JSONDecoder):
           try:
             dct[k] = getattr(diffprivlib.models, v[10:])
           except Exception as e:
-            print(e)
+            LOG.exception(e)
 
         elif v[:14] == "_dpl_instance:":
           try:
             dct[k] = getattr(diffprivlib, v[14:])()
           except Exception as e:
-            print(e)
+            LOG.exception(e)
 
     return dct
 

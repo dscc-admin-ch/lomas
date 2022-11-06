@@ -20,6 +20,9 @@ TEST_Y: pd.DataFrame = None
 SERVER_STATE: dict = {"state": ["NA"], "message": ["NA"], "live": False}
 LIVE: bool = False
 
+EPSILON_LIMIT: float = 10.0
+DELTA_LIMIT: float = 0.0004
+
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 
 

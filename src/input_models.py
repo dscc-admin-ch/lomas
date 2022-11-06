@@ -1,4 +1,4 @@
-from datetime import datetime
+import globals
 from typing import List, Any
 from pydantic import BaseModel, validator, Field
 from diffprivlib_json.diffprivl import diffpriv_map
@@ -62,13 +62,13 @@ class DiffPrivLibInp(BasicModel):
 
 class SNSQLInp(BasicModel):
     query_str: str
-    epsilon: float = Field(..., gt=0, le=10)
-    delta: float = Field(..., gt=0, le=0.0001)
+    epsilon: float = Field(..., gt=0, le=globals.EPSILON_LIMIT)
+    delta: float = Field(..., gt=0, le=globals.DELTA_LIMIT)
 
  
 class SNSynthInp(BasicModel):
     model: str
-    epsilon: float = Field(..., gt=0, le=10)
+    epsilon: float = Field(..., gt=0, le=globals.EPSILON_LIMIT)
     delta: float = 0
     select_cols: List = []
     params: dict = {}
@@ -81,6 +81,6 @@ class SNSynthInp(BasicModel):
 
     @validator('delta')
     def valid_delta(cls, delta, values):
-        if values["model"] != "MWEM" and (not delta > 0 or not delta <= 0.0001):
-            raise ValueError("Please provide a valid delta value it should be greater than 0 and less than 0.0001. User provided: " + str(delta))
+        if values["model"] != "MWEM" and (not delta > 0 or delta > globals.DELTA_LIMIT):
+            raise ValueError(f"For models other than MWEM delta value should be greater than 0 and less than or equal to {globals.DELTA_LIMIT}. User provided: {str(delta)}")
         return delta

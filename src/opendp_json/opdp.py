@@ -85,5 +85,9 @@ def opendp_apply(opdp_pipe):
         e, d = opdp_pipe.map(d_in=1.)
     except Exception as e:
         globals.LOG.exception(e)
-        raise HTTPException(400, 'Error obtaining privacy map for the chain. Please ensure methods are in correct order. Error:' + str(e))
+        raise HTTPException(400, 'Error obtaining privacy map for the chain. Please ensure methods return epsilon, and delta in privacy map. Error:' + str(e))
+    if e > globals.EPSILON_LIMIT:
+        raise HTTPException(400, f"Chain constructed uses epsilon > {globals.EPSILON_LIMIT}, please update and retry")
+    if d > globals.DELTA_LIMIT:
+        raise HTTPException(400, f"Chain constructed uses delta > {globals.DELTA_LIMIT}, please update and retry")
     return release_data, (e,d)

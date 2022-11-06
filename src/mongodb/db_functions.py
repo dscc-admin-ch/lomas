@@ -80,7 +80,8 @@ def db_add_teams():
             "score": 0,
             "all_female": team["all_female"],
             "all_student": team["all_student"],
-            "country": team["country"]
+            "country": team["country"],
+            "location": team["location"]
         }
     },upsert=True)
     return True

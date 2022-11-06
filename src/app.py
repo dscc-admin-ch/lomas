@@ -1,21 +1,17 @@
 from fastapi import (Body, Depends, FastAPI, File, Header, HTTPException,
                      Request, UploadFile)
-# LEADERBOARD, QUERIER, TRAIN, TEST, LIVE, set_TRAIN, set_TEST
 import globals
 from loggr import LOG
-import helpers.config as config
-from diffprivlib_json.diffprivl import DIFFPRIVLIBP_VERSION, dppipe_predict, dppipe_deserielize_train
+from diffprivlib_json.diffprivl import dppipe_deserielize_train
 from example_inputs import (example_diffprivlib, example_opendp,
                             example_smartnoise_sql, example_smartnoise_synth)
-from helpers.depends import (competition_live, competition_prereq,
+from helpers.depends import (competition_live,
                              submit_limitter)
-from helpers.leaderboard import LeaderBoard
 from helpers.time import anti_timing_att
 from input_models import DiffPrivLibInp, OpenDPInp, SNSQLInp, SNSynthInp
 from mongodb.db_functions import (db_add_query, db_add_submission,
                                   db_add_teams, db_get_accuracy, db_get_budget,
-                                  db_get_delta, db_get_last_submission,
-                                  db_get_leaderboard, db_get_score)
+                                  db_get_delta, db_get_leaderboard, db_get_score)
 from mongodb.db_models import QueryDBInput, SubmissionDBInput
 from opendp_json.opdp import opendp_constructor, opendp_apply
 # from oracle.stats import DPStats
@@ -78,16 +74,19 @@ async def get_state(x_oblv_user_name: str = Header(None)):
     }
 
 
-@app.post("/opendp", tags=["OBLV_PARTICIPANT_USER"])
+@app.post("/opendp", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
 def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_name: str = Header(None)):
     
     try:
         opendp_pipe = opendp_constructor(pipeline_json.toJSONStr())
     except Exception as e:
+        LOG.exception(e)
         raise HTTPException(500, "Failed while contructing opendp pipeline with error: " + str(e))
-    
     try:
         response, privacy_map = opendp_apply(opendp_pipe)
+    except HTTPException as he:
+        LOG.exception(he)
+        return he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))
@@ -102,13 +101,16 @@ def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_
     return response
 
 
-@app.post("/diffprivlib", tags=["OBLV_PARTICIPANT_USER"])
+@app.post("/diffprivlib", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
 def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib), 
                             x_oblv_user_name: str = Header(...)):
     # if pipeline_json.version != DIFFPRIVLIBP_VERSION:
     #     raise HTTPException(422, f"For DiffPrivLib version {pipeline_json.version} is not supported, we currently have version:{DIFFPRIVLIBP_VERSION}")
     try:
         response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
+    except HTTPException as he:
+        LOG.exception(he)
+        return he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, f"Error message: {e}")
@@ -121,21 +123,30 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
 
     return response
     
-@app.post("/smartnoise_synth", tags=["OBLV_PARTICIPANT_USER"])
-def smartnoise_synth_handler(model_json: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
+@app.post("/smartnoise_synth", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
+def smartnoise_synth_handler(model_inp: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
     try:
-        response = synth(model_json.model, model_json.epsilon, model_json.delta)
+        response = synth(model_inp)
+    except HTTPException as he:
+        LOG.exception(he)
+        return he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, f"Error message: {str(e)}")
-    query = QueryDBInput(x_oblv_user_name,model_json.toJSON(),"smartnoise_synth")
+    query = QueryDBInput(x_oblv_user_name,model_inp.toJSON(),"smartnoise_synth")
+    query.query.epsilon = model_inp.epsilon
+    query.query.delta = model_inp.delta
+    query.query.response = str(response)
     db_add_query(query)
     return response
 
-@app.post("/smartnoise_sql_cost", tags=["OBLV_PARTICIPANT_USER"])
+@app.post("/smartnoise_sql_cost", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
 def smartnoise_sql_cost(query_json: SNSQLInp = Body(example_smartnoise_sql), x_oblv_user_name: str = Header(None)):
     try:
         response = globals.QUERIER.cost(query_json.query_str, query_json.epsilon, query_json.delta)
+    except HTTPException as he:
+        LOG.exception(he)
+        return he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))
@@ -148,6 +159,9 @@ def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), 
     # Aggregate SQL-query on the ground truth data
     try:
         response, privacy_cost = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
+    except HTTPException as he:
+        LOG.exception(he)
+        return he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))

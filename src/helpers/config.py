@@ -18,7 +18,7 @@ def yaml_config(settings: BaseSettings) -> Dict[str, Any]:
 
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"] 
-    magnitude: float
+    magnitude: float = 1
 
 class Settings(BaseSettings):
     parties: List[dict] 

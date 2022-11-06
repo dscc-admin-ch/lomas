@@ -27,8 +27,8 @@ class MSTParams(BaseModel):
 
 class MST(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
-        return super().__init__(data, epsilon, delta)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
+        return super().__init__(data, epsilon, delta, select_cols)
 
     def fit(self) -> None:
         # the data to fit is in self._data and is a dataframe
@@ -52,7 +52,7 @@ class MST(SDModel):
         #                    domain='data_meta',
         #                    epsilon=self.epsilon)
 
-        self._model.fit(self.data, preprocessor_eps=1)
+        self._model.fit(self.data, preprocessor_eps=2)
 
     def sample(self, num_samples: int) -> pd.DataFrame:
         # you should use the model etc trained in the self.fit() to 

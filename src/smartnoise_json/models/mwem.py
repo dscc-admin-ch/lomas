@@ -29,8 +29,8 @@ class MWEMParams(BaseModel):
 
 class MWEM(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
-        return super().__init__(data, epsilon, delta)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
+        return super().__init__(data, epsilon, delta, select_cols)
 
     def fit(self) -> None:
         # the data to fit is in self.data and is a dataframe
@@ -38,7 +38,7 @@ class MWEM(SDModel):
         # eg self._model etc as required for sampling
         
         self._model = snsynth.Synthesizer.create('mwem', epsilon=self.epsilon)
-        self._model.fit(self.data.to_numpy())
+        self._model.fit(self.data, preprocessor_eps= 2)
 
     def sample(self, num_samples: int) -> pd.DataFrame:
         # you should use the model etc trained in the self.fit() to 

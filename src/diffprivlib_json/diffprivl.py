@@ -29,33 +29,7 @@ diffpriv_map = {
 json_pytype_mapping = {
     "tuple": tuple
 }
-X_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
-                         usecols=(0, 4, 10, 11, 12), delimiter=", ")
-
-y_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
-                        usecols=14, dtype=str, delimiter=", ")
-
-X_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
-                    usecols=(0, 4, 10, 11, 12), delimiter=", ", skiprows=1)
-
-y_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
-                    usecols=14, dtype=str, delimiter=", ", skiprows=1)
-# Must trim trailing period "." from label
-y_test = np.array([a[:-1] for a in y_test])
 class DiffPrivPipe:
-    X_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
-                         usecols=(0, 4, 10, 11, 12), delimiter=", ")
-
-    y_train = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
-                        usecols=14, dtype=str, delimiter=", ")
-
-    X_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
-                        usecols=(0, 4, 10, 11, 12), delimiter=", ", skiprows=1)
-
-    y_test = np.loadtxt("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test",
-                        usecols=14, dtype=str, delimiter=", ", skiprows=1)
-    # Must trim trailing period "." from label
-    y_test = np.array([a[:-1] for a in y_test])
 
     def __init__(self, json) -> None:
         self.pipeline_py = self.json_to_pytype(json)
@@ -124,14 +98,12 @@ def dppipe_deserielize_train(pipeline_json):
     except Exception as exc:
         LOG.error(exc)
         raise exc
-
-    dp_pipe.fit(X_train, y_train) 
+    
+    dp_pipe.fit(globals.TRAIN_X, globals.TRAIN_Y["labels"]) 
 
     pickled_pipe = pickle.dumps(dp_pipe)
-
     accuracy = dp_pipe.score(
-        X_test, y_test) * 100
-
+        globals.TEST_X, globals.TEST_Y["labels"]) * 100
     pkl_response = StreamingResponse(BytesIO(bytes(pickled_pipe)))
     pkl_response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
 

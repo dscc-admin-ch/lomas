@@ -12,14 +12,6 @@ async def competition_live():
         )
     yield
 
-async def competition_prereq():
-    if globals.LIVE:
-        raise HTTPException(
-            status_code=403, 
-            detail= "Application already configured and the competition has started."
-        )
-    yield
-
 async def submit_limitter(x_oblv_user_name: str = Header(None)):
     config_ = config.get_settings()
     # assert globals.LEADERBOARD._status[x_oblv_user_name], f"{x_oblv_user_name} is not a valid name"

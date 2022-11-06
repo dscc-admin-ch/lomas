@@ -14,31 +14,35 @@ import numpy as np
 import traceback
 
 # the opendp smartnoise synth data package
-from snsynth.pytorch.nn import DPCTGAN as snsynth_DPCTGAN
-from snsynth.pytorch import PytorchDPSynthesizer
-from snsynth.transform.standard import BaseTransformer
+from snsynth import Synthesizer
+# from snsynth.pytorch.nn import DPCTGAN as snsynth_DPCTGAN
+# from snsynth.pytorch import PytorchDPSynthesizer
+# from snsynth.transform.standard import BaseTransformer
 
 
 class DPCTGAN(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
         # params will be ignored as no optional params in model
         params = {}
 
-        return super().__init__(data, epsilon)
+        return super().__init__(data, epsilon, delta, select_cols)
 
     def fit(self) -> None:
         # the data to fit is in self.data and is a dataframe
         # the function should have no return, only fit any internals 
         # eg self._model etc as required for sampling
         
-        self._model = PytorchDPSynthesizer(self.epsilon, snsynth_DPCTGAN(batch_size=50), None)
-        #TODO BaseTransformer no longer exists, need to update to match new update
-        self._model.fit(
-            self.data, 
-            categorical_columns=list(self.data.columns),
-            transformer=BaseTransformer
-            )
+        self._model = Synthesizer.create("dpctgan", epsilon=self.epsilon, delta=self.delta)
+        self._model.fit(self.data, preprocessor_eps=2.0)
+
+        # self._model = PytorchDPSynthesizer(self.epsilon, snsynth_DPCTGAN(batch_size=50), None)
+        # #TODO BaseTransformer no longer exists, need to update to match new update
+        # self._model.fit(
+        #     self.data, 
+        #     categorical_columns=list(self.data.columns),
+        #     transformer=BaseTransformer
+        #     )
 
 
 

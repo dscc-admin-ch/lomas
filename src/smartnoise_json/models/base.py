@@ -3,17 +3,17 @@ from abc import ABC, abstractmethod
 from typing import List, Set, Dict, Tuple, Optional, Literal
 
 import pandas as pd
-from fastapi import UploadFile, File
+from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 import pandas as pd
 import numpy as np
-
+from globals import LOG
 import io
 
 
 class SDModel(ABC):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = None):
         #self.params = params
         self.epsilon = epsilon
         self.delta = delta
@@ -31,7 +31,14 @@ class SDModel(ABC):
 
         self.catagorical_mapping = col_mapping
 
-        self.data = data
+        if select_cols:
+            try:
+                self.data = data[select_cols]
+            except Exception as e:
+                LOG.exception("Error reading columns from dataset for synth" + str(e))
+                raise HTTPException(400, "Error while selecting provided columns: " + str(e))
+        else:
+            self.data = data
 
         self.fit()
 

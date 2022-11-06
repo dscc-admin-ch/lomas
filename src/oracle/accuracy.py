@@ -31,9 +31,10 @@ def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
     acc = (joint_data["submitted"] == joint_data["labels"]).mean()
 
     eps = db_get_budget(x_oblv_user_name)
+    if eps == None or eps == {}:
+        raise HTTPException(400, "Team entry not found: " + str(x_oblv_user_name) )
     delta = db_get_delta(x_oblv_user_name)
-    score = acc + get_loss(eps, delta, globals.TEST.shape[0])
-
+    score = acc + get_loss(eps, delta, 1/globals.TRAIN.shape[0])
     return acc, score
 
 def get_loss(eps, delta, D, eps_sigma=100, delta_alpha=5, delta_beta=3):

@@ -86,7 +86,7 @@ def opendp_handler(pipeline_json: OpenDPInp = Body(example_opendp), x_oblv_user_
         response, privacy_map = opendp_apply(opendp_pipe)
     except HTTPException as he:
         LOG.exception(he)
-        return he
+        raise he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))
@@ -110,7 +110,7 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
         response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
     except HTTPException as he:
         LOG.exception(he)
-        return he
+        raise he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, f"Error message: {e}")
@@ -129,7 +129,7 @@ def smartnoise_synth_handler(model_inp: SNSynthInp = Body(example_smartnoise_syn
         response = synth(model_inp)
     except HTTPException as he:
         LOG.exception(he)
-        return he
+        raise he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, f"Please check epsilon and delta are provided. Error message: {str(e)}")
@@ -146,7 +146,7 @@ def smartnoise_sql_cost(query_json: SNSQLInp = Body(example_smartnoise_sql), x_o
         response = globals.QUERIER.cost(query_json.query_str, query_json.epsilon, query_json.delta)
     except HTTPException as he:
         LOG.exception(he)
-        return he
+        raise he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))
@@ -161,7 +161,7 @@ def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), 
         response, privacy_cost = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
     except HTTPException as he:
         LOG.exception(he)
-        return he
+        raise he
     except Exception as e:
         LOG.exception(e)
         raise HTTPException(500, str(e))

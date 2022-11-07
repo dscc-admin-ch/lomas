@@ -27,30 +27,26 @@ class MSTParams(BaseModel):
 
 class MST(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
-        return super().__init__(data, epsilon, delta, select_cols)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = [], mul_matrix = None):
+        return super().__init__(data, epsilon, delta, select_cols, mul_matrix)
 
     def fit(self) -> None:
         # the data to fit is in self._data and is a dataframe
         # the function should have no return, only fit any internals 
         # eg self._model etc as required for sampling
 
-        cols = self.catagorical_mapping
-        cols_len = {k: len(v) for k, v in cols.items()}
-        print(cols_len, self.catagorical_mapping)
-        tfile = tempfile.NamedTemporaryFile(mode="w+")
-        json.dump(cols_len, tfile)
-        tfile.flush()
+        # cols = self.catagorical_mapping
+        # cols_len = {k: len(v) for k, v in cols.items()}
+        # print(cols_len, self.catagorical_mapping)
+        # tfile = tempfile.NamedTemporaryFile(mode="w+")
+        # json.dump(cols_len, tfile)
+        # tfile.flush()
 
-        Domains = {
-            "data_meta": tfile.name
-        }
+        # Domains = {
+        #     "data_meta": tfile.name
+        # }
         
         self._model = Synthesizer.create('mst', epsilon=self.epsilon, delta=self.delta)
-        #TODO - Currently MST fails 
-        # MSTSynthesizer(domains_dict=Domains, 
-        #                    domain='data_meta',
-        #                    epsilon=self.epsilon)
 
         self._model.fit(self.data, preprocessor_eps=2)
 

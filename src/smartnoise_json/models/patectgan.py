@@ -22,11 +22,11 @@ from snsynth import Synthesizer
 
 class PATECTGAN(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = [], mul_matrix = None):
         # params will be ignored as no optional params in model
         params = {}
 
-        return super().__init__(data, epsilon, delta, select_cols)
+        return super().__init__(data, epsilon, delta, select_cols, mul_matrix)
 
     def fit(self) -> None:
         # the data to fit is in self._data and is a dataframe

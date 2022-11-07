@@ -132,7 +132,7 @@ def smartnoise_synth_handler(model_inp: SNSynthInp = Body(example_smartnoise_syn
         return he
     except Exception as e:
         LOG.exception(e)
-        raise HTTPException(500, f"Error message: {str(e)}")
+        raise HTTPException(500, f"Please check epsilon and delta are provided. Error message: {str(e)}")
     query = QueryDBInput(x_oblv_user_name,model_inp.toJSON(),"smartnoise_synth")
     query.query.epsilon = model_inp.epsilon
     query.query.delta = model_inp.delta

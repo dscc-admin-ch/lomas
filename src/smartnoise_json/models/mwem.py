@@ -29,8 +29,8 @@ class MWEMParams(BaseModel):
 
 class MWEM(SDModel):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = []):
-        return super().__init__(data, epsilon, delta, select_cols)
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = [], mul_matrix = None):
+        return super().__init__(data, epsilon, delta, select_cols, mul_matrix)
 
     def fit(self) -> None:
         # the data to fit is in self.data and is a dataframe

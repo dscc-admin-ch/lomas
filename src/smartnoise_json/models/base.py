@@ -13,23 +13,24 @@ import io
 
 class SDModel(ABC):
 
-    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = None):
+    def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = None, mul_matrix = None):
         #self.params = params
         self.epsilon = epsilon
         self.delta = delta
+        self.allow_cols = True
         #self.data = data
 
         # create a column mapping from catagorical to ints [1,2,3,4....]
-        col_mapping = {}
-        for cat in data.columns:
-            if cat != "id":
-                col_mapping[cat] = dict([
-                    (category, code) for code, category in enumerate(data[cat].astype('category').cat.categories)
-                    ])
+        # col_mapping = {}
+        # for cat in data.columns:
+        #     if cat != "id":
+        #         col_mapping[cat] = dict([
+        #             (category, code) for code, category in enumerate(data[cat].astype('category').cat.categories)
+        #             ])
 
-                data[cat] = data[cat].map(lambda x: col_mapping[cat][x])
+        #         data[cat] = data[cat].map(lambda x: col_mapping[cat][x])
 
-        self.catagorical_mapping = col_mapping
+        # self.catagorical_mapping = col_mapping
 
         if select_cols:
             try:
@@ -39,6 +40,17 @@ class SDModel(ABC):
                 raise HTTPException(400, "Error while selecting provided columns: " + str(e))
         else:
             self.data = data
+        
+        if mul_matrix:
+            try:
+                np_matrix = np.array(mul_matrix)
+                self.allow_cols = False
+                dt = self.data.to_numpy().dot(np_matrix.T)
+                self.data = pd.DataFrame(dt)
+                print(self.data)
+            except Exception as e:
+                LOG.exception(e)
+                raise HTTPException(400, f"Failed to multiply provided np array: {(str(e))}")
 
         self.fit()
 
@@ -54,12 +66,15 @@ class SDModel(ABC):
         pass
 
     def to_DataFrame(self, arr: np.array) -> pd.DataFrame:
-        samples_df = pd.DataFrame(arr, columns=self.data.columns)
+        if self.allow_cols:
+            samples_df = pd.DataFrame(arr, columns=self.data.columns)
+        else:
+            samples_df = pd.DataFrame(arr)
 
-        for col in samples_df.columns:
-            inv_map = [k for k, v in self.catagorical_mapping[col].items()]
+        # for col in samples_df.columns:
+        #     inv_map = [k for k, v in self.catagorical_mapping[col].items()]
 
-            samples_df[col] = samples_df[col].map(lambda x: inv_map[x])
+        #     samples_df[col] = samples_df[col].map(lambda x: inv_map[x])
 
         return samples_df
 

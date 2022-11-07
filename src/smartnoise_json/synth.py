@@ -38,5 +38,5 @@ synth_map = {
 #     }
 # }
 def synth(synth_inp, params: Dict[str, int] = {}):
-    sd = synth_map[synth_inp.model](globals.TRAIN, synth_inp.epsilon+2, synth_inp.delta, synth_inp.select_cols) #epsilon + 2 for databounds
+    sd = synth_map[synth_inp.model](globals.TRAIN, synth_inp.epsilon+2, synth_inp.delta, synth_inp.select_cols, synth_inp.mul_matrix) #epsilon + 2 for databounds
     return sd.export()

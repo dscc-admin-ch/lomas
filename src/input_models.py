@@ -53,7 +53,13 @@ class DiffPrivLibInp(BasicModel):
     module: str 
     pipeline: List[DiffPrivLibModel]
     version: str
+    y_column: str
 
+    @validator('y_column')
+    def valid_Y(cls, y_column):
+        if y_column not in globals.TRAIN_Y.columns:
+            raise ValueError(f"Provided y value '{y_column}' is not available. Please select one of {list(globals.TRAIN_Y.columns)}.")
+        return y_column
     @validator('module')
     def valid_module(cls, module):
         if module != "diffprivlib":

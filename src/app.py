@@ -107,7 +107,7 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
     # if pipeline_json.version != DIFFPRIVLIBP_VERSION:
     #     raise HTTPException(422, f"For DiffPrivLib version {pipeline_json.version} is not supported, we currently have version:{DIFFPRIVLIBP_VERSION}")
     try:
-        response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr())
+        response, spent_budget, db_response = dppipe_deserielize_train(pipeline_json.toJSONStr(), pipeline_json.y_column)
     except HTTPException as he:
         LOG.exception(he)
         raise he

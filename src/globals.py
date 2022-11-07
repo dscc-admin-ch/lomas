@@ -30,10 +30,6 @@ def set_datasets_fromDB():
     global TRAIN, TEST, TRAIN_X, TRAIN_Y, TEST_X, TEST_Y, SERVER_STATE
     try: 
         train_full = pd.DataFrame(list(db.train_full.find({}, {"_id":0})))
-        if "id" not in train_full.columns.values:
-            raise Exception("id must be a column in the csv file uploaded.")
-        if train_full["id"].is_unique:
-            train_full.set_index("id", inplace=True)
     except Exception as e: 
         SERVER_STATE["state"].append("Failed while loading Train full dataset")
         SERVER_STATE["message"].append(str(traceback.format_exc()))

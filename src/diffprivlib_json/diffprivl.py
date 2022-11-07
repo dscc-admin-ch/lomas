@@ -90,7 +90,7 @@ def dppipe_predict(pipeline_json):
 
     return response, budget
 
-def dppipe_deserielize_train(pipeline_json):
+def dppipe_deserielize_train(pipeline_json, y_column = ""):
     try: 
         dp_pipe = deserialize_pipeline(pipeline_json)
     except ValueError as e:
@@ -99,11 +99,15 @@ def dppipe_deserielize_train(pipeline_json):
         LOG.error(exc)
         raise exc
     
-    dp_pipe.fit(globals.TRAIN_X, globals.TRAIN_Y["labels"]) 
+    try:
+        dp_pipe.fit(globals.TRAIN_X, globals.TRAIN_Y[y_column]) 
+    except Exception as e:
+        LOG.exception(f"Cannot train model error: {str(e)}")
+        raise HTTPException(500, f"Cannot train model error: {str(e)}")
 
     pickled_pipe = pickle.dumps(dp_pipe)
     accuracy = dp_pipe.score(
-        globals.TEST_X, globals.TEST_Y["labels"]) * 100
+        globals.TEST_X, globals.TEST_Y[y_column])
     pkl_response = StreamingResponse(BytesIO(bytes(pickled_pipe)))
     pkl_response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
 

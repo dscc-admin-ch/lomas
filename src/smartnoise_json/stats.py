@@ -12,14 +12,25 @@ class DPStats():
         # assumes inputs are all catagorical - 
         # as required by the synth data models
         cols = list(df.columns.copy())
-        if "labels" not in cols:
-            raise ValueError("Column 'labels' not present in the dataset provided")
-        elif cols.sort() != list(set(cols)).sort():
+        # if "labels" not in cols:
+        #     raise ValueError("Column 'labels' not present in the dataset provided")
+        if cols.sort() != list(set(cols)).sort():
             raise ValueError("Column names must be unique")
 
-        cols.remove("labels")
+        cols.remove("y_return")
+        cols.remove("y_financial_help")
+        cols.remove("y_financial_actions")
+
         iter_cols = {c: {'type':'string'} for c in cols}
-        iter_cols['labels'] = {
+        iter_cols['y_return'] = {
+                    'type': 'boolean',
+                    'nullable': False
+                }
+        iter_cols['y_financial_help'] = {
+                    'type': 'boolean',
+                    'nullable': False
+                }
+        iter_cols['y_financial_actions'] = {
                     'type': 'boolean',
                     'nullable': False
                 }

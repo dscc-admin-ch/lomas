@@ -47,7 +47,6 @@ class SDModel(ABC):
                 self.allow_cols = False
                 dt = self.data.to_numpy().dot(np_matrix.T)
                 self.data = pd.DataFrame(dt)
-                print(self.data)
             except Exception as e:
                 LOG.exception(e)
                 raise HTTPException(400, f"Failed to multiply provided np array: {(str(e))}")

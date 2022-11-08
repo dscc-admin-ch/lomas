@@ -1,5 +1,6 @@
 import yaml
 from fastapi import HTTPException
+
 from . import queries_coll
 from .db_models import QueryDBInput, SubmissionDBInput
 
@@ -44,15 +45,34 @@ def db_get_score(team_name: str):
         raise HTTPException(400, f"no entry with team name: '{team_name}'")
     return res["score"]
 
+
+def db_get_final_accuracy(team_name: str):
+    res = queries_coll.find_one({"team_name": team_name}, {
+                                "_id": 0, "final_accuracy": 1})
+    if (res == None or res == {}):
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
+    return res["final_accuracy"]
+
+
+def db_get_final_score(team_name: str):
+    res = queries_coll.find_one(
+        {"team_name": team_name}, {"_id": 0, "final_score": 1})
+    if (res == None or res == {}):
+        raise HTTPException(400, f"no entry with team name: '{team_name}'")
+    return res["final_score"]
+
+
 def db_add_submission(team_name: str, input: SubmissionDBInput):
-    # print(input)
     score = db_get_score(team_name)
     accuracy = db_get_accuracy(team_name)
     epsilon = db_get_budget(team_name)
     delta = db_get_delta(team_name)
+    final_score = db_get_final_score(team_name)
+    final_accuracy = db_get_final_accuracy(team_name)
     input.epsilon = epsilon
     input.delta = delta
     accuracy, score = (input.accuracy, input.score) if input.score > score else (accuracy, score)
+    final_accuracy, final_score = (input.final_accuracy, input.final_score) if input.final_score > final_score else (final_accuracy, final_score)
     # score = input.score if input.score > score else score
     queries_coll.update_one({"team_name": team_name}, {
         "$push": {
@@ -60,7 +80,9 @@ def db_add_submission(team_name: str, input: SubmissionDBInput):
         },
         "$set": {
             "score": score,
-            "accuracy": accuracy
+            "accuracy": accuracy,
+            "final_accuracy": final_accuracy,
+            "final_score": final_score
         }
     })
 
@@ -78,6 +100,8 @@ def db_add_teams():
             "total_delta": 0,
             "accuracy": 0,
             "score": 0,
+            "final_accuracy": 0,
+            "final_score": 0,
             "all_female": team["all_female"],
             "all_student": team["all_student"],
             "country": team["country"],

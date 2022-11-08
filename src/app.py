@@ -158,7 +158,7 @@ def smartnoise_sql_cost(query_json: SNSQLInp = Body(example_smartnoise_sql), x_o
 def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), x_oblv_user_name: str = Header(None)):
     # Aggregate SQL-query on the ground truth data
     try:
-        response, privacy_cost = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
+        response, privacy_cost, db_res = globals.QUERIER.query(query_json.query_str, query_json.epsilon, query_json.delta)
     except HTTPException as he:
         LOG.exception(he)
         raise he
@@ -168,7 +168,7 @@ def smartnoise_sql_handler(query_json: SNSQLInp = Body(example_smartnoise_sql), 
     query = QueryDBInput(x_oblv_user_name,query_json.toJSON(),"smartnoise_sql")
     query.query.epsilon = privacy_cost[0]
     query.query.delta = privacy_cost[1]
-    query.query.response = response
+    query.query.response = db_res
     db_add_query(query)
     return response
 
@@ -230,8 +230,9 @@ def submit(
     LOG.info(f"Recieved submission from {x_oblv_user_name}")
     #TODO :CALCULATE SCORE
 
-    acc, score = oracle_accuracy(file, x_oblv_user_name)
-    db_add_submission(x_oblv_user_name, SubmissionDBInput(acc, score))
+    acc, score, f_acc, f_score, sdata = oracle_accuracy(file, x_oblv_user_name)
+    db_entry = SubmissionDBInput(acc, score, final_accuracy=f_acc, final_score=f_score, data=sdata.to_dict())
+    db_add_submission(x_oblv_user_name, db_entry)
 
     return f"Submission accepted. This submission had an accuracy of {acc}. Your total score is: {score}"
     

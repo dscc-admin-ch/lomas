@@ -40,8 +40,14 @@ class SubmissionDBInput(BasicModel):
     score: float = 0
     epsilon: float = 0
     delta: float = 0
+    final_score: float = 0
+    final_accuracy: float = 0
+    submission_data : dict = {}
 
-    def __init__(self,accuracy,score):
+    def __init__(self,accuracy,score, final_accuracy, final_score, data):
         super().__init__()
         self.accuracy = accuracy
         self.score = score
+        self.final_accuracy = final_accuracy
+        self.final_score = final_score
+        self.submission_data = data

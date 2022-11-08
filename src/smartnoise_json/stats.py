@@ -1,9 +1,11 @@
+import io
 from fastapi import HTTPException
+from fastapi.responses import StreamingResponse
 import snsql
 from snsql import Privacy
 import traceback
 import pandas as pd
-
+import globals
 class DPStats():
     df: pd.DataFrame
 
@@ -70,8 +72,21 @@ class DPStats():
             result = reader.execute(query_str)
             privacy_cost = reader.get_privacy_cost(query_str)
         except Exception as err:
-            print(traceback.format_exc())
+            globals.LOG.exception(err)
             raise HTTPException(400, "Error executing query: " + query_str + ": " + str(err))
         
-        return result, privacy_cost
+        db_res = result
+        cols = result.pop(0)
+        stream = io.StringIO()
+        df_res = pd.DataFrame(result, columns=cols)
+    
+        # CSV creation
+        df_res.to_csv(stream, index=False)
+
+        response = StreamingResponse(
+            iter([stream.getvalue()]),
+            media_type="text/csv"
+        )
+        response.headers["Content-Disposition"] = "attachment; filename=synthetic_data.csv"
+        return response, privacy_cost, db_res
 

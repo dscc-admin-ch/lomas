@@ -15,7 +15,7 @@ class Query(BasicModel):
     epsilon: float = 0  #For response
     delta: float = 0    #For response
     accuracy: float = 0 #For response
-    timestamp: float = time.time()
+    timestamp: float = 0
     response: dict = {}
     type: str = ""
     
@@ -23,6 +23,7 @@ class Query(BasicModel):
         super().__init__()
         self.query = steps
         self.type = type
+        self.timestamp = time.time()
 
 class QueryDBInput(BasicModel):
     team_name: str = ""
@@ -36,14 +37,13 @@ class QueryDBInput(BasicModel):
 
 class SubmissionDBInput(BasicModel):
     accuracy: float = 0
-    timestamp: float = time.time()
+    timestamp: float = 0
     score: float = 0
     epsilon: float = 0
     delta: float = 0
     final_score: float = 0
     final_accuracy: float = 0
     submission_data : dict = {}
-
     def __init__(self,accuracy,score, final_accuracy, final_score, data):
         super().__init__()
         self.accuracy = accuracy
@@ -51,3 +51,4 @@ class SubmissionDBInput(BasicModel):
         self.final_accuracy = final_accuracy
         self.final_score = final_score
         self.submission_data = data
+        self.timestamp = time.time()

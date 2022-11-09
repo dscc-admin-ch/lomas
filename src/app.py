@@ -10,17 +10,13 @@ from helpers.depends import (competition_live,
 from helpers.time import anti_timing_att
 from input_models import DiffPrivLibInp, OpenDPInp, SNSQLInp, SNSynthInp
 from mongodb.db_functions import (db_add_query, db_add_submission,
-                                  db_add_teams, db_get_accuracy, db_get_budget,
-                                  db_get_delta, db_get_leaderboard, db_get_score)
+                                  db_add_teams, db_get_accuracy, db_get_budget, db_get_final_accuracy,
+                                  db_get_delta, db_get_leaderboard, db_get_score, db_get_final_score)
 from mongodb.db_models import QueryDBInput, SubmissionDBInput
 from opendp_json.opdp import opendp_constructor, opendp_apply
 # from oracle.stats import DPStats
 from oracle.accuracy import accuracy as oracle_accuracy
 from smartnoise_json.synth import synth
-
-# from opendp_json import des_trans_ret
-# from opendp.mod import enable_features
-# enable_features('contrib')
 
 """class ModelType(BaseModel):
     model_type: str
@@ -64,7 +60,7 @@ def startup_event():
     else:
         globals.SERVER_STATE["state"].append("Startup Completed")
         globals.SERVER_STATE["message"].append("Datasets Loaded!")
-
+    globals.check_start_condition()
 
 @app.get("/state", tags=["OBLV_ADMIN_USER"])
 async def get_state(x_oblv_user_name: str = Header(None)):
@@ -126,7 +122,7 @@ def diffprivlib_handler(pipeline_json: DiffPrivLibInp = Body(example_diffprivlib
 @app.post("/smartnoise_synth", dependencies=[Depends(competition_live)], tags=["OBLV_PARTICIPANT_USER"])
 def smartnoise_synth_handler(model_inp: SNSynthInp = Body(example_smartnoise_synth), x_oblv_user_name: str = Header(None)):
     try:
-        response = synth(model_inp)
+        response, resp_for_db = synth(model_inp)
     except HTTPException as he:
         LOG.exception(he)
         raise he
@@ -136,7 +132,7 @@ def smartnoise_synth_handler(model_inp: SNSynthInp = Body(example_smartnoise_syn
     query = QueryDBInput(x_oblv_user_name,model_inp.toJSON(),"smartnoise_synth")
     query.query.epsilon = model_inp.epsilon
     query.query.delta = model_inp.delta
-    query.query.response = str(response)
+    query.query.response = resp_for_db
     db_add_query(query)
     return response
 
@@ -193,7 +189,7 @@ def budget(
 def accuracy(
     x_oblv_user_name: str = Header(None)
     ):
-    return db_get_accuracy(x_oblv_user_name)
+    return (db_get_accuracy(x_oblv_user_name) + db_get_final_accuracy(x_oblv_user_name)) / 2
 
 @app.get(
     "/total_delta", 
@@ -213,7 +209,7 @@ def accuracy(
 def score(
     x_oblv_user_name: str = Header(None)
     ):
-    return db_get_score(x_oblv_user_name)
+    return (db_get_score(x_oblv_user_name) + db_get_final_score(x_oblv_user_name)) / 2
 
 @app.post(
     "/submit", 

@@ -28,34 +28,25 @@ def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
         raise HTTPException(400, f"Uploaded daata is invalid")
 
     if tmp_df.shape[0] != globals.TEST_Y.shape[0]:
-        raise HTTPException(400, f"Please submit 3 columns, with names {globals.TEST_Y.columns}")
+        raise HTTPException(400, f"Please submit 3 columns, with names {globals.TEST_Y.columns} and same no. of rows as X_test shared")
 
     if tmp_df.shape[1] != globals.TEST_Y.shape[1]:
-        raise HTTPException(400, f"Please submit 3 columns, with names {globals.TEST_Y.columns}")
+        raise HTTPException(400, f"Please submit 3 columns, with names {globals.TEST_Y.columns} and same no. of rows as X_test shared")
 
-    # if tmp_df["id"].is_unique:
-    #     tmp_df.set_index("id", inplace=True)
-    # else:
-    #     raise HTTPException(400, f"All values in the id column must be unique. This is important for the differential privacy budget.")
 
-    # if len(list(tmp_df.columns)) != 3:
-    #     raise HTTPException(400, f"You can only submit 3 columns, with names {globals.TEST.columns}")
 
-    # col_name = list(tmp_df.columns)[0]
-    # tmp_df = tmp_df.rename(columns={col_name:"submitted"})
-
-    # joint_data = tmp_df.join(
-    #         globals.TEST,
-    #         how="inner"
-    #     )
     tmp_df_ld, tmp_df_final = split_df(tmp_df)
     test_y_ld, test_y_final = split_df(globals.TEST_Y)
 
-    
-    acc_ld = float((tmp_df_ld == test_y_ld).mean().mean())
+    try:
+        acc_ld = float((tmp_df_ld == test_y_ld).mean().mean())
 
-    acc_final = float((tmp_df_final == test_y_final).mean().mean())
-    
+        acc_final = float((tmp_df_final == test_y_final).mean().mean())
+    except Exception as excp:
+        globals.LOG(excp)
+        globals.LOG("Error occured while calculating the score for team: " + x_oblv_user_name)
+        raise HTTPException(400, f"Error while attempting to calculate accuracy:" + str(excp))
+
     loss = get_loss(eps, delta, 1/globals.TRAIN.shape[0])
     
     score_ld = acc_ld + loss

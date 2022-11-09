@@ -14,23 +14,10 @@ import io
 class SDModel(ABC):
 
     def __init__(self, data: pd.DataFrame, epsilon: float, delta: float, select_cols: List[str] = None, mul_matrix = None):
-        #self.params = params
         self.epsilon = epsilon
         self.delta = delta
         self.allow_cols = True
-        #self.data = data
 
-        # create a column mapping from catagorical to ints [1,2,3,4....]
-        # col_mapping = {}
-        # for cat in data.columns:
-        #     if cat != "id":
-        #         col_mapping[cat] = dict([
-        #             (category, code) for code, category in enumerate(data[cat].astype('category').cat.categories)
-        #             ])
-
-        #         data[cat] = data[cat].map(lambda x: col_mapping[cat][x])
-
-        # self.catagorical_mapping = col_mapping
 
         if select_cols:
             try:
@@ -84,11 +71,12 @@ class SDModel(ABC):
 
         # CSV creation
         self.sample(num_samples).to_csv(stream, index = False)
+        resp_for_db = self.sample(num_samples).to_dict()
         response = StreamingResponse(
             iter([stream.getvalue()]),
             media_type="text/csv"
         )
         response.headers["Content-Disposition"] = "attachment; filename=synthetic_data.csv"
 
-        return response
+        return response, resp_for_db
         

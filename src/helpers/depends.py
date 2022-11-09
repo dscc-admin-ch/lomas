@@ -14,9 +14,6 @@ async def competition_live():
 
 async def submit_limitter(x_oblv_user_name: str = Header(None)):
     config_ = config.get_settings()
-    # assert globals.LEADERBOARD._status[x_oblv_user_name], f"{x_oblv_user_name} is not a valid name"
-    # last_call = globals.LEADERBOARD._status[x_oblv_user_name].last_submision
-    
     last_call = db_get_last_submission(x_oblv_user_name)
     if last_call:
         if (time() - last_call) < config_.submit_limit:

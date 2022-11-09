@@ -25,15 +25,15 @@ class DPStats():
 
         iter_cols = {c: {'type':'string'} for c in cols}
         iter_cols['y_return'] = {
-                    'type': 'boolean',
+                    'type': 'int',
                     'nullable': False
                 }
         iter_cols['y_financial_help'] = {
-                    'type': 'boolean',
+                    'type': 'int',
                     'nullable': False
                 }
         iter_cols['y_financial_actions'] = {
-                    'type': 'boolean',
+                    'type': 'int',
                     'nullable': False
                 }
         iter_cols['max_ids'] = 1
@@ -75,8 +75,11 @@ class DPStats():
             globals.LOG.exception(err)
             raise HTTPException(400, "Error executing query: " + query_str + ": " + str(err))
         
-        db_res = result
+        db_res = result.copy()
         cols = result.pop(0)
+
+        if result == []:
+            raise HTTPException(400, f"SQL Reader generated empty results, Epsilon: {eps} and Delta: {dta} are too small to generate output.")
         stream = io.StringIO()
         df_res = pd.DataFrame(result, columns=cols)
     

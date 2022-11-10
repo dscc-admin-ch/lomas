@@ -43,8 +43,8 @@ def accuracy(csv_file: UploadFile, x_oblv_user_name:str):
 
         acc_final = float((tmp_df_final == test_y_final).mean().mean())
     except Exception as excp:
-        globals.LOG(excp)
-        globals.LOG("Error occured while calculating the score for team: " + x_oblv_user_name)
+        globals.LOG.exception(excp)
+        globals.LOG.error("Error occured while calculating the score for team: " + x_oblv_user_name)
         raise HTTPException(400, f"Error while attempting to calculate accuracy:" + str(excp))
 
     loss = get_loss(eps, delta, 1/globals.TRAIN.shape[0])

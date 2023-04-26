@@ -1,3 +1,0 @@
-#!/bin/sh
-echo >&2 "ssh_socat"
-socat vsock-listen:5005,fork EXEC:/bin/sh,pty

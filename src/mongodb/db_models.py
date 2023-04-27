@@ -14,7 +14,6 @@ class Query(BasicModel):
     query: dict = {}
     epsilon: float = 0  #For response
     delta: float = 0    #For response
-    accuracy: float = 0 #For response
     timestamp: float = 0
     response: dict = {}
     type: str = ""
@@ -26,11 +25,11 @@ class Query(BasicModel):
         self.timestamp = time.time()
 
 class QueryDBInput(BasicModel):
-    team_name: str = ""
+    user_name: str = ""
     query: Query = None
     
     def __init__(self,name,query_steps,query_type):
         super().__init__()
-        self.team_name = name
+        self.user_name = name
         self.query = Query(query_steps, query_type)
 

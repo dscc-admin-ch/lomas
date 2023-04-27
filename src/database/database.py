@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class Database(ABC):
     '''
-    Overall database management
+    Overall database management while server is running
     '''
     @abstractmethod
     def __init__(self, **connection_parameters):
@@ -11,36 +11,6 @@ class Database(ABC):
         Connects to the DB
         Parameters:
             - **connection_parameters: parameters required to access the db
-        '''
-        pass
-    
-
-    @abstractmethod
-    def add_users(self, user_name: str):
-        '''
-        Adds a user to the database.
-        Parameters:
-            - user_name: name of the user to add
-        '''
-        pass
-
-
-    @abstractmethod
-    def remove_users(self, user_name: str):
-        '''
-        Removes a user from the database.
-        Parameters:
-            - user_name: name of the user to remove
-        '''
-        pass
-
-
-    @abstractmethod
-    def does_user_exists(self, user_name: str):
-        '''
-        Checks if user exist in the database
-        Parameters:
-            - user_name: name of the user to check
         '''
         pass
 
@@ -56,53 +26,9 @@ class Database(ABC):
 
 
     @abstractmethod
-    def add_dataset_access_to_user(self, user_name: str, dataset_name: str):
-        '''
-        Gives dataset access to an existing user
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        '''
-        pass
-
-
-    @abstractmethod
-    def remove_dataset_access_to_user(self, user_name: str, dataset_name: str):
-        '''
-        Removes dataset access to an existing user
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        '''
-        pass
-
-
-    @abstractmethod
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str):
         '''
         Checks if a user may access a particular dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        '''
-        pass
-
-    
-    @abstractmethod
-    def set_max_epsilon(self, user_name: str, dataset_name: str, epsilon: float):
-        '''
-        Sets maximum epsilon that a user can spend on a dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        '''
-        pass
-
-
-    @abstractmethod
-    def set_max_delta(self, user_name: str, dataset_name: str, delta: float):
-        '''
-        Sets maximum delta that a user can spend on a dataset
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
@@ -170,6 +96,7 @@ class Database(ABC):
             - spent_delta: value of delta spent on last query
         '''
         pass
+
 
     @abstractmethod
     def save_query(self, user_name: str, dataset_name: str, epsilon: float, delta: float, query: dict):

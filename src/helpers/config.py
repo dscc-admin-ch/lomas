@@ -1,45 +1,42 @@
 from pydantic import BaseSettings, BaseModel, validator
 from typing import Literal, List, Dict, Any
-import functools 
 
 import yaml
 from yaml.loader import SafeLoader
 
-OBLV_CONFIG_PATH = '/usr/runtime.yaml'
+from helpers.constants import CONFIG_PATH
+from helpers.loggr import LOG
 
-def yaml_config(settings: BaseSettings) -> Dict[str, Any]:
-    try:
-        with open(OBLV_CONFIG_PATH, 'r') as f:
-            config_data = yaml.safe_load(f)["runtime_args"]["settings"]
-    except:
-        config_data = {}
-    return config_data
+import globals
 
+# Config models ---------------------------------------------------------------
 
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"] 
     magnitude: float = 1
 
-class Settings(BaseSettings):
-    parties: List[dict] 
-    rank_coef: float 
+class Config(BaseModel):
+    # Service configs
+    users: List[dict]
+
+    # Server configs
     time_attack: TimeAttack = None
 
-    # a limit on the rate which users can submit answers
-    submit_limit: float = 5*60
+    # A limit on the rate which users can submit answers
+    submit_limit: float = 5*60 # TODO not used for the moment, kept as a simple example field for now.
 
-    no_leaders_on_leaderboard: float = None
 
-    @validator('parties')
+    # validator example, for reference
+    """ @validator('parties')
     def two_party_min(cls, v):
         assert len(v) >= 2
         return v
+    """
 
-    @validator('rank_coef')
-    def positive_rank_coef(cls, v):
-        assert v > 0
-        return v
-
+    # Yet to determin what this was used for.
+    # TODO read this https://docs.pydantic.dev/usage/settings/#secret-support
+    # and update how config is loaded (similar to what is done by oblv.)
+    """
     class Config:
         @classmethod
         def customise_sources(
@@ -54,8 +51,37 @@ class Settings(BaseSettings):
                 env_settings,
                 file_secret_settings,
             )
+    """
 
-@functools.lru_cache()
-def get_settings() -> Settings:
-    return Settings()
+# Utility functions -----------------------------------------------------------
 
+def get_config() -> Config:
+    """
+    Returns the global config object if not None.
+    If not already loaded, loads it from disk, sets it as the global config
+    and returns it.
+    """
+    if globals.CONFIG is not None:
+        return globals.CONFIG
+    
+    try:
+        with open(CONFIG_PATH, 'r') as f:
+            config_data = yaml.safe_load(f)["runtime_args"]["settings"]
+        
+        time_attack: TimeAttack = TimeAttack.parse_obj(config_data["time_attack"])
+        config: Config = Config(
+            users=config_data["users"], time_attack=time_attack,submit_limit=config_data["submit_limit"])
+    except:
+        LOG.error(f"Could not read config from disk at {CONFIG_PATH} or missing fields")
+        raise
+
+    globals.CONFIG = config
+
+    return config
+
+
+"""
+def reload_config() -> Config:
+    # Potentially?
+    return None
+"""

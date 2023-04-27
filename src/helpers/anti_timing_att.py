@@ -6,7 +6,7 @@ import random
 import helpers.config as config
 
 async def anti_timing_att(request: Request, call_next):
-    config_ = config.get_settings()
+    config_ = config.get_config()
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time

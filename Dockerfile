@@ -1,5 +1,5 @@
 # the dockerfile is for localhost testing and pytest
-FROM python:3.8 AS pets_comp
+FROM python:3.8 AS sdd_server
 
 WORKDIR /code
  
@@ -21,14 +21,23 @@ RUN cd differential-privacy-library && pip install .
 
 RUN rm -rf differential-privacy-library
 
-COPY ./src/ /code/
+# We do not copy the code here, but in the test and prod stages only.
+# For developping, we mount a volume with the -v option at runtime.
+#COPY ./src/ /code/
 
-FROM pets_comp AS pets_comp_test
+FROM sdd_server AS sdd_server_test
 # run tests with pytest
+COPY ./src/ /code/
 COPY ./tests/ /code/tests/
+COPY .configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
 CMD ["python", "-m", "pytest", "tests/"]
 
-FROM pets_comp
+FROM sdd_server AS sdd_server_prod
+COPY ./src/ /code/
 # run as local server
-COPY ./configs/example_config.yaml /usr/runtime.yaml
+# Disable this for now, as we do not run a mongodb instance.
+COPY ./configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
 CMD ["python", "uvicorn_serve.py"]
+
+FROM sdd_server AS sdd_server_dev
+# Empty, used for development.

@@ -20,6 +20,7 @@ runtime_args:
         max_delta: 0.0001
         current_epsilon: 0
         current_delta: 0
+    datasets: ["iris", "penguin"]
     submit_limit: 300
     time_attack:
         method: "jitter" # or "stall"

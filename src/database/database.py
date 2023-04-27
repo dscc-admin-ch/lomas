@@ -16,12 +16,11 @@ class Database(ABC):
     
 
     @abstractmethod
-    def add_users(self, user_name: str, user_data=None):
+    def add_users(self, user_name: str):
         '''
         Adds a user to the database.
         Parameters:
             - user_name: name of the user to add
-            - user_data: (optional) of the user to add
         '''
         pass
 

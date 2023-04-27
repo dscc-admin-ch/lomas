@@ -2,7 +2,6 @@ runtime_args:
   settings:
     users:
     - user_name: Alice
-      university: "EPFL"
       datasets_list:
       - dataset_name: "iris"
         max_epsilon: 10
@@ -15,7 +14,6 @@ runtime_args:
         current_epsilon: 0.2
         current_delta: 0.0000001
     - user_name: Bob
-      university: "HE-ARC"
       datasets_list:
       - dataset_name: "iris"
         max_epsilon: 10

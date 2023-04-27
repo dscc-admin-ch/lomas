@@ -1,33 +1,42 @@
-from fastapi import UploadFile, HTTPException
-import pandas as pd 
-import traceback 
+import pandas as pd
 import pkg_resources
 
 from helpers.loggr import LOG
-from helpers.config import Config
-from helpers.constants import (DATASET_NOT_LOADED, SERVER_LIVE)
+from helpers.config import (
+    Config,
+)
+from helpers.constants import (
+    DATASET_NOT_LOADED,
+    SERVER_LIVE,
+    IRIS_DATASET_PATH,
+)
 
 # Global Objects
 
-# Currently only single static one, further improvement include multiple datasets (dict of datasets)
-# possibly loaded (lazily?) from a database.
-DATASET: pd.DataFrame = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+# Currently only single static one, further improvement include multiple
+# datasets (dict of datasets) possibly loaded (lazily?) from a database.
+DATASET: pd.DataFrame = pd.read_csv(IRIS_DATASET_PATH)
 
 CONFIG: Config = None
 
 # General server state, can add fields if need be.
-SERVER_STATE: dict = {"state": ["NA"], "message": ["NA"], "LIVE": False}
+SERVER_STATE: dict = {
+    "state": ["NA"],
+    "message": ["NA"],
+    "LIVE": False,
+}
 
 
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 
 
 def check_start_condition():
-    """ 
-    This function checks the server started correctly and SERVER_STATE is updated accordingly.
-    
-    This has potential side effects on the return values of the "depends" functions,
-    which check the server state.
+    """
+    This function checks the server started correctly and SERVER_STATE is
+    updated accordingly.
+
+    This has potential side effects on the return values of the "depends"
+    functions, which check the server state.
     """
     global DATASET, CONFIG, SERVER_STATE
     if DATASET is None:

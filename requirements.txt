@@ -13,3 +13,4 @@ networkx==2.8.7
 python-multipart==0.0.5
 setuptools==65.4.1
 pymongo==4.2.0
+yaml==6.0

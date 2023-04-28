@@ -1,8 +1,7 @@
-from pydantic import BaseSettings, BaseModel, validator
-from typing import Literal, List, Dict, Any
+from pydantic import BaseModel
+from typing import Literal, List
 
 import yaml
-from yaml.loader import SafeLoader
 
 from helpers.constants import CONFIG_PATH
 from helpers.loggr import LOG
@@ -11,9 +10,11 @@ import globals
 
 # Config models ---------------------------------------------------------------
 
+
 class TimeAttack(BaseModel):
-    method: Literal["jitter", "stall"] 
+    method: Literal["jitter", "stall"]
     magnitude: float = 1
+
 
 class Config(BaseModel):
     # Service configs
@@ -23,8 +24,9 @@ class Config(BaseModel):
     time_attack: TimeAttack = None
 
     # A limit on the rate which users can submit answers
-    submit_limit: float = 5*60 # TODO not used for the moment, kept as a simple example field for now.
-
+    submit_limit: float = (
+        5 * 60
+    )  # TODO not used for the moment, kept as a simple example field for now.
 
     # validator example, for reference
     """ @validator('parties')
@@ -53,7 +55,9 @@ class Config(BaseModel):
             )
     """
 
+
 # Utility functions -----------------------------------------------------------
+
 
 def get_config() -> Config:
     """
@@ -63,17 +67,25 @@ def get_config() -> Config:
     """
     if globals.CONFIG is not None:
         return globals.CONFIG
-    
+
     try:
-        with open(CONFIG_PATH, 'r') as f:
+        with open(CONFIG_PATH, "r") as f:
             config_data = yaml.safe_load(f)["runtime_args"]["settings"]
-        
-        time_attack: TimeAttack = TimeAttack.parse_obj(config_data["time_attack"])
+
+        time_attack: TimeAttack = TimeAttack.parse_obj(
+            config_data["time_attack"]
+        )
         config: Config = Config(
-            users=config_data["users"], time_attack=time_attack,submit_limit=config_data["submit_limit"])
-    except:
-        LOG.error(f"Could not read config from disk at {CONFIG_PATH} or missing fields")
-        raise
+            users=config_data["users"],
+            time_attack=time_attack,
+            submit_limit=config_data["submit_limit"],
+        )
+    except Exception as e:
+        LOG.error(
+            f"Could not read config from disk at {CONFIG_PATH} \
+                or missing fields"
+        )
+        raise e
 
     globals.CONFIG = config
 

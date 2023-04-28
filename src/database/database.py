@@ -99,6 +99,26 @@ class Database(ABC):
 
 
     @abstractmethod
+    def update_budget(
+            self,
+            user_name: str,
+            dataset_name: str,
+            spent_epsilon: float,
+            spent_delta: float
+        ):
+        '''
+        Update the current delta spent by a specific user 
+        with the last spent delta
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+            - spent_epsilon: value of epsilon spent on last query
+            - spent_delta: value of delta spent on last query
+        '''
+        pass
+
+
+    @abstractmethod
     def save_query(self, user_name: str, dataset_name: str, epsilon: float, delta: float, query: dict):
         '''
         (Optional)

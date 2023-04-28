@@ -177,11 +177,12 @@ class YamlDatabase(Database):
             spent_delta: float
         ) -> None:
         '''
-        Update the current delta spent by a specific user 
-        with the last spent delta
+        Update the current epsilon and delta spent by a specific user 
+        with the last spent budget
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
+            - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
         '''
         self.update_epsilon(user_name, dataset_name, spent_epsilon)

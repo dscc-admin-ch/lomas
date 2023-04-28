@@ -1,11 +1,9 @@
 import pandas as pd
 import pkg_resources
 
-from helpers.loggr import LOG
-from helpers.config import (
-    Config,
-)
-from helpers.constants import (
+from utils.loggr import LOG
+from config import Config
+from constants import (
     DATASET_NOT_LOADED,
     SERVER_LIVE,
     IRIS_DATASET_PATH,

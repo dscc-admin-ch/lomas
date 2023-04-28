@@ -2,7 +2,7 @@ from fastapi import Request
 import time
 import random
 
-import helpers.config as config
+import config as config
 
 
 async def anti_timing_att(

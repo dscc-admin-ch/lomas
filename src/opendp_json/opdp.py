@@ -4,15 +4,11 @@ import builtins
 
 import globals
 
-from fastapi import (
-    HTTPException,
-)
+from fastapi import HTTPException
 import opendp.combinators as comb
 import opendp.measurements as meas
 import opendp.transformations as trans
-from opendp.mod import (
-    enable_features,
-)
+from opendp.mod import enable_features
 
 enable_features("contrib")
 

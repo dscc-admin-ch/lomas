@@ -1,10 +1,6 @@
 import io
-from fastapi import (
-    HTTPException,
-)
-from fastapi.responses import (
-    StreamingResponse,
-)
+from fastapi import HTTPException
+from fastapi.responses import StreamingResponse
 import snsql
 from snsql import Privacy
 import traceback

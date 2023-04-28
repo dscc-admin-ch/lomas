@@ -1,8 +1,6 @@
 import time
 
-from input_models import (
-    BasicModel,
-)
+from input_models import BasicModel
 
 
 class QueryResponse(BasicModel):

@@ -11,9 +11,7 @@ from typing import List
 import pandas as pd
 
 # the opendp smartnoise synth data package
-from snsynth import (
-    Synthesizer,
-)
+from snsynth import Synthesizer
 
 # from snsynth.pytorch.nn import PATECTGAN as snsynth_PATECTGAN
 # from snsynth.pytorch import PytorchDPSynthesizer

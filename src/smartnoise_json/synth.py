@@ -1,14 +1,8 @@
 from .models.mwem import MWEM
-from .models.dpctgan import (
-    DPCTGAN,
-)
+from .models.dpctgan import DPCTGAN
 from .models.mst import MST
-from .models.patectgan import (
-    PATECTGAN,
-)
-from fastapi import (
-    HTTPException,
-)
+from .models.patectgan import PATECTGAN
+from fastapi import HTTPException
 
 import globals
 

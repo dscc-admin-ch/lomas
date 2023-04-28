@@ -1,6 +1,4 @@
-from fastapi import (
-    HTTPException,
-)
+from fastapi import HTTPException
 import globals
 
 

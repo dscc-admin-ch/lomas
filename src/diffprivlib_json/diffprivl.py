@@ -1,18 +1,12 @@
 from io import BytesIO
 import json
 import pickle
-from fastapi import (
-    HTTPException,
-)
+from fastapi import HTTPException
 
-from fastapi.responses import (
-    StreamingResponse,
-)
+from fastapi.responses import StreamingResponse
 import pkg_resources
 from diffprivlib import models
-from sklearn.pipeline import (
-    Pipeline,
-)
+from sklearn.pipeline import Pipeline
 
 import globals
 from loggr import LOG

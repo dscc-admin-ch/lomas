@@ -11,8 +11,8 @@ class QueryResponse(BasicModel):
 
 class Query(BasicModel):
     query: dict = {}
-    epsilon: float = 0  #For response
-    delta: float = 0    #For response
+    epsilon: float = 0  # For response
+    delta: float = 0  # For response
     timestamp: float = 0
     response: dict = {}
     type: str = ""

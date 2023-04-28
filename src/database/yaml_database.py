@@ -3,8 +3,9 @@ import json
 import yaml
 
 from database import Database
-from helpers.config import get_config
-from helpers.constants import CONFIG_PATH, QUERIES_ARCHIVES
+
+from config import get_config
+from constants import CONFIG_PATH, QUERIES_ARCHIVES
 
 
 class YamlDatabase(Database):
@@ -48,6 +49,16 @@ class YamlDatabase(Database):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
+        if not (self.does_user_exists(user_name)):
+            raise ValueError(
+                f"User {user_name} does not exists. Cannot check access."
+            )
+        if not (self.does_dataset_exists(dataset_name)):
+            raise ValueError(
+                f"Dataset {dataset_name} does not exists. "
+                "Cannot check access."
+            )
+
         for user in self.config["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:
@@ -66,11 +77,17 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
             - parameter: current_epsilon or current_delta
         """
-        for user in self.config["users"]:
-            if user["user_name"] == user_name:
-                for dataset in user["datasets_list"]:
-                    if dataset["dataset_name"] == dataset_name:
-                        return dataset[parameter]
+        if self.has_user_access_to_dataset(user_name, dataset_name):
+            for user in self.config["users"]:
+                if user["user_name"] == user_name:
+                    for dataset in user["datasets_list"]:
+                        if dataset["dataset_name"] == dataset_name:
+                            return dataset[parameter]
+        else:
+            raise ValueError(
+                f"{user_name} has no access to {dataset_name}. "
+                "Cannot get any budget estimate."
+            )
 
     def get_epsilon(self, user_name: str, dataset_name: str) -> float:
         """
@@ -125,13 +142,19 @@ class YamlDatabase(Database):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        users = self.config["users"]
-        for user in users:
-            if user["user_name"] == user_name:
-                for dataset in user["datasets_list"]:
-                    if dataset["dataset_name"] == dataset_name:
-                        dataset[parameter] += spent_value
-        self.config["users"] = users
+        if self.has_user_access_to_dataset(user_name, dataset_name):
+            users = self.config["users"]
+            for user in users:
+                if user["user_name"] == user_name:
+                    for dataset in user["datasets_list"]:
+                        if dataset["dataset_name"] == dataset_name:
+                            dataset[parameter] += spent_value
+            self.config["users"] = users
+        else:
+            raise ValueError(
+                f"{user_name} has no access to {dataset_name}. "
+                "Cannot update any budget estimate."
+            )
 
     def update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
@@ -213,6 +236,7 @@ class YamlDatabase(Database):
         """
         Saves the current config with updated parameters in new yaml
         with the date and hour in the path
+        Might be useful to verify state of DB during development
         """
         new_path = CONFIG_PATH.replace(
             ".yaml", f'{datetime.now().strftime("%m_%d_%Y__%H_%M_%S")}.yaml'

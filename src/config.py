@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 from typing import Literal, List
-
 import yaml
 
-from helpers.constants import CONFIG_PATH
-from helpers.loggr import LOG
+from constants import CONFIG_PATH
+from utils.loggr import LOG
 
 import globals
 
@@ -19,6 +18,8 @@ class TimeAttack(BaseModel):
 class Config(BaseModel):
     # Service configs
     users: List[dict]
+
+    datasets: List[str]
 
     # Server configs
     time_attack: TimeAttack = None

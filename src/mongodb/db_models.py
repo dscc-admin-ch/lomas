@@ -1,6 +1,4 @@
 import time
-from datetime import datetime
-from typing import Any
 
 from input_models import BasicModel
 
@@ -10,29 +8,39 @@ class QueryResponse(BasicModel):
     epsilon: float = 0
     delta: float = 0
 
+
 class Query(BasicModel):
     query: dict = {}
-    epsilon: float = 0  #For response
-    delta: float = 0    #For response
-    accuracy: float = 0 #For response
+    epsilon: float = 0  # For response
+    delta: float = 0  # For response
+    accuracy: float = 0  # For response
     timestamp: float = 0
     response: dict = {}
     type: str = ""
-    
-    def __init__(self,steps,type):
+
+    def __init__(self, steps, type):
         super().__init__()
         self.query = steps
         self.type = type
         self.timestamp = time.time()
 
+
 class QueryDBInput(BasicModel):
     team_name: str = ""
     query: Query = None
-    
-    def __init__(self,name,query_steps,query_type):
+
+    def __init__(
+        self,
+        name,
+        query_steps,
+        query_type,
+    ):
         super().__init__()
         self.team_name = name
-        self.query = Query(query_steps, query_type)
+        self.query = Query(
+            query_steps,
+            query_type,
+        )
 
 
 class SubmissionDBInput(BasicModel):
@@ -43,8 +51,16 @@ class SubmissionDBInput(BasicModel):
     delta: float = 0
     final_score: float = 0
     final_accuracy: float = 0
-    submission_data : dict = {}
-    def __init__(self,accuracy,score, final_accuracy, final_score, data):
+    submission_data: dict = {}
+
+    def __init__(
+        self,
+        accuracy,
+        score,
+        final_accuracy,
+        final_score,
+        data,
+    ):
         super().__init__()
         self.accuracy = accuracy
         self.score = score

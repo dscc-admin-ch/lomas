@@ -10,9 +10,7 @@ from typing import List
 import pandas as pd
 
 # the opendp smartnoise synth data package
-from snsynth import (
-    Synthesizer,
-)
+from snsynth import Synthesizer
 
 # from snsynth.pytorch.nn import DPCTGAN as snsynth_DPCTGAN
 # from snsynth.pytorch import PytorchDPSynthesizer

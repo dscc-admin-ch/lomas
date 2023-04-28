@@ -1,19 +1,10 @@
 # This is just a template for the synthetic data class
-from abc import (
-    ABC,
-    abstractmethod,
-)
-from typing import (
-    List,
-)
+from abc import ABC, abstractmethod
+from typing import List
 
 import pandas as pd
-from fastapi import (
-    HTTPException,
-)
-from fastapi.responses import (
-    StreamingResponse,
-)
+from fastapi import HTTPException
+from fastapi.responses import StreamingResponse
 import numpy as np
 from globals import LOG
 import io

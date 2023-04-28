@@ -1,20 +1,9 @@
-from fastapi import (
-    Depends,
-    FastAPI,
-    Header,
-    Request,
-)
+from fastapi import Depends, FastAPI, Header, Request
 import globals
 from helpers.loggr import LOG
-from helpers.depends import (
-    server_live,
-)
-from helpers.anti_timing_att import (
-    anti_timing_att,
-)
-from helpers.config import (
-    get_config,
-)
+from helpers.depends import server_live
+from helpers.anti_timing_att import anti_timing_att
+from helpers.config import get_config
 
 # This object holds the server object
 app = FastAPI()
@@ -38,21 +27,13 @@ def startup_event():
 
 # A simple hack to hinder the timing attackers
 @app.middleware("http")
-async def middleware(
-    request: Request,
-    call_next,
-):
+async def middleware(request: Request, call_next):
     return await anti_timing_att(request, call_next)
 
 
 # Example implementation for an endpoint
-@app.get(
-    "/state",
-    tags=["OBLV_ADMIN_USER"],
-)
-async def get_state(
-    x_oblv_user_name: str = Header(None),
-):
+@app.get("/state", tags=["OBLV_ADMIN_USER"])
+async def get_state(x_oblv_user_name: str = Header(None)):
     """
     Some __custom__ documentation about this endoint.
 
@@ -67,10 +48,7 @@ async def get_state(
     }
 
 
-@app.get(
-    "/submit_limit",
-    dependencies=[Depends(server_live)],
-)
+@app.get("/submit_limit", dependencies=[Depends(server_live)])
 async def get_submit_limit():
     """
     Returns the value "submit_limit" used to limit the rate of submissions

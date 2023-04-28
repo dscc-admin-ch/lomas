@@ -3,9 +3,7 @@ from typing import Literal, List
 
 import yaml
 
-from helpers.constants import (
-    CONFIG_PATH,
-)
+from helpers.constants import CONFIG_PATH
 from helpers.loggr import LOG
 
 import globals

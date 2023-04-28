@@ -1,13 +1,7 @@
 import globals
 from typing import List
-from pydantic import (
-    BaseModel,
-    validator,
-    Field,
-)
-from smartnoise_json.synth import (
-    synth_map,
-)
+from pydantic import BaseModel, validator, Field
+from smartnoise_json.synth import synth_map
 import json
 
 

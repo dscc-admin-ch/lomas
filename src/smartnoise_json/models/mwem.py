@@ -8,9 +8,7 @@ Copyright: Oblivious Software Ltd, 2022.
 from .base import SDModel
 from typing import Dict, List
 
-from pydantic import (
-    BaseModel,
-)
+from pydantic import BaseModel
 import pandas as pd
 
 # the opendp smartnoise synth data package

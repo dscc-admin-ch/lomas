@@ -5,10 +5,6 @@ import yaml
 from constants import CONFIG_PATH
 from utils.loggr import LOG
 
-import globals
-
-# Config models ---------------------------------------------------------------
-
 
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"]
@@ -19,7 +15,7 @@ class Config(BaseModel):
     # Service configs
     users: List[dict]
 
-    datasets: List[str]
+    datasets: List[str] = []
 
     # Server configs
     time_attack: TimeAttack = None
@@ -66,6 +62,8 @@ def get_config() -> Config:
     If not already loaded, loads it from disk, sets it as the global config
     and returns it.
     """
+    import globals
+
     if globals.CONFIG is not None:
         return globals.CONFIG
 

@@ -135,7 +135,6 @@ class Database(ABC):
         query: dict,
     ) -> None:
         """
-        (Optional)
         Save queries of user on datasets in a separate (part of) db
         Parameters:
             - user_name: name of the user

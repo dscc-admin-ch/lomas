@@ -115,7 +115,7 @@ class Database(ABC):
         spent_delta: float,
     ) -> None:
         """
-        Update the current delta spent by a specific user
+        Update the current epsilon and delta spent by a specific user
         with the last spent delta
         Parameters:
             - user_name: name of the user

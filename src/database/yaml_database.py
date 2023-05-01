@@ -2,10 +2,9 @@ from datetime import datetime
 import json
 import yaml
 
-from database import Database
-
-from config import get_config
-from constants import CONFIG_PATH, QUERIES_ARCHIVES
+from database.database import Database
+from utils.config import get_config
+from utils.constants import CONFIG_PATH, QUERIES_ARCHIVES
 
 
 class YamlDatabase(Database):

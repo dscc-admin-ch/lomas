@@ -1,13 +1,13 @@
 import pandas as pd
 import pkg_resources
 
-from utils.loggr import LOG
-from config import Config
-from constants import (
+from utils.config import Config
+from utils.constants import (
     DATASET_NOT_LOADED,
     SERVER_LIVE,
     IRIS_DATASET_PATH,
 )
+from utils.loggr import LOG
 
 # Global Objects
 

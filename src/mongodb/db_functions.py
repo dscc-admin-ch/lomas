@@ -1,8 +1,7 @@
-import yaml
 from fastapi import HTTPException
 
 from . import queries_coll
-from .db_models import QueryDBInput, SubmissionDBInput
+from .db_models import QueryDBInput
 
 
 # Add query to Mongo Database

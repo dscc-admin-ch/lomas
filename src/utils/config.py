@@ -56,7 +56,7 @@ class Config(BaseModel):
 # Utility functions -----------------------------------------------------------
 
 
-def get_config() -> Config:
+def get_config() -> dict:
     """
     Returns the global config object if not None.
     If not already loaded, loads it from disk, sets it as the global config

@@ -69,7 +69,7 @@ class YamlDatabase(Database):
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
-        Get the current epsilon spent by a specific user
+        Get the current epsilon or delta spent by a specific user
         on a specific dataset
         Parameters:
             - user_name: name of the user

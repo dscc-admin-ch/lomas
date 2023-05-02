@@ -88,7 +88,7 @@ def get_config() -> Config:
 
     globals.CONFIG = config
 
-    return config
+    return config_data
 
 
 """

@@ -1,9 +1,11 @@
 from fastapi import Depends, FastAPI, Header, Request
+
 import globals
-from helpers.loggr import LOG
-from helpers.depends import server_live
-from helpers.anti_timing_att import anti_timing_att
-from helpers.config import get_config
+from utils.anti_timing_att import anti_timing_att
+from utils.depends import server_live
+from utils.config import get_config
+from utils.loggr import LOG
+
 
 # This object holds the server object
 app = FastAPI()

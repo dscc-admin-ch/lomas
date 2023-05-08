@@ -1,10 +1,26 @@
 runtime_args:
   settings:
     users:
-      - username: Alice
-        dataset: dataset_1
-        epsilon_start: 10
-        delta_start: 0.0004
+    - user_name: Alice
+      datasets_list:
+      - dataset_name: "iris"
+        max_epsilon: 10
+        max_delta: 0.0001
+        current_epsilon: 1
+        current_delta: 0.000001
+      - dataset_name: "penguin"
+        max_epsilon: 5
+        max_delta: 0.0005
+        current_epsilon: 0.2
+        current_delta: 0.0000001
+    - user_name: Bob
+      datasets_list:
+      - dataset_name: "iris"
+        max_epsilon: 10
+        max_delta: 0.0001
+        current_epsilon: 0
+        current_delta: 0
+    datasets: ["iris", "penguin"]
     submit_limit: 300
     time_attack:
         method: "jitter" # or "stall"

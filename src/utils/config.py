@@ -1,14 +1,9 @@
 from pydantic import BaseModel
 from typing import Literal, List
-
 import yaml
 
-from helpers.constants import CONFIG_PATH
-from helpers.loggr import LOG
-
-import globals
-
-# Config models ---------------------------------------------------------------
+from utils.constants import CONFIG_PATH
+from utils.loggr import LOG
 
 
 class TimeAttack(BaseModel):
@@ -19,6 +14,8 @@ class TimeAttack(BaseModel):
 class Config(BaseModel):
     # Service configs
     users: List[dict]
+
+    datasets: List[str] = []
 
     # Server configs
     time_attack: TimeAttack = None
@@ -59,12 +56,14 @@ class Config(BaseModel):
 # Utility functions -----------------------------------------------------------
 
 
-def get_config() -> Config:
+def get_config() -> dict:
     """
     Returns the global config object if not None.
     If not already loaded, loads it from disk, sets it as the global config
     and returns it.
     """
+    import globals
+
     if globals.CONFIG is not None:
         return globals.CONFIG
 
@@ -89,7 +88,7 @@ def get_config() -> Config:
 
     globals.CONFIG = config
 
-    return config
+    return config_data
 
 
 """

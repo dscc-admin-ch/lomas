@@ -15,11 +15,17 @@ from utils.constants import (
 
 def smartnoise_dataset_factory(dataset_name: str):
     if dataset_name == 'Iris':
-        querier = SmartnoiseSQLQuerier(IRIS_DATASET_PATH, IRIS_METADATA_PATH)
+        if IRIS_QUERIER is None:
+            IRIS_QUERIER = SmartnoiseSQLQuerier(IRIS_DATASET_PATH, IRIS_METADATA_PATH)
+        querier = IRIS_QUERIER
     elif dataset_name == 'Penguin':
-        querier = SmartnoiseSQLQuerier(PENGUIN_DATASET_PATH, PENGUIN_METADATA_PATH)
+        if PENGUIN_QUERIER is None
+            PENGUIN_QUERIER = SmartnoiseSQLQuerier(PENGUIN_DATASET_PATH, PENGUIN_METADATA_PATH)
+        querier = PENGUIN_QUERIER
     else:
         raise(f'Dataset {dataset_name} unknown.')
+
+    return querier
 
 
 class SmartnoiseSQLQuerier:
@@ -55,7 +61,6 @@ class SmartnoiseSQLQuerier:
 
         try:
             result = reader.execute(query_str)
-            privacy_cost = reader.get_privacy_cost(query_str)
         except Exception as err:
             globals.LOG.exception(err)
             raise HTTPException(
@@ -85,4 +90,4 @@ class SmartnoiseSQLQuerier:
         response.headers[
             "Content-Disposition"
         ] = "attachment; filename=synthetic_data.csv"
-        return (response, privacy_cost, db_res)
+        return (response, db_res)

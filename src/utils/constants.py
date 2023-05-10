@@ -3,6 +3,7 @@ QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
 
 # Server states
 DATASET_NOT_LOADED = "Dataset(s) not loaded"
+USER_DB_NOT_LOADED = "User database not loaded"
 SERVER_LIVE = "LIVE"
 
 

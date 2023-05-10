@@ -5,11 +5,8 @@ from database.yaml_database import YamlDatabase
 from dp_queries.dp_logic import dp_query_logic
 from dp_queries.example_inputs import example_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
-from dp_queries.smartnoise_json.smartnoise_sql import (
-    SmartnoiseSQLQuerier
-)
 from utils.anti_timing_att import anti_timing_att
-from utils.config import get_config, Config
+from utils.config import get_config
 from utils.constants import YAML_USER_DATABASE
 from utils.depends import server_live
 from utils.loggr import LOG
@@ -73,7 +70,7 @@ async def get_state(x_oblv_user_name: str = Header(None)):
     }
 
 
-# estimate SQL query cost --- so that users can calculate before spending actually -----
+# Smartnoise SQL query
 @app.post("/smartnoise_sql", tags=["OBLV_PARTICIPANT_USER"])
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),

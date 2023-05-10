@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, List
+from typing import Literal
 import yaml
 
 import globals
@@ -13,7 +13,7 @@ class TimeAttack(BaseModel):
 
 
 class Config(BaseModel):
-    
+
     # Server configs
     time_attack: TimeAttack = None
 
@@ -81,7 +81,6 @@ def get_config() -> dict:
         raise e
 
     return config
-
 
 
 """

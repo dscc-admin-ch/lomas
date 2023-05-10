@@ -1,4 +1,3 @@
-import pandas as pd
 import pkg_resources
 import traceback
 from dp_queries.smartnoise_json.smartnoise_sql import (
@@ -8,7 +7,14 @@ from dp_queries.smartnoise_json.smartnoise_sql import (
 
 from database.yaml_database import YamlDatabase
 from utils.config import Config
-from utils.constants import CONFIG_NOT_LOADED, DATASET_NOT_LOADED, IRIS_DATASET, PENGUIN_DATASET, SERVER_LIVE, USER_DB_NOT_LOADED
+from utils.constants import (
+    CONFIG_NOT_LOADED,
+    DATASET_NOT_LOADED,
+    IRIS_DATASET,
+    PENGUIN_DATASET,
+    SERVER_LIVE,
+    USER_DB_NOT_LOADED,
+)
 from utils.loggr import LOG
 
 # Define global variables

@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from fastapi import Header
+from fastapi import Header, HTTPException
 
 from dp_queries.input_models import BasicModel
 import globals
+from utils.loggr import LOG
 
 
 class DPQuerier(ABC):
@@ -25,7 +26,7 @@ class DPQuerier(ABC):
         pass
 
     @abstractmethod
-    def cost(self, query_str: str, eps: float, delta: float) -> list:
+    def query(self, query_str: str, eps: float, delta: float) -> list:
         """
         Does the query and return the response
         """
@@ -37,12 +38,15 @@ def dp_query_logic(
     query_json: BasicModel,
     x_oblv_user_name: str = Header(None),
 ):
-    from dp_queries.smartnoise_json.smartnoise_sql import smartnoise_dataset_factory
+    from dp_queries.smartnoise_json.smartnoise_sql import (
+        smartnoise_dataset_factory,
+    )
 
     # Query the right dataset with the right query type
     if query_type == "smartnoise_sql":
         dp_querier = smartnoise_dataset_factory(query_json.dataset_name)
-    # if other librairies, add dp_querier here. dp_querier must ihnerit from DBQuerier
+    # If other librairies, add dp_querier here.
+    # Note: dp_querier must ihnerit from DBQuerier
     else:
         raise (f"Query type {query_type} unknown.")
 
@@ -94,7 +98,7 @@ def dp_query_logic(
         response = {
             "requested_by": x_oblv_user_name,
             "state": f"Not enough budget to perform query. Nothing was done. \
-            Current epsilon: {eps_current_user}, Current delta {delta_current_user} \
+            Current epsilon: {eps_curr_user}, Current delta {delta_curr_user} \
             Max epsilon: {eps_max_user}, Max delta {delta_max_user} ",
         }
 

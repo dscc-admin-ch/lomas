@@ -108,7 +108,9 @@ class YamlDatabase(Database):
             ),
         ]
 
-    def get_max_budget(self, user_name: str, dataset_name: str) -> [float, float]:
+    def get_max_budget(
+        self, user_name: str, dataset_name: str
+    ) -> [float, float]:
         """
         Get the maximum epsilon and delta budget that can be spent by a user
         Parameters:

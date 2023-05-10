@@ -88,31 +88,7 @@ class YamlDatabase(Database):
                 "Cannot get any budget estimate."
             )
 
-    def get_epsilon(self, user_name: str, dataset_name: str) -> float:
-        """
-        Get the current epsilon spent by a specific user
-        on a specific dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        """
-        return self.get_epsilon_or_delta(
-            user_name, dataset_name, "current_epsilon"
-        )
-
-    def get_delta(self, user_name: str, dataset_name: str) -> float:
-        """
-        Get the current delta spent by a specific user
-        on a specific dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        """
-        return self.get_epsilon_or_delta(
-            user_name, dataset_name, "current_delta"
-        )
-
-    def get_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_current_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the current epsilon and delta spent by a specific user
         on a specific dataset
@@ -121,8 +97,20 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon(user_name, dataset_name),
-            self.get_delta(user_name, dataset_name),
+            self.get_epsilon_or_delta(user_name, dataset_name, "current_epsilon")
+            self.get_epsilon_or_delta(user_name, dataset_name, "current_delta")
+        ]
+
+    def get_max_budget(self, user_name: str, dataset_name: str) -> list[float]:
+        """
+        Get the maximum epsilon and delta budget that can be spent by a user
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+        """
+        return [
+            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon")
+            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta")
         ]
 
     def update_epsilon_or_delta(

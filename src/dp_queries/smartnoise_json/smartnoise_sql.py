@@ -4,30 +4,33 @@ from fastapi.responses import StreamingResponse
 from snsql import Privacy, from_connection
 import traceback
 import pandas as pd
-import globals
+import yaml
 
-from dp_logic import DPQuerier
+from dp_queries.dp_logic import DPQuerier
+import globals
 from utils.constants import (
+    IRIS_DATASET,
     IRIS_DATASET_PATH,
     IRIS_METADATA_PATH,
+    PENGUIN_DATASET,
     PENGUIN_DATASET_PATH,
     PENGUIN_METADATA_PATH,
 )
 
 
 def smartnoise_dataset_factory(dataset_name: str):
-    if dataset_name == "Iris":
-        if IRIS_QUERIER is None:
-            IRIS_QUERIER = SmartnoiseSQLQuerier(
+    if dataset_name == IRIS_DATASET:
+        if globals.IRIS_QUERIER is None:
+            globals.IRIS_QUERIER = SmartnoiseSQLQuerier(
                 IRIS_DATASET_PATH, IRIS_METADATA_PATH
             )
-        querier = IRIS_QUERIER
-    elif dataset_name == "Penguin":
-        if PENGUIN_QUERIER is None:
-            PENGUIN_QUERIER = SmartnoiseSQLQuerier(
+        querier = globals.IRIS_QUERIER
+    elif dataset_name == PENGUIN_DATASET:
+        if globals.PENGUIN_QUERIER is None:
+            globals.PENGUIN_QUERIER = SmartnoiseSQLQuerier(
                 PENGUIN_DATASET_PATH, PENGUIN_METADATA_PATH
             )
-        querier = PENGUIN_QUERIER
+        querier = globals.PENGUIN_QUERIER
     else:
         raise (f"Dataset {dataset_name} unknown.")
 
@@ -67,7 +70,6 @@ class SmartnoiseSQLQuerier(DPQuerier):
         try:
             result = reader.execute(query_str)
         except Exception as err:
-            globals.LOG.exception(err)
             raise HTTPException(
                 400,
                 "Error executing query: " + query_str + ": " + str(err),

@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Literal, List
 import yaml
 
+import globals
 from utils.constants import CONFIG_PATH
 from utils.loggr import LOG
 
@@ -12,11 +13,7 @@ class TimeAttack(BaseModel):
 
 
 class Config(BaseModel):
-    # Service configs
-    users: List[dict]
-
-    datasets: List[str] = []
-
+    
     # Server configs
     time_attack: TimeAttack = None
 
@@ -62,8 +59,6 @@ def get_config() -> dict:
     If not already loaded, loads it from disk, sets it as the global config
     and returns it.
     """
-    import globals
-
     if globals.CONFIG is not None:
         return globals.CONFIG
 
@@ -75,7 +70,6 @@ def get_config() -> dict:
             config_data["time_attack"]
         )
         config: Config = Config(
-            users=config_data["users"],
             time_attack=time_attack,
             submit_limit=config_data["submit_limit"],
         )
@@ -86,9 +80,8 @@ def get_config() -> dict:
         )
         raise e
 
-    globals.CONFIG = config
+    return config
 
-    return config_data
 
 
 """

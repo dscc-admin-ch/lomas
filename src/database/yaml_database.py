@@ -3,8 +3,7 @@ import json
 import yaml
 
 from database.database import Database
-from utils.config import get_config
-from utils.constants import CONFIG_PATH, QUERIES_ARCHIVES
+from utils.constants import QUERIES_ARCHIVES
 
 
 class YamlDatabase(Database):
@@ -12,11 +11,13 @@ class YamlDatabase(Database):
     Overall yaml in memory database management
     """
 
-    def __init__(self) -> None:
+    def __init__(self, yaml_db_path) -> None:
         """
         Load DB
         """
-        self.config = get_config()
+        self.path = yaml_db_path
+        with open(yaml_db_path, "r") as f:
+            self.database = yaml.safe_load(f)
         self.queries_archives = []
 
     def does_user_exists(self, user_name: str) -> bool:
@@ -25,7 +26,7 @@ class YamlDatabase(Database):
         Parameters:
             - user_name: name of the user to check
         """
-        for user in self.config["users"]:
+        for user in self.database["users"]:
             if user["user_name"] == user_name:
                 return True
 
@@ -37,7 +38,7 @@ class YamlDatabase(Database):
         Parameters:
             - dataset_name: name of the dataset to check
         """
-        return dataset_name in self.config["datasets"]
+        return dataset_name in self.database["datasets"]
 
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
@@ -58,7 +59,7 @@ class YamlDatabase(Database):
                 "Cannot check access."
             )
 
-        for user in self.config["users"]:
+        for user in self.database["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
@@ -77,7 +78,7 @@ class YamlDatabase(Database):
             - parameter: current_epsilon or current_delta
         """
         if self.has_user_access_to_dataset(user_name, dataset_name):
-            for user in self.config["users"]:
+            for user in self.database["users"]:
                 if user["user_name"] == user_name:
                     for dataset in user["datasets_list"]:
                         if dataset["dataset_name"] == dataset_name:
@@ -90,7 +91,7 @@ class YamlDatabase(Database):
 
     def get_current_budget(
         self, user_name: str, dataset_name: str
-    ) -> list[float]:
+    ) -> [float, float]:
         """
         Get the current epsilon and delta spent by a specific user
         on a specific dataset
@@ -107,7 +108,7 @@ class YamlDatabase(Database):
             ),
         ]
 
-    def get_max_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_max_budget(self, user_name: str, dataset_name: str) -> [float, float]:
         """
         Get the maximum epsilon and delta budget that can be spent by a user
         Parameters:
@@ -136,13 +137,13 @@ class YamlDatabase(Database):
             - spent_value: spending of epsilon or delta on last query
         """
         if self.has_user_access_to_dataset(user_name, dataset_name):
-            users = self.config["users"]
+            users = self.database["users"]
             for user in users:
                 if user["user_name"] == user_name:
                     for dataset in user["datasets_list"]:
                         if dataset["dataset_name"] == dataset_name:
                             dataset[parameter] += spent_value
-            self.config["users"] = users
+            self.database["users"] = users
         else:
             raise ValueError(
                 f"{user_name} has no access to {dataset_name}. "
@@ -225,17 +226,17 @@ class YamlDatabase(Database):
             }
         )
 
-    def save_current_config(self) -> None:
+    def save_current_database(self) -> None:
         """
-        Saves the current config with updated parameters in new yaml
+        Saves the current database with updated parameters in new yaml
         with the date and hour in the path
         Might be useful to verify state of DB during development
         """
-        new_path = CONFIG_PATH.replace(
+        new_path = self.path.replace(
             ".yaml", f'{datetime.now().strftime("%m_%d_%Y__%H_%M_%S")}.yaml'
         )
         with open(new_path, "w") as file:
-            yaml.dump(self.config, file)
+            yaml.dump(self.database, file)
 
     def save_current_archive_queries(self) -> None:
         """

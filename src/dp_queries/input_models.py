@@ -1,7 +1,8 @@
 import globals
 from typing import List
 from pydantic import BaseModel, validator, Field
-from smartnoise_json.synth import synth_map
+from dp_queries.smartnoise_json.synth import synth_map
+from utils.constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 
 
@@ -88,15 +89,16 @@ class DiffPrivLibInp(BasicModel):
 
 class SNSQLInp(BasicModel):
     query_str: str
+    dataset_name: str
     epsilon: float = Field(
         ...,
         gt=0,
-        le=globals.EPSILON_LIMIT,
+        le=EPSILON_LIMIT,
     )
     delta: float = Field(
         ...,
         gt=0,
-        le=globals.DELTA_LIMIT,
+        le=DELTA_LIMIT,
     )
 
 
@@ -105,7 +107,7 @@ class SNSynthInp(BasicModel):
     epsilon: float = Field(
         ...,
         gt=0,
-        le=globals.EPSILON_LIMIT,
+        le=EPSILON_LIMIT,
     )
     delta: float = 0
     select_cols: List = []
@@ -128,11 +130,11 @@ class SNSynthInp(BasicModel):
                     one of {list(synth_map.keys())}."
             )
         if values["model"] != "MWEM" and (
-            not delta > 0 or delta > globals.DELTA_LIMIT
+            not delta > 0 or delta > DELTA_LIMIT
         ):
             raise ValueError(
                 f"For models other than MWEM delta value should be greater \
-                    than 0 and less than or equal to {globals.DELTA_LIMIT}. \
+                    than 0 and less than or equal to {DELTA_LIMIT}. \
                         User provided: {str(delta)}"
             )
         return delta

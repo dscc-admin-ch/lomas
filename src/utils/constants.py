@@ -10,3 +10,8 @@ SERVER_LIVE = "LIVE"
 IRIS_DATASET_PATH = (
     "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
 )
+IRIS_METADATA_PATH = "/usr/sdd_poc_server/metadata/iris_metadata.yaml"
+PENGUIN_DATASET_PATH = (
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+)
+PENGUIN_METADATA_PATH = "/usr/sdd_poc_server/metadata/penguin_metadata.yaml"

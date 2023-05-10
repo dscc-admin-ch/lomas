@@ -46,7 +46,9 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def get_current_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_current_budget(
+        self, user_name: str, dataset_name: str
+    ) -> list[float]:
         """
         Get the current epsilon and delta spent by a specific user
         on a specific dataset

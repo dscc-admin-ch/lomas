@@ -88,7 +88,9 @@ class YamlDatabase(Database):
                 "Cannot get any budget estimate."
             )
 
-    def get_current_budget(self, user_name: str, dataset_name: str) -> list[float]:
+    def get_current_budget(
+        self, user_name: str, dataset_name: str
+    ) -> list[float]:
         """
         Get the current epsilon and delta spent by a specific user
         on a specific dataset
@@ -97,8 +99,12 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "current_epsilon")
-            self.get_epsilon_or_delta(user_name, dataset_name, "current_delta")
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "current_epsilon"
+            ),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "current_delta"
+            ),
         ]
 
     def get_max_budget(self, user_name: str, dataset_name: str) -> list[float]:
@@ -109,8 +115,8 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon")
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta")
+            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon"),
+            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
         ]
 
     def update_epsilon_or_delta(

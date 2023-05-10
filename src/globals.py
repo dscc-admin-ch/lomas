@@ -1,14 +1,13 @@
 import pandas as pd
 import pkg_resources
-from smartnoise_json.stats import smartnoise_dataset_factory, SmartnoiseSQLQuerier
+from smartnoise_json.stats import (
+    smartnoise_dataset_factory,
+    SmartnoiseSQLQuerier,
+)
 
 from database.yaml_database import YamlDatabase
 from utils.config import Config
-from utils.constants import (
-    DATASET_NOT_LOADED,
-    SERVER_LIVE,
-    USER_DB_NOT_LOADED
-)
+from utils.constants import DATASET_NOT_LOADED, SERVER_LIVE, USER_DB_NOT_LOADED
 from utils.loggr import LOG
 
 # Global Objects
@@ -32,7 +31,7 @@ OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 def set_datasets_fromDB():
     global IRIS_QUERIER, PENGUIN_QUERIER
     try:
-        IRIS_QUERIER = smartnoise_dataset_factory('Iris')
+        IRIS_QUERIER = smartnoise_dataset_factory("Iris")
     except Exception as e:
         SERVER_STATE["state"].append("Failed while loading Iris dataset")
         SERVER_STATE["message"].append(str(traceback.format_exc()))
@@ -40,7 +39,7 @@ def set_datasets_fromDB():
             400, f"Error reading iris dataset from provided  DB: {e}"
         )
     try:
-        PENGUIN_QUERIER = smartnoise_dataset_factory('Penguin')
+        PENGUIN_QUERIER = smartnoise_dataset_factory("Penguin")
     except Exception as e:
         SERVER_STATE["state"].append("Failed while loading Penguin dataset")
         SERVER_STATE["message"].append(str(traceback.format_exc()))

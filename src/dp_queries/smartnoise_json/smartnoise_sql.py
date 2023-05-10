@@ -6,38 +6,43 @@ import traceback
 import pandas as pd
 import globals
 
+from dp_logic import DPQuerier
 from utils.constants import (
     IRIS_DATASET_PATH,
     IRIS_METADATA_PATH,
     PENGUIN_DATASET_PATH,
-    PENGUIN_METADATA_PATH
+    PENGUIN_METADATA_PATH,
 )
 
+
 def smartnoise_dataset_factory(dataset_name: str):
-    if dataset_name == 'Iris':
+    if dataset_name == "Iris":
         if IRIS_QUERIER is None:
-            IRIS_QUERIER = SmartnoiseSQLQuerier(IRIS_DATASET_PATH, IRIS_METADATA_PATH)
+            IRIS_QUERIER = SmartnoiseSQLQuerier(
+                IRIS_DATASET_PATH, IRIS_METADATA_PATH
+            )
         querier = IRIS_QUERIER
-    elif dataset_name == 'Penguin':
-        if PENGUIN_QUERIER is None
-            PENGUIN_QUERIER = SmartnoiseSQLQuerier(PENGUIN_DATASET_PATH, PENGUIN_METADATA_PATH)
+    elif dataset_name == "Penguin":
+        if PENGUIN_QUERIER is None:
+            PENGUIN_QUERIER = SmartnoiseSQLQuerier(
+                PENGUIN_DATASET_PATH, PENGUIN_METADATA_PATH
+            )
         querier = PENGUIN_QUERIER
     else:
-        raise(f'Dataset {dataset_name} unknown.')
+        raise (f"Dataset {dataset_name} unknown.")
 
     return querier
 
 
-class SmartnoiseSQLQuerier:
-
-    def __init__(self, csv_path: str, metadata_path: str):
+class SmartnoiseSQLQuerier(DPQuerier):
+    def __init__(self, csv_path: str, metadata_path: str) -> None:
         self.df = pd.read_csv(csv_path)
 
         with open(metadata_path, "r") as f:
             self.metadata = yaml.safe_load(f)
 
-    def cost(self, query_str, eps, dta):
-        privacy = Privacy(epsilon=eps, delta=dta)
+    def cost(self, query_str: str, eps: float, delta: float) -> [float, float]:
+        privacy = Privacy(epsilon=eps, delta=delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
@@ -53,8 +58,8 @@ class SmartnoiseSQLQuerier:
 
         return result
 
-    def query(self, query_str, eps, dta) -> list:
-        privacy = Privacy(epsilon=eps, delta=dta)
+    def query(self, query_str: str, eps: float, delta: float) -> list:
+        privacy = Privacy(epsilon=eps, delta=delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
@@ -68,6 +73,7 @@ class SmartnoiseSQLQuerier:
                 "Error executing query: " + query_str + ": " + str(err),
             )
 
+        # TODO: understand better (why need to stream ?)
         db_res = result.copy()
         cols = result.pop(0)
 
@@ -75,7 +81,7 @@ class SmartnoiseSQLQuerier:
             raise HTTPException(
                 400,
                 f"SQL Reader generated empty results, \
-                    Epsilon: {eps} and Delta: {dta} are too small \
+                    Epsilon: {eps} and Delta: {delta} are too small \
                         to generate output.",
             )
         stream = io.StringIO()

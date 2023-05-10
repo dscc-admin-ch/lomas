@@ -1,11 +1,17 @@
-from fastapi import Depends, FastAPI, Header, Request
+from fastapi import Body, Depends, FastAPI, Header, Request
 
 import globals
 from database.yaml_database import YamlDatabase
+from dp_queries.dp_logic import dp_query_logic
+from dp_queries.example_inputs import example_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
+from dp_queries.smartnoise_json.smartnoise_sql import (
+    SmartnoiseSQLQuerier
+)
 from utils.anti_timing_att import anti_timing_att
+from utils.config import get_config, Config
+from utils.constants import YAML_USER_DATABASE
 from utils.depends import server_live
-from utils.config import get_config
 from utils.loggr import LOG
 
 
@@ -20,11 +26,12 @@ def startup_event():
     LOG.info("Startup message")
 
     # Load config here
-    _ = get_config()
+    LOG.info("Loading config")
+    globals.CONFIG = get_config()
 
     # Load users, datasets, etc..
     LOG.info("Loading user database")
-    globals.USER_DATABASE = YamlDatabase()
+    globals.USER_DATABASE = YamlDatabase(YAML_USER_DATABASE)
 
     LOG.info("Loading datasets")
     try:

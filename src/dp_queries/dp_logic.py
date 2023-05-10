@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
-from input_models import BasicModel
+from fastapi import Header
+
+from dp_queries.input_models import BasicModel
+import globals
 
 
 class DPQuerier(ABC):
@@ -34,12 +37,14 @@ def dp_query_logic(
     query_json: BasicModel,
     x_oblv_user_name: str = Header(None),
 ):
+    from dp_queries.smartnoise_json.smartnoise_sql import smartnoise_dataset_factory
+
     # Query the right dataset with the right query type
     if query_type == "smartnoise_sql":
         dp_querier = smartnoise_dataset_factory(query_json.dataset_name)
     # if other librairies, add dp_querier here. dp_querier must ihnerit from DBQuerier
     else:
-        raise (f"Query type {qury_type} unknown.")
+        raise (f"Query type {query_type} unknown.")
 
     # Get cost of the query
     eps_cost, delta_cost = dp_querier.cost(
@@ -55,9 +60,9 @@ def dp_query_logic(
     )
 
     # If enough budget
-    if (eps_max_user - eps_curr_user) >= eps_cost and (
-        delta_max_user - delta_curr_user
-    ) >= delta_cost:
+    if ((eps_max_user - eps_curr_user) >= eps_cost) and (
+        (delta_max_user - delta_curr_user) >= delta_cost
+    ):
         # Query
         try:
             response, _ = dp_querier.query(

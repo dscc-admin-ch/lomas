@@ -48,7 +48,9 @@ def dp_query_logic(
     # If other librairies, add dp_querier here.
     # Note: dp_querier must ihnerit from DBQuerier
     else:
-        raise (f"Query type {query_type} unknown.")
+        e = f"Query type {query_type} unknown in dp_query_logic"
+        LOG.exception(e)
+        raise HTTPException(404, str(e))
 
     # Get cost of the query
     eps_cost, delta_cost = dp_querier.cost(

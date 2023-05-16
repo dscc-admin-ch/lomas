@@ -2,14 +2,14 @@ from fastapi import Request
 import time
 import random
 
-import config as config
+from utils.config import get_config
 
 
 async def anti_timing_att(
     request: Request,
     call_next,
 ):
-    config_ = config.get_config()
+    config_ = get_config()
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time

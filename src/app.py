@@ -1,9 +1,14 @@
-from fastapi import Depends, FastAPI, Header, Request
+from fastapi import Body, Depends, FastAPI, Header, Request
 
 import globals
+from database.yaml_database import YamlDatabase
+from dp_queries.dp_logic import dp_query_logic
+from dp_queries.example_inputs import example_smartnoise_sql
+from dp_queries.input_models import SNSQLInp
 from utils.anti_timing_att import anti_timing_att
-from utils.depends import server_live
 from utils.config import get_config
+from utils.constants import YAML_USER_DATABASE
+from utils.depends import server_live
 from utils.loggr import LOG
 
 
@@ -18,10 +23,25 @@ def startup_event():
     LOG.info("Startup message")
 
     # Load config here
-    _ = get_config()
-    # Load users, datasets, etc..
+    LOG.info("Loading config")
+    globals.CONFIG = get_config()
 
-    # Do more startup initialization stuff (possibly try-catch blocks)
+    # Load users, datasets, etc..
+    LOG.info("Loading user database")
+    globals.USER_DATABASE = YamlDatabase(YAML_USER_DATABASE)
+
+    LOG.info("Loading datasets")
+    try:
+        globals.set_datasets_fromDB()
+    except Exception as e:
+        LOG.exception("Failed at startup:" + str(e))
+        globals.SERVER_STATE["state"].append(
+            "Loading datasets at Startup Failure"
+        )
+        globals.SERVER_STATE["message"].append(str(e))
+    else:
+        globals.SERVER_STATE["state"].append("Startup Completed")
+        globals.SERVER_STATE["message"].append("Datasets Loaded!")
 
     # Finally check everything in startup went well and update the state
     globals.check_start_condition()
@@ -48,6 +68,18 @@ async def get_state(x_oblv_user_name: str = Header(None)):
         "requested_by": x_oblv_user_name,
         "state": globals.SERVER_STATE,
     }
+
+
+# Smartnoise SQL query
+@app.post("/smartnoise_sql", tags=["OBLV_PARTICIPANT_USER"])
+def smartnoise_sql_handler(
+    query_json: SNSQLInp = Body(example_smartnoise_sql),
+    x_oblv_user_name: str = Header(None),
+):
+    response = dp_query_logic("smartnoise_sql", query_json, x_oblv_user_name)
+
+    # Return response
+    return response
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

@@ -103,9 +103,10 @@ example_opendp = {
 }
 
 example_smartnoise_sql = {
-    "query_str": "SELECT COUNT(col2) FROM comp.comp GROUP BY col1",
-    "epsilon": 10,
-    "delta": 0,
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM IrisSchema.IrisTable",
+    "dataset_name": "IRIS",
+    "epsilon": 1,
+    "delta": 0.00001,
 }
 
 example_smartnoise_synth = {

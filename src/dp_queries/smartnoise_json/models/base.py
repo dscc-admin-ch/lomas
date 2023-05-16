@@ -6,7 +6,7 @@ import pandas as pd
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 import numpy as np
-from globals import LOG
+from utils.loggr import LOG
 import io
 
 

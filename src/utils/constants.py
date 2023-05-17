@@ -6,6 +6,7 @@ DELTA_LIMIT: float = 0.0004
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
 YAML_USER_DATABASE = "/usr/sdd_poc_server/user_database.yaml"
 QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
+MONGODB_CONTAINER_NAME = "mongodb"
 
 # Server states
 DATASET_NOT_LOADED = "Dataset(s) not loaded"

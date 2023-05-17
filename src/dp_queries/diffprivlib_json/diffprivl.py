@@ -35,7 +35,6 @@ class DiffPrivPipe:
         self.fit()
 
     def json_to_pytype(self, pipeline_json):
-
         pytype_pipeline_dict = pipeline_json.copy()
         for (
             i,
@@ -89,7 +88,6 @@ class DiffPrivPipe:
 def dppipe_predict(
     pipeline_json,
 ):
-
     dp_model = DiffPrivPipe(pipeline_json)
 
     pickled_model = pickle.dumps(dp_model.dp_pipeline)

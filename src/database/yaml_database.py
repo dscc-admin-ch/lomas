@@ -1,4 +1,5 @@
 from datetime import datetime
+from fastapi import HTTPException
 import json
 import yaml
 
@@ -50,11 +51,13 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         if not (self.does_user_exists(user_name)):
-            raise ValueError(
+            raise HTTPException(
+                400,
                 f"User {user_name} does not exists. Cannot check access."
             )
         if not (self.does_dataset_exists(dataset_name)):
-            raise ValueError(
+            raise HTTPException(
+                404,
                 f"Dataset {dataset_name} does not exists. "
                 "Cannot check access."
             )
@@ -84,7 +87,8 @@ class YamlDatabase(Database):
                         if dataset["dataset_name"] == dataset_name:
                             return dataset[parameter]
         else:
-            raise ValueError(
+            raise HTTPException(
+                401,
                 f"{user_name} has no access to {dataset_name}. "
                 "Cannot get any budget estimate."
             )
@@ -147,7 +151,8 @@ class YamlDatabase(Database):
                             dataset[parameter] += spent_value
             self.database["users"] = users
         else:
-            raise ValueError(
+            raise HTTPException(
+                401,
                 f"{user_name} has no access to {dataset_name}. "
                 "Cannot update any budget estimate."
             )

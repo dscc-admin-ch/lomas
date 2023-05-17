@@ -1,4 +1,4 @@
-from fastapi import Body, Depends, FastAPI, Header, Request
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from database.yaml_database import YamlDatabase
@@ -7,7 +7,7 @@ from dp_queries.example_inputs import example_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import YAML_USER_DATABASE
+from utils.constants import YAML_USER_DATABASE, INTERNAL_SERVER_ERROR
 from utils.depends import server_live
 from utils.loggr import LOG
 
@@ -76,7 +76,13 @@ def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     x_oblv_user_name: str = Header(None),
 ):
-    response = dp_query_logic("smartnoise_sql", query_json, x_oblv_user_name)
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response = dp_query_logic("smartnoise_sql", query_json, x_oblv_user_name)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
     return response

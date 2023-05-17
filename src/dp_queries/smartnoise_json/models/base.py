@@ -85,7 +85,6 @@ class SDModel(ABC):
         self,
         num_samples: int = 10000,
     ) -> StreamingResponse:
-
         stream = io.StringIO()
 
         # CSV creation

@@ -13,7 +13,6 @@ class TimeAttack(BaseModel):
 
 
 class Config(BaseModel):
-
     # Server configs
     time_attack: TimeAttack = None
 

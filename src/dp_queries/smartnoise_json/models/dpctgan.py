@@ -26,7 +26,6 @@ class DPCTGAN(SDModel):
         select_cols: List[str] = [],
         mul_matrix=None,
     ):
-
         return super().__init__(
             data,
             epsilon,

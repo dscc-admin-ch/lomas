@@ -1,0 +1,30 @@
+version: '3.4'
+services:
+  ung20:
+    image: ung20
+    build:
+      dockerfile: ./Dockerfile
+    container_name: ung20
+    env_file:
+      - .env
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - ./src:/code/
+    depends_on:
+      - mongodb
+    networks:
+      - test-network
+  mongodb:
+    container_name: mongodb
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    ports:
+      - '27017:27017'
+    networks:
+      - test-network
+  networks:
+    test-network:
+    driver: bridge
+
+    

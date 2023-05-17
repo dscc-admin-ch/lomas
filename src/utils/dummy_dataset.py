@@ -62,9 +62,8 @@ def make_dummy_dataset(
                 serie = np.random.randint(column_min, column_max, size=NB_ROWS)
             else:
                 serie = np.random.uniform(column_min, column_max, size=NB_ROWS)
-        elif (
-            col_type == "datetime"
-        ):  # From srat date and random on a range above
+        elif col_type == "datetime":
+            # From start date and random on a range above
             start = datetime.strptime(RANDOM_DATE_START, "%m/%d/%Y")
             serie = [
                 start
@@ -73,9 +72,8 @@ def make_dummy_dataset(
                 )
                 for _ in range(NB_ROWS)
             ]
-        elif (
-            col_type == "unknown"
-        ):  # unknown column are ignored by snartnoise sql
+        elif col_type == "unknown":
+            # unknown column are ignored by snartnoise sql
             continue
         else:
             raise ValueError(

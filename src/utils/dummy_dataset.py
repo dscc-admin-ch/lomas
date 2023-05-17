@@ -40,7 +40,7 @@ def make_dummy_dataset(
         if col_name in SSQL_METADATA_OPTIONS:
             continue
 
-        # Create a column based on the data type
+        # Create a random serie based on the data type
         col_type = data["type"]
 
         if col_type == "string":
@@ -73,7 +73,7 @@ def make_dummy_dataset(
                 for _ in range(NB_ROWS)
             ]
         elif col_type == "unknown":
-            # unknown column are ignored by snartnoise sql
+            # Unknown column are ignored by snartnoise sql
             continue
         else:
             raise ValueError(
@@ -81,6 +81,7 @@ def make_dummy_dataset(
                 {col_type} in column {col_name}"
             )
 
+        # Add None value if the column is nullable
         nullable = data["nullable"] if "nullable" in data.keys() else False
 
         if nullable:
@@ -88,6 +89,7 @@ def make_dummy_dataset(
                 serie.insert(random.randrange(0, len(serie) - 1), None)
             serie = serie[:-NB_RANDOM_NONE]
 
+        # Add randomly generated data as new column of dataframe
         df[col_name] = serie
 
     return df

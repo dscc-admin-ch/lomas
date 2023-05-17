@@ -14,6 +14,10 @@ CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 
 
+# Server error messages
+INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
+
+
 # Datasets
 IRIS_DATASET = "IRIS"
 IRIS_DATASET_PATH = (

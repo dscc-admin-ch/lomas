@@ -136,6 +136,3 @@ class Database(ABC):
             - query: json string of the query
         """
         pass
-
-
-

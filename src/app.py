@@ -7,7 +7,7 @@ from dp_queries.example_inputs import example_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import YAML_USER_DATABASE, INTERNAL_SERVER_ERROR, CONF_DB
+from utils.constants import INTERNAL_SERVER_ERROR
 from utils.depends import server_live
 from utils.loggr import LOG
 
@@ -39,7 +39,6 @@ def startup_event():
     else:
         globals.SERVER_STATE["state"].append("User database loaded")
         globals.SERVER_STATE["message"].append("User database loaded")
-        
 
     LOG.info("Loading datasets")
     try:
@@ -89,10 +88,12 @@ def smartnoise_sql_handler(
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response = dp_query_logic("smartnoise_sql", query_json, x_oblv_user_name)
+        response = dp_query_logic(
+            "smartnoise_sql", query_json, x_oblv_user_name
+        )
     except HTTPException as e:
         raise e
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response

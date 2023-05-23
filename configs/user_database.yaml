@@ -1,5 +1,6 @@
 users:
 - user_name: Alice
+  may_query: True
   datasets_list:
   - dataset_name: "IRIS"
     max_epsilon: 10
@@ -12,6 +13,7 @@ users:
     current_epsilon: 0.2
     current_delta: 0.0000001
 - user_name: Bob
+  may_query: True
   datasets_list:
   - dataset_name: "IRIS"
     max_epsilon: 10

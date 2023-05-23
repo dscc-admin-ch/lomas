@@ -1,13 +1,13 @@
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
-from database.yaml_database import YamlDatabase
+from database.utils import database_factory
 from dp_queries.dp_logic import dp_query_logic
 from dp_queries.example_inputs import example_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import YAML_USER_DATABASE, INTERNAL_SERVER_ERROR
+from utils.constants import YAML_USER_DATABASE, INTERNAL_SERVER_ERROR, CONF_DB
 from utils.depends import server_live
 from utils.loggr import LOG
 
@@ -28,7 +28,18 @@ def startup_event():
 
     # Load users, datasets, etc..
     LOG.info("Loading user database")
-    globals.USER_DATABASE = YamlDatabase(YAML_USER_DATABASE)
+    try:
+        globals.USER_DATABASE = database_factory(globals.CONFIG.database)
+    except Exception as e:
+        LOG.exception("Failed at startup:" + str(e))
+        globals.SERVER_STATE["state"].append(
+            "Loading user database at Startup failed"
+        )
+        globals.SERVER_STATE["message"].append(str(e))
+    else:
+        globals.SERVER_STATE["state"].append("User database loaded")
+        globals.SERVER_STATE["message"].append("User database loaded")
+        
 
     LOG.info("Loading datasets")
     try:

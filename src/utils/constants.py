@@ -8,6 +8,19 @@ YAML_USER_DATABASE = "/usr/sdd_poc_server/user_database.yaml"
 QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
 MONGODB_CONTAINER_NAME = "mongodb"
 
+# Configuration field names and values
+CONF_RUNTIME_ARGS = "runtime_args"
+CONF_SETTINGS = "settings"
+CONF_TIME_ATTACK = "time_attack"
+CONF_SUBMIT_LIMIT = "submit_limit"
+CONF_DB = "database"
+CONF_DB_TYPE = "db_type"
+CONF_DB_TYPE_MONGODB = "mongodb"
+CONF_DB_TYPE_YAML = "yaml"
+CONF_YAML_DB = "db_file"
+CONF_MONGODB_ADDR = "address"
+CONF_MONGODB_PORT = "port"
+
 # Server states
 DATASET_NOT_LOADED = "Dataset(s) not loaded"
 USER_DB_NOT_LOADED = "User database not loaded"

@@ -40,4 +40,5 @@ COPY ./configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
 CMD ["python", "uvicorn_serve.py"]
 
 FROM sdd_server AS sdd_server_dev
+ENV PYTHONDONTWRITEBYTECODE 1
 # Empty, used for development.

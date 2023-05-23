@@ -57,11 +57,12 @@ class MongoDB_Database(Database):
     Overall MongoDB database management
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db_url: str) -> None:
         """
         Load DB
         """
-        self.db = create_example_mongodb()
+        self.db = pymongo.MongoClient(db_url)
+        
 
     def does_user_exists(self, user_name: str) -> bool:
         """
@@ -75,6 +76,7 @@ class MongoDB_Database(Database):
 
         return True if doc_count > 0 else False
 
+
     def does_dataset_exists(self, dataset_name: str) -> bool:
         """
         Checks if dataset exist in the database
@@ -86,6 +88,7 @@ class MongoDB_Database(Database):
         )
 
         return True if doc_count > 0 else False
+
 
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
@@ -104,6 +107,7 @@ class MongoDB_Database(Database):
         )
 
         return True if doc_count > 0 else False
+
 
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
@@ -137,6 +141,7 @@ class MongoDB_Database(Database):
                 "Cannot get any budget estimate."
             )
 
+
     def get_current_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -156,6 +161,7 @@ class MongoDB_Database(Database):
             ),
         ]
 
+
     def get_max_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -169,6 +175,7 @@ class MongoDB_Database(Database):
             self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon"),
             self.get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
         ]
+
 
     def update_epsilon_or_delta(
         self,
@@ -200,6 +207,7 @@ class MongoDB_Database(Database):
                 "Cannot update any budget estimate."
             )
 
+
     def update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
@@ -215,6 +223,7 @@ class MongoDB_Database(Database):
             user_name, dataset_name, "current_epsilon", spent_epsilon
         )
 
+
     def update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
@@ -229,6 +238,7 @@ class MongoDB_Database(Database):
         self.update_epsilon_or_delta(
             user_name, dataset_name, "current_delta", spent_delta
         )
+
 
     def update_budget(
         self,
@@ -248,6 +258,7 @@ class MongoDB_Database(Database):
         """
         self.update_epsilon(user_name, dataset_name, spent_epsilon)
         self.update_delta(user_name, dataset_name, spent_delta)
+
 
     def save_query(
         self,

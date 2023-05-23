@@ -4,6 +4,11 @@ runtime_args:
     time_attack:
         method: "jitter" # or "stall"
         magnitude: 1
+    database:
+      db_type: "mongodb" # or "yaml"
+      address: "mongodb" # or db_file: <..> for yaml db
+      port: 27017
+
   
   #MDDB_DBNAME : datasets
   #MDDB_USER: "oblivious"

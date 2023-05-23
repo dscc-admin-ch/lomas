@@ -17,6 +17,7 @@ def create_example_mongodb():
         [
             {
                 "user_name": "Alice",
+                "may_query": True,
                 "datasets_list": [
                     {
                         "dataset_name": "iris",
@@ -36,6 +37,7 @@ def create_example_mongodb():
             },
             {
                 "user_name": "Bob",
+                "may_query": True,
                 "datasets_list": [
                     {
                         "dataset_name": "iris",
@@ -87,6 +89,42 @@ class MongoDB_Database(Database):
 
         return True if doc_count > 0 else False
 
+    def may_user_query(self, user_name: str) -> bool:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+        """
+        if not (self.does_user_exists(user_name)):
+            raise ValueError(
+                f"User {user_name} does not exists. Cannot check access."
+            )
+        user = self.db.users.find_one({'user_name': user_name})
+        return user['may_query']
+    
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+            - may_query: flag give or remove access to user
+        """
+        if not (self.does_user_exists(user_name)):
+            raise ValueError(
+                f"User {user_name} does not exists. Cannot check access."
+            )
+
+        self.db.users.update_one(
+            {
+                "user_name": f"{user_name}"
+            },
+            {"$inc": {f"may_query.$.{parameter}": may_query}},
+        )
+        pass
+    
+    
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

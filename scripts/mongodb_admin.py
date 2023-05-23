@@ -7,11 +7,17 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="MongoDB administration script for the SDD POC Server")
+    parser = argparse.ArgumentParser(
+        prog="MongoDB administration script for the SDD POC Server"
+    )
 
-    parser.add_argument("-u", "--add_user", required=False,
-                        help="Adds a user to the database. Requires options -...")
-    
+    parser.add_argument(
+        "-u",
+        "--add_user",
+        required=False,
+        help="Adds a user to the database. Requires options -...",
+    )
+
     args = parser.parse_args()
 
     main(args)

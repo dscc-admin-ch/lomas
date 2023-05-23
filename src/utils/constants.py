@@ -29,7 +29,9 @@ SERVER_LIVE = "LIVE"
 
 
 # Server error messages
-INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
+INTERNAL_SERVER_ERROR = (
+    "Internal server error. Please contact the administrator of this service."
+)
 
 
 # Datasets

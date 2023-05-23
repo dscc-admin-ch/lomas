@@ -1,11 +1,21 @@
 from pydantic import BaseModel
+
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
 from typing_extensions import Literal
 import yaml
 
-from utils.constants import CONF_RUNTIME_ARGS, CONF_SETTINGS, CONF_TIME_ATTACK, CONF_DB, CONF_DB_TYPE, CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML, CONF_SUBMIT_LIMIT
+from utils.constants import (
+    CONF_RUNTIME_ARGS,
+    CONF_SETTINGS,
+    CONF_TIME_ATTACK,
+    CONF_DB,
+    CONF_DB_TYPE,
+    CONF_DB_TYPE_MONGODB,
+    CONF_DB_TYPE_YAML,
+    CONF_SUBMIT_LIMIT,
+)
 import globals
 from utils.constants import CONFIG_PATH
 from utils.loggr import LOG
@@ -27,7 +37,7 @@ class MongoDBConfig(DBConfig):
 
 class YAMLDBConfig(DBConfig):
     db_file: str = None
-    
+
 
 class Config(BaseModel):
     # Server configs
@@ -95,13 +105,12 @@ def get_config() -> dict:
         else:
             raise Exception(f"Database type {db_type} not supported.")
 
-
         config: Config = Config(
             time_attack=time_attack,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
-            database=database_config
+            database=database_config,
         )
-        
+
     except Exception as e:
         LOG.error(
             f"Could not read config from disk at {CONFIG_PATH} \

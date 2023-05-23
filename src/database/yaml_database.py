@@ -52,14 +52,13 @@ class YamlDatabase(Database):
         """
         if not (self.does_user_exists(user_name)):
             raise HTTPException(
-                400,
-                f"User {user_name} does not exists. Cannot check access."
+                400, f"User {user_name} does not exists. Cannot check access."
             )
         if not (self.does_dataset_exists(dataset_name)):
             raise HTTPException(
                 404,
                 f"Dataset {dataset_name} does not exists. "
-                "Cannot check access."
+                "Cannot check access.",
             )
 
         for user in self.database["users"]:
@@ -90,7 +89,7 @@ class YamlDatabase(Database):
             raise HTTPException(
                 401,
                 f"{user_name} has no access to {dataset_name}. "
-                "Cannot get any budget estimate."
+                "Cannot get any budget estimate.",
             )
 
     def get_current_budget(
@@ -154,7 +153,7 @@ class YamlDatabase(Database):
             raise HTTPException(
                 401,
                 f"{user_name} has no access to {dataset_name}. "
-                "Cannot update any budget estimate."
+                "Cannot update any budget estimate.",
             )
 
     def update_epsilon(

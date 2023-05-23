@@ -42,7 +42,7 @@ class Database(ABC):
             - user_name: name of the user
         """
         pass
-    
+
     @abstractmethod
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
@@ -53,7 +53,7 @@ class Database(ABC):
             - may_query: flag give or remove access to user
         """
         pass
-    
+
     @abstractmethod
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str

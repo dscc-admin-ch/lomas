@@ -100,9 +100,9 @@ class MongoDB_Database(Database):
             raise ValueError(
                 f"User {user_name} does not exists. Cannot check access."
             )
-        user = self.db.users.find_one({'user_name': user_name})
-        return user['may_query']
-    
+        user = self.db.users.find_one({"user_name": user_name})
+        return user["may_query"]
+
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Checks if a user may query the server.
@@ -117,14 +117,10 @@ class MongoDB_Database(Database):
             )
 
         self.db.users.update_one(
-            {
-                "user_name": f"{user_name}"
-            },
-            {"$inc": {f"may_query.$.{parameter}": may_query}},
+            {"user_name": f"{user_name}"},
+            {"$set": {"may_query": may_query}},
         )
-        pass
-    
-    
+
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

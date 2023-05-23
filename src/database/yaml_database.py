@@ -39,6 +39,40 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset to check
         """
         return dataset_name in self.database["datasets"]
+    
+    def may_user_query(self, user_name: str) -> bool:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+        """
+        if not (self.does_user_exists(user_name)):
+            raise ValueError(
+                f"User {user_name} does not exists. Cannot check access."
+            )
+        for user in self.database["users"]:
+            if user["user_name"] == user_name:
+                return user["may_query"]
+    
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+            - may_query: flag give or remove access to user
+        """
+        if not (self.does_user_exists(user_name)):
+            raise ValueError(
+                f"User {user_name} does not exists. Cannot check access."
+            )
+            
+        users = self.database["users"]
+        for user in users:
+            if user["user_name"] == user_name:
+                user["may_query"] = may_query
+        self.database["users"] = users
 
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str

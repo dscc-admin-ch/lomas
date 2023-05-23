@@ -57,6 +57,15 @@ def dp_query_logic(
         query_json.query_str, query_json.epsilon, query_json.delta
     )
 
+    # Check that user may query
+    if not globals.USER_DATABASE.may_user_query(x_oblv_user_name):
+        e = f"User {x_oblv_user_name} may not query now. Already querying."
+        LOG.exception(e)
+        raise HTTPException(403, str(e))
+    
+    # Block access to other queries to user
+    globals.USER_DATABASE.set_may_user_query(x_oblv_user_name, False)
+    
     # Check that enough budget to to the query
     eps_max_user, delta_max_user = globals.USER_DATABASE.get_max_budget(
         x_oblv_user_name, query_json.dataset_name
@@ -103,6 +112,9 @@ def dp_query_logic(
             Current epsilon: {eps_curr_user}, Current delta {delta_curr_user} \
             Max epsilon: {eps_max_user}, Max delta {delta_max_user} ",
         }
-
+    
+    # Re-enable user to query
+    globals.USER_DATABASE.set_may_user_query(x_oblv_user_name, True)
+    
     # Return response
     return response

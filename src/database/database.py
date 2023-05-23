@@ -34,6 +34,16 @@ class Database(ABC):
         pass
 
     @abstractmethod
+    def may_user_query(self, user_name: str) -> bool:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+        """
+        pass
+    
+    @abstractmethod
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

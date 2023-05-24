@@ -59,9 +59,14 @@ def dp_query_logic(
 
     # Check that user may query
     if not globals.USER_DATABASE.may_user_query(x_oblv_user_name):
-        e = f"User {x_oblv_user_name} may not query now. Already querying."
-        LOG.exception(e)
-        raise HTTPException(403, str(e))
+        LOG.warning(
+            f"User {x_oblv_user_name} is trying to query before end of \
+            previous query. Returning without response."
+        )
+        return {
+            "requested_by": x_oblv_user_name,
+            "state": "No response. Already a query running."
+        }
 
     # Block access to other queries to user
     globals.USER_DATABASE.set_may_user_query(x_oblv_user_name, False)

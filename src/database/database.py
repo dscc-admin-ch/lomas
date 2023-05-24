@@ -24,7 +24,7 @@ class Database(ABC):
             - user_name: name of the user to check
         """
         pass
-    
+
     def _does_user_exists(func):
         """
         Decorator function to check if a user exists
@@ -32,18 +32,20 @@ class Database(ABC):
             - args[0]: expects self
             - args[1]: expects username
         """
+
         @functools.wraps(func)
         def wrapper_decorator(*args, **kwargs):
             self = args[0]
             user_name = args[1]
-            print(f'in decorator, user name {user_name}')
+            print(f"in decorator, user name {user_name}")
             if not (self.does_user_exists(user_name)):
                 raise ValueError(
                     f"User {user_name} does not exists. Cannot continue."
                 )
             return func(*args, **kwargs)
+
         return wrapper_decorator
-    
+
     @abstractmethod
     def does_dataset_exists(self, dataset_name: str) -> bool:
         """
@@ -97,8 +99,9 @@ class Database(ABC):
             - args[1]: expects username
             - args[2]: expects dataset_name
         """
+
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs) :
+        def wrapper_decorator(*args, **kwargs):
             self = args[0]
             user_name = args[1]
             dataset_name = args[2]
@@ -106,8 +109,9 @@ class Database(ABC):
                 raise ValueError(
                     f"{user_name} has no access to {dataset_name}. "
                     "Cannot access budget functions."
-            )
+                )
             return func(*args, **kwargs)
+
         return wrapper_decorator
 
     @abstractmethod

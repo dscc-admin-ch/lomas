@@ -1,55 +1,7 @@
-import pymongo
-
 from database.database import Database
+from fastapi import HTTPException
 from utils.constants import MONGODB_CONTAINER_NAME
-
-
-def create_example_mongodb():
-    """
-    Create a test MongoDB database that is running inside a container
-    named mongodb
-    """
-    mongodb_client = pymongo.MongoClient(
-        f"mongodb://{MONGODB_CONTAINER_NAME}:27017/"
-    )
-    db = mongodb_client["example_database"]
-    db.users.insert_many(
-        [
-            {
-                "user_name": "Alice",
-                "datasets_list": [
-                    {
-                        "dataset_name": "iris",
-                        "max_epsilon": 10,
-                        "max_delta": 0.0001,
-                        "current_epsilon": 1,
-                        "current_delta": 0.000001,
-                    },
-                    {
-                        "dataset_name": "penguin",
-                        "max_epsilon": 5,
-                        "max_delta": 0.0005,
-                        "current_epsilon": 0.2,
-                        "current_delta": 0.0000001,
-                    },
-                ],
-            },
-            {
-                "user_name": "Bob",
-                "datasets_list": [
-                    {
-                        "dataset_name": "iris",
-                        "max_epsilon": 10,
-                        "max_delta": 0.0001,
-                        "current_epsilon": 0,
-                        "current_delta": 0,
-                    }
-                ],
-            },
-        ]
-    )
-
-    return db
+import pymongo
 
 
 class MongoDB_Database(Database):
@@ -61,7 +13,7 @@ class MongoDB_Database(Database):
         """
         Load DB
         """
-        self.db = pymongo.MongoClient(db_url)
+        self.db = pymongo.MongoClient(db_url)["example_database"]
 
     def does_user_exists(self, user_name: str) -> bool:
         """
@@ -132,9 +84,10 @@ class MongoDB_Database(Database):
             )[0]["datasets_list"][parameter]
 
         else:
-            raise ValueError(
-                f"{user_name} has no access to {dataset_name}."
-                "Cannot get any budget estimate."
+            raise HTTPException(
+                401,
+                f"{user_name} has no access to {dataset_name}. "
+                "Cannot get any budget estimate.",
             )
 
     def get_current_budget(
@@ -195,9 +148,10 @@ class MongoDB_Database(Database):
                 {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
             )
         else:
-            raise ValueError(
+            raise HTTPException(
+                401,
                 f"{user_name} has no access to {dataset_name}. "
-                "Cannot update any budget estimate."
+                "Cannot update any budget estimate.",
             )
 
     def update_epsilon(

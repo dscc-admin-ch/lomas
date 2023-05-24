@@ -2,10 +2,9 @@ from abc import ABC, abstractmethod
 from fastapi import Header, HTTPException
 from typing import Dict
 
-from utils.constants import SUPPORTED_LIBS
-from dp_queries.dp_logic import DPQuerier
+from utils.constants import SUPPORTED_LIBS, LIB_SMARTNOISE_SQL, DATASET_PATHS, DATASET_METADATA_PATHS
+from database.database import Database
 from dp_queries.input_models import BasicModel
-import globals
 from utils.loggr import LOG
 
 
@@ -39,15 +38,22 @@ class DPQuerier(ABC):
 class QuerierManager(ABC):
     """
     Manages the DPQueriers for the different datasets and libraries
+
+    Holds a reference to the database in order to get information about
+    the datasets.
+
+    We make the __add_dataset function private to enforce lazy loading of
+    queriers.
     """
 
-    @abstractmethod
-    def __init__(self) -> None:
-        pass
+    database: Database
+
+    def __init__(self, database: Database) -> None:
+        self.database = database
 
 
     @abstractmethod
-    def add_dataset(dataset_name: str) -> None:
+    def _add_dataset(self, dataset_name: str) -> None:
         """
         Adds a dataset to the manager
         """
@@ -69,47 +75,68 @@ class BasicQuerierManager(QuerierManager):
     The queriers are initialized lazily and put into a dict.
     There is no memory management => The manager will fail if the datasets are
     too large to fit in memory.
+
+    The add_dataset method just gets the source data from csv files 
+    (links stored in constants).
     """
 
     dp_queriers : Dict[str, Dict[str, DPQuerier]] = None
 
-    def __init__(self) -> None:
+    def __init__(self, database: Database) -> None:
+        super().__init__(database)
         self.dp_queriers = {}
         return
     
     
-    def add_dataset(dataset_name: str) -> None:
+    def _add_dataset(self, dataset_name: str) -> None:
+        """
+        Adds all queriers for a dataset.
+        The source data is fetched from an online csv, the paths are stored
+        as constants for now.
+
+        TODO Get the info from the metadata stored in the db.
+        """
+        # Should not call this function if dataset already present.
+        assert(dataset_name not in self.dp_queriers)
+
+        # Initialize dict
+        self.dp_queriers[dataset_name] = {}
+
         for lib in SUPPORTED_LIBS:
-            #dataset = ....
-            #querrier_factory(dataset, )
+            if lib == LIB_SMARTNOISE_SQL:
+                ds_path = DATASET_PATHS[dataset_name]
+                ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
+                from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
+                querier = SmartnoiseSQLQuerier(ds_path, ds_metadata_path)
+
+                self.dp_queriers[dataset_name][lib] = querier
+            #elif ... :
+            else:
+                raise Exception(f"Trying to create a querier for library {lib}. "
+                                 "This should never happen.")
+            
 
     def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
         if dataset_name not in self.dp_queriers:
-            self.add_dataset(dataset_name)
+            self._add_dataset(dataset_name)
 
         return self.dp_queriers[dataset_name][library]
-
 
 
 class QueryHandler():
     """
-    Global query handler for the server.
+    Query handler for the server.
 
-    Holds one querrier per dataset per library (e.g. IRIS and SmartNoïse)
+    Holds a reference to the database and uses a BasicQuerierManager
+    to manage the queriers. TODO make this configurable?
     """
+    database: Database
+    querier_manager: BasicQuerierManager
 
-    
-
-    def __init__(self) -> None:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+        self.querier_manager = BasicQuerierManager(database)
         return
-    
-
-    def add_dataset_queriers(self, dataset_name: str) -> None:
-        
-    
-
-    def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
-        return self.dp_queriers[dataset_name][library]
 
     def handle_query(
         self,
@@ -117,24 +144,18 @@ class QueryHandler():
         query_json: BasicModel,
         x_oblv_user_name: str = Header(None),
     ):
-        from dp_queries.smartnoise_json.smartnoise_sql import (
-            smartnoise_dataset_factory,
-        )
-
-        # Check if queriers already initialized
-        if self.dp_queriers[query_json.dataset_name] is None:
-            self.add_dataset_queriers(query_json.dataset_name)
-
-        dp_querier = self.dp_queriers[query_json.dataset_name][query_json.query_type]
-        # Query the right dataset with the right query type
-        if query_type == "smartnoise_sql":
-            dp_querier = smartnoise_dataset_factory(query_json.dataset_name)
-        # If other librairies, add dp_querier here.
-        # Note: dp_querier must ihnerit from DBQuerier
-        else:
-            e = f"Query type {query_type} unknown in dp_query_logic"
+        # Check query type
+        if query_type not in SUPPORTED_LIBS:
+            e = f"Query type {query_type} not supported in QueryHandler"
             LOG.exception(e)
             raise HTTPException(404, str(e))
+        
+        # Get querier
+        try:
+            dp_querier = self.querier_manager.get_querier(query_json.dataset_name, query_type)
+        except Exception as e:
+            LOG.exception(f"Failed to get querier for dataset {query_json.dataset_name}: {str(e)}")
+            raise HTTPException(404, f"Failed to get querier for dataset {query_json.dataset_name}")
 
         # Get cost of the query
         eps_cost, delta_cost = dp_querier.cost(
@@ -142,13 +163,13 @@ class QueryHandler():
         )
 
         # Check that enough budget to to the query
-        eps_max_user, delta_max_user = globals.USER_DATABASE.get_max_budget(
+        eps_max_user, delta_max_user = self.database.get_max_budget(
             x_oblv_user_name, query_json.dataset_name
         )
-        eps_curr_user, delta_curr_user = globals.USER_DATABASE.get_current_budget(
+        eps_curr_user, delta_curr_user = self.database.get_current_budget(
             x_oblv_user_name, query_json.dataset_name
         )
-
+        
         # If enough budget
         if ((eps_max_user - eps_curr_user) >= eps_cost) and (
             (delta_max_user - delta_curr_user) >= delta_cost
@@ -166,12 +187,12 @@ class QueryHandler():
                 raise HTTPException(500, str(e))
 
             # Deduce budget from user
-            globals.USER_DATABASE.update_budget(
+            self.database.update_budget(
                 x_oblv_user_name, query_json.dataset_name, eps_cost, delta_cost
             )
 
             # Add query to db (for archive)
-            globals.USER_DATABASE.save_query(
+            self.database.save_query(
                 x_oblv_user_name,
                 query_json.dataset_name,
                 eps_cost,

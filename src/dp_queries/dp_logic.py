@@ -47,7 +47,7 @@ class QuerierManager(ABC):
     Holds a reference to the database in order to get information about
     the datasets.
 
-    We make the __add_dataset function private to enforce lazy loading of
+    We make the _add_dataset function private to enforce lazy loading of
     queriers.
     """
 
@@ -79,7 +79,7 @@ class BasicQuerierManager(QuerierManager):
     There is no memory management => The manager will fail if the datasets are
     too large to fit in memory.
 
-    The add_dataset method just gets the source data from csv files
+    The _add_dataset method just gets the source data from csv files
     (links stored in constants).
     """
 
@@ -99,7 +99,9 @@ class BasicQuerierManager(QuerierManager):
         TODO Get the info from the metadata stored in the db.
         """
         # Should not call this function if dataset already present.
-        assert dataset_name not in self.dp_queriers
+        assert (
+            dataset_name not in self.dp_queriers
+        ), "BasicQuerierManager: Trying to add a dataset already in self.dp_queriers"
 
         # Initialize dict
         self.dp_queriers[dataset_name] = {}

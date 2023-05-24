@@ -12,12 +12,12 @@ def database_factory(config: DBConfig) -> Database:
     """
     db_type = config.db_type
 
-    if db_type == CONF_DB_TYPE_MONGODB:
+    if db_type == CONF_DB_TYPE_YAML:
         yaml_database_file = config.db_file
 
         return YamlDatabase(yaml_database_file)
 
-    elif db_type == CONF_DB_TYPE_YAML:
+    elif db_type == CONF_DB_TYPE_MONGODB:
         db_addr = config.address
         db_port = config.port
 

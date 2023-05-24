@@ -7,6 +7,7 @@ from typing_extensions import Literal
 import yaml
 
 from utils.constants import (
+    CONFIG_PATH,
     CONF_RUNTIME_ARGS,
     CONF_SETTINGS,
     CONF_TIME_ATTACK,
@@ -16,8 +17,6 @@ from utils.constants import (
     CONF_DB_TYPE_YAML,
     CONF_SUBMIT_LIMIT,
 )
-import globals
-from utils.constants import CONFIG_PATH
 from utils.loggr import LOG
 
 
@@ -82,13 +81,8 @@ class Config(BaseModel):
 
 def get_config() -> dict:
     """
-    Returns the global config object if not None.
-    If not already loaded, loads it from disk, sets it as the global config
-    and returns it.
+    Loads the config from disk, and returns the config object.
     """
-    if globals.CONFIG is not None:
-        return globals.CONFIG
-
     try:
         with open(CONFIG_PATH, "r") as f:
             config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]

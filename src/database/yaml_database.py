@@ -31,7 +31,7 @@ class YamlDatabase(Database):
                 return True
 
         return False
-    
+
     def does_dataset_exists(self, dataset_name: str) -> bool:
         """
         Checks if dataset exist in the database
@@ -89,7 +89,7 @@ class YamlDatabase(Database):
                     if dataset["dataset_name"] == dataset_name:
                         return True
         return False
-    
+
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
@@ -106,7 +106,7 @@ class YamlDatabase(Database):
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
                         return dataset[parameter]
-    
+
     @Database._has_user_access_to_dataset
     def get_current_budget(
         self, user_name: str, dataset_name: str

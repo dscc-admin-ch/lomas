@@ -37,7 +37,6 @@ class Database(ABC):
         def wrapper_decorator(*args, **kwargs):
             self = args[0]
             user_name = args[1]
-            print(f"in decorator, user name {user_name}")
             if not (self.does_user_exists(user_name)):
                 raise ValueError(
                     f"User {user_name} does not exists. Cannot continue."

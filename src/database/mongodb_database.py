@@ -129,7 +129,7 @@ class MongoDB_Database(Database):
         )
         return True if doc_count > 0 else False
 
-    def get_epsilon_or_delta(
+    def __get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
@@ -166,10 +166,10 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_epsilon"
             ),
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_delta"
             ),
         ]
@@ -185,11 +185,13 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon"),
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
+            self.__get_epsilon_or_delta(
+                user_name, dataset_name, "max_epsilon"
+            ),
+            self.__get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
         ]
 
-    def update_epsilon_or_delta(
+    def __update_epsilon_or_delta(
         self,
         user_name: str,
         dataset_name: str,
@@ -213,7 +215,7 @@ class MongoDB_Database(Database):
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )
 
-    def update_epsilon(
+    def __update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
@@ -224,11 +226,11 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
         """
-        return self.update_epsilon_or_delta(
+        return self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_epsilon", spent_epsilon
         )
 
-    def update_delta(
+    def __update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
@@ -239,7 +241,7 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon_or_delta(
+        self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_delta", spent_delta
         )
 
@@ -260,8 +262,8 @@ class MongoDB_Database(Database):
             - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon(user_name, dataset_name, spent_epsilon)
-        self.update_delta(user_name, dataset_name, spent_delta)
+        self.__update_epsilon(user_name, dataset_name, spent_epsilon)
+        self.__update_delta(user_name, dataset_name, spent_delta)
 
     def save_query(
         self,

@@ -65,7 +65,7 @@ def dp_query_logic(
         )
         return {
             "requested_by": x_oblv_user_name,
-            "state": "No response. Already a query running."
+            "state": "No response. Already a query running.",
         }
 
     # Block access to other queries to user

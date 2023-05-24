@@ -46,8 +46,8 @@ class Database(ABC):
     @abstractmethod
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
-        Checks if a user may query the server.
-        Cannot query if already querying.
+        Sets if a user may query the server.
+        (Set False before querying and True after updating budget)
         Parameters:
             - user_name: name of the user
             - may_query: flag give or remove access to user

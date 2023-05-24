@@ -77,12 +77,6 @@ class YamlDatabase(Database):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        if not (self.does_dataset_exists(dataset_name)):
-            raise ValueError(
-                f"Dataset {dataset_name} does not exists. "
-                "Cannot check access."
-            )
-
         for user in self.database["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:

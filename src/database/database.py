@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import functools
+from fastapi import HTTPException
 
 
 class Database(ABC):
@@ -38,9 +39,7 @@ class Database(ABC):
             self = args[0]
             user_name = args[1]
             if not (self.does_user_exists(user_name)):
-                raise ValueError(
-                    f"User {user_name} does not exists. Cannot continue."
-                )
+                raise HTTPException(404, f"User {user_name} does not exists.")
             return func(*args, **kwargs)
 
         return wrapper_decorator
@@ -105,9 +104,8 @@ class Database(ABC):
             user_name = args[1]
             dataset_name = args[2]
             if not self.has_user_access_to_dataset(user_name, dataset_name):
-                raise ValueError(
-                    f"{user_name} has no access to {dataset_name}. "
-                    "Cannot access budget functions."
+                raise HTTPException(
+                    404, f"{user_name} does not have access to {dataset_name}."
                 )
             return func(*args, **kwargs)
 

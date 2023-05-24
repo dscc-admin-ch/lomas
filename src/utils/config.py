@@ -1,15 +1,41 @@
 from pydantic import BaseModel
-from typing import Literal
+
+# Temporary workaround this issue:
+# https://github.com/pydantic/pydantic/issues/5821
+# from typing import Literal
+from typing_extensions import Literal
 import yaml
 
-import globals
-from utils.constants import CONFIG_PATH
+from utils.constants import (
+    CONFIG_PATH,
+    CONF_RUNTIME_ARGS,
+    CONF_SETTINGS,
+    CONF_TIME_ATTACK,
+    CONF_DB,
+    CONF_DB_TYPE,
+    CONF_DB_TYPE_MONGODB,
+    CONF_DB_TYPE_YAML,
+    CONF_SUBMIT_LIMIT,
+)
 from utils.loggr import LOG
 
 
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"]
     magnitude: float = 1
+
+
+class DBConfig(BaseModel):
+    db_type: str = Literal["mongodb", "yaml"]
+
+
+class MongoDBConfig(DBConfig):
+    address: str = None
+    port: int = None
+
+
+class YAMLDBConfig(DBConfig):
+    db_file: str = None
 
 
 class Config(BaseModel):
@@ -21,6 +47,7 @@ class Config(BaseModel):
         5 * 60
     )  # TODO not used for the moment, kept as a simple example field for now.
 
+    database: DBConfig = None
     # validator example, for reference
     """ @validator('parties')
     def two_party_min(cls, v):
@@ -54,24 +81,30 @@ class Config(BaseModel):
 
 def get_config() -> dict:
     """
-    Returns the global config object if not None.
-    If not already loaded, loads it from disk, sets it as the global config
-    and returns it.
+    Loads the config from disk, and returns the config object.
     """
-    if globals.CONFIG is not None:
-        return globals.CONFIG
-
     try:
         with open(CONFIG_PATH, "r") as f:
-            config_data = yaml.safe_load(f)["runtime_args"]["settings"]
+            config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]
 
         time_attack: TimeAttack = TimeAttack.parse_obj(
-            config_data["time_attack"]
+            config_data[CONF_TIME_ATTACK]
         )
+
+        db_type = config_data[CONF_DB][CONF_DB_TYPE]
+        if db_type == CONF_DB_TYPE_MONGODB:
+            database_config = MongoDBConfig.parse_obj(config_data[CONF_DB])
+        elif db_type == CONF_DB_TYPE_YAML:
+            database_config = YAMLDBConfig.parse_obj(config_data[CONF_DB])
+        else:
+            raise Exception(f"Database type {db_type} not supported.")
+
         config: Config = Config(
             time_attack=time_attack,
-            submit_limit=config_data["submit_limit"],
+            submit_limit=config_data[CONF_SUBMIT_LIMIT],
+            database=database_config,
         )
+
     except Exception as e:
         LOG.error(
             f"Could not read config from disk at {CONFIG_PATH} \

@@ -1,6 +1,5 @@
 from database.database import Database
 from fastapi import HTTPException
-from utils.constants import MONGODB_CONTAINER_NAME
 import pymongo
 
 

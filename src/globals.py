@@ -1,5 +1,4 @@
 import pkg_resources
-import traceback
 from dp_queries.dp_logic import QueryHandler
 
 from database.database import Database
@@ -56,9 +55,9 @@ def check_start_condition():
         SERVER_STATE["message"].append("Server could not be started!")
         SERVER_STATE["LIVE"] = False
         status_ok = False
-    
+
     if status_ok:
         LOG.info("Server start condition OK")
         SERVER_STATE["state"].append(SERVER_LIVE)
-        SERVER_STATE["message"].append("Server start condition OK")        
+        SERVER_STATE["message"].append("Server start condition OK")
         SERVER_STATE["LIVE"] = True

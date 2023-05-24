@@ -6,15 +6,12 @@ def main(args):
     create_example_mongodb()
 
 
-
 def create_example_mongodb():
     """
     Create a test MongoDB database that is running inside a container
     named mongodb
     """
-    mongodb_client = pymongo.MongoClient(
-        f"mongodb://mongodb:27017/"
-    )
+    mongodb_client = pymongo.MongoClient("mongodb://mongodb:27017/")
     db = mongodb_client["example_database"]
     db.users.insert_many(
         [

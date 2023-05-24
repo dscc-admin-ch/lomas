@@ -5,11 +5,7 @@ import random
 from utils.config import Config
 
 
-async def anti_timing_att(
-    request: Request,
-    call_next,
-    config: Config
-):
+async def anti_timing_att(request: Request, call_next, config: Config):
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time

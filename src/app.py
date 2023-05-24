@@ -21,7 +21,7 @@ def startup_event():
     """
     This function is executed once on server startup"""
     LOG.info("Startup message")
-    globals.SERVER_STATE["state"].append(f"Startup event")
+    globals.SERVER_STATE["state"].append("Startup event")
 
     # Load config here
     LOG.info("Loading config")
@@ -75,7 +75,11 @@ async def get_state(x_oblv_user_name: str = Header(None)):
 
 
 # Smartnoise SQL query
-@app.post("/smartnoise_sql", dependencies=[Depends(server_live)], tags=["OBLV_PARTICIPANT_USER"])
+@app.post(
+    "/smartnoise_sql",
+    dependencies=[Depends(server_live)],
+    tags=["OBLV_PARTICIPANT_USER"],
+)
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     x_oblv_user_name: str = Header(None),

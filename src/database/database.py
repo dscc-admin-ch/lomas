@@ -39,10 +39,19 @@ class Database(ABC):
             print(f'in decorator, user name {user_name}')
             if not (self.does_user_exists(user_name)):
                 raise ValueError(
-                    f"User {user_name} does not exists. Cannot check access."
+                    f"User {user_name} does not exists. Cannot continue."
                 )
             return func(*args, **kwargs)
         return wrapper_decorator
+    
+    @abstractmethod
+    def does_dataset_exists(self, dataset_name: str) -> bool:
+        """
+        Checks if dataset exist in the database
+        Parameters:
+            - dataset_name: name of the dataset to check
+        """
+        pass
 
     @abstractmethod
     @_does_user_exists
@@ -64,15 +73,6 @@ class Database(ABC):
         Parameters:
             - user_name: name of the user
             - may_query: flag give or remove access to user
-        """
-        pass
-    
-    @abstractmethod
-    def does_dataset_exists(self, dataset_name: str) -> bool:
-        """
-        Checks if dataset exist in the database
-        Parameters:
-            - dataset_name: name of the dataset to check
         """
         pass
 
@@ -105,7 +105,7 @@ class Database(ABC):
             if not self.has_user_access_to_dataset(user_name, dataset_name):
                 raise ValueError(
                     f"{user_name} has no access to {dataset_name}. "
-                    "Cannot get any budget estimate."
+                    "Cannot access budget functions."
             )
             return func(*args, **kwargs)
         return wrapper_decorator

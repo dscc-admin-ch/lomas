@@ -31,6 +31,14 @@ class YamlDatabase(Database):
                 return True
 
         return False
+    
+    def does_dataset_exists(self, dataset_name: str) -> bool:
+        """
+        Checks if dataset exist in the database
+        Parameters:
+            - dataset_name: name of the dataset to check
+        """
+        return dataset_name in self.database["datasets"]
 
     @Database._does_user_exists
     def may_user_query(self, user_name: str) -> bool:
@@ -58,14 +66,6 @@ class YamlDatabase(Database):
             if user["user_name"] == user_name:
                 user["may_query"] = may_query
         self.database["users"] = users
-
-    def does_dataset_exists(self, dataset_name: str) -> bool:
-        """
-        Checks if dataset exist in the database
-        Parameters:
-            - dataset_name: name of the dataset to check
-        """
-        return dataset_name in self.database["datasets"]
 
     @Database._does_user_exists
     def has_user_access_to_dataset(

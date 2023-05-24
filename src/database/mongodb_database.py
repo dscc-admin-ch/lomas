@@ -74,7 +74,6 @@ class MongoDB_Database(Database):
         doc_count = self.db.users.count_documents(
             {"user_name": f"{user_name}"}
         )
-
         return True if doc_count > 0 else False
 
     def does_dataset_exists(self, dataset_name: str) -> bool:
@@ -86,9 +85,9 @@ class MongoDB_Database(Database):
         doc_count = self.db.users.count_documents(
             {"datasets_list.dataset_name": f"{dataset_name}"}
         )
-
         return True if doc_count > 0 else False
 
+    @Database._does_user_exists
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -96,13 +95,9 @@ class MongoDB_Database(Database):
         Parameters:
             - user_name: name of the user
         """
-        if not (self.does_user_exists(user_name)):
-            raise ValueError(
-                f"User {user_name} does not exists. Cannot check access."
-            )
-        user = self.db.users.find_one({"user_name": user_name})
-        return user["may_query"]
+        return self.db.users.find_one({"user_name": user_name})["may_query"]
 
+    @Database._does_user_exists
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -111,16 +106,12 @@ class MongoDB_Database(Database):
             - user_name: name of the user
             - may_query: flag give or remove access to user
         """
-        if not (self.does_user_exists(user_name)):
-            raise ValueError(
-                f"User {user_name} does not exists. Cannot check access."
-            )
-
         self.db.users.update_one(
             {"user_name": f"{user_name}"},
             {"$set": {"may_query": may_query}},
         )
 
+    @Database._does_user_exists
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -136,7 +127,6 @@ class MongoDB_Database(Database):
                 "datasets_list.dataset_name": f"{dataset_name}",
             }
         )
-
         return True if doc_count > 0 else False
 
     def get_epsilon_or_delta(
@@ -150,27 +140,21 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - parameter: current_epsilon or current_delta
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            return list(
-                self.db.users.aggregate(
-                    [
-                        {"$unwind": "$datasets_list"},
-                        {
-                            "$match": {
-                                "user_name": f"{user_name}",
-                                "datasets_list.dataset_name": f"{dataset_name}",
-                            }
-                        },
-                    ]
-                )
-            )[0]["datasets_list"][parameter]
-
-        else:
-            raise ValueError(
-                f"{user_name} has no access to {dataset_name}."
-                "Cannot get any budget estimate."
+        return list(
+            self.db.users.aggregate(
+                [
+                    {"$unwind": "$datasets_list"},
+                    {
+                        "$match": {
+                            "user_name": f"{user_name}",
+                            "datasets_list.dataset_name": f"{dataset_name}",
+                        }
+                    },
+                ]
             )
+        )[0]["datasets_list"][parameter]
 
+    @Database._has_user_access_to_dataset
     def get_current_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -190,6 +174,7 @@ class MongoDB_Database(Database):
             ),
         ]
 
+    @Database._has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -220,19 +205,13 @@ class MongoDB_Database(Database):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            self.db.users.update_one(
-                {
-                    "user_name": f"{user_name}",
-                    "datasets_list.dataset_name": f"{dataset_name}",
-                },
-                {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
-            )
-        else:
-            raise ValueError(
-                f"{user_name} has no access to {dataset_name}. "
-                "Cannot update any budget estimate."
-            )
+        self.db.users.update_one(
+            {
+                "user_name": f"{user_name}",
+                "datasets_list.dataset_name": f"{dataset_name}",
+            },
+            {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
+        )
 
     def update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
@@ -264,6 +243,7 @@ class MongoDB_Database(Database):
             user_name, dataset_name, "current_delta", spent_delta
         )
 
+    @Database._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,

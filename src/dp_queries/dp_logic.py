@@ -114,7 +114,7 @@ class BasicQuerierManager(QuerierManager):
                     SmartnoiseSQLQuerier,
                 )
 
-                querier = SmartnoiseSQLQuerier(ds_path, ds_metadata_path)
+                querier = SmartnoiseSQLQuerier(ds_metadata_path, ds_path)
 
                 self.dp_queriers[dataset_name][lib] = querier
             # elif ... :

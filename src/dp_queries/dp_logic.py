@@ -236,7 +236,7 @@ class QueryHandler:
             response["spent_epsilon"] = eps_cost
             response["spent_delta"] = delta_cost
 
-        # If not enough budget, do not update nor return response
+        # If not enough budget, do not query and do not update budget.
         else:
             response = {
                 "requested_by": x_oblv_user_name,

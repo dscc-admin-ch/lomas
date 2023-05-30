@@ -3,7 +3,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import globals
 from database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
-from dp_queries.example_inputs import example_smartnoise_sql
+from dp_queries.example_inputs import example_smartnoise_sql, example_dummy_smartnoise_sql
 from dp_queries.input_models import SNSQLInp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
@@ -78,7 +78,7 @@ async def get_state(x_oblv_user_name: str = Header(None)):
 @app.post(
     "/smartnoise_sql",
     dependencies=[Depends(server_live)],
-    tags=["OBLV_PARTICIPANT_USER"],
+    tags=["USER_QUERY"],
 )
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
@@ -101,15 +101,18 @@ def smartnoise_sql_handler(
 @app.post(
     "/dummy_smartnoise_sql",
     dependencies=[Depends(server_live)],
-    tags=["OBLV_PARTICIPANT_USER"],
+    tags=["USER_DUMMY"],
 )
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_dummy_smartnoise_sql), #todo example_dummy_smartnoise_sql
     x_oblv_user_name: str = Header(None),
 ):
+    # Create dummy dataset based on seed and number of rows
+    ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
+    dummy_querier = SmartnoiseSQLQuerier(ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed)
+        
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        dummy_querier = SmartnoiseSQLQuerier(ds_metadata_path, dummy_stuff)
         response = dummy_querier.query(
             query_json.query_str, eps=DUMMY_EPSILON, delta=DUMMY_DELTA
         )

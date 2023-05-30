@@ -1,3 +1,5 @@
+from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED
+
 example_diffprivlib = {
     "module": "diffprivlib",
     "version": "0.6.0",
@@ -103,10 +105,17 @@ example_opendp = {
 }
 
 example_smartnoise_sql = {
-    "query_str": "SELECT COUNT(*) AS NB_ROW FROM IrisSchema.IrisTable",
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
     "dataset_name": "IRIS",
     "epsilon": 1,
     "delta": 0.00001,
+}
+
+example_dummy_smartnoise_sql = {
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+    "dataset_name": "IRIS",
+    "dummy_nb_rows": DUMMY_NB_ROWS,
+    "dummy_seed": DUMMY_SEED,
 }
 
 example_smartnoise_synth = {

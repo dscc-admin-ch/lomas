@@ -67,7 +67,7 @@ async def middleware(request: Request, call_next):
 
 
 # Example implementation for an endpoint
-@app.get("/state", tags=["OBLV_ADMIN_USER"])
+@app.get("/state", tags=["ADMIN_USER"])
 async def get_state(x_oblv_user_name: str = Header(None)):
     """
     Some __custom__ documentation about this endoint.

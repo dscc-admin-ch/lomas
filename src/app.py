@@ -97,6 +97,30 @@ def smartnoise_sql_handler(
     # Return response
     return response
 
+# Smartnoise SQL query
+@app.post(
+    "/dummy_smartnoise_sql",
+    dependencies=[Depends(server_live)],
+    tags=["OBLV_PARTICIPANT_USER"],
+)
+def smartnoise_sql_handler(
+    query_json: SNSQLInp = Body(example_dummy_smartnoise_sql), #todo example_dummy_smartnoise_sql
+    x_oblv_user_name: str = Header(None),
+):
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        dummy_querier = SmartnoiseSQLQuerier(ds_metadata_path, dummy_stuff)
+        response = dummy_querier.query(
+            query_json.query_str, eps=DUMMY_EPSILON, delta=DUMMY_DELTA
+        )
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
+    return response
+
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])
 async def get_submit_limit():

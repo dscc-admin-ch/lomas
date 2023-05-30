@@ -1,6 +1,6 @@
 "":
-  PenguinSchema:
-    PenguinTable:
+  Schema:
+    Table:
       max_ids: 1
       row_privacy: true
       species:

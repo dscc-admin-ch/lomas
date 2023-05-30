@@ -55,3 +55,23 @@ DATASET_METADATA_PATHS = {
     IRIS_DATASET: IRIS_METADATA_PATH,
     PENGUIN_DATASET: PENGUIN_METADATA_PATH,
 }
+
+
+# Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+SSQL_METADATA_OPTIONS = [
+    "max_ids",
+    "row_privacy",
+    "sample_max_ids",
+    "censor_dims",
+    "clamp_counts",
+    "clamp_columns",
+    "use_dpsu",
+]
+DEFAULT_NUMERICAL_MIN = -10000
+DEFAULT_NUMERICAL_MAX = 10000
+RANDOM_STRINGS = ["a", "b", "c", "d"]
+RANDOM_DATE_START = "01/01/2000"
+RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
+NB_RANDOM_NONE = 5  # if nullable, how many random none to add

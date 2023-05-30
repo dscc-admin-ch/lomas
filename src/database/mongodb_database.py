@@ -1,5 +1,4 @@
 from database.database import Database
-from fastapi import HTTPException
 import pymongo
 
 
@@ -23,7 +22,6 @@ class MongoDB_Database(Database):
         doc_count = self.db.users.count_documents(
             {"user_name": f"{user_name}"}
         )
-
         return True if doc_count > 0 else False
 
     def does_dataset_exists(self, dataset_name: str) -> bool:
@@ -35,9 +33,33 @@ class MongoDB_Database(Database):
         doc_count = self.db.users.count_documents(
             {"datasets_list.dataset_name": f"{dataset_name}"}
         )
-
         return True if doc_count > 0 else False
 
+    @Database._does_user_exists
+    def may_user_query(self, user_name: str) -> bool:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+        """
+        return self.db.users.find_one({"user_name": user_name})["may_query"]
+
+    @Database._does_user_exists
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+        """
+        Sets if a user may query the server.
+        (Set False before querying and True after updating budget)
+        Parameters:
+            - user_name: name of the user
+            - may_query: flag give or remove access to user
+        """
+        self.db.users.update_one(
+            {"user_name": f"{user_name}"},
+            {"$set": {"may_query": may_query}},
+        )
+
+    @Database._does_user_exists
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -53,10 +75,9 @@ class MongoDB_Database(Database):
                 "datasets_list.dataset_name": f"{dataset_name}",
             }
         )
-
         return True if doc_count > 0 else False
 
-    def get_epsilon_or_delta(
+    def __get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
@@ -67,28 +88,21 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - parameter: current_epsilon or current_delta
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            return list(
-                self.db.users.aggregate(
-                    [
-                        {"$unwind": "$datasets_list"},
-                        {
-                            "$match": {
-                                "user_name": f"{user_name}",
-                                "datasets_list.dataset_name": f"{dataset_name}",
-                            }
-                        },
-                    ]
-                )
-            )[0]["datasets_list"][parameter]
-
-        else:
-            raise HTTPException(
-                401,
-                f"{user_name} has no access to {dataset_name}. "
-                "Cannot get any budget estimate.",
+        return list(
+            self.db.users.aggregate(
+                [
+                    {"$unwind": "$datasets_list"},
+                    {
+                        "$match": {
+                            "user_name": f"{user_name}",
+                            "datasets_list.dataset_name": f"{dataset_name}",
+                        }
+                    },
+                ]
             )
+        )[0]["datasets_list"][parameter]
 
+    @Database._has_user_access_to_dataset
     def get_current_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -100,14 +114,15 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_epsilon"
             ),
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_delta"
             ),
         ]
 
+    @Database._has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -118,11 +133,13 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon"),
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
+            self.__get_epsilon_or_delta(
+                user_name, dataset_name, "max_epsilon"
+            ),
+            self.__get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
         ]
 
-    def update_epsilon_or_delta(
+    def __update_epsilon_or_delta(
         self,
         user_name: str,
         dataset_name: str,
@@ -138,22 +155,15 @@ class MongoDB_Database(Database):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            self.db.users.update_one(
-                {
-                    "user_name": f"{user_name}",
-                    "datasets_list.dataset_name": f"{dataset_name}",
-                },
-                {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
-            )
-        else:
-            raise HTTPException(
-                401,
-                f"{user_name} has no access to {dataset_name}. "
-                "Cannot update any budget estimate.",
-            )
+        self.db.users.update_one(
+            {
+                "user_name": f"{user_name}",
+                "datasets_list.dataset_name": f"{dataset_name}",
+            },
+            {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
+        )
 
-    def update_epsilon(
+    def __update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
@@ -164,11 +174,11 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
         """
-        return self.update_epsilon_or_delta(
+        return self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_epsilon", spent_epsilon
         )
 
-    def update_delta(
+    def __update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
@@ -179,10 +189,11 @@ class MongoDB_Database(Database):
             - dataset_name: name of the dataset
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon_or_delta(
+        self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_delta", spent_delta
         )
 
+    @Database._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,
@@ -199,8 +210,8 @@ class MongoDB_Database(Database):
             - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon(user_name, dataset_name, spent_epsilon)
-        self.update_delta(user_name, dataset_name, spent_delta)
+        self.__update_epsilon(user_name, dataset_name, spent_epsilon)
+        self.__update_delta(user_name, dataset_name, spent_delta)
 
     def save_query(
         self,

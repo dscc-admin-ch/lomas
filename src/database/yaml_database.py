@@ -1,5 +1,4 @@
 from datetime import datetime
-from fastapi import HTTPException
 import json
 import yaml
 
@@ -41,6 +40,34 @@ class YamlDatabase(Database):
         """
         return dataset_name in self.database["datasets"]
 
+    @Database._does_user_exists
+    def may_user_query(self, user_name: str) -> bool:
+        """
+        Checks if a user may query the server.
+        Cannot query if already querying.
+        Parameters:
+            - user_name: name of the user
+        """
+        for user in self.database["users"]:
+            if user["user_name"] == user_name:
+                return user["may_query"]
+
+    @Database._does_user_exists
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+        """
+        Sets if a user may query the server.
+        (Set False before querying and True after updating budget)
+        Parameters:
+            - user_name: name of the user
+            - may_query: flag give or remove access to user
+        """
+        users = self.database["users"]
+        for user in users:
+            if user["user_name"] == user_name:
+                user["may_query"] = may_query
+        self.database["users"] = users
+
+    @Database._does_user_exists
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -50,17 +77,6 @@ class YamlDatabase(Database):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        if not (self.does_user_exists(user_name)):
-            raise HTTPException(
-                400, f"User {user_name} does not exists. Cannot check access."
-            )
-        if not (self.does_dataset_exists(dataset_name)):
-            raise HTTPException(
-                404,
-                f"Dataset {dataset_name} does not exists. "
-                "Cannot check access.",
-            )
-
         for user in self.database["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:
@@ -68,7 +84,7 @@ class YamlDatabase(Database):
                         return True
         return False
 
-    def get_epsilon_or_delta(
+    def __get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
@@ -79,19 +95,13 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
             - parameter: current_epsilon or current_delta
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            for user in self.database["users"]:
-                if user["user_name"] == user_name:
-                    for dataset in user["datasets_list"]:
-                        if dataset["dataset_name"] == dataset_name:
-                            return dataset[parameter]
-        else:
-            raise HTTPException(
-                401,
-                f"{user_name} has no access to {dataset_name}. "
-                "Cannot get any budget estimate.",
-            )
+        for user in self.database["users"]:
+            if user["user_name"] == user_name:
+                for dataset in user["datasets_list"]:
+                    if dataset["dataset_name"] == dataset_name:
+                        return dataset[parameter]
 
+    @Database._has_user_access_to_dataset
     def get_current_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -103,14 +113,15 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_epsilon"
             ),
-            self.get_epsilon_or_delta(
+            self.__get_epsilon_or_delta(
                 user_name, dataset_name, "current_delta"
             ),
         ]
 
+    @Database._has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
     ) -> [float, float]:
@@ -121,11 +132,13 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_epsilon"),
-            self.get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
+            self.__get_epsilon_or_delta(
+                user_name, dataset_name, "max_epsilon"
+            ),
+            self.__get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
         ]
 
-    def update_epsilon_or_delta(
+    def __update_epsilon_or_delta(
         self,
         user_name: str,
         dataset_name: str,
@@ -141,22 +154,15 @@ class YamlDatabase(Database):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        if self.has_user_access_to_dataset(user_name, dataset_name):
-            users = self.database["users"]
-            for user in users:
-                if user["user_name"] == user_name:
-                    for dataset in user["datasets_list"]:
-                        if dataset["dataset_name"] == dataset_name:
-                            dataset[parameter] += spent_value
-            self.database["users"] = users
-        else:
-            raise HTTPException(
-                401,
-                f"{user_name} has no access to {dataset_name}. "
-                "Cannot update any budget estimate.",
-            )
+        users = self.database["users"]
+        for user in users:
+            if user["user_name"] == user_name:
+                for dataset in user["datasets_list"]:
+                    if dataset["dataset_name"] == dataset_name:
+                        dataset[parameter] += spent_value
+        self.database["users"] = users
 
-    def update_epsilon(
+    def __update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
@@ -167,11 +173,11 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
         """
-        return self.update_epsilon_or_delta(
+        return self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_epsilon", spent_epsilon
         )
 
-    def update_delta(
+    def __update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
@@ -182,10 +188,11 @@ class YamlDatabase(Database):
             - dataset_name: name of the dataset
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon_or_delta(
+        self.__update_epsilon_or_delta(
             user_name, dataset_name, "current_delta", spent_delta
         )
 
+    @Database._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,

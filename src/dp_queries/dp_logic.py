@@ -175,6 +175,20 @@ class QueryHandler:
                 f"{query_json.dataset_name}",
             )
 
+        # Check that user may query
+        if not self.database.may_user_query(x_oblv_user_name):
+            LOG.warning(
+                f"User {x_oblv_user_name} is trying to query before end of \
+                previous query. Returning without response."
+            )
+            return {
+                "requested_by": x_oblv_user_name,
+                "state": "No response. Already a query running.",
+            }
+
+        # Block access to other queries to user
+        self.database.set_may_user_query(x_oblv_user_name, False)
+
         # Get cost of the query
         eps_cost, delta_cost = dp_querier.cost(
             query_json.query_str, query_json.epsilon, query_json.delta
@@ -228,6 +242,9 @@ class QueryHandler:
                 Current delta {delta_curr_user} \
                 Max epsilon: {eps_max_user}, Max delta {delta_max_user} ",
             }
+
+        # Re-enable user to query
+        self.database.set_may_user_query(x_oblv_user_name, True)
 
         # Return response
         return response

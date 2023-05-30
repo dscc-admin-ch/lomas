@@ -17,6 +17,7 @@ def create_example_mongodb():
         [
             {
                 "user_name": "Alice",
+                "may_query": True,
                 "datasets_list": [
                     {
                         "dataset_name": "IRIS",
@@ -36,6 +37,7 @@ def create_example_mongodb():
             },
             {
                 "user_name": "Bob",
+                "may_query": True,
                 "datasets_list": [
                     {
                         "dataset_name": "iris",

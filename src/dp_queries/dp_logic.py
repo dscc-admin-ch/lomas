@@ -101,7 +101,8 @@ class BasicQuerierManager(QuerierManager):
         # Should not call this function if dataset already present.
         assert (
             dataset_name not in self.dp_queriers
-        ), "BasicQuerierManager: Trying to add a dataset already in self.dp_queriers"
+        ), "BasicQuerierManager: \
+        Trying to add a dataset already in self.dp_queriers"
 
         # Initialize dict
         self.dp_queriers[dataset_name] = {}
@@ -236,9 +237,10 @@ class QueryHandler:
         else:
             response = {
                 "requested_by": x_oblv_user_name,
-                "state": "Not enough budget to perform query. Nothing was done."
+                "state": "Not enough budget to perform query. \
+                Nothing was done.",
             }
-        
+
         # Return budget metadata to user
         response["Spent epsilon"] = eps_cost
         response["Spent delta"] = delta_cost

@@ -114,9 +114,7 @@ def smartnoise_sql_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_smartnoise_sql_handler(
-    query_json: SNSQLInp = Body(
-        example_dummy_smartnoise_sql
-    ),  # todo example_dummy_smartnoise_sql
+    query_json: SNSQLInp = Body(example_dummy_smartnoise_sql),
     x_oblv_user_name: str = Header(None),
 ):
     # Create dummy dataset based on seed and number of rows

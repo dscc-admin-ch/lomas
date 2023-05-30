@@ -236,12 +236,16 @@ class QueryHandler:
         else:
             response = {
                 "requested_by": x_oblv_user_name,
-                "state": f"Not enough budget to perform query. \
-                Nothing was done. \
-                Current epsilon: {eps_curr_user}, \
-                Current delta {delta_curr_user} \
-                Max epsilon: {eps_max_user}, Max delta {delta_max_user} ",
+                "state": "Not enough budget to perform query. Nothing was done."
             }
+        
+        # Return budget metadata to user
+        response["Spent epsilon"] = eps_cost
+        response["Spent delta"] = delta_cost
+        response["Current epsilon"] = eps_curr_user
+        response["Current delta"] = delta_curr_user
+        response["Max epsilon"] = eps_max_user
+        response["Max delta"] = delta_max_user
 
         # Re-enable user to query
         self.database.set_may_user_query(x_oblv_user_name, True)

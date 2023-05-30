@@ -8,6 +8,7 @@ import yaml
 
 from dp_queries.dp_logic import DPQuerier
 import globals
+from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
     IRIS_DATASET,
     IRIS_DATASET_PATH,
@@ -15,7 +16,8 @@ from utils.constants import (
     PENGUIN_DATASET,
     PENGUIN_DATASET_PATH,
     PENGUIN_METADATA_PATH,
-    DUMMY_NB_ROWS
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
 )
 
 
@@ -23,13 +25,15 @@ def smartnoise_dataset_factory(dataset_name: str):
     if dataset_name == IRIS_DATASET:
         if globals.IRIS_QUERIER is None:
             globals.IRIS_QUERIER = SmartnoiseSQLQuerier(
-                IRIS_METADATA_PATH, IRIS_DATASET_PATH,
+                IRIS_METADATA_PATH,
+                IRIS_DATASET_PATH,
             )
         querier = globals.IRIS_QUERIER
     elif dataset_name == PENGUIN_DATASET:
         if globals.PENGUIN_QUERIER is None:
             globals.PENGUIN_QUERIER = SmartnoiseSQLQuerier(
-                PENGUIN_METADATA_PATH, PENGUIN_DATASET_PATH,
+                PENGUIN_METADATA_PATH,
+                PENGUIN_DATASET_PATH,
             )
         querier = globals.PENGUIN_QUERIER
     else:
@@ -39,13 +43,21 @@ def smartnoise_dataset_factory(dataset_name: str):
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
-    def __init__(self, metadata_path: str, csv_path: str = None, dummy: bool = False, dummy_nb_rows: int = DUMMY_NB_ROWS, dummy_seed: int = DUMMY_SEED) -> None:
-
+    def __init__(
+        self,
+        metadata_path: str,
+        csv_path: str = None,
+        dummy: bool = False,
+        dummy_nb_rows: int = DUMMY_NB_ROWS,
+        dummy_seed: int = DUMMY_SEED,
+    ) -> None:
         with open(metadata_path, "r") as f:
             self.metadata = yaml.safe_load(f)
-            
+
         if dummy:
-            self.df = make_dummy_dataset(self.metadata, dummy_nb_rows, dummy_seed)
+            self.df = make_dummy_dataset(
+                self.metadata, dummy_nb_rows, dummy_seed
+            )
         else:
             self.df = pd.read_csv(csv_path)
 

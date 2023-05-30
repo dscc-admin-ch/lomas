@@ -3,11 +3,20 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import globals
 from database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
-from dp_queries.example_inputs import example_smartnoise_sql, example_dummy_smartnoise_sql
+from dp_queries.example_inputs import (
+    example_smartnoise_sql,
+    example_dummy_smartnoise_sql,
+)
 from dp_queries.input_models import SNSQLInp
+from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import INTERNAL_SERVER_ERROR
+from utils.constants import (
+    DATASET_METADATA_PATHS,
+    DUMMY_DELTA,
+    DUMMY_EPSILON,
+    INTERNAL_SERVER_ERROR,
+)
 from utils.depends import server_live
 from utils.loggr import LOG
 
@@ -97,20 +106,25 @@ def smartnoise_sql_handler(
     # Return response
     return response
 
+
 # Smartnoise SQL query
 @app.post(
     "/dummy_smartnoise_sql",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
-def smartnoise_sql_handler(
-    query_json: SNSQLInp = Body(example_dummy_smartnoise_sql), #todo example_dummy_smartnoise_sql
+def dummy_smartnoise_sql_handler(
+    query_json: SNSQLInp = Body(
+        example_dummy_smartnoise_sql
+    ),  # todo example_dummy_smartnoise_sql
     x_oblv_user_name: str = Header(None),
 ):
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
-    dummy_querier = SmartnoiseSQLQuerier(ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed)
-        
+    dummy_querier = SmartnoiseSQLQuerier(
+        ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed
+    )
+
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response = dummy_querier.query(

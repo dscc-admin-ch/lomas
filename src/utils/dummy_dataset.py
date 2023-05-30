@@ -3,7 +3,17 @@ import numpy as np
 import pandas as pd
 import random
 
-from utils.constants import DEFAULT_NUMERICAL_MAX, DEFAULT_NUMERICAL_MIN, DUMMY_NB_ROWS, DUMMY_SEED, NB_RANDOM_NONE, RANDOM_DATE_RANGE, RANDOM_DATE_START, RANDOM_STRINGS, SSQL_METADATA_OPTIONS
+from utils.constants import (
+    DEFAULT_NUMERICAL_MAX,
+    DEFAULT_NUMERICAL_MIN,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    NB_RANDOM_NONE,
+    RANDOM_DATE_RANGE,
+    RANDOM_DATE_START,
+    RANDOM_STRINGS,
+    SSQL_METADATA_OPTIONS,
+)
 
 
 def make_dummy_dataset(
@@ -21,7 +31,7 @@ def make_dummy_dataset(
     # Setting seed
     random.seed(seed)
     np.random.seed(seed)
-    
+
     # Create dataframe
     df = pd.DataFrame()
     for col_name, data in metadata[""]["Schema"]["Table"].items():

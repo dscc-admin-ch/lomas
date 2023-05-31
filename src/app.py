@@ -4,11 +4,13 @@ import globals
 from database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
-    example_smartnoise_sql,
     example_dummy_smartnoise_sql,
+    example_get_dummy_dataset,
+    example_smartnoise_sql,
 )
 from dp_queries.input_models import SNSQLInp
 from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
+from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
@@ -18,6 +20,7 @@ from utils.constants import (
     INTERNAL_SERVER_ERROR,
 )
 from utils.depends import server_live
+from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
 
 
@@ -81,6 +84,27 @@ async def get_state(x_oblv_user_name: str = Header(None)):
         "requested_by": x_oblv_user_name,
         "state": globals.SERVER_STATE,
     }
+
+
+# Smartnoise SQL query
+@app.post(
+    "/get_dummy_dataset",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def get_dummy_dataset(
+    query_json: SNSQLInp = Body(example_get_dummy_dataset),
+    user_name: str = Header(None),
+):
+    # Create dummy dataset based on seed and number of rows
+    ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
+    dummy_df = make_dummy_dataset(
+        ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed
+    )
+    response = stream_dataframe(dummy_df)
+
+    # Return response
+    return response
 
 
 # Smartnoise SQL query

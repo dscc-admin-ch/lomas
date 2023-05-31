@@ -1,12 +1,11 @@
-import io
 from fastapi import HTTPException
-from fastapi.responses import StreamingResponse
 from snsql import Privacy, from_connection
 import traceback
 import pandas as pd
 import yaml
 
 from dp_queries.dp_logic import DPQuerier
+from dp_queries.utils import stream_dataframe
 import globals
 from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
@@ -92,7 +91,6 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 "Error executing query: " + query_str + ": " + str(err),
             )
 
-        # TODO: understand better (why need to stream ?)
         db_res = result.copy()
         cols = result.pop(0)
 
@@ -103,16 +101,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
                     Epsilon: {eps} and Delta: {delta} are too small \
                         to generate output.",
             )
-        stream = io.StringIO()
+
         df_res = pd.DataFrame(result, columns=cols)
 
-        # CSV creation
-        df_res.to_csv(stream, index=False)
-
-        response = StreamingResponse(
-            iter([stream.getvalue()]), media_type="text/csv"
-        )
-        response.headers[
-            "Content-Disposition"
-        ] = "attachment; filename=synthetic_data.csv"
+        # TODO: understand better (why need to stream ?)
+        response = stream_dataframe(df_res)
         return (response, db_res)

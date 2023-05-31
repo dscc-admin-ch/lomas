@@ -101,7 +101,8 @@ class BasicQuerierManager(QuerierManager):
         # Should not call this function if dataset already present.
         assert (
             dataset_name not in self.dp_queriers
-        ), "BasicQuerierManager: Trying to add a dataset already in self.dp_queriers"
+        ), "BasicQuerierManager: \
+        Trying to add a dataset already in self.dp_queriers"
 
         # Initialize dict
         self.dp_queriers[dataset_name] = {}
@@ -151,7 +152,7 @@ class QueryHandler:
         self,
         query_type: str,
         query_json: BasicModel,
-        x_oblv_user_name: str = Header(None),
+        user_name: str = Header(None),
     ):
         # Check query type
         if query_type not in SUPPORTED_LIBS:
@@ -176,18 +177,18 @@ class QueryHandler:
             )
 
         # Check that user may query
-        if not self.database.may_user_query(x_oblv_user_name):
+        if not self.database.may_user_query(user_name):
             LOG.warning(
-                f"User {x_oblv_user_name} is trying to query before end of \
+                f"User {user_name} is trying to query before end of \
                 previous query. Returning without response."
             )
             return {
-                "requested_by": x_oblv_user_name,
+                "requested_by": user_name,
                 "state": "No response. Already a query running.",
             }
 
         # Block access to other queries to user
-        self.database.set_may_user_query(x_oblv_user_name, False)
+        self.database.set_may_user_query(user_name, False)
 
         # Get cost of the query
         eps_cost, delta_cost = dp_querier.cost(
@@ -196,10 +197,10 @@ class QueryHandler:
 
         # Check that enough budget to to the query
         eps_max_user, delta_max_user = self.database.get_max_budget(
-            x_oblv_user_name, query_json.dataset_name
+            user_name, query_json.dataset_name
         )
         eps_curr_user, delta_curr_user = self.database.get_current_budget(
-            x_oblv_user_name, query_json.dataset_name
+            user_name, query_json.dataset_name
         )
 
         # If enough budget
@@ -220,31 +221,38 @@ class QueryHandler:
 
             # Deduce budget from user
             self.database.update_budget(
-                x_oblv_user_name, query_json.dataset_name, eps_cost, delta_cost
+                user_name, query_json.dataset_name, eps_cost, delta_cost
             )
 
             # Add query to db (for archive)
             self.database.save_query(
-                x_oblv_user_name,
+                user_name,
                 query_json.dataset_name,
                 eps_cost,
                 delta_cost,
                 query_json.query_str,
             )
 
-        # If not enough budget, do not update nor return response
+            response["spent_epsilon"] = eps_cost
+            response["spent_delta"] = delta_cost
+
+        # If not enough budget, do not query and do not update budget.
         else:
             response = {
-                "requested_by": x_oblv_user_name,
-                "state": f"Not enough budget to perform query. \
-                Nothing was done. \
-                Current epsilon: {eps_curr_user}, \
-                Current delta {delta_curr_user} \
-                Max epsilon: {eps_max_user}, Max delta {delta_max_user} ",
+                "requested_by": user_name,
+                "state": "Not enough budget to query. Nothing was done.",
+                "spent_epsilon": 0,
+                "spent_delta": 0,
             }
 
+        # Return budget metadata to user
+        response["current_epsilon"] = eps_curr_user
+        response["current_delta"] = delta_curr_user
+        response["max_epsilon"] = eps_max_user
+        response["max_delta"] = delta_max_user
+
         # Re-enable user to query
-        self.database.set_may_user_query(x_oblv_user_name, True)
+        self.database.set_may_user_query(user_name, True)
 
         # Return response
         return response

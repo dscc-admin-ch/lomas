@@ -57,7 +57,7 @@ class Config(BaseModel):
 
     # Yet to determin what this was used for.
     # TODO read this https://docs.pydantic.dev/usage/settings/#secret-support
-    # and update how config is loaded (similar to what is done by oblv.)
+    # and update how config is loaded (similar to what was done by oblv.)
     """
     class Config:
         @classmethod

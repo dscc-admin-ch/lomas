@@ -239,7 +239,7 @@ class QueryHandler:
         # If not enough budget, do not query and do not update budget.
         else:
             response = {
-                "requested_by": x_oblv_user_name,
+                "requested_by": user_name,
                 "state": "Not enough budget to query. Nothing was done.",
                 "spent_epsilon": 0,
                 "spent_delta": 0,

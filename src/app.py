@@ -59,7 +59,7 @@ async def middleware(request: Request, call_next):
 
 # Example implementation for an endpoint
 @app.get("/state", tags=["OBLV_ADMIN_USER"])
-async def get_state(x_oblv_user_name: str = Header(None)):
+async def get_state(user_name: str = Header(None)):
     """
     Some __custom__ documentation about this endoint.
 
@@ -69,7 +69,7 @@ async def get_state(x_oblv_user_name: str = Header(None)):
     Code Documentation in a second comment.
     """
     return {
-        "requested_by": x_oblv_user_name,
+        "requested_by": user_name,
         "state": globals.SERVER_STATE,
     }
 
@@ -82,12 +82,12 @@ async def get_state(x_oblv_user_name: str = Header(None)):
 )
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
-    x_oblv_user_name: str = Header(None),
+    user_name: str = Header(None),
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response = globals.QUERY_HANDLER.handle_query(
-            "smartnoise_sql", query_json, x_oblv_user_name
+            "smartnoise_sql", query_json, user_name
         )
     except HTTPException as e:
         raise e

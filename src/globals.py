@@ -18,8 +18,8 @@ QUERY_HANDLER: QueryHandler = None
 
 # General server state, can add fields if need be.
 SERVER_STATE: dict = {
-    "state": ["NA"],
-    "message": ["NA"],
+    "state": [],
+    "message": [],
     "LIVE": False,
 }
 

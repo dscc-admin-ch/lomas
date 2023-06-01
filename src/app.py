@@ -89,14 +89,17 @@ async def get_state(user_name: str = Header(None)):
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
-    query_json: GetDummyDataset = Body(example_get_dummy_dataset)
+    query_json: GetDummyDataset = Body(example_get_dummy_dataset),
 ):
     # Create dummy dataset based on seed and number of rows
     try:
         ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
     except Exception:
-        raise HTTPException(status_code=404, detail=f"Dataset {query_json.dataset_name} unknown")
-    
+        raise HTTPException(
+            status_code=404,
+            detail=f"Dataset {query_json.dataset_name} unknown",
+        )
+
     with open(ds_metadata_path, "r") as f:
         ds_metadata = yaml.safe_load(f)
 
@@ -141,7 +144,7 @@ def smartnoise_sql_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_smartnoise_sql_handler(
-    query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql)
+    query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]

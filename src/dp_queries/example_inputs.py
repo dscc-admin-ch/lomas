@@ -113,7 +113,7 @@ example_get_dummy_dataset = {
 example_smartnoise_sql = {
     "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
     "dataset_name": IRIS_DATASET,
-    "epsilon": 1,
+    "epsilon": 0.1,
     "delta": 0.00001,
 }
 

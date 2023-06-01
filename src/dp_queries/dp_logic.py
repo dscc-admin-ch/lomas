@@ -125,11 +125,11 @@ class BasicQuerierManager(QuerierManager):
                     "This should never happen."
                 )
 
-    def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
+    def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
         if dataset_name not in self.dp_queriers:
             self._add_dataset(dataset_name)
 
-        return self.dp_queriers[dataset_name][library]
+        return self.dp_queriers[dataset_name][query_type]
 
 
 class QueryHandler:
@@ -199,6 +199,7 @@ class QueryHandler:
         eps_max_user, delta_max_user = self.database.get_max_budget(
             user_name, query_json.dataset_name
         )
+
         eps_curr_user, delta_curr_user = self.database.get_current_budget(
             user_name, query_json.dataset_name
         )
@@ -213,9 +214,11 @@ class QueryHandler:
                     query_json.query_str, query_json.epsilon, query_json.delta
                 )
             except HTTPException as he:
+                self.database.set_may_user_query(user_name, True)
                 LOG.exception(he)
                 raise he
             except Exception as e:
+                self.database.set_may_user_query(user_name, True)
                 LOG.exception(e)
                 raise HTTPException(500, str(e))
 

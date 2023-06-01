@@ -87,6 +87,12 @@ class DiffPrivLibInp(BasicModel):
         return module
 
 
+class GetDummyDataset(BasicModel):
+    dataset_name: str
+    dummy_nb_rows: int
+    dummy_seed: int
+
+
 class SNSQLInp(BasicModel):
     query_str: str
     dataset_name: str
@@ -101,6 +107,11 @@ class SNSQLInp(BasicModel):
         le=DELTA_LIMIT,
     )
 
+class DummySNSQLInp(BasicModel):
+    query_str: str
+    dataset_name: str
+    dummy_nb_rows: int
+    dummy_seed: int
 
 class SNSynthInp(BasicModel):
     model: str

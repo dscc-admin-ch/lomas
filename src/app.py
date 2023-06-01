@@ -1,4 +1,5 @@
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
+import yaml
 
 import globals
 from database.utils import database_factory
@@ -8,7 +9,7 @@ from dp_queries.example_inputs import (
     example_get_dummy_dataset,
     example_smartnoise_sql,
 )
-from dp_queries.input_models import SNSQLInp
+from dp_queries.input_models import DummySNSQLInp, GetDummyDataset, SNSQLInp
 from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
@@ -73,12 +74,7 @@ async def middleware(request: Request, call_next):
 @app.get("/state", tags=["ADMIN_USER"])
 async def get_state(user_name: str = Header(None)):
     """
-    Some __custom__ documentation about this endoint.
-
     Returns the current state dict of this server instance.
-    """
-    """
-    Code Documentation in a second comment.
     """
     return {
         "requested_by": user_name,
@@ -93,18 +89,25 @@ async def get_state(user_name: str = Header(None)):
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
-    query_json: SNSQLInp = Body(example_get_dummy_dataset),
-    user_name: str = Header(None),
+    query_json: GetDummyDataset = Body(example_get_dummy_dataset)
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
-    dummy_df = make_dummy_dataset(
-        ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed
-    )
-    response = stream_dataframe(dummy_df)
+    try:
+        ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
+    except Exception:
+        raise HTTPException(status_code=404, detail=f"Dataset {query_json.dataset_name} unknown")
+    
+    with open(ds_metadata_path, "r") as f:
+        ds_metadata = yaml.safe_load(f)
 
-    # Return response
-    return response
+    try:
+        dummy_df = make_dummy_dataset(
+            ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+        )
+    except HTTPException as e:
+        raise e
+
+    return stream_dataframe(dummy_df)
 
 
 # Smartnoise SQL query
@@ -138,15 +141,13 @@ def smartnoise_sql_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_smartnoise_sql_handler(
-    query_json: SNSQLInp = Body(example_dummy_smartnoise_sql),
-    x_oblv_user_name: str = Header(None),
+    query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql)
 ):
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
     dummy_querier = SmartnoiseSQLQuerier(
         ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed
     )
-
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response = dummy_querier.query(

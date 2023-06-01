@@ -57,6 +57,10 @@ DATASET_METADATA_PATHS = {
 }
 
 
+# Dummy queries
+DUMMY_DELTA = 0.01
+DUMMY_EPSILON = 0.1
+
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42

@@ -91,7 +91,6 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 "Error executing query: " + query_str + ": " + str(err),
             )
 
-        db_res = result.copy()
         cols = result.pop(0)
 
         if result == []:
@@ -104,6 +103,5 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        # TODO: understand better (why need to stream ?)
         response = stream_dataframe(df_res)
-        return (response, db_res)
+        return response

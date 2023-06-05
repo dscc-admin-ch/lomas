@@ -33,7 +33,7 @@ class DPQuerier(ABC):
         pass
 
     @abstractmethod
-    def query(self, query_str: str, eps: float, delta: float) -> list:
+    def query(self, query_str: str, eps: float, delta: float) -> str:
         """
         Does the query and return the response
         """
@@ -210,7 +210,7 @@ class QueryHandler:
         ):
             # Query
             try:
-                response, _ = dp_querier.query(
+                query_response = dp_querier.query(
                     query_json.query_str, query_json.epsilon, query_json.delta
                 )
             except HTTPException as he:
@@ -235,9 +235,13 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-
-            response["spent_epsilon"] = eps_cost
-            response["spent_delta"] = delta_cost
+            response = {
+                "requested_by": user_name,
+                "state": "Query successful.",
+                "query_response": query_response,
+                "spent_epsilon": eps_cost,
+                "spent_delta": delta_cost,
+            }
 
         # If not enough budget, do not query and do not update budget.
         else:

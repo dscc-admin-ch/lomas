@@ -5,7 +5,6 @@ import pandas as pd
 import yaml
 
 from dp_queries.dp_logic import DPQuerier
-from dp_queries.utils import stream_dataframe
 import globals
 from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
@@ -77,7 +76,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_str: str, eps: float, delta: float) -> list:
+    def query(self, query_str: str, eps: float, delta: float) -> str:
         privacy = Privacy(epsilon=eps, delta=delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
@@ -103,5 +102,4 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        response = stream_dataframe(df_res)
-        return response
+        return df_res.to_string()

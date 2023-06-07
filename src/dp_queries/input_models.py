@@ -113,6 +113,8 @@ class DummySNSQLInp(BasicModel):
     dataset_name: str
     dummy_nb_rows: int
     dummy_seed: int
+    epsilon: float
+    delta: float
 
 
 class SNSynthInp(BasicModel):

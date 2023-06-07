@@ -1,4 +1,10 @@
-from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, IRIS_DATASET
+from utils.constants import (
+    DUMMY_EPSILON,
+    DUMMY_DELTA,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    IRIS_DATASET,
+)
 
 example_diffprivlib = {
     "module": "diffprivlib",
@@ -122,6 +128,8 @@ example_dummy_smartnoise_sql = {
     "dataset_name": IRIS_DATASET,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
+    "epsilon": DUMMY_EPSILON,
+    "delta": DUMMY_DELTA,
 }
 
 example_smartnoise_synth = {

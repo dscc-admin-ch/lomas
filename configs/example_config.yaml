@@ -5,11 +5,11 @@ runtime_args:
         method: "jitter" # or "stall"
         magnitude: 1
     database:
-      #db_type: "mongodb" # or "yaml"
-      #address: "mongodb" # or db_file: <..> for yaml db
-      #port: 27017
-      db_type: "yaml"
-      db_file: "/usr/sdd_poc_server/user_database.yaml"
+      db_type: "mongodb" # or "yaml"
+      address: "mongodb" # or db_file: <..> for yaml db
+      port: 27017
+      #db_type: "yaml"
+      #db_file: "/usr/sdd_poc_server/user_database.yaml"
 
   
   #MDDB_DBNAME : datasets

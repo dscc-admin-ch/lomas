@@ -14,12 +14,7 @@ from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import (
-    DATASET_METADATA_PATHS,
-    DUMMY_DELTA,
-    DUMMY_EPSILON,
-    INTERNAL_SERVER_ERROR,
-)
+from utils.constants import DATASET_METADATA_PATHS, INTERNAL_SERVER_ERROR
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
@@ -154,7 +149,9 @@ def dummy_smartnoise_sql_handler(
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response = dummy_querier.query(
-            query_json.query_str, eps=DUMMY_EPSILON, delta=DUMMY_DELTA
+            query_json.query_str,
+            eps=query_json.epsilon,
+            delta=query_json.delta,
         )
     except HTTPException as e:
         raise e

@@ -58,8 +58,8 @@ DATASET_METADATA_PATHS = {
 
 
 # Dummy queries
-DUMMY_DELTA = 0.01
-DUMMY_EPSILON = 0.1
+DUMMY_EPSILON = 1e32 * 1.0
+DUMMY_DELTA = 1.0
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

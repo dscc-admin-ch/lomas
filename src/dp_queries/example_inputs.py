@@ -108,8 +108,3 @@ example_smartnoise_sql = {
     "epsilon": 1,
     "delta": 0.00001,
 }
-
-example_smartnoise_synth = {
-    "model": "MWEM",
-    "epsilon": 1,
-}

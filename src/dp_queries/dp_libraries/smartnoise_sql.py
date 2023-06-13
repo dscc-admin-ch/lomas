@@ -97,5 +97,5 @@ class SmartnoiseSQLQuerier(DPQuerier):
         )
         response.headers[
             "Content-Disposition"
-        ] = "attachment; filename=synthetic_data.csv"
+        ] = "attachment; filename=data.csv"
         return (response, db_res)

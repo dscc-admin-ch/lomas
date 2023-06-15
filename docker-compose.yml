@@ -17,8 +17,11 @@ services:
       - sdd-network
   mongodb:
     container_name: mongodb
-    image: mongo:7.0.0-rc3 #mongodb/mongodb-community-server:6.0-ubi8
-    #command: --bind_ip 0.0.0.0
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    # Use only if volume is not a docker volume but a bind mount (e.g. ./data/:/data/db/)
+    # The reason has to do with permissions (see https://stackoverflow.com/questions/29245216/write-in-shared-volumes-docker/29251160#29251160)
+    # Still unclear why just setting chmod 777 ./data does not solve the issue.
+    #user: 1000:1000
     ports:
       - 27017:27017
     networks:
@@ -30,6 +33,8 @@ networks:
     driver: bridge
 
 volumes:
+  # This volume needs to be setup only once with "docker volume create mongodata"
+  # It will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
     external: true
 

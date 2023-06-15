@@ -115,6 +115,15 @@ class BasicQuerierManager(QuerierManager):
                     SmartnoiseSQLQuerier,
                 )
 
+                print(DATASET_PATHS)
+                print(ds_path)
+                print()
+                print()
+                print()
+                print()
+                print()
+                print()
+
                 querier = SmartnoiseSQLQuerier(ds_metadata_path, ds_path)
 
                 self.dp_queriers[dataset_name][lib] = querier
@@ -235,13 +244,20 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-            response = {
-                "requested_by": user_name,
-                "state": "Query successful.",
-                "query_response": query_response,
-                "spent_epsilon": eps_cost,
-                "spent_delta": delta_cost,
-            }
+
+            # TODO do a streaming response here
+            query_response["requested_by"] = user_name
+            query_response["state"] = "Query successful."
+            query_response["spent_epsilon"] = eps_cost
+            query_response["spend_delta"] = delta_cost
+            
+            # response = {
+            #     "requested_by": user_name,
+            #     "state": "Query successful.",
+            #     "query_response": query_response,
+            #     "spent_epsilon": eps_cost,
+            #     "spent_delta": delta_cost,
+            # }
 
         # If not enough budget, do not query and do not update budget.
         else:

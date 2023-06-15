@@ -41,4 +41,5 @@ CMD ["python", "uvicorn_serve.py"]
 
 FROM sdd_server AS sdd_server_dev
 ENV PYTHONDONTWRITEBYTECODE 1
+CMD ["python", "uvicorn_serve.py"]
 # Empty, used for development.

@@ -32,6 +32,8 @@ INTERNAL_SERVER_ERROR = (
 # DP constants
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.0004
+EPSILON_INITIAL: float = 0.0
+DELTA_INITIAL: float = 0.0
 
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
@@ -56,7 +58,6 @@ DATASET_METADATA_PATHS = {
     PENGUIN_DATASET: PENGUIN_METADATA_PATH,
 }
 
-
 # Dummy queries
 DUMMY_EPSILON = 1e32 * 1.0
 DUMMY_DELTA = 1.0
@@ -79,3 +80,10 @@ RANDOM_STRINGS = ["a", "b", "c", "d"]
 RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
+
+EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
+
+# MongoDB 
+MONGODB_CONTAINER_NAME = "mongodb"
+MONGODB_PORT = "27017"
+DATABASE_NAME = "example_database"

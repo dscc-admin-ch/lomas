@@ -148,7 +148,7 @@ def smartnoise_sql_handler(
         )
     except HTTPException as e:
         raise e
-    except Exception:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
@@ -167,15 +167,21 @@ def dummy_smartnoise_sql_handler(
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
     dummy_querier = SmartnoiseSQLQuerier(
-        ds_metadata_path, query_json.dummy_nb_rows, query_json.dummy_seed
+        ds_metadata_path, dummy=True, dummy_nb_rows=query_json.dummy_nb_rows, dummy_seed=query_json.dummy_seed
     )
+
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response = dummy_querier.query(
+        response_df = dummy_querier.query(
             query_json.query_str,
             eps=query_json.epsilon,
             delta=query_json.delta,
         )
+
+        response = {
+            "query_response": response_df.to_dict(orient="tight")
+        }
+        
     except HTTPException as e:
         raise e
     except Exception:

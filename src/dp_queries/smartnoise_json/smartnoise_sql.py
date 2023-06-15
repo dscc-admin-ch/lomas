@@ -5,7 +5,6 @@ import pandas as pd
 import yaml
 
 from dp_queries.dp_logic import DPQuerier
-from dp_queries.utils import stream_dataframe
 import globals
 from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
@@ -103,4 +102,4 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        return stream_dataframe(df_res)
+        return df_res

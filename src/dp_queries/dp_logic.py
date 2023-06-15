@@ -10,6 +10,7 @@ from utils.constants import (
 )
 from database.database import Database
 from dp_queries.input_models import BasicModel
+from dp_queries.utils import stream_dataframe
 from utils.loggr import LOG
 
 
@@ -114,15 +115,6 @@ class BasicQuerierManager(QuerierManager):
                 from dp_queries.smartnoise_json.smartnoise_sql import (
                     SmartnoiseSQLQuerier,
                 )
-
-                print(DATASET_PATHS)
-                print(ds_path)
-                print()
-                print()
-                print()
-                print()
-                print()
-                print()
 
                 querier = SmartnoiseSQLQuerier(ds_metadata_path, ds_path)
 
@@ -269,19 +261,15 @@ class QueryHandler:
                 query_json.query_str,
             )
 
-            # TODO do a streaming response here
-            query_response["requested_by"] = user_name
-            query_response["state"] = "Query successful."
-            query_response["spent_epsilon"] = eps_cost
-            query_response["spend_delta"] = delta_cost
+            query_response = stream_dataframe(query_response)
             
-            # response = {
-            #     "requested_by": user_name,
-            #     "state": "Query successful.",
-            #     "query_response": query_response,
-            #     "spent_epsilon": eps_cost,
-            #     "spent_delta": delta_cost,
-            # }
+            response = {
+                "requested_by": user_name,
+                "state": "Query successful.",
+                "query_response": query_response.to_dict(orient="tight"),
+                "spent_epsilon": eps_cost,
+                "spent_delta": delta_cost,
+            }
 
         # If not enough budget, do not query and do not update budget.
         else:

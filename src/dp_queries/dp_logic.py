@@ -157,11 +157,10 @@ class QueryHandler:
         self.querier_manager = BasicQuerierManager(database)
         return
 
-    def handle_query(
+    def _get_querier(
         self,
         query_type: str,
         query_json: BasicModel,
-        user_name: str = Header(None),
     ):
         # Check query type
         if query_type not in SUPPORTED_LIBS:
@@ -184,6 +183,31 @@ class QueryHandler:
                 f"Failed to get querier for dataset"
                 f"{query_json.dataset_name}",
             )
+        return dp_querier
+
+    def estimate_cost(
+        self,
+        query_type: str,
+        query_json: BasicModel,
+    ):
+        # Get querier
+        dp_querier = self._get_querier(query_type, query_json)
+
+        # Get cost of the query
+        eps_cost, delta_cost = dp_querier.cost(
+            query_json.query_str, query_json.epsilon, query_json.delta
+        )
+        response = {"epsilon_cost": eps_cost, "delta_cost": delta_cost}
+        return response
+
+    def handle_query(
+        self,
+        query_type: str,
+        query_json: BasicModel,
+        user_name: str = Header(None),
+    ):
+        # Get querier
+        dp_querier = self._get_querier(query_type, query_json)
 
         # Check that user may query
         if not self.database.may_user_query(user_name):

@@ -13,8 +13,8 @@ from dp_queries.example_inputs import (
     example_mongodb_get_max_budget,
 )
 from dp_queries.input_models import (
-    DummySNSQLInp, 
-    GetDummyDataset, 
+    DummySNSQLInp,
+    GetDummyDataset,
     SNSQLInp,
     GetBudgetInp,
 )
@@ -23,10 +23,10 @@ from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
-    DATASET_METADATA_PATHS, 
-    INTERNAL_SERVER_ERROR, 
+    DATASET_METADATA_PATHS,
+    INTERNAL_SERVER_ERROR,
     MONGODB_CONTAINER_NAME,
-    MONGODB_PORT
+    MONGODB_PORT,
 )
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
@@ -181,7 +181,10 @@ def dummy_smartnoise_sql_handler(
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
     dummy_querier = SmartnoiseSQLQuerier(
-        ds_metadata_path, dummy=True, dummy_nb_rows=query_json.dummy_nb_rows, dummy_seed=query_json.dummy_seed
+        ds_metadata_path,
+        dummy=True,
+        dummy_nb_rows=query_json.dummy_nb_rows,
+        dummy_seed=query_json.dummy_seed,
     )
 
     # Catch all non-http exceptions so that the server does not fail.
@@ -192,9 +195,7 @@ def dummy_smartnoise_sql_handler(
             delta=query_json.delta,
         )
 
-        response = {
-            "query_response": response_df.to_dict(orient="tight")
-        }
+        response = {"query_response": response_df.to_dict(orient="tight")}
 
     except HTTPException as e:
         raise e
@@ -207,34 +208,32 @@ def dummy_smartnoise_sql_handler(
 
 # MongoDB get current budget query
 @app.post(
-        "/get_current_budget",
-        dependencies=[Depends(server_live)],
-        tags=["USER_CURRENT_BUDGET"],
+    "/get_current_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_CURRENT_BUDGET"],
 )
 def get_current_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_current_budget),
 ):
-    current_epsilon, current_delta = MongoDB_Database(f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/").get_current_budget(
-        query_json.user_name,
-        query_json.dataset_name
-    )
-    
+    current_epsilon, current_delta = MongoDB_Database(
+        f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+    ).get_current_budget(query_json.user_name, query_json.dataset_name)
+
     return {"current_epsilon": current_epsilon, "current_delta": current_delta}
 
 
 # MongoDB get max budget query
 @app.post(
-        "/get_max_budget",
-        dependencies=[Depends(server_live)],
-        tags=["USER_MAX_BUDGET"],
+    "/get_max_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_MAX_BUDGET"],
 )
 def get_max_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
 ):
-    max_epsilon, max_delta = MongoDB_Database(f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/").get_max_budget(
-        query_json.user_name,
-        query_json.dataset_name
-    )
+    max_epsilon, max_delta = MongoDB_Database(
+        f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+    ).get_max_budget(query_json.user_name, query_json.dataset_name)
 
     return {"max_epsilon": max_epsilon, "max_delta": max_delta}
 

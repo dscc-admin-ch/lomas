@@ -139,10 +139,10 @@ example_smartnoise_synth = {
 
 example_mongodb_get_current_budget = {
     "user_name": "Alice",
-    "dataset_name": IRIS_DATASET
+    "dataset_name": IRIS_DATASET,
 }
 
 example_mongodb_get_max_budget = {
     "user_name": "Alice",
-    "dataset_name": IRIS_DATASET
+    "dataset_name": IRIS_DATASET,
 }

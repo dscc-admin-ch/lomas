@@ -260,7 +260,7 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-            
+
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",

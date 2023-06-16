@@ -153,3 +153,7 @@ class SNSynthInp(BasicModel):
                         User provided: {str(delta)}"
             )
         return delta
+    
+class GetBudgetInp(BaseModel):
+    user_name: str
+    dataset_name: str

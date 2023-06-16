@@ -205,16 +205,25 @@ if __name__ == "__main__":
         "add_dataset_to_user",
         help="add dataset with initialized budget values for a user in users collection",
     )
-    add_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
-    add_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
+    add_dataset_to_user_parser.add_argument(
+        "-u", "--user", required=True, type=str
+    )
+    add_dataset_to_user_parser.add_argument(
+        "-d", "--dataset", required=True, type=str
+    )
     add_dataset_to_user_parser.set_defaults(func=admin.add_dataset_to_user)
 
     # Create the parser for the "del_dataset" command
     del_dataset_to_user_parser = subparsers.add_parser(
-        "del_dataset_to_user", help="delete dataset for user in users collection"
+        "del_dataset_to_user",
+        help="delete dataset for user in users collection",
     )
-    del_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
-    del_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
+    del_dataset_to_user_parser.add_argument(
+        "-u", "--user", required=True, type=str
+    )
+    del_dataset_to_user_parser.add_argument(
+        "-d", "--dataset", required=True, type=str
+    )
     del_dataset_to_user_parser.set_defaults(func=admin.del_dataset_to_user)
 
     # Create the parser for the "set_budget_field" command

@@ -260,8 +260,6 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-
-            query_response = stream_dataframe(query_response)
             
             response = {
                 "requested_by": user_name,

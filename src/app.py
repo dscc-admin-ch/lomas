@@ -149,6 +149,7 @@ def smartnoise_sql_handler(
     except HTTPException as e:
         raise e
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
@@ -181,7 +182,7 @@ def dummy_smartnoise_sql_handler(
         response = {
             "query_response": response_df.to_dict(orient="tight")
         }
-        
+
     except HTTPException as e:
         raise e
     except Exception:

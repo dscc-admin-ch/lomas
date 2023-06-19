@@ -8,6 +8,8 @@ runtime_args:
       db_type: "mongodb" # or "yaml"
       address: "mongodb" # or db_file: <..> for yaml db
       port: 27017
+      #db_type: "yaml"
+      #db_file: "/usr/sdd_poc_server/user_database.yaml"
 
   
   #MDDB_DBNAME : datasets

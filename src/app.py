@@ -168,7 +168,10 @@ def dummy_smartnoise_sql_handler(
     # Create dummy dataset based on seed and number of rows
     ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
     dummy_querier = SmartnoiseSQLQuerier(
-        ds_metadata_path, dummy=True, dummy_nb_rows=query_json.dummy_nb_rows, dummy_seed=query_json.dummy_seed
+        ds_metadata_path,
+        dummy=True,
+        dummy_nb_rows=query_json.dummy_nb_rows,
+        dummy_seed=query_json.dummy_seed,
     )
 
     # Catch all non-http exceptions so that the server does not fail.
@@ -179,9 +182,7 @@ def dummy_smartnoise_sql_handler(
             delta=query_json.delta,
         )
 
-        response = {
-            "query_response": response_df.to_dict(orient="tight")
-        }
+        response = {"query_response": response_df.to_dict(orient="tight")}
 
     except HTTPException as e:
         raise e

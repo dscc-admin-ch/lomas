@@ -3,18 +3,29 @@ import yaml
 
 import globals
 from database.utils import database_factory
+from database.mongodb_database import MongoDB_Database
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
     example_get_dummy_dataset,
     example_smartnoise_sql,
+    example_mongodb_get_current_budget,
+    example_mongodb_get_max_budget,
 )
-from dp_queries.input_models import DummySNSQLInp, GetDummyDataset, SNSQLInp
+from dp_queries.input_models import (
+    DummySNSQLInp,
+    GetDummyDataset,
+    SNSQLInp,
+    GetBudgetInp,
+)
 from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import DATASET_METADATA_PATHS, INTERNAL_SERVER_ERROR
+from utils.constants import (
+    DATASET_METADATA_PATHS,
+    INTERNAL_SERVER_ERROR,
+)
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
@@ -191,6 +202,38 @@ def dummy_smartnoise_sql_handler(
 
     # Return response
     return response
+
+
+# MongoDB get current budget query
+@app.post(
+    "/get_current_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_CURRENT_BUDGET"],
+)
+def get_current_budget(
+    query_json: GetBudgetInp = Body(example_mongodb_get_current_budget),
+):
+    current_epsilon, current_delta = globals.DATABASE.get_current_budget(
+        query_json.user_name, query_json.dataset_name
+    )
+
+    return {"current_epsilon": current_epsilon, "current_delta": current_delta}
+
+
+# MongoDB get max budget query
+@app.post(
+    "/get_max_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_MAX_BUDGET"],
+)
+def get_max_budget(
+    query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
+):
+    max_epsilon, max_delta = globals.DATABASE.get_max_budget(
+        query_json.user_name, query_json.dataset_name
+    )
+
+    return {"max_epsilon": max_epsilon, "max_delta": max_delta}
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

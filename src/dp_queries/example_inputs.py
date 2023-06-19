@@ -130,4 +130,23 @@ example_dummy_smartnoise_sql = {
     "dummy_seed": DUMMY_SEED,
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
+<<<<<<< HEAD
 }
+
+example_smartnoise_synth = {
+    "model": "MWEM",
+    "epsilon": 1,
+}
+
+example_mongodb_get_current_budget = {
+    "user_name": "Alice",
+    "dataset_name": IRIS_DATASET,
+}
+
+example_mongodb_get_max_budget = {
+    "user_name": "Alice",
+    "dataset_name": IRIS_DATASET,
+}
+=======
+}
+>>>>>>> develop

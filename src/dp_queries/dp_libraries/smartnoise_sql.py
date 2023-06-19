@@ -2,7 +2,6 @@ from fastapi import HTTPException
 from snsql import Privacy, from_connection
 import traceback
 import pandas as pd
-import yaml
 
 from dp_queries.dp_logic import DPQuerier
 import globals
@@ -43,14 +42,13 @@ def smartnoise_dataset_factory(dataset_name: str):
 class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
-        metadata_path: str,
+        metadata: dict,
         csv_path: str = None,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
     ) -> None:
-        with open(metadata_path, "r") as f:
-            self.metadata = yaml.safe_load(f)
+        self.metadata = metadata
 
         if dummy:
             self.df = make_dummy_dataset(

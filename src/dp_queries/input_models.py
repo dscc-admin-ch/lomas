@@ -86,6 +86,10 @@ class DiffPrivLibInp(BasicModel):
         return module
 
 
+class GetDatasetMetadata(BasicModel):
+    dataset_name: str
+
+
 class GetDummyDataset(BasicModel):
     dataset_name: str
     dummy_nb_rows: int

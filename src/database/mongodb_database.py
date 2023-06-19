@@ -1,4 +1,5 @@
 from database.database import Database
+from utils.constants import DATABASE_NAME
 import pymongo
 
 
@@ -11,9 +12,9 @@ class MongoDB_Database(Database):
         """
         Load DB
         """
-        self.db = pymongo.MongoClient(db_url)["example_database"]
+        self.db = pymongo.MongoClient(db_url)[DATABASE_NAME]
 
-    def does_user_exists(self, user_name: str) -> bool:
+    def does_user_exist(self, user_name: str) -> bool:
         """
         Checks if user exist in the database
         Parameters:
@@ -24,18 +25,29 @@ class MongoDB_Database(Database):
         )
         return True if doc_count > 0 else False
 
-    def does_dataset_exists(self, dataset_name: str) -> bool:
+    def does_dataset_exist(self, dataset_name: str) -> bool:
         """
         Checks if dataset exist in the database
         Parameters:
             - dataset_name: name of the dataset to check
         """
-        doc_count = self.db.users.count_documents(
-            {"datasets_list.dataset_name": f"{dataset_name}"}
+        doc_count = self.db.metadata.count_documents(
+            {dataset_name: {"$exists": True}}
         )
-        return True if doc_count > 0 else False
+        return doc_count > 0
 
-    @Database._does_user_exists
+    @Database._does_dataset_exist
+    def get_dataset_metadata(self, dataset_name: str) -> dict:
+        """
+        Returns the metadata dictionnary of the dataset
+        Parameters:
+            - dataset_name: name of the dataset to get the metadata for
+        """
+        return self.db.metadata.find_one({dataset_name: {"$exists": True}})[
+            dataset_name
+        ]
+
+    @Database._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -45,7 +57,7 @@ class MongoDB_Database(Database):
         """
         return self.db.users.find_one({"user_name": user_name})["may_query"]
 
-    @Database._does_user_exists
+    @Database._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -59,7 +71,7 @@ class MongoDB_Database(Database):
             {"$set": {"may_query": may_query}},
         )
 
-    @Database._does_user_exists
+    @Database._does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

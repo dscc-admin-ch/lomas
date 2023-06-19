@@ -1,5 +1,4 @@
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
-import yaml
 
 import globals
 from mongodb_admin import MongoDB_Admin
@@ -7,16 +6,22 @@ from database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
+    example_get_dataset_metadata,
     example_get_dummy_dataset,
     example_smartnoise_sql,
 )
-from dp_queries.input_models import DummySNSQLInp, GetDummyDataset, SNSQLInp
+from dp_queries.input_models import (
+    DummySNSQLInp,
+    GetDatasetMetadata,
+    GetDummyDataset,
+    SNSQLInp,
+)
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
-    DATASET_METADATA_PATHS,
+    EXISTING_DATASETS,
     INTERNAL_SERVER_ERROR,
     MONGODB_CONTAINER_NAME,
     MONGODB_PORT,
@@ -50,6 +55,17 @@ def startup_event():
             f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
         )
         mongo_admin.create_example_users_collection()
+
+        LOG.info("Adding dataset metadata")
+        for ds_name in EXISTING_DATASETS:
+            # Dirty trick to create a dummy args object.
+            def args():
+                return None
+
+            args.dataset = ds_name
+            mongo_admin.add_metadata(args)
+
+        del mongo_admin
 
     # Load users, datasets, etc..
     LOG.info("Loading user database")
@@ -92,7 +108,28 @@ async def get_state(user_name: str = Header(None)):
     }
 
 
-# Smartnoise SQL query
+# Metadata query
+@app.post(
+    "/get_dataset_metadata",
+    dependencies=[Depends(server_live)],
+    tags=["USER_METADATA"],
+)
+def get_dataset_metadata(
+    query_json: GetDatasetMetadata = Body(example_get_dataset_metadata),
+):
+    # Create dummy dataset based on seed and number of rows
+    try:
+        ds_metadata = globals.DATABASE.get_dataset_metadata(
+            query_json.dataset_name
+        )
+
+    except HTTPException as e:
+        raise e
+
+    return ds_metadata
+
+
+# Dummy dataset query
 @app.post(
     "/get_dummy_dataset",
     dependencies=[Depends(server_live)],
@@ -103,17 +140,10 @@ def get_dummy_dataset(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
-    except Exception:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Dataset {query_json.dataset_name} unknown",
+        ds_metadata = globals.DATABASE.get_dataset_metadata(
+            query_json.dataset_name
         )
 
-    with open(ds_metadata_path, "r") as f:
-        ds_metadata = yaml.safe_load(f)
-
-    try:
         dummy_df = make_dummy_dataset(
             ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
         )
@@ -181,9 +211,12 @@ def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata_path = DATASET_METADATA_PATHS[query_json.dataset_name]
+    ds_metadata = globals.DATABASE.get_dataset_metadata(
+        query_json.dataset_name
+    )
+
     dummy_querier = SmartnoiseSQLQuerier(
-        ds_metadata_path,
+        ds_metadata,
         dummy=True,
         dummy_nb_rows=query_json.dummy_nb_rows,
         dummy_seed=query_json.dummy_seed,
@@ -201,7 +234,8 @@ def dummy_smartnoise_sql_handler(
 
     except HTTPException as e:
         raise e
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response

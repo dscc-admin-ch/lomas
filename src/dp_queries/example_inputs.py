@@ -110,6 +110,10 @@ example_opendp = {
     },
 }
 
+example_get_dataset_metadata = {
+    "dataset_name": IRIS_DATASET,
+}
+
 example_get_dummy_dataset = {
     "dataset_name": IRIS_DATASET,
     "dummy_nb_rows": DUMMY_NB_ROWS,

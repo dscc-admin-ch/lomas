@@ -10,7 +10,6 @@ from utils.constants import (
 )
 from database.database import Database
 from dp_queries.input_models import BasicModel
-from dp_queries.utils import stream_dataframe
 from utils.loggr import LOG
 
 
@@ -260,7 +259,7 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-
+            
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",

@@ -7,7 +7,6 @@ pydantic==1.8.2
 requests==2.22.0
 uvicorn==0.15.0
 smartnoise-sql==0.2.5
-smartnoise-synth==0.3.0
 disjoint-set==0.7.3
 networkx==2.8.7
 python-multipart==0.0.5

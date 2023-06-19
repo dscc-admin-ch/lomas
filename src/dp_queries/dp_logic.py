@@ -33,7 +33,7 @@ class DPQuerier(ABC):
         pass
 
     @abstractmethod
-    def query(self, query_str: str, eps: float, delta: float) -> list:
+    def query(self, query_str: str, eps: float, delta: float) -> str:
         """
         Does the query and return the response
         """
@@ -115,7 +115,7 @@ class BasicQuerierManager(QuerierManager):
                     SmartnoiseSQLQuerier,
                 )
 
-                querier = SmartnoiseSQLQuerier(ds_path, ds_metadata_path)
+                querier = SmartnoiseSQLQuerier(ds_metadata_path, ds_path)
 
                 self.dp_queriers[dataset_name][lib] = querier
             # elif ... :
@@ -125,11 +125,11 @@ class BasicQuerierManager(QuerierManager):
                     "This should never happen."
                 )
 
-    def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
+    def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
         if dataset_name not in self.dp_queriers:
             self._add_dataset(dataset_name)
 
-        return self.dp_queriers[dataset_name][library]
+        return self.dp_queriers[dataset_name][query_type]
 
 
 class QueryHandler:
@@ -148,11 +148,10 @@ class QueryHandler:
         self.querier_manager = BasicQuerierManager(database)
         return
 
-    def handle_query(
+    def _get_querier(
         self,
         query_type: str,
         query_json: BasicModel,
-        user_name: str = Header(None),
     ):
         # Check query type
         if query_type not in SUPPORTED_LIBS:
@@ -175,6 +174,31 @@ class QueryHandler:
                 f"Failed to get querier for dataset"
                 f"{query_json.dataset_name}",
             )
+        return dp_querier
+
+    def estimate_cost(
+        self,
+        query_type: str,
+        query_json: BasicModel,
+    ):
+        # Get querier
+        dp_querier = self._get_querier(query_type, query_json)
+
+        # Get cost of the query
+        eps_cost, delta_cost = dp_querier.cost(
+            query_json.query_str, query_json.epsilon, query_json.delta
+        )
+        response = {"epsilon_cost": eps_cost, "delta_cost": delta_cost}
+        return response
+
+    def handle_query(
+        self,
+        query_type: str,
+        query_json: BasicModel,
+        user_name: str = Header(None),
+    ):
+        # Get querier
+        dp_querier = self._get_querier(query_type, query_json)
 
         # Check that user may query
         if not self.database.may_user_query(user_name):
@@ -199,6 +223,7 @@ class QueryHandler:
         eps_max_user, delta_max_user = self.database.get_max_budget(
             user_name, query_json.dataset_name
         )
+
         eps_curr_user, delta_curr_user = self.database.get_current_budget(
             user_name, query_json.dataset_name
         )
@@ -209,13 +234,15 @@ class QueryHandler:
         ):
             # Query
             try:
-                response, _ = dp_querier.query(
+                query_response = dp_querier.query(
                     query_json.query_str, query_json.epsilon, query_json.delta
                 )
             except HTTPException as he:
+                self.database.set_may_user_query(user_name, True)
                 LOG.exception(he)
                 raise he
             except Exception as e:
+                self.database.set_may_user_query(user_name, True)
                 LOG.exception(e)
                 raise HTTPException(500, str(e))
 
@@ -232,9 +259,14 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-
-            response["spent_epsilon"] = eps_cost
-            response["spent_delta"] = delta_cost
+            
+            response = {
+                "requested_by": user_name,
+                "state": "Query successful.",
+                "query_response": query_response.to_dict(orient="tight"),
+                "spent_epsilon": eps_cost,
+                "spent_delta": delta_cost,
+            }
 
         # If not enough budget, do not query and do not update budget.
         else:

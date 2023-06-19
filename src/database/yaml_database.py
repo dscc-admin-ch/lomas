@@ -209,8 +209,8 @@ class YamlDatabase(Database):
             - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
         """
-        self.update_epsilon(user_name, dataset_name, spent_epsilon)
-        self.update_delta(user_name, dataset_name, spent_delta)
+        self.__update_epsilon(user_name, dataset_name, spent_epsilon)
+        self.__update_delta(user_name, dataset_name, spent_delta)
 
     def save_query(
         self,

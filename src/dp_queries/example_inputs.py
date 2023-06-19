@@ -131,8 +131,3 @@ example_dummy_smartnoise_sql = {
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
 }
-
-example_smartnoise_synth = {
-    "model": "MWEM",
-    "epsilon": 1,
-}

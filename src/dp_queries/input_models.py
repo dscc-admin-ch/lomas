@@ -1,7 +1,6 @@
 import globals
 from typing import List
 from pydantic import BaseModel, validator, Field
-from dp_queries.smartnoise_json.synth import synth_map
 from utils.constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 
@@ -115,41 +114,3 @@ class DummySNSQLInp(BasicModel):
     dummy_seed: int
     epsilon: float
     delta: float
-
-
-class SNSynthInp(BasicModel):
-    model: str
-    epsilon: float = Field(
-        ...,
-        gt=0,
-        le=EPSILON_LIMIT,
-    )
-    delta: float = 0
-    select_cols: List = []
-    params: dict = {}
-    mul_matrix: List = []
-
-    @validator("model")
-    def valid_model(cls, model):
-        if model not in synth_map.keys():
-            raise ValueError(
-                f"'{model}' is not one of {list(synth_map.keys())}."
-            )
-        return model
-
-    @validator("delta")
-    def valid_delta(cls, delta, values):
-        if values.get("model", "na") not in synth_map.keys():
-            raise ValueError(
-                f"{values.get('model')} is not \
-                    one of {list(synth_map.keys())}."
-            )
-        if values["model"] != "MWEM" and (
-            not delta > 0 or delta > DELTA_LIMIT
-        ):
-            raise ValueError(
-                f"For models other than MWEM delta value should be greater \
-                    than 0 and less than or equal to {DELTA_LIMIT}. \
-                        User provided: {str(delta)}"
-            )
-        return delta

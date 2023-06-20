@@ -7,6 +7,7 @@ MONGODB_CONTAINER_NAME = "mongodb"
 # Configuration field names and values
 CONF_RUNTIME_ARGS = "runtime_args"
 CONF_SETTINGS = "settings"
+CONF_DEV_MODE = "develop_mode"
 CONF_TIME_ATTACK = "time_attack"
 CONF_SUBMIT_LIMIT = "submit_limit"
 CONF_DB = "database"

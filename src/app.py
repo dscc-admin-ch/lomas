@@ -2,6 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import yaml
 
 import globals
+from mongodb_admin import MongoDB_Admin
 from database.utils import database_factory
 from database.mongodb_database import MongoDB_Database
 from dp_queries.dp_logic import QueryHandler
@@ -18,13 +19,16 @@ from dp_queries.input_models import (
     SNSQLInp,
     GetBudgetInp,
 )
-from dp_queries.smartnoise_json.smartnoise_sql import SmartnoiseSQLQuerier
+from dp_queries.input_models import DummySNSQLInp, GetDummyDataset, SNSQLInp
+from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
     DATASET_METADATA_PATHS,
     INTERNAL_SERVER_ERROR,
+    MONGODB_CONTAINER_NAME,
+    MONGODB_PORT,
 )
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
@@ -46,6 +50,15 @@ def startup_event():
     LOG.info("Loading config")
     globals.SERVER_STATE["message"].append("Loading config")
     globals.CONFIG = get_config()
+
+    # Fill up database if in develop mode ONLY
+    if globals.CONFIG.develop_mode:
+        LOG.info("!! Develop mode ON !!")
+        LOG.info("Creating example user collection")
+        mongo_admin = MongoDB_Admin(
+            f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+        )
+        mongo_admin.create_example_users_collection()
 
     # Load users, datasets, etc..
     LOG.info("Loading user database")

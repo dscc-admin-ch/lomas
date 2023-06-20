@@ -111,7 +111,7 @@ class BasicQuerierManager(QuerierManager):
             if lib == LIB_SMARTNOISE_SQL:
                 ds_path = DATASET_PATHS[dataset_name]
                 ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
-                from dp_queries.smartnoise_json.smartnoise_sql import (
+                from dp_queries.dp_libraries.smartnoise_sql import (
                     SmartnoiseSQLQuerier,
                 )
 
@@ -259,7 +259,7 @@ class QueryHandler:
                 delta_cost,
                 query_json.query_str,
             )
-            
+
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",

@@ -118,3 +118,9 @@ class DummySNSQLInp(BasicModel):
     dummy_seed: int
     epsilon: float
     delta: float
+
+
+class GetBudgetInp(BaseModel):
+    user_name: str
+    dataset_name: str
+

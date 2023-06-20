@@ -135,3 +135,14 @@ example_dummy_smartnoise_sql = {
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
 }
+
+example_mongodb_get_current_budget = {
+    "user_name": "Alice",
+    "dataset_name": IRIS_DATASET,
+}
+
+example_mongodb_get_max_budget = {
+    "user_name": "Alice",
+    "dataset_name": IRIS_DATASET,
+}
+

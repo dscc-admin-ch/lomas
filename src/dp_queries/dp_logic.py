@@ -6,7 +6,6 @@ from utils.constants import (
     SUPPORTED_LIBS,
     LIB_SMARTNOISE_SQL,
     DATASET_PATHS,
-    DATASET_METADATA_PATHS,
 )
 from database.database import Database
 from dp_queries.input_models import BasicModel
@@ -110,12 +109,12 @@ class BasicQuerierManager(QuerierManager):
         for lib in SUPPORTED_LIBS:
             if lib == LIB_SMARTNOISE_SQL:
                 ds_path = DATASET_PATHS[dataset_name]
-                ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
+                ds_metadata = self.database.get_dataset_metadata(dataset_name)
                 from dp_queries.dp_libraries.smartnoise_sql import (
                     SmartnoiseSQLQuerier,
                 )
 
-                querier = SmartnoiseSQLQuerier(ds_metadata_path, ds_path)
+                querier = SmartnoiseSQLQuerier(ds_metadata, ds_path)
 
                 self.dp_queriers[dataset_name][lib] = querier
             # elif ... :

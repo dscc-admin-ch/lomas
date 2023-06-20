@@ -115,6 +115,8 @@ class MongoDB_Admin:
         """
         with open(DATASET_METADATA_PATHS[args.dataset]) as f:
             metadata_dict = yaml.safe_load(f)
+            # Make sure to remove old versions
+            self.db.metadata.delete_many({args.dataset: {"$exists": True}})
             self.db.metadata.insert_one({args.dataset: metadata_dict})
 
     def del_metadata(self, args):

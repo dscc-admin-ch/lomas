@@ -145,4 +145,3 @@ example_mongodb_get_max_budget = {
     "user_name": "Alice",
     "dataset_name": IRIS_DATASET,
 }
-

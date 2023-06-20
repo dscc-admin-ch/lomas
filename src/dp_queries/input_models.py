@@ -123,4 +123,3 @@ class DummySNSQLInp(BasicModel):
 class GetBudgetInp(BaseModel):
     user_name: str
     dataset_name: str
-

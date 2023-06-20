@@ -3,6 +3,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import globals
 from mongodb_admin import MongoDB_Admin
 from database.utils import database_factory
+from database.mongodb_database import MongoDB_Database
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
@@ -276,7 +277,6 @@ def get_max_budget(
     )
 
     return {"max_epsilon": max_epsilon, "max_delta": max_delta}
-
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

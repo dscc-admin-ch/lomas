@@ -110,6 +110,10 @@ example_opendp = {
     },
 }
 
+example_get_dataset_metadata = {
+    "dataset_name": IRIS_DATASET,
+}
+
 example_get_dummy_dataset = {
     "dataset_name": IRIS_DATASET,
     "dummy_nb_rows": DUMMY_NB_ROWS,
@@ -130,12 +134,6 @@ example_dummy_smartnoise_sql = {
     "dummy_seed": DUMMY_SEED,
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
-}
-
-
-example_smartnoise_synth = {
-    "model": "MWEM",
-    "epsilon": 1,
 }
 
 example_mongodb_get_current_budget = {

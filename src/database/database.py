@@ -18,7 +18,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def does_user_exists(self, user_name: str) -> bool:
+    def does_user_exist(self, user_name: str) -> bool:
         """
         Checks if user exist in the database
         Parameters:
@@ -26,7 +26,7 @@ class Database(ABC):
         """
         pass
 
-    def _does_user_exists(func):
+    def _does_user_exist(func):
         """
         Decorator function to check if a user exists
         Parameters:
@@ -38,14 +38,14 @@ class Database(ABC):
         def wrapper_decorator(*args, **kwargs):
             self = args[0]
             user_name = args[1]
-            if not (self.does_user_exists(user_name)):
-                raise HTTPException(404, f"User {user_name} does not exists.")
+            if not (self.does_user_exist(user_name)):
+                raise HTTPException(404, f"User {user_name} does not exist.")
             return func(*args, **kwargs)
 
         return wrapper_decorator
 
     @abstractmethod
-    def does_dataset_exists(self, dataset_name: str) -> bool:
+    def does_dataset_exist(self, dataset_name: str) -> bool:
         """
         Checks if dataset exist in the database
         Parameters:
@@ -53,8 +53,37 @@ class Database(ABC):
         """
         pass
 
+    def _does_dataset_exist(func):
+        """
+        Decorator function to check if a user exists
+        Parameters:
+            - args[0]: expects self
+            - args[1]: expects username
+        """
+
+        @functools.wraps(func)
+        def wrapper_decorator(*args, **kwargs):
+            self = args[0]
+            dataset_name = args[1]
+            if not (self.does_dataset_exist(dataset_name)):
+                raise HTTPException(
+                    404, f"Dataset {dataset_name} does not exists."
+                )
+            return func(*args, **kwargs)
+
+        return wrapper_decorator
+
     @abstractmethod
-    @_does_user_exists
+    def get_dataset_metadata(self, dataset_name: str) -> dict:
+        """
+        Returns the metadata dictionnary of the dataset
+        Parameters:
+            - dataset_name: name of the dataset to get the metadata for
+        """
+        pass
+
+    @abstractmethod
+    @_does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -65,7 +94,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    @_does_user_exists
+    @_does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -77,7 +106,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    @_does_user_exists
+    @_does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

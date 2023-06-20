@@ -3,7 +3,7 @@ import json
 import yaml
 
 from database.database import Database
-from utils.constants import QUERIES_ARCHIVES
+from utils.constants import QUERIES_ARCHIVES, DATASET_METADATA_PATHS
 
 
 class YamlDatabase(Database):
@@ -20,7 +20,7 @@ class YamlDatabase(Database):
             self.database = yaml.safe_load(f)
         self.queries_archives = []
 
-    def does_user_exists(self, user_name: str) -> bool:
+    def does_user_exist(self, user_name: str) -> bool:
         """
         Checks if user exist in the database
         Parameters:
@@ -32,7 +32,7 @@ class YamlDatabase(Database):
 
         return False
 
-    def does_dataset_exists(self, dataset_name: str) -> bool:
+    def does_dataset_exist(self, dataset_name: str) -> bool:
         """
         Checks if dataset exist in the database
         Parameters:
@@ -40,7 +40,16 @@ class YamlDatabase(Database):
         """
         return dataset_name in self.database["datasets"]
 
-    @Database._does_user_exists
+    @Database._does_dataset_exist
+    def get_dataset_metadata(self, dataset_name: str) -> dict:
+        ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
+
+        with open(ds_metadata_path, "r") as f:
+            ds_metadata = yaml.safe_load(f)
+
+        return ds_metadata
+
+    @Database._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -52,7 +61,7 @@ class YamlDatabase(Database):
             if user["user_name"] == user_name:
                 return user["may_query"]
 
-    @Database._does_user_exists
+    @Database._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -67,7 +76,7 @@ class YamlDatabase(Database):
                 user["may_query"] = may_query
         self.database["users"] = users
 
-    @Database._does_user_exists
+    @Database._does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

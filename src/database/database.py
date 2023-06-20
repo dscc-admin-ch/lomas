@@ -80,6 +80,7 @@ class Database(ABC):
         Parameters:
             - dataset_name: name of the dataset to get the metadata for
         """
+        pass
 
     @abstractmethod
     @_does_user_exist

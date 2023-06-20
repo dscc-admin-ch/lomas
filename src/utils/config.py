@@ -10,6 +10,7 @@ from utils.constants import (
     CONFIG_PATH,
     CONF_RUNTIME_ARGS,
     CONF_SETTINGS,
+    CONF_DEV_MODE,
     CONF_TIME_ATTACK,
     CONF_DB,
     CONF_DB_TYPE,
@@ -39,6 +40,8 @@ class YAMLDBConfig(DBConfig):
 
 
 class Config(BaseModel):
+    # Develop mode
+    develop_mode: bool = False
     # Server configs
     time_attack: TimeAttack = None
 
@@ -100,6 +103,7 @@ def get_config() -> dict:
             raise Exception(f"Database type {db_type} not supported.")
 
         config: Config = Config(
+            develop_mode=config_data[CONF_DEV_MODE],
             time_attack=time_attack,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
             database=database_config,

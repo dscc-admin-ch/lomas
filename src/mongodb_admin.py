@@ -130,7 +130,7 @@ class MongoDB_Admin:
         eval(f"self.db.{args.collection}.drop()")
 
     # For testing purposes
-    def create_example_users_collection(self, args):
+    def create_example_users_collection(self):
         """
         Create example of users collection.
         """

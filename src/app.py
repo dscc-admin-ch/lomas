@@ -172,7 +172,8 @@ def estimate_cost(
         )
     except HTTPException as e:
         raise e
-    except Exception:
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
@@ -197,7 +198,7 @@ def smartnoise_sql_handler(
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(e)
+        LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
@@ -238,7 +239,7 @@ def dummy_smartnoise_sql_handler(
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(e)
+        LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response

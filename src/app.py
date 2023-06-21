@@ -255,9 +255,10 @@ def dummy_smartnoise_sql_handler(
 )
 def get_current_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_current_budget),
+    user_name: str = Header(None),
 ):
     current_epsilon, current_delta = globals.DATABASE.get_current_budget(
-        query_json.user_name, query_json.dataset_name
+        user_name, query_json.dataset_name
     )
 
     return {"current_epsilon": current_epsilon, "current_delta": current_delta}
@@ -271,9 +272,10 @@ def get_current_budget(
 )
 def get_max_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
+    user_name: str = Header(None),
 ):
     max_epsilon, max_delta = globals.DATABASE.get_max_budget(
-        query_json.user_name, query_json.dataset_name
+        user_name, query_json.dataset_name
     )
 
     return {"max_epsilon": max_epsilon, "max_delta": max_delta}

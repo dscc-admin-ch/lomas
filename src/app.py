@@ -10,7 +10,7 @@ from dp_queries.example_inputs import (
     example_get_dataset_metadata,
     example_get_dummy_dataset,
     example_smartnoise_sql,
-    example_mongodb_get_current_budget,
+    example_mongodb_get_total_spent_budget,
     example_mongodb_get_max_budget
 )
 from dp_queries.input_models import (
@@ -161,7 +161,7 @@ def get_dummy_dataset(
 @app.post(
     "/estimate_cost",
     dependencies=[Depends(server_live)],
-    tags=["OBLV_PARTICIPANT_USER"],
+    tags=["USER_QUERY"],
 )
 def estimate_cost(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
@@ -249,25 +249,25 @@ def dummy_smartnoise_sql_handler(
 
 # MongoDB get current budget query
 @app.post(
-    "/get_current_budget",
+    "/get_total_spent_budget",
     dependencies=[Depends(server_live)],
-    tags=["USER_CURRENT_BUDGET"],
+    tags=["USER_BUDGET"],
 )
-def get_current_budget(
-    query_json: GetBudgetInp = Body(example_mongodb_get_current_budget),
+def get_total_spent_budget(
+    query_json: GetBudgetInp = Body(example_mongodb_get_total_spent_budget),
 ):
-    current_epsilon, current_delta = globals.DATABASE.get_current_budget(
+    total_spent_epsilon, total_spent_delta = globals.DATABASE.get_total_spent_budget(
         query_json.user_name, query_json.dataset_name
     )
 
-    return {"current_epsilon": current_epsilon, "current_delta": current_delta}
+    return {"total_spent_epsilon": total_spent_epsilon, "total_spent_delta": total_spent_delta}
 
 
 # MongoDB get max budget query
 @app.post(
     "/get_max_budget",
     dependencies=[Depends(server_live)],
-    tags=["USER_MAX_BUDGET"],
+    tags=["USER_BUDGET"],
 )
 def get_max_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),

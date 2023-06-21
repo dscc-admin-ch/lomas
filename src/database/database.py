@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import functools
+from typing import List
 from fastapi import HTTPException
 
 
@@ -142,12 +143,12 @@ class Database(ABC):
 
     @abstractmethod
     @_has_user_access_to_dataset
-    def get_current_budget(
+    def get_total_spent_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
-        Get the current epsilon and delta spent by a specific user
-        on a specific dataset
+        Get the total spent epsilon and delta spent by a specific user
+        on a specific dataset (since the initialisation)
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
@@ -158,7 +159,7 @@ class Database(ABC):
     @_has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
         Get the maximum epsilon and delta budget that can be spent by a user
         Parameters:

@@ -298,7 +298,7 @@ def get_remaining_budget(
         user_name, query_json.dataset_name
     )
 
-    return {"initial_epsilon": rem_epsilon, "initial_delta": rem_delta}
+    return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

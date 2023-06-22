@@ -145,7 +145,9 @@ class YamlDatabase(Database):
             self.__get_epsilon_or_delta(
                 user_name, dataset_name, "initial_epsilon"
             ),
-            self.__get_epsilon_or_delta(user_name, dataset_name, "initial_delta"),
+            self.__get_epsilon_or_delta(
+                user_name, dataset_name, "initial_delta"
+            ),
         ]
 
     def __update_epsilon_or_delta(

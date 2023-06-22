@@ -2,7 +2,6 @@ from typing import List
 from database.database import Database
 from utils.constants import DATABASE_NAME
 import pymongo
-from utils.constants import DATABASE_NAME
 
 
 class MongoDB_Database(Database):
@@ -150,7 +149,9 @@ class MongoDB_Database(Database):
             self.__get_epsilon_or_delta(
                 user_name, dataset_name, "initial_epsilon"
             ),
-            self.__get_epsilon_or_delta(user_name, dataset_name, "initial_delta"),
+            self.__get_epsilon_or_delta(
+                user_name, dataset_name, "initial_delta"
+            ),
         ]
 
     def __update_epsilon_or_delta(

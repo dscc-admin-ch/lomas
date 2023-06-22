@@ -253,11 +253,13 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
+
 def get_total_spent_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_total_spent_budget),
+    user_name: str = Header(None),
 ):
     total_spent_epsilon, total_spent_delta = globals.DATABASE.get_total_spent_budget(
-        query_json.user_name, query_json.dataset_name
+        user_name, query_json.dataset_name
     )
 
     return {"total_spent_epsilon": total_spent_epsilon, "total_spent_delta": total_spent_delta}
@@ -271,9 +273,10 @@ def get_total_spent_budget(
 )
 def get_max_budget(
     query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
+    user_name: str = Header(None),
 ):
     max_epsilon, max_delta = globals.DATABASE.get_max_budget(
-        query_json.user_name, query_json.dataset_name
+        user_name, query_json.dataset_name
     )
 
     return {"max_epsilon": max_epsilon, "max_delta": max_delta}

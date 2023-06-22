@@ -167,7 +167,6 @@ class Database(ABC):
             - dataset_name: name of the dataset
         """
         pass
-    
 
     @_has_user_access_to_dataset
     def get_remaining_budget(
@@ -180,7 +179,9 @@ class Database(ABC):
             - dataset_name: name of the dataset
         """
         init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
-        spent_eps, spent_delta = self.get_total_spent_budget(user_name, dataset_name)
+        spent_eps, spent_delta = self.get_total_spent_budget(
+            user_name, dataset_name
+        )
         return [init_eps - spent_eps, init_delta - spent_delta]
 
     @abstractmethod

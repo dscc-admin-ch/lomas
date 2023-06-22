@@ -3,21 +3,20 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import globals
 from mongodb_admin import MongoDB_Admin
 from database.utils import database_factory
-from database.mongodb_database import MongoDB_Database
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
     example_get_dataset_metadata,
     example_get_dummy_dataset,
     example_smartnoise_sql,
-    example_get_budget
+    example_get_budget,
 )
 from dp_queries.input_models import (
     DummySNSQLInp,
     GetDatasetMetadata,
     GetDummyDataset,
     SNSQLInp,
-    GetBudgetInp
+    GetBudgetInp,
 )
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
@@ -252,16 +251,21 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
-
 def get_total_spent_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    total_spent_epsilon, total_spent_delta = globals.DATABASE.get_total_spent_budget(
+    (
+        total_spent_epsilon,
+        total_spent_delta,
+    ) = globals.DATABASE.get_total_spent_budget(
         user_name, query_json.dataset_name
     )
 
-    return {"total_spent_epsilon": total_spent_epsilon, "total_spent_delta": total_spent_delta}
+    return {
+        "total_spent_epsilon": total_spent_epsilon,
+        "total_spent_delta": total_spent_delta,
+    }
 
 
 # MongoDB get initial budget query
@@ -286,7 +290,7 @@ def get_initial_budget(
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
-def get_initial_budget(
+def get_remaining_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):

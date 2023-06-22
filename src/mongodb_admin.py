@@ -240,7 +240,10 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, type=str
     )
     set_budget_field_parser.add_argument(
-        "-f", "--field", required=True, choices=["initial_epsilon", "initial_delta"]
+        "-f",
+        "--field",
+        required=True,
+        choices=["initial_epsilon", "initial_delta"],
     )
     set_budget_field_parser.add_argument(
         "-v", "--value", required=True, type=float

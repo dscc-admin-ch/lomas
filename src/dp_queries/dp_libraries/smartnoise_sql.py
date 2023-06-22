@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import HTTPException
 from snsql import Privacy, from_connection
 import traceback
@@ -57,7 +58,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         else:
             self.df = pd.read_csv(csv_path)
 
-    def cost(self, query_str: str, eps: float, delta: float) -> [float, float]:
+    def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
         privacy = Privacy(epsilon=eps, delta=delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata

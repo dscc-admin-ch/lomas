@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from typing import List
 import yaml
 
 from database.database import Database
@@ -111,12 +112,12 @@ class YamlDatabase(Database):
                         return dataset[parameter]
 
     @Database._has_user_access_to_dataset
-    def get_current_budget(
+    def get_total_spent_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
-        Get the current epsilon and delta spent by a specific user
-        on a specific dataset
+        Get the total spent epsilon and delta spent by a specific user
+        on a specific dataset (since the initialisation)
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
@@ -133,7 +134,7 @@ class YamlDatabase(Database):
     @Database._has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
         Get the maximum epsilon and delta budget that can be spent by a user
         Parameters:

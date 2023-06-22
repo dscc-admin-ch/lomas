@@ -136,7 +136,7 @@ example_dummy_smartnoise_sql = {
     "delta": DUMMY_DELTA,
 }
 
-example_mongodb_get_current_budget = {
+example_mongodb_get_total_spent_budget = {
     "user_name": "Alice",
     "dataset_name": IRIS_DATASET,
 }

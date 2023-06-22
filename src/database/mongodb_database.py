@@ -1,3 +1,4 @@
+from typing import List
 from database.database import Database
 from utils.constants import DATABASE_NAME
 import pymongo
@@ -94,12 +95,12 @@ class MongoDB_Database(Database):
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
-        Get the current epsilon or delta spent by a specific user
+        Get the total spent epsilon or delta  by a specific user
         on a specific dataset
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
-            - parameter: current_epsilon or current_delta
+            - parameter: total_spent_epsilon or total_spent_delta
         """
         return list(
             self.db.users.aggregate(
@@ -116,29 +117,29 @@ class MongoDB_Database(Database):
         )[0]["datasets_list"][parameter]
 
     @Database._has_user_access_to_dataset
-    def get_current_budget(
+    def get_total_spent_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
-        Get the current epsilon and delta spent by a specific user
-        on a specific dataset
+        Get the total spent epsilon and delta spent by a specific user
+        on a specific dataset (since the initialisation)
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
         return [
             self.__get_epsilon_or_delta(
-                user_name, dataset_name, "current_epsilon"
+                user_name, dataset_name, "total_spent_epsilon"
             ),
             self.__get_epsilon_or_delta(
-                user_name, dataset_name, "current_delta"
+                user_name, dataset_name, "total_spent_delta"
             ),
         ]
 
     @Database._has_user_access_to_dataset
     def get_max_budget(
         self, user_name: str, dataset_name: str
-    ) -> [float, float]:
+    ) -> List[float]:
         """
         Get the maximum epsilon and delta budget that can be spent by a user
         Parameters:

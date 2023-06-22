@@ -136,10 +136,6 @@ example_dummy_smartnoise_sql = {
     "delta": DUMMY_DELTA,
 }
 
-example_mongodb_get_total_spent_budget = {
-    "dataset_name": IRIS_DATASET,
-}
-
-example_mongodb_get_max_budget = {
+example_get_budget = {
     "dataset_name": IRIS_DATASET,
 }

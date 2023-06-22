@@ -219,18 +219,12 @@ class QueryHandler:
         )
 
         # Check that enough budget to to the query
-        eps_max_user, delta_max_user = self.database.get_max_budget(
-            user_name, query_json.dataset_name
-        )
-
-        eps_total_spent_user, delta_total_spent_user = self.database.get_total_spent_budget(
+        eps_remaining, delta_remaining = self.database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
 
         # If enough budget
-        if ((eps_max_user - eps_total_spent_user) >= eps_cost) and (
-            (delta_max_user - delta_total_spent_user) >= delta_cost
-        ):
+        if (eps_remaining >= eps_cost) and (delta_remaining >= delta_cost):
             # Query
             try:
                 query_response = dp_querier.query(
@@ -276,14 +270,13 @@ class QueryHandler:
                 "spent_delta": 0,
             }
 
-        eps_total_spent_user, delta_total_spent_user = self.database.get_total_spent_budget(
+        # Check that enough budget to to the query
+        eps_remaining, delta_remaining = self.database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
         # Return budget metadata to user
-        response["total_spent_epsilon"] = eps_total_spent_user
-        response["total_spent_delta"] = delta_total_spent_user
-        response["max_epsilon"] = eps_max_user
-        response["max_delta"] = delta_max_user
+        response["remaining_epsilon"] = eps_remaining
+        response["remaining_delta"] = delta_remaining
 
         # Re-enable user to query
         self.database.set_may_user_query(user_name, True)

@@ -132,20 +132,20 @@ class YamlDatabase(Database):
         ]
 
     @Database._has_user_access_to_dataset
-    def get_max_budget(
+    def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
         """
-        Get the maximum epsilon and delta budget that can be spent by a user
+        Get the initial epsilon and delta budget
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
         return [
             self.__get_epsilon_or_delta(
-                user_name, dataset_name, "max_epsilon"
+                user_name, dataset_name, "initial_epsilon"
             ),
-            self.__get_epsilon_or_delta(user_name, dataset_name, "max_delta"),
+            self.__get_epsilon_or_delta(user_name, dataset_name, "initial_delta"),
         ]
 
     def __update_epsilon_or_delta(

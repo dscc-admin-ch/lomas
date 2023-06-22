@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from fastapi import Header, HTTPException
-from typing import Dict
+from typing import Dict, List
 
 from utils.constants import (
     SUPPORTED_LIBS,
@@ -25,7 +25,7 @@ class DPQuerier(ABC):
         pass
 
     @abstractmethod
-    def cost(self, query_str: str, eps: float, delta: float) -> [float, float]:
+    def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
         """
         Estimate cost of query
         """
@@ -223,13 +223,13 @@ class QueryHandler:
             user_name, query_json.dataset_name
         )
 
-        eps_curr_user, delta_curr_user = self.database.get_current_budget(
+        eps_total_spent_user, delta_total_spent_user = self.database.get_total_spent_budget(
             user_name, query_json.dataset_name
         )
 
         # If enough budget
-        if ((eps_max_user - eps_curr_user) >= eps_cost) and (
-            (delta_max_user - delta_curr_user) >= delta_cost
+        if ((eps_max_user - eps_total_spent_user) >= eps_cost) and (
+            (delta_max_user - delta_total_spent_user) >= delta_cost
         ):
             # Query
             try:
@@ -276,9 +276,12 @@ class QueryHandler:
                 "spent_delta": 0,
             }
 
+        eps_total_spent_user, delta_total_spent_user = self.database.get_total_spent_budget(
+            user_name, query_json.dataset_name
+        )
         # Return budget metadata to user
-        response["current_epsilon"] = eps_curr_user
-        response["current_delta"] = delta_curr_user
+        response["total_spent_epsilon"] = eps_total_spent_user
+        response["total_spent_delta"] = delta_total_spent_user
         response["max_epsilon"] = eps_max_user
         response["max_delta"] = delta_max_user
 

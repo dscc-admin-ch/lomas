@@ -10,8 +10,7 @@ from dp_queries.example_inputs import (
     example_get_dataset_metadata,
     example_get_dummy_dataset,
     example_smartnoise_sql,
-    example_mongodb_get_total_spent_budget,
-    example_mongodb_get_max_budget
+    example_get_budget
 )
 from dp_queries.input_models import (
     DummySNSQLInp,
@@ -255,7 +254,7 @@ def dummy_smartnoise_sql_handler(
 )
 
 def get_total_spent_budget(
-    query_json: GetBudgetInp = Body(example_mongodb_get_total_spent_budget),
+    query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
     total_spent_epsilon, total_spent_delta = globals.DATABASE.get_total_spent_budget(
@@ -265,21 +264,37 @@ def get_total_spent_budget(
     return {"total_spent_epsilon": total_spent_epsilon, "total_spent_delta": total_spent_delta}
 
 
-# MongoDB get max budget query
+# MongoDB get initial budget query
 @app.post(
-    "/get_max_budget",
+    "/get_initial_budget",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
-def get_max_budget(
-    query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
+def get_initial_budget(
+    query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    max_epsilon, max_delta = globals.DATABASE.get_max_budget(
+    initial_epsilon, initial_delta = globals.DATABASE.get_initial_budget(
         user_name, query_json.dataset_name
     )
 
-    return {"max_epsilon": max_epsilon, "max_delta": max_delta}
+    return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
+
+
+@app.post(
+    "/get_remaining_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_BUDGET"],
+)
+def get_initial_budget(
+    query_json: GetBudgetInp = Body(example_get_budget),
+    user_name: str = Header(None),
+):
+    rem_epsilon, rem_delta = globals.DATABASE.get_remaining_budget(
+        user_name, query_json.dataset_name
+    )
+
+    return {"initial_epsilon": rem_epsilon, "initial_delta": rem_delta}
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

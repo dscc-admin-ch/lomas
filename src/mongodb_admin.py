@@ -65,8 +65,8 @@ class MongoDB_Admin:
                 "$push": {
                     "datasets_list": {
                         "dataset_name": args.dataset,
-                        "initial_epsilon": EPSILON_LIMIT,
-                        "initial_delta": DELTA_LIMIT,
+                        "max_epsilon": EPSILON_LIMIT,
+                        "max_delta": DELTA_LIMIT,
                         "total_spent_epsilon": EPSILON_INITIAL,
                         "total_spent_delta": DELTA_INITIAL,
                     }
@@ -145,15 +145,15 @@ class MongoDB_Admin:
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "initial_epsilon": EPSILON_LIMIT,
-                            "initial_delta": DELTA_LIMIT,
+                            "max_epsilon": EPSILON_LIMIT,
+                            "max_delta": DELTA_LIMIT,
                             "total_spent_epsilon": EPSILON_INITIAL,
                             "total_spent_delta": DELTA_INITIAL,
                         },
                         {
                             "dataset_name": "PENGUIN",
-                            "initial_epsilon": EPSILON_LIMIT,
-                            "initial_delta": DELTA_LIMIT,
+                            "max_epsilon": EPSILON_LIMIT,
+                            "max_delta": DELTA_LIMIT,
                             "total_spent_epsilon": EPSILON_INITIAL,
                             "total_spent_delta": DELTA_INITIAL,
                         },
@@ -165,8 +165,8 @@ class MongoDB_Admin:
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "initial_epsilon": EPSILON_LIMIT,
-                            "initial_delta": DELTA_LIMIT,
+                            "max_epsilon": EPSILON_LIMIT,
+                            "max_delta": DELTA_LIMIT,
                             "total_spent_epsilon": EPSILON_INITIAL,
                             "total_spent_delta": DELTA_INITIAL,
                         }
@@ -240,10 +240,7 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, type=str
     )
     set_budget_field_parser.add_argument(
-        "-f",
-        "--field",
-        required=True,
-        choices=["initial_epsilon", "initial_delta"],
+        "-f", "--field", required=True, choices=["max_epsilon", "max_delta"]
     )
     set_budget_field_parser.add_argument(
         "-v", "--value", required=True, type=float

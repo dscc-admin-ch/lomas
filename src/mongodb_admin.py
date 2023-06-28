@@ -9,8 +9,6 @@ from utils.constants import (
     DATASET_METADATA_PATHS,
     EPSILON_LIMIT,
     DELTA_LIMIT,
-    EPSILON_INITIAL,
-    DELTA_INITIAL,
 )
 
 
@@ -86,8 +84,8 @@ class MongoDB_Admin:
                 "$push": {
                     "datasets_list": {
                         "dataset_name": args.dataset,
-                        "max_epsilon": args.epsilon,
-                        "max_delta": args.delta,
+                        "initial_epsilon": args.epsilon,
+                        "initial_delta": args.delta,
                         "total_spent_epsilon": 0.0,
                         "total_spent_delta": 0.0,
                     }
@@ -134,7 +132,7 @@ class MongoDB_Admin:
         Load metadata yaml file into a dict and add it in the metadata collection
         with dataset name as key.
         """
-        with open(DATASET_METADATA_PATHS[args.dataset]) as f:
+        with open(args.path) as f:
             metadata_dict = yaml.safe_load(f)
             # Make sure to remove old versions
             self.db.metadata.delete_many({args.dataset: {"$exists": True}})
@@ -172,17 +170,17 @@ class MongoDB_Admin:
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         },
                         {
                             "dataset_name": "PENGUIN",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         },
                     ],
                 },
@@ -192,10 +190,10 @@ class MongoDB_Admin:
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         }
                     ],
                 },
@@ -279,7 +277,7 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, type=str
     )
     set_budget_field_parser.add_argument(
-        "-f", "--field", required=True, choices=["max_epsilon", "max_delta"]
+        "-f", "--field", required=True, choices=["initial_epsilon", "initial_delta"]
     )
     set_budget_field_parser.add_argument(
         "-v", "--value", required=True, type=float
@@ -304,6 +302,9 @@ if __name__ == "__main__":
     )
     add_metadata_parser.add_argument(
         "-d", "--dataset", required=True, choices=EXISTING_DATASETS
+    )
+    add_metadata_parser.add_argument(
+        "-p", "--path", required=True, type=str
     )
     add_metadata_parser.set_defaults(func=admin.add_metadata)
 

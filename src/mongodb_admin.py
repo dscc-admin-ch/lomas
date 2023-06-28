@@ -39,6 +39,27 @@ class MongoDB_Admin:
                 "datasets_list": [],
             }
         )
+    
+    def add_user_with_budget(self, args):
+        """
+        Add new user in users collection with initial values for all fields set by default.
+        """
+        if self.db.users.count_documents({"user_name": args.user}) > 0:
+            raise ValueError("Cannot add user because already exists. ")
+
+        self.db.users.insert_one(
+            {
+                "user_name": args.user,
+                "may_query": True,
+                "datasets_list": [{
+                    "dataset_name": args.dataset,
+                    "initial_epsilon": args.epsilon,
+                    "initial_delta": args.delta,
+                    "total_spent_epsilon": 0.0,
+                    "total_spent_delta": 0.0,
+                }],
+            }
+        )
 
     def del_user(self, args):
         """
@@ -65,10 +86,10 @@ class MongoDB_Admin:
                 "$push": {
                     "datasets_list": {
                         "dataset_name": args.dataset,
-                        "max_epsilon": EPSILON_LIMIT,
-                        "max_delta": DELTA_LIMIT,
-                        "total_spent_epsilon": EPSILON_INITIAL,
-                        "total_spent_delta": DELTA_INITIAL,
+                        "max_epsilon": args.epsilon,
+                        "max_delta": args.delta,
+                        "total_spent_epsilon": 0.0,
+                        "total_spent_delta": 0.0,
                     }
                 }
             },
@@ -195,6 +216,16 @@ if __name__ == "__main__":
     add_user_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_parser.set_defaults(func=admin.add_user)
 
+    # Create the parser for the "add_user_with_budget" command
+    add_user_wb_parser = subparsers.add_parser(
+        "add_user_with_budget", help="add user to users collection"
+    )
+    add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
+    add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
+    add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
+    add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
+    add_user_wb_parser.set_defaults(func=admin.add_user_with_budget)
+
     # Create the parser for the "del_user" command
     del_user_parser = subparsers.add_parser(
         "del_user", help="delete user from users collection"
@@ -213,6 +244,8 @@ if __name__ == "__main__":
     add_dataset_to_user_parser.add_argument(
         "-d", "--dataset", required=True, type=str
     )
+    add_dataset_to_user_parser.add_argument("-e", "--epsilon", required=True, type=float)
+    add_dataset_to_user_parser.add_argument("-del", "--delta", required=True, type=float)
     add_dataset_to_user_parser.set_defaults(func=admin.add_dataset_to_user)
 
     # Create the parser for the "del_dataset" command

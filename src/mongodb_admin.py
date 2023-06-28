@@ -24,7 +24,7 @@ class MongoDB_Admin:
         Connect to DB
         """
         self.db = pymongo.MongoClient(connection_string)[DATABASE_NAME]
-
+ 
     def add_user(self, args):
         """
         Add new user in users collection with initial values for all fields set by default.
@@ -151,6 +151,12 @@ class MongoDB_Admin:
         Delete collection.
         """
         eval(f"self.db.{args.collection}.drop()")
+    
+    def show_collection(self, args):
+        """
+        Show a collection
+        """
+        print(list(self.db[args.collection].find({})))
 
     # For testing purposes
     def create_example_users_collection(self):
@@ -316,6 +322,15 @@ if __name__ == "__main__":
     )
     drop_collection_parser.add_argument("-c", "--collection", required=True)
     drop_collection_parser.set_defaults(func=admin.drop_collection)
+
+    # Create the parser fir the "show_users_collection" command
+    show_collection_parser = subparsers.add_parser(
+        "show_collection", help="print the users collection"
+    )
+    show_collection_parser.add_argument("-c", "--collection", default="users")
+    show_collection_parser.set_defaults(
+        func=admin.show_collection
+    )
 
     # Create the parser for the "create_example_users" command (for testing purposes)
     create_example_users_parser = subparsers.add_parser(

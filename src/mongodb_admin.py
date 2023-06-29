@@ -132,7 +132,7 @@ class MongoDB_Admin:
         Load metadata yaml file into a dict and add it in the metadata collection
         with dataset name as key.
         """
-        with open(args.path) as f:
+        with open(args.metadata_path) as f:
             metadata_dict = yaml.safe_load(f)
             # Make sure to remove old versions
             self.db.metadata.delete_many({args.dataset: {"$exists": True}})
@@ -304,7 +304,7 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, choices=EXISTING_DATASETS
     )
     add_metadata_parser.add_argument(
-        "-p", "--path", required=True, type=str
+        "-mp", "--metadata_path", required=True, type=str
     )
     add_metadata_parser.set_defaults(func=admin.add_metadata)
 

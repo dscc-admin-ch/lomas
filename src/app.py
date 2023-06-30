@@ -3,22 +3,20 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 import globals
 from mongodb_admin import MongoDB_Admin
 from database.utils import database_factory
-from database.mongodb_database import MongoDB_Database
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
     example_get_dataset_metadata,
     example_get_dummy_dataset,
     example_smartnoise_sql,
-    example_mongodb_get_total_spent_budget,
-    example_mongodb_get_max_budget
+    example_get_budget,
 )
 from dp_queries.input_models import (
     DummySNSQLInp,
     GetDatasetMetadata,
     GetDummyDataset,
     SNSQLInp,
-    GetBudgetInp
+    GetBudgetInp,
 )
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
@@ -253,33 +251,54 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
-
 def get_total_spent_budget(
-    query_json: GetBudgetInp = Body(example_mongodb_get_total_spent_budget),
+    query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    total_spent_epsilon, total_spent_delta = globals.DATABASE.get_total_spent_budget(
+    (
+        total_spent_epsilon,
+        total_spent_delta,
+    ) = globals.DATABASE.get_total_spent_budget(
         user_name, query_json.dataset_name
     )
 
-    return {"total_spent_epsilon": total_spent_epsilon, "total_spent_delta": total_spent_delta}
+    return {
+        "total_spent_epsilon": total_spent_epsilon,
+        "total_spent_delta": total_spent_delta,
+    }
 
 
-# MongoDB get max budget query
+# MongoDB get initial budget query
 @app.post(
-    "/get_max_budget",
+    "/get_initial_budget",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
-def get_max_budget(
-    query_json: GetBudgetInp = Body(example_mongodb_get_max_budget),
+def get_initial_budget(
+    query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    max_epsilon, max_delta = globals.DATABASE.get_max_budget(
+    initial_epsilon, initial_delta = globals.DATABASE.get_initial_budget(
         user_name, query_json.dataset_name
     )
 
-    return {"max_epsilon": max_epsilon, "max_delta": max_delta}
+    return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
+
+
+@app.post(
+    "/get_remaining_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_BUDGET"],
+)
+def get_remaining_budget(
+    query_json: GetBudgetInp = Body(example_get_budget),
+    user_name: str = Header(None),
+):
+    rem_epsilon, rem_delta = globals.DATABASE.get_remaining_budget(
+        user_name, query_json.dataset_name
+    )
+
+    return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

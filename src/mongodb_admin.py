@@ -24,7 +24,7 @@ class MongoDB_Admin:
         Connect to DB
         """
         client = pymongo.MongoClient(connection_string)
-        self.db = client.defaultdb
+        self.db = client[DATABASE_NAME]
 
     def add_user(self, args):
         """
@@ -179,14 +179,16 @@ class MongoDB_Admin:
 
 if __name__ == "__main__":
     import os
+    # Set environment variables
+    os.environ['MONGO_USERNAME'] = 'user-paulineml'
+    os.environ['MONGO_PWD'] = 'txki3v1jfh41qjcj7rge'
 
-    db_username = 'user-paulineml' #os.getenv('MONGO_USERNAME')
-    db_password = 'txki3v1jfh41qjcj7rge' #os.getenv('PWD')
-    db_port = 27017 #os.getenv('MONGO_PORT')
-    db_name = 'defaultdb' #os.getenv('MONGO_USERNAME')
+    # Get environment variables
+    db_username = os.getenv('MONGO_USERNAME')
+    db_password = os.environ.get('MONGO_PWD')
 
     admin = MongoDB_Admin(
-        f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{db_port},mongodb-1.mongodb-headless:{db_port}/{db_name}'
+        f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
     )
 
     parser = argparse.ArgumentParser(

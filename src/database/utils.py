@@ -1,4 +1,4 @@
-from utils.constants import CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML
+from utils.constants import CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML, DATABASE_NAME, MONGODB_PORT
 from database.database import Database
 from database.mongodb_database import MongoDB_Database
 from database.yaml_database import YamlDatabase
@@ -19,14 +19,14 @@ def database_factory(config: DBConfig) -> Database:
 
     elif db_type == CONF_DB_TYPE_MONGODB:
         # db_addr = config.address
-        db_port = config.port
-        db_name = config.db_name
-        db_username = config.username
-        db_password = config.password
-
         # db_url = f"mongodb://{db_addr}:{db_port}/"
 
-        db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{db_port},mongodb-1.mongodb-headless:{db_port}/{db_name}'
+        import os
+        # Get environment variables
+        db_username = os.getenv('MONGO_USERNAME')
+        db_password = os.environ.get('MONGO_PWD')
+
+        db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
 
         return MongoDB_Database(db_url)
 

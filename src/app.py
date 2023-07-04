@@ -27,6 +27,7 @@ from utils.constants import (
     INTERNAL_SERVER_ERROR,
     MONGODB_CONTAINER_NAME,
     MONGODB_PORT,
+    DATABASE_NAME
 )
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
@@ -56,13 +57,14 @@ def startup_event():
         # mongo_admin = MongoDB_Admin(
         #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
         # )
-        db_port = globals.CONFIG.port
-        db_name = globals.CONFIG.db_name
-        db_username = globals.CONFIG.username
-        db_password = globals.CONFIG.password
+
+        import os
+        # Get environment variables
+        db_username = os.getenv('MONGO_USERNAME')
+        db_password = os.environ.get('MONGO_PWD')
 
         mongo_admin = MongoDB_Admin(
-            f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{db_port},mongodb-1.mongodb-headless:{db_port}/{db_name}'
+            f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
         )
         mongo_admin.create_example_users_collection()
 

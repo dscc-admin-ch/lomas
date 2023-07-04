@@ -53,8 +53,16 @@ def startup_event():
     if globals.CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
+        # mongo_admin = MongoDB_Admin(
+        #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+        # )
+        db_port = globals.CONFIG.port
+        db_name = globals.CONFIG.db_name
+        db_username = globals.CONFIG.username
+        db_password = globals.CONFIG.password
+
         mongo_admin = MongoDB_Admin(
-            f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+            f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{db_port},mongodb-1.mongodb-headless:{db_port}/{db_name}'
         )
         mongo_admin.create_example_users_collection()
 

@@ -179,13 +179,21 @@ class MongoDB_Admin:
 
 if __name__ == "__main__":
     import os
-    # Set environment variables
-    os.environ['MONGO_USERNAME'] = 'user-paulineml'
-    os.environ['MONGO_PWD'] = 'txki3v1jfh41qjcj7rge'
+    import hvac
+    url = os.environ["VAULT_ADDR"]
+    vault_mount = os.environ["VAULT_MOUNT"]
+    token = os.environ['VAULT_TOKEN']
+    path = os.environ["VAULT_TOP_DIR"]
+    VAULT_NAME = 'MONGO_VAULT'
+
+    client = hvac.Client(url=os.environ["VAULT_ADDR"], token=os.environ['VAULT_TOKEN'])
+    mongodb_secret = client.secrets.kv.v2.read_secret_version(
+        mount_point=os.environ["VAULT_MOUNT"], path=f'{os.environ["VAULT_TOP_DIR"]}/{VAULT_NAME}'
+    )
 
     # Get environment variables
-    db_username = os.getenv('MONGO_USERNAME')
-    db_password = os.environ.get('MONGO_PWD')
+    db_username = mongodb_secret["data"]["data"]["MONGO_USERNAME"]
+    db_password = mongodb_secret["data"]["data"]["MONGO_PASSWORD"]
 
     admin = MongoDB_Admin(
         f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'

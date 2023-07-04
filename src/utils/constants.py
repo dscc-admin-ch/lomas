@@ -85,7 +85,7 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
 
 # MongoDB
-VAULT_NAME = "MONGO_VAULT"
+VAULT_NAME = "SDD_POC_DB/mongodb_access"
 MONGODB_CONTAINER_NAME = "mongodb"
 MONGODB_PORT = "27017"
 DATABASE_NAME = "defaultdb"

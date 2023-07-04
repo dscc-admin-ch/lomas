@@ -1,12 +1,11 @@
 import argparse
 import pymongo
 import yaml
+from database.utils import get_mongodb_url
 from utils.constants import (
-    MONGODB_CONTAINER_NAME,
-    MONGODB_PORT,
-    DATABASE_NAME,
     EXISTING_DATASETS,
     DATASET_METADATA_PATHS,
+    DATABASE_NAME,
     EPSILON_LIMIT,
     DELTA_LIMIT,
     EPSILON_INITIAL,
@@ -28,7 +27,8 @@ class MongoDB_Admin:
 
     def add_user(self, args):
         """
-        Add new user in users collection with initial values for all fields set by default.
+        Add new user in users collection with initial values for
+        all fields set by default.
         """
         if self.db.users.count_documents({"user_name": args.user}) > 0:
             raise ValueError("Cannot add user because already exists. ")
@@ -49,7 +49,8 @@ class MongoDB_Admin:
 
     def add_dataset_to_user(self, args):
         """
-        Add dataset with initialized budget values to list of datasets that user has access to.
+        Add dataset with initialized budget values to list of datasets that
+        user has access to.
         Will not add if already added (no error will be raised in that case).
         """
         if self.db.users.count_documents({"user_name": args.user}) == 0:
@@ -77,7 +78,8 @@ class MongoDB_Admin:
 
     def del_dataset_to_user(self, args):
         """
-        Remove if exists the dataset (and all related budget info) from list of datasets that user has access to.
+        Remove if exists the dataset (and all related budget info) from list
+        of datasets that user has access to.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -90,7 +92,8 @@ class MongoDB_Admin:
 
     def set_budget_field(self, args):
         """
-        Set (for some reason) a budget field to a given value if given user exists and has access to given dataset.
+        Set (for some reason) a budget field to a given value if given
+        user exists and has access to given dataset.
         """
         self.db.users.update_one(
             {
@@ -102,7 +105,8 @@ class MongoDB_Admin:
 
     def set_may_query(self, args):
         """
-        Set (for some reason) the 'may query' field to a given value if given user exists.
+        Set (for some reason) the 'may query' field to a given value if
+        given user exists.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -111,8 +115,8 @@ class MongoDB_Admin:
 
     def add_metadata(self, args):
         """
-        Load metadata yaml file into a dict and add it in the metadata collection
-        with dataset name as key.
+        Load metadata yaml file into a dict and add it in the metadata
+        collection with dataset name as key.
         """
         with open(DATASET_METADATA_PATHS[args.dataset]) as f:
             metadata_dict = yaml.safe_load(f)
@@ -137,7 +141,8 @@ class MongoDB_Admin:
         """
         Create example of users collection.
         """
-        self.db.users.drop()  # To ensure the collection is created from scratch each time the method is called
+        # To ensure the collection is created from scratch
+        self.db.users.drop()
         self.db.users.insert_many(
             [
                 {
@@ -178,26 +183,9 @@ class MongoDB_Admin:
 
 
 if __name__ == "__main__":
-    import os
-    import hvac
-    url = os.environ["VAULT_ADDR"]
-    vault_mount = os.environ["VAULT_MOUNT"]
-    token = os.environ['VAULT_TOKEN']
-    path = os.environ["VAULT_TOP_DIR"]
-    VAULT_NAME = 'MONGO_VAULT'
-
-    client = hvac.Client(url=os.environ["VAULT_ADDR"], token=os.environ['VAULT_TOKEN'])
-    mongodb_secret = client.secrets.kv.v2.read_secret_version(
-        mount_point=os.environ["VAULT_MOUNT"], path=f'{os.environ["VAULT_TOP_DIR"]}/{VAULT_NAME}'
-    )
-
-    # Get environment variables
-    db_username = mongodb_secret["data"]["data"]["MONGO_USERNAME"]
-    db_password = mongodb_secret["data"]["data"]["MONGO_PASSWORD"]
-
-    admin = MongoDB_Admin(
-        f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
-    )
+    # Get url with vault credentials
+    db_url = get_mongodb_url()
+    admin = MongoDB_Admin(db_url)
 
     parser = argparse.ArgumentParser(
         prog="MongoDB administration script for the SDD POC Server"
@@ -223,7 +211,7 @@ if __name__ == "__main__":
     # Create the parser for the "add_dataset" command
     add_dataset_to_user_parser = subparsers.add_parser(
         "add_dataset_to_user",
-        help="add dataset with initialized budget values for a user in users collection",
+        help="add dataset with initialized budget values for a user",
     )
     add_dataset_to_user_parser.add_argument(
         "-u", "--user", required=True, type=str
@@ -302,7 +290,7 @@ if __name__ == "__main__":
     drop_collection_parser.add_argument("-c", "--collection", required=True)
     drop_collection_parser.set_defaults(func=admin.drop_collection)
 
-    # Create the parser for the "create_example_users" command (for testing purposes)
+    # Create the parser for the "create_example_users" command
     create_example_users_parser = subparsers.add_parser(
         "create_ex_users", help="create example of users collection"
     )

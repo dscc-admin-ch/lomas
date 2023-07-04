@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from mongodb_admin import MongoDB_Admin
-from database.utils import database_factory
+from database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
@@ -22,13 +22,7 @@ from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import (
-    EXISTING_DATASETS,
-    INTERNAL_SERVER_ERROR,
-    MONGODB_CONTAINER_NAME,
-    MONGODB_PORT,
-    DATABASE_NAME
-)
+from utils.constants import EXISTING_DATASETS, INTERNAL_SERVER_ERROR
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
@@ -57,15 +51,8 @@ def startup_event():
         # mongo_admin = MongoDB_Admin(
         #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
         # )
-
-        import os
-        # Get environment variables
-        db_username = os.getenv('MONGO_USERNAME')
-        db_password = os.environ.get('MONGO_PWD')
-
-        mongo_admin = MongoDB_Admin(
-            f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
-        )
+        db_url = get_mongodb_url()
+        mongo_admin = MongoDB_Admin(db_url)
         mongo_admin.create_example_users_collection()
 
         LOG.info("Adding dataset metadata")

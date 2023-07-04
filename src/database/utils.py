@@ -18,10 +18,15 @@ def database_factory(config: DBConfig) -> Database:
         return YamlDatabase(yaml_database_file)
 
     elif db_type == CONF_DB_TYPE_MONGODB:
-        db_addr = config.address
+        # db_addr = config.address
         db_port = config.port
+        db_name = config.db_name
+        db_username = config.username
+        db_password = config.password
 
-        db_url = f"mongodb://{db_addr}:{db_port}/"
+        # db_url = f"mongodb://{db_addr}:{db_port}/"
+
+        db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{db_port},mongodb-1.mongodb-headless:{db_port}/{db_name}'
 
         return MongoDB_Database(db_url)
 

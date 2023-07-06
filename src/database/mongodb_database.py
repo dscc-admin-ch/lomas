@@ -182,30 +182,30 @@ class MongoDB_Database(Database):
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
-        Update the current epsilon spent by a specific user
-        with the last spent epsilon
+        Update the spent epsilon by a specific user
+        with the total spent epsilon
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
         """
         return self.__update_epsilon_or_delta(
-            user_name, dataset_name, "current_epsilon", spent_epsilon
+            user_name, dataset_name, "total_spent_epsilon", spent_epsilon
         )
 
     def __update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
-        Update the current delta spent by a specific user
-        with the last spent delta
+        Update the spent delta spent by a specific user
+        with the total spent delta of the user
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
             - spent_delta: value of delta spent on last query
         """
         self.__update_epsilon_or_delta(
-            user_name, dataset_name, "current_delta", spent_delta
+            user_name, dataset_name, "total_spent_delta", spent_delta
         )
 
     @Database._has_user_access_to_dataset

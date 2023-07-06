@@ -157,16 +157,32 @@ class Database(ABC):
 
     @abstractmethod
     @_has_user_access_to_dataset
-    def get_max_budget(
+    def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
         """
-        Get the maximum epsilon and delta budget that can be spent by a user
+        Get the initial epsilon and delta budget
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
         pass
+
+    @_has_user_access_to_dataset
+    def get_remaining_budget(
+        self, user_name: str, dataset_name: str
+    ) -> List[float]:
+        """
+        Get the remaining epsilon and delta budget (initial - total spent)
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+        """
+        init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
+        spent_eps, spent_delta = self.get_total_spent_budget(
+            user_name, dataset_name
+        )
+        return [init_eps - spent_eps, init_delta - spent_delta]
 
     @abstractmethod
     @_has_user_access_to_dataset

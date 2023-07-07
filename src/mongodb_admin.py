@@ -127,6 +127,12 @@ class MongoDB_Admin:
             {"$set": {"may_query": (args.value == "True")}},
         )
 
+    def show_user(self, args):
+        """
+        Show a user
+        """
+        print(list(self.db.users.find({"user_name": args.user})))
+
     def add_metadata(self, args):
         """
         Load metadata yaml file into a dict and add it in the metadata collection
@@ -165,7 +171,7 @@ class MongoDB_Admin:
         self.db.users.insert_many(
             [
                 {
-                    "user_name": "Alice",
+                    "user_name": "Antartica",
                     "may_query": True,
                     "datasets_list": [
                         {
@@ -294,6 +300,14 @@ if __name__ == "__main__":
         "-v", "--value", required=True, choices=["False", "True"]
     )
     set_may_query_parser.set_defaults(func=admin.set_may_query)
+
+    # Show the user
+    show_user_parser = subparsers.add_parser(
+        "show_user",
+        help="show all metadata of user",
+    )
+    show_user_parser.add_argument("-u", "--user", required=True, type=str)
+    show_user_parser.set_defaults(func=admin.show_user)
 
     # Create the parser for the "add_metadata" command
     add_metadata_parser = subparsers.add_parser(

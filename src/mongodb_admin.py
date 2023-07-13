@@ -9,8 +9,6 @@ from utils.constants import (
     DATASET_METADATA_PATHS,
     EPSILON_LIMIT,
     DELTA_LIMIT,
-    EPSILON_INITIAL,
-    DELTA_INITIAL,
 )
 
 
@@ -24,7 +22,7 @@ class MongoDB_Admin:
         Connect to DB
         """
         self.db = pymongo.MongoClient(connection_string)[DATABASE_NAME]
-
+ 
     def add_user(self, args):
         """
         Add new user in users collection with initial values for all fields set by default.
@@ -37,6 +35,27 @@ class MongoDB_Admin:
                 "user_name": args.user,
                 "may_query": True,
                 "datasets_list": [],
+            }
+        )
+    
+    def add_user_with_budget(self, args):
+        """
+        Add new user in users collection with initial values for all fields set by default.
+        """
+        if self.db.users.count_documents({"user_name": args.user}) > 0:
+            raise ValueError("Cannot add user because already exists. ")
+
+        self.db.users.insert_one(
+            {
+                "user_name": args.user,
+                "may_query": True,
+                "datasets_list": [{
+                    "dataset_name": args.dataset,
+                    "initial_epsilon": args.epsilon,
+                    "initial_delta": args.delta,
+                    "total_spent_epsilon": 0.0,
+                    "total_spent_delta": 0.0,
+                }],
             }
         )
 
@@ -65,10 +84,10 @@ class MongoDB_Admin:
                 "$push": {
                     "datasets_list": {
                         "dataset_name": args.dataset,
-                        "max_epsilon": EPSILON_LIMIT,
-                        "max_delta": DELTA_LIMIT,
-                        "total_spent_epsilon": EPSILON_INITIAL,
-                        "total_spent_delta": DELTA_INITIAL,
+                        "initial_epsilon": args.epsilon,
+                        "initial_delta": args.delta,
+                        "total_spent_epsilon": 0.0,
+                        "total_spent_delta": 0.0,
                     }
                 }
             },
@@ -108,12 +127,18 @@ class MongoDB_Admin:
             {"$set": {"may_query": (args.value == "True")}},
         )
 
+    def show_user(self, args):
+        """
+        Show a user
+        """
+        print(list(self.db.users.find({"user_name": args.user})))
+
     def add_metadata(self, args):
         """
         Load metadata yaml file into a dict and add it in the metadata collection
         with dataset name as key.
         """
-        with open(DATASET_METADATA_PATHS[args.dataset]) as f:
+        with open(args.metadata_path) as f:
             metadata_dict = yaml.safe_load(f)
             # Make sure to remove old versions
             self.db.metadata.delete_many({args.dataset: {"$exists": True}})
@@ -130,6 +155,12 @@ class MongoDB_Admin:
         Delete collection.
         """
         eval(f"self.db.{args.collection}.drop()")
+    
+    def show_collection(self, args):
+        """
+        Show a collection
+        """
+        print(list(self.db[args.collection].find({})))
 
     # For testing purposes
     def create_example_users_collection(self):
@@ -140,22 +171,22 @@ class MongoDB_Admin:
         self.db.users.insert_many(
             [
                 {
-                    "user_name": "Alice",
+                    "user_name": "Antartica",
                     "may_query": True,
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         },
                         {
                             "dataset_name": "PENGUIN",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         },
                     ],
                 },
@@ -165,10 +196,10 @@ class MongoDB_Admin:
                     "datasets_list": [
                         {
                             "dataset_name": "IRIS",
-                            "max_epsilon": EPSILON_LIMIT,
-                            "max_delta": DELTA_LIMIT,
-                            "total_spent_epsilon": EPSILON_INITIAL,
-                            "total_spent_delta": DELTA_INITIAL,
+                            "initial_epsilon": EPSILON_LIMIT,
+                            "initial_delta": DELTA_LIMIT,
+                            "total_spent_epsilon": 0.0,
+                            "total_spent_delta": 0.0,
                         }
                     ],
                 },
@@ -195,6 +226,16 @@ if __name__ == "__main__":
     add_user_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_parser.set_defaults(func=admin.add_user)
 
+    # Create the parser for the "add_user_with_budget" command
+    add_user_wb_parser = subparsers.add_parser(
+        "add_user_with_budget", help="add user to users collection"
+    )
+    add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
+    add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
+    add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
+    add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
+    add_user_wb_parser.set_defaults(func=admin.add_user_with_budget)
+
     # Create the parser for the "del_user" command
     del_user_parser = subparsers.add_parser(
         "del_user", help="delete user from users collection"
@@ -213,6 +254,8 @@ if __name__ == "__main__":
     add_dataset_to_user_parser.add_argument(
         "-d", "--dataset", required=True, type=str
     )
+    add_dataset_to_user_parser.add_argument("-e", "--epsilon", required=True, type=float)
+    add_dataset_to_user_parser.add_argument("-del", "--delta", required=True, type=float)
     add_dataset_to_user_parser.set_defaults(func=admin.add_dataset_to_user)
 
     # Create the parser for the "del_dataset" command
@@ -240,7 +283,7 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, type=str
     )
     set_budget_field_parser.add_argument(
-        "-f", "--field", required=True, choices=["max_epsilon", "max_delta"]
+        "-f", "--field", required=True, choices=["initial_epsilon", "initial_delta"]
     )
     set_budget_field_parser.add_argument(
         "-v", "--value", required=True, type=float
@@ -258,6 +301,14 @@ if __name__ == "__main__":
     )
     set_may_query_parser.set_defaults(func=admin.set_may_query)
 
+    # Show the user
+    show_user_parser = subparsers.add_parser(
+        "show_user",
+        help="show all metadata of user",
+    )
+    show_user_parser.add_argument("-u", "--user", required=True, type=str)
+    show_user_parser.set_defaults(func=admin.show_user)
+
     # Create the parser for the "add_metadata" command
     add_metadata_parser = subparsers.add_parser(
         "add_metadata",
@@ -265,6 +316,9 @@ if __name__ == "__main__":
     )
     add_metadata_parser.add_argument(
         "-d", "--dataset", required=True, choices=EXISTING_DATASETS
+    )
+    add_metadata_parser.add_argument(
+        "-mp", "--metadata_path", required=True, type=str
     )
     add_metadata_parser.set_defaults(func=admin.add_metadata)
 
@@ -283,6 +337,15 @@ if __name__ == "__main__":
     )
     drop_collection_parser.add_argument("-c", "--collection", required=True)
     drop_collection_parser.set_defaults(func=admin.drop_collection)
+
+    # Create the parser fir the "show_users_collection" command
+    show_collection_parser = subparsers.add_parser(
+        "show_collection", help="print the users collection"
+    )
+    show_collection_parser.add_argument("-c", "--collection", default="users")
+    show_collection_parser.set_defaults(
+        func=admin.show_collection
+    )
 
     # Create the parser for the "create_example_users" command (for testing purposes)
     create_example_users_parser = subparsers.add_parser(

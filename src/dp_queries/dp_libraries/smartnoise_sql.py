@@ -17,6 +17,7 @@ from utils.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
 )
+from utils.loggr import LOG
 
 
 def smartnoise_dataset_factory(dataset_name: str):
@@ -88,6 +89,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 400,
                 "Error executing query: " + query_str + ": " + str(err),
             )
+        if globals.CONFIG.develop_mode:
+            LOG.warning("********RESULT AFTER QUERY********")
+            LOG.warning(result)
 
         cols = result.pop(0)
 

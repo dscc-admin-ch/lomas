@@ -23,6 +23,7 @@ from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
+    DATASET_METADATA_PATHS,
     EXISTING_DATASETS,
     INTERNAL_SERVER_ERROR,
     MONGODB_CONTAINER_NAME,
@@ -65,6 +66,7 @@ def startup_event():
                 return None
 
             args.dataset = ds_name
+            args.metadata_path = DATASET_METADATA_PATHS[ds_name]
             mongo_admin.add_metadata(args)
 
         del mongo_admin

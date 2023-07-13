@@ -37,6 +37,7 @@ class MongoDB_Admin:
                 "datasets_list": [],
             }
         )
+        print(f"Added user {args.user}.")
     
     def add_user_with_budget(self, args):
         """
@@ -58,12 +59,15 @@ class MongoDB_Admin:
                 }],
             }
         )
+        print(f"Added access to user {args.user} with dataset {args.dataset},"
+                f" budget epsilon {args.epsilon} and delta {args.delta}.")
 
     def del_user(self, args):
         """
         Delete all related information for user from the users collection.
         """
         self.db.users.delete_many({"user_name": args.user})
+        print(f"Deleted user {args.user}.")
 
     def add_dataset_to_user(self, args):
         """
@@ -92,6 +96,8 @@ class MongoDB_Admin:
                 }
             },
         )
+        print(f"Added access to dataset {args.dataset} to user {args.user}"
+                f" with budget epsilon {args.epsilon} and delta {args.delta}.")
 
     def del_dataset_to_user(self, args):
         """
@@ -105,6 +111,7 @@ class MongoDB_Admin:
                 }
             },
         )
+        print(f"Remove access to dataset {args.dataset} from user {args.user}.")
 
     def set_budget_field(self, args):
         """
@@ -117,6 +124,8 @@ class MongoDB_Admin:
             },
             {"$set": {f"datasets_list.$.{args.field}": args.value}},
         )
+        print(f"Set budget of {args.user} for dataset {args.dataset}"
+                f" of {args.field} to {args.value}.")
 
     def set_may_query(self, args):
         """
@@ -126,6 +135,7 @@ class MongoDB_Admin:
             {"user_name": args.user},
             {"$set": {"may_query": (args.value == "True")}},
         )
+        print(f"Set user {args.user} may query.")
 
     def show_user(self, args):
         """
@@ -143,24 +153,32 @@ class MongoDB_Admin:
             # Make sure to remove old versions
             self.db.metadata.delete_many({args.dataset: {"$exists": True}})
             self.db.metadata.insert_one({args.dataset: metadata_dict})
+        print(f"Added metadata of {args.dataset} dataset.")
 
     def del_metadata(self, args):
         """
         Delete metadata associated to dataset from the metadata collection.
         """
         self.db.metadata.delete_many({args.dataset: {"$exists": True}})
+        print(f"Deleted metadata of {args.dataset} dataset.")
 
     def drop_collection(self, args):
         """
         Delete collection.
         """
         eval(f"self.db.{args.collection}.drop()")
+        print(f"Deleted collection {args.collection}.")
     
     def show_collection(self, args):
         """
         Show a collection
         """
-        print(list(self.db[args.collection].find({})))
+        collection_query = self.db[args.collection].find({})
+        collections = []
+        for document in collection_query:
+            document.pop('_id', None)
+            collections.append(document)
+        print(collections)
 
     # For testing purposes
     def create_example_users_collection(self):

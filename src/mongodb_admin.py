@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     # Create the parser for the "add_user_with_budget" command
     add_user_wb_parser = subparsers.add_parser(
-        "add_user_with_budget", help="add user to users collection"
+        "add_user_with_budget", help="add user with budget to users collection"
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)

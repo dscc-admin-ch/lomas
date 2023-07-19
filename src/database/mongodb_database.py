@@ -13,7 +13,8 @@ class MongoDB_Database(Database):
         """
         Load DB
         """
-        self.db = pymongo.MongoClient(connection_string)[DATABASE_NAME]
+        client = pymongo.MongoClient(connection_string)
+        self.db = client[DATABASE_NAME]
 
     def does_user_exist(self, user_name: str) -> bool:
         """

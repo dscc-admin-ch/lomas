@@ -86,6 +86,7 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 
 # MongoDB
+VAULT_NAME = "SDD_POC_DB/mongodb_access"
 MONGODB_CONTAINER_NAME = "mongodb"
 MONGODB_PORT = "27017"
-DATABASE_NAME = "user_database"
+DATABASE_NAME = "defaultdb"

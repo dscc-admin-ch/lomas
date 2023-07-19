@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from mongodb_admin import MongoDB_Admin
-from database.utils import database_factory
+from database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
@@ -54,9 +54,11 @@ def startup_event():
     if globals.CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
-        mongo_admin = MongoDB_Admin(
-            f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
-        )
+        # mongo_admin = MongoDB_Admin(
+        #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
+        # )
+        db_url = get_mongodb_url()
+        mongo_admin = MongoDB_Admin(db_url)
         mongo_admin.create_example_users_collection()
 
         LOG.info("Adding dataset metadata")

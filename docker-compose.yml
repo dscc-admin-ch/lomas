@@ -28,6 +28,13 @@ services:
       - sdd-network
     volumes:
       - mongodata:/data/db/
+    # We use this in docker compose to have a user/password for mongodb
+    # Proper deployment on a kubernetes cluster should use a helm chart
+    # and parametrize a user specific to the fastAPI server.
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
+      - MONGODB_INITDB_DATABASE=defaultdb
 networks:
   sdd-network:
     driver: bridge

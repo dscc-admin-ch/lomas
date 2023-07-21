@@ -1,6 +1,5 @@
 from typing import List
 from database.database import Database
-from utils.constants import DATABASE_NAME
 import pymongo
 
 
@@ -9,12 +8,16 @@ class MongoDB_Database(Database):
     Overall MongoDB database management
     """
 
-    def __init__(self, connection_string: str) -> None:
+    def __init__(self, connection_string: str, database_name: str) -> None:
         """
         Load DB
+
+        Parameters:
+            - connection_string: Connection string to the mongodb
+            - database_name: Mongodb database name.
         """
         client = pymongo.MongoClient(connection_string)
-        self.db = client[DATABASE_NAME]
+        self.db = client[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
         """

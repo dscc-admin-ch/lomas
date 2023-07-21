@@ -1,12 +1,8 @@
 import os
-import hvac
 
 from utils.constants import (
     CONF_DB_TYPE_MONGODB,
     CONF_DB_TYPE_YAML,
-    DATABASE_NAME,
-    MONGODB_PORT,
-    VAULT_NAME
 )
 from database.database import Database
 from database.mongodb_database import MongoDB_Database
@@ -27,29 +23,48 @@ def database_factory(config: DBConfig) -> Database:
         return YamlDatabase(yaml_database_file)
 
     elif db_type == CONF_DB_TYPE_MONGODB:
-        db_url = get_mongodb_url()
+        db_url = get_mongodb_url(config)
+        db_name = config.db_name
 
-        return MongoDB_Database(db_url)
+        return MongoDB_Database(db_url, db_name)
 
     else:
         raise Exception(f"Database type {db_type} not supported.")
 
 
-def get_mongodb_url():
+def get_mongodb_url(config):
+    # I would advocate that our application soes not become "vault aware".
+    # I am guessing making it as such could potentially hinder its
+    # adoption.
+
     # Connect to the vault
-    client = hvac.Client(
-        url=os.environ["VAULT_ADDR"],
-        token=os.environ['VAULT_TOKEN']
-    )
-    mongodb_secret = client.secrets.kv.v2.read_secret_version(
-        mount_point=os.environ["VAULT_MOUNT"],
-        path=f'{os.environ["VAULT_TOP_DIR"]}/{VAULT_NAME}'
-    )
+    #client = hvac.Client(
+    #    url=os.environ["VAULT_ADDR"],
+    #    token=os.environ['VAULT_TOKEN']
+    #)
+    #mongodb_secret = client.secrets.kv.v2.read_secret_version(
+    #    mount_point=os.environ["VAULT_MOUNT"],
+    #    path=f'{os.environ["VAULT_TOP_DIR"]}/{VAULT_NAME}'
+    #)
 
     # Get environment variables
-    db_username = mongodb_secret["data"]["data"]["MONGO_USERNAME"]
-    db_password = mongodb_secret["data"]["data"]["MONGO_PASSWORD"]
+    #db_username = mongodb_secret["data"]["data"]["MONGO_USERNAME"]
+    #db_password = mongodb_secret["data"]["data"]["MONGO_PASSWORD"]
 
-    db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
+    db_username = config.username
+    db_password = config.password
+    db_address = config.address
+    db_port = config.port
+
+    # TODO check this...
+    db_url = f'mongodb://{db_username}:{db_password}@{db_address}:{db_port}/?authSource=defaultdb'
+    print(db_url)
+    print()
+    print()
+    print()
+    print()
+    print()
+    print()
+    #db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
 
     return db_url

@@ -26,8 +26,6 @@ from utils.constants import (
     DATASET_METADATA_PATHS,
     EXISTING_DATASETS,
     INTERNAL_SERVER_ERROR,
-    MONGODB_CONTAINER_NAME,
-    MONGODB_PORT,
 )
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
@@ -57,8 +55,9 @@ def startup_event():
         # mongo_admin = MongoDB_Admin(
         #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
         # )
-        db_url = get_mongodb_url()
-        mongo_admin = MongoDB_Admin(db_url)
+        db_url = get_mongodb_url(globals.CONFIG.database)
+        db_name = globals.CONFIG.database.db_name
+        mongo_admin = MongoDB_Admin(db_url, db_name)
         mongo_admin.create_example_users_collection()
 
         LOG.info("Adding dataset metadata")

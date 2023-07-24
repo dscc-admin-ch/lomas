@@ -6,7 +6,6 @@ from utils.constants import (
     MONGODB_PORT,
     DATABASE_NAME,
     EXISTING_DATASETS,
-    DATASET_METADATA_PATHS,
     EPSILON_LIMIT,
     DELTA_LIMIT,
 )
@@ -22,10 +21,11 @@ class MongoDB_Admin:
         Connect to DB
         """
         self.db = pymongo.MongoClient(connection_string)[DATABASE_NAME]
- 
+
     def add_user(self, args):
         """
-        Add new user in users collection with initial values for all fields set by default.
+        Add new user in users collection with initial values for all fields
+        set by default.
         """
         if self.db.users.count_documents({"user_name": args.user}) > 0:
             raise ValueError("Cannot add user because already exists. ")
@@ -38,10 +38,11 @@ class MongoDB_Admin:
             }
         )
         print(f"Added user {args.user}.")
-    
+
     def add_user_with_budget(self, args):
         """
-        Add new user in users collection with initial values for all fields set by default.
+        Add new user in users collection with initial values
+        for all fields set by default.
         """
         if self.db.users.count_documents({"user_name": args.user}) > 0:
             raise ValueError("Cannot add user because already exists. ")
@@ -50,17 +51,21 @@ class MongoDB_Admin:
             {
                 "user_name": args.user,
                 "may_query": True,
-                "datasets_list": [{
-                    "dataset_name": args.dataset,
-                    "initial_epsilon": args.epsilon,
-                    "initial_delta": args.delta,
-                    "total_spent_epsilon": 0.0,
-                    "total_spent_delta": 0.0,
-                }],
+                "datasets_list": [
+                    {
+                        "dataset_name": args.dataset,
+                        "initial_epsilon": args.epsilon,
+                        "initial_delta": args.delta,
+                        "total_spent_epsilon": 0.0,
+                        "total_spent_delta": 0.0,
+                    }
+                ],
             }
         )
-        print(f"Added access to user {args.user} with dataset {args.dataset},"
-                f" budget epsilon {args.epsilon} and delta {args.delta}.")
+        print(
+            f"Added access to user {args.user} with dataset {args.dataset},"
+            f" budget epsilon {args.epsilon} and delta {args.delta}."
+        )
 
     def del_user(self, args):
         """
@@ -71,7 +76,8 @@ class MongoDB_Admin:
 
     def add_dataset_to_user(self, args):
         """
-        Add dataset with initialized budget values to list of datasets that user has access to.
+        Add dataset with initialized budget values to list of datasets
+        that the user has access to.
         Will not add if already added (no error will be raised in that case).
         """
         if self.db.users.count_documents({"user_name": args.user}) == 0:
@@ -96,12 +102,15 @@ class MongoDB_Admin:
                 }
             },
         )
-        print(f"Added access to dataset {args.dataset} to user {args.user}"
-                f" with budget epsilon {args.epsilon} and delta {args.delta}.")
+        print(
+            f"Added access to dataset {args.dataset} to user {args.user}"
+            f" with budget epsilon {args.epsilon} and delta {args.delta}."
+        )
 
     def del_dataset_to_user(self, args):
         """
-        Remove if exists the dataset (and all related budget info) from list of datasets that user has access to.
+        Remove if exists the dataset (and all related budget info)
+        from list of datasets that user has access to.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -111,11 +120,14 @@ class MongoDB_Admin:
                 }
             },
         )
-        print(f"Remove access to dataset {args.dataset} from user {args.user}.")
+        print(
+            f"Remove access to dataset {args.dataset} from user {args.user}."
+        )
 
     def set_budget_field(self, args):
         """
-        Set (for some reason) a budget field to a given value if given user exists and has access to given dataset.
+        Set (for some reason) a budget field to a given value
+        if given user exists and has access to given dataset.
         """
         self.db.users.update_one(
             {
@@ -124,12 +136,15 @@ class MongoDB_Admin:
             },
             {"$set": {f"datasets_list.$.{args.field}": args.value}},
         )
-        print(f"Set budget of {args.user} for dataset {args.dataset}"
-                f" of {args.field} to {args.value}.")
+        print(
+            f"Set budget of {args.user} for dataset {args.dataset}"
+            f" of {args.field} to {args.value}."
+        )
 
     def set_may_query(self, args):
         """
-        Set (for some reason) the 'may query' field to a given value if given user exists.
+        Set (for some reason) the 'may query' field to a given value
+        if given user exists.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -145,8 +160,8 @@ class MongoDB_Admin:
 
     def add_metadata(self, args):
         """
-        Load metadata yaml file into a dict and add it in the metadata collection
-        with dataset name as key.
+        Load metadata yaml file into a dict and add it in the metadata
+        collection with dataset name as key.
         """
         with open(args.metadata_path) as f:
             metadata_dict = yaml.safe_load(f)
@@ -168,7 +183,7 @@ class MongoDB_Admin:
         """
         eval(f"self.db.{args.collection}.drop()")
         print(f"Deleted collection {args.collection}.")
-    
+
     def show_collection(self, args):
         """
         Show a collection
@@ -176,7 +191,7 @@ class MongoDB_Admin:
         collection_query = self.db[args.collection].find({})
         collections = []
         for document in collection_query:
-            document.pop('_id', None)
+            document.pop("_id", None)
             collections.append(document)
         print(collections)
 
@@ -185,7 +200,10 @@ class MongoDB_Admin:
         """
         Create example of users collection.
         """
-        self.db.users.drop()  # To ensure the collection is created from scratch each time the method is called
+        # Ensures that the collection is always created from scratch
+        self.db.users.drop()
+
+        # Add many users
         self.db.users.insert_many(
             [
                 {
@@ -250,8 +268,12 @@ if __name__ == "__main__":
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
-    add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
-    add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
+    add_user_wb_parser.add_argument(
+        "-e", "--epsilon", required=True, type=float
+    )
+    add_user_wb_parser.add_argument(
+        "-del", "--delta", required=True, type=float
+    )
     add_user_wb_parser.set_defaults(func=admin.add_user_with_budget)
 
     # Create the parser for the "del_user" command
@@ -264,7 +286,7 @@ if __name__ == "__main__":
     # Create the parser for the "add_dataset" command
     add_dataset_to_user_parser = subparsers.add_parser(
         "add_dataset_to_user",
-        help="add dataset with initialized budget values for a user in users collection",
+        help="add dataset with initialized budget values for a user",
     )
     add_dataset_to_user_parser.add_argument(
         "-u", "--user", required=True, type=str
@@ -272,8 +294,12 @@ if __name__ == "__main__":
     add_dataset_to_user_parser.add_argument(
         "-d", "--dataset", required=True, type=str
     )
-    add_dataset_to_user_parser.add_argument("-e", "--epsilon", required=True, type=float)
-    add_dataset_to_user_parser.add_argument("-del", "--delta", required=True, type=float)
+    add_dataset_to_user_parser.add_argument(
+        "-e", "--epsilon", required=True, type=float
+    )
+    add_dataset_to_user_parser.add_argument(
+        "-del", "--delta", required=True, type=float
+    )
     add_dataset_to_user_parser.set_defaults(func=admin.add_dataset_to_user)
 
     # Create the parser for the "del_dataset" command
@@ -301,7 +327,10 @@ if __name__ == "__main__":
         "-d", "--dataset", required=True, type=str
     )
     set_budget_field_parser.add_argument(
-        "-f", "--field", required=True, choices=["initial_epsilon", "initial_delta"]
+        "-f",
+        "--field",
+        required=True,
+        choices=["initial_epsilon", "initial_delta"],
     )
     set_budget_field_parser.add_argument(
         "-v", "--value", required=True, type=float
@@ -361,11 +390,9 @@ if __name__ == "__main__":
         "show_collection", help="print the users collection"
     )
     show_collection_parser.add_argument("-c", "--collection", default="users")
-    show_collection_parser.set_defaults(
-        func=admin.show_collection
-    )
+    show_collection_parser.set_defaults(func=admin.show_collection)
 
-    # Create the parser for the "create_example_users" command (for testing purposes)
+    # Create the parser for the "create_example_users" command (for testing)
     create_example_users_parser = subparsers.add_parser(
         "create_ex_users", help="create example of users collection"
     )

@@ -20,7 +20,7 @@ CONF_MONGODB_PORT = "port"
 
 # Server states
 QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
-DB_NOT_LOADED = "Database not loaded"
+DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 
@@ -88,4 +88,4 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 # MongoDB
 MONGODB_CONTAINER_NAME = "mongodb"
 MONGODB_PORT = "27017"
-DATABASE_NAME = "user_database"
+USER_DATABASE_NAME = "user_database"

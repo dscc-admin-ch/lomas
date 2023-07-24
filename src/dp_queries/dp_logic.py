@@ -7,7 +7,7 @@ from utils.constants import (
     LIB_SMARTNOISE_SQL,
     DATASET_PATHS,
 )
-from database.database import Database
+from user_database.user_database import UserDatabase
 from dp_queries.input_models import BasicModel
 from utils.loggr import LOG
 
@@ -43,17 +43,17 @@ class QuerierManager(ABC):
     """
     Manages the DPQueriers for the different datasets and libraries
 
-    Holds a reference to the database in order to get information about
-    the datasets.
+    Holds a reference to the user database in order to get information
+    about users.
 
-    We make the _add_dataset function private to enforce lazy loading of
-    queriers.
+    We make the _add_dataset function private to enforce lazy loading
+    of queriers.
     """
 
-    database: Database
+    user_database: UserDatabase
 
-    def __init__(self, database: Database) -> None:
-        self.database = database
+    def __init__(self, user_database: UserDatabase) -> None:
+        self.user_database = user_database
 
     @abstractmethod
     def _add_dataset(self, dataset_name: str) -> None:
@@ -84,8 +84,8 @@ class BasicQuerierManager(QuerierManager):
 
     dp_queriers: Dict[str, Dict[str, DPQuerier]] = None
 
-    def __init__(self, database: Database) -> None:
-        super().__init__(database)
+    def __init__(self, user_database: UserDatabase) -> None:
+        super().__init__(user_database)
         self.dp_queriers = {}
         return
 
@@ -109,7 +109,9 @@ class BasicQuerierManager(QuerierManager):
         for lib in SUPPORTED_LIBS:
             if lib == LIB_SMARTNOISE_SQL:
                 ds_path = DATASET_PATHS[dataset_name]
-                ds_metadata = self.database.get_dataset_metadata(dataset_name)
+                ds_metadata = self.user_database.get_dataset_metadata(
+                    dataset_name
+                )
                 from dp_queries.dp_libraries.smartnoise_sql import (
                     SmartnoiseSQLQuerier,
                 )
@@ -135,16 +137,16 @@ class QueryHandler:
     """
     Query handler for the server.
 
-    Holds a reference to the database and uses a BasicQuerierManager
+    Holds a reference to the user database and uses a BasicQuerierManager
     to manage the queriers. TODO make this configurable?
     """
 
-    database: Database
+    user_database: UserDatabase
     querier_manager: BasicQuerierManager
 
-    def __init__(self, database: Database) -> None:
-        self.database = database
-        self.querier_manager = BasicQuerierManager(database)
+    def __init__(self, user_database: UserDatabase) -> None:
+        self.user_database = user_database
+        self.querier_manager = BasicQuerierManager(user_database)
         return
 
     def _get_querier(
@@ -200,7 +202,7 @@ class QueryHandler:
         dp_querier = self._get_querier(query_type, query_json)
 
         # Check that user may query
-        if not self.database.may_user_query(user_name):
+        if not self.user_database.may_user_query(user_name):
             LOG.warning(
                 f"User {user_name} is trying to query before end of \
                 previous query. Returning without response."
@@ -211,7 +213,7 @@ class QueryHandler:
             }
 
         # Block access to other queries to user
-        self.database.set_may_user_query(user_name, False)
+        self.user_database.set_may_user_query(user_name, False)
 
         # Get cost of the query
         eps_cost, delta_cost = dp_querier.cost(
@@ -219,7 +221,10 @@ class QueryHandler:
         )
 
         # Check that enough budget to to the query
-        eps_remaining, delta_remaining = self.database.get_remaining_budget(
+        (
+            eps_remaining,
+            delta_remaining,
+        ) = self.user_database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
 
@@ -231,21 +236,21 @@ class QueryHandler:
                     query_json.query_str, query_json.epsilon, query_json.delta
                 )
             except HTTPException as he:
-                self.database.set_may_user_query(user_name, True)
+                self.user_database.set_may_user_query(user_name, True)
                 LOG.exception(he)
                 raise he
             except Exception as e:
-                self.database.set_may_user_query(user_name, True)
+                self.user_database.set_may_user_query(user_name, True)
                 LOG.exception(e)
                 raise HTTPException(500, str(e))
 
             # Deduce budget from user
-            self.database.update_budget(
+            self.user_database.update_budget(
                 user_name, query_json.dataset_name, eps_cost, delta_cost
             )
 
             # Add query to db (for archive)
-            self.database.save_query(
+            self.user_database.save_query(
                 user_name,
                 query_json.dataset_name,
                 eps_cost,
@@ -271,7 +276,10 @@ class QueryHandler:
             }
 
         # Check that enough budget to to the query
-        eps_remaining, delta_remaining = self.database.get_remaining_budget(
+        (
+            eps_remaining,
+            delta_remaining,
+        ) = self.user_database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
         # Return budget metadata to user
@@ -279,7 +287,7 @@ class QueryHandler:
         response["remaining_delta"] = delta_remaining
 
         # Re-enable user to query
-        self.database.set_may_user_query(user_name, True)
+        self.user_database.set_may_user_query(user_name, True)
 
         # Return response
         return response

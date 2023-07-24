@@ -3,11 +3,11 @@ import json
 from typing import List
 import yaml
 
-from database.database import Database
+from user_database.user_database import UserDatabase
 from utils.constants import QUERIES_ARCHIVES, DATASET_METADATA_PATHS
 
 
-class YamlDatabase(Database):
+class YamlDatabase(UserDatabase):
     """
     Overall yaml in memory database management
     """

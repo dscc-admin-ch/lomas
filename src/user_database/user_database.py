@@ -4,7 +4,7 @@ from typing import List
 from fastapi import HTTPException
 
 
-class Database(ABC):
+class UserDatabase(ABC):
     """
     Overall database management while server is running
     """

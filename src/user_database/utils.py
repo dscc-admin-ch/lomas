@@ -1,11 +1,11 @@
 from utils.constants import CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML
-from database.database import Database
-from database.mongodb_database import MongoDB_Database
-from database.yaml_database import YamlDatabase
+from user_database.user_database import UserDatabase
+from user_database.mongodb_database import MongoDB_Database
+from user_database.yaml_database import YamlDatabase
 from utils.config import DBConfig
 
 
-def database_factory(config: DBConfig) -> Database:
+def database_factory(config: DBConfig) -> UserDatabase:
     """
     Instantiates and returns the correct database type described in the
     provided config.

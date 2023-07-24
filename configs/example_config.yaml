@@ -5,7 +5,7 @@ runtime_args:
     time_attack:
         method: "jitter" # or "stall"
         magnitude: 1
-    database:
+    user_database:
       db_type: "mongodb" # or "yaml"
       address: "mongodb" # or db_file: <..> for yaml db
       port: 27017

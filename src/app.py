@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from mongodb_admin import MongoDB_Admin
-from database.utils import database_factory
+from user_database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
@@ -50,7 +50,7 @@ def startup_event():
     globals.SERVER_STATE["message"].append("Loading config")
     globals.CONFIG = get_config()
 
-    # Fill up database if in develop mode ONLY
+    # Fill up user database if in develop mode ONLY
     if globals.CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
@@ -75,7 +75,7 @@ def startup_event():
     LOG.info("Loading user database")
     globals.SERVER_STATE["message"].append("Loading user database")
     try:
-        globals.DATABASE = database_factory(globals.CONFIG.database)
+        globals.USER_DATABASE = database_factory(globals.CONFIG.user_database)
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
         globals.SERVER_STATE["state"].append(
@@ -85,7 +85,7 @@ def startup_event():
 
     LOG.info("Loading query handler")
     globals.SERVER_STATE["message"].append("Loading query handler")
-    globals.QUERY_HANDLER = QueryHandler(globals.DATABASE)
+    globals.QUERY_HANDLER = QueryHandler(globals.USER_DATABASE)
 
     globals.SERVER_STATE["state"].append("Startup completed")
     globals.SERVER_STATE["message"].append("Startup completed")
@@ -123,7 +123,7 @@ def get_dataset_metadata(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.DATABASE.get_dataset_metadata(
+        ds_metadata = globals.USER_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -144,7 +144,7 @@ def get_dummy_dataset(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.DATABASE.get_dataset_metadata(
+        ds_metadata = globals.USER_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -216,7 +216,7 @@ def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = globals.DATABASE.get_dataset_metadata(
+    ds_metadata = globals.USER_DATABASE.get_dataset_metadata(
         query_json.dataset_name
     )
 
@@ -260,7 +260,7 @@ def get_total_spent_budget(
     (
         total_spent_epsilon,
         total_spent_delta,
-    ) = globals.DATABASE.get_total_spent_budget(
+    ) = globals.USER_DATABASE.get_total_spent_budget(
         user_name, query_json.dataset_name
     )
 
@@ -280,7 +280,7 @@ def get_initial_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    initial_epsilon, initial_delta = globals.DATABASE.get_initial_budget(
+    initial_epsilon, initial_delta = globals.USER_DATABASE.get_initial_budget(
         user_name, query_json.dataset_name
     )
 
@@ -296,7 +296,7 @@ def get_remaining_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    rem_epsilon, rem_delta = globals.DATABASE.get_remaining_budget(
+    rem_epsilon, rem_delta = globals.USER_DATABASE.get_remaining_budget(
         user_name, query_json.dataset_name
     )
 

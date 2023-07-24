@@ -1,10 +1,10 @@
 from typing import List
-from database.database import Database
+from user_database.user_database import UserDatabase
 from utils.constants import DATABASE_NAME
 import pymongo
 
 
-class MongoDB_Database(Database):
+class MongoDB_Database(UserDatabase):
     """
     Overall MongoDB database management
     """

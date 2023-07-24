@@ -99,8 +99,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise HTTPException(
                 400,
                 f"SQL Reader generated empty results,"
-                    f"Epsilon: {eps} and Delta: {delta} are too small"
-                        "to generate output.",
+                f"Epsilon: {eps} and Delta: {delta} are too small"
+                "to generate output.",
             )
 
         df_res = pd.DataFrame(result, columns=cols)
@@ -109,8 +109,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise HTTPException(
                 400,
                 f"SQL Reader generated NAN results."
-                    f" Epsilon: {eps} and Delta: {delta} are too small"
-                        " to generate output.",
+                f" Epsilon: {eps} and Delta: {delta} are too small"
+                " to generate output.",
             )
 
         return df_res

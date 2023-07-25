@@ -194,7 +194,7 @@ class MongoDB_Admin:
         self.db.users.insert_many(
             [
                 {
-                    "user_name": "Antartica",
+                    "user_name": "Dr. Antartica",
                     "may_query": True,
                     "datasets_list": [
                         {

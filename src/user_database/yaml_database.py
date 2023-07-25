@@ -41,7 +41,7 @@ class YamlDatabase(UserDatabase):
         """
         return dataset_name in self.database["datasets"]
 
-    @Database._does_dataset_exist
+    @UserDatabase._does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
 
@@ -50,7 +50,7 @@ class YamlDatabase(UserDatabase):
 
         return ds_metadata
 
-    @Database._does_user_exist
+    @UserDatabase._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -62,7 +62,7 @@ class YamlDatabase(UserDatabase):
             if user["user_name"] == user_name:
                 return user["may_query"]
 
-    @Database._does_user_exist
+    @UserDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -77,7 +77,7 @@ class YamlDatabase(UserDatabase):
                 user["may_query"] = may_query
         self.database["users"] = users
 
-    @Database._does_user_exist
+    @UserDatabase._does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -111,7 +111,7 @@ class YamlDatabase(UserDatabase):
                     if dataset["dataset_name"] == dataset_name:
                         return dataset[parameter]
 
-    @Database._has_user_access_to_dataset
+    @UserDatabase._has_user_access_to_dataset
     def get_total_spent_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
@@ -131,7 +131,7 @@ class YamlDatabase(UserDatabase):
             ),
         ]
 
-    @Database._has_user_access_to_dataset
+    @UserDatabase._has_user_access_to_dataset
     def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
@@ -204,7 +204,7 @@ class YamlDatabase(UserDatabase):
             user_name, dataset_name, "current_delta", spent_delta
         )
 
-    @Database._has_user_access_to_dataset
+    @UserDatabase._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,

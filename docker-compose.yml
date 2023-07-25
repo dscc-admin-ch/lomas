@@ -28,6 +28,7 @@ services:
       - sdd-network
     volumes:
       - mongodata:/data/db/
+      - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
     # We use this in docker compose to have a user/password for mongodb
     # Proper deployment on a kubernetes cluster should use a helm chart
     # and parametrize a user specific to the fastAPI server.
@@ -45,5 +46,7 @@ volumes:
   # It will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
     external: true
+  #mongoconfig:
+  #  external: true
 
     

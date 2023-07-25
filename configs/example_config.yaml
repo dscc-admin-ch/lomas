@@ -10,9 +10,9 @@ runtime_args:
       address: "mongodb" # or db_file: <..> for yaml db
       port: 27017
       token: abcd
-      password: root_pwd
-      username: root
-      db_name: 'defaultdb'
+      password: "user_pwd"
+      username: "user"
+      db_name: "defaultdb"
       #db_type: "yaml"
       #db_file: "/usr/sdd_poc_server/user_database.yaml"
 

@@ -33,6 +33,9 @@ class DBConfig(BaseModel):
 class MongoDBConfig(DBConfig):
     address: str = None
     port: int = None
+    username: str = None
+    password: str = None
+    db_name: str = None
 
 
 class YAMLDBConfig(DBConfig):

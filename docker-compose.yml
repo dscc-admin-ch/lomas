@@ -28,6 +28,15 @@ services:
       - sdd-network
     volumes:
       - mongodata:/data/db/
+      - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
+    # We use this in docker compose to have a user/password for mongodb
+    # Proper deployment on a kubernetes cluster should use a helm chart
+    # and parametrize a user specific to the fastAPI server.
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
+      - MONGODB_INITDB_DATABASE=defaultdb
+      # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 networks:
   sdd-network:
     driver: bridge
@@ -37,5 +46,7 @@ volumes:
   # It will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
     external: true
+  #mongoconfig:
+  #  external: true
 
     

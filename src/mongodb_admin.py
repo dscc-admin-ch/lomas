@@ -5,7 +5,6 @@ from database.utils import get_mongodb_url
 from utils.constants import (
     EXISTING_DATASETS,
     DATASET_METADATA_PATHS,
-    DATABASE_NAME,
     EPSILON_LIMIT,
     DELTA_LIMIT,
 )
@@ -16,11 +15,11 @@ class MongoDB_Admin:
     Overall administration operations of the MongoDB database.
     """
 
-    def __init__(self, connection_string: str):
+    def __init__(self, connection_string: str, database_name: str):
         """
         Connect to DB
         """
-        self.db = pymongo.MongoClient(connection_string)[DATABASE_NAME]
+        self.db = pymongo.MongoClient(connection_string)[database_name]
 
 
     def add_user(self, args):
@@ -195,7 +194,7 @@ class MongoDB_Admin:
         self.db.users.insert_many(
             [
                 {
-                    "user_name": "Antartica",
+                    "user_name": "Dr. Antartica",
                     "may_query": True,
                     "datasets_list": [
                         {

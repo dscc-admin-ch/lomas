@@ -51,17 +51,19 @@ def startup_event():
             EXISTING_DATASETS,
             MONGODB_CONTAINER_NAME,
             MONGODB_PORT,
-            DATABASE_TYPES
+            DATABASE_TYPES,
         )
+
         LOG.info("!! Develop mode ON !!")
         mongo_admin = MongoDB_Admin(
             f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
         )
 
-        def args(): return None # trick to create a dummy args object
+        def args():
+            return None  # trick to create a dummy args object
 
         LOG.info("Creating user collection")
-        args.path = 'collections/user_collection.yaml'
+        args.path = "collections/user_collection.yaml"
         mongo_admin.create_users_collection(args)
 
         LOG.info("Adding dataset metadata")
@@ -79,7 +81,9 @@ def startup_event():
     LOG.info("Loading admin database")
     globals.SERVER_STATE["message"].append("Loading admin database")
     try:
-        globals.ADMIN_DATABASE = database_factory(globals.CONFIG.admin_database)
+        globals.ADMIN_DATABASE = database_factory(
+            globals.CONFIG.admin_database
+        )
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
         globals.SERVER_STATE["state"].append(

@@ -6,7 +6,6 @@ from utils.constants import (
     MONGODB_PORT,
     ADMIN_DATABASE_NAME,
     EXISTING_DATASETS,
-    DATASET_METADATA_PATHS,
     EPSILON_LIMIT,
     DELTA_LIMIT,
     PRIVATE_DBS
@@ -27,7 +26,8 @@ class MongoDB_Admin:
     ##########################  USERS  ##########################
     def add_user(self, args):
         """
-        Add new user in users collection with initial values for all fields set by default.
+        Add new user in users collection with initial values for all fields
+        set by default.
         """
         if self.db.users.count_documents({"user_name": args.user}) > 0:
             raise ValueError("Cannot add user because already exists. ")
@@ -43,7 +43,8 @@ class MongoDB_Admin:
 
     def add_user_with_budget(self, args):
         """
-        Add new user in users collection with initial values for all fields set by default.
+        Add new user in users collection with initial values
+        for all fields set by default.
         """
         if self.db.users.count_documents({"user_name": args.user}) > 0:
             raise ValueError("Cannot add user because already exists. ")
@@ -77,7 +78,8 @@ class MongoDB_Admin:
 
     def add_dataset_to_user(self, args):
         """
-        Add dataset with initialized budget values to list of datasets that user has access to.
+        Add dataset with initialized budget values to list of datasets
+        that the user has access to.
         Will not add if already added (no error will be raised in that case).
         """
         if self.db.users.count_documents({"user_name": args.user}) == 0:
@@ -109,7 +111,8 @@ class MongoDB_Admin:
 
     def del_dataset_to_user(self, args):
         """
-        Remove if exists the dataset (and all related budget info) from list of datasets that user has access to.
+        Remove if exists the dataset (and all related budget info)
+        from list of datasets that user has access to.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -125,7 +128,8 @@ class MongoDB_Admin:
 
     def set_budget_field(self, args):
         """
-        Set (for some reason) a budget field to a given value if given user exists and has access to given dataset.
+        Set (for some reason) a budget field to a given value
+        if given user exists and has access to given dataset.
         """
         self.db.users.update_one(
             {
@@ -141,7 +145,8 @@ class MongoDB_Admin:
 
     def set_may_query(self, args):
         """
-        Set (for some reason) the 'may query' field to a given value if given user exists.
+        Set (for some reason) the 'may query' field to a given value
+        if given user exists.
         """
         self.db.users.update_one(
             {"user_name": args.user},
@@ -173,8 +178,8 @@ class MongoDB_Admin:
     ##########################  METADATA  ##########################
     def add_metadata(self, args):
         """
-        Load metadata yaml file into a dict and add it in the metadata collection
-        with dataset name as key.
+        Load metadata yaml file into a dict and add it in the metadata
+        collection with dataset name as key.
         """
         with open(args.metadata_path) as f:
             metadata_dict = yaml.safe_load(f)
@@ -228,7 +233,6 @@ class MongoDB_Admin:
         print(collections)
 
 
-
 if __name__ == "__main__":
     admin = MongoDB_Admin(
         f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
@@ -273,7 +277,7 @@ if __name__ == "__main__":
     # Create the parser for the "add_dataset" command
     add_dataset_to_user_parser = subparsers.add_parser(
         "add_dataset_to_user",
-        help="add dataset with initialized budget values for a user in users collection",
+        help="add dataset with initialized budget values for a user",
     )
     add_dataset_to_user_parser.add_argument(
         "-u", "--user", required=True, type=str

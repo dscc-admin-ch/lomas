@@ -6,46 +6,24 @@ import pandas as pd
 
 from dp_queries.dp_logic import DPQuerier
 import globals
+from private_database.private_database import PrivateDatabase
+
 from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
     IRIS_DATASET,
-    IRIS_DATASET_PATH,
-    IRIS_METADATA_PATH,
     PENGUIN_DATASET,
-    PENGUIN_DATASET_PATH,
-    PENGUIN_METADATA_PATH,
+    DATASET_METADATA_PATHS,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
 )
 from utils.loggr import LOG
 
 
-def smartnoise_dataset_factory(dataset_name: str):
-    if dataset_name == IRIS_DATASET:
-        if globals.IRIS_QUERIER is None:
-            globals.IRIS_QUERIER = SmartnoiseSQLQuerier(
-                IRIS_METADATA_PATH,
-                IRIS_DATASET_PATH,
-            )
-        querier = globals.IRIS_QUERIER
-    elif dataset_name == PENGUIN_DATASET:
-        if globals.PENGUIN_QUERIER is None:
-            globals.PENGUIN_QUERIER = SmartnoiseSQLQuerier(
-                PENGUIN_METADATA_PATH,
-                PENGUIN_DATASET_PATH,
-            )
-        querier = globals.PENGUIN_QUERIER
-    else:
-        raise (f"Dataset {dataset_name} unknown.")
-
-    return querier
-
-
 class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
         metadata: dict,
-        csv_path: str = None,
+        private_db: PrivateDatabase,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
@@ -57,7 +35,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 self.metadata, dummy_nb_rows, dummy_seed
             )
         else:
-            self.df = pd.read_csv(csv_path)
+            self.df = private_db.get_pandas_df()
 
     def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
         privacy = Privacy(epsilon=eps, delta=delta)

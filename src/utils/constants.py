@@ -1,6 +1,6 @@
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
-YAML_USER_DATABASE = "/usr/sdd_poc_server/user_database.yaml"
+YAML_USER_DATABASE = "/usr/sdd_poc_server/user_collection.yaml"
 QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
 MONGODB_CONTAINER_NAME = "mongodb"
 
@@ -10,7 +10,7 @@ CONF_SETTINGS = "settings"
 CONF_DEV_MODE = "develop_mode"
 CONF_TIME_ATTACK = "time_attack"
 CONF_SUBMIT_LIMIT = "submit_limit"
-CONF_DB = "user_database"
+CONF_DB = "admin_database"
 CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
 CONF_DB_TYPE_YAML = "yaml"
@@ -39,16 +39,17 @@ DELTA_INITIAL: float = 0.0
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL]
+
 # Datasets
 IRIS_DATASET = "IRIS"
 IRIS_DATASET_PATH = (
     "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
 )
-IRIS_METADATA_PATH = "metadata/iris_metadata.yaml"
+IRIS_METADATA_PATH = "collections/metadata/iris_metadata.yaml"
 
 PENGUIN_DATASET = "PENGUIN"
 PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
-PENGUIN_METADATA_PATH = "metadata/penguin_metadata.yaml"
+PENGUIN_METADATA_PATH = "collections/metadata/penguin_metadata.yaml"
 
 DATASET_PATHS = {
     IRIS_DATASET: IRIS_DATASET_PATH,
@@ -60,6 +61,15 @@ DATASET_METADATA_PATHS = {
 }
 
 EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
+
+# Databases
+CONSTANT_PATH_DB = 'CONSTANT_PATH_DB'
+PRIVATE_DBS = [CONSTANT_PATH_DB]
+
+DATABASE_TYPES = {
+    IRIS_DATASET: CONSTANT_PATH_DB,
+    PENGUIN_DATASET: CONSTANT_PATH_DB,
+}
 
 # Dummy queries
 DUMMY_EPSILON = 1e32 * 1.0
@@ -88,4 +98,4 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 # MongoDB
 MONGODB_CONTAINER_NAME = "mongodb"
 MONGODB_PORT = "27017"
-USER_DATABASE_NAME = "user_database"
+ADMIN_DATABASE_NAME = "default_database"

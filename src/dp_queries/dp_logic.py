@@ -7,10 +7,21 @@ from utils.constants import (
     LIB_SMARTNOISE_SQL,
     DATASET_PATHS,
 )
-from user_database.user_database import UserDatabase
+from admin_database.admin_database import AdminDatabase
 from dp_queries.input_models import BasicModel
+from private_database.private_database import PrivateDatabase
+from private_database.constant_path import ConstantPath
+
 from utils.loggr import LOG
 
+
+def private_database_factory(dataset_name: str, admin_database) -> PrivateDatabase:
+    # TODO: Pauline
+    if dataset_name in [IRIS_DATASET, PENGUIN_DATASET]:
+        private_db = ConstantPath(dataset_name)
+    else:
+        raise (f"No database for dataset {dataset_name}.")
+    return private_db
 
 class DPQuerier(ABC):
     """
@@ -50,10 +61,10 @@ class QuerierManager(ABC):
     of queriers.
     """
 
-    user_database: UserDatabase
+    admin_database: AdminDatabase
 
-    def __init__(self, user_database: UserDatabase) -> None:
-        self.user_database = user_database
+    def __init__(self, admin_database: AdminDatabase) -> None:
+        self.admin_database = admin_database
 
     @abstractmethod
     def _add_dataset(self, dataset_name: str) -> None:
@@ -84,10 +95,10 @@ class BasicQuerierManager(QuerierManager):
 
     dp_queriers: Dict[str, Dict[str, DPQuerier]] = None
 
-    def __init__(self, user_database: UserDatabase) -> None:
-        super().__init__(user_database)
+    def __init__(self, admin_database: AdminDatabase) -> None:
+        super().__init__(admin_database)
         self.dp_queriers = {}
-        return
+        self.admin_database = admin_database
 
     def _add_dataset(self, dataset_name: str) -> None:
         """
@@ -103,21 +114,18 @@ class BasicQuerierManager(QuerierManager):
         ), "BasicQuerierManager: \
         Trying to add a dataset already in self.dp_queriers"
 
+        # Metadata and data getter
+        metadata = self.admin_database.get_dataset_metadata(dataset_name)
+        private_database = private_database_factory(dataset_name, self.admin_database)
+
         # Initialize dict
         self.dp_queriers[dataset_name] = {}
 
         for lib in SUPPORTED_LIBS:
             if lib == LIB_SMARTNOISE_SQL:
-                ds_path = DATASET_PATHS[dataset_name]
-                ds_metadata = self.user_database.get_dataset_metadata(
-                    dataset_name
-                )
-                from dp_queries.dp_libraries.smartnoise_sql import (
-                    SmartnoiseSQLQuerier,
-                )
+                from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 
-                querier = SmartnoiseSQLQuerier(ds_metadata, ds_path)
-
+                querier = SmartnoiseSQLQuerier(metadata, private_database)
                 self.dp_queriers[dataset_name][lib] = querier
             # elif ... :
             else:
@@ -141,12 +149,12 @@ class QueryHandler:
     to manage the queriers. TODO make this configurable?
     """
 
-    user_database: UserDatabase
+    admin_database: AdminDatabase
     querier_manager: BasicQuerierManager
 
-    def __init__(self, user_database: UserDatabase) -> None:
-        self.user_database = user_database
-        self.querier_manager = BasicQuerierManager(user_database)
+    def __init__(self, admin_database: AdminDatabase) -> None:
+        self.admin_database = admin_database
+        self.querier_manager = BasicQuerierManager(admin_database)
         return
 
     def _get_querier(
@@ -202,7 +210,7 @@ class QueryHandler:
         dp_querier = self._get_querier(query_type, query_json)
 
         # Check that user may query
-        if not self.user_database.may_user_query(user_name):
+        if not self.admin_database.may_user_query(user_name):
             LOG.warning(
                 f"User {user_name} is trying to query before end of \
                 previous query. Returning without response."
@@ -213,7 +221,7 @@ class QueryHandler:
             }
 
         # Block access to other queries to user
-        self.user_database.set_may_user_query(user_name, False)
+        self.admin_database.set_may_user_query(user_name, False)
 
         # Get cost of the query
         eps_cost, delta_cost = dp_querier.cost(
@@ -224,7 +232,7 @@ class QueryHandler:
         (
             eps_remaining,
             delta_remaining,
-        ) = self.user_database.get_remaining_budget(
+        ) = self.admin_database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
 
@@ -236,21 +244,21 @@ class QueryHandler:
                     query_json.query_str, query_json.epsilon, query_json.delta
                 )
             except HTTPException as he:
-                self.user_database.set_may_user_query(user_name, True)
+                self.admin_database.set_may_user_query(user_name, True)
                 LOG.exception(he)
                 raise he
             except Exception as e:
-                self.user_database.set_may_user_query(user_name, True)
+                self.admin_database.set_may_user_query(user_name, True)
                 LOG.exception(e)
                 raise HTTPException(500, str(e))
 
             # Deduce budget from user
-            self.user_database.update_budget(
+            self.admin_database.update_budget(
                 user_name, query_json.dataset_name, eps_cost, delta_cost
             )
 
             # Add query to db (for archive)
-            self.user_database.save_query(
+            self.admin_database.save_query(
                 user_name,
                 query_json.dataset_name,
                 eps_cost,
@@ -279,7 +287,7 @@ class QueryHandler:
         (
             eps_remaining,
             delta_remaining,
-        ) = self.user_database.get_remaining_budget(
+        ) = self.admin_database.get_remaining_budget(
             user_name, query_json.dataset_name
         )
         # Return budget metadata to user
@@ -287,7 +295,7 @@ class QueryHandler:
         response["remaining_delta"] = delta_remaining
 
         # Re-enable user to query
-        self.user_database.set_may_user_query(user_name, True)
+        self.admin_database.set_may_user_query(user_name, True)
 
         # Return response
         return response

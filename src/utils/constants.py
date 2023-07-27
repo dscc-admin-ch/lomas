@@ -47,7 +47,10 @@ IRIS_DATASET_PATH = (
 IRIS_METADATA_PATH = "metadata/iris_metadata.yaml"
 
 PENGUIN_DATASET = "PENGUIN"
-PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+PENGUIN_DATASET_PATH = "\
+    https://raw.githubusercontent.com/mwaskom/\
+    seaborn-data/master/penguins.csv \
+"
 PENGUIN_METADATA_PATH = "metadata/penguin_metadata.yaml"
 
 DATASET_PATHS = {

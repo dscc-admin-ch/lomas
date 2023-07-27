@@ -208,6 +208,17 @@ class AdminMongoDatabase(AdminDatabase):
             user_name, dataset_name, "total_spent_delta", spent_delta
         )
 
+    @AdminDatabase._does_dataset_exist
+    def get_database_type(self, dataset_name):
+        """
+        Get database type based on dataset name
+        Parameters:
+            - dataset_name: name of the dataset
+        """
+        return self.db.datasets.find_one({"dataset_name": dataset_name})[
+            "dataset_type"
+        ]
+
     @AdminDatabase._has_user_access_to_dataset
     def update_budget(
         self,

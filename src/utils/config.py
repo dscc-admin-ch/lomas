@@ -100,7 +100,9 @@ def get_config() -> dict:
                 config_data[CONF_DB]
             )
         elif db_type == CONF_DB_TYPE_YAML:
-            admin_database_config = YAMLDBConfig.parse_obj(config_data[CONF_DB])
+            admin_database_config = YAMLDBConfig.parse_obj(
+                config_data[CONF_DB]
+            )
         else:
             raise Exception(f"User database type {db_type} not supported.")
 

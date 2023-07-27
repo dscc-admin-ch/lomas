@@ -5,23 +5,12 @@ from typing import Dict, List
 from utils.constants import (
     SUPPORTED_LIBS,
     LIB_SMARTNOISE_SQL,
-    DATASET_PATHS,
 )
 from admin_database.admin_database import AdminDatabase
 from dp_queries.input_models import BasicModel
-from private_database.private_database import PrivateDatabase
-from private_database.constant_path import ConstantPath
-
+from private_database.utils import private_database_factory
 from utils.loggr import LOG
 
-
-def private_database_factory(dataset_name: str, admin_database) -> PrivateDatabase:
-    # TODO: Pauline
-    if dataset_name in [IRIS_DATASET, PENGUIN_DATASET]:
-        private_db = ConstantPath(dataset_name)
-    else:
-        raise (f"No database for dataset {dataset_name}.")
-    return private_db
 
 class DPQuerier(ABC):
     """
@@ -116,14 +105,18 @@ class BasicQuerierManager(QuerierManager):
 
         # Metadata and data getter
         metadata = self.admin_database.get_dataset_metadata(dataset_name)
-        private_database = private_database_factory(dataset_name, self.admin_database)
+        private_database = private_database_factory(
+            dataset_name, self.admin_database
+        )
 
         # Initialize dict
         self.dp_queriers[dataset_name] = {}
 
         for lib in SUPPORTED_LIBS:
             if lib == LIB_SMARTNOISE_SQL:
-                from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
+                from dp_queries.dp_libraries.smartnoise_sql import (
+                    SmartnoiseSQLQuerier,
+                )
 
                 querier = SmartnoiseSQLQuerier(metadata, private_database)
                 self.dp_queriers[dataset_name][lib] = querier

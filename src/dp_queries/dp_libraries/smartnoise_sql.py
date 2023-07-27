@@ -10,9 +10,6 @@ from private_database.private_database import PrivateDatabase
 
 from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
-    IRIS_DATASET,
-    PENGUIN_DATASET,
-    DATASET_METADATA_PATHS,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
 )

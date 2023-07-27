@@ -3,6 +3,7 @@ from private_database.private_database import PrivateDatabase
 
 import pandas as pd
 
+
 class ConstantPath(PrivateDatabase):
     """
     Overall database management while server is running

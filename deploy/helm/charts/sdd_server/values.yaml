@@ -68,9 +68,11 @@ service:
 ingress:
   enabled: true
   className: "" # Will be automatically filled by cluster with "onyxia"
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations: 
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    #kubernetes.io/ingress.class: nginx
+    #kubernetes.io/tls-acme: "true"
   hosts:
     - host: sdd-server.lab.sspcloud.fr
       paths:

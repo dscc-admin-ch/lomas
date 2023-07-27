@@ -1,6 +1,8 @@
 {{- if .Values.ingress.enabled -}}
-# These two are defined as such because calling . within a range loop
-# is shortcut for path (see https://stackoverflow.com/questions/72484286/ingress-variables-syntax-from-values-yaml)
+{{/*
+  These two are defined as such because calling . within a range loop
+  is shortcut for path (see https://stackoverflow.com/questions/72484286/ingress-variables-syntax-from-values-yaml)
+*/}}
 {{ "\n" }}
 {{- $fullName := include "sdd_server.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
@@ -27,18 +29,20 @@ metadata:
   {{- end }}
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-  ingressClassName: {{ .Values.ingress.className }}
+  #ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   {{- if .Values.ingress.tls }}
   tls:
-  {{- with .Values.ingress.tls.hosts }}
+  {{- with .Values.ingress.tls }}
     - hosts:
-    {{- toYaml . | nindent 6}}
-    {{- end }}
+      {{- range .hosts }}
+      - {{ . | quote}}
+      {{- end }}
+  {{- end}}
   {{- end }}
   rules:
-      {{- range .Values.ingress.hosts }}
-       - host: {{ .host | quote }}
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}

@@ -1,7 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sdd-poc-server
+  name: test
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
 spec:
   tls:
     - hosts:
@@ -14,6 +16,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: sdd-poc-server
+                name: sdd-server
                 port:
                   number: 80

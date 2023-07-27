@@ -1,7 +1,7 @@
 import pkg_resources
 from dp_queries.dp_logic import QueryHandler
 
-from user_database.user_database import UserDatabase
+from admin_database.admin_database import AdminDatabase
 from utils.config import Config
 from utils.constants import (
     CONFIG_NOT_LOADED,
@@ -13,7 +13,7 @@ from utils.loggr import LOG
 
 # Define global variables
 CONFIG: Config = None
-USER_DATABASE: UserDatabase = None
+ADMIN_DATABASE: AdminDatabase = None
 QUERY_HANDLER: QueryHandler = None
 
 # General server state, can add fields if need be.
@@ -42,8 +42,8 @@ def check_start_condition():
         SERVER_STATE["LIVE"] = False
         status_ok = False
 
-    if USER_DATABASE is None:
-        LOG.info("User database not loaded")
+    if ADMIN_DATABASE is None:
+        LOG.info("Admin database not loaded")
         SERVER_STATE["state"].append(DB_NOT_LOADED)
         SERVER_STATE["message"].append("Server could not be started!")
         SERVER_STATE["LIVE"] = False

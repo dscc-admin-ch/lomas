@@ -1,10 +1,10 @@
 from typing import List
-from user_database.user_database import UserDatabase
-from utils.constants import USER_DATABASE_NAME
+from admin_database.admin_database import AdminDatabase
+from utils.constants import ADMIN_DATABASE_NAME
 import pymongo
 
 
-class MongoDB_Database(UserDatabase):
+class AdminMongoDatabase(AdminDatabase):
     """
     Overall MongoDB database management
     """
@@ -13,7 +13,7 @@ class MongoDB_Database(UserDatabase):
         """
         Load DB
         """
-        self.db = pymongo.MongoClient(connection_string)[USER_DATABASE_NAME]
+        self.db = pymongo.MongoClient(connection_string)[ADMIN_DATABASE_NAME]
 
     def does_user_exist(self, user_name: str) -> bool:
         """
@@ -37,7 +37,7 @@ class MongoDB_Database(UserDatabase):
         )
         return doc_count > 0
 
-    @UserDatabase._does_dataset_exist
+    @AdminDatabase._does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         """
         Returns the metadata dictionnary of the dataset
@@ -48,7 +48,7 @@ class MongoDB_Database(UserDatabase):
             dataset_name
         ]
 
-    @UserDatabase._does_user_exist
+    @AdminDatabase._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -58,7 +58,7 @@ class MongoDB_Database(UserDatabase):
         """
         return self.db.users.find_one({"user_name": user_name})["may_query"]
 
-    @UserDatabase._does_user_exist
+    @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -72,7 +72,7 @@ class MongoDB_Database(UserDatabase):
             {"$set": {"may_query": may_query}},
         )
 
-    @UserDatabase._does_user_exist
+    @AdminDatabase._does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -115,7 +115,7 @@ class MongoDB_Database(UserDatabase):
             )
         )[0]["datasets_list"][parameter]
 
-    @UserDatabase._has_user_access_to_dataset
+    @AdminDatabase._has_user_access_to_dataset
     def get_total_spent_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
@@ -135,7 +135,7 @@ class MongoDB_Database(UserDatabase):
             ),
         ]
 
-    @UserDatabase._has_user_access_to_dataset
+    @AdminDatabase._has_user_access_to_dataset
     def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
@@ -208,7 +208,7 @@ class MongoDB_Database(UserDatabase):
             user_name, dataset_name, "total_spent_delta", spent_delta
         )
 
-    @UserDatabase._has_user_access_to_dataset
+    @AdminDatabase._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,

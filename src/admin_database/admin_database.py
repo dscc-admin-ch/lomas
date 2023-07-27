@@ -4,7 +4,7 @@ from typing import List
 from fastapi import HTTPException
 
 
-class UserDatabase(ABC):
+class AdminDatabase(ABC):
     """
     Overall database management while server is running
     """
@@ -222,4 +222,5 @@ class UserDatabase(ABC):
             - delta: value of delta spent on last query
             - query: json string of the query
         """
+        # TODO: move save_query to admin db instead of user db
         pass

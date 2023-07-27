@@ -1,11 +1,11 @@
 from utils.constants import CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML
-from user_database.user_database import UserDatabase
-from user_database.mongodb_database import MongoDB_Database
-from user_database.yaml_database import YamlDatabase
+from admin_database.admin_database import AdminDatabase
+from admin_database.mongodb_database import AdminMongoDatabase
+from admin_database.yaml_database import AdminYamlDatabase
 from utils.config import DBConfig
 
 
-def database_factory(config: DBConfig) -> UserDatabase:
+def database_factory(config: DBConfig) -> AdminDatabase:
     """
     Instantiates and returns the correct database type described in the
     provided config.
@@ -15,7 +15,7 @@ def database_factory(config: DBConfig) -> UserDatabase:
     if db_type == CONF_DB_TYPE_YAML:
         yaml_database_file = config.db_file
 
-        return YamlDatabase(yaml_database_file)
+        return AdminYamlDatabase(yaml_database_file)
 
     elif db_type == CONF_DB_TYPE_MONGODB:
         db_addr = config.address
@@ -23,7 +23,7 @@ def database_factory(config: DBConfig) -> UserDatabase:
 
         db_url = f"mongodb://{db_addr}:{db_port}/"
 
-        return MongoDB_Database(db_url)
+        return AdminMongoDatabase(db_url)
 
     else:
         raise Exception(f"Database type {db_type} not supported.")

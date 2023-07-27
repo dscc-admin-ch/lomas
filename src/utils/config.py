@@ -50,7 +50,7 @@ class Config(BaseModel):
         5 * 60
     )  # TODO not used for the moment, kept as a simple example field for now.
 
-    user_database: DBConfig = None
+    admin_database: DBConfig = None
     # validator example, for reference
     """ @validator('parties')
     def two_party_min(cls, v):
@@ -96,11 +96,11 @@ def get_config() -> dict:
 
         db_type = config_data[CONF_DB][CONF_DB_TYPE]
         if db_type == CONF_DB_TYPE_MONGODB:
-            user_database_config = MongoDBConfig.parse_obj(
+            admin_database_config = MongoDBConfig.parse_obj(
                 config_data[CONF_DB]
             )
         elif db_type == CONF_DB_TYPE_YAML:
-            user_database_config = YAMLDBConfig.parse_obj(config_data[CONF_DB])
+            admin_database_config = YAMLDBConfig.parse_obj(config_data[CONF_DB])
         else:
             raise Exception(f"User database type {db_type} not supported.")
 
@@ -108,7 +108,7 @@ def get_config() -> dict:
             develop_mode=config_data[CONF_DEV_MODE],
             time_attack=time_attack,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
-            user_database=user_database_config,
+            admin_database=admin_database_config,
         )
 
     except Exception as e:

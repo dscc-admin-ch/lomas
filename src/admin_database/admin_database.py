@@ -205,6 +205,14 @@ class AdminDatabase(ABC):
         pass
 
     @abstractmethod
+    @_does_dataset_exist
+    def get_database_type(self, args):
+        """
+        Get database type based on dataset name
+        """
+        pass
+
+    @abstractmethod
     def save_query(
         self,
         user_name: str,
@@ -222,5 +230,4 @@ class AdminDatabase(ABC):
             - delta: value of delta spent on last query
             - query: json string of the query
         """
-        # TODO: move save_query to admin db instead of user db
         pass

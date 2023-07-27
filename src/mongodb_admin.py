@@ -7,7 +7,6 @@ from utils.constants import (
     ADMIN_DATABASE_NAME,
     EXISTING_DATASETS,
     PRIVATE_DBS,
-    CONSTANT_PATH_DB,
 )
 
 
@@ -216,13 +215,6 @@ class MongoDB_Admin:
             dataset_dict = yaml.safe_load(f)
             self.db.datasets.insert_many(dataset_dict["datasets"])
         print(f"Added datasets and databases from yaml at {args.path}.")
-
-    def get_database_type(self, args):
-        """
-        Get database type based on dataset name
-        """
-        # TODO mongo code
-        return CONSTANT_PATH_DB
 
     #######################  COLLECTIONS  ####################### # noqa: E266
     def drop_collection(self, args):

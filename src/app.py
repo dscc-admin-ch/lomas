@@ -51,7 +51,6 @@ def startup_event():
             EXISTING_DATASETS,
             MONGODB_CONTAINER_NAME,
             MONGODB_PORT,
-            DATABASE_TYPES,
         )
 
         LOG.info("!! Develop mode ON !!")
@@ -66,14 +65,15 @@ def startup_event():
         args.path = "collections/user_collection.yaml"
         mongo_admin.create_users_collection(args)
 
-        LOG.info("Adding dataset metadata")
+        LOG.info("Creating datasets collection")
+        args.path = "collections/dataset_collection.yaml"
+        mongo_admin.set_datasets_to_databases(args)
+
+        LOG.info("Creating metadata collection")
         for ds_name in EXISTING_DATASETS:
             args.dataset = ds_name
             args.metadata_path = DATASET_METADATA_PATHS[ds_name]
             mongo_admin.add_metadata(args)
-
-            args.database_type = DATABASE_TYPES[ds_name]
-            mongo_admin.set_dataset_to_database(args)
 
         del mongo_admin
 

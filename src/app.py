@@ -47,8 +47,6 @@ def startup_event():
     # Fill up user database if in develop mode ONLY
     if globals.CONFIG.develop_mode:
         from utils.constants import (
-            DATASET_METADATA_PATHS,
-            EXISTING_DATASETS,
             MONGODB_CONTAINER_NAME,
             MONGODB_PORT,
         )
@@ -65,15 +63,9 @@ def startup_event():
         args.path = "collections/user_collection.yaml"
         mongo_admin.create_users_collection(args)
 
-        LOG.info("Creating datasets collection")
+        LOG.info("Creating datasets and metadata collection")
         args.path = "collections/dataset_collection.yaml"
-        mongo_admin.set_datasets_to_databases(args)
-
-        LOG.info("Creating metadata collection")
-        for ds_name in EXISTING_DATASETS:
-            args.dataset = ds_name
-            args.metadata_path = DATASET_METADATA_PATHS[ds_name]
-            mongo_admin.add_metadata(args)
+        mongo_admin.add_datasets(args)
 
         del mongo_admin
 

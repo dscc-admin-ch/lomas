@@ -1,19 +1,20 @@
 from private_database.private_database import PrivateDatabase
 
+import boto3
 import pandas as pd
 
 
-class ConstantPath(PrivateDatabase):
+class S3Database(PrivateDatabase):
     """
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, dataset_path) -> None:
+    def __init__(self, s3_bucket: str, s3_prefix: str) -> None:
         """
         Parameters:
-            - dataset_path: path of the dataset
+            - dataset_name: name of the dataset
         """
-        self.ds_path = dataset_path
+        self.ds_path = f"s3://{s3_bucket}/{s3_prefix}"
 
     def get_pandas_df(self) -> pd.DataFrame:
         """
@@ -21,4 +22,4 @@ class ConstantPath(PrivateDatabase):
         Returns:
             - pandas dataframe of dataset
         """
-        return pd.read_csv(self.ds_path)
+        return boto3.read(self.ds_path)

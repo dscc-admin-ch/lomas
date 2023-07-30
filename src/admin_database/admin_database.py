@@ -206,9 +206,9 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @_does_dataset_exist
-    def get_database_type(self, args):
+    def get_dataset_field(self, dataset_name: str, key: str) -> str:
         """
-        Get database type based on dataset name
+        Get dataset field type based on dataset name and key
         """
         pass
 

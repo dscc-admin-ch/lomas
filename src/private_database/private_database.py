@@ -8,7 +8,7 @@ class PrivateDatabase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, dataset_name: str, **connection_parameters) -> None:
+    def __init__(self, **connection_parameters) -> None:
         """
         Connects to the DB
         Parameters:

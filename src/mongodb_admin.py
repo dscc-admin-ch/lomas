@@ -5,8 +5,6 @@ from utils.constants import (
     MONGODB_CONTAINER_NAME,
     MONGODB_PORT,
     ADMIN_DATABASE_NAME,
-    EXISTING_DATASETS,
-    PRIVATE_DBS,
 )
 
 
@@ -173,26 +171,8 @@ class MongoDB_Admin:
 
         print(f"Added user data from yaml at {args.path}.")
 
-    #########################  METADATA  ######################### # noqa: E266
-    def add_metadata(self, args):
-        """
-        Load metadata yaml file into a dict and add it in the metadata
-        collection with dataset name as key.
-        """
-        with open(args.metadata_path) as f:
-            metadata_dict = yaml.safe_load(f)
-            self.db.metadata.insert_one({args.dataset: metadata_dict})
-        print(f"Added metadata of {args.dataset} dataset.")
-
-    def del_metadata(self, args):
-        """
-        Delete metadata associated to dataset from the metadata collection.
-        """
-        self.db.metadata.delete_many({args.dataset: {"$exists": True}})
-        print(f"Deleted metadata of {args.dataset} dataset.")
-
     ###################  DATASET TO DATABASE  ################### # noqa: E266
-    def set_dataset_to_database(self, args):
+    def add_dataset(self, args):
         """
         Set a database type to a dataset in dataset collection.
         """
@@ -206,24 +186,48 @@ class MongoDB_Admin:
             {
                 "dataset_name": args.dataset,
                 "database_type": args.database_type,
+                "metadata_path": args.metadata_path,
             }
         )
+
+        # Store metadata from yaml to metadata collection
+        with open(args.metadata_path) as f:
+            metadata_dict = yaml.safe_load(f)
+            self.db.metadata.insert_one({args.dataset: metadata_dict})
+
         print(
-            f"Added dataset {args.dataset} with database {args.database_type}."
+            f"Added dataset {args.dataset} with database {args.database_type} "
+            f"and metadata from {args.metadata_path}."
         )
 
-    def set_datasets_to_databases(self, args):
+    def add_datasets(self, args):
         """
         Set all database types to datasets in dataset collection based
         on yaml file.
         """
         # Ensure collection created from scratch each time the method is called
         self.db.datasets.drop()
+        self.db.metadata.drop()
 
         with open(args.path) as f:
             dataset_dict = yaml.safe_load(f)
             self.db.datasets.insert_many(dataset_dict["datasets"])
-        print(f"Added datasets and databases from yaml at {args.path}.")
+        print(f"Added datasets collection from yaml at {args.path}. ")
+
+        # Store metadata from each dataset's in metadata collection
+        for d in dataset_dict["datasets"]:
+            dataset_name = d["dataset_name"]
+            with open(d["metadata_path"]) as f:
+                metadata_dict = yaml.safe_load(f)
+                self.db.metadata.insert_one({dataset_name: metadata_dict})
+                print(f"Added metadata of {dataset_name} dataset. ")
+
+    def del_dataset(self, args):
+        """
+        Delete dataset from dataset collection.
+        """
+        self.db.users.delete_many({"dataset_name": args.dataset_name})
+        print(f"Deleted dataset {args.dataset_name}.")
 
     #######################  COLLECTIONS  ####################### # noqa: E266
     def drop_collection(self, args):
@@ -371,56 +375,24 @@ if __name__ == "__main__":
         func=admin.create_users_collection
     )
 
-    #########################  METADATA  ######################### # noqa: E266
-    # Create the parser for the "add_metadata" command
-    add_metadata_parser = subparsers.add_parser(
-        "add_metadata",
-        help="add metadata for given dataset to metadata collection",
-    )
-    add_metadata_parser.add_argument(
-        "-d", "--dataset", required=True, choices=EXISTING_DATASETS
-    )
-    add_metadata_parser.add_argument(
-        "-mp", "--metadata_path", required=True, type=str
-    )
-    add_metadata_parser.set_defaults(func=admin.add_metadata)
-
-    # Create the parser for the "del_metadata" command
-    del_metadata_parser = subparsers.add_parser(
-        "del_metadata", help="delete metadata to metadata collection"
-    )
-    del_metadata_parser.add_argument(
-        "-d", "--dataset", required=True, choices=EXISTING_DATASETS
-    )
-    del_metadata_parser.set_defaults(func=admin.del_metadata)
-
-    ###################  DATASET TO DATABASE  ################### # noqa: E266
+    #######################  ADD DATASETS  ####################### # noqa: E266
     # Create parser for dataset private database
-    set_dataset_to_database_parser = subparsers.add_parser(
-        "set_dataset_to_database",
+    add_dataset_parser = subparsers.add_parser(
+        "add_dataset",
         help="set in which database the dataset is stored",
     )
-    set_dataset_to_database_parser.add_argument(
-        "-d", "--dataset", required=True, choices=EXISTING_DATASETS
-    )
-    set_dataset_to_database_parser.add_argument(
-        "-db", "--database_type", required=True, choices=PRIVATE_DBS
-    )
-    set_dataset_to_database_parser.set_defaults(
-        func=admin.set_dataset_to_database
-    )
+    add_dataset_parser.add_argument("-d", "--dataset", required=True)
+    add_dataset_parser.add_argument("-db", "--database_type", required=True)
+    add_dataset_parser.add_argument("-mp", "--metadata_path", required=True)
+    add_dataset_parser.set_defaults(func=admin.add_dataset)
 
-    # Create the parser for the "set_datasets_to_databases" command
-    set_datasets_to_databases_parser = subparsers.add_parser(
-        "set_datasets_to_databases",
+    # Create the parser for the "add_datasets" command
+    add_datasets_parser = subparsers.add_parser(
+        "add_datasets",
         help="create dataset to database type collection",
     )
-    set_datasets_to_databases_parser.add_argument(
-        "-p", "--path", required=True, type=str
-    )
-    set_datasets_to_databases_parser.set_defaults(
-        func=admin.set_datasets_to_databases
-    )
+    add_datasets_parser.add_argument("-p", "--path", required=True, type=str)
+    add_datasets_parser.set_defaults(func=admin.add_datasets)
 
     #######################  COLLECTIONS  ####################### # noqa: E266
     # Create the parser for the "drop_collection" command

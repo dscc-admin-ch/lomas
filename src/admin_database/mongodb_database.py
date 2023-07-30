@@ -216,9 +216,7 @@ class AdminMongoDatabase(AdminDatabase):
             - dataset_name: name of the dataset
             - key: name of the field to get
         """
-        return self.db.datasets.find_one({"dataset_name": dataset_name})[
-            key
-        ]
+        return self.db.datasets.find_one({"dataset_name": dataset_name})[key]
 
     @AdminDatabase._has_user_access_to_dataset
     def update_budget(

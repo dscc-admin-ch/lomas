@@ -6,7 +6,7 @@ from utils.constants import (
     MONGODB_PORT,
     ADMIN_DATABASE_NAME,
     CONSTANT_PATH_DB,
-    S3_DB
+    S3_DB,
 )
 
 

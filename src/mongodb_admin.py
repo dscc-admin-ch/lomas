@@ -196,6 +196,12 @@ class MongoDB_Admin:
         """
         Set a database type to a dataset in dataset collection.
         """
+        if (
+            self.db.datasets.count_documents({"dataset_name": args.dataset})
+            > 0
+        ):
+            raise ValueError("Cannot add database because already set. ")
+
         self.db.datasets.insert_one(
             {
                 "dataset_name": args.dataset,
@@ -211,6 +217,9 @@ class MongoDB_Admin:
         Set all database types to datasets in dataset collection based
         on yaml file.
         """
+        # Ensure collection created from scratch each time the method is called
+        self.db.datasets.drop()
+
         with open(args.path) as f:
             dataset_dict = yaml.safe_load(f)
             self.db.datasets.insert_many(dataset_dict["datasets"])

@@ -148,7 +148,6 @@ class QueryHandler:
     def __init__(self, admin_database: AdminDatabase) -> None:
         self.admin_database = admin_database
         self.querier_manager = BasicQuerierManager(admin_database)
-        return
 
     def _get_querier(
         self,
@@ -168,12 +167,12 @@ class QueryHandler:
             )
         except Exception as e:
             LOG.exception(
-                f"Failed to get querier for dataset"
+                f"Failed to get querier for dataset "
                 f"{query_json.dataset_name}: {str(e)}"
             )
             raise HTTPException(
                 404,
-                f"Failed to get querier for dataset"
+                f"Failed to get querier for dataset "
                 f"{query_json.dataset_name}",
             )
         return dp_querier

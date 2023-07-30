@@ -216,7 +216,7 @@ class AdminMongoDatabase(AdminDatabase):
             - dataset_name: name of the dataset
         """
         return self.db.datasets.find_one({"dataset_name": dataset_name})[
-            "dataset_type"
+            "database_type"
         ]
 
     @AdminDatabase._has_user_access_to_dataset

@@ -6,12 +6,11 @@ import pandas as pd
 
 class ConstantPath(PrivateDatabase):
     """
-    Overall database management while server is running
+    Class to fetch dataset from constant path
     """
 
     def __init__(self, dataset_name) -> None:
         """
-        Connects to the DB
         Parameters:
             - dataset_name: name of the dataset
         """

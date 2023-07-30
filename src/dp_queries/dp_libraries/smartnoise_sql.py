@@ -20,7 +20,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
         metadata: dict,
-        private_db: PrivateDatabase,
+        private_db: PrivateDatabase = None,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,

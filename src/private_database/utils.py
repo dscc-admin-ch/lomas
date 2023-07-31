@@ -27,6 +27,6 @@ def private_database_factory(
     else:
         raise (
             f"Unknown database type {database_type} \
-                for dataset {dataset_name}."
+            for dataset {dataset_name}."
         )
     return private_db

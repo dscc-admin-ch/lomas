@@ -21,9 +21,9 @@ def private_database_factory(
         )
         private_db = ConstantPath(dataset_path)
     elif database_type == S3_DB:
-        s3_bucket = admin_database.get_dataset_field(dataset_name, "bucket")
-        s3_prefix = admin_database.get_dataset_field(dataset_name, "prefix")
-        private_db = S3Database(s3_bucket, s3_prefix)
+        s3_bucket = admin_database.get_dataset_field(dataset_name, "s3_bucket")
+        s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
+        private_db = S3Database(s3_bucket, s3_key)
     else:
         raise (
             f"Unknown database type {database_type} \

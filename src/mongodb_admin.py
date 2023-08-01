@@ -222,14 +222,14 @@ class MongoDB_Admin:
         # Verify inputs
         for d in dataset_dict["datasets"]:
             verify_keys(d, "dataset_name")
-            verify_keys(d, "dataset_type")
+            verify_keys(d, "database_type")
             verify_keys(d, "metadata_path")
 
             if d["database_type"] == CONSTANT_PATH_DB:
                 verify_keys(d, "dataset_path")
             elif d["database_type"] == S3_DB:
-                verify_keys(d, "bucket")
-                verify_keys(d, "prefix")
+                verify_keys(d, "s3_bucket")
+                verify_keys(d, "s3_key")
             else:
                 raise ValueError(f"Dataset type {d['database_type']} unknown")
 

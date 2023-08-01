@@ -9,6 +9,6 @@ datasets:
   metadata_path: "collections/metadata/penguin_metadata.yaml"
 - dataset_name: "RANDOM"
   database_type: "S3Database"
-  bucket: "my_bucket"
-  prefix: "folder/my_data.csv"
+  s3_bucket: "my_bucket"
+  s3_key: "folder/my_data.csv"
   metadata_path: "collections/metadata/penguin_metadata.yaml"

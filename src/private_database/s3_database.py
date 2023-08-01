@@ -8,14 +8,16 @@ class S3Database(PrivateDatabase):
     """
     Class to fetch dataset from constant path
     """
-    def __init__(self, s3_bucket: str, s3_prefix: str) -> None:
+
+    def __init__(self, s3_bucket: str, s3_key: str) -> None:
         """
         Parameters:
             - s3_bucket: s3 bucket of the dataset
-            - s3_prefix: s3 prefix of the path to the dataset
+            - s3_key: s3 key of the path to the dataset
         """
-        # TODO: where and how to store the credentials ?
-        self.ds_path = f"s3://{s3_bucket}/{s3_prefix}"
+        self.client = boto3.client("s3")
+        self.s3_bucket = s3_bucket
+        self.s3_key = s3_key
 
     def get_pandas_df(self) -> pd.DataFrame:
         """
@@ -23,4 +25,5 @@ class S3Database(PrivateDatabase):
         Returns:
             - pandas dataframe of dataset
         """
-        return boto3.read(self.ds_path)
+        obj = self.client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
+        return pd.read_csv(obj["Body"])

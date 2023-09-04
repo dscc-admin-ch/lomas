@@ -12,7 +12,7 @@ def private_database_factory(
     """
     # database_type = admin_database.get_database_type(dataset_name)
     database_type = admin_database.get_dataset_field(
-        dataset_name, "database_field"
+        dataset_name, "database_type"
     )
 
     if database_type == CONSTANT_PATH_DB:

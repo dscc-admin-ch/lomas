@@ -55,16 +55,12 @@ def get_mongodb_url(config):
     db_password = config.password
     db_address = config.address
     db_port = config.port
+    db_name = config.db_name
 
     # TODO check this...
-    db_url = f'mongodb://{db_username}:{db_password}@{db_address}:{db_port}/?authSource=defaultdb'
-    print(db_url)
-    print()
-    print()
-    print()
-    print()
-    print()
-    print()
+    db_url = f'mongodb://{db_username}:{db_password}@{db_address}:{db_port}/{db_name}?authSource=defaultdb'
+    #client = MongoClient('mongodb://user_pwd:pwd@mongodb-0.mongodb-headless:0/defaultdb?authSourcedefaultdb')
+    
     #db_url = f'mongodb://{db_username}:{db_password}@mongodb-0.mongodb-headless:{MONGODB_PORT},mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
 
     return db_url

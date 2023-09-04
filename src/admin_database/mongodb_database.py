@@ -32,10 +32,12 @@ class AdminMongoDatabase(AdminDatabase):
         Parameters:
             - dataset_name: name of the dataset to check
         """
-        doc_count = self.db.datasets.count_documents(
-            {dataset_name: {"$exists": True}}
-        )
-        return doc_count > 0
+        collection_query = self.db.datasets.find({})
+        for document in collection_query:
+            if document["dataset_name"] == dataset_name:
+                return True
+
+        return False
 
     @AdminDatabase._does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:

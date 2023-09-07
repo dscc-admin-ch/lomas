@@ -1,0 +1,7 @@
+datasets:
+- dataset_name: "IRIS"
+  database_type: "CONSTANT_PATH_DB"
+  metadata_path: "collections/metadata/iris_metadata.yaml"
+- dataset_name: "PENGUIN"
+  database_type: "CONSTANT_PATH_DB"
+  metadata_path: "collections/metadata/penguin_metadata.yaml"

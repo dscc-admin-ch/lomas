@@ -1,6 +1,6 @@
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
-YAML_USER_DATABASE = "/usr/sdd_poc_server/user_database.yaml"
+YAML_USER_DATABASE = "/usr/sdd_poc_server/user_collection.yaml"
 QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
 MONGODB_CONTAINER_NAME = "mongodb"
 
@@ -10,7 +10,7 @@ CONF_SETTINGS = "settings"
 CONF_DEV_MODE = "develop_mode"
 CONF_TIME_ATTACK = "time_attack"
 CONF_SUBMIT_LIMIT = "submit_limit"
-CONF_DB = "database"
+CONF_DB = "admin_database"
 CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
 CONF_DB_TYPE_YAML = "yaml"
@@ -20,7 +20,7 @@ CONF_MONGODB_PORT = "port"
 
 # Server states
 QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
-DB_NOT_LOADED = "Database not loaded"
+DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 
@@ -39,16 +39,17 @@ DELTA_INITIAL: float = 0.0
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL]
+
 # Datasets
 IRIS_DATASET = "IRIS"
 IRIS_DATASET_PATH = (
     "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
 )
-IRIS_METADATA_PATH = "metadata/iris_metadata.yaml"
+IRIS_METADATA_PATH = "collections/metadata/iris_metadata.yaml"
 
 PENGUIN_DATASET = "PENGUIN"
-PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
-PENGUIN_METADATA_PATH = "metadata/penguin_metadata.yaml"
+PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"  # noqa: E501
+PENGUIN_METADATA_PATH = "collections/metadata/penguin_metadata.yaml"
 
 DATASET_PATHS = {
     IRIS_DATASET: IRIS_DATASET_PATH,
@@ -60,6 +61,16 @@ DATASET_METADATA_PATHS = {
 }
 
 EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
+
+# Databases
+CONSTANT_PATH_DB = "CONSTANT_PATH_DB"
+S3_DB = "S3Database"
+PRIVATE_DBS = [CONSTANT_PATH_DB, S3_DB]
+
+DATABASE_TYPES = {
+    IRIS_DATASET: CONSTANT_PATH_DB,
+    PENGUIN_DATASET: CONSTANT_PATH_DB,
+}
 
 # Dummy queries
 DUMMY_EPSILON = 1e32 * 1.0
@@ -83,9 +94,3 @@ RANDOM_STRINGS = ["a", "b", "c", "d"]
 RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
-
-
-# MongoDB
-#VAULT_NAME = "SDD_POC_DB/mongodb_access"
-#MONGODB_CONTAINER_NAME = "mongodb"
-#MONGODB_PORT = "27017"

@@ -5,20 +5,13 @@ runtime_args:
     time_attack:
         method: "jitter" # or "stall"
         magnitude: 1
-    database:
+    admin_database:
       db_type: "mongodb" # or "yaml"
       address: "mongodb" #"mongodb.user-aymond.svc.cluster.local" # or db_file: <..> for yaml db
       port: 27017
       token: abcd
-      password: "pwd"
+      password: "user_pwd"
       username: "user"
       db_name: "defaultdb"
       #db_type: "yaml"
-      #db_file: "/usr/sdd_poc_server/user_database.yaml"
-
-  
-  #MDDB_DBNAME : datasets
-  #MDDB_USER: "oblivious"
-  #MDDB_PASS: "<mongo_pass>"
-  #MDDB_URL: "stage-un-g20-nov22.cluster-clagiea8p62e.eu-west-1.docdb.amazonaws.com:27017/?tls=true&tlsCAFile=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false"
-  #MDDB_PROT: "mongodb://" #"mongodb://" or "mongodb+srv://
+      #db_file: "/usr/sdd_poc_server/collections/user_collection.yaml"

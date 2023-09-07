@@ -1,25 +1,22 @@
-from datetime import datetime
-import json
 from typing import List
-import yaml
-
-from database.database import Database
-from utils.constants import QUERIES_ARCHIVES, DATASET_METADATA_PATHS
+from admin_database.admin_database import AdminDatabase
+import pymongo
 
 
-class YamlDatabase(Database):
+class AdminMongoDatabase(AdminDatabase):
     """
-    Overall yaml in memory database management
+    Overall MongoDB database management
     """
 
-    def __init__(self, yaml_db_path) -> None:
+    def __init__(self, connection_string: str, database_name: str) -> None:
         """
         Load DB
+
+        Parameters:
+            - connection_string: Connection string to the mongodb
+            - database_name: Mongodb database name.
         """
-        self.path = yaml_db_path
-        with open(yaml_db_path, "r") as f:
-            self.database = yaml.safe_load(f)
-        self.queries_archives = []
+        self.db = pymongo.MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
         """
@@ -27,11 +24,10 @@ class YamlDatabase(Database):
         Parameters:
             - user_name: name of the user to check
         """
-        for user in self.database["users"]:
-            if user["user_name"] == user_name:
-                return True
-
-        return False
+        doc_count = self.db.users.count_documents(
+            {"user_name": f"{user_name}"}
+        )
+        return True if doc_count > 0 else False
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
         """
@@ -39,18 +35,25 @@ class YamlDatabase(Database):
         Parameters:
             - dataset_name: name of the dataset to check
         """
-        return dataset_name in self.database["datasets"]
+        collection_query = self.db.datasets.find({})
+        for document in collection_query:
+            if document["dataset_name"] == dataset_name:
+                return True
 
-    @Database._does_dataset_exist
+        return False
+
+    @AdminDatabase._does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
-        ds_metadata_path = DATASET_METADATA_PATHS[dataset_name]
+        """
+        Returns the metadata dictionnary of the dataset
+        Parameters:
+            - dataset_name: name of the dataset to get the metadata for
+        """
+        return self.db.metadata.find_one({dataset_name: {"$exists": True}})[
+            dataset_name
+        ]
 
-        with open(ds_metadata_path, "r") as f:
-            ds_metadata = yaml.safe_load(f)
-
-        return ds_metadata
-
-    @Database._does_user_exist
+    @AdminDatabase._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -58,11 +61,9 @@ class YamlDatabase(Database):
         Parameters:
             - user_name: name of the user
         """
-        for user in self.database["users"]:
-            if user["user_name"] == user_name:
-                return user["may_query"]
+        return self.db.users.find_one({"user_name": user_name})["may_query"]
 
-    @Database._does_user_exist
+    @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -71,13 +72,12 @@ class YamlDatabase(Database):
             - user_name: name of the user
             - may_query: flag give or remove access to user
         """
-        users = self.database["users"]
-        for user in users:
-            if user["user_name"] == user_name:
-                user["may_query"] = may_query
-        self.database["users"] = users
+        self.db.users.update_one(
+            {"user_name": f"{user_name}"},
+            {"$set": {"may_query": may_query}},
+        )
 
-    @Database._does_user_exist
+    @AdminDatabase._does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -87,31 +87,40 @@ class YamlDatabase(Database):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        for user in self.database["users"]:
-            if user["user_name"] == user_name:
-                for dataset in user["datasets_list"]:
-                    if dataset["dataset_name"] == dataset_name:
-                        return True
-        return False
+        doc_count = self.db.users.count_documents(
+            {
+                "user_name": f"{user_name}",
+                "datasets_list.dataset_name": f"{dataset_name}",
+            }
+        )
+        return True if doc_count > 0 else False
 
     def __get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
-        Get the current epsilon or delta spent by a specific user
+        Get the total spent epsilon or delta  by a specific user
         on a specific dataset
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
-            - parameter: current_epsilon or current_delta
+            - parameter: total_spent_epsilon or total_spent_delta
         """
-        for user in self.database["users"]:
-            if user["user_name"] == user_name:
-                for dataset in user["datasets_list"]:
-                    if dataset["dataset_name"] == dataset_name:
-                        return dataset[parameter]
+        return list(
+            self.db.users.aggregate(
+                [
+                    {"$unwind": "$datasets_list"},
+                    {
+                        "$match": {
+                            "user_name": f"{user_name}",
+                            "datasets_list.dataset_name": f"{dataset_name}",
+                        }
+                    },
+                ]
+            )
+        )[0]["datasets_list"][parameter]
 
-    @Database._has_user_access_to_dataset
+    @AdminDatabase._has_user_access_to_dataset
     def get_total_spent_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
@@ -124,19 +133,19 @@ class YamlDatabase(Database):
         """
         return [
             self.__get_epsilon_or_delta(
-                user_name, dataset_name, "current_epsilon"
+                user_name, dataset_name, "total_spent_epsilon"
             ),
             self.__get_epsilon_or_delta(
-                user_name, dataset_name, "current_delta"
+                user_name, dataset_name, "total_spent_delta"
             ),
         ]
 
-    @Database._has_user_access_to_dataset
+    @AdminDatabase._has_user_access_to_dataset
     def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
         """
-        Get the initial epsilon and delta budget
+        Get the inital epsilon and delta budget
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
@@ -166,45 +175,55 @@ class YamlDatabase(Database):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        users = self.database["users"]
-        for user in users:
-            if user["user_name"] == user_name:
-                for dataset in user["datasets_list"]:
-                    if dataset["dataset_name"] == dataset_name:
-                        dataset[parameter] += spent_value
-        self.database["users"] = users
+        self.db.users.update_one(
+            {
+                "user_name": f"{user_name}",
+                "datasets_list.dataset_name": f"{dataset_name}",
+            },
+            {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
+        )
 
     def __update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
-        Update the current epsilon spent by a specific user
-        with the last spent epsilon
+        Update the spent epsilon by a specific user
+        with the total spent epsilon
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
         """
         return self.__update_epsilon_or_delta(
-            user_name, dataset_name, "current_epsilon", spent_epsilon
+            user_name, dataset_name, "total_spent_epsilon", spent_epsilon
         )
 
     def __update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
-        Update the current delta spent by a specific user
-        with the last spent delta
+        Update the spent delta spent by a specific user
+        with the total spent delta of the user
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
             - spent_delta: value of delta spent on last query
         """
         self.__update_epsilon_or_delta(
-            user_name, dataset_name, "current_delta", spent_delta
+            user_name, dataset_name, "total_spent_delta", spent_delta
         )
 
-    @Database._has_user_access_to_dataset
+    @AdminDatabase._does_dataset_exist
+    def get_dataset_field(self, dataset_name: str, key: str) -> str:
+        """
+        Get dataset field type based on dataset name and key
+        Parameters:
+            - dataset_name: name of the dataset
+            - key: name of the field to get
+        """
+        return self.db.datasets.find_one({"dataset_name": dataset_name})[key]
+
+    @AdminDatabase._has_user_access_to_dataset
     def update_budget(
         self,
         user_name: str,
@@ -233,7 +252,8 @@ class YamlDatabase(Database):
         query: dict,
     ) -> None:
         """
-        Save queries of user on datasets in a separate json file
+        Save queries of user on datasets in a separate collection (table)
+        named "queries_archives" in the DB
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
@@ -241,31 +261,12 @@ class YamlDatabase(Database):
             - delta: value of delta spent on last query
             - query: json string of the query
         """
-        self.queries_archives.append(
+        self.db.queries_archives.insert_one(
             {
-                "user_name": user_name,
-                "dataset_name": dataset_name,
+                "user_name": f"{user_name}",
+                "dataset_name": f"{dataset_name}",
                 "epsilon": epsilon,
                 "delta": delta,
                 "query": query,
             }
         )
-
-    def save_current_database(self) -> None:
-        """
-        Saves the current database with updated parameters in new yaml
-        with the date and hour in the path
-        Might be useful to verify state of DB during development
-        """
-        new_path = self.path.replace(
-            ".yaml", f'{datetime.now().strftime("%m_%d_%Y__%H_%M_%S")}.yaml'
-        )
-        with open(new_path, "w") as file:
-            yaml.dump(self.database, file)
-
-    def save_current_archive_queries(self) -> None:
-        """
-        Saves the current list of queries in a JSON
-        """
-        with open(QUERIES_ARCHIVES, "w") as outfile:
-            json.dump(self.queries_archives, outfile)

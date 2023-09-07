@@ -4,7 +4,7 @@ from typing import List
 from fastapi import HTTPException
 
 
-class Database(ABC):
+class AdminDatabase(ABC):
     """
     Overall database management while server is running
     """
@@ -201,6 +201,14 @@ class Database(ABC):
             - dataset_name: name of the dataset
             - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
+        """
+        pass
+
+    @abstractmethod
+    @_does_dataset_exist
+    def get_dataset_field(self, dataset_name: str, key: str) -> str:
+        """
+        Get dataset field type based on dataset name and key
         """
         pass
 

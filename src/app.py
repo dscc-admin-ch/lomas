@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from mongodb_admin import MongoDB_Admin
-from database.utils import database_factory, get_mongodb_url
+from admin_database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_smartnoise_sql,
@@ -22,11 +22,7 @@ from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import (
-    DATASET_METADATA_PATHS,
-    EXISTING_DATASETS,
-    INTERNAL_SERVER_ERROR,
-)
+from utils.constants import INTERNAL_SERVER_ERROR
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
@@ -48,35 +44,37 @@ def startup_event():
     globals.SERVER_STATE["message"].append("Loading config")
     globals.CONFIG = get_config()
 
-    # Fill up database if in develop mode ONLY
+    # Fill up user database if in develop mode ONLY
     if globals.CONFIG.develop_mode:
+
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
-        # mongo_admin = MongoDB_Admin(
-        #     f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
-        # )
+
         db_url = get_mongodb_url(globals.CONFIG.database)
         db_name = globals.CONFIG.database.db_name
         mongo_admin = MongoDB_Admin(db_url, db_name)
         mongo_admin.create_example_users_collection()
 
-        LOG.info("Adding dataset metadata")
-        for ds_name in EXISTING_DATASETS:
-            # Dirty trick to create a dummy args object.
-            def args():
-                return None
+        def args():
+            return None  # trick to create a dummy args object
 
-            args.dataset = ds_name
-            args.metadata_path = DATASET_METADATA_PATHS[ds_name]
-            mongo_admin.add_metadata(args)
+        LOG.info("Creating user collection")
+        args.path = "collections/user_collection.yaml"
+        mongo_admin.create_users_collection(args)
+
+        LOG.info("Creating datasets and metadata collection")
+        args.path = "collections/dataset_collection.yaml"
+        mongo_admin.add_datasets(args)
 
         del mongo_admin
 
     # Load users, datasets, etc..
-    LOG.info("Loading user database")
-    globals.SERVER_STATE["message"].append("Loading user database")
+    LOG.info("Loading admin database")
+    globals.SERVER_STATE["message"].append("Loading admin database")
     try:
-        globals.DATABASE = database_factory(globals.CONFIG.database)
+        globals.ADMIN_DATABASE = database_factory(
+            globals.CONFIG.admin_database
+        )
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
         globals.SERVER_STATE["state"].append(
@@ -86,7 +84,7 @@ def startup_event():
 
     LOG.info("Loading query handler")
     globals.SERVER_STATE["message"].append("Loading query handler")
-    globals.QUERY_HANDLER = QueryHandler(globals.DATABASE)
+    globals.QUERY_HANDLER = QueryHandler(globals.ADMIN_DATABASE)
 
     globals.SERVER_STATE["state"].append("Startup completed")
     globals.SERVER_STATE["message"].append("Startup completed")
@@ -124,7 +122,7 @@ def get_dataset_metadata(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.DATABASE.get_dataset_metadata(
+        ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -145,7 +143,7 @@ def get_dummy_dataset(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.DATABASE.get_dataset_metadata(
+        ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -217,7 +215,7 @@ def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = globals.DATABASE.get_dataset_metadata(
+    ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
         query_json.dataset_name
     )
 
@@ -261,7 +259,7 @@ def get_total_spent_budget(
     (
         total_spent_epsilon,
         total_spent_delta,
-    ) = globals.DATABASE.get_total_spent_budget(
+    ) = globals.ADMIN_DATABASE.get_total_spent_budget(
         user_name, query_json.dataset_name
     )
 
@@ -281,7 +279,7 @@ def get_initial_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    initial_epsilon, initial_delta = globals.DATABASE.get_initial_budget(
+    initial_epsilon, initial_delta = globals.ADMIN_DATABASE.get_initial_budget(
         user_name, query_json.dataset_name
     )
 
@@ -297,7 +295,7 @@ def get_remaining_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    rem_epsilon, rem_delta = globals.DATABASE.get_remaining_budget(
+    rem_epsilon, rem_delta = globals.ADMIN_DATABASE.get_remaining_budget(
         user_name, query_json.dataset_name
     )
 

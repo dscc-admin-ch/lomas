@@ -1,8 +1,6 @@
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
-YAML_USER_DATABASE = "/usr/sdd_poc_server/user_collection.yaml"
-QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
-MONGODB_CONTAINER_NAME = "mongodb"
+QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS = "runtime_args"
@@ -14,7 +12,8 @@ CONF_DB = "admin_database"
 CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
 CONF_DB_TYPE_YAML = "yaml"
-CONF_YAML_DB = "db_file"
+CONF_YAML_DB_DIR = "db_directory"
+CONF_YAML_DB_FILE_NAME = "db_file_name"
 CONF_MONGODB_ADDR = "address"
 CONF_MONGODB_PORT = "port"
 

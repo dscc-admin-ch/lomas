@@ -50,8 +50,8 @@ def startup_event():
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
 
-        db_url = get_mongodb_url(globals.CONFIG.database)
-        db_name = globals.CONFIG.database.db_name
+        db_url = get_mongodb_url(globals.CONFIG.admin_database)
+        db_name = globals.CONFIG.admin_database.db_name
         mongo_admin = MongoDB_Admin(db_url, db_name)
         mongo_admin.create_example_users_collection()
 

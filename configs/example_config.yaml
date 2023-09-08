@@ -7,11 +7,12 @@ runtime_args:
         magnitude: 1
     admin_database:
       db_type: "mongodb" # or "yaml"
-      address: "mongodb" #"mongodb.user-aymond.svc.cluster.local" # or db_file: <..> for yaml db
+      address: "mongodb" #"mongodb.user-aymond.svc.cluster.local"
       port: 27017
       token: abcd
       password: "user_pwd"
       username: "user"
       db_name: "defaultdb"
       #db_type: "yaml"
-      #db_file: "/usr/sdd_poc_server/collections/user_collection.yaml"
+      #db_directory: "/usr/sdd_poc_server/collections/"
+      #db_file_name: "user_collection.yaml"

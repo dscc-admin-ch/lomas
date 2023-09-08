@@ -13,7 +13,7 @@ def database_factory(config: DBConfig) -> AdminDatabase:
     db_type = config.db_type
 
     if db_type == CONF_DB_TYPE_YAML:
-        yaml_database_file = config.db_file
+        yaml_database_file = f"{config.db_directory}/{config.db_file_name}"
 
         return AdminYamlDatabase(yaml_database_file)
 

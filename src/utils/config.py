@@ -39,7 +39,8 @@ class MongoDBConfig(DBConfig):
 
 
 class YAMLDBConfig(DBConfig):
-    db_file: str = None
+    db_directory: str = None
+    db_file_name: str = None
 
 
 class Config(BaseModel):

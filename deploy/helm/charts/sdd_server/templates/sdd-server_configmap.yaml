@@ -1,4 +1,5 @@
-apiVersion: v1
+{{- /*
+ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "sdd_server.fullname" . }}
@@ -21,4 +22,5 @@ data:
         username: {{ .Values.mongodb.mongodb.auth.username }}
         db_name: {{ .Values.mongodb.mongodb.auth.database }}
         #db_type: "yaml"
-        #db_file: "/usr/sdd_poc_server/user_database.yaml"
+        #db_file: "/usr/sdd_poc_server/user_database.yaml" 
+*/ -}}

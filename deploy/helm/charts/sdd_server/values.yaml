@@ -14,7 +14,7 @@ mongodb:
     auth:
       rootPassword: root_pwd
       username: user
-      password: pwd
+      password: user_pwd
       database: defaultdb
     replicaCount: 1
     discoverable:

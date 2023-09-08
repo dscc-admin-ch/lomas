@@ -8,9 +8,13 @@ WORKDIR /code
 RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
 
 # Build the Rust library
-WORKDIR /code/rust_opendp
-RUN cargo build --release
+WORKDIR /code/opendp/rust
+RUN cargo build --features untrusted,bindings-python
 
+# Install opendp python
+WORKDIR /code/python
+RUN pip install flake8 pytest wheel
+RUN install -e .
 
 # Python stage
 FROM python:3.8 AS sdd_server
@@ -34,15 +38,11 @@ FROM sdd_server AS sdd_server_test
 # run tests with pytest
 COPY ./src/ /code/
 COPY ./tests/ /code/tests/
-# Copy the compiled Rust library from the Rust stage
-COPY --from=rust-stage /code/rust_opendp/target/release/* /code/
 COPY .configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
 CMD ["python", "-m", "pytest", "tests/"]
 
 FROM sdd_server AS sdd_server_prod
 COPY ./src/ /code/
-# Copy the compiled Rust library from the Rust stage
-COPY --from=rust-stage /code/rust_opendp/target/release/* /code/
 # run as local server
 # Disable this for now, as we do not run a mongodb instance.
 COPY ./configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml

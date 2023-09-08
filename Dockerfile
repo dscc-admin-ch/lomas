@@ -9,13 +9,16 @@ RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
 WORKDIR opendp/rust
 RUN cargo build --features untrusted,bindings-python
 
+# Python stage
+FROM python:3.8 AS sdd_server
+
+# Clone branch of git repository
+RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
+
 # Install opendp python
 WORKDIR opendp/python
 RUN pip install flake8 pytest wheel
 RUN pip install -e .
-
-# Python stage
-FROM python:3.8 AS sdd_server
 
 WORKDIR /code
  

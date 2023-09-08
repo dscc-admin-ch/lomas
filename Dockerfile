@@ -8,13 +8,13 @@ WORKDIR /code
 RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
 
 # Build the Rust library
-WORKDIR /code/opendp/rust
+RUN cd opendp/rust
 RUN cargo build --features untrusted,bindings-python
 
 # Install opendp python
-WORKDIR /code/opendp/python
+RUN cd opendp/python
 RUN pip install flake8 pytest wheel
-RUN install -e .
+RUN pip install -e .
 
 # Python stage
 FROM python:3.8 AS sdd_server

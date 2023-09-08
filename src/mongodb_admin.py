@@ -17,6 +17,7 @@ class MongoDB_Admin:
         """
         Connect to DB
         """
+        print(connection_string)
         self.db = pymongo.MongoClient(connection_string)[database_name]
 
     ##########################  USERS  ########################## # noqa: E266

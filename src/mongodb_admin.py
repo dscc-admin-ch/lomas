@@ -1,7 +1,7 @@
 import argparse
 import pymongo
 import yaml
-from database.utils import get_mongodb_url
+from admin_database.utils import get_mongodb_url
 from utils.constants import (
     CONSTANT_PATH_DB,
     S3_DB,

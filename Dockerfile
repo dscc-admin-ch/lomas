@@ -2,17 +2,15 @@
 
 FROM rust:latest AS rust-stage
 
-WORKDIR /code
-
 # Clone branch of git repository
 RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
 
 # Build the Rust library
-RUN cd opendp/rust
+WORKDIR opendp/rust
 RUN cargo build --features untrusted,bindings-python
 
 # Install opendp python
-RUN cd opendp/python
+WORKDIR opendp/python
 RUN pip install flake8 pytest wheel
 RUN pip install -e .
 

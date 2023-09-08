@@ -53,7 +53,7 @@ def get_mongodb_url(config):
 
     # TODO check this...
     db_url = (
-        f"mongodb://{db_username}:{db_password}@{db_address}:",
+        f"mongodb://{db_username}:{db_password}@{db_address}:"
         f"{db_port}/{db_name}?authSource=defaultdb"
     )
     # client = MongoClient('mongodb://user_pwd:pwd@mongodb-0.

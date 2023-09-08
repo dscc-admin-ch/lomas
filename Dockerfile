@@ -12,7 +12,7 @@ WORKDIR /code/opendp/rust
 RUN cargo build --features untrusted,bindings-python
 
 # Install opendp python
-WORKDIR /code/python
+WORKDIR /code/opendp/python
 RUN pip install flake8 pytest wheel
 RUN install -e .
 

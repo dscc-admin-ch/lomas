@@ -5,21 +5,21 @@
 # MongoDB 
 ##########################################################################
 mongodb:
-  mongodb:
-    resources: {}
-    fullnameOverride: mongodb
-    architecture: standalone
-    image:
-      tag: "4.4"
-    auth:
-      rootPassword: root_pwd
-      username: user
-      password: user_pwd
-      database: defaultdb
-    replicaCount: 1
-    discoverable:
-      allow: true
+  resources: {}
   fullnameOverride: mongodb
+  architecture: standalone
+  image:
+    tag: "6.0.9-debian-11-r5" #"4.4"
+  auth:
+    enabled: true
+    rootUser: root
+    rootPassword: root_pwd
+    usernames: [user]
+    passwords: [user_pwd]
+    databases: [defaultdb]
+  replicaCount: 1
+  discoverable:
+    allow: true
   security:
     networkPolicy: 
       enabled: true

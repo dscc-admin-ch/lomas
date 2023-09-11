@@ -1,6 +1,0 @@
-dependencies:
-- name: mongodb
-  repository: https://inseefrlab.github.io/helm-charts-datascience
-  version: 1.5.0
-digest: sha256:2af25e700371bb23f438557a227e2efedb011ad188e7bdfe214cb74bf7aa680c
-generated: "2023-07-25T15:14:42.744724172Z"

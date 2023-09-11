@@ -273,8 +273,17 @@ class MongoDB_Admin:
 
 if __name__ == "__main__":
     # Get url with vault credentials
-    db_url = get_mongodb_url()
-    admin = MongoDB_Admin(db_url)
+    # TODO update this part with config file and prompt for password..
+    def config():
+        return None
+    config.username = "user"
+    config.password = "user_pwd"
+    config.address = "mongodb"
+    config.port = 27017
+    config.db_name = "defaultdb"
+
+    db_url = get_mongodb_url(config)
+    admin = MongoDB_Admin(db_url, config.db_name)
 
     parser = argparse.ArgumentParser(
         prog="MongoDB administration script for the user database"

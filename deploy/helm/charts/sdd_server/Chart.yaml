@@ -25,5 +25,5 @@ appVersion: "0.0.0"
 
 dependencies:
   - name: mongodb
-    version: 1.5.0
-    repository: https://inseefrlab.github.io/helm-charts-datascience
+    version: "13.18.1"
+    repository: oci://registry-1.docker.io/bitnamicharts

@@ -76,37 +76,40 @@ example_diffprivlib = {
 
 
 example_opendp = {
-    "version": "0.6.1",
-    "ast": {
-        "func": "make_chain_tt",
-        "module": "comb",
-        "type": "Transformation",
-        "args": [
-            {
-                "func": "make_select_column",
-                "module": "trans",
-                "type": "Transformation",
-                "args": [],
-                "kwargs": {
-                    "key": "income",
-                    "TOA": "py_type:str",
+    "dataset_name": IRIS_DATASET,
+    "opendp_json": {
+        "version": "0.6.1",
+        "ast": {
+            "func": "make_chain_tt",
+            "module": "comb",
+            "type": "Transformation",
+            "args": [
+                {
+                    "func": "make_select_column",
+                    "module": "trans",
+                    "type": "Transformation",
+                    "args": [],
+                    "kwargs": {
+                        "key": "income",
+                        "TOA": "py_type:str",
+                    },
                 },
-            },
-            {
-                "func": "make_split_dataframe",
-                "module": "trans",
-                "type": "Transformation",
-                "args": [],
-                "kwargs": {
-                    "separator": ",",
-                    "col_names": [
-                        "hello",
-                        "world",
-                    ],
+                {
+                    "func": "make_split_dataframe",
+                    "module": "trans",
+                    "type": "Transformation",
+                    "args": [],
+                    "kwargs": {
+                        "separator": ",",
+                        "col_names": [
+                            "hello",
+                            "world",
+                        ],
+                    },
                 },
-            },
-        ],
-        "kwargs": {},
+            ],
+            "kwargs": {},
+        },
     },
 }
 

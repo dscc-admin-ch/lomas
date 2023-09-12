@@ -8,7 +8,6 @@ from dp_queries.dp_logic import DPQuerier
 import globals
 from private_database.private_database import PrivateDatabase
 
-from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -25,14 +24,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
     ) -> None:
-        self.metadata = metadata
-
-        if dummy:
-            self.df = make_dummy_dataset(
-                self.metadata, dummy_nb_rows, dummy_seed
-            )
-        else:
-            self.df = private_db.get_pandas_df()
+        super().__init__(
+            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
+        )
 
     def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
         privacy = Privacy(epsilon=eps, delta=delta)

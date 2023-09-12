@@ -5,9 +5,11 @@ pandas==2.0.1
 pydantic==1.8.2
 requests==2.22.0
 uvicorn==0.15.0
-smartnoise-sql==1.0.0
+#smartnoise-sql==1.0.0
 disjoint-set==0.7.3
 networkx==2.8.7
 python-multipart==0.0.5
 setuptools==65.4.1
 pymongo==4.2.0
+pyarrow
+polars

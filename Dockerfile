@@ -1,6 +1,6 @@
 # Rust Stage 
 
-FROM rust:latest AS rust-stage
+FROM rust:latest AS opendp_compile
 
 # Clone branch of git repository
 RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
@@ -11,9 +11,7 @@ RUN cargo build --features untrusted,bindings-python
 
 # Python stage
 FROM python:3.8 AS sdd_server
-
-# Clone branch of git repository
-RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
+COPY --from=opendp_compile opendp/ opendp/
 
 # Install opendp python
 WORKDIR opendp/python
@@ -26,10 +24,10 @@ COPY ./requirements.txt /code/requirements.txt
  
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-RUN git clone https://github.com/IBM/differential-privacy-library
-RUN cd differential-privacy-library && pip install .
+#RUN git clone https://github.com/IBM/differential-privacy-library
+#RUN cd differential-privacy-library && pip install .
 
-RUN rm -rf differential-privacy-library
+#RUN rm -rf differential-privacy-library
 
 # We do not copy the code here, but in the test and prod stages only.
 # For developping, we mount a volume with the -v option at runtime.

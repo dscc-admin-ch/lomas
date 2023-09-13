@@ -4,7 +4,7 @@ import opendp as dp
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
-
+from private_database.private_database import PrivateDatabase
 from dp_queries.dp_logic import DPQuerier
 from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from utils.loggr import LOG
@@ -18,7 +18,7 @@ class OpenDPQuerier(DPQuerier):
     def __init__(
         self,
         metadata,
-        private_db,
+        private_db: PrivateDatabase = None,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
@@ -73,7 +73,9 @@ def is_measurement(value):
 
 
 def reconstruct_measurement_pipeline(pipeline):
+    LOG.warning("\n\nbefore make load")
     opendp_pipe = make_load_json(pipeline)
+    LOG.warning("\n\nbefore make load")
 
     if not is_measurement(opendp_pipe):
         e = "The pipeline provided is not a measurement. \

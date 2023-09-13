@@ -25,25 +25,23 @@ class BasicModel(BaseModel):
         )
 
 
-class OpenDPBase(BasicModel):
-    function: str
-    args: List
-    kwargs: dict
+# class OpenDPBase(BasicModel):
+#     function: str
+#     args: List
+#     kwargs: dict
 
 
-class OpenDPAST(BasicModel):
-    func: str
-    module: str
-    type: str
-    args: dict = {}
-    kwargs: dict = {}
+# class OpenDPAST(BasicModel):
+#     func: str
+#     module: str
+#     type: str
+#     args: dict = {}
+#     kwargs: dict = {}
 
 
 class OpenDPInp(BasicModel):
-    # from_function: OpenDPBase
-    # to_function: OpenDPBase
-    version: str
-    ast: OpenDPAST
+    dataset_name: str
+    opendp_json: str  # TODO: improve later
 
 
 class DiffPrivLibModel(BasicModel):

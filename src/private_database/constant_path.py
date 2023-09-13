@@ -1,4 +1,3 @@
-from utils.constants import DATASET_PATHS
 from private_database.private_database import PrivateDatabase
 
 import pandas as pd
@@ -9,12 +8,12 @@ class ConstantPath(PrivateDatabase):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, dataset_name) -> None:
+    def __init__(self, dataset_path) -> None:
         """
         Parameters:
-            - dataset_name: name of the dataset
+            - dataset_path: path of the dataset
         """
-        self.ds_path = DATASET_PATHS[dataset_name]
+        self.ds_path = dataset_path
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

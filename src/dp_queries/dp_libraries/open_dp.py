@@ -31,6 +31,7 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         try:
+            # TODO: change d_in=1 or 1.0 with the maxrowchanged from metadata
             cost = opendp_pipe.map(d_in=1.0)
 
         except Exception:

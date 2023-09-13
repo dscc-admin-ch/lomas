@@ -78,7 +78,7 @@ example_diffprivlib = {
 example_opendp = {
     "dataset_name": IRIS_DATASET,
     "opendp_json": {
-        "version": "0.6.1",
+        "version": "0.8.0",
         "ast": {
             "func": "make_chain_tt",
             "module": "comb",

@@ -213,11 +213,7 @@ def dummy_smartnoise_sql_handler(
 
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response_df = dummy_querier.query(
-            query_json.query_str,
-            eps=query_json.epsilon,
-            delta=query_json.delta,
-        )
+        response_df = dummy_querier.query(query_json)
 
         response = {"query_response": response_df.to_dict(orient="tight")}
 
@@ -262,6 +258,7 @@ def opendp_query_handler(
     query_json: OpenDPInp = Body(example_opendp),
     user_name: str = Header(None),
 ):
+    LOG.warning(f"here is is {query_json}")
     try:
         response = globals.QUERY_HANDLER.handle_query(
             LIB_OPENDP, query_json, user_name

@@ -5,6 +5,8 @@ from utils.constants import (
     MONGODB_CONTAINER_NAME,
     MONGODB_PORT,
     ADMIN_DATABASE_NAME,
+    CONSTANT_PATH_DB,
+    S3_DB,
 )
 
 
@@ -211,10 +213,31 @@ class MongoDB_Admin:
 
         with open(args.path) as f:
             dataset_dict = yaml.safe_load(f)
-            self.db.datasets.insert_many(dataset_dict["datasets"])
+
+        def verify_keys(d, field):
+            assert (
+                field in d.keys()
+            ), f"Dataset {d['dataset_name']} requires '{field}' key."
+
+        # Verify inputs
+        for d in dataset_dict["datasets"]:
+            verify_keys(d, "dataset_name")
+            verify_keys(d, "database_type")
+            verify_keys(d, "metadata_path")
+
+            if d["database_type"] == CONSTANT_PATH_DB:
+                verify_keys(d, "dataset_path")
+            elif d["database_type"] == S3_DB:
+                verify_keys(d, "s3_bucket")
+                verify_keys(d, "s3_key")
+            else:
+                raise ValueError(f"Dataset type {d['database_type']} unknown")
+
+        # Add dataset collecion
+        self.db.datasets.insert_many(dataset_dict["datasets"])
         print(f"Added datasets collection from yaml at {args.path}. ")
 
-        # Store metadata from each dataset's in metadata collection
+        # Add metadata collection (one metadata per dataset)
         for d in dataset_dict["datasets"]:
             dataset_name = d["dataset_name"]
             with open(d["metadata_path"]) as f:

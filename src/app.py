@@ -5,6 +5,7 @@ from mongodb_admin import MongoDB_Admin
 from admin_database.utils import database_factory
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
+    example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_get_budget,
     example_get_dataset_metadata,
@@ -13,6 +14,7 @@ from dp_queries.example_inputs import (
     example_smartnoise_sql,
 )
 from dp_queries.input_models import (
+    DummyOpenDPInp,
     DummySNSQLInp,
     GetBudgetInp,
     GetDatasetMetadata,
@@ -20,9 +22,8 @@ from dp_queries.input_models import (
     OpenDPInp,
     SNSQLInp,
 )
+from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
-
-# from dp_queries.dp_libraries.opendp_query import OpenDPQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
@@ -270,6 +271,42 @@ def opendp_query_handler(
         LOG.exception(e)
         raise HTTPException(500, str(e))
 
+    return response
+
+
+@app.post(
+    "/dummy_opendp_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def dummy_opendp_query_handler(
+    query_json: DummyOpenDPInp = Body(example_dummy_opendp),
+):
+    # Create dummy dataset based on seed and number of rows
+    ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
+        query_json.dataset_name
+    )
+
+    dummy_querier = OpenDPQuerier(
+        ds_metadata,
+        dummy=True,
+        dummy_nb_rows=query_json.dummy_nb_rows,
+        dummy_seed=query_json.dummy_seed,
+    )
+
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response_df = dummy_querier.query(query_json)
+
+        response = {"query_response": response_df.to_dict(orient="tight")}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
     return response
 
 

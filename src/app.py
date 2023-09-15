@@ -259,7 +259,6 @@ def opendp_query_handler(
     query_json: OpenDPInp = Body(example_opendp),
     user_name: str = Header(None),
 ):
-    LOG.warning(f"here is is {query_json}")
     try:
         response = globals.QUERY_HANDLER.handle_query(
             LIB_OPENDP, query_json, user_name
@@ -297,8 +296,7 @@ def dummy_opendp_query_handler(
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
-
-        response = {"query_response": response_df.to_dict(orient="tight")}
+        response = {"query_response": response_df}
 
     except HTTPException as e:
         raise e

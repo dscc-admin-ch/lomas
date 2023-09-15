@@ -73,9 +73,7 @@ def is_measurement(value):
 
 
 def reconstruct_measurement_pipeline(pipeline):
-    LOG.warning("\n\nbefore make load")
     opendp_pipe = make_load_json(pipeline)
-    LOG.warning("\n\nbefore make load")
 
     if not is_measurement(opendp_pipe):
         e = "The pipeline provided is not a measurement. \

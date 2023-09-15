@@ -85,4 +85,4 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 " to generate output.",
             )
 
-        return df_res
+        return df_res.to_dict(orient="tight")

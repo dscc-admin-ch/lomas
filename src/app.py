@@ -216,7 +216,7 @@ def dummy_smartnoise_sql_handler(
     try:
         response_df = dummy_querier.query(query_json)
 
-        response = {"query_response": response_df.to_dict(orient="tight")}
+        response = {"query_response": response_df}
 
     except HTTPException as e:
         raise e

@@ -1,7 +1,10 @@
+import time
 from typing import List
+from fastapi import HTTPException
+import pymongo
+
 from admin_database.admin_database import AdminDatabase
 from utils.constants import ADMIN_DATABASE_NAME
-import pymongo
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -246,7 +249,7 @@ class AdminMongoDatabase(AdminDatabase):
         dataset_name: str,
         epsilon: float,
         delta: float,
-        query: dict,
+        query_json: dict,
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table)
@@ -258,6 +261,15 @@ class AdminMongoDatabase(AdminDatabase):
             - delta: value of delta spent on last query
             - query: json string of the query
         """
+        if query_json.__class__.__name__ == "SNSQLInp":
+            query = query_json.query_str
+        elif query_json.__class__.__name__ == "OpenDPInp":
+            query = query_json.opendp_json
+        else:
+            raise HTTPException(
+                500, f"Unknown query type in archive: {query_json}"
+            )
+
         self.db.queries_archives.insert_one(
             {
                 "user_name": f"{user_name}",
@@ -265,5 +277,6 @@ class AdminMongoDatabase(AdminDatabase):
                 "epsilon": epsilon,
                 "delta": delta,
                 "query": query,
+                "timestamp": time.time(),
             }
         )

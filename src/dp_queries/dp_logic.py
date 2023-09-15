@@ -271,13 +271,15 @@ class QueryHandler:
                 query_json.dataset_name,
                 eps_cost,
                 delta_cost,
-                query_json.query_str,
+                query_json,
             )
 
+            LOG.warning("response")
+            LOG.warning(query_response)
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",
-                "query_response": query_response.to_dict(orient="tight"),
+                "query_response": query_response,
                 "spent_epsilon": eps_cost,
                 "spent_delta": delta_cost,
             }

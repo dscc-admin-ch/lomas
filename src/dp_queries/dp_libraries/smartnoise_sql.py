@@ -8,7 +8,6 @@ from dp_queries.dp_logic import DPQuerier
 import globals
 from private_database.private_database import PrivateDatabase
 
-from utils.dummy_dataset import make_dummy_dataset
 from utils.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -25,21 +24,17 @@ class SmartnoiseSQLQuerier(DPQuerier):
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
     ) -> None:
-        self.metadata = metadata
+        super().__init__(
+            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
+        )
 
-        if dummy:
-            self.df = make_dummy_dataset(
-                self.metadata, dummy_nb_rows, dummy_seed
-            )
-        else:
-            self.df = private_db.get_pandas_df()
-
-    def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
-        privacy = Privacy(epsilon=eps, delta=delta)
+    def cost(self, query_json: dict) -> List[float]:
+        privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
 
+        query_str = query_json.query_str
         try:
             result = reader.get_privacy_cost(query_str)
         except Exception as err:
@@ -51,12 +46,14 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_str: str, eps: float, delta: float) -> str:
-        privacy = Privacy(epsilon=eps, delta=delta)
+    def query(self, query_json: dict) -> str:
+        epsilon, delta = query_json.epsilon, query_json.delta
+        privacy = Privacy(epsilon=epsilon, delta=delta)
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
 
+        query_str = query_json.query_str
         try:
             result = reader.execute(query_str)
         except Exception as err:
@@ -74,7 +71,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise HTTPException(
                 400,
                 f"SQL Reader generated empty results,"
-                f"Epsilon: {eps} and Delta: {delta} are too small"
+                f"Epsilon: {epsilon} and Delta: {delta} are too small"
                 "to generate output.",
             )
 
@@ -84,8 +81,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise HTTPException(
                 400,
                 f"SQL Reader generated NAN results."
-                f" Epsilon: {eps} and Delta: {delta} are too small"
+                f" Epsilon: {epsilon} and Delta: {delta} are too small"
                 " to generate output.",
             )
 
-        return df_res
+        return df_res.to_dict(orient="tight")

@@ -1,139 +1,105 @@
-import json
-import re
-import builtins
-
-import globals
-
 from fastapi import HTTPException
-import opendp.combinators as comb
-import opendp.measurements as meas
-import opendp.transformations as trans
+
+import opendp as dp
 from opendp.mod import enable_features
+from opendp_logger import make_load_json
+from typing import List
+from private_database.private_database import PrivateDatabase
+from dp_queries.dp_logic import DPQuerier
+from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from utils.loggr import LOG
 
 enable_features("contrib")
-
-# print("comb:", comb)
-# print("meas:", meas)
-# print("trans:", trans)
 
 PT_TYPE = "^py_type:*"
 
 
-def cast_str_to_type(d):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            cast_str_to_type(v)
-        elif isinstance(v, str):
-            if re.search(PT_TYPE, v):
-                d[k] = getattr(
-                    builtins,
-                    v[8:],
-                )
-    return d
-
-
-def jsonOpenDPDecoder(obj):
-    if "_tuple" in obj.keys():
-        return tuple(obj["_items"])
-    if isinstance(obj, dict):
-        return cast_str_to_type(obj)
-    return obj
-
-
-def cast_type_to_str(d):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            cast_type_to_str(v)
-        elif isinstance(v, type):
-            d[k] = "pytype_" + str(v.__name__)
-    return d
-
-
-def tree_walker(branch):
-    if branch["module"] == "trans":
-        module = trans
-    elif branch["module"] == "meas":
-        module = meas
-    elif branch["module"] == "comb":
-        args = list(branch["args"])
-        for i in range(len(branch["args"])):
-            if isinstance(args[i], dict):
-                args[i] = tree_walker(args[i])
-        branch["args"] = tuple(args)
-
-        for k, v in branch["kwargs"]:
-            if isinstance(v, dict):
-                branch["kwargs"][k] = tree_walker(v)
-
-        module = comb
-    else:
-        raise ValueError(
-            f"Type {branch['type']} not in \
-                Literal[\"Transformation\", \"Measurement\", \"Combination\"]"
+class OpenDPQuerier(DPQuerier):
+    def __init__(
+        self,
+        metadata,
+        private_db: PrivateDatabase = None,
+        dummy: bool = False,
+        dummy_nb_rows: int = DUMMY_NB_ROWS,
+        dummy_seed: int = DUMMY_SEED,
+    ) -> None:
+        super().__init__(
+            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
 
-    return getattr(module, branch["func"])(
-        *branch["args"],
-        **branch["kwargs"],
-    )
+    def cost(self, query_json: dict) -> List[float]:
+        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-
-def opendp_constructor(
-    parse_str: str,
-):
-    obj = json.loads(
-        parse_str,
-        object_hook=jsonOpenDPDecoder,
-    )
-
-    if obj["version"] != globals.OPENDP_VERSION:
-        raise ValueError(
-            f"OpenDP version in parsed object ({obj['version']}) does not\
-                match the current installation ({globals.OPENDP_VERSION})."
-        )
-
-    return tree_walker(obj["ast"])
-
-
-def opendp_apply(opdp_pipe):
-    try:
-        release_data = opdp_pipe(globals.TRAIN.to_csv())
-    except Exception as e:
-        globals.LOG.exception(e)
-        raise HTTPException(
-            400,
-            "Failed when applying chain to data with error: " + str(e),
-        )
-    try:
-        e, d = opdp_pipe.map(d_in=1.0)
-    except Exception:
         try:
-            (
-                e,
-                d,
-            ) = opdp_pipe.map(d_in=1)
-        except Exception as ex:
-            globals.LOG.exception(ex)
+            # TODO: change d_in=1 or 1.0 with the maxrowchanged from metadata
+            cost = opendp_pipe.map(d_in=1.0)
+
+        except Exception:
+            try:
+                cost = opendp_pipe.map(d_in=1)
+            except Exception as e:
+                LOG.exception(e)
+                raise HTTPException(
+                    400,
+                    "Error obtaining privacy map for the chain. \
+                        Please ensure methods return epsilon, \
+                            and delta in privacy map. Error:"
+                    + str(e),
+                )
+
+        epsilon, delta = cost_to_param(cost)
+        return epsilon, delta
+
+    def query(self, query_json: dict) -> str:
+        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
+
+        try:
+            # response, privacy_map = opendp_apply(opendp_pipe)
+            release_data = opendp_pipe(self.df.to_csv())
+        except HTTPException as he:
+            LOG.exception(he)
+            raise he
+        except Exception as e:
+            LOG.exception(e)
             raise HTTPException(
                 400,
-                "Error obtaining privacy map for the chain. \
-                    Please ensure methods return epsilon, \
-                        and delta in privacy map. Error:"
-                + str(e),
+                "Failed when applying chain to data with error: " + str(e),
             )
-    if e > globals.EPSILON_LIMIT:
+        return str(release_data)
+
+
+def is_measurement(value):
+    return isinstance(value, dp.Measurement)
+
+
+def reconstruct_measurement_pipeline(pipeline):
+    opendp_pipe = make_load_json(pipeline)
+
+    if not is_measurement(opendp_pipe):
+        e = "The pipeline provided is not a measurement. \
+                It cannot be processed in this server."
+        LOG.exception(e)
+        raise HTTPException(400, e)
+
+    return opendp_pipe
+
+
+def cost_to_param(cost):
+    """
+    TODO: improve by checking the type (gaussian/laplace) of the output
+    like below:
+    def is_approx_dp(meas):
+    return meas.output_measure == dp.fixed_smoothed_max_divergence(T = float)
+    """
+    if isinstance(cost, int) or isinstance(cost, float):
+        epsilon, delta = cost, 0
+    elif isinstance(cost, tuple):
+        epsilon, delta = cost[0], cost[1]
+    else:
+        e = f"Unexpected result from opendp map function: {cost}"
+        LOG.exception(e)
         raise HTTPException(
             400,
-            f"Chain constructed uses epsilon > {globals.EPSILON_LIMIT}, \
-                please update and retry",
+            "Failed when unpacking opendp cost: " + str(e),
         )
-    if d > globals.DELTA_LIMIT:
-        raise HTTPException(
-            400,
-            f"Chain constructed uses delta > {globals.DELTA_LIMIT}, \
-                please update and retry",
-        )
-    return release_data, (
-        e,
-        d,
-    )
+    return epsilon, delta

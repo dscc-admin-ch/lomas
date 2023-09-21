@@ -3,12 +3,17 @@ from fastapi import Header, HTTPException
 from typing import Dict, List
 
 from utils.constants import (
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
     SUPPORTED_LIBS,
+    LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
 from admin_database.admin_database import AdminDatabase
 from dp_queries.input_models import BasicModel
+from private_database.private_database import PrivateDatabase
 from private_database.utils import private_database_factory
+from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
 
 
@@ -17,22 +22,35 @@ class DPQuerier(ABC):
     Overall query to external DP library
     """
 
-    @abstractmethod
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        metadata: dict,
+        private_db: PrivateDatabase = None,
+        dummy: bool = False,
+        dummy_nb_rows: int = DUMMY_NB_ROWS,
+        dummy_seed: int = DUMMY_SEED,
+    ) -> None:
         """
         Initialise with specific dataset
         """
-        pass
+        self.metadata = metadata
+
+        if dummy:
+            self.df = make_dummy_dataset(
+                self.metadata, dummy_nb_rows, dummy_seed
+            )
+        else:
+            self.df = private_db.get_pandas_df()
 
     @abstractmethod
-    def cost(self, query_str: str, eps: float, delta: float) -> List[float]:
+    def cost(self, query_json: dict) -> List[float]:
         """
         Estimate cost of query
         """
         pass
 
     @abstractmethod
-    def query(self, query_str: str, eps: float, delta: float) -> str:
+    def query(self, query_json: dict) -> str:
         """
         Does the query and return the response
         """
@@ -119,13 +137,17 @@ class BasicQuerierManager(QuerierManager):
                 )
 
                 querier = SmartnoiseSQLQuerier(metadata, private_database)
-                self.dp_queriers[dataset_name][lib] = querier
-            # elif ... :
+            elif lib == LIB_OPENDP:
+                from dp_queries.dp_libraries.open_dp import OpenDPQuerier
+
+                querier = OpenDPQuerier(metadata, private_database)
+            # elif lib == LIB_DIFFPRIVLIB: TODO
             else:
                 raise Exception(
                     f"Trying to create a querier for library {lib}. "
                     "This should never happen."
                 )
+            self.dp_queriers[dataset_name][lib] = querier
 
     def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
         if dataset_name not in self.dp_queriers:
@@ -186,11 +208,9 @@ class QueryHandler:
         dp_querier = self._get_querier(query_type, query_json)
 
         # Get cost of the query
-        eps_cost, delta_cost = dp_querier.cost(
-            query_json.query_str, query_json.epsilon, query_json.delta
-        )
-        response = {"epsilon_cost": eps_cost, "delta_cost": delta_cost}
-        return response
+        eps_cost, delta_cost = dp_querier.cost(query_json)
+
+        return {"epsilon_cost": eps_cost, "delta_cost": delta_cost}
 
     def handle_query(
         self,
@@ -216,11 +236,9 @@ class QueryHandler:
         self.admin_database.set_may_user_query(user_name, False)
 
         # Get cost of the query
-        eps_cost, delta_cost = dp_querier.cost(
-            query_json.query_str, query_json.epsilon, query_json.delta
-        )
+        eps_cost, delta_cost = dp_querier.cost(query_json)
 
-        # Check that enough budget to to the query
+        # Check that enough budget to do the query
         (
             eps_remaining,
             delta_remaining,
@@ -232,9 +250,7 @@ class QueryHandler:
         if (eps_remaining >= eps_cost) and (delta_remaining >= delta_cost):
             # Query
             try:
-                query_response = dp_querier.query(
-                    query_json.query_str, query_json.epsilon, query_json.delta
-                )
+                query_response = dp_querier.query(query_json)
             except HTTPException as he:
                 self.admin_database.set_may_user_query(user_name, True)
                 LOG.exception(he)
@@ -255,13 +271,15 @@ class QueryHandler:
                 query_json.dataset_name,
                 eps_cost,
                 delta_cost,
-                query_json.query_str,
+                query_json,
             )
 
+            LOG.warning("response")
+            LOG.warning(query_response)
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",
-                "query_response": query_response.to_dict(orient="tight"),
+                "query_response": query_response,
                 "spent_epsilon": eps_cost,
                 "spent_delta": delta_cost,
             }

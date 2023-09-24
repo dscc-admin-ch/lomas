@@ -26,6 +26,7 @@ class OpenDPQuerier(DPQuerier):
         super().__init__(
             metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
+        self.path = private_db.get_csv_path()
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
@@ -53,9 +54,19 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
+        if query_json.input_data == "df":
+            input_data = self.df.to_csv()
+        elif query_json.input_data == "path":
+            input_data = self.path
+        else:
+            raise HTTPException(
+                400,
+                "Unknow input_data in opendp query: "
+                + str(query_json.input_data),
+            )
+
         try:
-            # response, privacy_map = opendp_apply(opendp_pipe)
-            release_data = opendp_pipe(self.df.to_csv())
+            release_data = opendp_pipe(input_data)
         except HTTPException as he:
             LOG.exception(he)
             raise he

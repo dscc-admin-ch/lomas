@@ -22,3 +22,11 @@ class ConstantPath(PrivateDatabase):
             - pandas dataframe of dataset
         """
         return pd.read_csv(self.ds_path)
+
+    def get_csv_path(self) -> str:
+        """
+        Get the path to the csv data
+        Returns:
+            - path
+        """
+        return self.ds_path

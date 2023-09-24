@@ -17,6 +17,15 @@ class PrivateDatabase(ABC):
         pass
 
     @abstractmethod
+    def get_csv_path(self) -> str:
+        """
+        Get the path to the csv data
+        Returns:
+            - path
+        """
+        pass
+
+    @abstractmethod
     def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
         """
         Get the data in pandas dataframe format

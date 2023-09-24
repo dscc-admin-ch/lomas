@@ -3,7 +3,7 @@ services:
   sdd_poc_server:
     image: sdd_server_dev
     build:
-      dockerfile: ./Dockerfile.testdemo
+      dockerfile: ./Dockerfile
     container_name: sdd_server_dev
     ports:
       - 80:80

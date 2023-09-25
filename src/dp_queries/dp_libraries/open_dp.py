@@ -26,7 +26,11 @@ class OpenDPQuerier(DPQuerier):
         super().__init__(
             metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
+
         self.path = private_db.get_csv_path()
+
+        no_na_df = self.df.dropna()
+        no_na_df.to_csv(self.path, sep=',', header=True, index=False)
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
@@ -76,7 +80,11 @@ class OpenDPQuerier(DPQuerier):
                 400,
                 "Failed when applying chain to data with error: " + str(e),
             )
-        return str(release_data)
+
+        if query_json.input_data == "path":
+            release_data = release_data.to_pandas()
+            
+        return release_data
 
 
 def is_measurement(value):

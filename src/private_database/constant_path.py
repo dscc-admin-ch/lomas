@@ -1,7 +1,7 @@
+import os
 from private_database.private_database import PrivateDatabase
 
 import pandas as pd
-
 
 class ConstantPath(PrivateDatabase):
     """
@@ -29,4 +29,5 @@ class ConstantPath(PrivateDatabase):
         Returns:
             - path
         """
-        return self.ds_path
+        file_name = os.path.splitext(os.path.basename(self.ds_path))[0]
+        return f'opendp_polars_{file_name}.csv'

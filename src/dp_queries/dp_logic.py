@@ -274,8 +274,7 @@ class QueryHandler:
                 query_json,
             )
 
-            LOG.warning("response")
-            LOG.warning(query_response)
+            LOG.warning(f"response {query_response}")
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",

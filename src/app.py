@@ -5,24 +5,33 @@ from mongodb_admin import MongoDB_Admin
 from admin_database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
+    example_dummy_opendp,
     example_dummy_smartnoise_sql,
+    example_get_budget,
     example_get_dataset_metadata,
     example_get_dummy_dataset,
+    example_opendp,
     example_smartnoise_sql,
-    example_get_budget,
 )
 from dp_queries.input_models import (
+    DummyOpenDPInp,
     DummySNSQLInp,
+    GetBudgetInp,
     GetDatasetMetadata,
     GetDummyDataset,
+    OpenDPInp,
     SNSQLInp,
-    GetBudgetInp,
 )
+from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
-from utils.constants import INTERNAL_SERVER_ERROR
+from utils.constants import (
+    INTERNAL_SERVER_ERROR,
+    LIB_OPENDP,
+    LIB_SMARTNOISE_SQL,
+)
 from utils.depends import server_live
 from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
@@ -157,31 +166,7 @@ def get_dummy_dataset(
 
 # Smartnoise SQL query
 @app.post(
-    "/estimate_cost",
-    dependencies=[Depends(server_live)],
-    tags=["USER_QUERY"],
-)
-def estimate_cost(
-    query_json: SNSQLInp = Body(example_smartnoise_sql),
-):
-    # Catch all non-http exceptions so that the server does not fail.
-    try:
-        response = globals.QUERY_HANDLER.estimate_cost(
-            "smartnoise_sql", query_json
-        )
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
-
-    # Return response
-    return response
-
-
-# Smartnoise SQL query
-@app.post(
-    "/smartnoise_sql",
+    "/smartnoise_query",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
@@ -192,7 +177,7 @@ def smartnoise_sql_handler(
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response = globals.QUERY_HANDLER.handle_query(
-            "smartnoise_sql", query_json, user_name
+            LIB_SMARTNOISE_SQL, query_json, user_name
         )
     except HTTPException as e:
         raise e
@@ -204,9 +189,9 @@ def smartnoise_sql_handler(
     return response
 
 
-# Smartnoise SQL query
+# Smartnoise SQL Dummy query
 @app.post(
-    "/dummy_smartnoise_sql",
+    "/dummy_smartnoise_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
@@ -227,13 +212,9 @@ def dummy_smartnoise_sql_handler(
 
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response_df = dummy_querier.query(
-            query_json.query_str,
-            eps=query_json.epsilon,
-            delta=query_json.delta,
-        )
+        response_df = dummy_querier.query(query_json)
 
-        response = {"query_response": response_df.to_dict(orient="tight")}
+        response = {"query_response": response_df}
 
     except HTTPException as e:
         raise e
@@ -245,7 +226,128 @@ def dummy_smartnoise_sql_handler(
     return response
 
 
-# MongoDB get current budget query
+@app.post(
+    "/estimate_smartnoise_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_smartnoise_cost(
+    query_json: SNSQLInp = Body(example_smartnoise_sql),
+):
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response = globals.QUERY_HANDLER.estimate_cost(
+            LIB_SMARTNOISE_SQL,
+            query_json,
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
+    return response
+
+
+@app.post(
+    "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
+)
+def opendp_query_handler(
+    query_json: OpenDPInp = Body(example_opendp),
+    user_name: str = Header(None),
+):
+    try:
+        response = globals.QUERY_HANDLER.handle_query(
+            LIB_OPENDP, query_json, user_name
+        )
+    except HTTPException as he:
+        LOG.exception(he)
+        raise he
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
+
+    return response
+
+
+@app.post(
+    "/dummy_opendp_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def dummy_opendp_query_handler(
+    query_json: DummyOpenDPInp = Body(example_dummy_opendp),
+):
+    # Create dummy dataset based on seed and number of rows
+    ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
+        query_json.dataset_name
+    )
+
+    dummy_querier = OpenDPQuerier(
+        ds_metadata,
+        dummy=True,
+        dummy_nb_rows=query_json.dummy_nb_rows,
+        dummy_seed=query_json.dummy_seed,
+    )
+
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response_df = dummy_querier.query(query_json)
+        response = {"query_response": response_df}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
+    return response
+
+
+@app.post(
+    "/estimate_opendp_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_opendp_cost(
+    query_json: OpenDPInp = Body(example_opendp),
+):
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response = globals.QUERY_HANDLER.estimate_cost(
+            LIB_OPENDP,
+            query_json,
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
+    return response
+
+
+# MongoDB get initial budget query
+@app.post(
+    "/get_initial_budget",
+    dependencies=[Depends(server_live)],
+    tags=["USER_BUDGET"],
+)
+def get_initial_budget(
+    query_json: GetBudgetInp = Body(example_get_budget),
+    user_name: str = Header(None),
+):
+    initial_epsilon, initial_delta = globals.ADMIN_DATABASE.get_initial_budget(
+        user_name, query_json.dataset_name
+    )
+
+    return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
+
+
+# MongoDB get total spent budget query
 @app.post(
     "/get_total_spent_budget",
     dependencies=[Depends(server_live)],
@@ -266,23 +368,6 @@ def get_total_spent_budget(
         "total_spent_epsilon": total_spent_epsilon,
         "total_spent_delta": total_spent_delta,
     }
-
-
-# MongoDB get initial budget query
-@app.post(
-    "/get_initial_budget",
-    dependencies=[Depends(server_live)],
-    tags=["USER_BUDGET"],
-)
-def get_initial_budget(
-    query_json: GetBudgetInp = Body(example_get_budget),
-    user_name: str = Header(None),
-):
-    initial_epsilon, initial_delta = globals.ADMIN_DATABASE.get_initial_budget(
-        user_name, query_json.dataset_name
-    )
-
-    return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
 
 
 @app.post(

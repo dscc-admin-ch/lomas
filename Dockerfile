@@ -1,6 +1,6 @@
 # Rust Stage 
 
-FROM rust:latest AS opendp_compile
+FROM rust:latest AS rust_opendp_compile
 
 # Clone branch of git repository
 RUN git clone -b 911-make-private-select https://github.com/damienaymon/opendp-fso.git
@@ -12,15 +12,28 @@ RUN cargo build --features untrusted,bindings-python
 
 # Python stage
 FROM python:3.8 AS sdd_server
-COPY --from=opendp_compile opendp/ opendp/
+COPY --from=rust_opendp_compile opendp/ opendp_polars/
 
-# Install opendp python
-WORKDIR opendp/python
+# Install python opendp under the name opendp_polars
+WORKDIR opendp_polars/python
+RUN sed -i 's/setup()/setup(name="opendp_polars")/' setup.py 
+RUN sed -i 's/name = opendp/name = opendp_polars/' setup.cfg
+RUN mv src/opendp src/opendp_polars
+RUN sed -i 's/opendp\./opendp_polars\./' src/opendp_polars/*.py
 RUN pip install flake8 pytest wheel
 RUN pip install -e .
 
+# Install opendp_logger using previously installed opendp_polars
+RUN git clone https://github.com/opendp/opendp-logger
+WORKDIR opendp-logger
+# Remove opendp dependency from PyPI; use local opendp_polars installation 
+# via find_packages() from setuptools
+RUN sed -i '/"opendp >= 0.8.0"/d' setup.py 
+RUN sed -i 's/opendp\./opendp_polars\./' opendp_logger/*.py
+RUN pip install -e .
+
 WORKDIR /code
- 
+
 COPY ./requirements.txt /code/requirements.txt
  
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt

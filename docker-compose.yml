@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   sdd_poc_server:
-    image: sdd_server_demo
+    image: damienaymon/sdd_server_demo_dev
     build:
       dockerfile: ./Dockerfile
       target: sdd_server_dev
@@ -40,7 +40,7 @@ services:
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
   client:
-    image: sdd_client_demo
+    image: damienaymon/sdd_client_demo
     build:
       dockerfile: ../sdd-poc-client/Dockerfile
     container_name: sdd_client_demo

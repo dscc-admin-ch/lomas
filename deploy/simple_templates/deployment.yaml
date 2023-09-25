@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdd-poc-server
+spec:
+  selector:
+    matchLabels:
+      app: sdd-poc-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sdd-poc-server
+    spec:
+      containers:
+      - name: sdd-poc-server
+        image: damienaymon/sdd-poc-server:latest
+        ports:
+        - containerPort: 80

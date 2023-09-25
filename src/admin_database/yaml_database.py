@@ -4,7 +4,7 @@ from typing import List
 import yaml
 
 from admin_database.admin_database import AdminDatabase
-from utils.constants import QUERIES_ARCHIVES, DATASET_METADATA_PATHS
+from utils.constants import QUERIES_ARCHIVES_PATH, DATASET_METADATA_PATHS
 
 
 class AdminYamlDatabase(AdminDatabase):
@@ -267,5 +267,5 @@ class AdminYamlDatabase(AdminDatabase):
         """
         Saves the current list of queries in a JSON
         """
-        with open(QUERIES_ARCHIVES, "w") as outfile:
+        with open(QUERIES_ARCHIVES_PATH, "w") as outfile:
             json.dump(self.queries_archives, outfile)

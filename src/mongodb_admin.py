@@ -1,10 +1,8 @@
 import argparse
 import pymongo
 import yaml
+from admin_database.utils import get_mongodb_url
 from utils.constants import (
-    MONGODB_CONTAINER_NAME,
-    MONGODB_PORT,
-    ADMIN_DATABASE_NAME,
     CONSTANT_PATH_DB,
     S3_DB,
 )
@@ -15,11 +13,11 @@ class MongoDB_Admin:
     Overall administration operations of the MongoDB database.
     """
 
-    def __init__(self, connection_string: str):
+    def __init__(self, connection_string: str, database_name: str):
         """
         Connect to DB
         """
-        self.db = pymongo.MongoClient(connection_string)[ADMIN_DATABASE_NAME]
+        self.db = pymongo.MongoClient(connection_string)[database_name]
 
     ##########################  USERS  ########################## # noqa: E266
     def add_user(self, args):
@@ -273,9 +271,18 @@ class MongoDB_Admin:
 
 
 if __name__ == "__main__":
-    admin = MongoDB_Admin(
-        f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
-    )
+    # Get url with vault credentials
+    # TODO update this part with config file and prompt for password..
+    def config():
+        return None
+    config.username = "user"
+    config.password = "user_pwd"
+    config.address = "mongodb"
+    config.port = 27017
+    config.db_name = "defaultdb"
+
+    db_url = get_mongodb_url(config)
+    admin = MongoDB_Admin(db_url, config.db_name)
 
     parser = argparse.ArgumentParser(
         prog="MongoDB administration script for the user database"
@@ -425,7 +432,7 @@ if __name__ == "__main__":
     drop_collection_parser.add_argument("-c", "--collection", required=True)
     drop_collection_parser.set_defaults(func=admin.drop_collection)
 
-    # Create the parser fir the "show_users_collection" command
+    # Create the parser for the "show_users_collection" command
     show_collection_parser = subparsers.add_parser(
         "show_collection", help="print the users collection"
     )

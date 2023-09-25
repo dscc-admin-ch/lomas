@@ -1,8 +1,6 @@
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
-YAML_USER_DATABASE = "/usr/sdd_poc_server/user_collection.yaml"
-QUERIES_ARCHIVES = "/usr/sdd_poc_server/queries_archive.json"
-MONGODB_CONTAINER_NAME = "mongodb"
+QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS = "runtime_args"
@@ -14,7 +12,8 @@ CONF_DB = "admin_database"
 CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
 CONF_DB_TYPE_YAML = "yaml"
-CONF_YAML_DB = "db_file"
+CONF_YAML_DB_DIR = "db_directory"
+CONF_YAML_DB_FILE_NAME = "db_file_name"
 CONF_MONGODB_ADDR = "address"
 CONF_MONGODB_PORT = "port"
 
@@ -95,9 +94,3 @@ RANDOM_STRINGS = ["a", "b", "c", "d"]
 RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
-
-
-# MongoDB
-MONGODB_CONTAINER_NAME = "mongodb"
-MONGODB_PORT = "27017"
-ADMIN_DATABASE_NAME = "default_database"

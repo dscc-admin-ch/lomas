@@ -4,7 +4,6 @@ from fastapi import HTTPException
 import pymongo
 
 from admin_database.admin_database import AdminDatabase
-from utils.constants import ADMIN_DATABASE_NAME
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -12,11 +11,15 @@ class AdminMongoDatabase(AdminDatabase):
     Overall MongoDB database management
     """
 
-    def __init__(self, connection_string: str) -> None:
+    def __init__(self, connection_string: str, database_name: str) -> None:
         """
         Load DB
+
+        Parameters:
+            - connection_string: Connection string to the mongodb
+            - database_name: Mongodb database name.
         """
-        self.db = pymongo.MongoClient(connection_string)[ADMIN_DATABASE_NAME]
+        self.db = pymongo.MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
         """

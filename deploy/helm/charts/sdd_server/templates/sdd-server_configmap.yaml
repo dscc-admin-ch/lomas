@@ -1,0 +1,26 @@
+{{- /*
+ apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sdd_server.fullname" . }}
+  labels:
+    {{- include "sdd_server.labels" . | nindent 4 }}
+data:
+  runtime_args:
+    settings:
+      develop_mode: True # !! Set this to false in production mode !!
+      submit_limit: 300
+      time_attack:
+          method: "jitter" # or "stall"
+          magnitude: 1
+      database:
+        db_type: "mongodb" # or "yaml" {{/* TODO start mongodb conditionnally?*/}}
+        address: {{ .Values.mongodb.mongodb.fullnameOverride }} # or db_file: <..> for yaml db
+        port: 27017
+        token: abcd
+        password: {{ .Values.mongodb.mongodb.auth.password }}
+        username: {{ .Values.mongodb.mongodb.auth.username }}
+        db_name: {{ .Values.mongodb.mongodb.auth.database }}
+        #db_type: "yaml"
+        #db_file: "/usr/sdd_poc_server/user_database.yaml" 
+*/ -}}

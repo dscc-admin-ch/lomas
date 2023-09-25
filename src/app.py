@@ -2,7 +2,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
 import globals
 from mongodb_admin import MongoDB_Admin
-from admin_database.utils import database_factory
+from admin_database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.example_inputs import (
     example_dummy_opendp,
@@ -55,15 +55,13 @@ def startup_event():
 
     # Fill up user database if in develop mode ONLY
     if globals.CONFIG.develop_mode:
-        from utils.constants import (
-            MONGODB_CONTAINER_NAME,
-            MONGODB_PORT,
-        )
 
         LOG.info("!! Develop mode ON !!")
-        mongo_admin = MongoDB_Admin(
-            f"mongodb://{MONGODB_CONTAINER_NAME}:{MONGODB_PORT}/"
-        )
+        LOG.info("Creating example user collection")
+
+        db_url = get_mongodb_url(globals.CONFIG.admin_database)
+        db_name = globals.CONFIG.admin_database.db_name
+        mongo_admin = MongoDB_Admin(db_url, db_name)
 
         def args():
             return None  # trick to create a dummy args object

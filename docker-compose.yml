@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   sdd_poc_server:
-    image: sdd_server_dev
+    image: damienaymon/sdd_server_demo
     build:
       dockerfile: ./Dockerfile
     container_name: sdd_server_dev
@@ -28,6 +28,19 @@ services:
       - sdd-network
     volumes:
       - mongodata:/data/db/
+  client:
+    image: damienaymon/sdd_client_demo
+    build:
+      dockerfile: ../sdd-poc-client/Dockerfile
+    container_name: sdd_client_demo
+    ports: 
+      - 8888:8888
+    volumes:
+      - ../sdd-poc-client/:/code/
+    depends_on:
+      - sdd_poc_server
+    networks:
+    - sdd-network
 networks:
   sdd-network:
     driver: bridge

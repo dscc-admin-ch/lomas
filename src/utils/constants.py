@@ -37,7 +37,8 @@ DELTA_INITIAL: float = 0.0
 
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
-SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL]
+LIB_OPENDP = "opendp"
+SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 
 # Datasets
 IRIS_DATASET = "IRIS"

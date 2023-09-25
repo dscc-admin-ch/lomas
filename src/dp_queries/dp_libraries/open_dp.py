@@ -27,11 +27,6 @@ class OpenDPQuerier(DPQuerier):
             metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
 
-        self.path = private_db.get_csv_path()
-
-        no_na_df = self.df.dropna()
-        no_na_df.to_csv(self.path, sep=',', header=True, index=False)
-
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
@@ -58,19 +53,8 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        if query_json.input_data == "df":
-            input_data = self.df.to_csv()
-        elif query_json.input_data == "path":
-            input_data = self.path
-        else:
-            raise HTTPException(
-                400,
-                "Unknow input_data in opendp query: "
-                + str(query_json.input_data),
-            )
-
         try:
-            release_data = opendp_pipe(input_data)
+            release_data = opendp_pipe(self.df.to_csv())
         except HTTPException as he:
             LOG.exception(he)
             raise he
@@ -80,9 +64,6 @@ class OpenDPQuerier(DPQuerier):
                 400,
                 "Failed when applying chain to data with error: " + str(e),
             )
-
-        if query_json.input_data == "path":
-            release_data = release_data.to_pandas()
             
         return release_data
 

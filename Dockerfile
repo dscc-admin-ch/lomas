@@ -3,9 +3,10 @@
 FROM rust:latest AS opendp_compile
 
 # Clone branch of git repository
-RUN git clone -b 911-make-private-select https://github.com/opendp/opendp.git
+RUN git clone -b 911-make-private-select https://github.com/damienaymon/opendp-fso.git
 
 # Build the Rust library
+RUN mv opendp-fso opendp
 WORKDIR opendp/rust
 RUN cargo build --features untrusted,bindings-python
 

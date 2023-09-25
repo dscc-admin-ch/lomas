@@ -3,6 +3,7 @@ from private_database.private_database import PrivateDatabase
 
 import pandas as pd
 
+
 class ConstantPath(PrivateDatabase):
     """
     Class to fetch dataset from constant path
@@ -30,4 +31,4 @@ class ConstantPath(PrivateDatabase):
             - path
         """
         file_name = os.path.splitext(os.path.basename(self.ds_path))[0]
-        return f'opendp_polars_{file_name}.csv'
+        return f"opendp_polars_{file_name}.csv"

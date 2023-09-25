@@ -64,7 +64,7 @@ class OpenDPQuerier(DPQuerier):
                 400,
                 "Failed when applying chain to data with error: " + str(e),
             )
-            
+
         return release_data
 
 

@@ -55,7 +55,6 @@ def startup_event():
 
     # Fill up user database if in develop mode ONLY
     if globals.CONFIG.develop_mode:
-
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
 

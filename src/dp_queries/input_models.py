@@ -79,11 +79,13 @@ class GetBudgetInp(BaseModel):
 class OpenDPInp(BasicModel):
     dataset_name: str
     opendp_json: str  # TODO: improve with OpenDPAST and OpenDPBase
+    input_data_type: str
 
 
 class DummyOpenDPInp(BasicModel):
     dataset_name: str
     opendp_json: str  # TODO: improve with OpenDPAST and OpenDPBase
+    input_data_type: str
     dummy_nb_rows: int
     dummy_seed: int
 

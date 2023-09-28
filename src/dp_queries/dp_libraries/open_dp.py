@@ -22,10 +22,13 @@ class OpenDPQuerier(DPQuerier):
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
+        input_data_type: str = "df"
     ) -> None:
         super().__init__(
             metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
+        self.input_data_type = input_data_type
+        self.path = "income_synthetic_data.csv" # TODO: improve
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
@@ -53,8 +56,17 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
+        if query_json.input_data_type == "df":
+            input_data = self.df.to_csv()
+        elif query_json.input_data_type == "path":
+            input_data = self.path
+        else:
+            e = f"Input data type {query_json.input_data_type} not valid for opendp query"
+            LOG.exception(e)
+            raise HTTPException(400, e)
+
         try:
-            release_data = opendp_pipe(self.df.to_csv())
+            release_data = opendp_pipe(input_data)
         except HTTPException as he:
             LOG.exception(he)
             raise he

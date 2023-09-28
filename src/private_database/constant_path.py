@@ -22,6 +22,7 @@ class ConstantPath(PrivateDatabase):
         Returns:
             - pandas dataframe of dataset
         """
+        #self.ds_path = "opendp_polars_penguins.csv" # TODO: remove (when wifi)
         return pd.read_csv(self.ds_path)
 
     def get_csv_path(self) -> str:
@@ -30,5 +31,7 @@ class ConstantPath(PrivateDatabase):
         Returns:
             - path
         """
-        file_name = os.path.splitext(os.path.basename(self.ds_path))[0]
-        return f"opendp_polars_{file_name}.csv"
+        return # TODO
+        #file_name = os.path.splitext(os.path.basename(self.ds_path))[0]
+        #return f"opendp_polars_{file_name}.csv"
+        #return "opendp_polars_penguins.csv" # TODO: remove

@@ -72,6 +72,7 @@ example_opendp = {
             "kwargs": {},
         },
     },
+    "input_data_type": "df"
 }
 
 example_dummy_opendp = {
@@ -110,6 +111,7 @@ example_dummy_opendp = {
             "kwargs": {},
         },
     },
+    "input_data_type": "df",
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }

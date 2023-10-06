@@ -28,9 +28,9 @@ class S3Database(PrivateDatabase):
         obj = self.client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
         return pd.read_csv(obj["Body"])
 
-    def get_csv_path(self) -> str:
+    def get_local_path(self) -> str:
         """
-        Get the path to the csv data
+        Get the path to a local copy of the source file
         Returns:
             - path
         """

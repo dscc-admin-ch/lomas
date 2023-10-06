@@ -17,9 +17,9 @@ class PrivateDatabase(ABC):
         pass
 
     @abstractmethod
-    def get_csv_path(self) -> str:
+    def get_local_path(self) -> str:
         """
-        Get the path to the local csv data
+        Get the path to  a local copy of the file.
         Returns:
             - path
         """

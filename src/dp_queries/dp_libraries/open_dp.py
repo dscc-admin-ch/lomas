@@ -6,7 +6,12 @@ from opendp_logger import make_load_json
 from typing import List
 from private_database.private_database import PrivateDatabase
 from dp_queries.dp_logic import DPQuerier
-from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from utils.constants import (
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    OPENDP_INPUT_TYPE_DF,
+    OPENDP_INPUT_TYPE_PATH
+)
 from utils.loggr import LOG
 
 enable_features("contrib")
@@ -22,13 +27,10 @@ class OpenDPQuerier(DPQuerier):
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
-        input_data_type: str = "df"
     ) -> None:
         super().__init__(
             metadata, private_db, dummy, dummy_nb_rows, dummy_seed
         )
-        self.input_data_type = input_data_type
-        self.path = "income_synthetic_data.csv" # TODO: improve
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
@@ -56,10 +58,10 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        if query_json.input_data_type == "df":
-            input_data = self.df.to_csv()
-        elif query_json.input_data_type == "path":
-            input_data = self.path
+        if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
+            input_data = self.private_db.get_pandas_df().to_csv()
+        elif query_json.input_data_type == OPENDP_INPUT_TYPE_PATH:
+            input_data = self.private_db.get_local_path()
         else:
             e = f"Input data type {query_json.input_data_type} not valid for opendp query"
             LOG.exception(e)

@@ -31,11 +31,15 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         try:
-            cost = opendp_pipe.map(d_in=self.metadata['']['Schema']['Table']["max_ids"])
+            cost = opendp_pipe.map(
+                d_in=self.metadata[""]["Schema"]["Table"]["max_ids"]
+            )
 
         except Exception:
             try:
-                cost = opendp_pipe.map(d_in=self.metadata['']['Schema']['Table']["max_ids"])
+                cost = opendp_pipe.map(
+                    d_in=self.metadata[""]["Schema"]["Table"]["max_ids"]
+                )
             except Exception as e:
                 LOG.exception(e)
                 raise HTTPException(

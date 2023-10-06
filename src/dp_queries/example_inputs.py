@@ -1,10 +1,13 @@
-from utils.constants import (
-    DUMMY_EPSILON,
-    DUMMY_DELTA,
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-    IRIS_DATASET,
-)
+# Dummy queries
+DUMMY_EPSILON = 1e32 * 1.0
+DUMMY_DELTA = 1.0
+
+# Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+
+# DUMMY dataset name
+IRIS_DATASET = "Iris"
 
 example_get_dataset_metadata = {
     "dataset_name": IRIS_DATASET,

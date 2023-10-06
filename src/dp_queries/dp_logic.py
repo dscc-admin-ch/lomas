@@ -292,7 +292,7 @@ class QueryHandler:
                 "spent_delta": 0,
             }
 
-        # Check that enough budget to to the query
+        # Check that enough budget to do the query
         (
             eps_remaining,
             delta_remaining,

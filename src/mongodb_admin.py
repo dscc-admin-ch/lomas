@@ -3,7 +3,7 @@ import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
 from utils.constants import (
-    CONSTANT_PATH_DB,
+    REMOTE_HTTP_DB,
     S3_DB,
 )
 
@@ -223,8 +223,8 @@ class MongoDB_Admin:
             verify_keys(d, "database_type")
             verify_keys(d, "metadata_path")
 
-            if d["database_type"] == CONSTANT_PATH_DB:
-                verify_keys(d, "dataset_path")
+            if d["database_type"] == REMOTE_HTTP_DB:
+                verify_keys(d, "dataset_url")
             elif d["database_type"] == S3_DB:
                 verify_keys(d, "s3_bucket")
                 verify_keys(d, "s3_key")

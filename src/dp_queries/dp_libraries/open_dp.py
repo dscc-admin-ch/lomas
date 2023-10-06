@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-import opendp as dp
-from opendp.mod import enable_features
+import opendp_polars as dp
+from opendp_polars.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
 from private_database.private_database import PrivateDatabase
@@ -54,7 +54,6 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         try:
-            # response, privacy_map = opendp_apply(opendp_pipe)
             release_data = opendp_pipe(self.df.to_csv())
         except HTTPException as he:
             LOG.exception(he)
@@ -65,7 +64,8 @@ class OpenDPQuerier(DPQuerier):
                 400,
                 "Failed when applying chain to data with error: " + str(e),
             )
-        return str(release_data)
+
+        return release_data
 
 
 def is_measurement(value):

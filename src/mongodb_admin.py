@@ -275,6 +275,7 @@ if __name__ == "__main__":
     # TODO update this part with config file and prompt for password..
     def config():
         return None
+
     config.username = "user"
     config.password = "user_pwd"
     config.address = "mongodb"

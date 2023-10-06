@@ -27,3 +27,11 @@ class S3Database(PrivateDatabase):
         """
         obj = self.client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
         return pd.read_csv(obj["Body"])
+
+    def get_csv_path(self) -> str:
+        """
+        Get the path to the csv data
+        Returns:
+            - path
+        """
+        return "TODO"

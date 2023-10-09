@@ -30,5 +30,4 @@ CMD ["python", "uvicorn_serve.py"]
 FROM sdd_server AS sdd_server_dev
 ENV PYTHONDONTWRITEBYTECODE 1
 CMD ["python", "uvicorn_serve.py"]
->>>>>>> 2a7bb90c48ec2344f3787cdbdc9f06ab524647d6:server/Dockerfile
 # Empty, used for development.

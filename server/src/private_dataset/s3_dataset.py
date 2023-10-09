@@ -12,12 +12,14 @@ class S3Dataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, s3_bucket: str, s3_key: str) -> None:
+    def __init__(self, metadata, s3_bucket: str, s3_key: str) -> None:
         """
         Parameters:
             - s3_bucket: s3 bucket of the dataset
             - s3_key: s3 key of the path to the dataset
         """
+        super().__init__(metadata)
+        
         self.client = boto3.client("s3")
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key

@@ -41,6 +41,29 @@ SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 OPENDP_INPUT_TYPE_DF = "df"
 OPENDP_INPUT_TYPE_PATH = "path"
 
+# Datasets => TODO remove this and read from config file in yamlDatabase?
+IRIS_DATASET = "IRIS"
+IRIS_DATASET_PATH = (
+    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+)
+IRIS_METADATA_PATH = "collections/metadata/iris_metadata.yaml"
+
+PENGUIN_DATASET = "PENGUIN"
+PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"  # noqa: E501
+PENGUIN_METADATA_PATH = "collections/metadata/penguin_metadata.yaml"
+
+DATASET_PATHS = {
+    IRIS_DATASET: IRIS_DATASET_PATH,
+    PENGUIN_DATASET: PENGUIN_DATASET_PATH,
+}
+DATASET_METADATA_PATHS = {
+    IRIS_DATASET: IRIS_METADATA_PATH,
+    PENGUIN_DATASET: PENGUIN_METADATA_PATH,
+}
+
+EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
+
+
 # Databases
 LOCAL_DB = "LOCAL_DB"
 REMOTE_HTTP_DB = "REMOTE_HTTP_DB"
@@ -48,6 +71,8 @@ S3_DB = "S3_DB"
 PRIVATE_DBS = [LOCAL_DB, REMOTE_HTTP_DB, S3_DB]
 
 # Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
 SSQL_METADATA_OPTIONS = [
     "max_ids",
     "row_privacy",

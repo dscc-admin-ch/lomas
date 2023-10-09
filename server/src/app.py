@@ -25,6 +25,7 @@ from dp_queries.input_models import (
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.utils import stream_dataframe
+from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.constants import (
@@ -202,11 +203,11 @@ def dummy_smartnoise_sql_handler(
         query_json.dataset_name
     )
 
+    ds_df = make_dummy_dataset(ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed)
+    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+
     dummy_querier = SmartnoiseSQLQuerier(
-        ds_metadata,
-        dummy=True,
-        dummy_nb_rows=query_json.dummy_nb_rows,
-        dummy_seed=query_json.dummy_seed,
+        private_dataset = ds_private_dataset
     )
 
     # Catch all non-http exceptions so that the server does not fail.
@@ -283,11 +284,10 @@ def dummy_opendp_query_handler(
         query_json.dataset_name
     )
 
+    ds_df = make_dummy_dataset(ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed)
+    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
     dummy_querier = OpenDPQuerier(
-        ds_metadata,
-        dummy=True,
-        dummy_nb_rows=query_json.dummy_nb_rows,
-        dummy_seed=query_json.dummy_seed,
+        private_dataset = ds_private_dataset
     )
 
     # Catch all non-http exceptions so that the server does not fail.

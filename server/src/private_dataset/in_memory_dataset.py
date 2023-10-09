@@ -1,24 +1,23 @@
 import os
+import pandas as pd
 import shutil
 import tempfile
-import urllib
+
 from private_dataset.private_dataset import PrivateDataset
 
-import pandas as pd
 
-
-class RemoteHTTPDataset(PrivateDataset):
+class InMemoryDataset(PrivateDataset):
     """
-    Class to fetch dataset from constant path
+    Class to hold a dataset created from an in-memory pandas DataFrame
     """
 
-    def __init__(self, metadata, dataset_path) -> None:
+    def __init__(self, metadata, dataset_df) -> None:
         """
         Parameters:
-            - dataset_path: path of the dataset
+            - dataset_df: Dataframe of the dataset
         """
         super().__init__(metadata)
-        self.ds_path = dataset_path
+        self.df = dataset_df.copy()
         self.local_path = None
         self.local_dir = None
 
@@ -34,21 +33,14 @@ class RemoteHTTPDataset(PrivateDataset):
         """
         Get the data in pandas dataframe format
         Returns:
-            - pandas dataframe of dataset
+            - pandas dataframe of dataset (a copy)
         """
-        # TODO add support for more file types (e.g. parquet, etc..).
-        if self.ds_path.endswith(".csv"):
-            return pd.read_csv(self.ds_path)
-        else:
-            # TODO make this cleaner
-            return Exception(
-                "File type other than .csv not supported for"
-                "loading into pandas DataFrame."
-            )
+        # We use a copy here for safety.
+        return self.df.copy()
 
     def get_local_path(self) -> str:
         """
-        Get the path to a local copy of the source file
+        Get the path to a local copy of the source data in csv format.
         Returns:
             - path
         """
@@ -59,7 +51,6 @@ class RemoteHTTPDataset(PrivateDataset):
             file_name = self.ds_path.split("/")[-1]
             self.local_path = os.path.join(self.local_dir, file_name)
 
-            # Download
-            urllib.request.urlretrieve(self.ds_path, self.local_path)
+            self.df.to_csv(self.local_path)
 
         return self.local_path

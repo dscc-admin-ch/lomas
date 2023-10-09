@@ -11,11 +11,12 @@ class LocalDataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, dataset_path) -> None:
+    def __init__(self, metadata, dataset_path) -> None:
         """
         Parameters:
             - dataset_path: path of the dataset
         """
+        super().__init__(metadata)
         self.ds_path = dataset_path
         self.local_path = None
         self.local_dir = None

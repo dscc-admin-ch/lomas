@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 
-class PrivateDatabase(ABC):
+class PrivateDataset(ABC):
     """
     Overall access to sensitive data
     """

@@ -4,13 +4,13 @@ import opendp_polars as dp
 from opendp_polars.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
-from private_database.private_database import PrivateDatabase
+from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_logic import DPQuerier
 from utils.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
     OPENDP_INPUT_TYPE_DF,
-    OPENDP_INPUT_TYPE_PATH
+    OPENDP_INPUT_TYPE_PATH,
 )
 from utils.loggr import LOG
 
@@ -23,13 +23,13 @@ class OpenDPQuerier(DPQuerier):
     def __init__(
         self,
         metadata,
-        private_db: PrivateDatabase = None,
+        private_dataset: PrivateDataset = None,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
     ) -> None:
         super().__init__(
-            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
+            metadata, private_dataset, dummy, dummy_nb_rows, dummy_seed
         )
 
     def cost(self, query_json: dict) -> List[float]:
@@ -59,11 +59,14 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
-            input_data = self.private_db.get_pandas_df().to_csv()
+            input_data = self.private_dataset.get_pandas_df().to_csv()
         elif query_json.input_data_type == OPENDP_INPUT_TYPE_PATH:
-            input_data = self.private_db.get_local_path()
+            input_data = self.private_dataset.get_local_path()
         else:
-            e = f"Input data type {query_json.input_data_type} not valid for opendp query"
+            e = (
+                f"Input data type {query_json.input_data_type}"
+                "not valid for opendp query"
+            )
             LOG.exception(e)
             raise HTTPException(400, e)
 

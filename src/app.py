@@ -288,7 +288,7 @@ def dummy_opendp_query_handler(
         dummy=True,
         dummy_nb_rows=query_json.dummy_nb_rows,
         dummy_seed=query_json.dummy_seed,
-        input_data_type=query_json.input_data_type
+        input_data_type=query_json.input_data_type,
     )
 
     # Catch all non-http exceptions so that the server does not fail.

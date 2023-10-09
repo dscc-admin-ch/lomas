@@ -8,7 +8,12 @@ datasets:
   dataset_url: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
   metadata_path: "collections/metadata/penguin_metadata.yaml"
 - dataset_name: "RANDOM"
-  database_type: "S3Database"
+  database_type: "S3_DB"
   s3_bucket: "my_bucket"
   s3_key: "folder/my_data.csv"
   metadata_path: "collections/metadata/penguin_metadata.yaml"
+# TODO complete this and add metadata
+#- dataset_name: "INCOME"
+#  database_type: "LOCAL_DB"
+#  dataset_path: "data/income_data.csv"
+#  metadata_path: "collections/metadata/income_metadata.yaml"

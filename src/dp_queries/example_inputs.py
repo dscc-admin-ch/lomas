@@ -75,7 +75,7 @@ example_opendp = {
             "kwargs": {},
         },
     },
-    "input_data_type": "df"
+    "input_data_type": "df",
 }
 
 example_dummy_opendp = {

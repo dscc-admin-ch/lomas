@@ -6,7 +6,7 @@ import pandas as pd
 
 from dp_queries.dp_logic import DPQuerier
 import globals
-from private_database.private_database import PrivateDatabase
+from private_dataset.private_dataset import PrivateDataset
 
 from utils.constants import (
     DUMMY_NB_ROWS,
@@ -19,13 +19,13 @@ class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
         metadata: dict,
-        private_db: PrivateDatabase = None,
+        private_dataset: PrivateDataset = None,
         dummy: bool = False,
         dummy_nb_rows: int = DUMMY_NB_ROWS,
         dummy_seed: int = DUMMY_SEED,
     ) -> None:
         super().__init__(
-            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
+            metadata, private_dataset, dummy, dummy_nb_rows, dummy_seed
         )
 
     def cost(self, query_json: dict) -> List[float]:

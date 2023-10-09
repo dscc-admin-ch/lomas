@@ -24,23 +24,12 @@ class DPQuerier(ABC):
 
     def __init__(
         self,
-        metadata: dict,
-        private_dataset: PrivateDataset = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
+        private_dataset: PrivateDataset,
     ) -> None:
         """
         Initialise with specific dataset
         """
-        self.metadata = metadata
-
-        if dummy:
-            self.df = make_dummy_dataset(
-                self.metadata, dummy_nb_rows, dummy_seed
-            )
-        else:
-            self.df = private_dataset.get_pandas_df()
+        self.private_dataset = private_dataset
 
     @abstractmethod
     def cost(self, query_json: dict) -> List[float]:
@@ -122,7 +111,6 @@ class BasicQuerierManager(QuerierManager):
         Trying to add a dataset already in self.dp_queriers"
 
         # Metadata and data getter
-        metadata = self.admin_database.get_dataset_metadata(dataset_name)
         private_dataset = private_dataset_factory(
             dataset_name, self.admin_database
         )
@@ -136,11 +124,11 @@ class BasicQuerierManager(QuerierManager):
                     SmartnoiseSQLQuerier,
                 )
 
-                querier = SmartnoiseSQLQuerier(metadata, private_dataset)
+                querier = SmartnoiseSQLQuerier(private_dataset)
             elif lib == LIB_OPENDP:
                 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 
-                querier = OpenDPQuerier(metadata, private_dataset)
+                querier = OpenDPQuerier(private_dataset)
             # elif lib == LIB_DIFFPRIVLIB: TODO
             else:
                 raise Exception(

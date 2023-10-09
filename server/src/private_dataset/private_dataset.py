@@ -7,14 +7,14 @@ class PrivateDataset(ABC):
     Overall access to sensitive data
     """
 
-    @abstractmethod
-    def __init__(self, **connection_parameters) -> None:
+    def __init__(self, metadata, **connection_parameters) -> None:
         """
         Connects to the DB
         Parameters:
+            - metadata: The metadata for this dataset
             - **connection_parameters: parameters required to access the db
         """
-        pass
+        self.metadata = metadata
 
     @abstractmethod
     def get_local_path(self) -> str:
@@ -33,3 +33,9 @@ class PrivateDataset(ABC):
             - dataset_name: name of the private dataset
         """
         pass
+
+    def get_metadata(self) -> dict:
+        """
+        Get the metadata for this dataset
+        """
+        return self.metadata

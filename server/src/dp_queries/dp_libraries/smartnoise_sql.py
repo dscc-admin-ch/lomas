@@ -18,20 +18,14 @@ from utils.loggr import LOG
 class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
-        metadata: dict,
-        private_dataset: PrivateDataset = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
+        private_dataset: PrivateDataset,
     ) -> None:
-        super().__init__(
-            metadata, private_dataset, dummy, dummy_nb_rows, dummy_seed
-        )
+        super().__init__(private_dataset)
 
     def cost(self, query_json: dict) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         reader = from_connection(
-            self.df, privacy=privacy, metadata=self.metadata
+            self.private_dataset.get_pandas_df(), privacy=privacy, metadata=self.private_dataset.get_metadata()
         )
 
         query_str = query_json.query_str
@@ -50,7 +44,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         epsilon, delta = query_json.epsilon, query_json.delta
         privacy = Privacy(epsilon=epsilon, delta=delta)
         reader = from_connection(
-            self.df, privacy=privacy, metadata=self.metadata
+            self.private_dataset.get_pandas_df(), privacy=privacy, metadata=self.private_dataset.get_metadata()
         )
 
         query_str = query_json.query_str

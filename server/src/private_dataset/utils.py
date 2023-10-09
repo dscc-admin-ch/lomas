@@ -16,20 +16,22 @@ def private_dataset_factory(
         dataset_name, "database_type"
     )
 
+    ds_metadata = admin_database.get_dataset_metadata(dataset_name)
+
     if database_type == REMOTE_HTTP_DB:
         dataset_url = admin_database.get_dataset_field(
             dataset_name, "dataset_url"
         )
-        private_db = RemoteHTTPDataset(dataset_url)
+        private_db = RemoteHTTPDataset(ds_metadata, dataset_url)
     elif database_type == S3_DB:
         s3_bucket = admin_database.get_dataset_field(dataset_name, "s3_bucket")
         s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
-        private_db = S3Dataset(s3_bucket, s3_key)
+        private_db = S3Dataset(ds_metadata, s3_bucket, s3_key)
     elif database_type == LOCAL_DB:
         dataset_path = admin_database.get_dataset_field(
             dataset_name, "dataset_path"
         )
-        private_db = LocalDataset(dataset_path)
+        private_db = LocalDataset(ds_metadata, dataset_path)
     else:
         raise (
             f"Unknown database type {database_type} \

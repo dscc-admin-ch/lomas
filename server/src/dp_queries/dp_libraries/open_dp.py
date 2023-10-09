@@ -22,15 +22,9 @@ PT_TYPE = "^py_type:*"
 class OpenDPQuerier(DPQuerier):
     def __init__(
         self,
-        metadata,
-        private_dataset: PrivateDataset = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
+        private_dataset: PrivateDataset,
     ) -> None:
-        super().__init__(
-            metadata, private_dataset, dummy, dummy_nb_rows, dummy_seed
-        )
+        super().__init__(private_dataset)
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)

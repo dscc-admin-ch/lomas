@@ -31,12 +31,15 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         try:
-            # TODO: change d_in=1 or 1.0 with the maxrowchanged from metadata
-            cost = opendp_pipe.map(d_in=1.0)
+            cost = opendp_pipe.map(
+                d_in=float(self.metadata[""]["Schema"]["Table"]["max_ids"])
+            )
 
         except Exception:
             try:
-                cost = opendp_pipe.map(d_in=1)
+                cost = opendp_pipe.map(
+                    d_in=int(self.metadata[""]["Schema"]["Table"]["max_ids"])
+                )
             except Exception as e:
                 LOG.exception(e)
                 raise HTTPException(

@@ -2,12 +2,12 @@ import os
 import shutil
 import tempfile
 import urllib
-from private_database.private_database import PrivateDatabase
+from private_dataset.private_dataset import PrivateDataset
 
 import pandas as pd
 
 
-class RemoteHTTPDataset(PrivateDatabase):
+class RemoteHTTPDataset(PrivateDataset):
     """
     Class to fetch dataset from constant path
     """
@@ -21,11 +21,10 @@ class RemoteHTTPDataset(PrivateDatabase):
         self.local_path = None
         self.local_dir = None
 
-    
     def __del__(self):
         """
-        Cleans up the temporary directory used for storing the dataset locally if
-        needed.
+        Cleans up the temporary directory used for storing
+        the dataset locally if needed.
         """
         if self.local_dir is not None:
             shutil.rmtree(self.local_dir)
@@ -41,7 +40,10 @@ class RemoteHTTPDataset(PrivateDatabase):
             return pd.read_csv(self.ds_path)
         else:
             # TODO make this cleaner
-            return Exception("File type other than .csv not supported for loading into pandas DataFrame.")
+            return Exception(
+                "File type other than .csv not supported for"
+                "loading into pandas DataFrame."
+            )
 
     def get_local_path(self) -> str:
         """

@@ -3,8 +3,6 @@ from fastapi import Header, HTTPException
 from typing import Dict, List
 
 from utils.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
     SUPPORTED_LIBS,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
@@ -13,7 +11,6 @@ from admin_database.admin_database import AdminDatabase
 from dp_queries.input_models import BasicModel
 from private_dataset.private_dataset import PrivateDataset
 from private_dataset.utils import private_dataset_factory
-from utils.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
 
 

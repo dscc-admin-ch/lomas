@@ -19,13 +19,15 @@ class S3Dataset(PrivateDataset):
             - s3_key: s3 key of the path to the dataset
         """
         super().__init__(metadata)
-        
+
         self.client = boto3.client("s3")
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
 
         self.local_path = None
         self.local_dir = None
+
+        self.df = None
 
     def __del__(self):
         """
@@ -41,8 +43,13 @@ class S3Dataset(PrivateDataset):
         Returns:
             - pandas dataframe of dataset
         """
-        obj = self.client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
-        return pd.read_csv(obj["Body"])
+        if self.df is None:
+            obj = self.client.get_object(
+                Bucket=self.s3_bucket, Key=self.s3_key
+            )
+            self.df = pd.read_csv(obj["Body"])
+
+        return self.df
 
     def get_local_path(self) -> str:
         """

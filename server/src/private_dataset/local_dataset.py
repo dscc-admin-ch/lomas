@@ -21,6 +21,8 @@ class LocalDataset(PrivateDataset):
         self.local_path = None
         self.local_dir = None
 
+        self.df = None
+
     def __del__(self):
         """
         Cleans up the temporary directory used for storing
@@ -35,15 +37,18 @@ class LocalDataset(PrivateDataset):
         Returns:
             - pandas dataframe of dataset
         """
-        # TODO add support for more file types (e.g. parquet, etc..).
-        if self.ds_path.endswith(".csv"):
-            return pd.read_csv(self.ds_path)
-        else:
-            # TODO make this cleaner
-            return Exception(
-                "File type other than .csv not supported for"
-                "loading into pandas DataFrame."
-            )
+        if self.df is None:
+            # TODO add support for more file types (e.g. parquet, etc..).
+            if self.ds_path.endswith(".csv"):
+                return pd.read_csv(self.ds_path)
+            else:
+                # TODO make this cleaner
+                return Exception(
+                    "File type other than .csv not supported for"
+                    "loading into pandas DataFrame."
+                )
+        # TODO return copy here? => safer but not very efficient.
+        return self.df
 
     def get_local_path(self) -> str:
         """

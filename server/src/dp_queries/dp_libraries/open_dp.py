@@ -7,8 +7,6 @@ from typing import List
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_logic import DPQuerier
 from utils.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
     OPENDP_INPUT_TYPE_DF,
     OPENDP_INPUT_TYPE_PATH,
 )

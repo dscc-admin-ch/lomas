@@ -21,4 +21,9 @@
         upper: 6.0
       species:
         type: string
+        cardinality: 3
+        categories:
+        - setosa
+        - versicolor
+        - virginica
 engine: csv

@@ -4,7 +4,7 @@ from snsql import Privacy, from_connection
 import traceback
 import pandas as pd
 
-from dp_queries.dp_logic import DPQuerier
+from dp_queries.dp_querier import DPQuerier
 import globals
 from private_dataset.private_dataset import PrivateDataset
 

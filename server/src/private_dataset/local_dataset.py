@@ -18,18 +18,6 @@ class LocalDataset(PrivateDataset):
         """
         super().__init__(metadata)
         self.ds_path = dataset_path
-        self.local_path = None
-        self.local_dir = None
-
-        self.df = None
-
-    def __del__(self):
-        """
-        Cleans up the temporary directory used for storing
-        the dataset locally if needed.
-        """
-        if self.local_dir is not None:
-            shutil.rmtree(self.local_dir)
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

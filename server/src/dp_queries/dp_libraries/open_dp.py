@@ -5,7 +5,7 @@ from opendp_polars.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
 from private_dataset.private_dataset import PrivateDataset
-from dp_queries.dp_logic import DPQuerier
+from dp_queries.dp_querier import DPQuerier
 from utils.constants import (
     OPENDP_INPUT_TYPE_DF,
     OPENDP_INPUT_TYPE_PATH,
@@ -29,13 +29,21 @@ class OpenDPQuerier(DPQuerier):
 
         try:
             cost = opendp_pipe.map(
-                d_in=float(self.private_dataset.get_metadata()[""]["Schema"]["Table"]["max_ids"])
+                d_in=float(
+                    self.private_dataset.get_metadata()[""]["Schema"]["Table"][
+                        "max_ids"
+                    ]
+                )
             )
 
         except Exception:
             try:
                 cost = opendp_pipe.map(
-                    d_in=int(self.private_dataset.get_metadata()[""]["Schema"]["Table"]["max_ids"])
+                    d_in=int(
+                        self.private_dataset.get_metadata()[""]["Schema"][
+                            "Table"
+                        ]["max_ids"]
+                    )
                 )
             except Exception as e:
                 LOG.exception(e)

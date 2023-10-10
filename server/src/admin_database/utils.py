@@ -1,7 +1,6 @@
-from utils.constants import CONF_DB_TYPE_MONGODB, CONF_DB_TYPE_YAML
+from utils.constants import CONF_DB_TYPE_MONGODB
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
-from admin_database.yaml_database import AdminYamlDatabase
 from utils.config import DBConfig
 
 
@@ -12,12 +11,7 @@ def database_factory(config: DBConfig) -> AdminDatabase:
     """
     db_type = config.db_type
 
-    if db_type == CONF_DB_TYPE_YAML:
-        yaml_database_file = f"{config.db_directory}/{config.db_file_name}"
-
-        return AdminYamlDatabase(yaml_database_file)
-
-    elif db_type == CONF_DB_TYPE_MONGODB:
+    if db_type == CONF_DB_TYPE_MONGODB:
         db_url = get_mongodb_url(config)
         db_name = config.db_name
 

@@ -24,7 +24,7 @@ from dp_queries.input_models import (
 )
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
-from dp_queries.utils import stream_dataframe
+from utils.utils import stream_dataframe
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config

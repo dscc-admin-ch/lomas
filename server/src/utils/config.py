@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing_extensions import Literal
 import yaml
 
-from utils.constants import (
+from constants import (
     CONFIG_PATH,
     CONF_RUNTIME_ARGS,
     CONF_SETTINGS,

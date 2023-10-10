@@ -1,7 +1,7 @@
 from typing import Dict
 
 from admin_database.admin_database import AdminDatabase
-from utils.constants import (
+from constants import (
     SUPPORTED_LIBS,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,

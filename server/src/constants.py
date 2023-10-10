@@ -1,4 +1,5 @@
 import string
+import pkg_resources
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
@@ -39,6 +40,8 @@ SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 # OpenDP pipeline input types
 OPENDP_INPUT_TYPE_DF = "df"
 OPENDP_INPUT_TYPE_PATH = "path"
+
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 
 # Databases
 LOCAL_DB = "LOCAL_DB"

@@ -6,7 +6,7 @@ from opendp_logger import make_load_json
 from typing import List
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
-from utils.constants import (
+from constants import (
     OPENDP_INPUT_TYPE_DF,
     OPENDP_INPUT_TYPE_PATH,
 )

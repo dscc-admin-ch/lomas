@@ -1,4 +1,4 @@
-from utils.constants import CONF_DB_TYPE_MONGODB
+from constants import CONF_DB_TYPE_MONGODB
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
 from utils.config import DBConfig

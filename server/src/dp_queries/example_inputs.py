@@ -7,7 +7,7 @@ DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
 # DUMMY dataset name
-IRIS_DATASET = "Iris"
+IRIS_DATASET = "IRIS"
 
 example_get_dataset_metadata = {
     "dataset_name": IRIS_DATASET,

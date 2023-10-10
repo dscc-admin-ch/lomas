@@ -203,12 +203,12 @@ def dummy_smartnoise_sql_handler(
         query_json.dataset_name
     )
 
-    ds_df = make_dummy_dataset(ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed)
+    ds_df = make_dummy_dataset(
+        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+    )
     ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
 
-    dummy_querier = SmartnoiseSQLQuerier(
-        private_dataset = ds_private_dataset
-    )
+    dummy_querier = SmartnoiseSQLQuerier(private_dataset=ds_private_dataset)
 
     # Catch all non-http exceptions so that the server does not fail.
     try:
@@ -284,11 +284,11 @@ def dummy_opendp_query_handler(
         query_json.dataset_name
     )
 
-    ds_df = make_dummy_dataset(ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed)
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
-    dummy_querier = OpenDPQuerier(
-        private_dataset = ds_private_dataset
+    ds_df = make_dummy_dataset(
+        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
+    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+    dummy_querier = OpenDPQuerier(private_dataset=ds_private_dataset)
 
     # Catch all non-http exceptions so that the server does not fail.
     try:

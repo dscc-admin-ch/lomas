@@ -20,6 +20,14 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0
     total_spent_delta: 0
+- user_name: Dr. FSO
+  may_query: True
+  datasets_list:
+  - dataset_name: "FSO_INCOME_SYNTHETIC"
+    initial_epsilon: 45
+    initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
 - user_name: Bob
   may_query: True
   datasets_list:

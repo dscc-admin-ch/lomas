@@ -3,6 +3,7 @@ import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
 from utils.constants import (
+    LOCAL_DB,
     REMOTE_HTTP_DB,
     S3_DB,
 )
@@ -228,6 +229,8 @@ class MongoDB_Admin:
             elif d["database_type"] == S3_DB:
                 verify_keys(d, "s3_bucket")
                 verify_keys(d, "s3_key")
+            elif d["database_type"] == LOCAL_DB:
+                verify_keys(d, "dataset_path")
             else:
                 raise ValueError(f"Dataset type {d['database_type']} unknown")
 

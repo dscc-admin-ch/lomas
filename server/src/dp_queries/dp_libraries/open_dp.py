@@ -29,13 +29,13 @@ class OpenDPQuerier(DPQuerier):
 
         try:
             cost = opendp_pipe.map(
-                d_in=float(self.metadata[""]["Schema"]["Table"]["max_ids"])
+                d_in=float(self.private_dataset.get_metadata()[""]["Schema"]["Table"]["max_ids"])
             )
 
         except Exception:
             try:
                 cost = opendp_pipe.map(
-                    d_in=int(self.metadata[""]["Schema"]["Table"]["max_ids"])
+                    d_in=int(self.private_dataset.get_metadata()[""]["Schema"]["Table"]["max_ids"])
                 )
             except Exception as e:
                 LOG.exception(e)

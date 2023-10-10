@@ -34,7 +34,8 @@ def make_dummy_dataset(
 
     # Create dataframe
     df = pd.DataFrame()
-    for col_name, data in metadata[""]["Schema"]["Table"].items():
+    meta = metadata[""]["Schema"]["Table"]
+    for col_name, data in meta.items():
         if col_name in SSQL_METADATA_OPTIONS:
             continue
 
@@ -42,7 +43,17 @@ def make_dummy_dataset(
         col_type = data["type"]
 
         if col_type == "string":
-            serie = pd.Series(random.choices(RANDOM_STRINGS, k=nb_rows))
+            if "cardinality" in meta[col_name].keys():
+                cardinality = meta[col_name]["cardinality"]
+                if "categories" in meta[col_name].keys():
+                    categories = meta[col_name]["categories"]
+                    serie = pd.Series(random.choices(categories, k=nb_rows))
+                else:
+                    serie = pd.Series(
+                        random.choices(RANDOM_STRINGS[:cardinality], k=nb_rows)
+                    )
+            else:
+                serie = pd.Series(random.choices(RANDOM_STRINGS, k=nb_rows))
         elif col_type == "boolean":
             serie = pd.Series(random.choices([True, False], k=nb_rows))
         elif col_type in ["int", "float"]:

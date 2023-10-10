@@ -1,3 +1,5 @@
+import string
+
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
 QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
@@ -84,7 +86,9 @@ SSQL_METADATA_OPTIONS = [
 ]
 DEFAULT_NUMERICAL_MIN = -10000
 DEFAULT_NUMERICAL_MAX = 10000
-RANDOM_STRINGS = ["a", "b", "c", "d"]
+RANDOM_STRINGS = list(
+    string.ascii_lowercase + string.ascii_uppercase + string.digits
+)
 RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add

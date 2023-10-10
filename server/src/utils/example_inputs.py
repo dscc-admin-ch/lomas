@@ -7,7 +7,7 @@ DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
 # DUMMY dataset name
-IRIS_DATASET = "Iris"
+IRIS_DATASET = "IRIS"
 
 example_get_dataset_metadata = {
     "dataset_name": IRIS_DATASET,
@@ -118,71 +118,3 @@ example_dummy_opendp = {
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }
-
-# example_diffprivlib = {
-#     "module": "diffprivlib",
-#     "version": "0.6.0",
-#     "pipeline": [
-#         {
-#             "type": "_dpl_type:StandardScaler",
-#             "name": "scaler",
-#             "params": {
-#                 "with_mean": True,
-#                 "with_std": True,
-#                 "copy": True,
-#                 "epsilon": 1,
-#                 "bounds": {
-#                     "_tuple": True,
-#                     "_items": [
-#                         [
-#                             17,
-#                             1,
-#                             0,
-#                             0,
-#                             1,
-#                         ],
-#                         [
-#                             90,
-#                             160,
-#                             10000,
-#                             4356,
-#                             99,
-#                         ],
-#                     ],
-#                 },
-#                 "accountant": "_dpl_instance:BudgetAccountant",
-#             },
-#         },
-#         {
-#             "type": "_dpl_type:PCA",
-#             "name": "pca",
-#             "params": {
-#                 "n_components": 2,
-#                 "copy": True,
-#                 "whiten": False,
-#                 "random_state": None,
-#                 "centered": True,
-#                 "epsilon": 1,
-#                 "data_norm": 5,
-#                 "bounds": None,
-#                 "accountant": "_dpl_instance:BudgetAccountant",
-#             },
-#         },
-#         {
-#             "type": "_dpl_type:LogisticRegression",
-#             "name": "lr",
-#             "params": {
-#                 "tol": 0.0001,
-#                 "C": 1,
-#                 "fit_intercept": True,
-#                 "max_iter": 100,
-#                 "verbose": 0,
-#                 "warm_start": False,
-#                 "n_jobs": None,
-#                 "epsilon": 1,
-#                 "data_norm": 5,
-#                 "accountant": "_dpl_instance:BudgetAccountant",
-#             },
-#         },
-#     ],
-# }

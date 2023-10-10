@@ -2,7 +2,7 @@ from private_dataset.private_dataset import PrivateDataset
 from private_dataset.local_dataset import LocalDataset
 from private_dataset.remote_http_dataset import RemoteHTTPDataset
 from private_dataset.s3_dataset import S3Dataset
-from utils.constants import LOCAL_DB, REMOTE_HTTP_DB, S3_DB
+from constants import LOCAL_DB, REMOTE_HTTP_DB, S3_DB
 
 
 def private_dataset_factory(

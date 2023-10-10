@@ -2,9 +2,9 @@ from fastapi import Header, HTTPException
 
 
 from admin_database.admin_database import AdminDatabase
-from dp_queries.input_models import BasicModel
+from utils.input_models import BasicModel
 from dataset_store.basic_dataset_store import BasicDatasetStore
-from utils.constants import SUPPORTED_LIBS
+from constants import SUPPORTED_LIBS
 from utils.loggr import LOG
 
 

@@ -12,8 +12,7 @@ datasets:
   s3_bucket: "my_bucket"
   s3_key: "folder/my_data.csv"
   metadata_path: "collections/metadata/penguin_metadata.yaml"
-# TODO complete this and add metadata
-#- dataset_name: "INCOME"
-#  database_type: "LOCAL_DB"
-#  dataset_path: "data/income_data.csv"
-#  metadata_path: "collections/metadata/income_metadata.yaml"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  database_type: "LOCAL_DB"
+  dataset_path: "/data/income_synthetic_data.csv"
+  metadata_path: "collections/metadata/fso_income_synthetic_metadata.yaml"

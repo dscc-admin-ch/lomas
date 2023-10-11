@@ -12,6 +12,7 @@ from dp_queries.example_inputs import (
     example_get_dummy_dataset,
     example_opendp,
     example_smartnoise_sql,
+    example_smartnoise_sql_cost,
 )
 from dp_queries.input_models import (
     DummyOpenDPInp,
@@ -21,6 +22,7 @@ from dp_queries.input_models import (
     GetDummyDataset,
     OpenDPInp,
     SNSQLInp,
+    SNSQLInpCost,
 )
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
@@ -231,7 +233,7 @@ def dummy_smartnoise_sql_handler(
     tags=["USER_QUERY"],
 )
 def estimate_smartnoise_cost(
-    query_json: SNSQLInp = Body(example_smartnoise_sql),
+    query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:

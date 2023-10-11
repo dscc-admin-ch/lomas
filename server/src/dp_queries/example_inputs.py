@@ -1,10 +1,13 @@
-from utils.constants import (
-    DUMMY_EPSILON,
-    DUMMY_DELTA,
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-    IRIS_DATASET,
-)
+# Dummy queries
+DUMMY_EPSILON = 1e32 * 1.0
+DUMMY_DELTA = 1.0
+
+# Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+
+# DUMMY dataset name
+IRIS_DATASET = "IRIS"
 
 example_get_dataset_metadata = {
     "dataset_name": IRIS_DATASET,
@@ -72,6 +75,7 @@ example_opendp = {
             "kwargs": {},
         },
     },
+    "input_data_type": "df",
 }
 
 example_dummy_opendp = {
@@ -110,6 +114,7 @@ example_dummy_opendp = {
             "kwargs": {},
         },
     },
+    "input_data_type": "df",
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }

@@ -22,6 +22,7 @@ from utils.input_models import (
     OpenDPInp,
     SNSQLInp,
 )
+#import globals
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from utils.utils import stream_dataframe, server_live, check_start_condition

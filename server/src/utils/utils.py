@@ -2,6 +2,7 @@ import io
 from fastapi.responses import StreamingResponse
 from functools import partial
 
+import app
 from admin_database.admin_database import AdminDatabase
 from constants import (
     CONFIG_NOT_LOADED,
@@ -71,14 +72,12 @@ def check_start_condition(
         server_state["LIVE"] = True
 
 
-async def server_live_from_state(server_state):
-    if not server_state["LIVE"]:
+async def server_live():
+    if not app.SERVER_STATE["LIVE"]:
         raise HTTPException(
             status_code=403,
             detail="Woops, the server did not start correctly. \
                 Contact the administrator of this service.",
         )
     yield
-
-def server_live(server_state):
-    return partial(server_live_from_state(server_state))
+    

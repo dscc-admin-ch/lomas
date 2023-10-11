@@ -25,7 +25,6 @@ DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 
-
 # Server error messages
 INTERNAL_SERVER_ERROR = (
     "Internal server error. Please contact the administrator of this service."
@@ -34,15 +33,17 @@ INTERNAL_SERVER_ERROR = (
 # DP constants
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.0004
-EPSILON_INITIAL: float = 0.0
-DELTA_INITIAL: float = 0.0
 
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
 SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 
-# Datasets
+# OpenDP pipeline input types
+OPENDP_INPUT_TYPE_DF = "df"
+OPENDP_INPUT_TYPE_PATH = "path"
+
+# Datasets => TODO remove this and read from config file in yamlDatabase?
 IRIS_DATASET = "IRIS"
 IRIS_DATASET_PATH = (
     "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
@@ -64,19 +65,12 @@ DATASET_METADATA_PATHS = {
 
 EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
 
+
 # Databases
-CONSTANT_PATH_DB = "CONSTANT_PATH_DB"
-S3_DB = "S3Database"
-PRIVATE_DBS = [CONSTANT_PATH_DB, S3_DB]
-
-DATABASE_TYPES = {
-    IRIS_DATASET: CONSTANT_PATH_DB,
-    PENGUIN_DATASET: CONSTANT_PATH_DB,
-}
-
-# Dummy queries
-DUMMY_EPSILON = 1e32 * 1.0
-DUMMY_DELTA = 1.0
+LOCAL_DB = "LOCAL_DB"
+REMOTE_HTTP_DB = "REMOTE_HTTP_DB"
+S3_DB = "S3_DB"
+PRIVATE_DBS = [LOCAL_DB, REMOTE_HTTP_DB, S3_DB]
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

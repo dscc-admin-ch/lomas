@@ -8,6 +8,8 @@ RUN pip install boto3
 WORKDIR /
 RUN git clone https://github.com/opendp/opendp-logger
 WORKDIR opendp-logger
+RUN git pull
+RUN git checkout polars
 RUN sed -i '/"opendp >= 0.8.0"/d' setup.py
 RUN sed -i 's/opendp\./opendp_polars\./' opendp_logger/*.py
 RUN sed -i 's/get_distribution("opendp")/get_distribution("opendp_polars")/' opendp_logger/*.py
@@ -24,4 +26,3 @@ CMD ["python", "uvicorn_serve.py"]
 FROM sdd_server AS sdd_server_dev
 ENV PYTHONDONTWRITEBYTECODE 1
 CMD ["python", "uvicorn_serve.py"]
-# Empty, used for development.

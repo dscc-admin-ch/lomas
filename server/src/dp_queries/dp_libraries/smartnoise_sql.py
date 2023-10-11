@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import HTTPException
-from snsql import Privacy, from_connection
+from snsql import Privacy, from_connection, Stat, Mechanism
 import traceback
 import pandas as pd
 
@@ -8,10 +8,7 @@ from dp_queries.dp_logic import DPQuerier
 import globals
 from private_database.private_database import PrivateDatabase
 
-from utils.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-)
+from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, STATS
 from utils.loggr import LOG
 
 
@@ -30,6 +27,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
     def cost(self, query_json: dict) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
+        privacy = set_mechanisms(privacy, query_json.mechanisms)
+
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
@@ -48,19 +47,28 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
     def query(self, query_json: dict) -> str:
         epsilon, delta = query_json.epsilon, query_json.delta
+
         privacy = Privacy(epsilon=epsilon, delta=delta)
+        privacy = set_mechanisms(privacy, query_json.mechanisms)
+
         reader = from_connection(
             self.df, privacy=privacy, metadata=self.metadata
         )
 
         query_str = query_json.query_str
         try:
-            result = reader.execute(query_str)
+            result = reader.execute(
+                query_str, postprocess=query_json.postprocess
+            )
         except Exception as err:
             raise HTTPException(
                 400,
                 "Error executing query: " + query_str + ": " + str(err),
             )
+
+        if not query_json.postprocess:
+            result = list(result)
+
         if globals.CONFIG.develop_mode:
             LOG.warning("********RESULT AFTER QUERY********")
             LOG.warning(result)
@@ -86,3 +94,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
             )
 
         return df_res.to_dict(orient="tight")
+
+
+def set_mechanisms(privacy, mechanisms):
+    # https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms
+    for stat in STATS:
+        if stat in mechanisms.keys():
+            privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
+    return privacy

@@ -1,18 +1,15 @@
 import io
 from fastapi.responses import StreamingResponse
-from functools import partial
+from fastapi import HTTPException
 
 import app
-from admin_database.admin_database import AdminDatabase
 from constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     QUERY_HANDLER_NOT_LOADED,
     SERVER_LIVE,
 )
-from utils.config import Config
 from utils.loggr import LOG
-from dp_queries.dp_logic import QueryHandler
 
 
 def stream_dataframe(df):
@@ -30,48 +27,6 @@ def stream_dataframe(df):
     return response
 
 
-def check_start_condition(
-    server_state: dict,
-    config: Config,
-    admin_database: AdminDatabase,
-    query_handler: QueryHandler,
-):
-    """
-    This function checks the server started correctly and server_state is
-    updated accordingly.
-
-    This has potential side effects on the return values of the "depends"
-    functions, which check the server state.
-    """
-    status_ok = True
-    if config is None:
-        LOG.info("config not loaded")
-        server_state["state"].append(CONFIG_NOT_LOADED)
-        server_state["message"].append("Server could not be started!")
-        server_state["LIVE"] = False
-        status_ok = False
-
-    if admin_database is None:
-        LOG.info("Admin database not loaded")
-        server_state["state"].append(DB_NOT_LOADED)
-        server_state["message"].append("Server could not be started!")
-        server_state["LIVE"] = False
-        status_ok = False
-
-    if query_handler is None:
-        LOG.info("QueryHandler not loaded")
-        server_state["state"].append(QUERY_HANDLER_NOT_LOADED)
-        server_state["message"].append("Server could not be started!")
-        server_state["LIVE"] = False
-        status_ok = False
-
-    if status_ok:
-        LOG.info("Server start condition OK")
-        server_state["state"].append(SERVER_LIVE)
-        server_state["message"].append("Server start condition OK")
-        server_state["LIVE"] = True
-
-
 async def server_live():
     if not app.SERVER_STATE["LIVE"]:
         raise HTTPException(
@@ -80,4 +35,40 @@ async def server_live():
                 Contact the administrator of this service.",
         )
     yield
-    
+
+
+def check_start_condition():
+    """
+    This function checks the server started correctly and SERVER_STATE is
+    updated accordingly.
+
+    This has potential side effects on the return values of the "depends"
+    functions, which check the server state.
+    """
+    status_ok = True
+    if app.CONFIG is None:
+        LOG.info("Config not loaded")
+        app.SERVER_STATE["state"].append(CONFIG_NOT_LOADED)
+        app.SERVER_STATE["message"].append("Server could not be started!")
+        app.SERVER_STATE["LIVE"] = False
+        status_ok = False
+
+    if app.ADMIN_DATABASE is None:
+        LOG.info("Admin database not loaded")
+        app.SERVER_STATE["state"].append(DB_NOT_LOADED)
+        app.SERVER_STATE["message"].append("Server could not be started!")
+        app.SERVER_STATE["LIVE"] = False
+        status_ok = False
+
+    if app.QUERY_HANDLER is None:
+        LOG.info("QueryHandler not loaded")
+        app.SERVER_STATE["state"].append(QUERY_HANDLER_NOT_LOADED)
+        app.SERVER_STATE["message"].append("Server could not be started!")
+        app.SERVER_STATE["LIVE"] = False
+        status_ok = False
+
+    if status_ok:
+        LOG.info("Server start condition OK")
+        app.SERVER_STATE["state"].append(SERVER_LIVE)
+        app.SERVER_STATE["message"].append("Server start condition OK")
+        app.SERVER_STATE["LIVE"] = True

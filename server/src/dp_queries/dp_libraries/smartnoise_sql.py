@@ -53,7 +53,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 400,
                 "Error executing query: " + query_str + ": " + str(err),
             )
-        
+
         # Should only be printed if logging level is debug
         LOG.debug("********RESULT AFTER QUERY********")
         LOG.debug(result)

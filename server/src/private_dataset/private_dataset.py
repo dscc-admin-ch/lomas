@@ -29,18 +29,6 @@ class PrivateDataset(ABC):
         if self.local_dir is not None:
             shutil.rmtree(self.local_dir)
 
-    def get_memory_usage(self) -> int:
-        """
-        Returns the memory usage of this dataset, in MiB.
-
-        The number returned only takes into account the memory usage
-        of the pandas DataFrame "cached" in the instance.
-        """
-        if self.df is None:
-            return 0
-        else:
-            return self.df.memory_usage().sum() / (1024**2)
-
     @abstractmethod
     def get_local_path(self) -> str:
         """

@@ -22,7 +22,6 @@ from utils.input_models import (
     OpenDPInp,
     SNSQLInp,
 )
-#import globals
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from utils.utils import stream_dataframe, server_live, check_start_condition
@@ -68,6 +67,7 @@ def startup_event():
     # Load config here
     LOG.info("Loading config")
     SERVER_STATE["message"].append("Loading config")
+    global CONFIG
     CONFIG = get_config()
 
     # Fill up user database if in develop mode ONLY
@@ -96,6 +96,7 @@ def startup_event():
     LOG.info("Loading admin database")
     SERVER_STATE["message"].append("Loading admin database")
     try:
+        global ADMIN_DATABASE
         ADMIN_DATABASE = database_factory(
             CONFIG.admin_database
         )
@@ -108,18 +109,21 @@ def startup_event():
 
     LOG.info("Loading query handler")
     SERVER_STATE["message"].append("Loading query handler")
+    global QUERY_HANDLER
     QUERY_HANDLER = QueryHandler(ADMIN_DATABASE)
 
     SERVER_STATE["state"].append("Startup completed")
     SERVER_STATE["message"].append("Startup completed")
 
     # Finally check everything in startup went well and update the state
-    check_start_condition(SERVER_STATE, CONFIG, ADMIN_DATABASE, QUERY_HANDLER)
+    check_start_condition()
 
-    # A simple hack to hinder the timing attackers
-    @app.middleware("http")
-    async def middleware(request: Request, call_next):
-        return await anti_timing_att(request, call_next, CONFIG)
+
+# A simple hack to hinder the timing attackers
+@app.middleware("http")
+async def middleware(request: Request, call_next):
+    global CONFIG
+    return await anti_timing_att(request, call_next, CONFIG)
 
 
 # API Endpoints

@@ -97,14 +97,10 @@ def startup_event():
     SERVER_STATE["message"].append("Loading admin database")
     try:
         global ADMIN_DATABASE
-        ADMIN_DATABASE = database_factory(
-            CONFIG.admin_database
-        )
+        ADMIN_DATABASE = database_factory(CONFIG.admin_database)
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
-        SERVER_STATE["state"].append(
-            "Loading user database at Startup failed"
-        )
+        SERVER_STATE["state"].append("Loading user database at Startup failed")
         SERVER_STATE["message"].append(str(e))
 
     LOG.info("Loading query handler")
@@ -221,9 +217,7 @@ def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
-        query_json.dataset_name
-    )
+    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
 
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
@@ -302,9 +296,7 @@ def dummy_opendp_query_handler(
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
-        query_json.dataset_name
-    )
+    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
 
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed

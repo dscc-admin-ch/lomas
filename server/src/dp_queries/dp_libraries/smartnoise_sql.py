@@ -8,10 +8,8 @@ from dp_queries.dp_logic import DPQuerier
 import globals
 from private_database.private_database import PrivateDatabase
 
-from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, STATS
+from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, STATS, MAX_NAN_ITERATION
 from utils.loggr import LOG
-
-MAX_NAN_ITERATION = 5
 
 
 class SmartnoiseSQLQuerier(DPQuerier):

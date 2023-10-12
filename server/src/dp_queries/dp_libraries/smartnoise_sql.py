@@ -11,6 +11,8 @@ from private_database.private_database import PrivateDatabase
 from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, STATS
 from utils.loggr import LOG
 
+MAX_NAN_ITERATION = 5
+
 
 class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
@@ -45,7 +47,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_json: dict) -> str:
+    def query(self, query_json: dict, nb_iter=0) -> str:
         epsilon, delta = query_json.epsilon, query_json.delta
 
         privacy = Privacy(epsilon=epsilon, delta=delta)
@@ -86,12 +88,17 @@ class SmartnoiseSQLQuerier(DPQuerier):
         df_res = pd.DataFrame(result, columns=cols)
 
         if df_res.isnull().values.any():
-            raise HTTPException(
-                400,
-                f"SQL Reader generated NAN results."
-                f" Epsilon: {epsilon} and Delta: {delta} are too small"
-                " to generate output.",
-            )
+            # Try again up to MAX_NAN_ITERATION
+            if nb_iter < MAX_NAN_ITERATION:
+                nb_iter += 1
+                return self.query(query_json, nb_iter)
+            else:
+                raise HTTPException(
+                    400,
+                    f"SQL Reader generated NAN results."
+                    f" Epsilon: {epsilon} and Delta: {delta} are too small"
+                    " to generate output.",
+                )
 
         return df_res.to_dict(orient="tight")
 

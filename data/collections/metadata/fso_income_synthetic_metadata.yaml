@@ -1,0 +1,21 @@
+"":
+  Schema:
+    Table:
+      max_ids: 1
+      region:
+        type: int
+      eco_branch:
+        type: int
+      profession:
+        type: int
+      education:
+        type: int
+      age:
+        type: int
+      sex:
+        type: int
+      income:
+        type: float
+        lower: 1000
+        upper: 100000
+engine: csv

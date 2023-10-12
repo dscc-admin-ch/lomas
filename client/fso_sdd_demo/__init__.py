@@ -1,1 +1,1 @@
-from fso_sdd_demo.client import Client
+from fso_sdd_demo.client import Client  # noqa

@@ -4,33 +4,27 @@ from snsql import Privacy, from_connection, Stat, Mechanism
 import traceback
 import pandas as pd
 
-from dp_queries.dp_logic import DPQuerier
-import globals
-from private_database.private_database import PrivateDatabase
-
-from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED, STATS, MAX_NAN_ITERATION
+from constants import MAX_NAN_ITERATION, STATS
+from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.loggr import LOG
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
     def __init__(
         self,
-        metadata: dict,
-        private_db: PrivateDatabase = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
+        private_dataset: PrivateDataset,
     ) -> None:
-        super().__init__(
-            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
-        )
+        super().__init__(private_dataset)
 
     def cost(self, query_json: dict) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
         reader = from_connection(
-            self.df, privacy=privacy, metadata=self.metadata
+            self.private_dataset.get_pandas_df(),
+            privacy=privacy,
+            metadata=self.private_dataset.get_metadata(),
         )
 
         query_str = query_json.query_str
@@ -52,7 +46,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
         reader = from_connection(
-            self.df, privacy=privacy, metadata=self.metadata
+            self.private_dataset.get_pandas_df(),
+            privacy=privacy,
+            metadata=self.private_dataset.get_metadata(),
         )
 
         query_str = query_json.query_str
@@ -69,9 +65,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         if not query_json.postprocess:
             result = list(result)
 
-        if globals.CONFIG.develop_mode:
-            LOG.warning("********RESULT AFTER QUERY********")
-            LOG.warning(result)
+        # Should only be printed if logging level is debug
+        LOG.debug("********RESULT AFTER QUERY********")
+        LOG.debug(result)
 
         cols = result.pop(0)
 

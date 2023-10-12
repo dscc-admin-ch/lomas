@@ -1,159 +1,11 @@
-from abc import ABC, abstractmethod
 from fastapi import Header, HTTPException
-from typing import Dict, List
 
-from utils.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-    SUPPORTED_LIBS,
-    LIB_OPENDP,
-    LIB_SMARTNOISE_SQL,
-)
+
 from admin_database.admin_database import AdminDatabase
-from dp_queries.input_models import BasicModel
-from private_database.private_database import PrivateDatabase
-from private_database.utils import private_database_factory
-from utils.dummy_dataset import make_dummy_dataset
+from utils.input_models import BasicModel
+from dataset_store.basic_dataset_store import BasicDatasetStore
+from constants import SUPPORTED_LIBS
 from utils.loggr import LOG
-
-
-class DPQuerier(ABC):
-    """
-    Overall query to external DP library
-    """
-
-    def __init__(
-        self,
-        metadata: dict,
-        private_db: PrivateDatabase = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
-    ) -> None:
-        """
-        Initialise with specific dataset
-        """
-        self.metadata = metadata
-
-        if dummy:
-            self.df = make_dummy_dataset(
-                self.metadata, dummy_nb_rows, dummy_seed
-            )
-        else:
-            self.df = private_db.get_pandas_df()
-
-    @abstractmethod
-    def cost(self, query_json: dict) -> List[float]:
-        """
-        Estimate cost of query
-        """
-        pass
-
-    @abstractmethod
-    def query(self, query_json: dict) -> str:
-        """
-        Does the query and return the response
-        """
-        pass
-
-
-class QuerierManager(ABC):
-    """
-    Manages the DPQueriers for the different datasets and libraries
-
-    Holds a reference to the user database in order to get information
-    about users.
-
-    We make the _add_dataset function private to enforce lazy loading
-    of queriers.
-    """
-
-    admin_database: AdminDatabase
-
-    def __init__(self, admin_database: AdminDatabase) -> None:
-        self.admin_database = admin_database
-
-    @abstractmethod
-    def _add_dataset(self, dataset_name: str) -> None:
-        """
-        Adds a dataset to the manager
-        """
-        pass
-
-    @abstractmethod
-    def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
-        """
-        Returns the querier for the given dataset and library
-        """
-        pass
-
-
-class BasicQuerierManager(QuerierManager):
-    """
-    Basic implementation of the QuerierManager interface.
-
-    The queriers are initialized lazily and put into a dict.
-    There is no memory management => The manager will fail if the datasets are
-    too large to fit in memory.
-
-    The _add_dataset method just gets the source data from csv files
-    (links stored in constants).
-    """
-
-    dp_queriers: Dict[str, Dict[str, DPQuerier]] = None
-
-    def __init__(self, admin_database: AdminDatabase) -> None:
-        super().__init__(admin_database)
-        self.dp_queriers = {}
-        self.admin_database = admin_database
-
-    def _add_dataset(self, dataset_name: str) -> None:
-        """
-        Adds all queriers for a dataset.
-        The source data is fetched from an online csv, the paths are stored
-        as constants for now.
-
-        TODO Get the info from the metadata stored in the db.
-        """
-        # Should not call this function if dataset already present.
-        assert (
-            dataset_name not in self.dp_queriers
-        ), "BasicQuerierManager: \
-        Trying to add a dataset already in self.dp_queriers"
-
-        # Metadata and data getter
-        metadata = self.admin_database.get_dataset_metadata(dataset_name)
-        private_database = private_database_factory(
-            dataset_name, self.admin_database
-        )
-
-        # Initialize dict
-        self.dp_queriers[dataset_name] = {}
-
-        for lib in SUPPORTED_LIBS:
-            if lib == LIB_SMARTNOISE_SQL:
-                from dp_queries.dp_libraries.smartnoise_sql import (
-                    SmartnoiseSQLQuerier,
-                )
-
-                querier = SmartnoiseSQLQuerier(metadata, private_database)
-            elif lib == LIB_OPENDP:
-                from dp_queries.dp_libraries.open_dp import OpenDPQuerier
-
-                querier = OpenDPQuerier(metadata, private_database)
-            # elif lib == LIB_DIFFPRIVLIB: TODO
-            else:
-                raise Exception(
-                    f"Trying to create a querier for library {lib}. "
-                    "This should never happen."
-                )
-            self.dp_queriers[dataset_name][lib] = querier
-
-    def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
-        if dataset_name not in self.dp_queriers:
-            self._add_dataset(dataset_name)
-
-        return self.dp_queriers[dataset_name][query_type]
 
 
 class QueryHandler:
@@ -165,11 +17,11 @@ class QueryHandler:
     """
 
     admin_database: AdminDatabase
-    querier_manager: BasicQuerierManager
+    querier_manager: BasicDatasetStore
 
     def __init__(self, admin_database: AdminDatabase) -> None:
         self.admin_database = admin_database
-        self.querier_manager = BasicQuerierManager(admin_database)
+        self.querier_manager = BasicDatasetStore(admin_database)
 
     def _get_querier(
         self,
@@ -292,7 +144,7 @@ class QueryHandler:
                 "spent_delta": 0,
             }
 
-        # Check that enough budget to to the query
+        # Check that enough budget to do the query
         (
             eps_remaining,
             delta_remaining,

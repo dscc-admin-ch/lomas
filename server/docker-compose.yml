@@ -12,6 +12,7 @@ services:
     volumes:
       - ./src:/code/
       - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
+      - ../data/:/data/
     depends_on:
       - mongodb
     networks:
@@ -48,6 +49,7 @@ services:
       - 8888:8888
     volumes:
       - ../client/:/code/
+      - ../data/:/data/
     depends_on:
       - sdd_poc_server
     networks:

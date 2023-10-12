@@ -1,10 +1,10 @@
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 
-import globals
 from mongodb_admin import MongoDB_Admin
+from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory, get_mongodb_url
 from dp_queries.dp_logic import QueryHandler
-from dp_queries.example_inputs import (
+from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_get_budget,
@@ -13,7 +13,7 @@ from dp_queries.example_inputs import (
     example_opendp,
     example_smartnoise_sql,
 )
-from dp_queries.input_models import (
+from utils.input_models import (
     DummyOpenDPInp,
     DummySNSQLInp,
     GetBudgetInp,
@@ -24,22 +24,37 @@ from dp_queries.input_models import (
 )
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
-from dp_queries.utils import stream_dataframe
+from utils.utils import stream_dataframe, server_live, check_start_condition
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.anti_timing_att import anti_timing_att
-from utils.config import get_config
-from utils.constants import (
+from utils.config import get_config, Config
+from constants import (
     INTERNAL_SERVER_ERROR,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
-from utils.depends import server_live
-from utils.dummy_dataset import make_dummy_dataset
+from dp_queries.dummy_dataset import make_dummy_dataset
 from utils.loggr import LOG
 
+# Some global variables
+# -----------------------------------------------------------------------------
+CONFIG: Config = None
+ADMIN_DATABASE: AdminDatabase = None
+QUERY_HANDLER: QueryHandler = None
+
+# General server state, can add fields if need be.
+SERVER_STATE: dict = {
+    "state": [],
+    "message": [],
+    "LIVE": False,
+}
 
 # This object holds the server object
 app = FastAPI()
+
+
+# Startup
+# -----------------------------------------------------------------------------
 
 
 @app.on_event("startup")
@@ -47,67 +62,70 @@ def startup_event():
     """
     This function is executed once on server startup"""
     LOG.info("Startup message")
-    globals.SERVER_STATE["state"].append("Startup event")
+    SERVER_STATE["state"].append("Startup event")
 
     # Load config here
     LOG.info("Loading config")
-    globals.SERVER_STATE["message"].append("Loading config")
-    globals.CONFIG = get_config()
+    SERVER_STATE["message"].append("Loading config")
+    global CONFIG
+    CONFIG = get_config()
 
     # Fill up user database if in develop mode ONLY
-    if globals.CONFIG.develop_mode:
+    if CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
 
-        db_url = get_mongodb_url(globals.CONFIG.admin_database)
-        db_name = globals.CONFIG.admin_database.db_name
+        db_url = get_mongodb_url(CONFIG.admin_database)
+        db_name = CONFIG.admin_database.db_name
         mongo_admin = MongoDB_Admin(db_url, db_name)
 
         def args():
             return None  # trick to create a dummy args object
 
         LOG.info("Creating user collection")
-        args.path = "collections/user_collection.yaml"
+        args.path = "/data/collections/user_collection.yaml"
         mongo_admin.create_users_collection(args)
 
         LOG.info("Creating datasets and metadata collection")
-        args.path = "collections/dataset_collection.yaml"
+        args.path = "/data/collections/dataset_collection.yaml"
         mongo_admin.add_datasets(args)
 
         del mongo_admin
 
     # Load users, datasets, etc..
     LOG.info("Loading admin database")
-    globals.SERVER_STATE["message"].append("Loading admin database")
+    SERVER_STATE["message"].append("Loading admin database")
     try:
-        globals.ADMIN_DATABASE = database_factory(
-            globals.CONFIG.admin_database
-        )
+        global ADMIN_DATABASE
+        ADMIN_DATABASE = database_factory(CONFIG.admin_database)
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
-        globals.SERVER_STATE["state"].append(
-            "Loading user database at Startup failed"
-        )
-        globals.SERVER_STATE["message"].append(str(e))
+        SERVER_STATE["state"].append("Loading user database at Startup failed")
+        SERVER_STATE["message"].append(str(e))
 
     LOG.info("Loading query handler")
-    globals.SERVER_STATE["message"].append("Loading query handler")
-    globals.QUERY_HANDLER = QueryHandler(globals.ADMIN_DATABASE)
+    SERVER_STATE["message"].append("Loading query handler")
+    global QUERY_HANDLER
+    QUERY_HANDLER = QueryHandler(ADMIN_DATABASE)
 
-    globals.SERVER_STATE["state"].append("Startup completed")
-    globals.SERVER_STATE["message"].append("Startup completed")
+    SERVER_STATE["state"].append("Startup completed")
+    SERVER_STATE["message"].append("Startup completed")
 
     # Finally check everything in startup went well and update the state
-    globals.check_start_condition()
+    check_start_condition()
 
 
 # A simple hack to hinder the timing attackers
 @app.middleware("http")
 async def middleware(request: Request, call_next):
-    return await anti_timing_att(request, call_next, globals.CONFIG)
+    global CONFIG
+    return await anti_timing_att(request, call_next, CONFIG)
 
 
-# Example implementation for an endpoint
+# API Endpoints
+# -----------------------------------------------------------------------------
+
+
 @app.get("/state", tags=["ADMIN_USER"])
 async def get_state(user_name: str = Header(None)):
     """
@@ -115,7 +133,7 @@ async def get_state(user_name: str = Header(None)):
     """
     return {
         "requested_by": user_name,
-        "state": globals.SERVER_STATE,
+        "state": SERVER_STATE,
     }
 
 
@@ -130,7 +148,7 @@ def get_dataset_metadata(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
+        ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -151,7 +169,7 @@ def get_dummy_dataset(
 ):
     # Create dummy dataset based on seed and number of rows
     try:
-        ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
+        ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
         )
 
@@ -176,7 +194,7 @@ def smartnoise_sql_handler(
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response = globals.QUERY_HANDLER.handle_query(
+        response = QUERY_HANDLER.handle_query(
             LIB_SMARTNOISE_SQL, query_json, user_name
         )
     except HTTPException as e:
@@ -199,9 +217,7 @@ def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
-        query_json.dataset_name
-    )
+    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
 
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
@@ -236,7 +252,7 @@ def estimate_smartnoise_cost(
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response = globals.QUERY_HANDLER.estimate_cost(
+        response = QUERY_HANDLER.estimate_cost(
             LIB_SMARTNOISE_SQL,
             query_json,
         )
@@ -258,7 +274,7 @@ def opendp_query_handler(
     user_name: str = Header(None),
 ):
     try:
-        response = globals.QUERY_HANDLER.handle_query(
+        response = QUERY_HANDLER.handle_query(
             LIB_OPENDP, query_json, user_name
         )
     except HTTPException as he:
@@ -280,9 +296,7 @@ def dummy_opendp_query_handler(
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
 ):
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = globals.ADMIN_DATABASE.get_dataset_metadata(
-        query_json.dataset_name
-    )
+    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
 
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
@@ -315,7 +329,7 @@ def estimate_opendp_cost(
 ):
     # Catch all non-http exceptions so that the server does not fail.
     try:
-        response = globals.QUERY_HANDLER.estimate_cost(
+        response = QUERY_HANDLER.estimate_cost(
             LIB_OPENDP,
             query_json,
         )
@@ -339,7 +353,7 @@ def get_initial_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    initial_epsilon, initial_delta = globals.ADMIN_DATABASE.get_initial_budget(
+    initial_epsilon, initial_delta = ADMIN_DATABASE.get_initial_budget(
         user_name, query_json.dataset_name
     )
 
@@ -359,7 +373,7 @@ def get_total_spent_budget(
     (
         total_spent_epsilon,
         total_spent_delta,
-    ) = globals.ADMIN_DATABASE.get_total_spent_budget(
+    ) = ADMIN_DATABASE.get_total_spent_budget(
         user_name, query_json.dataset_name
     )
 
@@ -378,7 +392,7 @@ def get_remaining_budget(
     query_json: GetBudgetInp = Body(example_get_budget),
     user_name: str = Header(None),
 ):
-    rem_epsilon, rem_delta = globals.ADMIN_DATABASE.get_remaining_budget(
+    rem_epsilon, rem_delta = ADMIN_DATABASE.get_remaining_budget(
         user_name, query_json.dataset_name
     )
 

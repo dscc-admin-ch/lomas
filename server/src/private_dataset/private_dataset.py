@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
 import pandas as pd
+import shutil
 
 
 class PrivateDataset(ABC):
     """
     Overall access to sensitive data
     """
+
+    df = None
+    local_path = None
+    local_dir = None
 
     def __init__(self, metadata, **connection_parameters) -> None:
         """
@@ -15,6 +20,14 @@ class PrivateDataset(ABC):
             - **connection_parameters: parameters required to access the db
         """
         self.metadata = metadata
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory used for storing
+        the dataset locally if needed.
+        """
+        if self.local_dir is not None:
+            shutil.rmtree(self.local_dir)
 
     @abstractmethod
     def get_local_path(self) -> str:

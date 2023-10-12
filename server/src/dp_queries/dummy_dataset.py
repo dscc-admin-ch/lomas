@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import random
 
-from utils.constants import (
+from constants import (
     DEFAULT_NUMERICAL_MAX,
     DEFAULT_NUMERICAL_MIN,
     DUMMY_NB_ROWS,

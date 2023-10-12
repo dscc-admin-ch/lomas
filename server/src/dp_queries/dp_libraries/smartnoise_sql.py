@@ -4,10 +4,8 @@ from snsql import Privacy, from_connection
 import traceback
 import pandas as pd
 
-from dp_queries.dp_logic import DPQuerier
-import globals
+from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-
 from utils.loggr import LOG
 
 
@@ -55,9 +53,10 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 400,
                 "Error executing query: " + query_str + ": " + str(err),
             )
-        if globals.CONFIG.develop_mode:
-            LOG.warning("********RESULT AFTER QUERY********")
-            LOG.warning(result)
+
+        # Should only be printed if logging level is debug
+        LOG.debug("********RESULT AFTER QUERY********")
+        LOG.debug(result)
 
         cols = result.pop(0)
 

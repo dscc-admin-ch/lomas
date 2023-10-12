@@ -62,6 +62,20 @@ class GetBudgetInp(BaseModel):
     dataset_name: str
 
 
+# class OpenDPBase(BasicModel):
+#     function: str
+#     args: List
+#     kwargs: dict
+
+
+# class OpenDPAST(BasicModel):
+#     func: str
+#     module: str
+#     type: str
+#     args: dict = {}
+#     kwargs: dict = {}
+
+
 class OpenDPInp(BasicModel):
     dataset_name: str
     opendp_json: str  # TODO: improve with OpenDPAST and OpenDPBase

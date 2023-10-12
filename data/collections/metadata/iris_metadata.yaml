@@ -1,0 +1,29 @@
+"":
+  Schema:
+    Table:
+      max_ids: 1
+      petal_length:
+        type: float
+        lower: 0.5
+        upper: 10.0
+      petal_width:
+        type: float
+        lower: 0.05
+        upper: 5.0
+      row_privacy: true
+      sepal_length:
+        type: float
+        lower: 2.0
+        upper: 10.0
+      sepal_width:
+        type: float
+        lower: 1.0
+        upper: 6.0
+      species:
+        type: string
+        cardinality: 3
+        categories:
+        - setosa
+        - versicolor
+        - virginica
+engine: csv

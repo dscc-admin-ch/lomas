@@ -4,9 +4,12 @@ import opendp_polars as dp
 from opendp_polars.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
-from private_database.private_database import PrivateDatabase
-from dp_queries.dp_logic import DPQuerier
-from utils.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from private_dataset.private_dataset import PrivateDataset
+from dp_queries.dp_querier import DPQuerier
+from constants import (
+    OPENDP_INPUT_TYPE_DF,
+    OPENDP_INPUT_TYPE_PATH,
+)
 from utils.loggr import LOG
 
 enable_features("contrib")
@@ -17,28 +20,30 @@ PT_TYPE = "^py_type:*"
 class OpenDPQuerier(DPQuerier):
     def __init__(
         self,
-        metadata,
-        private_db: PrivateDatabase = None,
-        dummy: bool = False,
-        dummy_nb_rows: int = DUMMY_NB_ROWS,
-        dummy_seed: int = DUMMY_SEED,
+        private_dataset: PrivateDataset,
     ) -> None:
-        super().__init__(
-            metadata, private_db, dummy, dummy_nb_rows, dummy_seed
-        )
+        super().__init__(private_dataset)
 
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         try:
             cost = opendp_pipe.map(
-                d_in=float(self.metadata[""]["Schema"]["Table"]["max_ids"])
+                d_in=float(
+                    self.private_dataset.get_metadata()[""]["Schema"]["Table"][
+                        "max_ids"
+                    ]
+                )
             )
 
         except Exception:
             try:
                 cost = opendp_pipe.map(
-                    d_in=int(self.metadata[""]["Schema"]["Table"]["max_ids"])
+                    d_in=int(
+                        self.private_dataset.get_metadata()[""]["Schema"][
+                            "Table"
+                        ]["max_ids"]
+                    )
                 )
             except Exception as e:
                 LOG.exception(e)
@@ -56,8 +61,20 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
+        if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
+            input_data = self.private_dataset.get_pandas_df().to_csv()
+        elif query_json.input_data_type == OPENDP_INPUT_TYPE_PATH:
+            input_data = self.private_dataset.get_local_path()
+        else:
+            e = (
+                f"Input data type {query_json.input_data_type}"
+                "not valid for opendp query"
+            )
+            LOG.exception(e)
+            raise HTTPException(400, e)
+
         try:
-            release_data = opendp_pipe(self.df.to_csv())
+            release_data = opendp_pipe(input_data)
         except HTTPException as he:
             LOG.exception(he)
             raise he

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing_extensions import Literal
 import yaml
 
-from utils.constants import (
+from constants import (
     CONFIG_PATH,
     CONF_RUNTIME_ARGS,
     CONF_SETTINGS,
@@ -15,7 +15,6 @@ from utils.constants import (
     CONF_DB,
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
-    CONF_DB_TYPE_YAML,
     CONF_SUBMIT_LIMIT,
 )
 from utils.loggr import LOG
@@ -27,7 +26,7 @@ class TimeAttack(BaseModel):
 
 
 class DBConfig(BaseModel):
-    db_type: str = Literal["mongodb", "yaml"]
+    db_type: str = Literal[CONF_DB_TYPE_MONGODB]
 
 
 class MongoDBConfig(DBConfig):
@@ -36,11 +35,6 @@ class MongoDBConfig(DBConfig):
     username: str = None
     password: str = None
     db_name: str = None
-
-
-class YAMLDBConfig(DBConfig):
-    db_directory: str = None
-    db_file_name: str = None
 
 
 class Config(BaseModel):
@@ -101,10 +95,6 @@ def get_config() -> dict:
         db_type = config_data[CONF_DB][CONF_DB_TYPE]
         if db_type == CONF_DB_TYPE_MONGODB:
             admin_database_config = MongoDBConfig.parse_obj(
-                config_data[CONF_DB]
-            )
-        elif db_type == CONF_DB_TYPE_YAML:
-            admin_database_config = YAMLDBConfig.parse_obj(
                 config_data[CONF_DB]
             )
         else:

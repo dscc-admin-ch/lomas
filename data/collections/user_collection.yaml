@@ -36,3 +36,11 @@ users:
     initial_delta: 0.0001
     total_spent_epsilon: 0
     total_spent_delta: 0
+- user_name: Jack
+  may_query: True
+  datasets_list:
+  - dataset_name: "TITANIC"
+    initial_epsilon: 45
+    initial_delta: 0.2
+    total_spent_epsilon: 0
+    total_spent_delta: 0

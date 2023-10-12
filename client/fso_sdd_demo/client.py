@@ -129,7 +129,7 @@ class Client:
     def opendp_query(
         self,
         opendp_pipeline,
-        input_data_type = "df",
+        input_data_type: str = "df",
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -138,7 +138,7 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
-            "input_data_type": input_data_type
+            "input_data_type": input_data_type,
         }
         if dummy:
             endpoint = "dummy_opendp_query"
@@ -158,12 +158,16 @@ class Client:
             )
             return res.text
 
-    def estimate_opendp_cost(self, opendp_pipeline, input_data_type = "df",) -> dict:
+    def estimate_opendp_cost(
+        self,
+        opendp_pipeline,
+        input_data_type="df",
+    ) -> dict:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
-            "input_data_type": input_data_type
+            "input_data_type": input_data_type,
         }
         res = self._exec("estimate_opendp_cost", body_json)
 

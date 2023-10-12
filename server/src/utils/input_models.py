@@ -1,6 +1,6 @@
 # from typing import List
 from pydantic import BaseModel, Field  # validator
-from utils.constants import EPSILON_LIMIT, DELTA_LIMIT
+from constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 
 
@@ -88,43 +88,3 @@ class DummyOpenDPInp(BasicModel):
     input_data_type: str
     dummy_nb_rows: int
     dummy_seed: int
-
-
-# class DiffPrivLibModel(BasicModel):
-#     name: str
-#     type: str
-
-#     # Could take single epsilon value and divide by len of pipeline
-#     # to set epsilon for individual pipeline
-#     # epsilon: float = Field(..., gt=0, le=10)
-
-#     params: dict
-
-#     # @validator('type')
-#     # def validate_model(cls, type):
-#     #     if type not in diffpriv_map.keys():
-#     #         raise ValueError(f"'{type}' is not \
-#     #                one of {list(diffpriv_map.keys())}.")
-#     #     return type
-
-
-# class DiffPrivLibInp(BasicModel):
-#     module: str
-#     pipeline: List[DiffPrivLibModel]
-#     version: str
-#     y_column: str
-
-#     @validator("y_column")
-#     def valid_Y(cls, y_column):
-#         if y_column not in globals.TRAIN_Y.columns:
-#             raise ValueError(
-#                 f"Provided y value '{y_column}' is not available. \
-#                     Please select one of {list(globals.TRAIN_Y.columns)}."
-#             )
-#         return y_column
-
-#     @validator("module")
-#     def valid_module(cls, module):
-#         if module != "diffprivlib":
-#             raise ValueError(f"'{module}' is not diffprivlib.")
-#         return module

@@ -1,4 +1,5 @@
 import string
+import pkg_resources
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
@@ -13,9 +14,6 @@ CONF_SUBMIT_LIMIT = "submit_limit"
 CONF_DB = "admin_database"
 CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
-CONF_DB_TYPE_YAML = "yaml"
-CONF_YAML_DB_DIR = "db_directory"
-CONF_YAML_DB_FILE_NAME = "db_file_name"
 CONF_MONGODB_ADDR = "address"
 CONF_MONGODB_PORT = "port"
 
@@ -43,28 +41,7 @@ SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 OPENDP_INPUT_TYPE_DF = "df"
 OPENDP_INPUT_TYPE_PATH = "path"
 
-# Datasets => TODO remove this and read from config file in yamlDatabase?
-IRIS_DATASET = "IRIS"
-IRIS_DATASET_PATH = (
-    "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
-)
-IRIS_METADATA_PATH = "collections/metadata/iris_metadata.yaml"
-
-PENGUIN_DATASET = "PENGUIN"
-PENGUIN_DATASET_PATH = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"  # noqa: E501
-PENGUIN_METADATA_PATH = "collections/metadata/penguin_metadata.yaml"
-
-DATASET_PATHS = {
-    IRIS_DATASET: IRIS_DATASET_PATH,
-    PENGUIN_DATASET: PENGUIN_DATASET_PATH,
-}
-DATASET_METADATA_PATHS = {
-    IRIS_DATASET: IRIS_METADATA_PATH,
-    PENGUIN_DATASET: PENGUIN_METADATA_PATH,
-}
-
-EXISTING_DATASETS = [IRIS_DATASET, PENGUIN_DATASET]
-
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 
 # Databases
 LOCAL_DB = "LOCAL_DB"

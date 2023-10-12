@@ -14,7 +14,10 @@ setup(
     description="A serializer of popular differential privacy frameworks \
         (OpenDP, Smartnoise-SQL) for remote execution.",
     url="https://https://gitlab.renkulab.io/dscc/sdd-poc-client",
-    download_url="https://gitlab.renkulab.io/dscc/sdd-poc-client/-/releases/V_0.0.7/evidences/38.json",
+    download_url=(
+        "https://gitlab.renkulab.io/dscc/sdd-poc-client/"
+        "-/releases/V_0.0.7/evidences/38.json"
+    ),
     author="FSO DSCC",
     author_email="pauline.maury-laribiere@bfs.admin.ch",
     license="MIT",

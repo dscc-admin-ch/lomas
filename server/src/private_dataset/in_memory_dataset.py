@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import shutil
 import tempfile
 
 from private_dataset.private_dataset import PrivateDataset
@@ -18,16 +17,6 @@ class InMemoryDataset(PrivateDataset):
         """
         super().__init__(metadata)
         self.df = dataset_df.copy()
-        self.local_path = None
-        self.local_dir = None
-
-    def __del__(self):
-        """
-        Cleans up the temporary directory used for storing
-        the dataset locally if needed.
-        """
-        if self.local_dir is not None:
-            shutil.rmtree(self.local_dir)
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

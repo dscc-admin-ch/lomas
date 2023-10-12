@@ -101,3 +101,4 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 # Smartnoise sql
 STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
+MAX_NAN_ITERATION = 5

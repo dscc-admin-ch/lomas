@@ -11,9 +11,9 @@ datasets:
   database_type: "S3_DB"
   s3_bucket: "example"
   s3_key: "data/titanic.csv"
-  endpoint_url: "http://s3:9000"
-  aws_access_key_id: root
-  aws_secret_access_key: root_pwd
+  endpoint_url: "https://api-sdd-minio.lab.sspcloud.fr"
+  aws_access_key_id: "admin"
+  aws_secret_access_key: "admin123"
   metadata_path: "/data/collections/metadata/titanic_metadata.yaml"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   database_type: "LOCAL_DB"

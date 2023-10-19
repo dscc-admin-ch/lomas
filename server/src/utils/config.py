@@ -1,5 +1,5 @@
+import collections.abc
 from pydantic import BaseModel
-
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
@@ -16,6 +16,7 @@ from constants import (
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
     CONF_SUBMIT_LIMIT,
+    SECRETS_PATH
 )
 from utils.loggr import LOG
 
@@ -82,11 +83,26 @@ class Config(BaseModel):
 
 def get_config() -> dict:
     """
-    Loads the config from disk, and returns the config object.
+    Loads the config and the secret data from disk, 
+    merges them and returns the config object.
     """
     try:
         with open(CONFIG_PATH, "r") as f:
             config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]
+
+        # Merge secret data into config data
+        with open(SECRETS_PATH, "r") as f:
+            secret_data = yaml.safe_load(f)
+
+            def update(d, u):
+                for k, v in u.items():
+                    if isinstance(v, collections.abc.Mapping):
+                        d[k] = update(d.get(k, {}), v)
+                    else:
+                        d[k] = v
+                return d
+
+            update(config_data, secret_data)
 
         time_attack: TimeAttack = TimeAttack.parse_obj(
             config_data[CONF_TIME_ATTACK]

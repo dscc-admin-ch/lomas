@@ -45,12 +45,14 @@ services:
     image: damienaymon/sdd_client_demo
     build:
       dockerfile: ../client/Dockerfile
+      target: sdd_client_dev
     container_name: sdd_client_demo
     ports: 
       - 8888:8888
     volumes:
       - ../client/:/code/
       - ../data/:/data/
+      - ./configs/:/root/.jupyter/
     depends_on:
       - sdd_poc_server
     networks:

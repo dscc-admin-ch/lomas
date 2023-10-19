@@ -33,15 +33,19 @@ spec:
             containerPort: {{ .Values.service.port }}
             protocol: TCP
         volumeMounts:
-          - name: config
+          - name: config-and-secrets
             readOnly: True
             mountPath: "/usr/sdd_poc_server/"
         resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: config
-          configMap:
-            name: {{ include "sdd_server.fullname" . }}
+        - name: config-and-secrets
+          projected:
+            sources:
+            - secret:
+                name: {{ include "sdd_server.fullname" . }}
+            - configMap:
+                name: {{ include "sdd_server.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

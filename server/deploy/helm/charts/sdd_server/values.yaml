@@ -35,6 +35,15 @@ image:
   pullPolicy: Always
   tag: latest
 
+# Runtime args for server
+runtime_args:
+  settings:
+    develop_mode: True # !! Set this to false in production mode !!
+    submit_limit: 300
+    time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
+
 imagePullSecrets: []
 nameOverride: "sdd-server"
 fullnameOverride: "sdd-server"

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sdd_server.fullname" . }}
+  labels:
+    {{- include "sdd_server.labels" . | nindent 4 }}
+data: |
+  runtime_args:
+    settings:
+      develop_mode: {{ .Values.runtime_args.settings.develop_mode }}
+      submit_limit: {{ .Values.runtime_args.settings.submit_limit }}
+      time_attack:
+          {{- toYaml .Values.runtime_args.settings.time_attack | nindent 10 }}
+      database:
+        db_type: "mongodb"
+        address: {{ .Values.mongodb.mongodb.fullnameOverride }} # or db_file: <..> for yaml db
+        port: 27017
+        password: {{ .Values.mongodb.mongodb.auth.passwords[0] }}
+        username: {{ .Values.mongodb.mongodb.auth.usernames[0] }}
+        db_name: {{ .Values.mongodb.mongodb.auth.databases[0] }}

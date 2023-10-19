@@ -12,6 +12,7 @@ services:
     volumes:
       - ./src:/code/
       - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
+      - ./configs/example_secrets.yaml:/usr/sdd_poc_server/secrets.yaml
       - ../data/:/data/
     depends_on:
       - mongodb

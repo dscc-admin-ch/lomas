@@ -83,13 +83,13 @@ ingress:
     #kubernetes.io/ingress.class: nginx
     #kubernetes.io/tls-acme: "true"
   hosts:
-    - host: sdd-server-demo.lab.sspcloud.fr
+    - host: sdd-server-demo-config.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd-server-demo.lab.sspcloud.fr
+      - sdd-server-demo-config.lab.sspcloud.fr
   #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

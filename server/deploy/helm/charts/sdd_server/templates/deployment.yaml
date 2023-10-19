@@ -34,14 +34,15 @@ spec:
             protocol: TCP
         volumeMounts:
           - name: config
-            mountPath: "/usr/sdd_poc_server/runtime.yaml"
+            readOnly: True
+            mountPath: "/usr/sdd_poc_server/"
         resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
       volumes:
         - name: config
           configMap:
             name: {{ include "sdd_server.fullname" . }}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

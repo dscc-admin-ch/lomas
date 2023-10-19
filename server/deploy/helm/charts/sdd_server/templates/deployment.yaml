@@ -32,9 +32,16 @@ spec:
           - name: http
             containerPort: {{ .Values.service.port }}
             protocol: TCP
+        volumeMounts:
+          - name: config
+            mountPath: "/usr/sdd_poc_server/runtime.yaml"
         resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "sdd_server.fullname" . }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

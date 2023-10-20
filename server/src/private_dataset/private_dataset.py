@@ -55,7 +55,7 @@ class PrivateDataset(ABC):
         Get the metadata for this dataset
         """
         return self.metadata
-    
+
     def get_memory_usage(self) -> int:
         """
         Returns the memory usage of this dataset, in MiB.
@@ -68,9 +68,10 @@ class PrivateDataset(ABC):
         else:
             return self.df.memory_usage().sum() / (1024**2)
 
-    def subscribe_for_memory_usage_updates(self, dataset_observer: PrivateDatasetObserver):
+    def subscribe_for_memory_usage_updates(
+        self, dataset_observer: PrivateDatasetObserver
+    ):
         """
         Add the PrivateDatasetObserver to the list of dataset_observers.
         """
         self.dataset_observers.append(dataset_observer)
-    

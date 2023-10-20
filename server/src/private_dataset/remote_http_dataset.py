@@ -35,9 +35,12 @@ class RemoteHTTPDataset(PrivateDataset):
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )
-            
+
             # Notify observer since memory usage has changed
-            [observer.update_memory_usage() for observer in self.dataset_observers]
+            [
+                observer.update_memory_usage()
+                for observer in self.dataset_observers
+            ]
 
         return self.df
 

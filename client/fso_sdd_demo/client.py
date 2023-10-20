@@ -4,6 +4,7 @@ import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging
 from opendp.mod import enable_features
+import polars
 
 # Opendp_logger
 enable_logging()
@@ -150,7 +151,16 @@ class Client:
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
             data = res.content.decode("utf8")
-            return json.loads(data)
+            response_dict = json.loads(data)
+
+            # Opendp outputs can be single numbers or dataframes, handle the latter
+            # This is a hack for now, maybe use parquet to send results over.
+            if type(response_dict["query_response"]) == str:
+                response_dict["query_response"] = polars.read_json(
+                    StringIO(response_dict["query_response"])
+                )
+
+            return response_dict
         else:
             print(
                 f"Error while processing OpenDP request in server \

@@ -153,7 +153,8 @@ class Client:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
 
-            # Opendp outputs can be single numbers or dataframes, handle the latter
+            # Opendp outputs can be single numbers or dataframes,
+            # we handle the latter here.
             # This is a hack for now, maybe use parquet to send results over.
             if type(response_dict["query_response"]) == str:
                 response_dict["query_response"] = polars.read_json(

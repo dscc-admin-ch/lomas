@@ -46,7 +46,7 @@ class S3Dataset(PrivateDataset):
         if self.local_path is None:
             # Create temp dir and file
             self.local_dir = tempfile.mkdtemp()
-            file_name = self.ds_path.split("/")[-1]
+            file_name = self.s3_key
             self.local_path = os.path.join(self.local_dir, file_name)
 
             # Download

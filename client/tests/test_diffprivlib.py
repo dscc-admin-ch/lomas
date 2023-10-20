@@ -25,7 +25,7 @@ def test_serialize_deserialize():
         '[{"type": "_dpl_type:StandardScaler", "name": "scaler", '
         '"params": {"with_mean": true, "with_std": true, "copy": true, '
         '"epsilon": 1.0, "bounds": {"_tuple": true, "_items": '
-        '[[17, 1, 0, 0, 1], [90, 160, 10000, 4356, 99]]}, '
+        "[[17, 1, 0, 0, 1], [90, 160, 10000, 4356, 99]]}, "
         '"random_state": null, "accountant": '
         '"_dpl_instance:BudgetAccountant"}}, '
         '{"type": "_dpl_type:PCA", "name": "pca", "params": '
@@ -37,7 +37,7 @@ def test_serialize_deserialize():
         '"random_state": null, "max_iter": 100, "verbose": 0, '
         '"warm_start": false, "n_jobs": null, "epsilon": 1.0, '
         '"data_norm": 5, "accountant": "_dpl_instance:BudgetAccountant"'
-        '}}]}'
+        "}}]}"
     )
     json_str = serialize_pipeline(example_pipe)
 

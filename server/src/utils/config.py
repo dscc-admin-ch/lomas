@@ -83,7 +83,7 @@ class Config(BaseModel):
 
 def get_config() -> dict:
     """
-    Loads the config and the secret data from disk, 
+    Loads the config and the secret data from disk,
     merges them and returns the config object.
     """
     try:

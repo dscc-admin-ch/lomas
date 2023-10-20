@@ -13,6 +13,9 @@ runtime_args:
       password: "user_pwd"
       username: "user"
       db_name: "defaultdb"
+    dataset_store:
+      ds_store_type: "LRU_cache"
+      max_memory_usage: 512
       #db_type: "yaml"
       #db_directory: "/usr/sdd_poc_server/collections/"
       #db_file_name: "user_collection.yaml"

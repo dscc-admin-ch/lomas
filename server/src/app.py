@@ -3,6 +3,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 from mongodb_admin import MongoDB_Admin
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory, get_mongodb_url
+from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_dummy_opendp,
@@ -104,9 +105,12 @@ def startup_event():
         SERVER_STATE["message"].append(str(e))
 
     LOG.info("Loading query handler")
+    SERVER_STATE["message"].append("Loading dataset store")
+    dataset_store = dataset_store_factory(CONFIG.dataset_store, ADMIN_DATABASE)
+    
     SERVER_STATE["message"].append("Loading query handler")
     global QUERY_HANDLER
-    QUERY_HANDLER = QueryHandler(ADMIN_DATABASE)
+    QUERY_HANDLER = QueryHandler(ADMIN_DATABASE, dataset_store)
 
     SERVER_STATE["state"].append("Startup completed")
     SERVER_STATE["message"].append("Startup completed")

@@ -22,7 +22,9 @@ class QueryHandler:
 
     def __init__(self, admin_database: AdminDatabase) -> None:
         self.admin_database = admin_database
-        self.querier_manager = LRUDatasetStore(admin_database, max_memory_usage=512)
+        self.querier_manager = LRUDatasetStore(
+            admin_database, max_memory_usage=512
+        )
 
     def _get_querier(
         self,

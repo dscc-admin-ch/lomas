@@ -7,7 +7,6 @@ from constants import (
 )
 from dp_queries.dp_querier import DPQuerier
 from dataset_store.dataset_store import DatasetStore
-from private_dataset.private_dataset import PrivateDataset
 from private_dataset.utils import private_dataset_factory
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
 from utils.loggr import LOG
@@ -24,11 +23,13 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
 
     dataset_cache: OrderedDict = None
 
-    def __init__(self, admin_database: AdminDatabase, max_memory_usage: int = 1024) -> None:
+    def __init__(
+        self, admin_database: AdminDatabase, max_memory_usage: int = 1024
+    ) -> None:
         super().__init__(admin_database)
         self.admin_database = admin_database
         self.max_memory_usage = max_memory_usage
-        
+
         self.dataset_cache = OrderedDict()
         self.memory_usage = 0
 
@@ -54,8 +55,13 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
 
         # Remove least recently used dataset from cache if not enough space
         private_dataset_mem_usage = private_dataset.get_memory_usage()
-        while self.memory_usage + private_dataset_mem_usage > self.max_memory_usage:
-            evicted_ds_name, evicted_ds = self.dataset_cache.popitem(last=False)
+        while (
+            self.memory_usage + private_dataset_mem_usage
+            > self.max_memory_usage
+        ):
+            evicted_ds_name, evicted_ds = self.dataset_cache.popitem(
+                last=False
+            )
             self.memory_usage -= evicted_ds.get_memory_usage()
             LOG.info(f"Dataset {evicted_ds_name} was evicted from cache.")
 
@@ -66,20 +72,26 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
 
         return
 
-    
     def update_memory_usage(self) -> None:
         """
-        Remove least recently used datasets until the cache is back to below its maximum size.
+        Remove least recently used datasets until the cache
+        is back to below its maximum size.
         """
-        self.memory_usage = sum([private_ds.get_memory_usage() for private_ds in self.dataset_cache.values()])
+        self.memory_usage = sum(
+            [
+                private_ds.get_memory_usage()
+                for private_ds in self.dataset_cache.values()
+            ]
+        )
 
         while self.memory_usage > self.max_memory_usage:
-            evicted_ds_name, evicted_ds = self.dataset_cache.popitem(last=False)
+            evicted_ds_name, evicted_ds = self.dataset_cache.popitem(
+                last=False
+            )
             self.memory_usage -= evicted_ds.get_memory_usage()
             LOG.info(f"Dataset {evicted_ds_name} was evicted from cache.")
 
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
-        
 
     def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
         # Add dataset to cache if not present and get it.
@@ -88,7 +100,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         else:
             self.dataset_cache.move_to_end(dataset_name)
 
-        assert(dataset_name in self.dataset_cache.keys())
+        assert dataset_name in self.dataset_cache.keys()
 
         private_dataset = self.dataset_cache[dataset_name]
 

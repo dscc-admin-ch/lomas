@@ -35,9 +35,12 @@ class S3Dataset(PrivateDataset):
                 Bucket=self.s3_bucket, Key=self.s3_key
             )
             self.df = pd.read_csv(obj["Body"])
-            
+
             # Notify observer since memory usage has changed
-            [observer.update_memory_usage() for observer in self.dataset_observers]
+            [
+                observer.update_memory_usage()
+                for observer in self.dataset_observers
+            ]
 
         return self.df
 

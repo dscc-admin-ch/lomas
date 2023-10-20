@@ -4,6 +4,7 @@ from fastapi import Header, HTTPException
 from admin_database.admin_database import AdminDatabase
 from utils.input_models import BasicModel
 from dataset_store.basic_dataset_store import BasicDatasetStore
+from dataset_store.lru_dataset_store import LRUDatasetStore
 from constants import SUPPORTED_LIBS
 from utils.loggr import LOG
 
@@ -21,7 +22,7 @@ class QueryHandler:
 
     def __init__(self, admin_database: AdminDatabase) -> None:
         self.admin_database = admin_database
-        self.querier_manager = BasicDatasetStore(admin_database)
+        self.querier_manager = LRUDatasetStore(admin_database, max_memory_usage=512)
 
     def _get_querier(
         self,

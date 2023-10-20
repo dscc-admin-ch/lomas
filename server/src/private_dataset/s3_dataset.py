@@ -1,5 +1,6 @@
 from private_dataset.private_dataset import PrivateDataset
 
+
 import boto3
 import os
 import pandas as pd
@@ -11,7 +12,7 @@ class S3Dataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, metadata, s3_bucket: str, s3_key: str) -> None:
+    def __init__(self, metadata: dict, s3_bucket: str, s3_key: str) -> None:
         """
         Parameters:
             - s3_bucket: s3 bucket of the dataset
@@ -34,6 +35,9 @@ class S3Dataset(PrivateDataset):
                 Bucket=self.s3_bucket, Key=self.s3_key
             )
             self.df = pd.read_csv(obj["Body"])
+            
+            # Notify observer since memory usage has changed
+            [observer.update_memory_usage() for observer in self.dataset_observers]
 
         return self.df
 

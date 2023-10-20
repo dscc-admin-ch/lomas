@@ -35,6 +35,9 @@ class LocalDataset(PrivateDataset):
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )
+            
+            # Notify observer since memory usage has changed
+            [observer.update_memory_usage() for observer in self.dataset_observers]
         # TODO return copy here? => safer but not very efficient.
         return self.df
 

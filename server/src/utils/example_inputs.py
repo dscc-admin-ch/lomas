@@ -24,15 +24,27 @@ example_smartnoise_sql = {
     "dataset_name": IRIS_DATASET,
     "epsilon": 0.1,
     "delta": 0.00001,
+    "mechanisms": {"count": "discrete_gaussian"},
+    "postprocess": True,
 }
 
 example_dummy_smartnoise_sql = {
     "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
     "dataset_name": IRIS_DATASET,
-    "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED,
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
+    "mechanisms": {"count": "discrete_gaussian"},
+    "postprocess": False,
+    "dummy_nb_rows": DUMMY_NB_ROWS,
+    "dummy_seed": DUMMY_SEED,
+}
+
+example_smartnoise_sql_cost = {
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+    "dataset_name": IRIS_DATASET,
+    "epsilon": 0.1,
+    "delta": 0.00001,
+    "mechanisms": {"count": "discrete_gaussian"},
 }
 
 example_get_budget = {

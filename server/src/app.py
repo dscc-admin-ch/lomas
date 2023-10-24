@@ -309,6 +309,7 @@ def dummy_opendp_query_handler(
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
+
         response = {"query_response": response_df}
 
     except HTTPException as e:

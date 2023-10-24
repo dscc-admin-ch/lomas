@@ -4,6 +4,7 @@ import opendp_polars as dp
 from opendp_polars.mod import enable_features
 from opendp_logger import make_load_json
 from typing import List
+import polars
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
 from constants import (
@@ -84,6 +85,9 @@ class OpenDPQuerier(DPQuerier):
                 400,
                 "Failed when applying chain to data with error: " + str(e),
             )
+
+        if type(release_data) == polars.dataframe.frame.DataFrame:
+            release_data = release_data.write_json(file=None)
 
         return release_data
 

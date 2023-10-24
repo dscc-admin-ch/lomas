@@ -14,5 +14,5 @@ datasets:
   metadata_path: "/data/collections/metadata/penguin_metadata.yaml"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   database_type: "LOCAL_DB"
-  dataset_path: "/data/income_synthetic_data.csv"
+  dataset_path: "/data/datasets/income_synthetic_data.csv"
   metadata_path: "/data/collections/metadata/fso_income_synthetic_metadata.yaml"

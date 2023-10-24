@@ -47,6 +47,8 @@ class SNSQLInp(BasicModel):
         gt=0,
         le=DELTA_LIMIT,
     )
+    mechanisms: dict
+    postprocess: bool
 
 
 class DummySNSQLInp(BasicModel):
@@ -56,6 +58,16 @@ class DummySNSQLInp(BasicModel):
     dummy_seed: int
     epsilon: float
     delta: float
+    mechanisms: dict
+    postprocess: bool
+
+
+class SNSQLInpCost(BasicModel):
+    query_str: str
+    dataset_name: str
+    epsilon: float
+    delta: float
+    mechanisms: dict
 
 
 class GetBudgetInp(BaseModel):

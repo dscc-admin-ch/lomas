@@ -40,21 +40,6 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
-  
-  s3:
-    container_name: s3
-    image: quay.io/minio/minio
-    ports:
-      - 9090:9090
-      - 9000:9000
-    networks:
-      - sdd-network
-    volumes:
-      - s3data:/data
-    environment:
-      - MINIO_ROOT_USER=root
-      - MINIO_ROOT_PASSWORD=root_pwd
-    command: server /data --console-address ":9090"
   client:
     image: damienaymon/sdd_client_dev
     build:
@@ -69,7 +54,6 @@ services:
       - ./configs/:/root/.jupyter/
     depends_on:
       - sdd_poc_server
-      - s3
     networks:
     - sdd-network
 networks:
@@ -80,8 +64,6 @@ volumes:
   # This volume needs to be setup only once with "docker volume create mongodata"
   # It will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
-    external: true
-  s3data:
     external: true
   #mongoconfig:
   #  external: true

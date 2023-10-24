@@ -70,6 +70,8 @@ class Client:
         query,
         epsilon: float,
         delta: float,
+        mechanisms: dict = {},
+        postprocess: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -79,6 +81,8 @@ class Client:
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
+            "mechanisms": mechanisms,
+            "postprocess": postprocess,
         }
         if dummy:
             endpoint = "dummy_smartnoise_query"
@@ -108,13 +112,14 @@ class Client:
         query,
         epsilon: float,
         delta: float,
+        mechanisms: dict = {},
     ) -> dict:
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
-            "dummy": True,
+            "mechanisms": mechanisms,
         }
         res = self._exec("estimate_smartnoise_cost", body_json)
 

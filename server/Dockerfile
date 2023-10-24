@@ -16,9 +16,6 @@ RUN pip install -e .
 WORKDIR /code
 FROM sdd_server AS sdd_server_prod
 COPY ./src/ /code/
-# run as local server
-# Disable this for now, as we do not run a mongodb instance
-COPY ./configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
 CMD ["python", "uvicorn_serve.py"]
 
 FROM sdd_server AS sdd_server_dev

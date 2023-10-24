@@ -3,6 +3,7 @@ import pkg_resources
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
+SECRETS_PATH = "/usr/sdd_poc_server/secrets.yaml"
 QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
 
 # Configuration field names and values

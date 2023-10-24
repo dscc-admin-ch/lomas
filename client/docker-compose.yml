@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  client:
+    image: damienaymon/sdd_client_demo
+    build:
+      dockerfile: ./Dockerfile
+      target: sdd_client_dev
+    container_name: sdd_client_demo
+    ports: 
+      - 8888:8888
+    volumes:
+      - ./:/code/
+      - ./configs/:/root/.jupyter/
+      # Add whatever files you need here

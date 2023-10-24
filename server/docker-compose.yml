@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   sdd_poc_server:
-    image: damienaymon/sdd_server_demo_dev
+    image: damienaymon/sdd_server_dev
     build:
       dockerfile: ./Dockerfile
       target: sdd_server_dev
@@ -56,11 +56,11 @@ services:
       - MINIO_ROOT_PASSWORD=root_pwd
     command: server /data --console-address ":9090"
   client:
-    image: damienaymon/sdd_client_demo
+    image: damienaymon/sdd_client_dev
     build:
       dockerfile: ../client/Dockerfile
       target: sdd_client_dev
-    container_name: sdd_client_demo
+    container_name: sdd_client
     ports: 
       - 8888:8888
     volumes:

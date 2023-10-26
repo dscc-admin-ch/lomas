@@ -45,13 +45,14 @@ services:
     build:
       dockerfile: ../client/Dockerfile
       target: sdd_client_dev
+      context: ../client/
     container_name: sdd_client
     ports: 
       - 8888:8888
     volumes:
       - ../client/:/code/
       - ../data/:/data/
-      - ./configs/:/root/.jupyter/
+      - ../client/configs/:/root/.jupyter/
     depends_on:
       - sdd_poc_server
     networks:

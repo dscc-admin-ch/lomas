@@ -31,7 +31,7 @@ mongodb:
 replicaCount: 1
 
 image:
-  repository: damienaymon/sdd_server_demo_prod
+  repository: damienaymon/sdd_server_prod
   pullPolicy: Always
   tag: latest
 

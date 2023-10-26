@@ -26,7 +26,10 @@ def private_dataset_factory(
     elif database_type == S3_DB:
         s3_bucket = admin_database.get_dataset_field(dataset_name, "s3_bucket")
         s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
-        private_db = S3Dataset(ds_metadata, s3_bucket, s3_key)
+        s3_endpoint = admin_database.get_dataset_field(dataset_name, "endpoint_url")
+        s3_aws_access_key_id = admin_database.get_dataset_field(dataset_name, "aws_access_key_id")
+        s3_aws_secret_access_key = admin_database.get_dataset_field(dataset_name, "aws_secret_access_key")
+        private_db = S3Dataset(ds_metadata, s3_bucket, s3_key, s3_endpoint, s3_aws_access_key_id, s3_aws_secret_access_key)
     elif database_type == LOCAL_DB:
         dataset_path = admin_database.get_dataset_field(
             dataset_name, "dataset_path"

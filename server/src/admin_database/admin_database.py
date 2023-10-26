@@ -109,7 +109,6 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @_does_user_exist
-    @_does_dataset_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -230,22 +229,15 @@ class AdminDatabase(ABC):
         pass
 
     @abstractmethod
-    @_has_user_access_to_dataset
     def save_query(
-        self,
-        user_name: str,
-        dataset_name: str,
-        epsilon: float,
-        delta: float,
-        query: dict,
+        self, user_name: str, query_json: dict, response: dict
     ) -> None:
         """
-        Save queries of user on datasets in a separate (part of) db
+        Save queries of user on datasets in a separate collection (table)
+        named "queries_archives" in the DB
         Parameters:
             - user_name: name of the user
-            - dataset_name: name of the dataset
-            - epsilon: value of epsilon spent on last query
-            - delta: value of delta spent on last query
-            - query: json string of the query
+            - query_json: json received from client
+            - response: response sent to the client
         """
         pass

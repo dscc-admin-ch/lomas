@@ -414,6 +414,8 @@ def get_user_previous_queries(
     previous_queries = ADMIN_DATABASE.get_user_previous_queries(
         user_name, query_json.dataset_name
     )
+    print("client")
+    print(previous_queries)
 
     return {"previous_queries": previous_queries}
 

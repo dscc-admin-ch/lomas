@@ -117,15 +117,6 @@ class QueryHandler:
                 user_name, query_json.dataset_name, eps_cost, delta_cost
             )
 
-            # Add query to db (for archive)
-            self.admin_database.save_query(
-                user_name,
-                query_json.dataset_name,
-                eps_cost,
-                delta_cost,
-                query_json,
-            )
-
             LOG.warning(f"response {query_response}")
             response = {
                 "requested_by": user_name,
@@ -134,6 +125,9 @@ class QueryHandler:
                 "spent_epsilon": eps_cost,
                 "spent_delta": delta_cost,
             }
+
+            # Add query to db (for archive)
+            self.admin_database.save_query(user_name, query_json, response)
 
         # If not enough budget, do not query and do not update budget.
         else:

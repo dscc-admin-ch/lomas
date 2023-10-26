@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import shutil
 
+from private_dataset.utils import get_dtypes
+
 
 class PrivateDataset(ABC):
     """
@@ -20,6 +22,7 @@ class PrivateDataset(ABC):
             - **connection_parameters: parameters required to access the db
         """
         self.metadata = metadata
+        self.dtypes = get_dtypes(metadata)
 
     def __del__(self):
         """

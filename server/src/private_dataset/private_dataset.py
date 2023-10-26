@@ -14,12 +14,11 @@ class PrivateDataset(ABC):
     local_path = None
     local_dir = None
 
-    def __init__(self, metadata, **connection_parameters) -> None:
+    def __init__(self, metadata) -> None:
         """
         Connects to the DB
         Parameters:
             - metadata: The metadata for this dataset
-            - **connection_parameters: parameters required to access the db
         """
         self.metadata = metadata
         self.dtypes = get_dtypes(metadata)

@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   sdd_poc_server:
-    image: damienaymon/sdd_server_demo_dev
+    image: damienaymon/sdd_server_dev
     build:
       dockerfile: ./Dockerfile
       target: sdd_server_dev
@@ -40,13 +40,12 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
-
   client:
-    image: damienaymon/sdd_client_demo
+    image: damienaymon/sdd_client_dev
     build:
       dockerfile: ../client/Dockerfile
       target: sdd_client_dev
-    container_name: sdd_client_demo
+    container_name: sdd_client
     ports: 
       - 8888:8888
     volumes:

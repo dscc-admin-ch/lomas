@@ -7,8 +7,8 @@ from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
-    example_get_budget,
     example_get_dataset_metadata,
+    example_get_db_data,
     example_get_dummy_dataset,
     example_opendp,
     example_smartnoise_sql,
@@ -17,8 +17,8 @@ from utils.example_inputs import (
 from utils.input_models import (
     DummyOpenDPInp,
     DummySNSQLInp,
-    GetBudgetInp,
     GetDatasetMetadata,
+    GetDbData,
     GetDummyDataset,
     OpenDPInp,
     SNSQLInp,
@@ -353,7 +353,7 @@ def estimate_opendp_cost(
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
-    query_json: GetBudgetInp = Body(example_get_budget),
+    query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
     initial_epsilon, initial_delta = ADMIN_DATABASE.get_initial_budget(
@@ -370,7 +370,7 @@ def get_initial_budget(
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
-    query_json: GetBudgetInp = Body(example_get_budget),
+    query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
     (
@@ -392,7 +392,7 @@ def get_total_spent_budget(
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
-    query_json: GetBudgetInp = Body(example_get_budget),
+    query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
     rem_epsilon, rem_delta = ADMIN_DATABASE.get_remaining_budget(
@@ -400,6 +400,22 @@ def get_remaining_budget(
     )
 
     return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
+
+
+@app.post(
+    "/get_previous_queries",
+    dependencies=[Depends(server_live)],
+    tags=["USER_BUDGET"],
+)
+def get_user_previous_queries(
+    query_json: GetDbData = Body(example_get_db_data),
+    user_name: str = Header(None),
+):
+    previous_queries = ADMIN_DATABASE.get_user_previous_queries(
+        user_name, query_json.dataset_name
+    )
+
+    return {"previous_queries": previous_queries}
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])

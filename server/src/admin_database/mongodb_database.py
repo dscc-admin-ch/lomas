@@ -259,12 +259,16 @@ class AdminMongoDatabase(AdminDatabase):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        return self.db.queries_archives.find(
+        from utils.loggr import LOG
+        LOG.warning("will start")
+        r = self.db.queries_archives.find(
             {
                 "user_name": f"{user_name}",
                 "dataset_name": f"{dataset_name}",
             }
         )
+        LOG.warning(r)
+        return r
 
     @AdminDatabase._has_user_access_to_dataset
     def save_query(

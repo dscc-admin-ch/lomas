@@ -51,7 +51,7 @@ services:
       - 8888:8888
     volumes:
       - ../client/:/code/
-      - ../data/:/data/
+      - ./data/:/data/
       - ../client/configs/:/root/.jupyter/
     depends_on:
       - sdd_poc_server

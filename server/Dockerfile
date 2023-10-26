@@ -16,7 +16,7 @@ RUN pip install -e .
 WORKDIR /code
 FROM sdd_server AS sdd_server_prod
 COPY ./src/ /code/
-COPY ../data/ /data/
+COPY ./data/ /data/
 CMD ["python", "uvicorn_serve.py"]
 
 FROM sdd_server AS sdd_server_dev

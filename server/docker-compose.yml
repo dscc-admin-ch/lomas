@@ -13,7 +13,7 @@ services:
       - ./src:/code/
       - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/sdd_poc_server/secrets.yaml
-      - ../data/:/data/
+      - ./data/:/data/
     depends_on:
       - mongodb
     networks:
@@ -45,13 +45,14 @@ services:
     build:
       dockerfile: ../client/Dockerfile
       target: sdd_client_dev
+      context: ../client/
     container_name: sdd_client
     ports: 
       - 8888:8888
     volumes:
       - ../client/:/code/
-      - ../data/:/data/
-      - ./configs/:/root/.jupyter/
+      - ./data/:/data/
+      - ../client/configs/:/root/.jupyter/
     depends_on:
       - sdd_poc_server
     networks:

@@ -12,13 +12,14 @@ class S3Dataset(PrivateDataset):
     """
 
     def __init__(
-        self, 
-        metadata, 
-        s3_bucket: str, 
-        s3_key: str, 
-        endpoint_url, 
-        aws_access_key_id, 
-        aws_secret_access_key) -> None:
+        self,
+        metadata,
+        s3_bucket: str,
+        s3_key: str,
+        endpoint_url,
+        aws_access_key_id,
+        aws_secret_access_key,
+    ) -> None:
         """
         Parameters:
             - s3_bucket: s3 bucket of the dataset
@@ -27,11 +28,11 @@ class S3Dataset(PrivateDataset):
         super().__init__(metadata)
 
         self.client = boto3.client(
-                "s3",
-                endpoint_url=endpoint_url,
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key
-            )
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
 
@@ -45,7 +46,7 @@ class S3Dataset(PrivateDataset):
             obj = self.client.get_object(
                 Bucket=self.s3_bucket, Key=self.s3_key
             )
-            self.df = pd.read_csv(obj["Body"])
+            self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
 
         return self.df
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import shutil
 
-from private_dataset.utils import get_dtypes
+from constants import SSQL_METADATA_OPTIONS
 
 
 class PrivateDataset(ABC):
@@ -55,3 +55,12 @@ class PrivateDataset(ABC):
         Get the metadata for this dataset
         """
         return self.metadata
+
+
+def get_dtypes(metadata: str):
+    dtypes = {}
+    for col_name, data in metadata[""]["Schema"]["Table"].items():
+        if col_name in SSQL_METADATA_OPTIONS:
+            continue
+        dtypes[col_name] = data["type"]
+    return dtypes

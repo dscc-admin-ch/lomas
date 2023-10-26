@@ -81,6 +81,7 @@ class AdminMongoDatabase(AdminDatabase):
         )
 
     @AdminDatabase._does_user_exist
+    @AdminDatabase._does_dataset_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -246,6 +247,26 @@ class AdminMongoDatabase(AdminDatabase):
         self.__update_epsilon(user_name, dataset_name, spent_epsilon)
         self.__update_delta(user_name, dataset_name, spent_delta)
 
+    @AdminDatabase._has_user_access_to_dataset
+    def get_user_previous_queries(
+        self,
+        user_name: str,
+        dataset_name: str,
+    ) -> List[dict]:
+        """
+        Retrieves and return the queries already done by a user
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+        """
+        return self.db.queries_archives.find(
+            {
+                "user_name": f"{user_name}",
+                "dataset_name": f"{dataset_name}",
+            }
+        )
+
+    @AdminDatabase._has_user_access_to_dataset
     def save_query(
         self,
         user_name: str,

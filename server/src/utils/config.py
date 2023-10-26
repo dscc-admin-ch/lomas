@@ -1,5 +1,6 @@
 import collections.abc
 from pydantic import BaseModel
+
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
@@ -16,7 +17,7 @@ from constants import (
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
     CONF_SUBMIT_LIMIT,
-    SECRETS_PATH
+    SECRETS_PATH,
 )
 from utils.loggr import LOG
 

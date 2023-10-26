@@ -75,6 +75,7 @@ class AdminDatabase(ABC):
         return wrapper_decorator
 
     @abstractmethod
+    @_does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         """
         Returns the metadata dictionnary of the dataset
@@ -108,6 +109,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @_does_user_exist
+    @_does_dataset_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -213,6 +215,22 @@ class AdminDatabase(ABC):
         pass
 
     @abstractmethod
+    @_has_user_access_to_dataset
+    def get_user_previous_queries(
+        self,
+        user_name: str,
+        dataset_name: str,
+    ) -> List[dict]:
+        """
+        Retrieves and return the queries already done by a user
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+        """
+        pass
+
+    @abstractmethod
+    @_has_user_access_to_dataset
     def save_query(
         self,
         user_name: str,

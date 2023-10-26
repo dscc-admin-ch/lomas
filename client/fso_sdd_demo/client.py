@@ -240,6 +240,21 @@ class Client:
                     status code: {res.status_code} message: {res.text}"
             )
             return res.text
+        
+    def get_previous_queries(self):
+        body_json = {
+            "dataset_name": self.dataset_name,
+        }
+        res = self._exec("get_previous_queries", body_json)
+
+        if res.status_code == 200:
+            return json.loads(res.content.decode("utf8"))
+        else:
+            print(
+                f"Error while fetching previous queries \
+                    status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
 
     def _exec(self, endpoint, body_json: dict = {}):
         r = requests.post(

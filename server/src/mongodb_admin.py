@@ -161,15 +161,12 @@ class MongoDB_Admin:
         """
         Add all users from yaml file to the user collection
         """
-        from utils.loggr import LOG
-
         # Ensure collection created from scratch each time the method is called
         self.db.users.drop()
 
         # Load yaml data and insert it
         with open(args.path) as f:
             user_dict = yaml.safe_load(f)
-            LOG.info(user_dict)
             self.db.users.insert_many(user_dict["users"])
 
         print(f"Added user data from yaml at {args.path}.")

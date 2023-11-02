@@ -18,6 +18,7 @@ class InMemoryDataset(PrivateDataset):
         super().__init__(metadata)
         self.df = dataset_df.copy()
 
+    @PrivateDataset._df_check
     def get_pandas_df(self) -> pd.DataFrame:
         """
         Get the data in pandas dataframe format

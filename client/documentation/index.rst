@@ -11,7 +11,7 @@ Welcome to FSO SDD Client's documentation!
    :caption: Contents:
 
    installation
-   usage
+   client
    contributing
 
 Installation

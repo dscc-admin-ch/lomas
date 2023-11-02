@@ -28,7 +28,7 @@ class LocalDataset(PrivateDataset):
         if self.df is None:
             # TODO add support for more file types (e.g. parquet, etc..).
             if self.ds_path.endswith(".csv"):
-                return pd.read_csv(self.ds_path)
+                return pd.read_csv(self.ds_path, dtype=self.dtypes)
             else:
                 # TODO make this cleaner
                 return Exception(

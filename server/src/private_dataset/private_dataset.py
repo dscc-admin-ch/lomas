@@ -56,7 +56,7 @@ class PrivateDataset(ABC):
         return self.metadata
 
 
-def get_dtypes(metadata: str):
+def get_dtypes(metadata: str) -> dict:
     dtypes = {}
     for col_name, data in metadata[""]["Schema"]["Table"].items():
         if col_name in SSQL_METADATA_OPTIONS:

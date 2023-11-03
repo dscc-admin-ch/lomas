@@ -246,40 +246,60 @@ class AdminMongoDatabase(AdminDatabase):
         self.__update_epsilon(user_name, dataset_name, spent_epsilon)
         self.__update_delta(user_name, dataset_name, spent_delta)
 
-    def save_query(
+    @AdminDatabase._has_user_access_to_dataset
+    def get_user_previous_queries(
         self,
         user_name: str,
         dataset_name: str,
-        epsilon: float,
-        delta: float,
-        query_json: dict,
+    ) -> List[dict]:
+        """
+        Retrieves and return the queries already done by a user
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+        """
+        queries = self.db.queries_archives.find(
+            {
+                "user_name": f"{user_name}",
+                "dataset_name": f"{dataset_name}",
+            },
+            {"_id": 0},
+        )
+        return [q for q in queries]
+
+    def save_query(
+        self, user_name: str, query_json: dict, response: dict
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
         Parameters:
             - user_name: name of the user
-            - dataset_name: name of the dataset
-            - epsilon: value of epsilon spent on last query
-            - delta: value of delta spent on last query
-            - query: json string of the query
+            - query_json: json received from client
+            - response: response sent to the client
         """
+        to_archive = {
+            "user_name": user_name,
+            "dataset_name": query_json.dataset_name,
+            "response": response,
+            "timestamp": time.time(),
+        }
         if query_json.__class__.__name__ == "SNSQLInp":
-            query = query_json.query_str
+            to_archive["api"] = "smartnoise_query"
+            to_archive["epsilon_parameter"] = query_json.epsilon
+            to_archive["delta_parameter"] = query_json.delta
+            to_archive["mechanisms"] = query_json.mechanisms
+            to_archive["postprocess"] = query_json.postprocess
+            to_archive["query"] = query_json.query_str
+
         elif query_json.__class__.__name__ == "OpenDPInp":
-            query = query_json.opendp_json
+            to_archive["api"] = "opendp_query"
+            to_archive["input_data_type"] = query_json.input_data_type
+            to_archive["query"] = query_json.opendp_json
+
         else:
             raise HTTPException(
                 500, f"Unknown query type in archive: {query_json}"
             )
 
-        self.db.queries_archives.insert_one(
-            {
-                "user_name": f"{user_name}",
-                "dataset_name": f"{dataset_name}",
-                "epsilon": epsilon,
-                "delta": delta,
-                "query": query,
-                "timestamp": time.time(),
-            }
-        )
+        self.db.queries_archives.insert_one(to_archive)

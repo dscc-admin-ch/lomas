@@ -161,7 +161,6 @@ class MongoDB_Admin:
         """
         Add all users from yaml file to the user collection
         """
-
         # Ensure collection created from scratch each time the method is called
         self.db.users.drop()
 

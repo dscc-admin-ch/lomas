@@ -19,7 +19,9 @@ class QueryHandler:
     admin_database: AdminDatabase
     dataset_store: DatasetStore
 
-    def __init__(self, admin_database: AdminDatabase, dataset_store: DatasetStore) -> None:
+    def __init__(
+        self, admin_database: AdminDatabase, dataset_store: DatasetStore
+    ) -> None:
         self.admin_database = admin_database
         self.dataset_store = dataset_store
 

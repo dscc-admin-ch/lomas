@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-from private_dataset.private_dataset import PrivateDataset
-
-
-=======
->>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0
 import boto3
 import os
 import pandas as pd

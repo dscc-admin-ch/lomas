@@ -17,6 +17,10 @@ from constants import (
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
     CONF_SUBMIT_LIMIT,
+    CONF_DATASET_STORE,
+    CONF_DATASET_STORE_TYPE,
+    CONF_DATASET_STORE_TYPE_LRU,
+    CONF_DATASET_STORE_TYPE_BASIC,
     SECRETS_PATH,
 )
 from utils.loggr import LOG
@@ -29,6 +33,16 @@ class TimeAttack(BaseModel):
 
 class DBConfig(BaseModel):
     db_type: str = Literal[CONF_DB_TYPE_MONGODB]
+
+
+class DatasetStoreConfig(BaseModel):
+    ds_store_type: Literal[
+        CONF_DATASET_STORE_TYPE_BASIC, CONF_DATASET_STORE_TYPE_LRU
+    ]
+
+
+class LRUDatasetStoreConfig(DatasetStoreConfig):
+    max_memory_usage: int = None
 
 
 class MongoDBConfig(DBConfig):
@@ -51,6 +65,8 @@ class Config(BaseModel):
     )  # TODO not used for the moment, kept as a simple example field for now.
 
     admin_database: DBConfig = None
+
+    dataset_store: DatasetStoreConfig = None
     # validator example, for reference
     """ @validator('parties')
     def two_party_min(cls, v):
@@ -117,11 +133,24 @@ def get_config() -> dict:
         else:
             raise Exception(f"User database type {db_type} not supported.")
 
+        ds_store_type = config_data[CONF_DATASET_STORE][
+            CONF_DATASET_STORE_TYPE
+        ]
+        if ds_store_type == CONF_DATASET_STORE_TYPE_BASIC:
+            ds_store_config = DatasetStoreConfig(
+                config_data[CONF_DATASET_STORE]
+            )
+        elif ds_store_type == CONF_DATASET_STORE_TYPE_LRU:
+            ds_store_config = LRUDatasetStoreConfig.parse_obj(
+                config_data[CONF_DATASET_STORE]
+            )
+
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],
             time_attack=time_attack,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
             admin_database=admin_database_config,
+            dataset_store=ds_store_config,
         )
 
     except Exception as e:

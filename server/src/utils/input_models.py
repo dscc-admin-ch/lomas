@@ -70,7 +70,7 @@ class SNSQLInpCost(BasicModel):
     mechanisms: dict
 
 
-class GetBudgetInp(BaseModel):
+class GetDbData(BaseModel):
     dataset_name: str
 
 

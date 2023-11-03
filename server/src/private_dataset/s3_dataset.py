@@ -56,6 +56,12 @@ class S3Dataset(PrivateDataset):
                         {self.s3_bucket}/{self.s3_key}: {err}",
                 )
 
+            # Notify observer since memory usage has changed
+            [
+                observer.update_memory_usage()
+                for observer in self.dataset_observers
+            ]
+
         return self.df
 
     def get_local_path(self) -> str:

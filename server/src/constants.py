@@ -17,6 +17,11 @@ CONF_DB_TYPE = "db_type"
 CONF_DB_TYPE_MONGODB = "mongodb"
 CONF_MONGODB_ADDR = "address"
 CONF_MONGODB_PORT = "port"
+CONF_DATASET_STORE = "dataset_store"
+CONF_DATASET_STORE_TYPE = "ds_store_type"
+CONF_DATASET_STORE_TYPE_BASIC = "basic"
+CONF_DATASET_STORE_TYPE_LRU = "LRU_cache"
+CONF_LRU_DATASET_STORE__MAX_SIZE = "max_memory_usage"
 
 # Server states
 QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"

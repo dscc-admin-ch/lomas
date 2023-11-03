@@ -47,7 +47,7 @@ example_smartnoise_sql_cost = {
     "mechanisms": {"count": "discrete_gaussian"},
 }
 
-example_get_budget = {
+example_get_db_data = {
     "dataset_name": IRIS_DATASET,
 }
 

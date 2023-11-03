@@ -6,12 +6,9 @@ runtime_args:
         method: "jitter" # or "stall"
         magnitude: 1
     admin_database:
-      db_type: "mongodb" # or "yaml"
-      address: "mongodb" #"mongodb.user-aymond.svc.cluster.local"
+      db_type: "mongodb"
+      address: "mongodb"
       port: 27017
-      token: abcd
-      password: "user_pwd"
-      username: "user"
       db_name: "defaultdb"
     dataset_store:
       ds_store_type: "LRU_cache"

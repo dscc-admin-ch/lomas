@@ -1,10 +1,16 @@
+<<<<<<< HEAD
 from private_dataset.private_dataset import PrivateDataset
 
 
+=======
+>>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0
 import boto3
 import os
 import pandas as pd
 import tempfile
+from fastapi import HTTPException
+
+from private_dataset.private_dataset import PrivateDataset
 
 
 class S3Dataset(PrivateDataset):
@@ -12,7 +18,15 @@ class S3Dataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, metadata: dict, s3_bucket: str, s3_key: str) -> None:
+    def __init__(
+        self,
+        metadata,
+        s3_bucket: str,
+        s3_key: str,
+        endpoint_url,
+        aws_access_key_id,
+        aws_secret_access_key,
+    ) -> None:
         """
         Parameters:
             - s3_bucket: s3 bucket of the dataset
@@ -20,7 +34,12 @@ class S3Dataset(PrivateDataset):
         """
         super().__init__(metadata)
 
-        self.client = boto3.client("s3")
+        self.client = boto3.client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
 
@@ -34,7 +53,14 @@ class S3Dataset(PrivateDataset):
             obj = self.client.get_object(
                 Bucket=self.s3_bucket, Key=self.s3_key
             )
-            self.df = pd.read_csv(obj["Body"])
+            try:
+                self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
+            except Exception as err:
+                raise HTTPException(
+                    400,
+                    f"Error reading csv at s3 path: \
+                        {self.s3_bucket}/{self.s3_key}: {err}",
+                )
 
             # Notify observer since memory usage has changed
             [
@@ -53,7 +79,7 @@ class S3Dataset(PrivateDataset):
         if self.local_path is None:
             # Create temp dir and file
             self.local_dir = tempfile.mkdtemp()
-            file_name = self.ds_path.split("/")[-1]
+            file_name = self.s3_key
             self.local_path = os.path.join(self.local_dir, file_name)
 
             # Download

@@ -3,6 +3,7 @@ import pkg_resources
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
+SECRETS_PATH = "/usr/sdd_poc_server/secrets.yaml"
 QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
 
 # Configuration field names and values
@@ -74,3 +75,7 @@ RANDOM_STRINGS = list(
 RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
+
+# Smartnoise sql
+STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
+MAX_NAN_ITERATION = 5

@@ -6,10 +6,8 @@ RUN pip install smartnoise-sql==1.0.0
 RUN pip install boto3
 
 WORKDIR /
-RUN git clone https://github.com/opendp/opendp-logger
+RUN git clone --branch polars https://github.com/opendp/opendp-logger
 WORKDIR opendp-logger
-RUN git pull
-RUN git checkout polars
 RUN sed -i '/"opendp >= 0.8.0"/d' setup.py
 RUN sed -i 's/opendp\./opendp_polars\./' opendp_logger/*.py
 RUN sed -i 's/get_distribution("opendp")/get_distribution("opendp_polars")/' opendp_logger/*.py
@@ -18,9 +16,7 @@ RUN pip install -e .
 WORKDIR /code
 FROM sdd_server AS sdd_server_prod
 COPY ./src/ /code/
-# run as local server
-# Disable this for now, as we do not run a mongodb instance
-COPY ./configs/example_config.yaml /usr/sdd_poc_server/runtime.yaml
+COPY ./data/ /data/
 CMD ["python", "uvicorn_serve.py"]
 
 FROM sdd_server AS sdd_server_dev

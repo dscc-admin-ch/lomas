@@ -1,9 +1,11 @@
 import os
 import tempfile
 import urllib
-from private_dataset.private_dataset import PrivateDataset
-
+from fastapi import HTTPException
 import pandas as pd
+
+
+from private_dataset.private_dataset import PrivateDataset
 
 
 class RemoteHTTPDataset(PrivateDataset):
@@ -28,7 +30,14 @@ class RemoteHTTPDataset(PrivateDataset):
         if self.df is None:
             # TODO add support for more file types (e.g. parquet, etc..).
             if self.ds_path.endswith(".csv"):
-                self.df = pd.read_csv(self.ds_path)
+                try:
+                    self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
+                except Exception as err:
+                    raise HTTPException(
+                        400,
+                        f"Error reading csv at http path: {self.ds_path}: \
+                            {err}",
+                    )
             else:
                 # TODO make this cleaner
                 return Exception(

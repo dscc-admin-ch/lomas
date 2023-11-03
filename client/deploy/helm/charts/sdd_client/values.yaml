@@ -2,27 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# MongoDB 
-##########################################################################
-mongodb:
-  resources: {}
-  fullnameOverride: mongodb
-  architecture: standalone
-  image:
-    tag: "6.0.9-debian-11-r5"
-  auth:
-    enabled: true
-    rootUser: root
-    rootPassword: root_pwd
-    usernames: [user]
-    passwords: [user_pwd]
-    databases: [defaultdb]
-  replicaCount: 1
-  discoverable:
-    allow: true
-  security:
-    networkPolicy: 
-      enabled: true
+
 
 
 # Secure Data Disclosure Fast-API server
@@ -31,22 +11,15 @@ mongodb:
 replicaCount: 1
 
 image:
-  repository: damienaymon/sdd_server_prod
+  repository: damienaymon/sdd_client_prod
   pullPolicy: Always
   tag: latest
 
-# Runtime args for server
-runtime_args:
-  settings:
-    develop_mode: True # !! Set this to false in production mode !!
-    submit_limit: 300
-    time_attack:
-        method: "jitter" # or "stall"
-        magnitude: 1
+password: "'dprocks'"
 
 imagePullSecrets: []
-nameOverride: "sdd-server"
-fullnameOverride: "sdd-server"
+nameOverride: "sdd-client"
+fullnameOverride: "sdd-client"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -83,13 +56,13 @@ ingress:
     #kubernetes.io/ingress.class: nginx
     #kubernetes.io/tls-acme: "true"
   hosts:
-    - host: sdd-server-demo-config.lab.sspcloud.fr
+    - host: sdd-client-demo.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd-server-demo-config.lab.sspcloud.fr
+      - sdd-client-demo.lab.sspcloud.fr
   #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

@@ -4,6 +4,7 @@ import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging
 from opendp.mod import enable_features
+import polars
 
 # Opendp_logger
 enable_logging()
@@ -69,6 +70,8 @@ class Client:
         query,
         epsilon: float,
         delta: float,
+        mechanisms: dict = {},
+        postprocess: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -78,6 +81,8 @@ class Client:
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
+            "mechanisms": mechanisms,
+            "postprocess": postprocess,
         }
         if dummy:
             endpoint = "dummy_smartnoise_query"
@@ -107,13 +112,14 @@ class Client:
         query,
         epsilon: float,
         delta: float,
+        mechanisms: dict = {},
     ) -> dict:
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
-            "dummy": True,
+            "mechanisms": mechanisms,
         }
         res = self._exec("estimate_smartnoise_cost", body_json)
 
@@ -150,7 +156,17 @@ class Client:
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
             data = res.content.decode("utf8")
-            return json.loads(data)
+            response_dict = json.loads(data)
+
+            # Opendp outputs can be single numbers or dataframes,
+            # we handle the latter here.
+            # This is a hack for now, maybe use parquet to send results over.
+            if type(response_dict["query_response"]) == str:
+                response_dict["query_response"] = polars.read_json(
+                    StringIO(response_dict["query_response"])
+                )
+
+            return response_dict
         else:
             print(
                 f"Error while processing OpenDP request in server \

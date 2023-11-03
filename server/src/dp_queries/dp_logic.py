@@ -3,7 +3,7 @@ from fastapi import Header, HTTPException
 
 from admin_database.admin_database import AdminDatabase
 from utils.input_models import BasicModel
-from dataset_store.basic_dataset_store import BasicDatasetStore
+from dataset_store.dataset_store import DatasetStore
 from constants import SUPPORTED_LIBS
 from utils.loggr import LOG
 
@@ -17,11 +17,13 @@ class QueryHandler:
     """
 
     admin_database: AdminDatabase
-    querier_manager: BasicDatasetStore
+    dataset_store: DatasetStore
 
-    def __init__(self, admin_database: AdminDatabase) -> None:
+    def __init__(
+        self, admin_database: AdminDatabase, dataset_store: DatasetStore
+    ) -> None:
         self.admin_database = admin_database
-        self.querier_manager = BasicDatasetStore(admin_database)
+        self.dataset_store = dataset_store
 
     def _get_querier(
         self,
@@ -36,7 +38,7 @@ class QueryHandler:
 
         # Get querier
         try:
-            dp_querier = self.querier_manager.get_querier(
+            dp_querier = self.dataset_store.get_querier(
                 query_json.dataset_name, query_type
             )
         except Exception as e:

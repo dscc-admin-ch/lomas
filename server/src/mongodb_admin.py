@@ -173,12 +173,14 @@ class MongoDB_Admin:
             new_users = []
             existing_users = []
             for user in user_dict["users"]:
-                if not self.db.users.find_one({"user_name": user["user_name"]}):
+                if not self.db.users.find_one(
+                    {"user_name": user["user_name"]}
+                ):
                     new_users.append(user)
                 else:
                     existing_users.append(user)
-            
-            # Overwrite values for exsisting user with values from yaml 
+
+            # Overwrite values for exsisting user with values from yaml
             if args.overwrite:
                 if existing_users != []:
                     for user in existing_users:
@@ -259,21 +261,25 @@ class MongoDB_Admin:
                 verify_keys(d, "dataset_path")
             else:
                 raise ValueError(f"Dataset type {d['database_type']} unknown")
-            
+
             # Fill datasets_list
-            if not self.db.datasets.find_one({"dataset_name": d["dataset_name"]}):
+            if not self.db.datasets.find_one(
+                {"dataset_name": d["dataset_name"]}
+            ):
                 new_datasets.append(d)
             else:
                 existing_datasets.append(d)
-            
-        # Overwrite values for exsisting dataset with values from yaml 
+
+        # Overwrite values for exsisting dataset with values from yaml
         if args.overwrite_datasets:
             if existing_datasets != []:
                 for d in existing_datasets:
                     filter = {"dataset_name": d["dataset_name"]}
                     update_operation = {"$set": d}
                     self.db.datasets.update_many(filter, update_operation)
-                print(f"Existing datasets updated with values from yaml at {args.path}. ")
+                print(
+                    f"Existing datasets updated with values from yaml at {args.path}. "
+                )
 
         # Add dataset collecion
         if new_datasets != []:
@@ -288,10 +294,16 @@ class MongoDB_Admin:
                 filter = {dataset_name: metadata_dict}
                 metadata = self.db.metadata.find_one(filter)
                 if metadata and args.overwrite_metadata:
-                    print(f"Metadata updated with values from yaml for dataset : {dataset_name}. ")
-                    self.db.metadata.update_one(filter, {"$set":{dataset_name : metadata_dict}})
+                    print(
+                        f"Metadata updated with values from yaml for dataset : {dataset_name}. "
+                    )
+                    self.db.metadata.update_one(
+                        filter, {"$set": {dataset_name: metadata_dict}}
+                    )
                 elif metadata:
-                    print("Metadata already exist. User the command -om to overwrite with new values. ")
+                    print(
+                        "Metadata already exist. User the command -om to overwrite with new values. "
+                    )
                 else:
                     self.db.metadata.insert_one({dataset_name: metadata_dict})
                     print(f"Added metadata of {dataset_name} dataset. ")
@@ -453,10 +465,20 @@ if __name__ == "__main__":
         help="create users collection from yaml file",
     )
     users_collection_from_yaml_parser.add_argument(
-        "-c", "--clean", required=False, action="store_const", const=True, default=False
+        "-c",
+        "--clean",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
     )
     users_collection_from_yaml_parser.add_argument(
-        "-o", "--overwrite", required=False, action="store_const", const=True, default=False
+        "-o",
+        "--overwrite",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
     )
     users_collection_from_yaml_parser.add_argument(
         "-p", "--path", required=True, type=str
@@ -483,13 +505,28 @@ if __name__ == "__main__":
     )
     add_datasets_parser.add_argument("-p", "--path", required=True, type=str)
     add_datasets_parser.add_argument(
-        "-c", "--clean", required=False, action="store_const", const=True, default=False
+        "-c",
+        "--clean",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
     )
     add_datasets_parser.add_argument(
-        "-od", "--overwrite_datasets", required=False, action="store_const", const=True, default=False
+        "-od",
+        "--overwrite_datasets",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
     )
     add_datasets_parser.add_argument(
-        "-om", "--overwrite_metadata", required=False, action="store_const", const=True, default=False
+        "-om",
+        "--overwrite_metadata",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
     )
     add_datasets_parser.set_defaults(func=admin.add_datasets)
 

@@ -28,13 +28,26 @@ class LocalDataset(PrivateDataset):
         if self.df is None:
             # TODO add support for more file types (e.g. parquet, etc..).
             if self.ds_path.endswith(".csv"):
-                return pd.read_csv(self.ds_path)
+                try:
+                    self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
+                except Exception as err:
+                    raise Exception(
+                        400,
+                        f"Error reading local at http path: \
+                            {self.ds_path}: {err}",
+                    )
             else:
                 # TODO make this cleaner
                 return Exception(
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )
+
+            # Notify observer since memory usage has changed
+            [
+                observer.update_memory_usage()
+                for observer in self.dataset_observers
+            ]
         # TODO return copy here? => safer but not very efficient.
         return self.df
 

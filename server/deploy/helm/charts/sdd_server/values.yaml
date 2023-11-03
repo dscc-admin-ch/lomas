@@ -33,7 +33,7 @@ replicaCount: 1
 image:
   repository: damienaymon/sdd_server_prod
   pullPolicy: Always
-  tag: latest
+  tag: demo_232206
 
 # Runtime args for server
 runtime_args:
@@ -86,13 +86,13 @@ ingress:
     #kubernetes.io/ingress.class: nginx
     #kubernetes.io/tls-acme: "true"
   hosts:
-    - host: sdd-server.lab.sspcloud.fr
+    - host: sdd-server-demo-232206.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd-server.lab.sspcloud.fr
+      - sdd-server-demo-231106.lab.sspcloud.fr
   #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

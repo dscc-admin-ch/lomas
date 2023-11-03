@@ -109,7 +109,7 @@ def startup_event():
     LOG.info("Loading query handler")
     SERVER_STATE["message"].append("Loading dataset store")
     dataset_store = dataset_store_factory(CONFIG.dataset_store, ADMIN_DATABASE)
-    
+
     SERVER_STATE["message"].append("Loading query handler")
     global QUERY_HANDLER
     QUERY_HANDLER = QueryHandler(ADMIN_DATABASE, dataset_store)

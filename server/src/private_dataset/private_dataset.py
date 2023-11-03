@@ -2,11 +2,8 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import shutil
 
-<<<<<<< HEAD
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
-=======
 from constants import SSQL_METADATA_OPTIONS
->>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0
 
 
 class PrivateDataset(ABC):
@@ -18,22 +15,15 @@ class PrivateDataset(ABC):
     local_path = None
     local_dir = None
 
-<<<<<<< HEAD
     def __init__(self, metadata: dict) -> None:
-=======
-    def __init__(self, metadata) -> None:
->>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0
         """
         Connects to the DB
         Parameters:
             - metadata: The metadata for this dataset
         """
         self.metadata = metadata
-<<<<<<< HEAD
         self.dataset_observers = []
-=======
         self.dtypes = get_dtypes(metadata)
->>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0
 
     def __del__(self):
         """
@@ -67,7 +57,6 @@ class PrivateDataset(ABC):
         """
         return self.metadata
 
-<<<<<<< HEAD
     def get_memory_usage(self) -> int:
         """
         Returns the memory usage of this dataset, in MiB.
@@ -87,7 +76,7 @@ class PrivateDataset(ABC):
         Add the PrivateDatasetObserver to the list of dataset_observers.
         """
         self.dataset_observers.append(dataset_observer)
-=======
+
 
 def get_dtypes(metadata: str) -> dict:
     dtypes = {}
@@ -96,4 +85,3 @@ def get_dtypes(metadata: str) -> dict:
             continue
         dtypes[col_name] = data["type"]
     return dtypes
->>>>>>> ad579f41410f68c8d2f6f4ba3569ac64a764eeb0

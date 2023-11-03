@@ -86,7 +86,7 @@ class OpenDPQuerier(DPQuerier):
                 "Failed when applying chain to data with error: " + str(e),
             )
 
-        if type(release_data) == polars.dataframe.frame.DataFrame:
+        if isinstance(release_data, polars.dataframe.frame.DataFrame):
             release_data = release_data.write_json(file=None)
 
         return release_data

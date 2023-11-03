@@ -19,3 +19,6 @@ data:
           password: {{ index .Values.mongodb.auth.passwords 0 }}
           username: {{ index .Values.mongodb.auth.usernames 0 }}
           db_name: {{ index .Values.mongodb.auth.databases 0}}
+        dataset_store:
+          ds_store_type: {{ .Values.runtime_args.settings.dataset_store.ds_store_type }}
+          max_memory_usage : {{ .Values.runtime_args.settings.dataset_store.max_memory_usage }}

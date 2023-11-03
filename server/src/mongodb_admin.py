@@ -161,16 +161,38 @@ class MongoDB_Admin:
         """
         Add all users from yaml file to the user collection
         """
-
-        # Ensure collection created from scratch each time the method is called
-        self.db.users.drop()
+        if args.clean:
+            print("Cleaning done. \n")
+            # Ensure collection created from scratch each time the method is called
+            self.db.users.drop()
 
         # Load yaml data and insert it
         with open(args.path) as f:
             user_dict = yaml.safe_load(f)
-            self.db.users.insert_many(user_dict["users"])
+            # Filter out duplicates
+            new_users = []
+            existing_users = []
+            for user in user_dict["users"]:
+                if not self.db.users.find_one({"user_name": user["user_name"]}):
+                    new_users.append(user)
+                else:
+                    existing_users.append(user)
+            
+            if args.overwrite:
+                if existing_users != []:
+                    for user in existing_users:
+                        un = user["user_name"]
+                        filter = {"user_name": user["user_name"]}
+                        update_operation = {"$set": user}
+                        self.db.users.update_many(filter, update_operation)
+                    print("Existing users updated. ")
 
-        print(f"Added user data from yaml at {args.path}.")
+            if new_users != []:
+                # Insert new users
+                self.db.users.insert_many(new_users)
+                print(f"Added user data from yaml at {args.path}.")
+            else:
+                print("No new users added, they already exist in the server")
 
     ###################  DATASET TO DATABASE  ################### # noqa: E266
     def add_dataset(self, args):
@@ -401,6 +423,12 @@ if __name__ == "__main__":
     users_collection_from_yaml_parser = subparsers.add_parser(
         "create_users_collection",
         help="create users collection from yaml file",
+    )
+    users_collection_from_yaml_parser.add_argument(
+        "-c", "--clean", required=False, action="store_const", const=True, default=False
+    )
+    users_collection_from_yaml_parser.add_argument(
+        "-o", "--overwrite", required=False, action="store_const", const=True, default=False
     )
     users_collection_from_yaml_parser.add_argument(
         "-p", "--path", required=True, type=str

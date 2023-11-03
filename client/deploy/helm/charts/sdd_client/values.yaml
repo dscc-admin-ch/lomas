@@ -13,7 +13,7 @@ replicaCount: 1
 image:
   repository: damienaymon/sdd_client_prod
   pullPolicy: Always
-  tag: demo_232206
+  tag: demo_231106
 
 password: "'dprocks'"
 

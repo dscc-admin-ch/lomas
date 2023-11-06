@@ -161,7 +161,7 @@ class Client:
             # Opendp outputs can be single numbers or dataframes,
             # we handle the latter here.
             # This is a hack for now, maybe use parquet to send results over.
-            if type(response_dict["query_response"]) == str:
+            if isinstance(response_dict["query_response"], str):
                 response_dict["query_response"] = polars.read_json(
                     StringIO(response_dict["query_response"])
                 )
@@ -237,6 +237,21 @@ class Client:
         else:
             print(
                 f"Error while fetching remaining budget \
+                    status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
+
+    def get_previous_queries(self):
+        body_json = {
+            "dataset_name": self.dataset_name,
+        }
+        res = self._exec("get_previous_queries", body_json)
+
+        if res.status_code == 200:
+            return json.loads(res.content.decode("utf8"))
+        else:
+            print(
+                f"Error while fetching previous queries \
                     status code: {res.status_code} message: {res.text}"
             )
             return res.text

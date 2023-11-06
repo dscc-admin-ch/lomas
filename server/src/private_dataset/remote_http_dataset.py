@@ -45,6 +45,12 @@ class RemoteHTTPDataset(PrivateDataset):
                     "loading into pandas DataFrame."
                 )
 
+            # Notify observer since memory usage has changed
+            [
+                observer.update_memory_usage()
+                for observer in self.dataset_observers
+            ]
+
         return self.df
 
     def get_local_path(self) -> str:

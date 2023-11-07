@@ -63,7 +63,9 @@ class OpenDPQuerier(DPQuerier):
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
-            input_data = self.private_dataset.get_pandas_df().to_csv()
+            input_data = self.private_dataset.get_pandas_df().to_csv(
+                header=False, index=False
+            )
         elif query_json.input_data_type == OPENDP_INPUT_TYPE_PATH:
             input_data = self.private_dataset.get_local_path()
         else:

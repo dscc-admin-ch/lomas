@@ -161,15 +161,40 @@ class MongoDB_Admin:
         """
         Add all users from yaml file to the user collection
         """
-        # Ensure collection created from scratch each time the method is called
-        self.db.users.drop()
+        if args.clean:
+            print("Cleaning done. \n")
+            # Ensure collection created from scratch each time the method is called
+            self.db.users.drop()
 
         # Load yaml data and insert it
         with open(args.path) as f:
             user_dict = yaml.safe_load(f)
-            self.db.users.insert_many(user_dict["users"])
+            # Filter out duplicates
+            new_users = []
+            existing_users = []
+            for user in user_dict["users"]:
+                if not self.db.users.find_one(
+                    {"user_name": user["user_name"]}
+                ):
+                    new_users.append(user)
+                else:
+                    existing_users.append(user)
 
-        print(f"Added user data from yaml at {args.path}.")
+            # Overwrite values for exsisting user with values from yaml
+            if args.overwrite:
+                if existing_users != []:
+                    for user in existing_users:
+                        filter = {"user_name": user["user_name"]}
+                        update_operation = {"$set": user}
+                        self.db.users.update_many(filter, update_operation)
+                    print("Existing users updated. ")
+
+            if new_users != []:
+                # Insert new users
+                self.db.users.insert_many(new_users)
+                print(f"Added user data from yaml at {args.path}.")
+            else:
+                print("No new users added, they already exist in the server")
 
     ###################  DATASET TO DATABASE  ################### # noqa: E266
     def add_dataset(self, args):
@@ -205,9 +230,11 @@ class MongoDB_Admin:
         Set all database types to datasets in dataset collection based
         on yaml file.
         """
-        # Ensure collection created from scratch each time the method is called
-        self.db.datasets.drop()
-        self.db.metadata.drop()
+        if args.clean:
+            print("Cleaning done. ")
+            # Ensure collection created from scratch each time the method is called
+            self.db.datasets.drop()
+            self.db.metadata.drop()
 
         with open(args.path) as f:
             dataset_dict = yaml.safe_load(f)
@@ -218,6 +245,8 @@ class MongoDB_Admin:
             ), f"Dataset {d['dataset_name']} requires '{field}' key."
 
         # Verify inputs
+        new_datasets = []
+        existing_datasets = []
         for d in dataset_dict["datasets"]:
             verify_keys(d, "dataset_name")
             verify_keys(d, "database_type")
@@ -233,17 +262,51 @@ class MongoDB_Admin:
             else:
                 raise ValueError(f"Dataset type {d['database_type']} unknown")
 
+            # Fill datasets_list
+            if not self.db.datasets.find_one(
+                {"dataset_name": d["dataset_name"]}
+            ):
+                new_datasets.append(d)
+            else:
+                existing_datasets.append(d)
+
+        # Overwrite values for exsisting dataset with values from yaml
+        if args.overwrite_datasets:
+            if existing_datasets != []:
+                for d in existing_datasets:
+                    filter = {"dataset_name": d["dataset_name"]}
+                    update_operation = {"$set": d}
+                    self.db.datasets.update_many(filter, update_operation)
+                print(
+                    f"Existing datasets updated with values from yaml at {args.path}. "
+                )
+
         # Add dataset collecion
-        self.db.datasets.insert_many(dataset_dict["datasets"])
-        print(f"Added datasets collection from yaml at {args.path}. ")
+        if new_datasets != []:
+            self.db.datasets.insert_many(new_datasets)
+            print(f"Added datasets collection from yaml at {args.path}. ")
 
         # Add metadata collection (one metadata per dataset)
         for d in dataset_dict["datasets"]:
             dataset_name = d["dataset_name"]
             with open(d["metadata_path"]) as f:
                 metadata_dict = yaml.safe_load(f)
-                self.db.metadata.insert_one({dataset_name: metadata_dict})
-                print(f"Added metadata of {dataset_name} dataset. ")
+                filter = {dataset_name: metadata_dict}
+                metadata = self.db.metadata.find_one(filter)
+                if metadata and args.overwrite_metadata:
+                    print(
+                        f"Metadata updated with values from yaml for dataset : {dataset_name}. "
+                    )
+                    self.db.metadata.update_one(
+                        filter, {"$set": {dataset_name: metadata_dict}}
+                    )
+                elif metadata:
+                    print(
+                        "Metadata already exist. User the command -om to overwrite with new values. "
+                    )
+                else:
+                    self.db.metadata.insert_one({dataset_name: metadata_dict})
+                    print(f"Added metadata of {dataset_name} dataset. ")
 
     def del_dataset(self, args):
         """
@@ -402,6 +465,22 @@ if __name__ == "__main__":
         help="create users collection from yaml file",
     )
     users_collection_from_yaml_parser.add_argument(
+        "-c",
+        "--clean",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    users_collection_from_yaml_parser.add_argument(
+        "-o",
+        "--overwrite",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    users_collection_from_yaml_parser.add_argument(
         "-p", "--path", required=True, type=str
     )
     users_collection_from_yaml_parser.set_defaults(
@@ -425,6 +504,30 @@ if __name__ == "__main__":
         help="create dataset to database type collection",
     )
     add_datasets_parser.add_argument("-p", "--path", required=True, type=str)
+    add_datasets_parser.add_argument(
+        "-c",
+        "--clean",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    add_datasets_parser.add_argument(
+        "-od",
+        "--overwrite_datasets",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
+    )
+    add_datasets_parser.add_argument(
+        "-om",
+        "--overwrite_metadata",
+        required=False,
+        action="store_const",
+        const=True,
+        default=False,
+    )
     add_datasets_parser.set_defaults(func=admin.add_datasets)
 
     #######################  COLLECTIONS  ####################### # noqa: E266

@@ -1,5 +1,4 @@
-# from typing import List
-from pydantic import BaseModel, Field  # validator
+from pydantic import BaseModel, Field
 from constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 
@@ -74,29 +73,15 @@ class GetDbData(BaseModel):
     dataset_name: str
 
 
-# class OpenDPBase(BasicModel):
-#     function: str
-#     args: List
-#     kwargs: dict
-
-
-# class OpenDPAST(BasicModel):
-#     func: str
-#     module: str
-#     type: str
-#     args: dict = {}
-#     kwargs: dict = {}
-
-
 class OpenDPInp(BasicModel):
     dataset_name: str
-    opendp_json: str  # TODO: improve with OpenDPAST and OpenDPBase
+    opendp_json: str
     input_data_type: str
 
 
 class DummyOpenDPInp(BasicModel):
     dataset_name: str
-    opendp_json: str  # TODO: improve with OpenDPAST and OpenDPBase
+    opendp_json: str
     input_data_type: str
     dummy_nb_rows: int
     dummy_seed: int

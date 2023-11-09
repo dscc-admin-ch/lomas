@@ -8,7 +8,6 @@ from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
-    example_get_dataset_metadata,
     example_get_db_data,
     example_get_dummy_dataset,
     example_opendp,
@@ -18,7 +17,6 @@ from utils.example_inputs import (
 from utils.input_models import (
     DummyOpenDPInp,
     DummySNSQLInp,
-    GetDatasetMetadata,
     GetDbData,
     GetDummyDataset,
     OpenDPInp,
@@ -150,7 +148,7 @@ async def get_state(user_name: str = Header(None)):
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
-    query_json: GetDatasetMetadata = Body(example_get_dataset_metadata),
+    query_json: GetDbData = Body(example_get_db_data),
 ):
     # Create dummy dataset based on seed and number of rows
     try:

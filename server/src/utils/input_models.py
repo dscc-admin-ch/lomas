@@ -23,7 +23,7 @@ class BasicModel(BaseModel):
         )
 
 
-class GetDatasetMetadata(BasicModel):
+class GetDbData(BaseModel):
     dataset_name: str
 
 
@@ -67,10 +67,6 @@ class SNSQLInpCost(BasicModel):
     epsilon: float
     delta: float
     mechanisms: dict
-
-
-class GetDbData(BaseModel):
-    dataset_name: str
 
 
 class OpenDPInp(BasicModel):

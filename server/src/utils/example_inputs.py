@@ -9,7 +9,8 @@ DUMMY_SEED = 42
 # DUMMY dataset name
 IRIS_DATASET = "IRIS"
 
-example_get_dataset_metadata = {
+
+example_get_db_data = {
     "dataset_name": IRIS_DATASET,
 }
 
@@ -45,10 +46,6 @@ example_smartnoise_sql_cost = {
     "epsilon": 0.1,
     "delta": 0.00001,
     "mechanisms": {"count": "discrete_gaussian"},
-}
-
-example_get_db_data = {
-    "dataset_name": IRIS_DATASET,
 }
 
 example_opendp = {

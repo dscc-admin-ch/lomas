@@ -26,8 +26,8 @@ class OpenDPQuerier(DPQuerier):
         super().__init__(private_dataset)
 
     def cost(self, query_json: dict) -> List[float]:
-        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
-
+        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json.toJSONStr())
+        
         try:
             cost = opendp_pipe.map(
                 d_in=float(
@@ -60,8 +60,8 @@ class OpenDPQuerier(DPQuerier):
         return epsilon, delta
 
     def query(self, query_json: dict) -> str:
-        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
-
+        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json.toJSONStr())
+        
         if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
             input_data = self.private_dataset.get_pandas_df().to_csv(
                 header=False, index=False
@@ -100,7 +100,9 @@ def is_measurement(value):
 
 def reconstruct_measurement_pipeline(pipeline):
     opendp_pipe = make_load_json(pipeline)
-
+    LOG.exception(pipeline)
+    LOG.exception(opendp_pipe)
+    
     if not is_measurement(opendp_pipe):
         e = "The pipeline provided is not a measurement. \
                 It cannot be processed in this server."

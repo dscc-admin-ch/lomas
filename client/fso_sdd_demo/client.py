@@ -140,7 +140,7 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> pd.DataFrame:
-        opendp_json = opendp_pipeline.to_json()
+        opendp_json = json.loads(opendp_pipeline.to_json())
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
@@ -152,7 +152,7 @@ class Client:
             body_json["dummy_seed"] = seed
         else:
             endpoint = "opendp_query"
-
+        print(body_json)
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
             data = res.content.decode("utf8")

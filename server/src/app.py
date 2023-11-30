@@ -8,7 +8,6 @@ from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
-    example_get_dataset_metadata,
     example_get_db_data,
     example_get_dummy_dataset,
     example_opendp,
@@ -18,7 +17,6 @@ from utils.example_inputs import (
 from utils.input_models import (
     DummyOpenDPInp,
     DummySNSQLInp,
-    GetDatasetMetadata,
     GetDbData,
     GetDummyDataset,
     OpenDPInp,
@@ -86,11 +84,14 @@ def startup_event():
             return None  # trick to create a dummy args object
 
         LOG.info("Creating user collection")
+        args.clean = True
+        args.overwrite = True
         args.path = "/data/collections/user_collection.yaml"
         mongo_admin.create_users_collection(args)
 
         LOG.info("Creating datasets and metadata collection")
         args.path = "/data/collections/dataset_collection.yaml"
+        args.overwrite_datasets = True
         mongo_admin.add_datasets(args)
 
         del mongo_admin
@@ -150,7 +151,7 @@ async def get_state(user_name: str = Header(None)):
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
-    query_json: GetDatasetMetadata = Body(example_get_dataset_metadata),
+    query_json: GetDbData = Body(example_get_db_data),
 ):
     # Create dummy dataset based on seed and number of rows
     try:

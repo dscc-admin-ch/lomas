@@ -56,12 +56,6 @@ class OpenDPQuerier(DPQuerier):
                     + str(e),
                 )
 
-        #b = opendp_pipe.output_measure
-        #LOG.info(b)
-        #LOG.info(b == "ZeroConcentratedDivergence(f64)") # gaussian
-        #LOG.info(b == "MaxDivergence(f64)") # laplace
-        #LOG.info(b == dp.measures.max_divergence(T = float))
-        #epsilon, delta = cost_to_param(opendp_pipe)
         epsilon, delta = cost_to_param(cost)
         return epsilon, delta
 
@@ -150,25 +144,3 @@ def infer_measurement_type(opendp_pipe):
         measurement_type = "gaussian"
     
     return measurement_type
-
-
-# def cost_to_param(cost):
-#     """
-#     TODO: improve by checking the type (gaussian/laplace) of the output
-#     like below:
-#     def is_approx_dp(meas):
-#     return meas.output_measure == dp.fixed_smoothed_max_divergence(T = float)
-#     """
-#     if isinstance(cost, int) or isinstance(cost, float):
-#         epsilon, delta = cost, 0
-#     elif isinstance(cost, tuple):
-#         epsilon, delta = cost[0], cost[1]
-#     else:
-#         e = f"Unexpected result from opendp map function: {cost}"
-#         LOG.exception(e)
-#         raise HTTPException(
-#             400,
-#             "Failed when unpacking opendp cost: " + str(e),
-#         )
-    
-#     return epsilon, delta

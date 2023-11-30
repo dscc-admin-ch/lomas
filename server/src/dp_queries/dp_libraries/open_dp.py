@@ -56,7 +56,8 @@ class OpenDPQuerier(DPQuerier):
                     + str(e),
                 )
 
-        epsilon, delta = cost_to_param(cost)
+        epsilon, delta = cost_to_param(opendp_pipe, cost)
+        
         return epsilon, delta
 
     def query(self, query_json: dict) -> str:
@@ -110,18 +111,15 @@ def reconstruct_measurement_pipeline(pipeline):
     return opendp_pipe
 
 
-def cost_to_param(opendp_pipe):
-    cost = opendp_pipe.map(
-            d_in=float(
-                self.private_dataset.get_metadata()[""]["Schema"]["Table"][
-                    "max_ids"
-                ]
-            )
-        )
-            
+def cost_to_param(opendp_pipe, cost):
+    # Currently works with laplace noise (tested with example from client notebook)
+    #TODO: Test with gaussian noise and check how the cost is returned
+
     measurement_type = infer_measurement_type(opendp_pipe)
     if measurement_type == "gaussian":
-        epsilon, delta = cost[0], cost[1]
+        epsilon, delta = cost, 0  # should be cost[0], cost[1] (?) but for some reason
+        # cost is a float in the client notebook example when calling then_gaussian
+        # in the client notebook example 
     elif measurement_type == "laplace":
         epsilon, delta = cost, 0
     else:

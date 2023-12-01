@@ -84,15 +84,15 @@ def startup_event():
             return None  # trick to create a dummy args object
 
         LOG.info("Creating user collection")
+        args.clean = True
+        args.overwrite = True
         args.path = "/data/collections/user_collection.yaml"
-        args.clean = False
-        args.overwrite = False
         mongo_admin.create_users_collection(args)
 
         LOG.info("Creating datasets and metadata collection")
         args.path = "/data/collections/dataset_collection.yaml"
-        args.overwrite_datasets = False
-        args.overwrite_metadata = False
+        args.overwrite_datasets = True
+        args.overwrite_metadata = True
         mongo_admin.add_datasets(args)
 
         del mongo_admin

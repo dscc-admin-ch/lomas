@@ -85,10 +85,14 @@ def startup_event():
 
         LOG.info("Creating user collection")
         args.path = "/data/collections/user_collection.yaml"
+        args.clean = False
+        args.overwrite = False
         mongo_admin.create_users_collection(args)
 
         LOG.info("Creating datasets and metadata collection")
         args.path = "/data/collections/dataset_collection.yaml"
+        args.overwrite_datasets = False
+        args.overwrite_metadata = False
         mongo_admin.add_datasets(args)
 
         del mongo_admin

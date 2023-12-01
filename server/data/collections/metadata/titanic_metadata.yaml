@@ -13,11 +13,12 @@
         type: string
       Sex:
         type: string
+        cardinality: 2
         categories:
         - male
         - female
       Age:
-        type: int
+        type: float
         lower: 0.1
         upper: 100.0
       SibSp:
@@ -35,6 +36,7 @@
         type: string
       Embarked:
         type: string
+        cardinality: 3
         categories:
         - C
         - Q

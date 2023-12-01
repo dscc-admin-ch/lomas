@@ -47,8 +47,6 @@ SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
 OPENDP_INPUT_TYPE_DF = "df"
 OPENDP_INPUT_TYPE_PATH = "path"
 
-OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
-
 # Databases
 LOCAL_DB = "LOCAL_DB"
 REMOTE_HTTP_DB = "REMOTE_HTTP_DB"

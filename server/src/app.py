@@ -92,6 +92,7 @@ def startup_event():
         LOG.info("Creating datasets and metadata collection")
         args.path = "/data/collections/dataset_collection.yaml"
         args.overwrite_datasets = True
+        args.overwrite_metadata = True
         mongo_admin.add_datasets(args)
 
         del mongo_admin

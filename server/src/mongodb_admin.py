@@ -198,6 +198,67 @@ class MongoDB_Admin:
                 print("No new users added, they already exist in the server")
 
     ###################  DATASET TO DATABASE  ################### # noqa: E266
+    def add_dataset(self, args):
+        """
+        Set a database type to a dataset in dataset collection.
+        """
+        if (
+            self.db.datasets.count_documents({"dataset_name": args.dataset})
+            > 0
+        ):
+            raise ValueError("Cannot add database because already set. ")
+
+        # Step 1: add dataset
+        dataset = {
+            "dataset_name": args.dataset,
+            "database_type": args.database_type,
+        }
+
+        if args.database_type == "LOCAL_DB":
+            dataset["dataset_path"] = args.dataset_path
+        elif args.database_type == "REMOTE_HTTP_DB":
+            dataset["dataset_url"] = args.dataset_url
+        elif args.database_type == "S3_DB":
+            dataset["s3_bucket"] = args.s3_bucket
+            dataset["s3_key"] = args.s3_key
+            dataset["endpoint_url"] = args.endpoint_url
+            dataset["aws_access_key_id"] = args.aws_access_key_id
+            dataset["aws_secret_access_key"] = args.aws_secret_access_key
+        else:
+            raise ValueError(f"Unknown database type {args.database_type}")
+        self.db.datasets.insert_one(dataset)
+
+        # Step 2: add metadata
+        if args.metadata_database_type == "LOCAL_DB":
+            # Store metadata from yaml to metadata collection
+            with open(args.metadata_path) as f:
+                metadata_dict = yaml.safe_load(f)
+
+        elif args.metadata_database_type == "S3_DB":
+            client = boto3.client(
+                "s3",
+                endpoint_url=args.metadata_endpoint_url,
+                aws_access_key_id=args.metadata_aws_access_key_id,
+                aws_secret_access_key=args.metadata_aws_secret_access_key,
+            )
+            response = client.get_object(
+                Bucket=args.metadata_s3_bucket, Key=args.metadata_s3_key
+            )
+            try:
+                metadata_dict = yaml.safe_load(response["Body"])
+            except yaml.YAMLError as e:
+                return e
+        else:
+            raise ValueError(
+                f"Unknown database type {args.metadata_database_type}"
+            )
+        self.db.metadata.insert_one({args.dataset: metadata_dict})
+
+        print(
+            f"Added dataset {args.dataset} with database {args.database_type} "
+            f"and associated metadata."
+        )
+
     def add_datasets(self, args):
         """
         Set all database types to datasets in dataset collection based
@@ -214,11 +275,15 @@ class MongoDB_Admin:
 
         def verify_keys(d, field, metadata=False):
             if metadata:
-                assert field in d['metadata'].keys(), f"Metadata of {d['dataset_name']} requires '{field}' key."
+                assert (
+                    field in d["metadata"].keys()
+                ), f"Metadata of {d['dataset_name']} requires '{field}' key."
             else:
-                assert field in d.keys(), f"Dataset {d['dataset_name']} requires '{field}' key."
+                assert (
+                    field in d.keys()
+                ), f"Dataset {d['dataset_name']} requires '{field}' key."
 
-        # Verify inputs
+        # Step 1: add datasets
         new_datasets = []
         existing_datasets = []
         for d in dataset_dict["datasets"]:
@@ -260,7 +325,7 @@ class MongoDB_Admin:
             self.db.datasets.insert_many(new_datasets)
             print(f"Added datasets collection from yaml at {args.path}. ")
 
-        # Add metadata collection (one metadata per dataset)
+        # Step 2: add metadata collections (one metadata per dataset)
         for d in dataset_dict["datasets"]:
             dataset_name = d["dataset_name"]
             metadata_db_type = d["metadata"]["database_type"]
@@ -287,14 +352,15 @@ class MongoDB_Admin:
                     ],
                 )
                 response = client.get_object(
-                    Bucket=d["metadata"]["s3_bucket"], Key=d["metadata"]["s3_key"]
+                    Bucket=d["metadata"]["s3_bucket"],
+                    Key=d["metadata"]["s3_key"],
                 )
                 try:
                     metadata_dict = yaml.safe_load(response["Body"])
                 except yaml.YAMLError as e:
                     return e
             else:
-                raise NameError(
+                raise ValueError(
                     f"Unknown database type {d['metadata']['database_type']}"
                 )
 
@@ -496,6 +562,46 @@ if __name__ == "__main__":
     )
 
     #######################  ADD DATASETS  ####################### # noqa: E266
+    # Create parser for dataset private database
+    add_dataset_parser = subparsers.add_parser(
+        "add_dataset",
+        help="set in which database the dataset is stored",
+    )
+    add_dataset_parser.add_argument("-d", "--dataset", required=True)
+    add_dataset_parser.add_argument("-db", "--database_type", required=True)
+    add_dataset_parser.add_argument("-d_url", "--dataset_url", required=False)
+    add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
+    add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
+    add_dataset_parser.add_argument(
+        "-s3_url", "--endpoint_url", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-s3_ak", "--aws_access_key_id", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-s3_sak", "--aws_secret_access_key", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_db", "--metadata_database_type", required=True
+    )
+    add_dataset_parser.add_argument("-mp", "--metadata_path", required=False)
+    add_dataset_parser.add_argument(
+        "-m_s3b", "--metadata_s3_bucket", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_s3k", "--metadata_s3_key", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_s3_url", "--metadata_endpoint_url", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_s3_ak", "--metadata_aws_access_key_id", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_s3_sak", "--metadata_aws_secret_access_key", required=False
+    )
+    add_dataset_parser.set_defaults(func=admin.add_dataset)
+
     # Create the parser for the "add_datasets" command
     add_datasets_parser = subparsers.add_parser(
         "add_datasets",

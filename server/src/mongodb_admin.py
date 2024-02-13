@@ -213,9 +213,10 @@ class MongoDB_Admin:
             dataset_dict = yaml.safe_load(f)
 
         def verify_keys(d, field, metadata=False):
-            error = "Metadata of" if metadata else "Dataset"
-            error_msg = f"{error} {d['dataset_name']} requires '{field}' key."
-            assert field in d.keys(), error_msg
+            if metadata:
+                assert field in d['metadata'].keys(), f"Metadata of {d['dataset_name']} requires '{field}' key."
+            else:
+                assert field in d.keys(), f"Dataset {d['dataset_name']} requires '{field}' key."
 
         # Verify inputs
         new_datasets = []
@@ -264,21 +265,19 @@ class MongoDB_Admin:
             dataset_name = d["dataset_name"]
             metadata_db_type = d["metadata"]["database_type"]
 
-            verify_keys(d["metadata"], "database_type", metadata=True)
+            verify_keys(d, "database_type", metadata=True)
             if metadata_db_type == "LOCAL_DB":
-                verify_keys(d["metadata"], "metadata_path", metadata=True)
+                verify_keys(d, "metadata_path", metadata=True)
 
-                with open(d["metadata_path"]) as f:
+                with open(d["metadata"]["metadata_path"]) as f:
                     metadata_dict = yaml.safe_load(f)
 
             elif metadata_db_type == "S3_DB":
-                verify_keys(d["metadata"], "s3_bucket", metadata=True)
-                verify_keys(d["metadata"], "s3_key", metadata=True)
-                verify_keys(d["metadata"], "endpoint_url", metadata=True)
-                verify_keys(d["metadata"], "aws_access_key_id", metadata=True)
-                verify_keys(
-                    d["metadata"], "aws_secret_access_key", metadata=True
-                )
+                verify_keys(d, "s3_bucket", metadata=True)
+                verify_keys(d, "s3_key", metadata=True)
+                verify_keys(d, "endpoint_url", metadata=True)
+                verify_keys(d, "aws_access_key_id", metadata=True)
+                verify_keys(d, "aws_secret_access_key", metadata=True)
                 client = boto3.client(
                     "s3",
                     endpoint_url=d["metadata"]["endpoint_url"],
@@ -288,7 +287,7 @@ class MongoDB_Admin:
                     ],
                 )
                 response = client.get_object(
-                    Bucket=["s3_bucket"], Key=["s3_key"]
+                    Bucket=d["metadata"]["s3_bucket"], Key=d["metadata"]["s3_key"]
                 )
                 try:
                     metadata_dict = yaml.safe_load(response["Body"])

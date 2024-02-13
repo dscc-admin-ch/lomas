@@ -1,4 +1,5 @@
 import argparse
+import boto3
 import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
@@ -162,9 +163,9 @@ class MongoDB_Admin:
         Add all users from yaml file to the user collection
         """
         if args.clean:
-            print("Cleaning done. \n")
-            # Ensure collection created from scratch each time the method is called
+            # Collection created from scratch
             self.db.users.drop()
+            print("Cleaning done. \n")
 
         # Load yaml data and insert it
         with open(args.path) as f:
@@ -180,7 +181,7 @@ class MongoDB_Admin:
                 else:
                     existing_users.append(user)
 
-            # Overwrite values for exsisting user with values from yaml
+            # Overwrite values for existing user with values from yaml
             if args.overwrite:
                 if existing_users != []:
                     for user in existing_users:
@@ -197,52 +198,24 @@ class MongoDB_Admin:
                 print("No new users added, they already exist in the server")
 
     ###################  DATASET TO DATABASE  ################### # noqa: E266
-    def add_dataset(self, args):
-        """
-        Set a database type to a dataset in dataset collection.
-        """
-        if (
-            self.db.datasets.count_documents({"dataset_name": args.dataset})
-            > 0
-        ):
-            raise ValueError("Cannot add database because already set. ")
-
-        self.db.datasets.insert_one(
-            {
-                "dataset_name": args.dataset,
-                "database_type": args.database_type,
-                "metadata_path": args.metadata_path,
-            }
-        )
-
-        # Store metadata from yaml to metadata collection
-        with open(args.metadata_path) as f:
-            metadata_dict = yaml.safe_load(f)
-            self.db.metadata.insert_one({args.dataset: metadata_dict})
-
-        print(
-            f"Added dataset {args.dataset} with database {args.database_type} "
-            f"and metadata from {args.metadata_path}."
-        )
-
     def add_datasets(self, args):
         """
         Set all database types to datasets in dataset collection based
         on yaml file.
         """
         if args.clean:
-            print("Cleaning done. ")
-            # Ensure collection created from scratch each time the method is called
+            # Collection created from scratch
             self.db.datasets.drop()
             self.db.metadata.drop()
+            print("Cleaning done. \n")
 
         with open(args.path) as f:
             dataset_dict = yaml.safe_load(f)
 
-        def verify_keys(d, field):
-            assert (
-                field in d.keys()
-            ), f"Dataset {d['dataset_name']} requires '{field}' key."
+        def verify_keys(d, field, metadata=False):
+            error = "Metadata of" if metadata else "Dataset"
+            error_msg = f"{error} {d['dataset_name']} requires '{field}' key."
+            assert field in d.keys(), error_msg
 
         # Verify inputs
         new_datasets = []
@@ -250,7 +223,7 @@ class MongoDB_Admin:
         for d in dataset_dict["datasets"]:
             verify_keys(d, "dataset_name")
             verify_keys(d, "database_type")
-            verify_keys(d, "metadata_path")
+            verify_keys(d, "metadata")
 
             if d["database_type"] == REMOTE_HTTP_DB:
                 verify_keys(d, "dataset_url")
@@ -270,7 +243,7 @@ class MongoDB_Admin:
             else:
                 existing_datasets.append(d)
 
-        # Overwrite values for exsisting dataset with values from yaml
+        # Overwrite values for existing dataset with values from yaml
         if args.overwrite_datasets:
             if existing_datasets != []:
                 for d in existing_datasets:
@@ -278,10 +251,10 @@ class MongoDB_Admin:
                     update_operation = {"$set": d}
                     self.db.datasets.update_many(filter, update_operation)
                 print(
-                    f"Existing datasets updated with values from yaml at {args.path}. "
+                    f"Datasets updated with values from yaml at {args.path}."
                 )
 
-        # Add dataset collecion
+        # Add dataset collection
         if new_datasets != []:
             self.db.datasets.insert_many(new_datasets)
             print(f"Added datasets collection from yaml at {args.path}. ")
@@ -289,24 +262,60 @@ class MongoDB_Admin:
         # Add metadata collection (one metadata per dataset)
         for d in dataset_dict["datasets"]:
             dataset_name = d["dataset_name"]
-            with open(d["metadata_path"]) as f:
-                metadata_dict = yaml.safe_load(f)
-                filter = {dataset_name: metadata_dict}
-                metadata = self.db.metadata.find_one(filter)
-                if metadata and args.overwrite_metadata:
-                    print(
-                        f"Metadata updated with values from yaml for dataset : {dataset_name}. "
-                    )
-                    self.db.metadata.update_one(
-                        filter, {"$set": {dataset_name: metadata_dict}}
-                    )
-                elif metadata:
-                    print(
-                        "Metadata already exist. User the command -om to overwrite with new values. "
-                    )
-                else:
-                    self.db.metadata.insert_one({dataset_name: metadata_dict})
-                    print(f"Added metadata of {dataset_name} dataset. ")
+            metadata_db_type = d["metadata"]["database_type"]
+
+            verify_keys(d["metadata"], "database_type", metadata=True)
+            if metadata_db_type == "LOCAL_DB":
+                verify_keys(d["metadata"], "metadata_path", metadata=True)
+
+                with open(d["metadata_path"]) as f:
+                    metadata_dict = yaml.safe_load(f)
+
+            elif metadata_db_type == "S3_DB":
+                verify_keys(d["metadata"], "s3_bucket", metadata=True)
+                verify_keys(d["metadata"], "s3_key", metadata=True)
+                verify_keys(d["metadata"], "endpoint_url", metadata=True)
+                verify_keys(d["metadata"], "aws_access_key_id", metadata=True)
+                verify_keys(
+                    d["metadata"], "aws_secret_access_key", metadata=True
+                )
+                client = boto3.client(
+                    "s3",
+                    endpoint_url=d["metadata"]["endpoint_url"],
+                    aws_access_key_id=d["metadata"]["aws_access_key_id"],
+                    aws_secret_access_key=d["metadata"][
+                        "aws_secret_access_key"
+                    ],
+                )
+                response = client.get_object(
+                    Bucket=["s3_bucket"], Key=["s3_key"]
+                )
+                try:
+                    metadata_dict = yaml.safe_load(response["Body"])
+                except yaml.YAMLError as e:
+                    return e
+            else:
+                raise NameError(
+                    f"Unknown database type {d['metadata']['database_type']}"
+                )
+
+            # Overwrite or not depending on config if metadata already exists
+            filter = {dataset_name: metadata_dict}
+            metadata = self.db.metadata.find_one(filter)
+
+            if metadata and args.overwrite_metadata:
+                print(f"Metadata updated for dataset : {dataset_name}.")
+                self.db.metadata.update_one(
+                    filter, {"$set": {dataset_name: metadata_dict}}
+                )
+            elif metadata:
+                print(
+                    "Metadata already exist."
+                    "Use the command -om to overwrite with new values."
+                )
+            else:
+                self.db.metadata.insert_one({dataset_name: metadata_dict})
+                print(f"Added metadata of {dataset_name} dataset. ")
 
     def del_dataset(self, args):
         """
@@ -488,16 +497,6 @@ if __name__ == "__main__":
     )
 
     #######################  ADD DATASETS  ####################### # noqa: E266
-    # Create parser for dataset private database
-    add_dataset_parser = subparsers.add_parser(
-        "add_dataset",
-        help="set in which database the dataset is stored",
-    )
-    add_dataset_parser.add_argument("-d", "--dataset", required=True)
-    add_dataset_parser.add_argument("-db", "--database_type", required=True)
-    add_dataset_parser.add_argument("-mp", "--metadata_path", required=True)
-    add_dataset_parser.set_defaults(func=admin.add_dataset)
-
     # Create the parser for the "add_datasets" command
     add_datasets_parser = subparsers.add_parser(
         "add_datasets",

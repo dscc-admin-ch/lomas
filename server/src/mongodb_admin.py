@@ -375,7 +375,7 @@ class MongoDB_Admin:
                 )
             elif metadata:
                 print(
-                    "Metadata already exist."
+                    "Metadata already exist. "
                     "Use the command -om to overwrite with new values."
                 )
             else:
@@ -567,6 +567,7 @@ if __name__ == "__main__":
         "add_dataset",
         help="set in which database the dataset is stored",
     )
+    # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
     add_dataset_parser.add_argument("-d_url", "--dataset_url", required=False)
@@ -581,6 +582,7 @@ if __name__ == "__main__":
     add_dataset_parser.add_argument(
         "-s3_sak", "--aws_secret_access_key", required=False
     )
+    # Metadata location
     add_dataset_parser.add_argument(
         "-m_db", "--metadata_database_type", required=True
     )

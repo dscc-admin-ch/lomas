@@ -163,7 +163,8 @@ class MongoDB_Admin:
         """
         if args.clean:
             print("Cleaning done. \n")
-            # Ensure collection created from scratch each time the method is called
+            # Ensure collection created from scratch
+            # each time the method is called
             self.db.users.drop()
 
         # Load yaml data and insert it
@@ -232,7 +233,8 @@ class MongoDB_Admin:
         """
         if args.clean:
             print("Cleaning done. ")
-            # Ensure collection created from scratch each time the method is called
+            # Ensure collection created from scratch
+            # each time the method is called
             self.db.datasets.drop()
             self.db.metadata.drop()
 
@@ -278,7 +280,8 @@ class MongoDB_Admin:
                     update_operation = {"$set": d}
                     self.db.datasets.update_many(filter, update_operation)
                 print(
-                    f"Existing datasets updated with values from yaml at {args.path}. "
+                    f"Existing datasets updated with values"
+                    f"from yaml at {args.path}. "
                 )
 
         # Add dataset collecion
@@ -295,14 +298,16 @@ class MongoDB_Admin:
                 metadata = self.db.metadata.find_one(filter)
                 if metadata and args.overwrite_metadata:
                     print(
-                        f"Metadata updated with values from yaml for dataset : {dataset_name}. "
+                        f"Metadata updated with values from yaml"
+                        f"for dataset : {dataset_name}. "
                     )
                     self.db.metadata.update_one(
                         filter, {"$set": {dataset_name: metadata_dict}}
                     )
                 elif metadata:
                     print(
-                        "Metadata already exist. User the command -om to overwrite with new values. "
+                        "Metadata already exist. "
+                        "User the command -om to overwrite with new values. "
                     )
                 else:
                     self.db.metadata.insert_one({dataset_name: metadata_dict})

@@ -8,18 +8,20 @@ class BasicModel(BaseModel):
         return json.loads(
             json.dumps(
                 self,
-                default=lambda o: o.__str__()
-                if type(o).__name__ == "datetime"
-                else o.__dict__,
+                default=lambda o: (
+                    o.__str__()
+                    if type(o).__name__ == "datetime"
+                    else o.__dict__
+                ),
             )
         )
 
     def toJSONStr(self):
         return json.dumps(
             self,
-            default=lambda o: o.__str__()
-            if type(o).__name__ == "datetime"
-            else o.__dict__,
+            default=lambda o: (
+                o.__str__() if type(o).__name__ == "datetime" else o.__dict__
+            ),
         )
 
 

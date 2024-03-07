@@ -1,5 +1,4 @@
 import string
-import pkg_resources
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"

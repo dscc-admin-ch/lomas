@@ -13,9 +13,9 @@ mongodb:
   auth:
     enabled: true
     rootUser: root
-    rootPassword: root_pwd
-    usernames: [user]
-    passwords: [user_pwd]
+    rootPassword: root_pwd # changeme
+    usernames: [user] 
+    passwords: [user_pwd] # changeme
     databases: [defaultdb]
   replicaCount: 1
   discoverable:

@@ -1,16 +1,14 @@
 boto3
 # diffprivlib==0.5.2
-disjoint-set==0.7.3
-fastapi==0.85.0
-networkx==2.8.7
-numpy==1.21.6
-# opendp==0.6.1
-opendp-logger
-pandas==2.0.1
-pydantic==1.8.2
-pymongo==4.2.0
-python-multipart==0.0.5
+fastapi
+numpy
+opendp==0.8.0
+opendp-logger==0.3.0
+pandas
+pydantic
+pymongo
+#python-multipart
 requests
-setuptools==65.4.1
-smartnoise-sql==1.0.0
-uvicorn==0.15.0
+setuptools
+smartnoise-sql==1.0.3
+uvicorn

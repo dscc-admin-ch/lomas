@@ -4,7 +4,9 @@ import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging
 from opendp.mod import enable_features
-import polars
+
+# Note: leaving this here. Support for opendp_polars
+# import polars
 
 # Opendp_logger
 enable_logging()
@@ -162,9 +164,13 @@ class Client:
             # we handle the latter here.
             # This is a hack for now, maybe use parquet to send results over.
             if isinstance(response_dict["query_response"], str):
-                response_dict["query_response"] = polars.read_json(
-                    StringIO(response_dict["query_response"])
+                raise Exception(
+                    "Not implemented: server should not return dataframes"
                 )
+                # Note: leaving this here. Support for opendp_polars
+                # response_dict["query_response"] = polars.read_json(
+                #    StringIO(response_dict["query_response"])
+                # )
 
             return response_dict
         else:

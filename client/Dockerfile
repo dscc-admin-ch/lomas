@@ -10,6 +10,7 @@ CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM sdd_client AS sdd_client_prod
 COPY ./fso_sdd_demo/ /code/fso_sdd_demo
-COPY ./images/ /code/images/
-COPY ./Demo_Client_Notebook.ipynb /code/Demo_Client_Notebook.ipynb
+COPY ./demo_notebooks/images/ /code/images/
+COPY ./LICENCE /code/LICENCE
+COPY ./demo_notebooks/Demo_Client_Notebook.ipynb /code/Demo_Client_Notebook.ipynb
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]

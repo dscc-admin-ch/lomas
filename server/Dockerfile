@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 WORKDIR /code
 FROM sdd_server AS sdd_server_prod
 COPY ./src/ /code/
+COPY ../LICENCE /code/LICENCE
 COPY ./data/ /data/
 CMD ["python", "uvicorn_serve.py"]
 

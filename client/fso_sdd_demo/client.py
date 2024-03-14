@@ -5,6 +5,8 @@ from io import StringIO
 from opendp_logger import enable_logging
 from opendp.mod import enable_features
 
+from fso_sdd_demo.serialiser import serialize_diffprivlib
+
 # Note: leaving this here. Support for opendp_polars
 # import polars
 
@@ -192,6 +194,61 @@ class Client:
             "input_data_type": input_data_type,
         }
         res = self._exec("estimate_opendp_cost", body_json)
+
+        if res.status_code == 200:
+            return json.loads(res.content.decode("utf8"))
+        else:
+            print(
+                f"Error while executing provided query in server:\n"
+                f"status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
+
+    def diffprivlib_query(
+        self,
+        pipeline,
+        y_column: str = "",
+        dummy: bool = False,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ) -> pd.DataFrame:
+        dpl_json_str = serialize_diffprivlib(pipeline)
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "diffprivlib_json": dpl_json_str,
+            "y_column": y_column,
+        }
+        if dummy:
+            endpoint = "dummy_diffprivlib_query"
+            body_json["dummy_nb_rows"] = nb_rows
+            body_json["dummy_seed"] = seed
+        else:
+            endpoint = "diffprivlib_query"
+
+        res = self._exec(endpoint, body_json)
+        if res.status_code == 200:
+            data = res.content.decode("utf8")
+            response_dict = json.loads(data)
+            return response_dict
+        else:
+            print(
+                f"Error while processing DiffPrivLib request in server \
+                    status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
+
+    def estimate_diffprivlib_cost(
+        self,
+        pipeline,
+        y_column: str = "",
+    ) -> dict:
+        dpl_json_str = serialize_diffprivlib(pipeline)
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "diffprivlib_json": dpl_json_str,
+            "y_column": y_column,
+        }
+        res = self._exec("estimate_diffprivlib_cost", body_json)
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))

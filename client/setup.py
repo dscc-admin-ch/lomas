@@ -32,7 +32,7 @@ setup(
     python_requires=">=3.8, <4",
     install_requires=[
         "opendp == 0.8.0",
-        "numpy >= 1.23.2",
+        "numpy == 1.22.3",
         "requests == 2.31.0",
         "pandas==2.0.1",
         "pyyaml",

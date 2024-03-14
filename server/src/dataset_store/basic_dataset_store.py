@@ -3,6 +3,7 @@ from typing import Dict
 from admin_database.admin_database import AdminDatabase
 from constants import (
     SUPPORTED_LIBS,
+    LIB_DIFFPRIVLIB,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
@@ -63,7 +64,8 @@ class BasicDatasetStore(DatasetStore):
                 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 
                 querier = OpenDPQuerier(private_dataset)
-            # elif lib == LIB_DIFFPRIVLIB: TODO
+            elif lib == LIB_DIFFPRIVLIB: # TODO
+                pass
             else:
                 raise Exception(
                     f"Trying to create a querier for library {lib}. "

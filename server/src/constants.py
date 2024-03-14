@@ -40,7 +40,8 @@ DELTA_LIMIT: float = 0.0004
 # Supported DP libraries
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
-SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
+LIB_DIFFPRIVLIB = "diffprivlib"
+SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP, LIB_DIFFPRIVLIB]
 
 # OpenDP pipeline input types
 OPENDP_INPUT_TYPE_DF = "df"

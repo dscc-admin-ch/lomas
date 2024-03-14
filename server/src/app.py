@@ -6,6 +6,8 @@ from admin_database.utils import database_factory, get_mongodb_url
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
+    example_diffprivlib,
+    example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_get_db_data,
@@ -15,6 +17,8 @@ from utils.example_inputs import (
     example_smartnoise_sql_cost,
 )
 from utils.input_models import (
+    DiffPrivLibInp,
+    DummyDiffPrivLibInp,
     DummyOpenDPInp,
     DummySNSQLInp,
     GetDbData,
@@ -31,6 +35,7 @@ from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
 from constants import (
     INTERNAL_SERVER_ERROR,
+    LIB_DIFFPRIVLIB,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
@@ -349,6 +354,27 @@ def estimate_opendp_cost(
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
     # Return response
+    return response
+
+
+@app.post(
+    "/diffprivlib_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
+)
+def opendp_query_handler(
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    user_name: str = Header(None),
+):
+    try:
+        response = QUERY_HANDLER.handle_query(
+            LIB_DIFFPRIVLIB, query_json, user_name
+        )
+    except HTTPException as he:
+        LOG.exception(he)
+        raise he
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
+
     return response
 
 

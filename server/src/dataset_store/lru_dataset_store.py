@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from admin_database.admin_database import AdminDatabase
 from constants import (
+    LIB_DIFFPRIVLIB,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
@@ -115,7 +116,8 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
             from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 
             querier = OpenDPQuerier(private_dataset)
-        # elif lib == LIB_DIFFPRIVLIB: TODO
+        elif library == LIB_DIFFPRIVLIB: # TODO
+            pass
         else:
             raise Exception(
                 f"Trying to get a querier for library {library}. "

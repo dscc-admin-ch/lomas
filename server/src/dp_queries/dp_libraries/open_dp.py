@@ -58,7 +58,14 @@ class OpenDPQuerier(DPQuerier):
                     + str(e),
                 )
 
-        epsilon, delta = cost_to_param(opendp_pipe, cost)
+        if isinstance(cost, int) or isinstance(cost, float):
+            epsilon, delta = cost, 0
+        elif isinstance(cost, tuple) and len(cost) == 2:
+            epsilon, delta = cost[0], cost[1]
+        else:
+            e = f"Cost cannot be converted to epsilon, delta format: {cost}"
+            LOG.exception(e)
+            raise HTTPException(400, e)
 
         return epsilon, delta
 
@@ -114,39 +121,39 @@ def reconstruct_measurement_pipeline(pipeline):
     return opendp_pipe
 
 
-def cost_to_param(opendp_pipe, cost):
+# def cost_to_param(opendp_pipe, cost):
 
-    measurement_type = infer_measurement_type(opendp_pipe)
-    if measurement_type == "laplace":
-        epsilon, delta = cost, 0
-    elif measurement_type == "gaussian":
-        epsilon, delta = cost[0], cost[1]
-    else:
-        raise HTTPException(
-            400,
-            "Failed to unpack opendp cost."
-        )
+#     measurement_type = infer_measurement_type(opendp_pipe)
+#     if measurement_type == "laplace":
+#         epsilon, delta = cost, 0
+#     elif measurement_type == "gaussian":
+#         epsilon, delta = cost, 0 # TODO: how to get delta
+#     else:
+#         raise HTTPException(
+#             400,
+#             "Failed to unpack opendp cost."
+#         )
 
-    return epsilon, delta
+#     return epsilon, delta
 
 
-def infer_measurement_type(opendp_pipe):
-    if opendp_pipe.output_measure == dp.measures.max_divergence(T=float):
-        measurement_type = "laplace"
-    elif (
-        opendp_pipe.output_measure
-        == dp.measures.zero_concentrated_divergence(T=float)
-    ):
-        measurement_type = "gaussian"
-    else:
-        e = (
-            f"This measurement type is not yet supported: "
-            f"{opendp_pipe.output_measure}"
-        )
-        LOG.exception(e)
-        raise HTTPException(
-            400,
-            "Failed to infer measurement mechanism: " + str(e),
-        )
+# def infer_measurement_type(opendp_pipe):
+#     if opendp_pipe.output_measure == dp.measures.max_divergence(T=float):
+#         measurement_type = "laplace"
+#     elif (
+#         opendp_pipe.output_measure
+#         == dp.measures.zero_concentrated_divergence(T=float)
+#     ):
+#         measurement_type = "gaussian"
+#     else:
+#         e = (
+#             f"This measurement type is not yet supported: "
+#             f"{opendp_pipe.output_measure}"
+#         )
+#         LOG.exception(e)
+#         raise HTTPException(
+#             400,
+#             "Failed to infer measurement mechanism: " + str(e),
+#         )
 
-    return measurement_type
+#     return measurement_type

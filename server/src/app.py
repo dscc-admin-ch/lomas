@@ -1,5 +1,5 @@
+import json
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
-
 from mongodb_admin import MongoDB_Admin
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory, get_mongodb_url
@@ -363,7 +363,6 @@ def opendp_query_handler(
 
     return response
 
-
 @app.post(
     "/dummy_diffprivlib_query",
     dependencies=[Depends(server_live)],
@@ -380,16 +379,14 @@ def dummy_opendp_query_handler(
     )
 
     try:
-        response_df = dummy_querier.query(query_json)
-        response = {"query_response": response_df}
-
+        response = dummy_querier.query(query_json)
     except HTTPException as e:
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
-
-    return response
+    
+    return json.dumps(response).encode('utf-8')
 
 
 @app.post(

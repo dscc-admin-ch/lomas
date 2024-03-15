@@ -1,12 +1,12 @@
-from io import BytesIO
 from typing import List
-from fastapi import HTTPException
-from fastapi.responses import StreamingResponse
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
-import diffprivlib
+import base64
 import pickle
 import json
+from fastapi import HTTPException
+import diffprivlib
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+
 
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
@@ -67,23 +67,12 @@ class DiffPrivLibQuerier(DPQuerier):
 
     def query(self, query_json: dict) -> str:
         dpl_pipeline = self.deserialise_pipeline(query_json.diffprivlib_json)
-        x_train, x_test, y_train, y_test = self.prepare_data(query_json)
+        x_train, _, y_train, _ = self.prepare_data(query_json)
         fitted_dpl_pipeline = self.fit_pipeline(dpl_pipeline, x_train, y_train)
 
         # Serialise model
-        pickled_model = pickle.dumps(fitted_dpl_pipeline)
-
-        # Estimate accuracy
-        accuracy = fitted_dpl_pipeline.score(x_test, y_test)
-
-        # Prepare response
-        response = {
-            "model": pickled_model,
-            "accuracy": accuracy
-        }
-        return response
-
-
+        pickled_model = base64.b64encode(pickle.dumps(fitted_dpl_pipeline)).decode("utf-8")
+        return pickled_model
 
 
 class DiffPrivLibDecoder(json.JSONDecoder):

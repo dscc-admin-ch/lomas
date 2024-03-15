@@ -10,5 +10,6 @@ pymongo
 #python-multipart
 requests
 setuptools
+scikit-learn >= 1.1.2
 smartnoise-sql==1.0.3
 uvicorn

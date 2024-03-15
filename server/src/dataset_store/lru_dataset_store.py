@@ -1,7 +1,8 @@
 from collections import OrderedDict
 
 from admin_database.admin_database import AdminDatabase
-from dp_queries.dp_querier import DPQuerier, querier_factory
+from dp_queries.dp_querier import DPQuerier
+from dp_queries.dp_libraries.utils import querier_factory
 from dataset_store.dataset_store import DatasetStore
 from private_dataset.utils import private_dataset_factory
 from dataset_store.private_dataset_observer import PrivateDatasetObserver

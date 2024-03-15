@@ -1,6 +1,8 @@
 from typing import List
 import requests
 import json
+import base64
+import pickle
 import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging
@@ -234,9 +236,17 @@ class Client:
 
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
-            data = res.content.decode("utf8")
-            response_dict = json.loads(data)
-            return response_dict
+            response_json = res.json()
+            
+            if dummy:
+                pickled_model = base64.b64decode(response_json.encode('utf-8'))
+                model = pickle.loads(pickled_model)
+                return model
+            else:
+                pickled_model = base64.b64decode(response_json["query_response"].encode('utf-8'))
+                model = pickle.loads(pickled_model)
+                response_json["query_response"] = model
+                return response_json
         else:
             print(
                 f"Error while processing DiffPrivLib request in server \

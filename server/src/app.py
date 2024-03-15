@@ -29,7 +29,7 @@ from utils.input_models import (
     SNSQLInp,
     SNSQLInpCost,
 )
-from dp_queries.dp_querier import querier_factory
+from dp_queries.dp_libraries.utils import querier_factory
 from utils.utils import stream_dataframe, server_live, check_start_condition
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config

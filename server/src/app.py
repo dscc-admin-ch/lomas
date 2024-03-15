@@ -7,7 +7,7 @@ from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_diffprivlib,
-    example_diffprivlib_cost,
+    # example_diffprivlib_cost,
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
@@ -18,7 +18,7 @@ from utils.example_inputs import (
     example_smartnoise_sql_cost,
 )
 from utils.input_models import (
-    DiffPrivLibCost,
+    # DiffPrivLibCost,
     DiffPrivLibInp,
     DummyDiffPrivLibInp,
     DummyOpenDPInp,
@@ -398,7 +398,7 @@ def dummy_opendp_query_handler(
     tags=["USER_QUERY"],
 )
 def estimate_opendp_cost(
-    query_json: DiffPrivLibCost = Body(example_diffprivlib_cost),
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
 ):
     try:
         response = QUERY_HANDLER.estimate_cost(

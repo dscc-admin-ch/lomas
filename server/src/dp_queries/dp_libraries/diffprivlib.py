@@ -3,6 +3,7 @@ from typing import List
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
 import diffprivlib
 import pickle
 import json
@@ -28,6 +29,7 @@ class DiffPrivLibQuerier(DPQuerier):
             LOG.error(exc)
             raise exc
         
+        # Compute budget
         spent_epsilon = 0
         spent_delta = 0
         for step in dpl_pipeline.steps:
@@ -47,22 +49,38 @@ class DiffPrivLibQuerier(DPQuerier):
             LOG.error(exc)
             raise exc
 
-        # Train model
+        # Prepare data
         data = self.private_dataset.get_pandas_df()
         feature_data = data[query_json.feature_columns]
         label_data = data[query_json.target_columns]
+        x_train, x_test, y_train, y_test = train_test_split(
+            feature_data, 
+            label_data, 
+            test_size = query_json.test_size,
+            random_state = query_json.test_train_split_seed
+        )
+        
+        # Train model
         try:
-            dpl_pipeline.fit(feature_data, label_data) 
+            dpl_pipeline.fit(x_train, y_train) 
         except Exception as e:
             LOG.exception(f"Cannot train model error: {str(e)}")
             raise HTTPException(500, f"Cannot train model error: {str(e)}")
         
         # Serialise model
         pickled_pipe = pickle.dumps(dpl_pipeline)
-        pkl_response = StreamingResponse(BytesIO(bytes(pickled_pipe)))
-        pkl_response.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
+        pkl_model = StreamingResponse(BytesIO(bytes(pickled_pipe)))
+        #pkl_model.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
+        
+        # Estimate accuracy
+        accuracy = dpl_pipeline.score(x_test, y_test)
 
-        return pkl_response
+        # Prepare response
+        response = {
+            "model": pkl_model,
+            "accuracy": accuracy
+        }
+        return response
 
 
 class DiffPrivLibDecoder(json.JSONDecoder):

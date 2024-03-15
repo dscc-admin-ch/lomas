@@ -14,6 +14,7 @@ from constants import (
     RANDOM_STRINGS,
     SSQL_METADATA_OPTIONS,
 )
+from private_dataset.in_memory_dataset import InMemoryDataset
 
 
 def make_dummy_dataset(
@@ -102,3 +103,14 @@ def make_dummy_dataset(
         df[col_name] = serie
 
     return df
+
+
+def get_dummy_dataset_for_query(admin_database, query_json):
+    # Create dummy dataset based on seed and number of rows
+    ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
+    ds_df = make_dummy_dataset(
+        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+    )
+    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+    
+    return ds_private_dataset

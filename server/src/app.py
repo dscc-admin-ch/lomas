@@ -7,6 +7,7 @@ from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
     example_diffprivlib,
+    example_diffprivlib_cost,
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
@@ -17,6 +18,7 @@ from utils.example_inputs import (
     example_smartnoise_sql_cost,
 )
 from utils.input_models import (
+    DiffPrivLibCost,
     DiffPrivLibInp,
     DummyDiffPrivLibInp,
     DummyOpenDPInp,
@@ -27,10 +29,8 @@ from utils.input_models import (
     SNSQLInp,
     SNSQLInpCost,
 )
-from dp_queries.dp_libraries.open_dp import OpenDPQuerier
-from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
+from dp_queries.dp_querier import querier_factory
 from utils.utils import stream_dataframe, server_live, check_start_condition
-from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
 from constants import (
@@ -39,7 +39,10 @@ from constants import (
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
-from dp_queries.dummy_dataset import make_dummy_dataset
+from dp_queries.dummy_dataset import (
+    get_dummy_dataset_for_query,
+    make_dummy_dataset,
+)
 from utils.loggr import LOG
 
 # Some global variables
@@ -229,20 +232,16 @@ def smartnoise_sql_handler(
 def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ):
-    # Create dummy dataset based on seed and number of rows
-    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
-
-    ds_df = make_dummy_dataset(
-        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+    ds_private_dataset = get_dummy_dataset_for_query(
+        ADMIN_DATABASE, query_json
     )
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
-
-    dummy_querier = SmartnoiseSQLQuerier(private_dataset=ds_private_dataset)
+    dummy_querier = querier_factory(
+        LIB_SMARTNOISE_SQL, private_dataset=ds_private_dataset
+    )
 
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
-
         response = {"query_response": response_df}
 
     except HTTPException as e:
@@ -308,19 +307,16 @@ def opendp_query_handler(
 def dummy_opendp_query_handler(
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
 ):
-    # Create dummy dataset based on seed and number of rows
-    ds_metadata = ADMIN_DATABASE.get_dataset_metadata(query_json.dataset_name)
-
-    ds_df = make_dummy_dataset(
-        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+    ds_private_dataset = get_dummy_dataset_for_query(
+        ADMIN_DATABASE, query_json
     )
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
-    dummy_querier = OpenDPQuerier(private_dataset=ds_private_dataset)
+    dummy_querier = querier_factory(
+        LIB_OPENDP, private_dataset=ds_private_dataset
+    )
 
     # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
-
         response = {"query_response": response_df}
 
     except HTTPException as e:
@@ -358,7 +354,9 @@ def estimate_opendp_cost(
 
 
 @app.post(
-    "/diffprivlib_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
+    "/diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
 )
 def opendp_query_handler(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
@@ -375,6 +373,59 @@ def opendp_query_handler(
         LOG.exception(e)
         raise HTTPException(500, str(e))
 
+    return response
+
+
+@app.post(
+    "/dummy_diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def dummy_opendp_query_handler(
+    query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+):
+    ds_private_dataset = get_dummy_dataset_for_query(
+        ADMIN_DATABASE, query_json
+    )
+    dummy_querier = querier_factory(
+        LIB_DIFFPRIVLIB, private_dataset=ds_private_dataset
+    )
+
+    try:
+        response_df = dummy_querier.query(query_json)
+        response = {"query_response": response_df}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
+    return response
+
+
+@app.post(
+    "/estimate_diffprivlib_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_opendp_cost(
+    query_json: DiffPrivLibCost = Body(example_diffprivlib_cost),
+):
+    # Catch all non-http exceptions so that the server does not fail.
+    try:
+        response = QUERY_HANDLER.estimate_cost(
+            LIB_DIFFPRIVLIB,
+            query_json,
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    # Return response
     return response
 
 

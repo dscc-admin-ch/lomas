@@ -162,7 +162,6 @@ async def get_state(user_name: str = Header(None)):
 def get_dataset_metadata(
     query_json: GetDbData = Body(example_get_db_data),
 ):
-    # Create dummy dataset based on seed and number of rows
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -208,7 +207,6 @@ def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     user_name: str = Header(None),
 ):
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response = QUERY_HANDLER.handle_query(
             LIB_SMARTNOISE_SQL, query_json, user_name
@@ -219,7 +217,6 @@ def smartnoise_sql_handler(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -239,18 +236,15 @@ def dummy_smartnoise_sql_handler(
         LIB_SMARTNOISE_SQL, private_dataset=ds_private_dataset
     )
 
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
-
     except HTTPException as e:
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -262,7 +256,6 @@ def dummy_smartnoise_sql_handler(
 def estimate_smartnoise_cost(
     query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
 ):
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response = QUERY_HANDLER.estimate_cost(
             LIB_SMARTNOISE_SQL,
@@ -274,7 +267,6 @@ def estimate_smartnoise_cost(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -314,7 +306,6 @@ def dummy_opendp_query_handler(
         LIB_OPENDP, private_dataset=ds_private_dataset
     )
 
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
@@ -325,7 +316,6 @@ def dummy_opendp_query_handler(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -337,7 +327,6 @@ def dummy_opendp_query_handler(
 def estimate_opendp_cost(
     query_json: OpenDPInp = Body(example_opendp),
 ):
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response = QUERY_HANDLER.estimate_cost(
             LIB_OPENDP,
@@ -349,7 +338,6 @@ def estimate_opendp_cost(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -401,7 +389,6 @@ def dummy_opendp_query_handler(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
@@ -413,7 +400,6 @@ def dummy_opendp_query_handler(
 def estimate_opendp_cost(
     query_json: DiffPrivLibCost = Body(example_diffprivlib_cost),
 ):
-    # Catch all non-http exceptions so that the server does not fail.
     try:
         response = QUERY_HANDLER.estimate_cost(
             LIB_DIFFPRIVLIB,
@@ -425,11 +411,10 @@ def estimate_opendp_cost(
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
 
-    # Return response
     return response
 
 
-# MongoDB get initial budget query
+# MongoDB get initial budget
 @app.post(
     "/get_initial_budget",
     dependencies=[Depends(server_live)],
@@ -446,7 +431,7 @@ def get_initial_budget(
     return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
 
 
-# MongoDB get total spent budget query
+# MongoDB get total spent budget
 @app.post(
     "/get_total_spent_budget",
     dependencies=[Depends(server_live)],
@@ -469,6 +454,7 @@ def get_total_spent_budget(
     }
 
 
+# MongoDB get remaining budget
 @app.post(
     "/get_remaining_budget",
     dependencies=[Depends(server_live)],
@@ -485,6 +471,7 @@ def get_remaining_budget(
     return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
 
 
+# MongoDB get archives
 @app.post(
     "/get_previous_queries",
     dependencies=[Depends(server_live)],
@@ -510,6 +497,6 @@ async def get_submit_limit():
     An endpoint example with some dependecies.
 
     Dummy endpoint to exemplify the use of the dependencies argument.
-    The depends.server_live functoin is called and it must yield in order for
+    The depends.server_live function is called and it must yield in order for
     this endpoint handler to execute.
     """

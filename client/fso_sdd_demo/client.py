@@ -215,7 +215,7 @@ class Client:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> pd.DataFrame:
+    ):
         dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
@@ -247,11 +247,19 @@ class Client:
     def estimate_diffprivlib_cost(
         self,
         pipeline,
+        feature_columns: List[str] = [""],
+        target_columns: List[str] = [""],
+        test_size: float = 0.2,
+        test_train_split_seed: int = 1,
     ) -> dict:
         dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
             "diffprivlib_json": dpl_json,
+            "feature_columns": feature_columns,
+            "target_columns": target_columns,
+            "test_size": test_size,
+            "test_train_split_seed": test_train_split_seed
         }
         res = self._exec("estimate_diffprivlib_cost", body_json)
 

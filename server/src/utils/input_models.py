@@ -84,16 +84,25 @@ class DummyOpenDPInp(BasicModel):
     dummy_nb_rows: int
     dummy_seed: int
 
+
+class DiffPrivLibCost(BasicModel):
+    dataset_name: str
+    diffprivlib_json: str
+    
 class DiffPrivLibInp(BasicModel):
     dataset_name: str
-    opendp_json: str
-    training_columns: list
+    diffprivlib_json: str
+    feature_columns: list
     target_columns: str
+    test_size: float
+    test_train_split_seed: int
 
 class DummyDiffPrivLibInp(BasicModel):
     dataset_name: str
-    opendp_json: str
-    training_columns: list
+    diffprivlib_json: str
+    feature_columns: list
     target_columns: str
+    test_size: float
+    test_train_split_seed: int
     dummy_nb_rows: int
     dummy_seed: int

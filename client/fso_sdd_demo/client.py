@@ -210,16 +210,20 @@ class Client:
         pipeline,
         feature_columns: List[str] = [""],
         target_columns: List[str] = [""],
+        test_size: float = 0.2,
+        test_train_split_seed: int = 1,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> pd.DataFrame:
-        dpl_json_str = serialize_diffprivlib(pipeline)
+        dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json_str,
+            "diffprivlib_json": dpl_json,
             "feature_columns": feature_columns,
             "target_columns": target_columns,
+            "test_size": test_size,
+            "test_train_split_seed": test_train_split_seed
         }
         if dummy:
             endpoint = "dummy_diffprivlib_query"
@@ -240,27 +244,25 @@ class Client:
             )
             return res.text
 
-    # def estimate_diffprivlib_cost(
-    #     self,
-    #     pipeline,
-    #     y_column: str = "",
-    # ) -> dict:
-    #     dpl_json_str = serialize_diffprivlib(pipeline)
-    #     body_json = {
-    #         "dataset_name": self.dataset_name,
-    #         "diffprivlib_json": dpl_json_str,
-    #         "y_column": y_column,
-    #     }
-    #     res = self._exec("estimate_diffprivlib_cost", body_json)
+    def estimate_diffprivlib_cost(
+        self,
+        pipeline,
+    ) -> dict:
+        dpl_json = serialize_diffprivlib(pipeline)
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "diffprivlib_json": dpl_json,
+        }
+        res = self._exec("estimate_diffprivlib_cost", body_json)
 
-    #     if res.status_code == 200:
-    #         return json.loads(res.content.decode("utf8"))
-    #     else:
-    #         print(
-    #             f"Error while executing provided query in server:\n"
-    #             f"status code: {res.status_code} message: {res.text}"
-    #         )
-    #         return res.text
+        if res.status_code == 200:
+            return json.loads(res.content.decode("utf8"))
+        else:
+            print(
+                f"Error while executing provided query in server:\n"
+                f"status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
 
     def get_initial_budget(self):
         body_json = {

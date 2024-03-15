@@ -165,18 +165,27 @@ diffprivlib_json = {
         ]
 }
 
+example_diffprivlib_cost = {
+    "dataset_name": IRIS_DATASET,
+    "diffprivlib_json": diffprivlib_json
+}
+
 example_diffprivlib = {
     "dataset_name": IRIS_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "training_columns": ["sepal_width", "petal_length"],
+    "feature_columns": ["sepal_width", "petal_length"],
     "target_columns": ["sepal_length"],
+    "test_size": 0.2,
+    "test_train_split_seed": 1
 }
 
 example_dummy_diffprivlib = {
     "dataset_name": IRIS_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "training_columns": ["sepal_width", "petal_length"],
+    "feature_columns": ["sepal_width", "petal_length"],
     "target_columns": ["sepal_length"],
+    "test_train_split_seed": 1,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
+    "test_size": 0.2
 }

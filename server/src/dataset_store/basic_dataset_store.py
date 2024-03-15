@@ -1,13 +1,8 @@
 from typing import Dict
 
 from admin_database.admin_database import AdminDatabase
-from constants import (
-    SUPPORTED_LIBS,
-    LIB_DIFFPRIVLIB,
-    LIB_OPENDP,
-    LIB_SMARTNOISE_SQL,
-)
-from dp_queries.dp_querier import DPQuerier
+from constants import SUPPORTED_LIBS
+from dp_queries.dp_querier import DPQuerier, querier_factory
 from dataset_store.dataset_store import DatasetStore
 from private_dataset.utils import private_dataset_factory
 
@@ -54,23 +49,7 @@ class BasicDatasetStore(DatasetStore):
         self.dp_queriers[dataset_name] = {}
 
         for lib in SUPPORTED_LIBS:
-            if lib == LIB_SMARTNOISE_SQL:
-                from dp_queries.dp_libraries.smartnoise_sql import (
-                    SmartnoiseSQLQuerier,
-                )
-
-                querier = SmartnoiseSQLQuerier(private_dataset)
-            elif lib == LIB_OPENDP:
-                from dp_queries.dp_libraries.open_dp import OpenDPQuerier
-
-                querier = OpenDPQuerier(private_dataset)
-            elif lib == LIB_DIFFPRIVLIB: # TODO
-                pass
-            else:
-                raise Exception(
-                    f"Trying to create a querier for library {lib}. "
-                    "This should never happen."
-                )
+            querier = querier_factory(lib, private_dataset)
             self.dp_queriers[dataset_name][lib] = querier
 
     def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:

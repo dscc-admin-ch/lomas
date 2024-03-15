@@ -168,13 +168,15 @@ diffprivlib_json = {
 example_diffprivlib = {
     "dataset_name": IRIS_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "target_column": "sepal_length"
+    "training_columns": ["sepal_width", "petal_length"],
+    "target_columns": ["sepal_length"],
 }
 
 example_dummy_diffprivlib = {
     "dataset_name": IRIS_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "target_column": "sepal_length",
+    "training_columns": ["sepal_width", "petal_length"],
+    "target_columns": ["sepal_length"],
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }

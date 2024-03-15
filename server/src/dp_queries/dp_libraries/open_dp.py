@@ -115,20 +115,29 @@ def reconstruct_measurement_pipeline(pipeline):
 
 
 def cost_to_param(opendp_pipe, cost):
-    # Currently works with laplace noise
-    # (tested with example from client notebook)
-    # TODO: Test with gaussian noise and check how the cost is returned
 
     measurement_type = infer_measurement_type(opendp_pipe)
-    if measurement_type == "gaussian":
-        epsilon, delta = (
-            cost,
-            0,
-        )  # should be cost[0], cost[1] (?) but for some reason
-        # cost is a float in the client notebook example when
-        #  calling then_gaussian in the client notebook example
-    elif measurement_type == "laplace":
+    if measurement_type == "laplace":
         epsilon, delta = cost, 0
+    elif measurement_type == "gaussian":
+        epsilon, delta = cost[0], cost[1]
+    else:
+        raise HTTPException(
+            400,
+            "Failed to unpack opendp cost."
+        )
+
+    return epsilon, delta
+
+
+def infer_measurement_type(opendp_pipe):
+    if opendp_pipe.output_measure == dp.measures.max_divergence(T=float):
+        measurement_type = "laplace"
+    elif (
+        opendp_pipe.output_measure
+        == dp.measures.zero_concentrated_divergence(T=float)
+    ):
+        measurement_type = "gaussian"
     else:
         e = (
             f"This measurement type is not yet supported: "
@@ -137,24 +146,7 @@ def cost_to_param(opendp_pipe, cost):
         LOG.exception(e)
         raise HTTPException(
             400,
-            "Failed when unpacking opendp cost: " + str(e),
+            "Failed to infer measurement mechanism: " + str(e),
         )
-
-    return epsilon, delta
-
-
-def infer_measurement_type(opendp_pipe):
-    if opendp_pipe.output_measure != dp.measures.max_divergence(T=float) and (
-        opendp_pipe.output_measure
-        != dp.measures.zero_concentrated_divergence(T=float)
-    ):
-        measurement_type = "unknown"
-    if opendp_pipe.output_measure == dp.measures.max_divergence(T=float):
-        measurement_type = "laplace"
-    elif (
-        opendp_pipe.output_measure
-        == dp.measures.zero_concentrated_divergence(T=float)
-    ):
-        measurement_type = "gaussian"
 
     return measurement_type

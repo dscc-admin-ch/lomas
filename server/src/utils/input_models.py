@@ -87,11 +87,13 @@ class DummyOpenDPInp(BasicModel):
 class DiffPrivLibInp(BasicModel):
     dataset_name: str
     opendp_json: str
-    target_column: str
+    training_columns: list
+    target_columns: str
 
 class DummyDiffPrivLibInp(BasicModel):
     dataset_name: str
     opendp_json: str
-    target_column: str
+    training_columns: list
+    target_columns: str
     dummy_nb_rows: int
     dummy_seed: int

@@ -68,16 +68,14 @@ class DiffPrivLibQuerier(DPQuerier):
             raise HTTPException(500, f"Cannot train model error: {str(e)}")
         
         # Serialise model
-        pickled_pipe = pickle.dumps(dpl_pipeline)
-        pkl_model = StreamingResponse(BytesIO(bytes(pickled_pipe)))
-        #pkl_model.headers["Content-Disposition"] = "attachment; filename=diffprivlib_trained_pipeline.pkl"
+        pickled_model = pickle.dumps(dpl_pipeline)
         
         # Estimate accuracy
         accuracy = dpl_pipeline.score(x_test, y_test)
 
         # Prepare response
         response = {
-            "model": pkl_model,
+            "model": pickled_model,
             "accuracy": accuracy
         }
         return response
@@ -99,11 +97,11 @@ class DiffPrivLibDecoder(json.JSONDecoder):
                     except Exception as e:
                         LOG.exception(e)
 
-            elif v[:14] == "_dpl_instance:":
-                try:
-                    dct[k] = getattr(diffprivlib, v[14:])()
-                except Exception as e:
-                    LOG.exception(e)
+                elif v[:14] == "_dpl_instance:":
+                    try:
+                        dct[k] = getattr(diffprivlib, v[14:])()
+                    except Exception as e:
+                        LOG.exception(e)
 
         return dct
 

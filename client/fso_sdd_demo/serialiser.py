@@ -12,7 +12,7 @@ class DiffprivlibEncoder(json.JSONEncoder):
         if type(obj) in types:
             return "_dpl_instance:" + obj.__class__.__name__
         else:
-            return super().default(obj)
+            return super().default(obj)  # regular json encoding
 
     def encode(self, obj) -> str:
         def hint_tuples(item):

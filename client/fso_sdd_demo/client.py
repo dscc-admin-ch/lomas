@@ -1,3 +1,4 @@
+from typing import List
 import requests
 import json
 import pandas as pd
@@ -207,7 +208,8 @@ class Client:
     def diffprivlib_query(
         self,
         pipeline,
-        target_column: str = "",
+        feature_columns: List[str] = [""],
+        target_columns: List[str] = [""],
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -216,7 +218,8 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
             "diffprivlib_json": dpl_json_str,
-            "target_column": target_column,
+            "feature_columns": feature_columns,
+            "target_columns": target_columns,
         }
         if dummy:
             endpoint = "dummy_diffprivlib_query"

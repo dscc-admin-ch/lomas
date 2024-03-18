@@ -102,6 +102,10 @@ def startup_event():
         args.overwrite_datasets = True
         args.overwrite_metadata = True
         mongo_admin.add_datasets(args)
+        
+        LOG.info("Empty archives")
+        args.collection = "queries_archives"
+        mongo_admin.drop_collection(args)
 
         del mongo_admin
 

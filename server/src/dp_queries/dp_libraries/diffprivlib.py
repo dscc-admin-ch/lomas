@@ -67,12 +67,20 @@ class DiffPrivLibQuerier(DPQuerier):
 
     def query(self, query_json: dict) -> str:
         dpl_pipeline = self.deserialise_pipeline(query_json.diffprivlib_json)
-        x_train, _, y_train, _ = self.prepare_data(query_json)
+        x_train, x_test, y_train, y_test = self.prepare_data(query_json)
         fitted_dpl_pipeline = self.fit_pipeline(dpl_pipeline, x_train, y_train)
 
+        # Model accuracy
+        score = fitted_dpl_pipeline.score(x_test, y_test)
+            
         # Serialise model
         pickled_model = base64.b64encode(pickle.dumps(fitted_dpl_pipeline)).decode("utf-8")
-        return pickled_model
+        
+        query_response = {
+            "score": score,
+            "model": pickled_model
+        }
+        return query_response
 
 
 class DiffPrivLibDecoder(json.JSONDecoder):

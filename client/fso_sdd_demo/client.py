@@ -214,6 +214,7 @@ class Client:
         target_columns: List[str] = [""],
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
+        score: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -225,7 +226,8 @@ class Client:
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
-            "test_train_split_seed": test_train_split_seed
+            "test_train_split_seed": test_train_split_seed,
+            "score": score,
         }
         if dummy:
             endpoint = "dummy_diffprivlib_query"
@@ -236,17 +238,23 @@ class Client:
 
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
-            response_json = res.json()
             
             if dummy:
-                pickled_model = base64.b64decode(response_json.encode('utf-8'))
-                model = pickle.loads(pickled_model)
-                return model
+                response = json.loads(res.json())
+                decoded_model = base64.b64decode(
+                    response["model"].encode("utf-8")
+                )
+                response["model"] = pickle.loads(decoded_model)
+                return response
             else:
-                pickled_model = base64.b64decode(response_json["query_response"].encode('utf-8'))
-                model = pickle.loads(pickled_model)
-                response_json["query_response"] = model
-                return response_json
+                response = res.json()
+                decoded_model = base64.b64decode(
+                    response["query_response"]["model"].encode("utf-8")
+                )
+                response["query_response"]["model"] = pickle.loads(
+                    decoded_model
+                )
+                return response
         else:
             print(
                 f"Error while processing DiffPrivLib request in server \
@@ -269,7 +277,7 @@ class Client:
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
-            "test_train_split_seed": test_train_split_seed
+            "test_train_split_seed": test_train_split_seed,
         }
         res = self._exec("estimate_diffprivlib_cost", body_json)
 

@@ -286,24 +286,24 @@ class AdminMongoDatabase(AdminDatabase):
         }
         if query_json.__class__.__name__ == "SNSQLInp":
             to_archive["api"] = "smartnoise_query"
+            to_archive["query"] = query_json.query_str
             to_archive["epsilon_parameter"] = query_json.epsilon
             to_archive["delta_parameter"] = query_json.delta
             to_archive["mechanisms"] = query_json.mechanisms
             to_archive["postprocess"] = query_json.postprocess
-            to_archive["query"] = query_json.query_str
 
         elif query_json.__class__.__name__ == "OpenDPInp":
             to_archive["api"] = "opendp_query"
-            to_archive["input_data_type"] = query_json.input_data_type
             to_archive["query"] = query_json.opendp_json
+            to_archive["input_data_type"] = query_json.input_data_type
         
         elif query_json.__class__.__name__ == "DiffPrivLibInp":
             to_archive["api"] = "diffprivlib_query"
+            to_archive["query"] = query_json.diffprivlib_json
             to_archive["feature_columns"] = query_json.feature_columns
             to_archive["target_columns"] = query_json.target_columns
             to_archive["test_size"] = query_json.test_size
             to_archive["test_train_split_seed"] = query_json.test_train_split_seed
-            to_archive["query"] = query_json.diffprivlib_json
 
         else:
             raise HTTPException(

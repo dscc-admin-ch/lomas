@@ -5,7 +5,7 @@ import base64
 import pickle
 import pandas as pd
 from io import StringIO
-from opendp_logger import enable_logging
+from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
 
 from fso_sdd_demo.serialiser import serialize_diffprivlib
@@ -238,22 +238,16 @@ class Client:
 
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
-            
+
             if dummy:
                 response = json.loads(res.json())
-                decoded_model = base64.b64decode(
-                    response["model"].encode("utf-8")
-                )
-                response["model"] = pickle.loads(decoded_model)
+                model = base64.b64decode(response["model"])
+                response["model"] = pickle.loads(model)
                 return response
             else:
                 response = res.json()
-                decoded_model = base64.b64decode(
-                    response["query_response"]["model"].encode("utf-8")
-                )
-                response["query_response"]["model"] = pickle.loads(
-                    decoded_model
-                )
+                model = base64.b64decode(response["query_response"]["model"])
+                response["query_response"]["model"] = pickle.loads(model)
                 return response
         else:
             print(
@@ -342,7 +336,36 @@ class Client:
         res = self._exec("get_previous_queries", body_json)
 
         if res.status_code == 200:
-            return json.loads(res.content.decode("utf8"))
+            queries = json.loads(res.content.decode("utf8"))[
+                "previous_queries"
+            ]
+
+            if not len(queries):
+                return queries
+
+            deserialised_queries = []
+            for query in queries:
+                if query["api"] == "smartnoise_query":
+                    pass  # no need to deserialise
+
+                elif query["api"] == "opendp_query":
+                    opdp_query = make_load_json(query["query"])
+                    query["query"] = opdp_query
+
+                elif query["api"] == "diffprivlib_query":
+                    model = base64.b64decode(
+                        query["response"]["query_response"]["model"]
+                    )
+                    query["response"]["query_response"]["model"] = (
+                        pickle.loads(model)
+                    )
+
+                else:
+                    raise ValueError(f"Unknown query type: {query['api']}")
+
+                deserialised_queries.append(query)
+
+            return deserialised_queries
         else:
             print(
                 f"Error while fetching previous queries \

@@ -2,7 +2,7 @@ import requests
 import json
 import pandas as pd
 from io import StringIO
-from opendp_logger import enable_logging
+from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
 
 # Note: leaving this here. Support for opendp_polars
@@ -12,10 +12,13 @@ from opendp.mod import enable_features
 enable_logging()
 enable_features("contrib")
 
-# Dummy dataset generation
+# Client constants: may be modified
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
+# Server constants: warning: MUST match those of server
+LIB_SMARTNOISE_SQL = "smartnoise_sql"
+LIB_OPENDP = "opendp"
 
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
@@ -254,7 +257,28 @@ class Client:
         res = self._exec("get_previous_queries", body_json)
 
         if res.status_code == 200:
-            return json.loads(res.content.decode("utf8"))
+            queries = json.loads(res.content.decode("utf8"))[
+                "previous_queries"
+            ]
+
+            if not len(queries):
+                return queries
+
+            deserialised_queries = []
+            for query in queries:
+                if query["api"] == LIB_SMARTNOISE_SQL:
+                    pass  # no need to deserialise
+
+                elif query["api"] == LIB_OPENDP:
+                    opdp_query = make_load_json(query["query"])
+                    query["query"] = opdp_query
+
+                else:
+                    raise ValueError(f"Unknown query type: {query['api']}")
+
+                deserialised_queries.append(query)
+
+            return deserialised_queries
         else:
             print(
                 f"Error while fetching previous queries \

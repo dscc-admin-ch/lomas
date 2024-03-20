@@ -17,10 +17,14 @@ from fso_sdd_demo.serialiser import serialize_diffprivlib
 enable_logging()
 enable_features("contrib")
 
-# Dummy dataset generation
+# Client constants: may be modified
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
+# Server constants: warning: MUST match those of server
+LIB_SMARTNOISE_SQL = "smartnoise_sql"
+LIB_OPENDP = "opendp"
+LIB_DIFFPRIVLIB = "diffprivlib"
 
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
@@ -345,21 +349,20 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                if query["api"] == "smartnoise_query":
+                if query["api"] == LIB_SMARTNOISE_SQL:
                     pass  # no need to deserialise
 
-                elif query["api"] == "opendp_query":
+                elif query["api"] == LIB_OPENDP:
                     opdp_query = make_load_json(query["query"])
                     query["query"] = opdp_query
 
-                elif query["api"] == "diffprivlib_query":
+                elif query["api"] == LIB_DIFFPRIVLIB:
                     model = base64.b64decode(
                         query["response"]["query_response"]["model"]
                     )
                     query["response"]["query_response"]["model"] = (
                         pickle.loads(model)
                     )
-
                 else:
                     raise ValueError(f"Unknown query type: {query['api']}")
 

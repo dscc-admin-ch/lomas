@@ -90,7 +90,8 @@ class DummyOpenDPInp(BasicModel):
 #     diffprivlib_json: str
 #     feature_columns: list
 #     target_columns: list
-    
+
+
 class DiffPrivLibInp(BasicModel):
     dataset_name: str
     diffprivlib_json: str
@@ -98,6 +99,7 @@ class DiffPrivLibInp(BasicModel):
     target_columns: list
     test_size: float
     test_train_split_seed: int
+
 
 class DummyDiffPrivLibInp(BasicModel):
     dataset_name: str

@@ -96,7 +96,6 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
             self._add_dataset(dataset_name)
         else:
             self.dataset_cache.move_to_end(dataset_name)
-
         assert dataset_name in self.dataset_cache.keys()
 
         private_dataset = self.dataset_cache[dataset_name]

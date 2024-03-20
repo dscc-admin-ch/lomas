@@ -14,10 +14,13 @@ from opendp.mod import enable_features
 enable_logging()
 enable_features("contrib")
 
-# Dummy dataset generation
+# Client server: may be modified
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
+# Constant MUST match those of server
+LIB_SMARTNOISE_SQL = "smartnoise_sql"
+LIB_OPENDP = "opendp"
 
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
@@ -265,10 +268,10 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                if query["api"] == "smartnoise_query":
+                if query["api"] == LIB_SMARTNOISE_SQL:
                     pass  # no need to deserialise
 
-                elif query["api"] == "opendp_query":
+                elif query["api"] == LIB_OPENDP:
                     opdp_query = make_load_json(query["query"])
                     query["query"] = opdp_query
 

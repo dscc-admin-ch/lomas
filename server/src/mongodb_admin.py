@@ -317,7 +317,8 @@ class MongoDB_Admin:
                     update_operation = {"$set": d}
                     self.db.datasets.update_many(filter, update_operation)
                 print(
-                    f"Datasets updated with values from yaml at {args.path}."
+                    f"Existing datasets updated with values"
+                    f"from yaml at {args.path}. "
                 )
 
         # Add dataset collection

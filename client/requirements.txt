@@ -1,11 +1,10 @@
-fso-sdd-demo
+#fso-sdd-demo
 #diffprivlib == 0.6.0
-numpy == 1.22.3
-#opendp == 0.6.1,
-#opendp_logger==0.8.0
-pandas==2.0.1
-pyyaml
-requests==2.31.0
+numpy
+opendp == 0.8.0
+opendp_logger==0.3.0
+pandas
+requests
 #scikit-learn >= 1.1.2
 matplotlib
 seaborn

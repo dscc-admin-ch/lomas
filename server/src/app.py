@@ -102,7 +102,11 @@ def startup_event():
         args.overwrite_datasets = True
         args.overwrite_metadata = True
         mongo_admin.add_datasets(args)
-        
+
+        LOG.info("Empty archives")
+        args.collection = "queries_archives"
+        mongo_admin.drop_collection(args)
+
         LOG.info("Empty archives")
         args.collection = "queries_archives"
         mongo_admin.drop_collection(args)
@@ -186,7 +190,6 @@ def get_dataset_metadata(
 def get_dummy_dataset(
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
 ):
-    # Create dummy dataset based on seed and number of rows
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -350,7 +353,7 @@ def estimate_opendp_cost(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
-def opendp_query_handler(
+def diffprivlib_query_handler(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
@@ -367,12 +370,13 @@ def opendp_query_handler(
 
     return response
 
+
 @app.post(
     "/dummy_diffprivlib_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
-def dummy_opendp_query_handler(
+def dummy_diffprivlib_query_handler(
     query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
 ):
     ds_private_dataset = get_dummy_dataset_for_query(
@@ -389,8 +393,8 @@ def dummy_opendp_query_handler(
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
         raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
-    
-    return json.dumps(response).encode('utf-8')
+
+    return json.dumps(response).encode("utf-8")
 
 
 @app.post(
@@ -398,7 +402,7 @@ def dummy_opendp_query_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
-def estimate_opendp_cost(
+def estimate_diffprivlib_cost(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
 ):
     try:

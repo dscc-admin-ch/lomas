@@ -33,7 +33,7 @@ class DiffPrivLibQuerier(DPQuerier):
     def prepare_data(self, query_json):
         data = self.private_dataset.get_pandas_df()
         data = data.dropna()  # TODO: see if always necessary
-        
+
         feature_data = data[query_json.feature_columns]
         label_data = data[query_json.target_columns]
         x_train, x_test, y_train, y_test = train_test_split(
@@ -51,12 +51,12 @@ class DiffPrivLibQuerier(DPQuerier):
             LOG.exception(f"Cannot train model error: {str(e)}")
             raise HTTPException(500, f"Cannot train model error: {str(e)}")
         return pipeline
-    
+
     def cost(self, query_json: dict) -> List[float]:
         dpl_pipeline = self.deserialise_pipeline(query_json.diffprivlib_json)
         x_train, _, y_train, _ = self.prepare_data(query_json)
         fitted_dpl_pipeline = self.fit_pipeline(dpl_pipeline, x_train, y_train)
-        
+
         # Compute budget
         spent_epsilon = 0
         spent_delta = 0
@@ -72,14 +72,13 @@ class DiffPrivLibQuerier(DPQuerier):
 
         # Model accuracy
         score = fitted_dpl_pipeline.score(x_test, y_test)
-            
+
         # Serialise model
-        pickled_model = base64.b64encode(pickle.dumps(fitted_dpl_pipeline)).decode("utf-8")
-        
-        query_response = {
-            "score": score,
-            "model": pickled_model
-        }
+        pickled_model = base64.b64encode(
+            pickle.dumps(fitted_dpl_pipeline)
+        ).decode("utf-8")
+
+        query_response = {"score": score, "model": pickled_model}
         return query_response
 
 
@@ -114,16 +113,15 @@ def deserialise_diffprivlib_pipeline(diffprivlib_json):
     dct = json.loads(diffprivlib_json, cls=DiffPrivLibDecoder)
     if "module" in dct.keys():
         if dct["module"] != "diffprivlib":
-            raise ValueError(
-                "JSON 'module' not equal to 'diffprivlib', maybe you sent the request to the wrong path."
-            )
+            raise ValueError("JSON 'module' not equal to 'diffprivlib'")
     else:
         raise ValueError("Key 'module' not in submitted json request.")
 
     if "version" in dct.keys():
         if dct["version"] != diffprivlib.__version__:
             raise ValueError(
-                f"The version of requested does not match the version available: {diffprivlib.__version__}."
+                f"Requested version does not match available version:"
+                f" {diffprivlib.__version__}."
             )
     else:
         raise ValueError("Key 'version' not in submitted json request.")

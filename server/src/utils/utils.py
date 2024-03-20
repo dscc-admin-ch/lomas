@@ -21,9 +21,9 @@ def stream_dataframe(df):
     response = StreamingResponse(
         iter([stream.getvalue()]), media_type="text/csv"
     )
-    response.headers["Content-Disposition"] = (
-        "attachment; filename=synthetic_data.csv"
-    )
+    response.headers[
+        "Content-Disposition"
+    ] = "attachment; filename=synthetic_data.csv"
     return response
 
 

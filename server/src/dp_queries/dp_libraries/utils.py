@@ -7,10 +7,10 @@ from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 def querier_factory(lib, private_dataset):
     if lib == LIB_SMARTNOISE_SQL:
         querier = SmartnoiseSQLQuerier(private_dataset)
-        
+
     elif lib == LIB_OPENDP:
         querier = OpenDPQuerier(private_dataset)
-        
+
     elif lib == LIB_DIFFPRIVLIB:
         querier = DiffPrivLibQuerier(private_dataset)
 

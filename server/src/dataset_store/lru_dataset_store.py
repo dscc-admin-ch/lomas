@@ -1,11 +1,8 @@
 from collections import OrderedDict
 
 from admin_database.admin_database import AdminDatabase
-from constants import (
-    LIB_OPENDP,
-    LIB_SMARTNOISE_SQL,
-)
 from dp_queries.dp_querier import DPQuerier
+from dp_queries.dp_libraries.utils import querier_factory
 from dataset_store.dataset_store import DatasetStore
 from private_dataset.utils import private_dataset_factory
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
@@ -99,27 +96,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
             self._add_dataset(dataset_name)
         else:
             self.dataset_cache.move_to_end(dataset_name)
-
         assert dataset_name in self.dataset_cache.keys()
 
         private_dataset = self.dataset_cache[dataset_name]
-
-        # Build correct querier
-        if library == LIB_SMARTNOISE_SQL:
-            from dp_queries.dp_libraries.smartnoise_sql import (
-                SmartnoiseSQLQuerier,
-            )
-
-            querier = SmartnoiseSQLQuerier(private_dataset)
-        elif library == LIB_OPENDP:
-            from dp_queries.dp_libraries.open_dp import OpenDPQuerier
-
-            querier = OpenDPQuerier(private_dataset)
-        # elif lib == LIB_DIFFPRIVLIB: TODO
-        else:
-            raise Exception(
-                f"Trying to get a querier for library {library}. "
-                "This should never happen."
-            )
-
-        return querier
+        return querier_factory(library, private_dataset)

@@ -16,6 +16,7 @@ from constants import (
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 
+
 def make_dummy_dataset(
     metadata: dict, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
@@ -111,5 +112,5 @@ def get_dummy_dataset_for_query(admin_database, query_json):
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
     ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
-    
+
     return ds_private_dataset

@@ -1,7 +1,5 @@
 import requests
 import json
-import base64
-import pickle
 import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging, make_load_json

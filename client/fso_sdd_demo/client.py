@@ -12,11 +12,11 @@ from opendp.mod import enable_features
 enable_logging()
 enable_features("contrib")
 
-# Client server: may be modified
+# Client constants: may be modified
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
-# Constant MUST match those of server
+# Server constants: warning: MUST match those of server
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
 

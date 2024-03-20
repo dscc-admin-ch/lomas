@@ -1,4 +1,4 @@
-from constants import LIB_DIFFPRIVLIB, LIB_OPENDP, LIB_SMARTNOISE_SQL
+from constants import LIB_OPENDP, LIB_SMARTNOISE_SQL
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 

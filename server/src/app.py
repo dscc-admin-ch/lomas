@@ -300,7 +300,7 @@ def dummy_opendp_query_handler(
         ADMIN_DATABASE, query_json
     )
     dummy_querier = querier_factory(
-        LIB_SMARTNOISE_SQL, private_dataset=ds_private_dataset
+        LIB_OPENDP, private_dataset=ds_private_dataset
     )
 
     try:

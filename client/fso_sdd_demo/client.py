@@ -272,14 +272,6 @@ class Client:
                     opdp_query = make_load_json(query["query"])
                     query["query"] = opdp_query
 
-                elif query["api"] == "diffprivlib_query":
-                    model = base64.b64decode(
-                        query["response"]["query_response"]["model"]
-                    )
-                    query["response"]["query_response"]["model"] = (
-                        pickle.loads(model)
-                    )
-
                 else:
                     raise ValueError(f"Unknown query type: {query['api']}")
 

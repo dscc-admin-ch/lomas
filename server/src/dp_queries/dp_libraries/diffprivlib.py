@@ -5,6 +5,7 @@ import json
 import warnings
 from fastapi import HTTPException
 import diffprivlib
+from diffprivlib.utils import PrivacyLeakWarning
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 
@@ -13,7 +14,8 @@ from private_dataset.private_dataset import PrivateDataset
 from utils.loggr import LOG
 
 # DiffPrivLib warning will trigger error
-warnings.simplefilter("error", Warning)
+warnings.simplefilter("error", PrivacyLeakWarning)
+
 
 class DiffPrivLibQuerier(DPQuerier):
     def __init__(

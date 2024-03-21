@@ -1,0 +1,5 @@
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+skip-string-normalization = true # Comply with flake8
+preview = true # enables preview features, specifically line wrapping in our case.

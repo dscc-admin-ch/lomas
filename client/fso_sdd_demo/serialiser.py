@@ -2,15 +2,21 @@ import diffprivlib
 from sklearn.pipeline import Pipeline
 import inspect
 import json
+import numpy as np
 
 
 class DiffprivlibEncoder(json.JSONEncoder):
     def default(self, obj):
-        types = [
+        dpl_types = [
             v[1] for v in inspect.getmembers(diffprivlib, inspect.isclass)
         ]
-        if type(obj) in types:
+        np_random_types = [
+            v[1] for v in inspect.getmembers(np.random, inspect.isclass)
+        ]
+        if type(obj) in dpl_types:
             return "_dpl_instance:" + obj.__class__.__name__
+        elif type(obj) in np_random_types:
+            return "_np_random_instance:" + obj.__class__.__name__
         else:
             return super().default(obj)  # regular json encoding
 

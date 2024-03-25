@@ -16,7 +16,6 @@ from constants import (
     CONF_DB,
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
-    CONF_SUBMIT_LIMIT,
     CONF_DATASET_STORE,
     CONF_DATASET_STORE_TYPE,
     CONF_DATASET_STORE_TYPE_LRU,
@@ -58,11 +57,6 @@ class Config(BaseModel):
     develop_mode: bool = False
     # Server configs
     time_attack: TimeAttack = None
-
-    # A limit on the rate which users can submit answers
-    submit_limit: float = (
-        5 * 60
-    )  # TODO not used for the moment, kept as a simple example field for now.
 
     admin_database: DBConfig = None
 
@@ -148,7 +142,6 @@ def get_config() -> dict:
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],
             time_attack=time_attack,
-            submit_limit=config_data[CONF_SUBMIT_LIMIT],
             admin_database=admin_database_config,
             dataset_store=ds_store_config,
         )

@@ -213,9 +213,6 @@
                             "description": "When True, service database is reset to default user and dataset collections.",
                             "type": "boolean"
                         },
-                        "submit_limit": {
-                            "type": "integer"
-                        },
                         "time_attack": {
                             "type": "object",
                             "properties": {

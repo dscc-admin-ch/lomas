@@ -11,6 +11,7 @@ from diffprivlib.utils import (
 )
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
@@ -111,6 +112,11 @@ class DiffPrivLibDecoder(json.JSONDecoder):
                 elif v[:14] == "_dpl_instance:":
                     try:
                         dct[k] = getattr(diffprivlib, v[14:])()
+                    except Exception as e:
+                        LOG.exception(e)
+                elif v[:14] == "_np_random_instance:":
+                    try:
+                        dct[k] = getattr(np.random, v[14:])()
                     except Exception as e:
                         LOG.exception(e)
 

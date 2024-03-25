@@ -26,6 +26,7 @@ LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
 LIB_DIFFPRIVLIB = "diffprivlib"
 
+
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
         self.url = url
@@ -242,7 +243,6 @@ class Client:
 
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
-
             if dummy:
                 response = json.loads(res.json())
                 model = base64.b64decode(response["model"])
@@ -360,9 +360,9 @@ class Client:
                     model = base64.b64decode(
                         query["response"]["query_response"]["model"]
                     )
-                    query["response"]["query_response"]["model"] = (
-                        pickle.loads(model)
-                    )
+                    query["response"]["query_response"][
+                        "model"
+                    ] = pickle.loads(model)
                 else:
                     raise ValueError(f"Unknown query type: {query['api']}")
 

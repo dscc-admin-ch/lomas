@@ -112,5 +112,4 @@ def get_dummy_dataset_for_query(admin_database, query_json):
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
     ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
-
     return ds_private_dataset

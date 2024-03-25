@@ -4,7 +4,7 @@ from fastapi import HTTPException
 import pymongo
 
 from admin_database.admin_database import AdminDatabase
-from constants import LIB_OPENDP, LIB_SMARTNOISE_SQL
+from constants import LIB_DIFFPRIVLIB, LIB_OPENDP, LIB_SMARTNOISE_SQL
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -297,6 +297,16 @@ class AdminMongoDatabase(AdminDatabase):
             to_archive["api"] = LIB_OPENDP
             to_archive["query"] = query_json.opendp_json
             to_archive["input_data_type"] = query_json.input_data_type
+
+        elif query_json.__class__.__name__ == "DiffPrivLibInp":
+            to_archive["api"] = LIB_DIFFPRIVLIB
+            to_archive["query"] = query_json.diffprivlib_json
+            to_archive["feature_columns"] = query_json.feature_columns
+            to_archive["target_columns"] = query_json.target_columns
+            to_archive["test_size"] = query_json.test_size
+            to_archive[
+                "test_train_split_seed"
+            ] = query_json.test_train_split_seed
 
         else:
             raise HTTPException(

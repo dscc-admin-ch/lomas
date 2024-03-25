@@ -1,9 +1,14 @@
+from typing import List
 import requests
 import json
+import base64
+import pickle
 import pandas as pd
 from io import StringIO
 from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
+
+from fso_sdd_demo.serialiser import serialize_diffprivlib
 
 # Note: leaving this here. Support for opendp_polars
 # import polars
@@ -19,6 +24,8 @@ DUMMY_SEED = 42
 # Server constants: warning: MUST match those of server
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
+LIB_DIFFPRIVLIB = "diffprivlib"
+
 
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
@@ -205,6 +212,82 @@ class Client:
             )
             return res.text
 
+    def diffprivlib_query(
+        self,
+        pipeline,
+        feature_columns: List[str] = [""],
+        target_columns: List[str] = [""],
+        test_size: float = 0.2,
+        test_train_split_seed: int = 1,
+        score: bool = True,
+        dummy: bool = False,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ):
+        dpl_json = serialize_diffprivlib(pipeline)
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "diffprivlib_json": dpl_json,
+            "feature_columns": feature_columns,
+            "target_columns": target_columns,
+            "test_size": test_size,
+            "test_train_split_seed": test_train_split_seed,
+            "score": score,
+        }
+        if dummy:
+            endpoint = "dummy_diffprivlib_query"
+            body_json["dummy_nb_rows"] = nb_rows
+            body_json["dummy_seed"] = seed
+        else:
+            endpoint = "diffprivlib_query"
+
+        res = self._exec(endpoint, body_json)
+        if res.status_code == 200:
+            if dummy:
+                response = json.loads(res.json())
+                model = base64.b64decode(response["model"])
+                response["model"] = pickle.loads(model)
+                return response
+            else:
+                response = res.json()
+                model = base64.b64decode(response["query_response"]["model"])
+                response["query_response"]["model"] = pickle.loads(model)
+                return response
+        else:
+            print(
+                f"Error while processing DiffPrivLib request in server \
+                    status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
+
+    def estimate_diffprivlib_cost(
+        self,
+        pipeline,
+        feature_columns: List[str] = [""],
+        target_columns: List[str] = [""],
+        test_size: float = 0.2,
+        test_train_split_seed: int = 1,
+    ) -> dict:
+        dpl_json = serialize_diffprivlib(pipeline)
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "diffprivlib_json": dpl_json,
+            "feature_columns": feature_columns,
+            "target_columns": target_columns,
+            "test_size": test_size,
+            "test_train_split_seed": test_train_split_seed,
+        }
+        res = self._exec("estimate_diffprivlib_cost", body_json)
+
+        if res.status_code == 200:
+            return json.loads(res.content.decode("utf8"))
+        else:
+            print(
+                f"Error while executing provided query in server:\n"
+                f"status code: {res.status_code} message: {res.text}"
+            )
+            return res.text
+
     def get_initial_budget(self):
         body_json = {
             "dataset_name": self.dataset_name,
@@ -273,6 +356,13 @@ class Client:
                     opdp_query = make_load_json(query["query"])
                     query["query"] = opdp_query
 
+                elif query["api"] == LIB_DIFFPRIVLIB:
+                    model = base64.b64decode(
+                        query["response"]["query_response"]["model"]
+                    )
+                    query["response"]["query_response"][
+                        "model"
+                    ] = pickle.loads(model)
                 else:
                     raise ValueError(f"Unknown query type: {query['api']}")
 

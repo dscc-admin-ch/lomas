@@ -1,11 +1,14 @@
+import json
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
-
 from mongodb_admin import MongoDB_Admin
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory, get_mongodb_url
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.example_inputs import (
+    example_diffprivlib,
+    # example_diffprivlib_cost,
+    example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_get_db_data,
@@ -15,6 +18,9 @@ from utils.example_inputs import (
     example_smartnoise_sql_cost,
 )
 from utils.input_models import (
+    # DiffPrivLibCost,
+    DiffPrivLibInp,
+    DummyDiffPrivLibInp,
     DummyOpenDPInp,
     DummySNSQLInp,
     GetDbData,
@@ -29,6 +35,7 @@ from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
 from constants import (
     INTERNAL_SERVER_ERROR,
+    LIB_DIFFPRIVLIB,
     LIB_OPENDP,
     LIB_SMARTNOISE_SQL,
 )
@@ -95,6 +102,10 @@ def startup_event():
         args.overwrite_datasets = True
         args.overwrite_metadata = True
         mongo_admin.add_datasets(args)
+
+        LOG.info("Empty archives")
+        args.collection = "queries_archives"
+        mongo_admin.drop_collection(args)
 
         LOG.info("Empty archives")
         args.collection = "queries_archives"
@@ -235,7 +246,6 @@ def dummy_smartnoise_sql_handler(
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
-
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -327,6 +337,77 @@ def estimate_opendp_cost(
     try:
         response = QUERY_HANDLER.estimate_cost(
             LIB_OPENDP,
+            query_json,
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    return response
+
+
+@app.post(
+    "/diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def diffprivlib_query_handler(
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    user_name: str = Header(None),
+):
+    try:
+        response = QUERY_HANDLER.handle_query(
+            LIB_DIFFPRIVLIB, query_json, user_name
+        )
+    except HTTPException as he:
+        LOG.exception(he)
+        raise he
+    except Exception as e:
+        LOG.exception(e)
+        raise HTTPException(500, str(e))
+
+    return response
+
+
+@app.post(
+    "/dummy_diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def dummy_diffprivlib_query_handler(
+    query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+):
+    ds_private_dataset = get_dummy_dataset_for_query(
+        ADMIN_DATABASE, query_json
+    )
+    dummy_querier = querier_factory(
+        LIB_DIFFPRIVLIB, private_dataset=ds_private_dataset
+    )
+
+    try:
+        response = dummy_querier.query(query_json)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+
+    return json.dumps(response).encode("utf-8")
+
+
+@app.post(
+    "/estimate_diffprivlib_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_diffprivlib_cost(
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+):
+    try:
+        response = QUERY_HANDLER.estimate_cost(
+            LIB_DIFFPRIVLIB,
             query_json,
         )
     except HTTPException as e:

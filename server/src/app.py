@@ -410,17 +410,3 @@ def get_user_previous_queries(
     )
 
     return {"previous_queries": previous_queries}
-
-
-@app.get("/submit_limit", dependencies=[Depends(server_live)])
-async def get_submit_limit():
-    """
-    Returns the value "submit_limit" used to limit the rate of submissions
-    """
-    """
-    An endpoint example with some dependecies.
-
-    Dummy endpoint to exemplify the use of the dependencies argument.
-    The depends.server_live function is called and it must yield in order for
-    this endpoint handler to execute.
-    """

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import requests
 import json
 import base64
@@ -215,8 +215,8 @@ class Client:
     def diffprivlib_query(
         self,
         pipeline,
-        feature_columns: List[str] = [""],
-        target_columns: List[str] = [""],
+        feature_columns: List[str],
+        target_columns: Optional[List[str]] = None,
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         score: bool = True,

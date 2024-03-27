@@ -43,13 +43,22 @@ class DiffPrivLibQuerier(DPQuerier):
         data = data.dropna()  # TODO: see if always necessary
 
         feature_data = data[query_json.feature_columns]
-        label_data = data[query_json.target_columns]
-        x_train, x_test, y_train, y_test = train_test_split(
-            feature_data,
-            label_data,
-            test_size=query_json.test_size,
-            random_state=query_json.test_train_split_seed,
-        )
+
+        if query_json.target_columns is None:
+            x_train, x_test = train_test_split(
+                feature_data,
+                test_size=query_json.test_size,
+                random_state=query_json.test_train_split_seed,
+            )
+            y_train, y_test = None, None
+        else:
+            label_data = data[query_json.target_columns]
+            x_train, x_test, y_train, y_test = train_test_split(
+                feature_data,
+                label_data,
+                test_size=query_json.test_size,
+                random_state=query_json.test_train_split_seed,
+            )
         return x_train, x_test, y_train, y_test
 
     def fit_pipeline(self, pipeline, x_train, y_train):

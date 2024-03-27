@@ -10,13 +10,12 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="dscc_sdd_client",
     packages=find_packages(),
-    version="0.0.7",
-    description="A serializer of popular differential privacy frameworks \
-        (OpenDP, Smartnoise-SQL) for remote execution.",
+    version="0.0.1",
+    description="A client to interact with the DSCC SDD server.",
     url="https://github.com/dscc-admin/dscc_sdd/",
     download_url=(
-        "https://gitlab.renkulab.io/dscc/sdd-poc-client/"
-        "-/releases/V_0.0.7/evidences/38.json" # TODO
+        "https://github.com/dscc-admin/dscc_sdd/"
+        "-/releases/V_0.0.1/evidences/0.json"
     ),
     author="Data Science Competence Center, Swiss Federal Statistical Office",
     author_email="dscc@bfs.admin.ch",

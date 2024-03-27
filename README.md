@@ -1,15 +1,14 @@
-# DP Serializers Client
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/)
+# DSCC SDD Platform
 
 
-# Client package for DP Serializer
+
+
+# Client package for `dscc\_sdd\_client`
 
 The dp-seriel-client enables serialization of popular Differential Privacy frameworks.
 The client in dp-serializers-client makes it possible to serialize and query data with a corresponding server running.
 
-
+  
 ## Creating Client:
 ```python
 from dp_serial.client.client import Client

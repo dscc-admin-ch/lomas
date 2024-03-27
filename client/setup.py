@@ -10,13 +10,11 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="dscc_sdd_client",
     packages=find_packages(),
-    version="0.0.1",
+    version="0.0.2",
     description="A client to interact with the DSCC SDD server.",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://github.com/dscc-admin/dscc_sdd/",
-    download_url=(
-        "https://github.com/dscc-admin/dscc_sdd/"
-        "-/releases/V_0.0.1/evidences/0.json"
-    ),
     author="Data Science Competence Center, Swiss Federal Statistical Office",
     author_email="dscc@bfs.admin.ch",
     license="MIT",
@@ -31,7 +29,7 @@ setup(
     python_requires=">=3.8, <4",
     install_requires=[
         "opendp == 0.8.0",
-        "numpy == 1.22.3",
+        "numpy == 1.23.2",
         "requests == 2.31.0",
         "pandas==2.0.1",
         "pyyaml",

@@ -8,18 +8,18 @@ this_directory = pathlib.Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="fso_sdd_demo",
+    name="dscc_sdd_client",
     packages=find_packages(),
     version="0.0.7",
     description="A serializer of popular differential privacy frameworks \
         (OpenDP, Smartnoise-SQL) for remote execution.",
-    url="https://https://gitlab.renkulab.io/dscc/sdd-poc-client",
+    url="https://github.com/dscc-admin/dscc_sdd/",
     download_url=(
         "https://gitlab.renkulab.io/dscc/sdd-poc-client/"
-        "-/releases/V_0.0.7/evidences/38.json"
+        "-/releases/V_0.0.7/evidences/38.json" # TODO
     ),
-    author="FSO DSCC",
-    author_email="pauline.maury-laribiere@bfs.admin.ch",
+    author="Data Science Competence Center, Swiss Federal Statistical Office",
+    author_email="dscc@bfs.admin.ch",
     license="MIT",
     classifiers=[
         "Development Status :: 3 - Alpha",

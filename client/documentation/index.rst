@@ -17,7 +17,7 @@ Welcome to FSO SDD Client's documentation!
 Installation
 ------------
 
-This section explains how to install the fso-sdd-demo library.
+This section explains how to install the dscc-sdd-client library.
 
 Usage
 -----

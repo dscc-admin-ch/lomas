@@ -1,4 +1,4 @@
-#fso-sdd-demo
+#dscc-sdd-client
 #diffprivlib == 0.6.0
 numpy
 opendp == 0.8.0

@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="dscc_sdd_client",
     packages=find_packages(),
-    version="0.0.2",
+    version="0.0.3",
     description="A client to interact with the DSCC SDD server.",
     long_description=long_description,
     long_description_content_type='text/markdown',

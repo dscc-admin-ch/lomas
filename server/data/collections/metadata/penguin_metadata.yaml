@@ -1,0 +1,44 @@
+"":
+  Schema:
+    Table:
+      max_ids: 1
+      row_privacy: true
+      censor_dims: False
+      species:
+        type: string
+        cardinality: 3
+        categories:
+        - Adelie
+        - Chinstrap
+        - Gentoo
+      island:
+        type: string
+        cardinality: 3
+        categories:
+        - Torgersen
+        - Biscoe
+        - Dream
+      bill_length_mm:
+        type: float
+        lower: 30.0
+        upper: 65.0
+      bill_depth_mm:
+        type: float
+        lower: 13.0
+        upper: 23.0
+      flipper_length_mm:
+        type: float
+        lower: 150.0
+        upper: 250.0
+      body_mass_g:
+        type: float
+        lower: 2000.0
+        upper: 7000.0
+      sex:
+        type: string
+        cardinality: 2
+        categories:
+        - MALE
+        - FEMALE
+    
+engine: csv

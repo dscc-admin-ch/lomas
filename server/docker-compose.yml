@@ -1,0 +1,72 @@
+version: '3.4'
+services:
+  sdd_poc_server:
+    image: damienaymon/sdd_server_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: sdd_server_dev
+    container_name: sdd_server_dev
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - ./src:/code/
+      - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
+      - ./configs/example_secrets.yaml:/usr/sdd_poc_server/secrets.yaml
+      - ./data/:/data/
+    depends_on:
+      - mongodb
+    networks:
+      - sdd-network
+  mongodb:
+    container_name: mongodb
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    # Use only if volume is not a docker volume but a bind mount (e.g. ./data/:/data/db/)
+    # The reason has to do with permissions (see https://stackoverflow.com/questions/29245216/write-in-shared-volumes-docker/29251160#29251160)
+    # Still unclear why just setting chmod 777 ./data does not solve the issue.
+    #user: 1000:1000
+    ports:
+      - 27017:27017
+    networks:
+      - sdd-network
+    volumes:
+      - mongodata:/data/db/
+      - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
+    # We use this in docker compose to have a user/password for mongodb
+    # Proper deployment on a kubernetes cluster should use a helm chart
+    # and parametrize a user specific to the fastAPI server.
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
+      - MONGODB_INITDB_DATABASE=defaultdb
+      # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+  client:
+    image: damienaymon/sdd_client_dev
+    build:
+      dockerfile: ../client/Dockerfile
+      target: sdd_client_dev
+      context: ../client/
+    container_name: sdd_client
+    ports: 
+      - 8888:8888
+    volumes:
+      - ../client/:/code/
+      - ./data/:/data/
+      - ../client/configs/:/root/.jupyter/
+    depends_on:
+      - sdd_poc_server
+    networks:
+    - sdd-network
+networks:
+  sdd-network:
+    driver: bridge
+
+volumes:
+  # This volume needs to be setup only once with "docker volume create mongodata"
+  # It will be stored in /var/lib/docker/volumes and managed by docker.
+  mongodata:
+    external: true
+  #mongoconfig:
+  #  external: true
+
+    

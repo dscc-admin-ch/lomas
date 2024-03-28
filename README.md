@@ -44,19 +44,5 @@ Finally, the service provider is responsible for deploying the service and manag
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
 
-## Server
-
-
-## Client package `dscc\_sdd\_client`
-
-The `dscc_sdd_client` library is a client to interact with the DSCC SDD server. It is available on Pypi.
-
-Utilizing this client library is strongly advised for querying and interacting with the server, as it takes care of all the necessary tasks such as serialization, deserialization, REST API calls, and ensures the correct installation of other required libraries. In short, it enables a seamless interaction with the server.
-
-For additional informations about the client, please see the [README.md](https://github.com/dscc-admin/dscc_sdd/tree/develop/client) of the client.
-
-See our white paper (TODO link) for more information.
-
-
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

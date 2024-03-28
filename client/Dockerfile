@@ -9,7 +9,7 @@ FROM sdd_client AS sdd_client_dev
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM sdd_client AS sdd_client_prod
-COPY ./fso_sdd_demo/ /code/fso_sdd_demo
+COPY ./dscc_sdd_client/ /code/dscc_sdd_client
 COPY ./demo_notebooks/images/ /code/images/
 COPY ./LICENCE /code/LICENCE
 COPY ./demo_notebooks/Demo_Client_Notebook.ipynb /code/Demo_Client_Notebook.ipynb

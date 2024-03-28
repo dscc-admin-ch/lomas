@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Optional
 from constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 
@@ -96,7 +97,7 @@ class DiffPrivLibInp(BasicModel):
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list
-    target_columns: list
+    target_columns: Optional[list]
     test_size: float
     test_train_split_seed: int
 
@@ -105,7 +106,7 @@ class DummyDiffPrivLibInp(BasicModel):
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list
-    target_columns: list
+    target_columns: Optional[list]
     test_size: float
     test_train_split_seed: int
     dummy_nb_rows: int

@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "FSO SDD Client"
+project = "DSCC SDD Client"
 copyright = "2023, Pauline ML"
 author = "Pauline ML"
 

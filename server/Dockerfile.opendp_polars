@@ -1,5 +1,5 @@
 # To install packages including opendp_polars and opendp_logger 
-FROM dtlam/sdd_server_opendp_polars:1.2 as sdd_server
+FROM dtlam/sdd_server_opendp_polars:1.2 as sdd_server_base
 
 # To install missing packages
 RUN pip install smartnoise-sql==1.0.0
@@ -14,11 +14,11 @@ RUN sed -i 's/get_distribution("opendp")/get_distribution("opendp_polars")/' ope
 RUN pip install -e .
 
 WORKDIR /code
-FROM sdd_server AS sdd_server_prod
+FROM sdd_server_base AS sdd_server
 COPY ./src/ /code/
 COPY ./data/ /data/
 CMD ["python", "uvicorn_serve.py"]
 
-FROM sdd_server AS sdd_server_dev
+FROM sdd_server_base AS sdd_server_dev
 ENV PYTHONDONTWRITEBYTECODE 1
 CMD ["python", "uvicorn_serve.py"]

@@ -8,6 +8,6 @@ To install Your Project, follow these steps:
 
    .. code-block:: bash
 
-      pip install fso-sdd-demo
+      pip install dscc-sdd-client
 
 3. You're all set!

@@ -1,0 +1,47 @@
+"":
+  Schema:
+    Table:
+      max_ids: 1
+      PassengerId:
+        type: int
+        lower: 1
+      Pclass:
+        type: int
+        lower: 1
+        upper: 3
+      Name:
+        type: string
+      Sex:
+        type: string
+        cardinality: 2
+        categories:
+        - male
+        - female
+      Age:
+        type: float
+        lower: 0.1
+        upper: 100.0
+      SibSp:
+        type: int
+        lower: 0
+      Parch:
+        type: int
+        lower: 0
+      Ticket:
+        type: string
+      Fare:
+        type: float
+        lower: 0.0
+      Cabin:
+        type: string
+      Embarked:
+        type: string
+        cardinality: 3
+        categories:
+        - C
+        - Q
+        - S
+      Survived:
+        type: boolean
+      row_privacy: true
+engine: csv

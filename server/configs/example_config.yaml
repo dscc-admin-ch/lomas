@@ -1,0 +1,15 @@
+runtime_args:
+  settings:
+    develop_mode: True # !! Set this to false in production mode !!
+    submit_limit: 300
+    time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
+    admin_database:
+      db_type: "mongodb"
+      address: "mongodb"
+      port: 27017
+      db_name: "defaultdb"
+    dataset_store:
+      ds_store_type: "LRU_cache"
+      max_memory_usage: 512

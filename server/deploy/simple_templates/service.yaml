@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sdd-poc-server
+  labels:
+    app: sdd-poc-server
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: sdd-poc-server

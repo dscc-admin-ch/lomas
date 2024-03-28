@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdd_client.fullname" . }}
+  labels:
+    {{- include "sdd_client.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port}}
+    targetPort: 8888
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "sdd_client.selectorLabels" . | nindent 4 }}

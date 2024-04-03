@@ -1,13 +1,12 @@
 from typing import List
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from snsql import Privacy, from_connection, Stat, Mechanism
-import traceback
 import pandas as pd
 
-from constants import MAX_NAN_ITERATION, STATS
+from constants import LIB_SMARTNOISE_SQL, MAX_NAN_ITERATION, STATS
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from utils.loggr import LOG
+from utils.utils import ExternalLibraryException
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -30,11 +29,10 @@ class SmartnoiseSQLQuerier(DPQuerier):
         query_str = query_json.query_str
         try:
             result = reader.get_privacy_cost(query_str)
-        except Exception as err:
-            print(traceback.format_exc())
-            raise HTTPException(
-                400,
-                "Error executing query: " + query_str + ": " + str(err),
+        except Exception as e:
+            raise ExternalLibraryException(
+                LIB_SMARTNOISE_SQL,
+                "Error obtaining cost:" + str(e),
             )
 
         return result
@@ -56,24 +54,19 @@ class SmartnoiseSQLQuerier(DPQuerier):
             result = reader.execute(
                 query_str, postprocess=query_json.postprocess
             )
-        except Exception as err:
-            raise HTTPException(
-                400,
-                "Error executing query: " + query_str + ": " + str(err),
+        except Exception as e:
+            raise ExternalLibraryException(
+                LIB_SMARTNOISE_SQL,
+                "Error executing query:" + str(e),
             )
 
         if not query_json.postprocess:
             result = list(result)
 
-        # Should only be printed if logging level is debug
-        LOG.debug("********RESULT AFTER QUERY********")
-        LOG.debug(result)
-
         cols = result.pop(0)
-
         if result == []:
-            raise HTTPException(
-                400,
+            raise ExternalLibraryException(
+                LIB_SMARTNOISE_SQL,
                 f"SQL Reader generated empty results,"
                 f"Epsilon: {epsilon} and Delta: {delta} are too small"
                 "to generate output.",
@@ -88,7 +81,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 return self.query(query_json, nb_iter)
             else:
                 raise HTTPException(
-                    400,
+                    status.HTTP_400_BAD_REQUEST,
                     f"SQL Reader generated NAN results."
                     f" Epsilon: {epsilon} and Delta: {delta} are too small"
                     " to generate output.",

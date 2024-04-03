@@ -1,6 +1,5 @@
 import time
 from typing import List
-from fastapi import HTTPException
 import pymongo
 
 from admin_database.admin_database import AdminDatabase
@@ -299,8 +298,8 @@ class AdminMongoDatabase(AdminDatabase):
             to_archive["input_data_type"] = query_json.input_data_type
 
         else:
-            raise HTTPException(
-                500, f"Unknown query type in archive: {query_json}"
+            raise Exception(
+                f"Unknown query type in archive: {query_json}",
             )
 
         self.db.queries_archives.insert_one(to_archive)

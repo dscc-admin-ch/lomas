@@ -21,4 +21,4 @@ def dataset_store_factory(
     elif ds_store_type == CONF_DATASET_STORE_TYPE_LRU:
         return LRUDatasetStore(admin_database, config.max_memory_usage)
     else:
-        raise Exception(f"Dataset Store type {ds_store_type} does not exist.")
+        raise ValueError(f"Dataset Store type {ds_store_type} does not exist.")

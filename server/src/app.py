@@ -1,4 +1,13 @@
-from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
+from fastapi import (
+    Body,
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Request,
+    status,
+)
+from fastapi.responses import JSONResponse
 
 from mongodb_admin import MongoDB_Admin
 from admin_database.admin_database import AdminDatabase
@@ -24,7 +33,13 @@ from utils.input_models import (
     SNSQLInpCost,
 )
 from dp_queries.dp_libraries.utils import querier_factory
-from utils.utils import stream_dataframe, server_live, check_start_condition
+from utils.utils import (
+    stream_dataframe,
+    server_live,
+    check_start_condition,
+    ExternalLibraryException,
+    InvalidQueryException,
+)
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
 from constants import (
@@ -135,6 +150,30 @@ async def middleware(request: Request, call_next):
     return await anti_timing_att(request, call_next, CONFIG)
 
 
+# Custom exception handlers
+@app.exception_handler(InvalidQueryException)
+async def invalid_query_exception_handler(
+    _: Request, exc: InvalidQueryException
+):
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"InvalidQueryException": exc.error_message},
+    )
+
+
+@app.exception_handler(ExternalLibraryException)
+async def external_library_exception_handler(
+    _: Request, exc: ExternalLibraryException
+):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "ExternalLibraryException": exc.error_message,
+            "library": exc.library,
+        },
+    )
+
+
 # API Endpoints
 # -----------------------------------------------------------------------------
 
@@ -164,7 +203,7 @@ def get_dataset_metadata(
             query_json.dataset_name
         )[""]["Schema"]["Table"]
 
-    except HTTPException as e:
+    except Exception as e:
         raise e
 
     return ds_metadata
@@ -187,7 +226,7 @@ def get_dummy_dataset(
         dummy_df = make_dummy_dataset(
             ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
         )
-    except HTTPException as e:
+    except Exception as e:
         raise e
 
     return stream_dataframe(dummy_df)
@@ -207,11 +246,15 @@ def smartnoise_sql_handler(
         response = QUERY_HANDLER.handle_query(
             LIB_SMARTNOISE_SQL, query_json, user_name
         )
-    except HTTPException as e:
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 
@@ -235,12 +278,15 @@ def dummy_smartnoise_sql_handler(
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
-
-    except HTTPException as e:
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 
@@ -258,11 +304,15 @@ def estimate_smartnoise_cost(
             LIB_SMARTNOISE_SQL,
             query_json,
         )
-    except HTTPException as e:
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 
@@ -278,12 +328,18 @@ def opendp_query_handler(
         response = QUERY_HANDLER.handle_query(
             LIB_OPENDP, query_json, user_name
         )
-    except HTTPException as he:
-        LOG.exception(he)
-        raise he
+    except InvalidQueryException as e:
+        LOG.info(f"InvalidQueryException raised: {e}")
+        raise e
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
+        raise e
     except Exception as e:
-        LOG.exception(e)
-        raise HTTPException(500, str(e))
+        LOG.info(f"Exception raised: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 
@@ -307,11 +363,18 @@ def dummy_opendp_query_handler(
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
 
-    except HTTPException as e:
+    except InvalidQueryException as e:
+        LOG.info(f"InvalidQueryException raised: {e}")
+        raise e
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 
@@ -329,11 +392,18 @@ def estimate_opendp_cost(
             LIB_OPENDP,
             query_json,
         )
-    except HTTPException as e:
+    except InvalidQueryException as e:
+        LOG.info(f"InvalidQueryException raised: {e}")
+        raise e
+    except ExternalLibraryException as e:
+        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=INTERNAL_SERVER_ERROR,
+        )
 
     return response
 

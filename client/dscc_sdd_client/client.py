@@ -20,6 +20,11 @@ DUMMY_SEED = 42
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
 
+
+def error_message(res):
+    return f"Server error status {res.status_code}: {res.text}"
+
+
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
         self.url = url
@@ -39,11 +44,7 @@ class Client:
 
             return metadata
         else:
-            print(
-                f"Error while getting dataset metadata in server \
-                    status code: {res.status_code} message: {res.text}"
-            )
-        return res.text
+            print(error_message(res))
 
     def get_dummy_dataset(
         self,
@@ -64,11 +65,7 @@ class Client:
             df = pd.read_csv(StringIO(data))
             return df
         else:
-            print(
-                f"Error while creating dummy dataset in server \
-                    status code: {res.status_code} message: {res.text}"
-            )
-        return res.text
+            print(error_message(res))
 
     def smartnoise_query(
         self,
@@ -106,11 +103,7 @@ class Client:
             )
             return response_dict
         else:
-            print(
-                f"Error while executing provided query in server:\n"
-                f" status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def estimate_smartnoise_cost(
         self,
@@ -131,11 +124,7 @@ class Client:
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
         else:
-            print(
-                f"Error while executing provided query in server:\n"
-                f"status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def opendp_query(
         self,
@@ -177,11 +166,7 @@ class Client:
 
             return response_dict
         else:
-            print(
-                f"Error while processing OpenDP request in server \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def estimate_opendp_cost(
         self,
@@ -199,11 +184,7 @@ class Client:
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
         else:
-            print(
-                f"Error while executing provided query in server:\n"
-                f"status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def get_initial_budget(self):
         body_json = {
@@ -214,11 +195,7 @@ class Client:
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
         else:
-            print(
-                f"Error while fetching total budget \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def get_total_spent_budget(self):
         body_json = {
@@ -229,11 +206,7 @@ class Client:
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
         else:
-            print(
-                f"Error while fetching total spent budget \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def get_remaining_budget(self):
         body_json = {
@@ -244,11 +217,7 @@ class Client:
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
         else:
-            print(
-                f"Error while fetching remaining budget \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def get_previous_queries(self):
         body_json = {
@@ -280,11 +249,7 @@ class Client:
 
             return deserialised_queries
         else:
-            print(
-                f"Error while fetching previous queries \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+            print(error_message(res))
 
     def _exec(self, endpoint, body_json: dict = {}):
         r = requests.post(

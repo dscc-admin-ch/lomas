@@ -49,7 +49,7 @@ def private_dataset_factory(
         )
         private_db = LocalDataset(ds_metadata, dataset_path)
     else:
-        raise (
+        raise ValueError(
             f"Unknown database type {database_type} \
             for dataset {dataset_name}."
         )

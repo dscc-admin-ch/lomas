@@ -17,10 +17,12 @@ enable_features("contrib")
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
+
 # Server constants: warning: MUST match those of server
 class DPLibraries(StrEnum):
     SMARTNOISE_SQL = "smartnoise_sql"
     OPENDP = "opendp"
+
 
 def error_message(res):
     return f"Server error status {res.status_code}: {res.text}"

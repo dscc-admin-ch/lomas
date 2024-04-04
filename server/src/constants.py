@@ -1,4 +1,5 @@
 import string
+from enum import StrEnum
 
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
@@ -38,20 +39,25 @@ INTERNAL_SERVER_ERROR = (
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.0004
 
+
 # Supported DP libraries
-LIB_SMARTNOISE_SQL = "smartnoise_sql"
-LIB_OPENDP = "opendp"
-SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
+class DPLibraries(StrEnum):
+    SMARTNOISE_SQL = "smartnoise_sql"
+    OPENDP = "opendp"
+
 
 # OpenDP pipeline input types
-OPENDP_INPUT_TYPE_DF = "df"
-OPENDP_INPUT_TYPE_PATH = "path"
+class OpenDPInputType(StrEnum):
+    DF = "df"
+    PATH = "path"
 
-# Databases
-LOCAL_DB = "LOCAL_DB"
-REMOTE_HTTP_DB = "REMOTE_HTTP_DB"
-S3_DB = "S3_DB"
-PRIVATE_DBS = [LOCAL_DB, REMOTE_HTTP_DB, S3_DB]
+
+# Private Databases
+class PrivateDatabaseType(StrEnum):
+    LOCAL = "LOCAL_DB"
+    REMOTE_HTTP = "REMOTE_HTTP_DB"
+    S3 = "S3_DB"
+
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

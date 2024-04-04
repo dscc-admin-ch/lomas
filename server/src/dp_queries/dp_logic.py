@@ -4,7 +4,7 @@ from fastapi import Header, HTTPException, status
 from admin_database.admin_database import AdminDatabase
 from utils.input_models import BasicModel
 from dataset_store.dataset_store import DatasetStore
-from constants import SUPPORTED_LIBS
+from constants import DPLibraries
 from utils.loggr import LOG
 
 
@@ -31,7 +31,8 @@ class QueryHandler:
         query_json: BasicModel,
     ):
         # Check query type
-        if query_type not in SUPPORTED_LIBS:
+        supported_lib = [lib.value for lib in DPLibraries]
+        if query_type not in supported_lib:
             e = f"Query type {query_type} not supported in QueryHandler"
             LOG.exception(e)
             raise ValueError(e)

@@ -3,7 +3,7 @@ from typing import List
 import pymongo
 
 from admin_database.admin_database import AdminDatabase
-from constants import LIB_OPENDP, LIB_SMARTNOISE_SQL
+from constants import DPLibraries
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -284,22 +284,18 @@ class AdminMongoDatabase(AdminDatabase):
             "response": response,
             "timestamp": time.time(),
         }
-        if query_json.__class__.__name__ == "SNSQLInp":
-            to_archive["api"] = LIB_SMARTNOISE_SQL
-            to_archive["query"] = query_json.query_str
-            to_archive["epsilon_parameter"] = query_json.epsilon
-            to_archive["delta_parameter"] = query_json.delta
-            to_archive["mechanisms"] = query_json.mechanisms
-            to_archive["postprocess"] = query_json.postprocess
+        match query_json.__class__.__name__:
+            case "SNSQLInp":
+                to_archive["api"] = DPLibraries.SMARTNOISE_SQL
+                to_archive["query"] = query_json.query_str
+                to_archive["epsilon_parameter"] = query_json.epsilon
+                to_archive["delta_parameter"] = query_json.delta
+                to_archive["mechanisms"] = query_json.mechanisms
+                to_archive["postprocess"] = query_json.postprocess
 
-        elif query_json.__class__.__name__ == "OpenDPInp":
-            to_archive["api"] = LIB_OPENDP
-            to_archive["query"] = query_json.opendp_json
-            to_archive["input_data_type"] = query_json.input_data_type
-
-        else:
-            raise Exception(
-                f"Unknown query type in archive: {query_json}",
-            )
+            case "OpenDPInp":
+                to_archive["api"] = DPLibraries.OPENDP
+                to_archive["query"] = query_json.opendp_json
+                to_archive["input_data_type"] = query_json.input_data_type
 
         self.db.queries_archives.insert_one(to_archive)

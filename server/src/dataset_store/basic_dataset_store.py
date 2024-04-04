@@ -1,7 +1,7 @@
 from typing import Dict
 
 from admin_database.admin_database import AdminDatabase
-from constants import SUPPORTED_LIBS
+from constants import DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from dp_queries.dp_libraries.utils import querier_factory
 from dataset_store.dataset_store import DatasetStore
@@ -49,9 +49,9 @@ class BasicDatasetStore(DatasetStore):
         # Initialize dict
         self.dp_queriers[dataset_name] = {}
 
-        for lib in SUPPORTED_LIBS:
-            querier = querier_factory(lib, private_dataset)
-            self.dp_queriers[dataset_name][lib] = querier
+        for lib in DPLibraries:
+            querier = querier_factory(lib.value, private_dataset)
+            self.dp_queriers[dataset_name][lib.value] = querier
 
     def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
         if dataset_name not in self.dp_queriers:

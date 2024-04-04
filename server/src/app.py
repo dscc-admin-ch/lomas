@@ -155,6 +155,7 @@ async def middleware(request: Request, call_next):
 async def invalid_query_exception_handler(
     _: Request, exc: InvalidQueryException
 ):
+    LOG.info(f"InvalidQueryException raised: {exc.error_message}")
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
         content={"InvalidQueryException": exc.error_message},
@@ -165,6 +166,7 @@ async def invalid_query_exception_handler(
 async def external_library_exception_handler(
     _: Request, exc: ExternalLibraryException
 ):
+    LOG.info(f"ExternalLibraryException raised: {exc.error_message}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -247,7 +249,6 @@ def smartnoise_sql_handler(
             LIB_SMARTNOISE_SQL, query_json, user_name
         )
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
@@ -279,7 +280,6 @@ def dummy_smartnoise_sql_handler(
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
@@ -305,7 +305,6 @@ def estimate_smartnoise_cost(
             query_json,
         )
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
@@ -329,10 +328,8 @@ def opendp_query_handler(
             LIB_OPENDP, query_json, user_name
         )
     except InvalidQueryException as e:
-        LOG.info(f"InvalidQueryException raised: {e}")
         raise e
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
@@ -364,10 +361,8 @@ def dummy_opendp_query_handler(
         response = {"query_response": response_df}
 
     except InvalidQueryException as e:
-        LOG.info(f"InvalidQueryException raised: {e}")
         raise e
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")
@@ -393,10 +388,8 @@ def estimate_opendp_cost(
             query_json,
         )
     except InvalidQueryException as e:
-        LOG.info(f"InvalidQueryException raised: {e}")
         raise e
     except ExternalLibraryException as e:
-        LOG.info(f"ExternalLibraryException raised: {e}")
         raise e
     except Exception as e:
         LOG.info(f"Exception raised: {e}")

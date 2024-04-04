@@ -412,6 +412,7 @@ class MongoDB_Admin:
 
 if __name__ == "__main__":
     # Get url with vault credentials
+    # TODO update this part with config file and prompt for password
     def config():
         return None
 

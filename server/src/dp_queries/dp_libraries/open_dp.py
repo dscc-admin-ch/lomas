@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-
 import opendp as dp
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
@@ -10,10 +8,12 @@ from typing import List
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
 from constants import (
+    LIB_OPENDP,
     OPENDP_INPUT_TYPE_DF,
     OPENDP_INPUT_TYPE_PATH,
 )
 from utils.loggr import LOG
+from utils.utils import ExternalLibraryException, InvalidQueryException
 
 enable_features("contrib")
 
@@ -30,32 +30,19 @@ class OpenDPQuerier(DPQuerier):
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
+        max_ids = self.private_dataset.get_metadata()[""]["Schema"]["Table"][
+            "max_ids"
+        ]
         try:
-            cost = opendp_pipe.map(
-                d_in=float(
-                    self.private_dataset.get_metadata()[""]["Schema"]["Table"][
-                        "max_ids"
-                    ]
-                )
-            )
-
+            cost = opendp_pipe.map(d_in=int(max_ids))
         except Exception:
             try:
-                cost = opendp_pipe.map(
-                    d_in=int(
-                        self.private_dataset.get_metadata()[""]["Schema"][
-                            "Table"
-                        ]["max_ids"]
-                    )
-                )
+                cost = opendp_pipe.map(d_in=float(max_ids))
             except Exception as e:
                 LOG.exception(e)
-                raise HTTPException(
-                    400,
-                    "Error obtaining privacy map for the chain. \
-                        Please ensure methods return epsilon, \
-                            and delta in privacy map. Error:"
-                    + str(e),
+                raise ExternalLibraryException(
+                    LIB_OPENDP,
+                    "Error obtaining cost:" + str(e),
                 )
 
         if isinstance(cost, int) or isinstance(cost, float):
@@ -65,7 +52,7 @@ class OpenDPQuerier(DPQuerier):
         else:
             e = f"Cost cannot be converted to epsilon, delta format: {cost}"
             LOG.exception(e)
-            raise HTTPException(400, e)
+            raise Exception(e)
 
         return epsilon, delta
 
@@ -81,21 +68,18 @@ class OpenDPQuerier(DPQuerier):
         else:
             e = (
                 f"Input data type {query_json.input_data_type}"
-                "not valid for opendp query"
+                "not valid for opendp query."
             )
             LOG.exception(e)
-            raise HTTPException(400, e)
+            raise InvalidQueryException(e)
 
         try:
             release_data = opendp_pipe(input_data)
-        except HTTPException as he:
-            LOG.exception(he)
-            raise he
         except Exception as e:
             LOG.exception(e)
-            raise HTTPException(
-                400,
-                "Failed when applying chain to data with error: " + str(e),
+            raise ExternalLibraryException(
+                LIB_OPENDP,
+                "Error executing query:" + str(e),
             )
 
         # Note: leaving this here, support for opendp_polars
@@ -113,47 +97,11 @@ def reconstruct_measurement_pipeline(pipeline):
     opendp_pipe = make_load_json(pipeline)
 
     if not is_measurement(opendp_pipe):
-        e = "The pipeline provided is not a measurement. \
-                It cannot be processed in this server."
+        e = (
+            "The pipeline provided is not a measurement. "
+            + "It cannot be processed in this server."
+        )
         LOG.exception(e)
-        raise HTTPException(400, e)
+        raise InvalidQueryException(e)
 
     return opendp_pipe
-
-
-# def cost_to_param(opendp_pipe, cost):
-
-#     measurement_type = infer_measurement_type(opendp_pipe)
-#     if measurement_type == "laplace":
-#         epsilon, delta = cost, 0
-#     elif measurement_type == "gaussian":
-#         epsilon, delta = cost, 0 # TODO: how to get delta
-#     else:
-#         raise HTTPException(
-#             400,
-#             "Failed to unpack opendp cost."
-#         )
-
-#     return epsilon, delta
-
-
-# def infer_measurement_type(opendp_pipe):
-#     if opendp_pipe.output_measure == dp.measures.max_divergence(T=float):
-#         measurement_type = "laplace"
-#     elif (
-#         opendp_pipe.output_measure
-#         == dp.measures.zero_concentrated_divergence(T=float)
-#     ):
-#         measurement_type = "gaussian"
-#     else:
-#         e = (
-#             f"This measurement type is not yet supported: "
-#             f"{opendp_pipe.output_measure}"
-#         )
-#         LOG.exception(e)
-#         raise HTTPException(
-#             400,
-#             "Failed to infer measurement mechanism: " + str(e),
-#         )
-
-#     return measurement_type

@@ -21,24 +21,9 @@ def database_factory(config: DBConfig) -> AdminDatabase:
 
 
 def get_mongodb_url(config):
-    # I would advocate that our application soes not become "vault aware".
-    # I am guessing making it as such could potentially hinder its
-    # adoption.
-
-    # Connect to the vault
-    # client = hvac.Client(
-    #    url=os.environ["VAULT_ADDR"],
-    #    token=os.environ['VAULT_TOKEN']
-    # )
-    # mongodb_secret = client.secrets.kv.v2.read_secret_version(
-    #    mount_point=os.environ["VAULT_MOUNT"],
-    #    path=f'{os.environ["VAULT_TOP_DIR"]}/{VAULT_NAME}'
-    # )
-
-    # Get environment variables
-    # db_username = mongodb_secret["data"]["data"]["MONGO_USERNAME"]
-    # db_password = mongodb_secret["data"]["data"]["MONGO_PASSWORD"]
-
+    """
+    Get URL of the administration MongoDB.
+    """
     db_username = config.username
     db_password = config.password
     db_address = config.address
@@ -50,12 +35,5 @@ def get_mongodb_url(config):
         f"mongodb://{db_username}:{db_password}@{db_address}:"
         f"{db_port}/{db_name}?authSource=defaultdb"
     )
-    # client = MongoClient('mongodb://user_pwd:pwd@mongodb-0.
-    # mongodb-headless:0/
-    # #defaultdb?authSourcedefaultdb')
-
-    # db_url = f'mongodb://{db_username}:{db_password}@
-    # mongodb-0.mongodb-headless:{MONGODB_PORT},
-    # #mongodb-1.mongodb-headless:{MONGODB_PORT}/{DATABASE_NAME}'
 
     return db_url

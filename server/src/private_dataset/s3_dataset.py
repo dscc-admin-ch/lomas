@@ -2,7 +2,7 @@ import boto3
 import os
 import pandas as pd
 import tempfile
-from fastapi import HTTPException
+from utils.loggr import LOG
 
 from private_dataset.private_dataset import PrivateDataset
 
@@ -50,11 +50,11 @@ class S3Dataset(PrivateDataset):
             try:
                 self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
             except Exception as err:
-                raise HTTPException(
-                    400,
-                    f"Error reading csv at s3 path: \
-                        {self.s3_bucket}/{self.s3_key}: {err}",
+                LOG.info(
+                    "Error reading csv at s3 path:"
+                    + f"{self.s3_bucket}/{self.s3_key}: {err}"
                 )
+                raise Exception(err)
 
             # Notify observer since memory usage has changed
             [

@@ -20,6 +20,7 @@ DUMMY_SEED = 42
 LIB_SMARTNOISE_SQL = "smartnoise_sql"
 LIB_OPENDP = "opendp"
 
+
 class Client:
     def __init__(self, url, user_name: str, dataset_name: str):
         self.url = url

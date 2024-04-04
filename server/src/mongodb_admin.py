@@ -3,11 +3,7 @@ import boto3
 import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
-from constants import (
-    LOCAL_DB,
-    REMOTE_HTTP_DB,
-    S3_DB,
-)
+from constants import PrivateDatabaseType
 
 
 class MongoDB_Admin:
@@ -214,44 +210,41 @@ class MongoDB_Admin:
             "database_type": args.database_type,
         }
 
-        if args.database_type == "LOCAL_DB":
-            dataset["dataset_path"] = args.dataset_path
-        elif args.database_type == "REMOTE_HTTP_DB":
-            dataset["dataset_url"] = args.dataset_url
-        elif args.database_type == "S3_DB":
-            dataset["s3_bucket"] = args.s3_bucket
-            dataset["s3_key"] = args.s3_key
-            dataset["endpoint_url"] = args.endpoint_url
-            dataset["aws_access_key_id"] = args.aws_access_key_id
-            dataset["aws_secret_access_key"] = args.aws_secret_access_key
-        else:
-            raise ValueError(f"Unknown database type {args.database_type}")
+        match args.database_type:
+            case PrivateDatabaseType.LOCAL:
+                dataset["dataset_path"] = args.dataset_path
+            case PrivateDatabaseType.REMOTE_HTTP:
+                dataset["dataset_url"] = args.dataset_url
+            case PrivateDatabaseType.S3:
+                dataset["s3_bucket"] = args.s3_bucket
+                dataset["s3_key"] = args.s3_key
+                dataset["endpoint_url"] = args.endpoint_url
+                dataset["aws_access_key_id"] = args.aws_access_key_id
+                dataset["aws_secret_access_key"] = args.aws_secret_access_key
         self.db.datasets.insert_one(dataset)
 
         # Step 2: add metadata
-        if args.metadata_database_type == "LOCAL_DB":
-            # Store metadata from yaml to metadata collection
-            with open(args.metadata_path) as f:
-                metadata_dict = yaml.safe_load(f)
+        match args.metadata_database_type:
+            case PrivateDatabaseType.LOCAL:
+                # Store metadata from yaml to metadata collection
+                with open(args.metadata_path) as f:
+                    metadata_dict = yaml.safe_load(f)
 
-        elif args.metadata_database_type == "S3_DB":
-            client = boto3.client(
-                "s3",
-                endpoint_url=args.metadata_endpoint_url,
-                aws_access_key_id=args.metadata_aws_access_key_id,
-                aws_secret_access_key=args.metadata_aws_secret_access_key,
-            )
-            response = client.get_object(
-                Bucket=args.metadata_s3_bucket, Key=args.metadata_s3_key
-            )
-            try:
-                metadata_dict = yaml.safe_load(response["Body"])
-            except yaml.YAMLError as e:
-                return e
-        else:
-            raise ValueError(
-                f"Unknown database type {args.metadata_database_type}"
-            )
+            case PrivateDatabaseType.S3:
+                client = boto3.client(
+                    "s3",
+                    endpoint_url=args.metadata_endpoint_url,
+                    aws_access_key_id=args.metadata_aws_access_key_id,
+                    aws_secret_access_key=args.metadata_aws_secret_access_key,
+                )
+                response = client.get_object(
+                    Bucket=args.metadata_s3_bucket, Key=args.metadata_s3_key
+                )
+                try:
+                    metadata_dict = yaml.safe_load(response["Body"])
+                except yaml.YAMLError as e:
+                    return e
+
         self.db.metadata.insert_one({args.dataset: metadata_dict})
 
         print(
@@ -291,15 +284,14 @@ class MongoDB_Admin:
             verify_keys(d, "database_type")
             verify_keys(d, "metadata")
 
-            if d["database_type"] == REMOTE_HTTP_DB:
-                verify_keys(d, "dataset_url")
-            elif d["database_type"] == S3_DB:
-                verify_keys(d, "s3_bucket")
-                verify_keys(d, "s3_key")
-            elif d["database_type"] == LOCAL_DB:
-                verify_keys(d, "dataset_path")
-            else:
-                raise ValueError(f"Dataset type {d['database_type']} unknown")
+            match d["database_type"]:
+                case PrivateDatabaseType.REMOTE_HTTP:
+                    verify_keys(d, "dataset_url")
+                case PrivateDatabaseType.S3:
+                    verify_keys(d, "s3_bucket")
+                    verify_keys(d, "s3_key")
+                case PrivateDatabaseType.LOCAL:
+                    verify_keys(d, "dataset_path")
 
             # Fill datasets_list
             if not self.db.datasets.find_one(
@@ -332,38 +324,35 @@ class MongoDB_Admin:
             metadata_db_type = d["metadata"]["database_type"]
 
             verify_keys(d, "database_type", metadata=True)
-            if metadata_db_type == "LOCAL_DB":
-                verify_keys(d, "metadata_path", metadata=True)
+            match metadata_db_type:
+                case PrivateDatabaseType.LOCAL:
+                    verify_keys(d, "metadata_path", metadata=True)
 
-                with open(d["metadata"]["metadata_path"]) as f:
-                    metadata_dict = yaml.safe_load(f)
+                    with open(d["metadata"]["metadata_path"]) as f:
+                        metadata_dict = yaml.safe_load(f)
 
-            elif metadata_db_type == "S3_DB":
-                verify_keys(d, "s3_bucket", metadata=True)
-                verify_keys(d, "s3_key", metadata=True)
-                verify_keys(d, "endpoint_url", metadata=True)
-                verify_keys(d, "aws_access_key_id", metadata=True)
-                verify_keys(d, "aws_secret_access_key", metadata=True)
-                client = boto3.client(
-                    "s3",
-                    endpoint_url=d["metadata"]["endpoint_url"],
-                    aws_access_key_id=d["metadata"]["aws_access_key_id"],
-                    aws_secret_access_key=d["metadata"][
-                        "aws_secret_access_key"
-                    ],
-                )
-                response = client.get_object(
-                    Bucket=d["metadata"]["s3_bucket"],
-                    Key=d["metadata"]["s3_key"],
-                )
-                try:
-                    metadata_dict = yaml.safe_load(response["Body"])
-                except yaml.YAMLError as e:
-                    return e
-            else:
-                raise ValueError(
-                    f"Unknown database type {d['metadata']['database_type']}"
-                )
+                case PrivateDatabaseType.S3:
+                    verify_keys(d, "s3_bucket", metadata=True)
+                    verify_keys(d, "s3_key", metadata=True)
+                    verify_keys(d, "endpoint_url", metadata=True)
+                    verify_keys(d, "aws_access_key_id", metadata=True)
+                    verify_keys(d, "aws_secret_access_key", metadata=True)
+                    client = boto3.client(
+                        "s3",
+                        endpoint_url=d["metadata"]["endpoint_url"],
+                        aws_access_key_id=d["metadata"]["aws_access_key_id"],
+                        aws_secret_access_key=d["metadata"][
+                            "aws_secret_access_key"
+                        ],
+                    )
+                    response = client.get_object(
+                        Bucket=d["metadata"]["s3_bucket"],
+                        Key=d["metadata"]["s3_key"],
+                    )
+                    try:
+                        metadata_dict = yaml.safe_load(response["Body"])
+                    except yaml.YAMLError as e:
+                        return e
 
             # Overwrite or not depending on config if metadata already exists
             filter = {dataset_name: metadata_dict}

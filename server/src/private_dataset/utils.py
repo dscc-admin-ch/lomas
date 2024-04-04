@@ -2,7 +2,7 @@ from private_dataset.private_dataset import PrivateDataset
 from private_dataset.local_dataset import LocalDataset
 from private_dataset.remote_http_dataset import RemoteHTTPDataset
 from private_dataset.s3_dataset import S3Dataset
-from constants import LOCAL_DB, REMOTE_HTTP_DB, S3_DB
+from constants import PrivateDatabaseType
 
 
 def private_dataset_factory(
@@ -18,39 +18,38 @@ def private_dataset_factory(
 
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
 
-    if database_type == REMOTE_HTTP_DB:
-        dataset_url = admin_database.get_dataset_field(
-            dataset_name, "dataset_url"
-        )
-        private_db = RemoteHTTPDataset(ds_metadata, dataset_url)
-    elif database_type == S3_DB:
-        s3_bucket = admin_database.get_dataset_field(dataset_name, "s3_bucket")
-        s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
-        s3_endpoint = admin_database.get_dataset_field(
-            dataset_name, "endpoint_url"
-        )
-        s3_aws_access_key_id = admin_database.get_dataset_field(
-            dataset_name, "aws_access_key_id"
-        )
-        s3_aws_secret_access_key = admin_database.get_dataset_field(
-            dataset_name, "aws_secret_access_key"
-        )
-        private_db = S3Dataset(
-            ds_metadata,
-            s3_bucket,
-            s3_key,
-            s3_endpoint,
-            s3_aws_access_key_id,
-            s3_aws_secret_access_key,
-        )
-    elif database_type == LOCAL_DB:
-        dataset_path = admin_database.get_dataset_field(
-            dataset_name, "dataset_path"
-        )
-        private_db = LocalDataset(ds_metadata, dataset_path)
-    else:
-        raise ValueError(
-            f"Unknown database type {database_type} \
-            for dataset {dataset_name}."
-        )
+    match database_type:
+        case PrivateDatabaseType.REMOTE_HTTP:
+            dataset_url = admin_database.get_dataset_field(
+                dataset_name, "dataset_url"
+            )
+            private_db = RemoteHTTPDataset(ds_metadata, dataset_url)
+        case PrivateDatabaseType.S3:
+            s3_bucket = admin_database.get_dataset_field(
+                dataset_name, "s3_bucket"
+            )
+            s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
+            s3_endpoint = admin_database.get_dataset_field(
+                dataset_name, "endpoint_url"
+            )
+            s3_aws_access_key_id = admin_database.get_dataset_field(
+                dataset_name, "aws_access_key_id"
+            )
+            s3_aws_secret_access_key = admin_database.get_dataset_field(
+                dataset_name, "aws_secret_access_key"
+            )
+            private_db = S3Dataset(
+                ds_metadata,
+                s3_bucket,
+                s3_key,
+                s3_endpoint,
+                s3_aws_access_key_id,
+                s3_aws_secret_access_key,
+            )
+        case PrivateDatabaseType.LOCAL:
+            dataset_path = admin_database.get_dataset_field(
+                dataset_name, "dataset_path"
+            )
+            private_db = LocalDataset(ds_metadata, dataset_path)
+
     return private_db

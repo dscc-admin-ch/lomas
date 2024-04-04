@@ -42,11 +42,7 @@ from utils.utils import (
 )
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
-from constants import (
-    INTERNAL_SERVER_ERROR,
-    LIB_OPENDP,
-    LIB_SMARTNOISE_SQL,
-)
+from constants import INTERNAL_SERVER_ERROR, DPLibraries
 from dp_queries.dummy_dataset import (
     get_dummy_dataset_for_query,
     make_dummy_dataset,
@@ -246,7 +242,7 @@ def smartnoise_sql_handler(
 ):
     try:
         response = QUERY_HANDLER.handle_query(
-            LIB_SMARTNOISE_SQL, query_json, user_name
+            DPLibraries.SMARTNOISE_SQL, query_json, user_name
         )
     except ExternalLibraryException as e:
         raise e
@@ -273,7 +269,7 @@ def dummy_smartnoise_sql_handler(
         ADMIN_DATABASE, query_json
     )
     dummy_querier = querier_factory(
-        LIB_SMARTNOISE_SQL, private_dataset=ds_private_dataset
+        DPLibraries.SMARTNOISE_SQL, private_dataset=ds_private_dataset
     )
 
     try:
@@ -301,7 +297,7 @@ def estimate_smartnoise_cost(
 ):
     try:
         response = QUERY_HANDLER.estimate_cost(
-            LIB_SMARTNOISE_SQL,
+            DPLibraries.SMARTNOISE_SQL,
             query_json,
         )
     except ExternalLibraryException as e:
@@ -325,7 +321,7 @@ def opendp_query_handler(
 ):
     try:
         response = QUERY_HANDLER.handle_query(
-            LIB_OPENDP, query_json, user_name
+            DPLibraries.OPENDP, query_json, user_name
         )
     except InvalidQueryException as e:
         raise e
@@ -353,7 +349,7 @@ def dummy_opendp_query_handler(
         ADMIN_DATABASE, query_json
     )
     dummy_querier = querier_factory(
-        LIB_OPENDP, private_dataset=ds_private_dataset
+        DPLibraries.OPENDP, private_dataset=ds_private_dataset
     )
 
     try:
@@ -384,7 +380,7 @@ def estimate_opendp_cost(
 ):
     try:
         response = QUERY_HANDLER.estimate_cost(
-            LIB_OPENDP,
+            DPLibraries.OPENDP,
             query_json,
         )
     except InvalidQueryException as e:

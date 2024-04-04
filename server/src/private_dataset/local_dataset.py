@@ -26,7 +26,6 @@ class LocalDataset(PrivateDataset):
             - pandas dataframe of dataset
         """
         if self.df is None:
-            # TODO add support for more file types (e.g. parquet, etc..).
             if self.ds_path.endswith(".csv"):
                 try:
                     self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
@@ -37,7 +36,6 @@ class LocalDataset(PrivateDataset):
                             {self.ds_path}: {err}",
                     )
             else:
-                # TODO make this cleaner
                 return Exception(
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
@@ -48,8 +46,7 @@ class LocalDataset(PrivateDataset):
                 observer.update_memory_usage()
                 for observer in self.dataset_observers
             ]
-        # TODO return copy here? => safer but not very efficient.
-        return self.df
+        return self.df.copy(deep=True)
 
     def get_local_path(self) -> str:
         """

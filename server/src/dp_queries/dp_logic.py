@@ -13,7 +13,7 @@ class QueryHandler:
     Query handler for the server.
 
     Holds a reference to the user database and uses a BasicQuerierManager
-    to manage the queriers. TODO make this configurable?
+    to manage the queriers.
     """
 
     admin_database: AdminDatabase

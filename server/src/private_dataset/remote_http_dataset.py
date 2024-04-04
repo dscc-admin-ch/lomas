@@ -28,7 +28,6 @@ class RemoteHTTPDataset(PrivateDataset):
             - pandas dataframe of dataset
         """
         if self.df is None:
-            # TODO add support for more file types (e.g. parquet, etc..).
             if self.ds_path.endswith(".csv"):
                 try:
                     self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
@@ -39,7 +38,6 @@ class RemoteHTTPDataset(PrivateDataset):
                             {err}",
                     )
             else:
-                # TODO make this cleaner
                 return Exception(
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."

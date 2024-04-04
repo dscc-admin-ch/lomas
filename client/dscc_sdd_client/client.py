@@ -2,6 +2,7 @@ import requests
 import json
 import pandas as pd
 from io import StringIO
+from enum import StrEnum
 from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
 
@@ -17,9 +18,9 @@ DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
 # Server constants: warning: MUST match those of server
-LIB_SMARTNOISE_SQL = "smartnoise_sql"
-LIB_OPENDP = "opendp"
-
+class DPLibraries(StrEnum):
+    SMARTNOISE_SQL = "smartnoise_sql"
+    OPENDP = "opendp"
 
 def error_message(res):
     return f"Server error status {res.status_code}: {res.text}"
@@ -235,15 +236,12 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                if query["api"] == LIB_SMARTNOISE_SQL:
-                    pass  # no need to deserialise
-
-                elif query["api"] == LIB_OPENDP:
-                    opdp_query = make_load_json(query["query"])
-                    query["query"] = opdp_query
-
-                else:
-                    raise ValueError(f"Unknown query type: {query['api']}")
+                match query["api"]:
+                    case DPLibraries.SMARTNOISE_SQL:
+                        pass
+                    case DPLibraries.OPENDP:
+                        opdp_query = make_load_json(query["query"])
+                        query["query"] = opdp_query
 
                 deserialised_queries.append(query)
 

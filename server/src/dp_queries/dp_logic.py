@@ -1,4 +1,4 @@
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, status
 
 
 from admin_database.admin_database import AdminDatabase
@@ -13,7 +13,7 @@ class QueryHandler:
     Query handler for the server.
 
     Holds a reference to the user database and uses a BasicQuerierManager
-    to manage the queriers.
+    to manage the queriers. TODO make this configurable
     """
 
     admin_database: AdminDatabase
@@ -34,7 +34,7 @@ class QueryHandler:
         if query_type not in SUPPORTED_LIBS:
             e = f"Query type {query_type} not supported in QueryHandler"
             LOG.exception(e)
-            raise HTTPException(404, str(e))
+            raise ValueError(e)
 
         # Get querier
         try:
@@ -42,15 +42,10 @@ class QueryHandler:
                 query_json.dataset_name, query_type
             )
         except Exception as e:
-            LOG.exception(
-                f"Failed to get querier for dataset "
-                f"{query_json.dataset_name}: {str(e)}"
-            )
-            raise HTTPException(
-                404,
-                f"Failed to get querier for dataset "
-                f"{query_json.dataset_name}",
-            )
+            msg = "Failed to get querier for dataset "
+            +f"{query_json.dataset_name}: {str(e)}"
+            LOG.exception(msg)
+            raise Exception(msg)
         return dp_querier
 
     def estimate_cost(
@@ -77,14 +72,10 @@ class QueryHandler:
 
         # Check that user may query
         if not self.admin_database.may_user_query(user_name):
-            LOG.warning(
-                f"User {user_name} is trying to query before end of \
-                previous query. Returning without response."
-            )
-            return {
-                "requested_by": user_name,
-                "state": "No response. Already a query running.",
-            }
+            e = f"User {user_name} is trying to query before end of "
+            +"previous query. Returning without response."
+            LOG.warning(e)
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, str(e))
 
         # Block access to other queries to user
         self.admin_database.set_may_user_query(user_name, False)
@@ -105,21 +96,16 @@ class QueryHandler:
             # Query
             try:
                 query_response = dp_querier.query(query_json)
-            except HTTPException as he:
-                self.admin_database.set_may_user_query(user_name, True)
-                LOG.exception(he)
-                raise he
             except Exception as e:
-                self.admin_database.set_may_user_query(user_name, True)
                 LOG.exception(e)
-                raise HTTPException(500, str(e))
+                raise HTTPException(
+                    status.HTTP_500_INTERNAL_SERVER_ERROR, str(e)
+                )
 
             # Deduce budget from user
             self.admin_database.update_budget(
                 user_name, query_json.dataset_name, eps_cost, delta_cost
             )
-
-            LOG.warning(f"response {query_response}")
             response = {
                 "requested_by": user_name,
                 "state": "Query successful.",

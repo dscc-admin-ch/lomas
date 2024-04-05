@@ -29,6 +29,7 @@ CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 
 # Server error messages
+INVALID_QUERY_ERROR = "Query is invalid"
 INTERNAL_SERVER_ERROR = (
     "Internal server error. Please contact the administrator of this service."
 )

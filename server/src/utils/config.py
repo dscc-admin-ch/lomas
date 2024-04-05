@@ -60,9 +60,7 @@ class Config(BaseModel):
     time_attack: TimeAttack = None
 
     # A limit on the rate which users can submit answers
-    submit_limit: float = (
-        5 * 60
-    )  # TODO not used for the moment, kept as a simple example field for now.
+    submit_limit: float = 5 * 60  # TODO ticket #145
 
     admin_database: DBConfig = None
 

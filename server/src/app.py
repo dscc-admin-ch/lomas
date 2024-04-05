@@ -153,7 +153,7 @@ async def invalid_query_exception_handler(
 ):
     LOG.info(f"InvalidQueryException raised: {exc.error_message}")
     return JSONResponse(
-        status_code=status.HTTP_403_FORBIDDEN,
+        status_code=status.HTTP_400_BAD_REQUEST,
         content={"InvalidQueryException": exc.error_message},
     )
 

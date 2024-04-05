@@ -51,8 +51,7 @@ class OpenDPQuerier(DPQuerier):
             epsilon, delta = cost[0], cost[1]
         else:
             e = f"Cost cannot be converted to epsilon, delta format: {cost}"
-            LOG.exception(e)
-            raise Exception(e)
+            raise InvalidQueryException(e)
 
         return epsilon, delta
 

@@ -1,8 +1,8 @@
 import os
 import tempfile
 import urllib
-from fastapi import HTTPException
 import pandas as pd
+from utils.error_handler import InternalServerException, InvalidQueryException
 
 
 from private_dataset.private_dataset import PrivateDataset
@@ -33,14 +33,12 @@ class RemoteHTTPDataset(PrivateDataset):
                 try:
                     self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
                 except Exception as err:
-                    raise HTTPException(
-                        400,
-                        f"Error reading csv at http path: {self.ds_path}: \
-                            {err}",
+                    raise InternalServerException(
+                        "Error reading csv at http path:"
+                        f"{self.ds_path}: {err}",
                     )
             else:
-                # TODO make this cleaner
-                return Exception(
+                return InvalidQueryException(
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )

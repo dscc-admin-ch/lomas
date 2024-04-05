@@ -1,12 +1,11 @@
 from typing import List
-from fastapi import HTTPException, status
 from snsql import Privacy, from_connection, Stat, Mechanism
 import pandas as pd
 
 from constants import DPLibraries, MAX_NAN_ITERATION, STATS
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from utils.error_handler import ExternalLibraryException
+from utils.error_handler import ExternalLibraryException, InvalidQueryException
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -80,8 +79,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
             else:
-                raise HTTPException(
-                    status.HTTP_400_BAD_REQUEST,
+                raise InvalidQueryException(
                     f"SQL Reader generated NAN results."
                     f" Epsilon: {epsilon} and Delta: {delta} are too small"
                     " to generate output.",

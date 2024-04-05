@@ -23,7 +23,7 @@ from constants import (
     CONF_DATASET_STORE_TYPE_BASIC,
     SECRETS_PATH,
 )
-from utils.loggr import LOG
+from utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
@@ -129,7 +129,9 @@ def get_config() -> dict:
                 config_data[CONF_DB]
             )
         else:
-            raise Exception(f"User database type {db_type} not supported.")
+            raise InternalServerException(
+                f"User database type {db_type} not supported."
+            )
 
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
@@ -152,11 +154,10 @@ def get_config() -> dict:
         )
 
     except Exception as e:
-        LOG.error(
-            f"Could not read config from disk at {CONFIG_PATH} \
-                or missing fields"
+        raise InternalServerException(
+            f"Could not read config from disk at {CONFIG_PATH}"
+            + f"or missing fields: {e}"
         )
-        raise e
 
     return config
 

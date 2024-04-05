@@ -3,6 +3,7 @@ from private_dataset.local_dataset import LocalDataset
 from private_dataset.remote_http_dataset import RemoteHTTPDataset
 from private_dataset.s3_dataset import S3Dataset
 from constants import PrivateDatabaseType
+from utils.utils import InternalServerException
 
 
 def private_dataset_factory(
@@ -51,5 +52,9 @@ def private_dataset_factory(
                 dataset_name, "dataset_path"
             )
             private_db = LocalDataset(ds_metadata, dataset_path)
+        case _:
+            raise InternalServerException(
+                f"Unknown database type: {database_type}"
+            )
 
     return private_db

@@ -4,6 +4,7 @@ import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
+from utils.utils import InternalServerException
 
 
 class MongoDB_Admin:
@@ -221,6 +222,10 @@ class MongoDB_Admin:
                 dataset["endpoint_url"] = args.endpoint_url
                 dataset["aws_access_key_id"] = args.aws_access_key_id
                 dataset["aws_secret_access_key"] = args.aws_secret_access_key
+            case _:
+                raise InternalServerException(
+                    f"Unknown data PrivateDatabaseType: {args.database_type}"
+                )
         self.db.datasets.insert_one(dataset)
 
         # Step 2: add metadata
@@ -244,6 +249,11 @@ class MongoDB_Admin:
                     metadata_dict = yaml.safe_load(response["Body"])
                 except yaml.YAMLError as e:
                     return e
+            case _:
+                raise InternalServerException(
+                    "Unknown metadata PrivateDatabaseType:"
+                    + f"{args.metadata_database_type}"
+                )
 
         self.db.metadata.insert_one({args.dataset: metadata_dict})
 
@@ -292,6 +302,10 @@ class MongoDB_Admin:
                     verify_keys(d, "s3_key")
                 case PrivateDatabaseType.LOCAL:
                     verify_keys(d, "dataset_path")
+                case _:
+                    raise InternalServerException(
+                        f"Unknown PrivateDatabaseType: {d['database_type']}"
+                    )
 
             # Fill datasets_list
             if not self.db.datasets.find_one(
@@ -353,6 +367,12 @@ class MongoDB_Admin:
                         metadata_dict = yaml.safe_load(response["Body"])
                     except yaml.YAMLError as e:
                         return e
+
+                case _:
+                    raise InternalServerException(
+                        "Unknown metadata_db_type PrivateDatabaseType:"
+                        + f"{metadata_db_type}"
+                    )
 
             # Overwrite or not depending on config if metadata already exists
             filter = {dataset_name: metadata_dict}

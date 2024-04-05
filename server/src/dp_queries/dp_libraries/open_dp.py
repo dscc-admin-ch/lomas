@@ -9,7 +9,11 @@ from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
 from constants import DPLibraries, OpenDPInputType
 from utils.loggr import LOG
-from utils.utils import ExternalLibraryException, InvalidQueryException
+from utils.utils import (
+    ExternalLibraryException,
+    InvalidQueryException,
+)
+
 
 enable_features("contrib")
 
@@ -63,12 +67,9 @@ class OpenDPQuerier(DPQuerier):
             case OpenDPInputType.PATH:
                 input_data = self.private_dataset.get_local_path()
             case _:
-                e = (
-                    f"Input data type {query_json.input_data_type}"
-                    "not valid for opendp query."
+                raise InvalidQueryException(
+                    f"Invalid input data type {query_json.input_data_type}"
                 )
-                LOG.exception(e)
-                raise InvalidQueryException(e)
 
         try:
             release_data = opendp_pipe(input_data)

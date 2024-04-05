@@ -244,6 +244,11 @@ class Client:
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(query["query"])
                         query["query"] = opdp_query
+                    case _:
+                        raise ValueError(
+                            "Cannot deserialise unknown query type:"
+                            + f"{query['api']}"
+                        )
 
                 deserialised_queries.append(query)
 

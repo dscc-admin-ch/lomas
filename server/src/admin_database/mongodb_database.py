@@ -4,6 +4,7 @@ import pymongo
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
+from utils.utils import InternalServerException
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -297,5 +298,10 @@ class AdminMongoDatabase(AdminDatabase):
                 to_archive["api"] = DPLibraries.OPENDP
                 to_archive["query"] = query_json.opendp_json
                 to_archive["input_data_type"] = query_json.input_data_type
+
+            case _:
+                raise InternalServerException(
+                    f"Unknown query input: {query_json.__class__.__name__}"
+                )
 
         self.db.queries_archives.insert_one(to_archive)

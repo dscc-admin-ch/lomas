@@ -3,7 +3,6 @@ from fastapi import (
     Depends,
     FastAPI,
     Header,
-    HTTPException,
     Request,
     status,
 )
@@ -39,6 +38,7 @@ from utils.utils import (
     check_start_condition,
     ExternalLibraryException,
     InvalidQueryException,
+    InternalServerException,
 )
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
@@ -172,6 +172,17 @@ async def external_library_exception_handler(
     )
 
 
+@app.exception_handler(InternalServerException)
+async def internal_server_exception_handler(
+    _: Request, exc: InternalServerException
+):
+    LOG.info(f"InternalServerException raised: {exc.error_message}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"InternalServerException": INTERNAL_SERVER_ERROR},
+    )
+
+
 # API Endpoints
 # -----------------------------------------------------------------------------
 
@@ -247,11 +258,7 @@ def smartnoise_sql_handler(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 
@@ -278,11 +285,7 @@ def dummy_smartnoise_sql_handler(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 
@@ -303,11 +306,7 @@ def estimate_smartnoise_cost(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 
@@ -328,11 +327,7 @@ def opendp_query_handler(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 
@@ -361,11 +356,7 @@ def dummy_opendp_query_handler(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 
@@ -388,11 +379,7 @@ def estimate_opendp_cost(
     except ExternalLibraryException as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerException(e)
 
     return response
 

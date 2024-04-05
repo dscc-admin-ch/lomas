@@ -98,3 +98,13 @@ class ExternalLibraryException(Exception):
     def __init__(self, library: str, error_message: str):
         self.library = library
         self.error_message = error_message
+
+
+class InternalServerException(Exception):
+    """
+    Custom exception for issues within server internal functionalities
+    like unexpected match cases
+    """
+
+    def __init__(self, error_message: str):
+        self.error_message = error_message

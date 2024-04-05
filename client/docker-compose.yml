@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   client:
-    image: damienaymon/sdd_client_dev
+    image: dsccadminch/sdd_client_dev
     build:
       dockerfile: ./Dockerfile
       target: sdd_client_dev

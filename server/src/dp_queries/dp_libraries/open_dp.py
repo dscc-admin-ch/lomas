@@ -9,7 +9,7 @@ from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
 from constants import DPLibraries, OpenDPInputType
 from utils.loggr import LOG
-from utils.utils import (
+from utils.error_handler import (
     ExternalLibraryException,
     InvalidQueryException,
 )

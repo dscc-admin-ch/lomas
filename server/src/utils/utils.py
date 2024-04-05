@@ -72,39 +72,3 @@ def check_start_condition():
         app.SERVER_STATE["state"].append(SERVER_LIVE)
         app.SERVER_STATE["message"].append("Server start condition OK")
         app.SERVER_STATE["LIVE"] = True
-
-
-class InvalidQueryException(Exception):
-    """
-    Custom exception for invalid queries
-
-    For example, this exception will occur when the query:
-        - is not an opendp measurement
-        - cannot be reconstructed properly (for opendp and diffprivlib)
-    """
-
-    def __init__(self, error_message: str):
-        self.error_message = error_message
-
-
-class ExternalLibraryException(Exception):
-    """
-    Custom exception for issues within external libraries
-
-    This exception will occur when the processes fail within the
-    external libraries (smartnoise-sql, opendp, diffprivlib)
-    """
-
-    def __init__(self, library: str, error_message: str):
-        self.library = library
-        self.error_message = error_message
-
-
-class InternalServerException(Exception):
-    """
-    Custom exception for issues within server internal functionalities
-    like unexpected match cases
-    """
-
-    def __init__(self, error_message: str):
-        self.error_message = error_message

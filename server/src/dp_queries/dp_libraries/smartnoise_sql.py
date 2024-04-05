@@ -6,7 +6,7 @@ import pandas as pd
 from constants import DPLibraries, MAX_NAN_ITERATION, STATS
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from utils.utils import ExternalLibraryException
+from utils.error_handler import ExternalLibraryException
 
 
 class SmartnoiseSQLQuerier(DPQuerier):

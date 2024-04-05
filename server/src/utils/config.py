@@ -18,9 +18,8 @@ from constants import (
     CONF_DB_TYPE_MONGODB,
     CONF_SUBMIT_LIMIT,
     CONF_DATASET_STORE,
+    ConfDatasetStore,
     CONF_DATASET_STORE_TYPE,
-    CONF_DATASET_STORE_TYPE_LRU,
-    CONF_DATASET_STORE_TYPE_BASIC,
     SECRETS_PATH,
 )
 from utils.error_handler import InternalServerException
@@ -36,9 +35,7 @@ class DBConfig(BaseModel):
 
 
 class DatasetStoreConfig(BaseModel):
-    ds_store_type: Literal[
-        CONF_DATASET_STORE_TYPE_BASIC, CONF_DATASET_STORE_TYPE_LRU
-    ]
+    ds_store_type: Literal[ConfDatasetStore.BASIC, ConfDatasetStore.LRU]
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
@@ -136,11 +133,11 @@ def get_config() -> dict:
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
         ]
-        if ds_store_type == CONF_DATASET_STORE_TYPE_BASIC:
+        if ds_store_type == ConfDatasetStore.BASIC:
             ds_store_config = DatasetStoreConfig(
                 config_data[CONF_DATASET_STORE]
             )
-        elif ds_store_type == CONF_DATASET_STORE_TYPE_LRU:
+        elif ds_store_type == ConfDatasetStore.LRU:
             ds_store_config = LRUDatasetStoreConfig.parse_obj(
                 config_data[CONF_DATASET_STORE]
             )

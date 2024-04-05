@@ -13,9 +13,7 @@ from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.error_handler import (
     add_exception_handlers,
-    InvalidQueryException,
-    ExternalLibraryException,
-    UnauthorizedAccessException,
+    get_custom_exceptions_list,
     InternalServerException,
 )
 from utils.example_inputs import (
@@ -146,7 +144,7 @@ async def middleware(request: Request, call_next):
 
 # Add custom exception handlers
 add_exception_handlers(app)
-
+custom_exceptions = get_custom_exceptions_list()
 
 # API Endpoints
 # -----------------------------------------------------------------------------
@@ -178,8 +176,10 @@ def get_dataset_metadata(
             query_json.dataset_name
         )[""]["Schema"]["Table"]
 
-    except Exception as e:
+    except custom_exceptions as e:
         raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return ds_metadata
 
@@ -201,8 +201,10 @@ def get_dummy_dataset(
         dummy_df = make_dummy_dataset(
             ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
         )
-    except Exception as e:
+    except custom_exceptions as e:
         raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return stream_dataframe(dummy_df)
 
@@ -221,7 +223,7 @@ def smartnoise_sql_handler(
         response = QUERY_HANDLER.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name
         )
-    except (ExternalLibraryException, InternalServerException) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -248,7 +250,7 @@ def dummy_smartnoise_sql_handler(
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
-    except (ExternalLibraryException, InternalServerException) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -269,7 +271,7 @@ def estimate_smartnoise_cost(
             DPLibraries.SMARTNOISE_SQL,
             query_json,
         )
-    except (ExternalLibraryException, InternalServerException) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -288,11 +290,7 @@ def opendp_query_handler(
         response = QUERY_HANDLER.handle_query(
             DPLibraries.OPENDP, query_json, user_name
         )
-    except (
-        InvalidQueryException,
-        ExternalLibraryException,
-        InternalServerException,
-    ) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -319,11 +317,7 @@ def dummy_opendp_query_handler(
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
 
-    except (
-        InvalidQueryException,
-        ExternalLibraryException,
-        InternalServerException,
-    ) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -344,11 +338,7 @@ def estimate_opendp_cost(
             DPLibraries.OPENDP,
             query_json,
         )
-    except (
-        InvalidQueryException,
-        ExternalLibraryException,
-        InternalServerException,
-    ) as e:
+    except custom_exceptions as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -366,9 +356,14 @@ def get_initial_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
-    initial_epsilon, initial_delta = ADMIN_DATABASE.get_initial_budget(
-        user_name, query_json.dataset_name
-    )
+    try:
+        initial_epsilon, initial_delta = ADMIN_DATABASE.get_initial_budget(
+            user_name, query_json.dataset_name
+        )
+    except custom_exceptions as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
 
@@ -383,12 +378,17 @@ def get_total_spent_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
-    (
-        total_spent_epsilon,
-        total_spent_delta,
-    ) = ADMIN_DATABASE.get_total_spent_budget(
-        user_name, query_json.dataset_name
-    )
+    try:
+        (
+            total_spent_epsilon,
+            total_spent_delta,
+        ) = ADMIN_DATABASE.get_total_spent_budget(
+            user_name, query_json.dataset_name
+        )
+    except custom_exceptions as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return {
         "total_spent_epsilon": total_spent_epsilon,
@@ -406,9 +406,14 @@ def get_remaining_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
-    rem_epsilon, rem_delta = ADMIN_DATABASE.get_remaining_budget(
-        user_name, query_json.dataset_name
-    )
+    try:
+        rem_epsilon, rem_delta = ADMIN_DATABASE.get_remaining_budget(
+            user_name, query_json.dataset_name
+        )
+    except custom_exceptions as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
 
@@ -423,9 +428,14 @@ def get_user_previous_queries(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
 ):
-    previous_queries = ADMIN_DATABASE.get_user_previous_queries(
-        user_name, query_json.dataset_name
-    )
+    try:
+        previous_queries = ADMIN_DATABASE.get_user_previous_queries(
+            user_name, query_json.dataset_name
+        )
+    except custom_exceptions as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e)
 
     return {"previous_queries": previous_queries}
 

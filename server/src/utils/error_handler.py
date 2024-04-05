@@ -50,6 +50,15 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
+def get_custom_exceptions_list():
+    return (
+        ExternalLibraryException,
+        InternalServerException,
+        InvalidQueryException,
+        UnauthorizedAccessException,
+    )
+
+
 # Custom exception handlers
 def add_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(InvalidQueryException)

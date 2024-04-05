@@ -255,7 +255,7 @@ def smartnoise_sql_handler(
         response = QUERY_HANDLER.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name
         )
-    except ExternalLibraryException as e:
+    except (ExternalLibraryException, InternalServerException) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -282,7 +282,7 @@ def dummy_smartnoise_sql_handler(
     try:
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
-    except ExternalLibraryException as e:
+    except (ExternalLibraryException, InternalServerException) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -303,7 +303,7 @@ def estimate_smartnoise_cost(
             DPLibraries.SMARTNOISE_SQL,
             query_json,
         )
-    except ExternalLibraryException as e:
+    except (ExternalLibraryException, InternalServerException) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -322,9 +322,11 @@ def opendp_query_handler(
         response = QUERY_HANDLER.handle_query(
             DPLibraries.OPENDP, query_json, user_name
         )
-    except InvalidQueryException as e:
-        raise e
-    except ExternalLibraryException as e:
+    except (
+        InvalidQueryException,
+        ExternalLibraryException,
+        InternalServerException,
+    ) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -351,9 +353,11 @@ def dummy_opendp_query_handler(
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
 
-    except InvalidQueryException as e:
-        raise e
-    except ExternalLibraryException as e:
+    except (
+        InvalidQueryException,
+        ExternalLibraryException,
+        InternalServerException,
+    ) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)
@@ -374,9 +378,11 @@ def estimate_opendp_cost(
             DPLibraries.OPENDP,
             query_json,
         )
-    except InvalidQueryException as e:
-        raise e
-    except ExternalLibraryException as e:
+    except (
+        InvalidQueryException,
+        ExternalLibraryException,
+        InternalServerException,
+    ) as e:
         raise e
     except Exception as e:
         raise InternalServerException(e)

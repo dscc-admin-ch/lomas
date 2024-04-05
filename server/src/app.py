@@ -4,15 +4,20 @@ from fastapi import (
     FastAPI,
     Header,
     Request,
-    status,
 )
-from fastapi.responses import JSONResponse
 
 from mongodb_admin import MongoDB_Admin
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory, get_mongodb_url
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
+from utils.error_handler import (
+    add_exception_handlers,
+    InvalidQueryException,
+    ExternalLibraryException,
+    UnauthorizedAccessException,
+    InternalServerException,
+)
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
@@ -32,17 +37,10 @@ from utils.input_models import (
     SNSQLInpCost,
 )
 from dp_queries.dp_libraries.utils import querier_factory
-from utils.utils import (
-    stream_dataframe,
-    server_live,
-    check_start_condition,
-    ExternalLibraryException,
-    InvalidQueryException,
-    InternalServerException,
-)
+from utils.utils import stream_dataframe, server_live, check_start_condition
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config, Config
-from constants import INTERNAL_SERVER_ERROR, DPLibraries
+from constants import DPLibraries
 from dp_queries.dummy_dataset import (
     get_dummy_dataset_for_query,
     make_dummy_dataset,
@@ -146,47 +144,15 @@ async def middleware(request: Request, call_next):
     return await anti_timing_att(request, call_next, CONFIG)
 
 
-# Custom exception handlers
-@app.exception_handler(InvalidQueryException)
-async def invalid_query_exception_handler(
-    _: Request, exc: InvalidQueryException
-):
-    LOG.info(f"InvalidQueryException raised: {exc.error_message}")
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={"InvalidQueryException": exc.error_message},
-    )
-
-
-@app.exception_handler(ExternalLibraryException)
-async def external_library_exception_handler(
-    _: Request, exc: ExternalLibraryException
-):
-    LOG.info(f"ExternalLibraryException raised: {exc.error_message}")
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "ExternalLibraryException": exc.error_message,
-            "library": exc.library,
-        },
-    )
-
-
-@app.exception_handler(InternalServerException)
-async def internal_server_exception_handler(
-    _: Request, exc: InternalServerException
-):
-    LOG.info(f"InternalServerException raised: {exc.error_message}")
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"InternalServerException": INTERNAL_SERVER_ERROR},
-    )
+# Add custom exception handlers
+add_exception_handlers(app)
 
 
 # API Endpoints
 # -----------------------------------------------------------------------------
 
 
+# Get server state
 @app.get("/state", tags=["ADMIN_USER"])
 async def get_state(user_name: str = Header(None)):
     """

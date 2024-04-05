@@ -4,7 +4,7 @@ import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
-from utils.utils import InternalServerException
+from utils.error_handler import InternalServerException
 
 
 class MongoDB_Admin:

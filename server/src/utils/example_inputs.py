@@ -164,6 +164,7 @@ example_diffprivlib = {
     "target_columns": ["sepal_length"],
     "test_size": 0.2,
     "test_train_split_seed": 1,
+    "imputer_strategy": "mean",
 }
 
 example_dummy_diffprivlib = {
@@ -173,6 +174,7 @@ example_dummy_diffprivlib = {
     "target_columns": ["sepal_length"],
     "test_train_split_seed": 1,
     "test_size": 0.2,
+    "imputer_strategy": "mean",
     "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED,
+    "dummy_seed": DUMMY_SEED
 }

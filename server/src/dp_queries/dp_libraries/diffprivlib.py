@@ -2,6 +2,7 @@ from typing import List
 import base64
 import pickle
 import json
+import pandas as pd
 import warnings
 from fastapi import HTTPException
 import diffprivlib
@@ -11,10 +12,12 @@ from diffprivlib.utils import (
 )
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
 from utils.loggr import LOG
+from constants import NUMERICAL_DTYPES
 
 # DiffPrivLib warnings will trigger error
 warnings.simplefilter("error", PrivacyLeakWarning)
@@ -40,7 +43,41 @@ class DiffPrivLibQuerier(DPQuerier):
 
     def prepare_data(self, query_json):
         data = self.private_dataset.get_pandas_df()
-        data = data.dropna()  # TODO: see if always necessary
+
+        imputer_strategy = query_json.imputer_strategy
+        if imputer_strategy is None:
+            data = data.dropna()
+        elif imputer_strategy in ["mean", "median"]:
+            numerical_cols = (
+                data.select_dtypes(include=NUMERICAL_DTYPES)
+                .columns.tolist()
+            )
+            categorical_cols = [col for col in data.columns 
+                                if col not in numerical_cols]
+            
+            # Impute numerical features using given strategy
+            imp_mean = SimpleImputer(strategy=imputer_strategy)
+            df_num_imputed = imp_mean.fit_transform(data[numerical_cols])
+            
+            # Impute categorical features with most frequent value
+            imp_most_frequent = SimpleImputer(strategy="most_frequent")
+            df_cat_imputed = imp_most_frequent.fit_transform(
+                data[categorical_cols])
+
+            # Combine imputed dataframes
+            data = pd.concat([
+                pd.DataFrame(df_num_imputed, columns=numerical_cols),
+                pd.DataFrame(df_cat_imputed, columns=categorical_cols)],
+                axis=1)
+        elif imputer_strategy == "most_frequent":
+            # Impute all features with most frequent value
+            imp_most_frequent = SimpleImputer(strategy=imputer_strategy)
+            data = pd.DataFrame(
+                imp_most_frequent.fit_transform(data),
+                columns=data.columns)
+        else:
+            raise ValueError(
+                f"Imputation strategy {imputer_strategy} not supported")
 
         feature_data = data[query_json.feature_columns]
 

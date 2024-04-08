@@ -219,6 +219,7 @@ class Client:
         target_columns: Optional[List[str]] = None,
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
+        imputer_strategy: Optional[str] = None,
         score: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -232,6 +233,7 @@ class Client:
             "target_columns": target_columns,
             "test_size": test_size,
             "test_train_split_seed": test_train_split_seed,
+            "imputer_strategy": imputer_strategy,
             "score": score,
         }
         if dummy:

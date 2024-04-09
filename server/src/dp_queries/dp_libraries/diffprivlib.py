@@ -45,7 +45,7 @@ class DiffPrivLibQuerier(DPQuerier):
         data = self.private_dataset.get_pandas_df()
 
         imputer_strategy = query_json.imputer_strategy
-        if imputer_strategy is None:
+        if imputer_strategy in [None, "drop"]:
             data = data.dropna()
         elif imputer_strategy in ["mean", "median"]:
             numerical_cols = (
@@ -76,8 +76,10 @@ class DiffPrivLibQuerier(DPQuerier):
                 imp_most_frequent.fit_transform(data),
                 columns=data.columns)
         else:
-            raise ValueError(
-                f"Imputation strategy {imputer_strategy} not supported")
+            raise HTTPException(
+                500, 
+                f"Imputation strategy {imputer_strategy} not supported"
+                )
 
         feature_data = data[query_json.feature_columns]
 

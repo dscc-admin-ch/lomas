@@ -72,26 +72,6 @@ class Config(BaseModel):
         return v
     """
 
-    # Yet to determin what this was used for.
-    # TODO read this https://docs.pydantic.dev/usage/settings/#secret-support
-    # and update how config is loaded (similar to what was done by oblv.)
-    """
-    class Config:
-        @classmethod
-        def customise_sources(
-            cls,
-            init_settings,
-            env_settings,
-            file_secret_settings,
-        ):
-            return (
-                init_settings,
-                yaml_config,
-                env_settings,
-                file_secret_settings,
-            )
-    """
-
 
 # Utility functions -----------------------------------------------------------
 

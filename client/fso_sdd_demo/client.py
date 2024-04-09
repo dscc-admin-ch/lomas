@@ -269,6 +269,7 @@ class Client:
         target_columns: List[str] = [""],
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
+        imputer_strategy: str = None,
     ) -> dict:
         dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
@@ -278,6 +279,7 @@ class Client:
             "target_columns": target_columns,
             "test_size": test_size,
             "test_train_split_seed": test_train_split_seed,
+            "imputer_strategy": imputer_strategy,
         }
         res = self._exec("estimate_diffprivlib_cost", body_json)
 

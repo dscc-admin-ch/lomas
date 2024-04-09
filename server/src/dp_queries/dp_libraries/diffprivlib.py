@@ -45,7 +45,7 @@ class DiffPrivLibQuerier(DPQuerier):
         data = self.private_dataset.get_pandas_df()
 
         imputer_strategy = query_json.imputer_strategy
-        if imputer_strategy in [None, "drop"]:
+        if imputer_strategy == "drop":
             data = data.dropna()
         elif imputer_strategy in ["mean", "median"]:
             numerical_cols = (

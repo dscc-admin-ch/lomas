@@ -100,7 +100,7 @@ class DiffPrivLibInp(BasicModel):
     target_columns: Optional[list]
     test_size: float
     test_train_split_seed: int
-    imputer_strategy: Optional[str]
+    imputer_strategy: str
 
 
 class DummyDiffPrivLibInp(BasicModel):
@@ -110,6 +110,6 @@ class DummyDiffPrivLibInp(BasicModel):
     target_columns: Optional[list]
     test_size: float
     test_train_split_seed: int
-    imputer_strategy: Optional[str]
+    imputer_strategy: str
     dummy_nb_rows: int
     dummy_seed: int

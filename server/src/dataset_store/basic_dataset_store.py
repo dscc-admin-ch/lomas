@@ -32,8 +32,6 @@ class BasicDatasetStore(DatasetStore):
         Adds all queriers for a dataset.
         The source data is fetched from an online csv, the paths are stored
         as constants for now.
-
-        TODO Get the info from the metadata stored in the db.
         """
         # Should not call this function if dataset already present.
         assert (

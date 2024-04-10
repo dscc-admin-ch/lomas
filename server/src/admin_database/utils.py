@@ -33,7 +33,6 @@ def get_mongodb_url(config):
     db_port = config.port
     db_name = config.db_name
 
-    # TODO check this...
     db_url = (
         f"mongodb://{db_username}:{db_password}@{db_address}:"
         f"{db_port}/{db_name}?authSource=defaultdb"

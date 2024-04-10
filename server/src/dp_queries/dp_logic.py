@@ -1,11 +1,13 @@
-from fastapi import Header, HTTPException, status
-
+from fastapi import Header
 
 from admin_database.admin_database import AdminDatabase
 from utils.input_models import BasicModel
 from dataset_store.dataset_store import DatasetStore
-from constants import SUPPORTED_LIBS
-from utils.loggr import LOG
+from constants import DPLibraries
+from utils.error_handler import (
+    InternalServerException,
+    UnauthorizedAccessException,
+)
 
 
 class QueryHandler:
@@ -31,10 +33,11 @@ class QueryHandler:
         query_json: BasicModel,
     ):
         # Check query type
-        if query_type not in SUPPORTED_LIBS:
-            e = f"Query type {query_type} not supported in QueryHandler"
-            LOG.exception(e)
-            raise ValueError(e)
+        supported_lib = [lib.value for lib in DPLibraries]
+        if query_type not in supported_lib:
+            raise InternalServerException(
+                f"Query type {query_type} not supported in QueryHandler"
+            )
 
         # Get querier
         try:
@@ -42,10 +45,10 @@ class QueryHandler:
                 query_json.dataset_name, query_type
             )
         except Exception as e:
-            msg = "Failed to get querier for dataset "
-            +f"{query_json.dataset_name}: {str(e)}"
-            LOG.exception(msg)
-            raise Exception(msg)
+            raise InternalServerException(
+                "Failed to get querier for dataset "
+                + f"{query_json.dataset_name}: {str(e)}"
+            )
         return dp_querier
 
     def estimate_cost(
@@ -72,10 +75,10 @@ class QueryHandler:
 
         # Check that user may query
         if not self.admin_database.may_user_query(user_name):
-            e = f"User {user_name} is trying to query before end of "
-            +"previous query. Returning without response."
-            LOG.warning(e)
-            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, str(e))
+            raise UnauthorizedAccessException(
+                f"User {user_name} is trying to query"
+                + "before end of previous query."
+            )
 
         # Block access to other queries to user
         self.admin_database.set_may_user_query(user_name, False)
@@ -97,10 +100,7 @@ class QueryHandler:
             try:
                 query_response = dp_querier.query(query_json)
             except Exception as e:
-                LOG.exception(e)
-                raise HTTPException(
-                    status.HTTP_500_INTERNAL_SERVER_ERROR, str(e)
-                )
+                raise InternalServerException(e)
 
             # Deduce budget from user
             self.admin_database.update_budget(

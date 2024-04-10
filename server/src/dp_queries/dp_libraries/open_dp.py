@@ -7,13 +7,13 @@ from typing import List
 # import polars
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
-from constants import (
-    LIB_OPENDP,
-    OPENDP_INPUT_TYPE_DF,
-    OPENDP_INPUT_TYPE_PATH,
-)
+from constants import DPLibraries, OpenDPInputType
 from utils.loggr import LOG
-from utils.utils import ExternalLibraryException, InvalidQueryException
+from utils.error_handler import (
+    ExternalLibraryException,
+    InvalidQueryException,
+)
+
 
 enable_features("contrib")
 
@@ -41,7 +41,7 @@ class OpenDPQuerier(DPQuerier):
             except Exception as e:
                 LOG.exception(e)
                 raise ExternalLibraryException(
-                    LIB_OPENDP,
+                    DPLibraries.OPENDP,
                     "Error obtaining cost:" + str(e),
                 )
 
@@ -51,34 +51,31 @@ class OpenDPQuerier(DPQuerier):
             epsilon, delta = cost[0], cost[1]
         else:
             e = f"Cost cannot be converted to epsilon, delta format: {cost}"
-            LOG.exception(e)
-            raise Exception(e)
+            raise InvalidQueryException(e)
 
         return epsilon, delta
 
     def query(self, query_json: dict) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        if query_json.input_data_type == OPENDP_INPUT_TYPE_DF:
-            input_data = self.private_dataset.get_pandas_df().to_csv(
-                header=False, index=False
-            )
-        elif query_json.input_data_type == OPENDP_INPUT_TYPE_PATH:
-            input_data = self.private_dataset.get_local_path()
-        else:
-            e = (
-                f"Input data type {query_json.input_data_type}"
-                "not valid for opendp query."
-            )
-            LOG.exception(e)
-            raise InvalidQueryException(e)
+        match query_json.input_data_type:
+            case OpenDPInputType.DF:
+                input_data = self.private_dataset.get_pandas_df().to_csv(
+                    header=False, index=False
+                )
+            case OpenDPInputType.PATH:
+                input_data = self.private_dataset.get_local_path()
+            case _:
+                raise InvalidQueryException(
+                    f"Invalid input data type {query_json.input_data_type}"
+                )
 
         try:
             release_data = opendp_pipe(input_data)
         except Exception as e:
             LOG.exception(e)
             raise ExternalLibraryException(
-                LIB_OPENDP,
+                DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
             )
 

@@ -2,6 +2,7 @@ from constants import CONF_DB_TYPE_MONGODB
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
 from utils.config import DBConfig
+from utils.error_handler import InternalServerException
 
 
 def database_factory(config: DBConfig) -> AdminDatabase:
@@ -17,7 +18,9 @@ def database_factory(config: DBConfig) -> AdminDatabase:
 
         return AdminMongoDatabase(db_url, db_name)
     else:
-        raise Exception(f"Database type {db_type} not supported.")
+        raise InternalServerException(
+            f"Database type {db_type} not supported."
+        )
 
 
 def get_mongodb_url(config):

@@ -2,9 +2,9 @@ import boto3
 import os
 import pandas as pd
 import tempfile
-from utils.loggr import LOG
 
 from private_dataset.private_dataset import PrivateDataset
+from utils.error_handler import InternalServerException
 
 
 class S3Dataset(PrivateDataset):
@@ -50,11 +50,10 @@ class S3Dataset(PrivateDataset):
             try:
                 self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
             except Exception as err:
-                LOG.info(
+                raise InternalServerException(
                     "Error reading csv at s3 path:"
                     + f"{self.s3_bucket}/{self.s3_key}: {err}"
                 )
-                raise Exception(err)
 
             # Notify observer since memory usage has changed
             [

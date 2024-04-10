@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 from private_dataset.private_dataset import PrivateDataset
+from utils.error_handler import InternalServerException, InvalidQueryException
 
 import pandas as pd
 
@@ -31,14 +32,12 @@ class LocalDataset(PrivateDataset):
                 try:
                     self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
                 except Exception as err:
-                    raise Exception(
-                        400,
-                        f"Error reading local at http path: \
-                            {self.ds_path}: {err}",
+                    raise InternalServerException(
+                        "Error reading local at http path:"
+                        f"{self.ds_path}: {err}",
                     )
             else:
-                # TODO make this cleaner
-                return Exception(
+                return InvalidQueryException(
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )

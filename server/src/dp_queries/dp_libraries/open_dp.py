@@ -9,7 +9,7 @@ from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
 from constants import DPLibraries, OpenDPInputType
 from utils.loggr import LOG
-from utils.utils import (
+from utils.error_handler import (
     ExternalLibraryException,
     InvalidQueryException,
 )
@@ -51,8 +51,7 @@ class OpenDPQuerier(DPQuerier):
             epsilon, delta = cost[0], cost[1]
         else:
             e = f"Cost cannot be converted to epsilon, delta format: {cost}"
-            LOG.exception(e)
-            raise Exception(e)
+            raise InvalidQueryException(e)
 
         return epsilon, delta
 

@@ -1,7 +1,7 @@
 from constants import DPLibraries
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
-from utils.utils import InternalServerException
+from utils.error_handler import InternalServerException
 
 
 def querier_factory(lib, private_dataset):

@@ -4,7 +4,7 @@ import pymongo
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
-from utils.utils import InternalServerException
+from utils.error_handler import InternalServerException
 
 
 class AdminMongoDatabase(AdminDatabase):

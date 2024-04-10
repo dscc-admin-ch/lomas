@@ -312,9 +312,7 @@ def add_datasets(self, args):
                 )
 
         # Fill datasets_list
-        if not self.db.datasets.find_one(
-            {"dataset_name": d["dataset_name"]}
-        ):
+        if not self.db.datasets.find_one({"dataset_name": d["dataset_name"]}):
             new_datasets.append(d)
         else:
             existing_datasets.append(d)
@@ -395,6 +393,7 @@ def add_datasets(self, args):
         else:
             self.db.metadata.insert_one({dataset_name: metadata_dict})
             print(f"Added metadata of {dataset_name} dataset. ")
+
 
 @connect
 def del_dataset(db, args):

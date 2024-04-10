@@ -3,11 +3,8 @@ import boto3
 import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
-from constants import (
-    LOCAL_DB,
-    REMOTE_HTTP_DB,
-    S3_DB,
-)
+from constants import PrivateDatabaseType
+from utils.error_handler import InternalServerException
 
 
 def connect(function):
@@ -269,15 +266,15 @@ def add_dataset(db, args):
 
 
 @connect
-def add_datasets(db, args):
+def add_datasets(self, args):
     """
     Set all database types to datasets in dataset collection based
     on yaml file.
     """
     if args.clean:
         # Collection created from scratch
-        db.datasets.drop()
-        db.metadata.drop()
+        self.db.datasets.drop()
+        self.db.metadata.drop()
         print("Cleaning done. \n")
 
     with open(args.path) as f:
@@ -301,18 +298,23 @@ def add_datasets(db, args):
         verify_keys(d, "database_type")
         verify_keys(d, "metadata")
 
-        if d["database_type"] == REMOTE_HTTP_DB:
-            verify_keys(d, "dataset_url")
-        elif d["database_type"] == S3_DB:
-            verify_keys(d, "s3_bucket")
-            verify_keys(d, "s3_key")
-        elif d["database_type"] == LOCAL_DB:
-            verify_keys(d, "dataset_path")
-        else:
-            raise ValueError(f"Dataset type {d['database_type']} unknown")
+        match d["database_type"]:
+            case PrivateDatabaseType.REMOTE_HTTP:
+                verify_keys(d, "dataset_url")
+            case PrivateDatabaseType.S3:
+                verify_keys(d, "s3_bucket")
+                verify_keys(d, "s3_key")
+            case PrivateDatabaseType.LOCAL:
+                verify_keys(d, "dataset_path")
+            case _:
+                raise InternalServerException(
+                    f"Unknown PrivateDatabaseType: {d['database_type']}"
+                )
 
         # Fill datasets_list
-        if not db.datasets.find_one({"dataset_name": d["dataset_name"]}):
+        if not self.db.datasets.find_one(
+            {"dataset_name": d["dataset_name"]}
+        ):
             new_datasets.append(d)
         else:
             existing_datasets.append(d)
@@ -323,7 +325,7 @@ def add_datasets(db, args):
             for d in existing_datasets:
                 filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
-                db.datasets.update_many(filter, update_operation)
+                self.db.datasets.update_many(filter, update_operation)
             print(
                 f"Existing datasets updated with values"
                 f"from yaml at {args.path}. "
@@ -331,7 +333,7 @@ def add_datasets(db, args):
 
     # Add dataset collection
     if new_datasets != []:
-        db.datasets.insert_many(new_datasets)
+        self.db.datasets.insert_many(new_datasets)
         print(f"Added datasets collection from yaml at {args.path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
@@ -340,44 +342,49 @@ def add_datasets(db, args):
         metadata_db_type = d["metadata"]["database_type"]
 
         verify_keys(d, "database_type", metadata=True)
-        if metadata_db_type == "LOCAL_DB":
-            verify_keys(d, "metadata_path", metadata=True)
+        match metadata_db_type:
+            case PrivateDatabaseType.LOCAL:
+                verify_keys(d, "metadata_path", metadata=True)
 
-            with open(d["metadata"]["metadata_path"]) as f:
-                metadata_dict = yaml.safe_load(f)
+                with open(d["metadata"]["metadata_path"]) as f:
+                    metadata_dict = yaml.safe_load(f)
 
-        elif metadata_db_type == "S3_DB":
-            verify_keys(d, "s3_bucket", metadata=True)
-            verify_keys(d, "s3_key", metadata=True)
-            verify_keys(d, "endpoint_url", metadata=True)
-            verify_keys(d, "aws_access_key_id", metadata=True)
-            verify_keys(d, "aws_secret_access_key", metadata=True)
-            client = boto3.client(
-                "s3",
-                endpoint_url=d["metadata"]["endpoint_url"],
-                aws_access_key_id=d["metadata"]["aws_access_key_id"],
-                aws_secret_access_key=d["metadata"]["aws_secret_access_key"],
-            )
-            response = client.get_object(
-                Bucket=d["metadata"]["s3_bucket"],
-                Key=d["metadata"]["s3_key"],
-            )
-            try:
-                metadata_dict = yaml.safe_load(response["Body"])
-            except yaml.YAMLError as e:
-                return e
-        else:
-            raise ValueError(
-                f"Unknown database type {d['metadata']['database_type']}"
-            )
+            case PrivateDatabaseType.S3:
+                verify_keys(d, "s3_bucket", metadata=True)
+                verify_keys(d, "s3_key", metadata=True)
+                verify_keys(d, "endpoint_url", metadata=True)
+                verify_keys(d, "aws_access_key_id", metadata=True)
+                verify_keys(d, "aws_secret_access_key", metadata=True)
+                client = boto3.client(
+                    "s3",
+                    endpoint_url=d["metadata"]["endpoint_url"],
+                    aws_access_key_id=d["metadata"]["aws_access_key_id"],
+                    aws_secret_access_key=d["metadata"][
+                        "aws_secret_access_key"
+                    ],
+                )
+                response = client.get_object(
+                    Bucket=d["metadata"]["s3_bucket"],
+                    Key=d["metadata"]["s3_key"],
+                )
+                try:
+                    metadata_dict = yaml.safe_load(response["Body"])
+                except yaml.YAMLError as e:
+                    return e
+
+            case _:
+                raise InternalServerException(
+                    "Unknown metadata_db_type PrivateDatabaseType:"
+                    + f"{metadata_db_type}"
+                )
 
         # Overwrite or not depending on config if metadata already exists
         filter = {dataset_name: metadata_dict}
-        metadata = db.metadata.find_one(filter)
+        metadata = self.db.metadata.find_one(filter)
 
         if metadata and args.overwrite_metadata:
             print(f"Metadata updated for dataset : {dataset_name}.")
-            db.metadata.update_one(
+            self.db.metadata.update_one(
                 filter, {"$set": {dataset_name: metadata_dict}}
             )
         elif metadata:
@@ -386,9 +393,8 @@ def add_datasets(db, args):
                 "Use the command -om to overwrite with new values."
             )
         else:
-            db.metadata.insert_one({dataset_name: metadata_dict})
+            self.db.metadata.insert_one({dataset_name: metadata_dict})
             print(f"Added metadata of {dataset_name} dataset. ")
-
 
 @connect
 def del_dataset(db, args):

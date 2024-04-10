@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 import functools
 from typing import List
-from fastapi import HTTPException, status
+from utils.error_handler import (
+    UnauthorizedAccessException,
+    InvalidQueryException,
+)
 
 
 class AdminDatabase(ABC):
@@ -40,8 +43,7 @@ class AdminDatabase(ABC):
             self = args[0]
             user_name = args[1]
             if not (self.does_user_exist(user_name)):
-                raise HTTPException(
-                    status.HTTP_404_NOT_FOUND,
+                raise UnauthorizedAccessException(
                     f"User {user_name} does not exist. "
                     + "Please, verify the client object initialisation.",
                 )
@@ -71,8 +73,7 @@ class AdminDatabase(ABC):
             self = args[0]
             dataset_name = args[1]
             if not (self.does_dataset_exist(dataset_name)):
-                raise HTTPException(
-                    status.HTTP_404_NOT_FOUND,
+                raise InvalidQueryException(
                     f"Dataset {dataset_name} does not exists. "
                     + "Please, verify the client object initialisation.",
                 )
@@ -141,8 +142,7 @@ class AdminDatabase(ABC):
             user_name = args[1]
             dataset_name = args[2]
             if not self.has_user_access_to_dataset(user_name, dataset_name):
-                raise HTTPException(
-                    status.HTTP_401_UNAUTHORIZED,
+                raise UnauthorizedAccessException(
                     f"{user_name} does not have access to {dataset_name}.",
                 )
             return func(*args, **kwargs)

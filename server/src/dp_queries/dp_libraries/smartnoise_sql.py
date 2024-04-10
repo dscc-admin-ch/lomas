@@ -1,12 +1,11 @@
 from typing import List
-from fastapi import HTTPException, status
 from snsql import Privacy, from_connection, Stat, Mechanism
 import pandas as pd
 
-from constants import LIB_SMARTNOISE_SQL, MAX_NAN_ITERATION, STATS
+from constants import DPLibraries, MAX_NAN_ITERATION, STATS
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from utils.utils import ExternalLibraryException
+from utils.error_handler import ExternalLibraryException, InvalidQueryException
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -31,7 +30,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             result = reader.get_privacy_cost(query_str)
         except Exception as e:
             raise ExternalLibraryException(
-                LIB_SMARTNOISE_SQL,
+                DPLibraries.SMARTNOISE_SQL,
                 "Error obtaining cost:" + str(e),
             )
 
@@ -56,7 +55,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             )
         except Exception as e:
             raise ExternalLibraryException(
-                LIB_SMARTNOISE_SQL,
+                DPLibraries.SMARTNOISE_SQL,
                 "Error executing query:" + str(e),
             )
 
@@ -66,7 +65,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         cols = result.pop(0)
         if result == []:
             raise ExternalLibraryException(
-                LIB_SMARTNOISE_SQL,
+                DPLibraries.SMARTNOISE_SQL,
                 f"SQL Reader generated empty results,"
                 f"Epsilon: {epsilon} and Delta: {delta} are too small"
                 "to generate output.",
@@ -80,8 +79,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
             else:
-                raise HTTPException(
-                    status.HTTP_400_BAD_REQUEST,
+                raise InvalidQueryException(
                     f"SQL Reader generated NAN results."
                     f" Epsilon: {epsilon} and Delta: {delta} are too small"
                     " to generate output.",

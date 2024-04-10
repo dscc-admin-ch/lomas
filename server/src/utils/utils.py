@@ -1,6 +1,6 @@
 import io
 from fastapi.responses import StreamingResponse
-from fastapi import HTTPException
+from utils.error_handler import InternalServerException
 
 import app
 from constants import (
@@ -29,10 +29,9 @@ def stream_dataframe(df):
 
 async def server_live():
     if not app.SERVER_STATE["LIVE"]:
-        raise HTTPException(
-            status_code=403,
-            detail="Woops, the server did not start correctly. \
-                Contact the administrator of this service.",
+        raise InternalServerException(
+            "Woops, the server did not start correctly."
+            + "Contact the administrator of this service.",
         )
     yield
 
@@ -72,29 +71,3 @@ def check_start_condition():
         app.SERVER_STATE["state"].append(SERVER_LIVE)
         app.SERVER_STATE["message"].append("Server start condition OK")
         app.SERVER_STATE["LIVE"] = True
-
-
-class InvalidQueryException(Exception):
-    """
-    Custom exception for invalid queries
-
-    For example, this exception will occur when the query:
-        - is not an opendp measurement
-        - cannot be reconstructed properly (for opendp and diffprivlib)
-    """
-
-    def __init__(self, error_message: str):
-        self.error_message = error_message
-
-
-class ExternalLibraryException(Exception):
-    """
-    Custom exception for issues within external libraries
-
-    This exception will occur when the processes fail within the
-    external libraries (smartnoise-sql, opendp, diffprivlib)
-    """
-
-    def __init__(self, library: str, error_message: str):
-        self.library = library
-        self.error_message = error_message

@@ -7,11 +7,12 @@ from typing import List
 # import polars
 from private_dataset.private_dataset import PrivateDataset
 from dp_queries.dp_querier import DPQuerier
-from constants import DPLibraries, OpenDPInputType
+from constants import DPLibraries, OpenDPInputType, OpenDPMeasurement
 from utils.loggr import LOG
 from utils.error_handler import (
     ExternalLibraryException,
     InvalidQueryException,
+    InternalServerException,
 )
 
 
@@ -30,6 +31,12 @@ class OpenDPQuerier(DPQuerier):
     def cost(self, query_json: dict) -> List[float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
+        measurement_type = get_output_measure(opendp_pipe)
+        # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
+        if measurement_type == OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
+            opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
+            measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
+
         max_ids = self.private_dataset.get_metadata()[""]["Schema"]["Table"][
             "max_ids"
         ]
@@ -45,13 +52,25 @@ class OpenDPQuerier(DPQuerier):
                     "Error obtaining cost:" + str(e),
                 )
 
-        if isinstance(cost, int) or isinstance(cost, float):
-            epsilon, delta = cost, 0
-        elif isinstance(cost, tuple) and len(cost) == 2:
-            epsilon, delta = cost[0], cost[1]
-        else:
-            e = f"Cost cannot be converted to epsilon, delta format: {cost}"
-            raise InvalidQueryException(e)
+        # Cost interpretation
+        match measurement_type:
+            case (
+                OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
+            ):  # Approximate DP with fix delta
+                epsilon, delta = cost
+            case OpenDPMeasurement.MAX_DIVERGENCE:  # Pure DP
+                epsilon, delta = cost, 0
+            case OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE:  # Approximate DP
+                if query_json.fixed_delta is None:
+                    raise InvalidQueryException(
+                        "fixed_delta must be set for smooth max divergence."
+                    )
+                epsilon = cost.epsilon(delta=query_json.fixed_delta)
+                delta = query_json.fixed_delta
+            case _:
+                raise InternalServerException(
+                    f"Invalid measurement type: {measurement_type}"
+                )
 
         return epsilon, delta
 
@@ -102,3 +121,25 @@ def reconstruct_measurement_pipeline(pipeline):
         raise InvalidQueryException(e)
 
     return opendp_pipe
+
+
+def get_output_measure(opendp_pipe):
+    output_type = opendp_pipe.output_distance_type
+    output_measure = opendp_pipe.output_measure
+
+    if output_measure == dp.measures.fixed_smoothed_max_divergence(
+        T=output_type
+    ):
+        return OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
+    elif output_measure == dp.measures.max_divergence(T=output_type):
+        return OpenDPMeasurement.MAX_DIVERGENCE
+    elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
+        return OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
+    elif output_measure == dp.measures.zero_concentrated_divergence(
+        T=output_type
+    ):
+        return OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
+    else:
+        e = "Unknown type of output measure divergence:"
+        +f"{opendp_pipe.output_measure}."
+        raise InternalServerException(e)

@@ -85,6 +85,7 @@ example_opendp = {
         },
     },
     "input_data_type": "df",
+    "fixed_delta": 1e-6,
 }
 
 example_dummy_opendp = {
@@ -124,6 +125,7 @@ example_dummy_opendp = {
         },
     },
     "input_data_type": "df",
+    "fixed_delta": 1e-6,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }

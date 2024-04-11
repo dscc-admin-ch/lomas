@@ -5,13 +5,21 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
+COPY ./dscc_sdd_client/ /code/dscc_sdd_client
+COPY ./setup.cfg /code/setup.cfg
+COPY ./setup.py /code/setup.py
+COPY ./README.md /code/README.md
+
 FROM sdd_client_base AS sdd_client_dev
+RUN pip install -e /code/
+
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM sdd_client_base AS sdd_client
-COPY ./dscc_sdd_client/ /code/dscc_sdd_client
-COPY ./images/ /code/images/
+COPY ./images/ /code/notebooks/images/
 COPY ./LICENSE /code/LICENSE
-COPY ./Demo_Client_Notebook.ipynb /code/Demo_Client_Notebook.ipynb
+COPY ./notebooks/Demo_Client_Notebook.ipynb /code/notebooks/Demo_Client_Notebook.ipynb
+
+RUN pip install /code/
 
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]

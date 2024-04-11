@@ -298,6 +298,7 @@ class AdminMongoDatabase(AdminDatabase):
                 to_archive["api"] = DPLibraries.OPENDP
                 to_archive["query"] = query_json.opendp_json
                 to_archive["input_data_type"] = query_json.input_data_type
+                to_archive["fixed_delta"] = query_json.fixed_delta
 
             case _:
                 raise InternalServerException(

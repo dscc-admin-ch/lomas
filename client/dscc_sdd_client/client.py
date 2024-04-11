@@ -178,12 +178,14 @@ class Client:
         self,
         opendp_pipeline,
         input_data_type="df",
+        fixed_delta: Optional[float] = None,
     ) -> dict:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
             "input_data_type": input_data_type,
+            "fixed_delta": fixed_delta,
         }
         res = self._exec("estimate_opendp_cost", body_json)
 

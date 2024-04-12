@@ -1,11 +1,10 @@
 import os
 import tempfile
 import urllib
+
 import pandas as pd
-from utils.error_handler import InternalServerException, InvalidQueryException
-
-
 from private_dataset.private_dataset import PrivateDataset
+from utils.error_handler import InternalServerException, InvalidQueryException
 
 
 class RemoteHTTPDataset(PrivateDataset):

@@ -1,6 +1,6 @@
-from fastapi import FastAPI, status, Request
-from fastapi.responses import JSONResponse
 from constants import INTERNAL_SERVER_ERROR
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
 from utils.loggr import LOG
 
 

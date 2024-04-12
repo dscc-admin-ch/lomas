@@ -280,7 +280,7 @@ def add_datasets(self, args):
     with open(args.path) as f:
         dataset_dict = yaml.safe_load(f)
 
-    def verify_keys(d, field, metadata=False) -> None:
+    def verify_keys(d, field, metadata: bool=False) -> None:
         if metadata:
             assert (
                 field in d["metadata"].keys()

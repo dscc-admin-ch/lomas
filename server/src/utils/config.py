@@ -12,10 +12,10 @@ from constants import (
     CONF_RUNTIME_ARGS,
     CONF_SETTINGS,
     CONF_DEV_MODE,
-    CONF_TIME_ATTACK,
     CONF_DB,
     CONF_DB_TYPE,
     CONF_DB_TYPE_MONGODB,
+    CONF_SERVER,
     CONF_SUBMIT_LIMIT,
     CONF_DATASET_STORE,
     ConfDatasetStore,
@@ -28,6 +28,15 @@ from utils.error_handler import InternalServerException
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"]
     magnitude: float = 1
+
+
+class Server(BaseModel):
+    time_attack: TimeAttack = None
+    host_ip: str = None
+    host_port: int = None
+    log_level: str = None
+    reload: bool = None
+    workers: int = None
 
 
 class DBConfig(BaseModel):
@@ -53,8 +62,9 @@ class MongoDBConfig(DBConfig):
 class Config(BaseModel):
     # Develop mode
     develop_mode: bool = False
+
     # Server configs
-    time_attack: TimeAttack = None
+    server: Server = None
 
     # A limit on the rate which users can submit answers
     submit_limit: float = 5 * 60  # TODO ticket #145
@@ -62,6 +72,7 @@ class Config(BaseModel):
     admin_database: DBConfig = None
 
     dataset_store: DatasetStoreConfig = None
+
     # validator example, for reference
     """ @validator('parties')
     def two_party_min(cls, v):
@@ -96,9 +107,7 @@ def get_config() -> dict:
 
             update(config_data, secret_data)
 
-        time_attack: TimeAttack = TimeAttack.parse_obj(
-            config_data[CONF_TIME_ATTACK]
-        )
+        server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
 
         db_type = config_data[CONF_DB][CONF_DB_TYPE]
         if db_type == CONF_DB_TYPE_MONGODB:
@@ -124,7 +133,7 @@ def get_config() -> dict:
 
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],
-            time_attack=time_attack,
+            server=server_config,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
             admin_database=admin_database_config,
             dataset_store=ds_store_config,

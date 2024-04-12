@@ -4,10 +4,10 @@ from enum import StrEnum
 # Configurations
 CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
 SECRETS_PATH = "/usr/sdd_poc_server/secrets.yaml"
-QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS = "runtime_args"
+CONF_SERVER = "server"
 CONF_SETTINGS = "settings"
 CONF_DEV_MODE = "develop_mode"
 CONF_TIME_ATTACK = "time_attack"

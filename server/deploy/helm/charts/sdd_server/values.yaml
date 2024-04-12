@@ -46,9 +46,15 @@ runtime_args:
   settings:
     develop_mode: True # !! Set this to false in production mode !!
     submit_limit: 300
-    time_attack:
-      method: "jitter" # or "stall"
-      magnitude: 1
+    server:
+      host_ip: "0.0.0.0"
+      host_port: "80"
+      log_level: "info"
+      reload: True
+      workers: 1 # Will be overwritten to one anyway for now.
+      time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
     dataset_store:
       ds_store_type: "LRU_cache"
       max_memory_usage : 512
@@ -95,7 +101,7 @@ ingress:
           pathType: Prefix
   tls:
     hosts:
-      - sdd-server.lab.sspcloud.fr
+      - sdd_server.example.com
   #   - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

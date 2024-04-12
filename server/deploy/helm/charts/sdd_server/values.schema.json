@@ -216,15 +216,36 @@
                         "submit_limit": {
                             "type": "integer"
                         },
-                        "time_attack": {
+                        "server": {
                             "type": "object",
                             "properties": {
-                                "magnitude": {
-                                    "type": "integer"
+                                "time_attack": {
+                                    "type": "object",
+                                    "properties": {
+                                        "magnitude": {
+                                            "type": "integer"
+                                        },
+                                        "method": {
+                                            "enum": ["jitter", "stall"],
+                                            "type": "string"
+                                        }
+                                    }
                                 },
-                                "method": {
-                                    "enum": ["jitter", "stall"],
+                                "host_ip": {
                                     "type": "string"
+                                },
+                                "host_port": {
+                                    "type": "int"
+                                },
+                                "log_level": {
+                                    "enum": ["notset", "debug", "info", "warning", "error", "critical"],
+                                    "type": "string"
+                                },
+                                "reload": {
+                                    "type": "boolean"
+                                },
+                                "workers": {
+                                    "type": "int"
                                 }
                             }
                         }

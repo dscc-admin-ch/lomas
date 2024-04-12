@@ -1,6 +1,6 @@
-from constants import CONF_DB_TYPE_MONGODB
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
+from constants import CONF_DB_TYPE_MONGODB
 from utils.config import DBConfig
 from utils.error_handler import InternalServerException
 

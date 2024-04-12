@@ -177,7 +177,7 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline,
-        input_data_type="df",
+        input_data_type: str="df",
         fixed_delta: Optional[float] = None,
     ) -> dict:
         opendp_json = opendp_pipeline.to_json()

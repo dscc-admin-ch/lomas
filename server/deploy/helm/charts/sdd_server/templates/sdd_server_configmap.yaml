@@ -10,8 +10,8 @@ data:
       settings:
         develop_mode: {{ .Values.runtime_args.settings.develop_mode }}
         submit_limit: {{ .Values.runtime_args.settings.submit_limit }}
-        time_attack:
-            {{- toYaml .Values.runtime_args.settings.time_attack | nindent 10 }}
+        server:
+            {{- toYaml .Values.runtime_args.settings.server | nindent 10 }}
         admin_database:
           db_type: "mongodb"
           address: {{ .Values.mongodb.fullnameOverride }}

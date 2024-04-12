@@ -3,6 +3,7 @@ import json
 import pandas as pd
 from io import StringIO
 from enum import StrEnum
+from typing import Optional
 from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
 
@@ -133,6 +134,7 @@ class Client:
         self,
         opendp_pipeline,
         input_data_type: str = "df",
+        fixed_delta: Optional[float] = None,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -142,6 +144,7 @@ class Client:
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
             "input_data_type": input_data_type,
+            "fixed_delta": fixed_delta,
         }
         if dummy:
             endpoint = "dummy_opendp_query"
@@ -175,12 +178,14 @@ class Client:
         self,
         opendp_pipeline,
         input_data_type="df",
+        fixed_delta: Optional[float] = None,
     ) -> dict:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
             "input_data_type": input_data_type,
+            "fixed_delta": fixed_delta,
         }
         res = self._exec("estimate_opendp_cost", body_json)
 

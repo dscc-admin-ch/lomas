@@ -25,7 +25,7 @@ class PrivateDataset(ABC):
         self.dataset_observers = []
         self.dtypes = get_dtypes(metadata)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """
         Cleans up the temporary directory used for storing
         the dataset locally if needed.
@@ -71,7 +71,7 @@ class PrivateDataset(ABC):
 
     def subscribe_for_memory_usage_updates(
         self, dataset_observer: PrivateDatasetObserver
-    ):
+    ) -> None:
         """
         Add the PrivateDatasetObserver to the list of dataset_observers.
         """

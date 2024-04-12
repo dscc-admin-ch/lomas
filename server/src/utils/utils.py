@@ -36,7 +36,7 @@ async def server_live():
     yield
 
 
-def check_start_condition():
+def check_start_condition() -> None:
     """
     This function checks the server started correctly and SERVER_STATE is
     updated accordingly.

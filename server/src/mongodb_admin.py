@@ -69,7 +69,7 @@ def add_user_with_budget(db, args):
 
 
 @connect
-def del_user(db, args):
+def del_user(db, args) -> None:
     """
     Delete all related information for user from the users collection.
     """
@@ -111,7 +111,7 @@ def add_dataset_to_user(db, args):
 
 
 @connect
-def del_dataset_to_user(db, args):
+def del_dataset_to_user(db, args) -> None:
     """
     Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
@@ -124,7 +124,7 @@ def del_dataset_to_user(db, args):
 
 
 @connect
-def set_budget_field(db, args):
+def set_budget_field(db, args) -> None:
     """
     Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
@@ -143,7 +143,7 @@ def set_budget_field(db, args):
 
 
 @connect
-def set_may_query(db, args):
+def set_may_query(db, args) -> None:
     """
     Set (for some reason) the 'may query' field to a given value
     if given user exists.
@@ -156,7 +156,7 @@ def set_may_query(db, args):
 
 
 @connect
-def show_user(db, args):
+def show_user(db, args) -> None:
     """
     Show a user
     """
@@ -166,7 +166,7 @@ def show_user(db, args):
 
 
 @connect
-def create_users_collection(db, args):
+def create_users_collection(db, args) -> None:
     """
     Add all users from yaml file to the user collection
     """
@@ -280,7 +280,7 @@ def add_datasets(self, args):
     with open(args.path) as f:
         dataset_dict = yaml.safe_load(f)
 
-    def verify_keys(d, field, metadata=False):
+    def verify_keys(d, field, metadata=False) -> None:
         if metadata:
             assert (
                 field in d["metadata"].keys()
@@ -396,7 +396,7 @@ def add_datasets(self, args):
 
 
 @connect
-def del_dataset(db, args):
+def del_dataset(db, args) -> None:
     """
     Delete dataset from dataset collection.
     """
@@ -406,7 +406,7 @@ def del_dataset(db, args):
 
 #######################  COLLECTIONS  ####################### # noqa: E266
 @connect
-def drop_collection(db, args):
+def drop_collection(db, args) -> None:
     """
     Delete collection.
     """
@@ -415,7 +415,7 @@ def drop_collection(db, args):
 
 
 @connect
-def show_collection(db, args):
+def show_collection(db, args) -> None:
     """
     Show a collection
     """

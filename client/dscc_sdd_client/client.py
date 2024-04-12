@@ -30,7 +30,7 @@ def error_message(res):
 
 
 class Client:
-    def __init__(self, url, user_name: str, dataset_name: str):
+    def __init__(self, url, user_name: str, dataset_name: str) -> None:
         self.url = url
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.headers["user-name"] = user_name

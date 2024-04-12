@@ -25,7 +25,7 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
 
 
-def error_message(res):
+def error_message(res) -> str:
     return f"Server error status {res.status_code}: {res.text}"
 
 

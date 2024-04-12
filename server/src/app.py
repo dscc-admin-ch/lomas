@@ -6,9 +6,13 @@ from fastapi import (
     Request,
 )
 
-from mongodb_admin import MongoDB_Admin
+from mongodb_admin import (
+    add_datasets,
+    create_users_collection,
+    drop_collection,
+)
 from admin_database.admin_database import AdminDatabase
-from admin_database.utils import database_factory, get_mongodb_url
+from admin_database.utils import database_factory
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_logic import QueryHandler
 from utils.error_handler import (
@@ -83,31 +87,25 @@ def startup_event():
     if CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
+        from types import SimpleNamespace
 
-        db_url = get_mongodb_url(CONFIG.admin_database)
-        db_name = CONFIG.admin_database.db_name
-        mongo_admin = MongoDB_Admin(db_url, db_name)
-
-        def args():
-            return None  # trick to create a dummy args object
+        args = SimpleNamespace(**vars(CONFIG.admin_database))
 
         LOG.info("Creating user collection")
         args.clean = True
         args.overwrite = True
         args.path = "/data/collections/user_collection.yaml"
-        mongo_admin.create_users_collection(args)
+        create_users_collection(args)
 
         LOG.info("Creating datasets and metadata collection")
         args.path = "/data/collections/dataset_collection.yaml"
         args.overwrite_datasets = True
         args.overwrite_metadata = True
-        mongo_admin.add_datasets(args)
+        add_datasets(args)
 
         LOG.info("Empty archives")
         args.collection = "queries_archives"
-        mongo_admin.drop_collection(args)
-
-        del mongo_admin
+        drop_collection(args)
 
     # Load users, datasets, etc..
     LOG.info("Loading admin database")

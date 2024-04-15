@@ -25,12 +25,12 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
 
 
-def error_message(res):
+def error_message(res) -> str:
     return f"Server error status {res.status_code}: {res.text}"
 
 
 class Client:
-    def __init__(self, url, user_name: str, dataset_name: str):
+    def __init__(self, url, user_name: str, dataset_name: str) -> None:
         self.url = url
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.headers["user-name"] = user_name
@@ -177,7 +177,7 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline,
-        input_data_type="df",
+        input_data_type: str="df",
         fixed_delta: Optional[float] = None,
     ) -> dict:
         opendp_json = opendp_pipeline.to_json()

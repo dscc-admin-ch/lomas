@@ -1,4 +1,4 @@
-# Default values for sdd_server.
+# Default values for lomas_server.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -11,7 +11,7 @@
 replicaCount: 1
 
 image:
-  repository: dsccadminch/sdd_client
+  repository: dsccadminch/lomas_client
   pullPolicy: Always
   tag: latest
 

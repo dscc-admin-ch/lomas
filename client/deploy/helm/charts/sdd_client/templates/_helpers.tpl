@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "sdd_client.name" -}}
+{{- define "lomas_client.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "sdd_client.fullname" -}}
+{{- define "lomas_client.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "sdd_client.chart" -}}
+{{- define "lomas_client.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "sdd_client.labels" -}}
-helm.sh/chart: {{ include "sdd_client.chart" . }}
-{{ include "sdd_client.selectorLabels" . }}
+{{- define "lomas_client.labels" -}}
+helm.sh/chart: {{ include "lomas_client.chart" . }}
+{{ include "lomas_client.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "sdd_client.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sdd_client.name" . }}
+{{- define "lomas_client.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "lomas_client.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "sdd_client.serviceAccountName" -}}
+{{- define "lomas_client.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "sdd_client.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "lomas_client.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

@@ -1,4 +1,4 @@
-# Default values for sdd_server.
+# Default values for lomas_server.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -37,7 +37,7 @@ mongodb:
 replicaCount: 1
 
 image:
-  repository: dsccadminch/sdd_server
+  repository: dsccadminch/lomas_server
   pullPolicy: Always
   tag: latest
 
@@ -60,8 +60,8 @@ runtime_args:
       max_memory_usage : 512
 
 imagePullSecrets: []
-nameOverride: "sdd-server"
-fullnameOverride: "sdd-server"
+nameOverride: "lomas-server"
+fullnameOverride: "lomas-server"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -95,13 +95,13 @@ ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   hosts:
-    - host: sdd-server.lab.sspcloud.fr
+    - host: lomas-server.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd_server.example.com
+      - lomas_server.example.com
   #   - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

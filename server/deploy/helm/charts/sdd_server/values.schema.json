@@ -6,7 +6,7 @@
             "type": "object"
         },
         "fullnameOverride": {
-            "description": "Fully overrides the sdd-server.fullname template.",
+            "description": "Fully overrides the lomas-server.fullname template.",
             "type": "string"
         },
         "image": {
@@ -144,7 +144,10 @@
                     "properties": {
                         "resourcePolicy": {
                             "description": "Set this to 'keep' to disable data pvc deletion when uninstalling the chart. Subsequent installs will use the same pvc, restoring the state of the server. Note: if the runtime_args.settings.develop_mode is set to True, the server state will be reset (default datasets and budgets).",
-                            "enum": ["", "keep"],
+                            "enum": [
+                                "",
+                                "keep"
+                            ],
                             "type": "string"
                         }
                     }
@@ -171,7 +174,7 @@
             }
         },
         "nameOverride": {
-            "description": "Partially overrides sdd-server.fullname template, keeping the version number.",
+            "description": "Partially overrides lomas-server.fullname template, keeping the version number.",
             "type": "string"
         },
         "nodeSelector": {
@@ -200,7 +203,10 @@
                             "properties": {
                                 "ds_store_type": {
                                     "description": "The type of dataset store.",
-                                    "enum": ["basic", "LRU_cache"],
+                                    "enum": [
+                                        "basic",
+                                        "LRU_cache"
+                                    ],
                                     "type": "string"
                                 },
                                 "max_memory_usage": {
@@ -226,7 +232,10 @@
                                             "type": "integer"
                                         },
                                         "method": {
-                                            "enum": ["jitter", "stall"],
+                                            "enum": [
+                                                "jitter",
+                                                "stall"
+                                            ],
                                             "type": "string"
                                         }
                                     }
@@ -238,7 +247,14 @@
                                     "type": "int"
                                 },
                                 "log_level": {
-                                    "enum": ["notset", "debug", "info", "warning", "error", "critical"],
+                                    "enum": [
+                                        "notset",
+                                        "debug",
+                                        "info",
+                                        "warning",
+                                        "error",
+                                        "critical"
+                                    ],
                                     "type": "string"
                                 },
                                 "reload": {

@@ -10,7 +10,7 @@ To use FSO SDD client, you can do the following:
    .. code-block:: python
 
     # Step 1
-    from fso_sdd_client import Client
+    from fso_lomas_client import Client
 
     # Step 2
     APP_URL = "your_deployement_url"

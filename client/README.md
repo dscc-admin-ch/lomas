@@ -20,7 +20,7 @@ Once the library is installed, a Client object must be created. To create the cl
 
 ```python
 from lomas_client.client.client import Client
-client = Client(url="http://sdd_server_dev:80", user_name = "Emilie", dataset_name = "PENGUIN")
+client = Client(url="http://lomas_server_dev:80", user_name = "Emilie", dataset_name = "PENGUIN")
 ```
 Once `client` is initialized it can be used to send requests to respective DP frameworks.
 
@@ -115,7 +115,7 @@ previous_queries = client.get_previous_queries()
 
 
 ### Examples
-To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin/dscc_sdd/blob/develop/client) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin/dscc_sdd/blob/develop/client/Demo_Client_Notebook.ipynb).
+To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin/lomas/blob/develop/client) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin/lomas/blob/develop/client/notebooks/Demo_Client_Notebook.ipynb).
 
 
 ### More detailed documentation

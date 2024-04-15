@@ -14,7 +14,7 @@ setup(
     description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dscc-admin/dscc_sdd/",
+    url="https://github.com/dscc-admin/lomas/",
     author="Data Science Competence Center, Swiss Federal Statistical Office",
     author_email="dscc@bfs.admin.ch",
     license="MIT",

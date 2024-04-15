@@ -1,27 +1,27 @@
 import collections.abc
+
+import yaml
+from constants import (
+    CONF_DATASET_STORE,
+    CONF_DATASET_STORE_TYPE,
+    CONF_DB,
+    CONF_DB_TYPE,
+    CONF_DB_TYPE_MONGODB,
+    CONF_DEV_MODE,
+    CONF_RUNTIME_ARGS,
+    CONF_SERVER,
+    CONF_SETTINGS,
+    CONF_SUBMIT_LIMIT,
+    CONFIG_PATH,
+    SECRETS_PATH,
+    ConfDatasetStore,
+)
 from pydantic import BaseModel
 
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
 from typing_extensions import Literal
-import yaml
-
-from constants import (
-    CONFIG_PATH,
-    CONF_RUNTIME_ARGS,
-    CONF_SETTINGS,
-    CONF_DEV_MODE,
-    CONF_DB,
-    CONF_DB_TYPE,
-    CONF_DB_TYPE_MONGODB,
-    CONF_SERVER,
-    CONF_SUBMIT_LIMIT,
-    CONF_DATASET_STORE,
-    ConfDatasetStore,
-    CONF_DATASET_STORE_TYPE,
-    SECRETS_PATH,
-)
 from utils.error_handler import InternalServerException
 
 

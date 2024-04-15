@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
 import functools
+from abc import ABC, abstractmethod
 from typing import List
+
 from utils.error_handler import (
-    UnauthorizedAccessException,
     InvalidQueryException,
+    UnauthorizedAccessException,
 )
 
 

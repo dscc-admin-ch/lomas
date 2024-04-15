@@ -1,11 +1,12 @@
-import requests
 import json
-import pandas as pd
-from io import StringIO
 from enum import StrEnum
+from io import StringIO
 from typing import Optional
-from opendp_logger import enable_logging, make_load_json
+
+import pandas as pd
+import requests
 from opendp.mod import enable_features
+from opendp_logger import enable_logging, make_load_json
 
 # Note: leaving this here. Support for opendp_polars
 # import polars

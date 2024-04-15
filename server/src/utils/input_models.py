@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
-from constants import EPSILON_LIMIT, DELTA_LIMIT
 import json
 from typing import Optional
+
+from constants import DELTA_LIMIT, EPSILON_LIMIT
+from pydantic import BaseModel, Field
 
 
 class BasicModel(BaseModel):

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: sdd-client
-description: FSO's Secure Data Disclosure deployment chart for the client environment
+description: Lomas's Secure Data Disclosure deployment chart for the client environment
 
 type: application
 

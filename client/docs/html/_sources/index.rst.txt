@@ -1,9 +1,9 @@
-.. FSO SDD Client documentation master file, created by
+.. Lomas Client documentation master file, created by
    sphinx-quickstart on Thu Nov  2 15:25:58 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to FSO SDD Client's documentation!
+Welcome to Lomas Client's documentation!
 ==========================================
 
 .. toctree::
@@ -22,7 +22,7 @@ This section explains how to install the dscc-sdd-client library.
 Usage
 -----
 
-Here, we'll show you how to use the `FSO SDD Poc` Client part.
+Here, we'll show you how to use the `Lomas Poc` Client part.
 
 
 Contributing

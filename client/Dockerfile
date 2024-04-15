@@ -5,7 +5,7 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY ./dscc_sdd_client/ /code/dscc_sdd_client
+COPY ./lomas_client/ /code/lomas_client
 COPY ./setup.cfg /code/setup.cfg
 COPY ./setup.py /code/setup.py
 COPY ./README.md /code/README.md

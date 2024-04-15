@@ -1,18 +1,18 @@
-# DSCC SDD Platform
+# Lomas Platform
 
 The dscc_sdd platform follows a classic server/client model.
 On the client side, the researcher prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The researcher never has direct access to the sensitive data.
 On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
-The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.# DSCC SDD Platform
+The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.# Lomas Platform
 
 The dscc_sdd platform follows a classic server/client model.
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 See our white paper (TODO link) for detailed explanation of the platform.
 
 
-## Client package `dscc_sdd_client`
+## Client package `lomas_client`
 
-The `dscc_sdd_client` library is a client to interact with the DSCC SDD server. It is available on Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will only interact with the client and never with the server.
+The `lomas_client` library is a client to interact with the Lomas server. It is available on Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will only interact with the client and never with the server.
 
 Utilizing this client library is strongly advised for querying and interacting with the server, as it takes care of all the necessary tasks such as serialization, deserialization, REST API calls, and ensures the correct installation of other required libraries. In short, it enables a seamless interaction with the server.
 

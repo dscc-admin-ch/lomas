@@ -1,6 +1,6 @@
-from fastapi import FastAPI, status, Request
-from fastapi.responses import JSONResponse
 from constants import INTERNAL_SERVER_ERROR
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
 from utils.loggr import LOG
 
 
@@ -13,7 +13,7 @@ class InvalidQueryException(Exception):
         - cannot be reconstructed properly (for opendp and diffprivlib)
     """
 
-    def __init__(self, error_message: str):
+    def __init__(self, error_message: str) -> None:
         self.error_message = error_message
 
 
@@ -25,7 +25,7 @@ class ExternalLibraryException(Exception):
     external libraries (smartnoise-sql, opendp, diffprivlib)
     """
 
-    def __init__(self, library: str, error_message: str):
+    def __init__(self, library: str, error_message: str) -> None:
         self.library = library
         self.error_message = error_message
 
@@ -36,7 +36,7 @@ class UnauthorizedAccessException(Exception):
     (unknown user, no access to dataset, etc)
     """
 
-    def __init__(self, error_message: str):
+    def __init__(self, error_message: str) -> None:
         self.error_message = error_message
 
 
@@ -46,7 +46,7 @@ class InternalServerException(Exception):
     like unexpected match cases
     """
 
-    def __init__(self, error_message: str):
+    def __init__(self, error_message: str) -> None:
         self.error_message = error_message
 
 

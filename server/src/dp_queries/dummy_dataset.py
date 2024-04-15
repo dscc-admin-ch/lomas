@@ -1,8 +1,8 @@
 import datetime
-import numpy as np
-import pandas as pd
 import random
 
+import numpy as np
+import pandas as pd
 from constants import (
     DEFAULT_NUMERICAL_MAX,
     DEFAULT_NUMERICAL_MIN,

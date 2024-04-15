@@ -1,7 +1,7 @@
-from fastapi import Request
-import time
 import random
+import time
 
+from fastapi import Request
 from utils.config import Config
 
 

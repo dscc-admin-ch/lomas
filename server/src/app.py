@@ -71,7 +71,7 @@ app = FastAPI()
 
 
 @app.on_event("startup")
-def startup_event():
+def startup_event() -> None:
     """
     This function is executed once on server startup"""
     LOG.info("Startup message")
@@ -439,7 +439,7 @@ def get_user_previous_queries(
 
 
 @app.get("/submit_limit", dependencies=[Depends(server_live)])
-async def get_submit_limit():
+async def get_submit_limit() -> None:
     """
     Returns the value "submit_limit" used to limit the rate of submissions
     """

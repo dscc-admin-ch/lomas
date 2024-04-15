@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sdd_server.fullname" . }}
+  name: {{ include "lomas_server.fullname" . }}
   labels:
-    {{- include "sdd_server.labels" . | nindent 4 }}
+    {{- include "lomas_server.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "sdd_server.selectorLabels" . | nindent 6 }}
+      {{- include "lomas_server.selectorLabels" . | nindent 6 }}
   replicas: 1
   template:
     metadata:
@@ -16,9 +16,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "sdd_server.selectorLabels" . | nindent 8 }}
+        {{- include "lomas_server.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "sdd_server.serviceAccountName" . }}
+      serviceAccountName: {{ include "lomas_server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       
@@ -43,9 +43,9 @@ spec:
           projected:
             sources:
             - secret:
-                name: {{ include "sdd_server.fullname" . }}
+                name: {{ include "lomas_server.fullname" . }}
             - configMap:
-                name: {{ include "sdd_server.fullname" . }}
+                name: {{ include "lomas_server.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

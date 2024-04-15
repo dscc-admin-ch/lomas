@@ -8,10 +8,10 @@ this_directory = pathlib.Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="dscc_sdd_client",
+    name="lomas_client",
     packages=find_packages(),
-    version="0.0.3",
-    description="A client to interact with the DSCC SDD server.",
+    version="0.0.1",
+    description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dscc-admin/dscc_sdd/",

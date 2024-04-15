@@ -1,13 +1,13 @@
-# DSCC SDD Client
+# Lomas Client
 
-The `dscc_sdd_client` library is a client to interact with the DSCC SDD server.
+The `lomas_client` library is a client to interact with the Lomas server.
 
 Utilizing this client library is strongly advised for querying and interacting with the server, as it takes care of all the necessary tasks such as serialization, deserialization, REST API calls, and ensures the correct installation of other required libraries. In short, it enables a seamless interaction with the server.
 
 ### Installation
 It can be installed with the command:
 ```python
-pip install dscc_sdd_client
+pip install lomas_client
 ```
 
 ### Simple introduction to clien use
@@ -19,7 +19,7 @@ Once the library is installed, a Client object must be created. To create the cl
 - a dataset_name: the name of the dataset that she wants to query (PENGUIN)
 
 ```python
-from dscc_sdd_client.client.client import Client
+from lomas_client.client.client import Client
 client = Client(url="http://sdd_server_dev:80", user_name = "Emilie", dataset_name = "PENGUIN")
 ```
 Once `client` is initialized it can be used to send requests to respective DP frameworks.
@@ -119,7 +119,7 @@ To see detailed examples of the library, many notebooks are available  in the [c
 
 
 ### More detailed documentation
-To see a more detailed documentation, clone the repo go to `dscc_sdd_client/client/docs/html` and run:
+To see a more detailed documentation, clone the repo go to `lomas_client/client/docs/html` and run:
 ```
 start .\index.html
 ```

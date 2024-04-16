@@ -1,34 +1,8 @@
-# Default values for sdd_server.
+# Default values for lomas_server.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# MongoDB 
-##########################################################################
-mongodb:
-  resources: {}
-  fullnameOverride: sdd-mongodb
-  architecture: standalone
-  image:
-    tag: "6.0.9-debian-11-r5"
-  auth:
-    enabled: true
-    rootUser: root
-    rootPassword: root_pwd # changeme
-    usernames: [user] 
-    passwords: [user_pwd] # changeme
-    databases: [defaultdb]
-  replicaCount: 1
-  discoverable:
-    allow: true
-  security:
-    networkPolicy: 
-      enabled: true
-  persistence:
-    # Set this to "keep" to disable data pvc deletion when uninstalling the chart.
-    # Subsequent installs will use the same pvc, restoring the state of the server.
-    # Note: if the runtime_args.settings.develop_mode is set to True, the server
-    # state will be reset (default datasets and budgets).
-    resourcePolicy: ""
+
 
 
 # Secure Data Disclosure Fast-API server
@@ -37,31 +11,15 @@ mongodb:
 replicaCount: 1
 
 image:
-  repository: dsccadminch/sdd_server
+  repository: dsccadminch/lomas_client
   pullPolicy: Always
   tag: latest
 
-# Runtime args for server
-runtime_args:
-  settings:
-    develop_mode: True # !! Set this to false in production mode !!
-    submit_limit: 300
-    server:
-      host_ip: "0.0.0.0"
-      host_port: "80"
-      log_level: "info"
-      reload: True
-      workers: 1 # Will be overwritten to one anyway for now.
-      time_attack:
-        method: "jitter" # or "stall"
-        magnitude: 1
-    dataset_store:
-      ds_store_type: "LRU_cache"
-      max_memory_usage : 512
+password: "'dprocks'"
 
 imagePullSecrets: []
-nameOverride: "sdd-server"
-fullnameOverride: "sdd-server"
+nameOverride: "lomas-client"
+fullnameOverride: "lomas-client"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -95,14 +53,14 @@ ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   hosts:
-    - host: sdd-server.lab.sspcloud.fr
+    - host: lomas-client.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd_server.example.com
-  #   - secretName: chart-example-tls
+      - lomas-client.lab.sspcloud.fr
+  #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller
     
@@ -119,7 +77,7 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-# SDD server not intended to be autoscaled for now
+# Lomas server not intended to be autoscaled for now
 # autoscaling:
 #  enabled: false
 #  minReplicas: 1

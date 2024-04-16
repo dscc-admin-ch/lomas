@@ -1,7 +1,7 @@
 Client
 ======
 
-To use FSO SDD client, you can do the following:
+To use FSO lomas client, you can do the following:
 
 1. Import the library in your Python code.
 2. Initialise the client with required url, name and dataset.
@@ -10,7 +10,7 @@ To use FSO SDD client, you can do the following:
    .. code-block:: python
 
     # Step 1
-    from fso_sdd_client import Client
+    from lomas_client import Client
 
     # Step 2
     APP_URL = "your_deployement_url"

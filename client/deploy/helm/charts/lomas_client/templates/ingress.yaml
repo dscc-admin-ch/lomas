@@ -4,7 +4,7 @@
   is shortcut for path (see https://stackoverflow.com/questions/72484286/ingress-variables-syntax-from-values-yaml)
 */}}
 {{ "\n" }}
-{{- $fullName := include "sdd_server.fullname" . -}}
+{{- $fullName := include "lomas_client.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -22,7 +22,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    {{- include "sdd_server.labels" . | nindent 4 }}
+    {{- include "lomas_client.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

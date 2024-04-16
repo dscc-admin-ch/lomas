@@ -77,7 +77,7 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-# SDD server not intended to be autoscaled for now
+# Lomas server not intended to be autoscaled for now
 # autoscaling:
 #  enabled: false
 #  minReplicas: 1

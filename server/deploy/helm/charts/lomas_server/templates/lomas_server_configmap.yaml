@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lomas_server.fullname" . }}
+  labels:
+    {{- include "lomas_server.labels" . | nindent 4 }}
+data:
+  runtime.yaml: |
+    runtime_args:
+      settings:
+        develop_mode: {{ .Values.runtime_args.settings.develop_mode }}
+        submit_limit: {{ .Values.runtime_args.settings.submit_limit }}
+        server:
+            {{- toYaml .Values.runtime_args.settings.server | nindent 10 }}
+        admin_database:
+          db_type: "mongodb"
+          address: {{ .Values.mongodb.fullnameOverride }}
+          port: 27017
+          password: {{ index .Values.mongodb.auth.passwords 0 }}
+          username: {{ index .Values.mongodb.auth.usernames 0 }}
+          db_name: {{ index .Values.mongodb.auth.databases 0}}
+        dataset_store:
+          ds_store_type: {{ .Values.runtime_args.settings.dataset_store.ds_store_type }}
+          max_memory_usage : {{ .Values.runtime_args.settings.dataset_store.max_memory_usage }}

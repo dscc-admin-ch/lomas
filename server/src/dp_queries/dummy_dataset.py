@@ -1,8 +1,8 @@
 import datetime
-import numpy as np
-import pandas as pd
 import random
 
+import numpy as np
+import pandas as pd
 from constants import (
     DEFAULT_NUMERICAL_MAX,
     DEFAULT_NUMERICAL_MIN,
@@ -15,6 +15,7 @@ from constants import (
     SSQL_METADATA_OPTIONS,
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
+from utils.error_handler import InternalServerException
 
 
 def make_dummy_dataset(
@@ -86,7 +87,7 @@ def make_dummy_dataset(
             # Unknown column are ignored by snartnoise sql
             continue
         else:
-            raise ValueError(
+            raise InternalServerException(
                 f"unknown column type in metadata: \
                 {col_type} in column {col_name}"
             )

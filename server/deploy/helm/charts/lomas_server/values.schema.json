@@ -1,0 +1,304 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "type": "object"
+        },
+        "fullnameOverride": {
+            "description": "Fully overrides the lomas-server.fullname template.",
+            "type": "string"
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "imagePullSecrets": {
+            "type": "array"
+        },
+        "ingress": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "properties": {
+                        "nginx.ingress.kubernetes.io/proxy-read-timeout": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "className": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "host": {
+                                "type": "string"
+                            },
+                            "paths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "pathType": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tls": {
+                    "type": "object",
+                    "properties": {
+                        "hosts": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "mongodb": {
+            "description": "The configuration for the mongodb database. Refer to the subchart for more detailed description.",
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "type": "string"
+                },
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "databases": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "passwords": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "rootPassword": {
+                            "type": "string"
+                        },
+                        "rootUser": {
+                            "type": "string"
+                        },
+                        "usernames": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "discoverable": {
+                    "type": "object",
+                    "properties": {
+                        "allow": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "fullnameOverride": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "persistence": {
+                    "type": "object",
+                    "properties": {
+                        "resourcePolicy": {
+                            "description": "Set this to 'keep' to disable data pvc deletion when uninstalling the chart. Subsequent installs will use the same pvc, restoring the state of the server. Note: if the runtime_args.settings.develop_mode is set to True, the server state will be reset (default datasets and budgets).",
+                            "enum": [
+                                "",
+                                "keep"
+                            ],
+                            "type": "string"
+                        }
+                    }
+                },
+                "replicaCount": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "object"
+                },
+                "security": {
+                    "type": "object",
+                    "properties": {
+                        "networkPolicy": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "nameOverride": {
+            "description": "Partially overrides lomas-server.fullname template, keeping the version number.",
+            "type": "string"
+        },
+        "nodeSelector": {
+            "type": "object"
+        },
+        "podAnnotations": {
+            "type": "object"
+        },
+        "podSecurityContext": {
+            "type": "object"
+        },
+        "replicaCount": {
+            "type": "integer"
+        },
+        "resources": {
+            "type": "object"
+        },
+        "runtime_args": {
+            "type": "object",
+            "properties": {
+                "settings": {
+                    "type": "object",
+                    "properties": {
+                        "dataset_store": {
+                            "type": "object",
+                            "properties": {
+                                "ds_store_type": {
+                                    "description": "The type of dataset store.",
+                                    "enum": [
+                                        "basic",
+                                        "LRU_cache"
+                                    ],
+                                    "type": "string"
+                                },
+                                "max_memory_usage": {
+                                    "description": "Max memory usage of dataset store. Only useful for LRU_cache type.",
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "develop_mode": {
+                            "description": "When True, service database is reset to default user and dataset collections.",
+                            "type": "boolean"
+                        },
+                        "submit_limit": {
+                            "type": "integer"
+                        },
+                        "server": {
+                            "type": "object",
+                            "properties": {
+                                "time_attack": {
+                                    "type": "object",
+                                    "properties": {
+                                        "magnitude": {
+                                            "type": "integer"
+                                        },
+                                        "method": {
+                                            "enum": [
+                                                "jitter",
+                                                "stall"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "host_ip": {
+                                    "type": "string"
+                                },
+                                "host_port": {
+                                    "type": "int"
+                                },
+                                "log_level": {
+                                    "enum": [
+                                        "notset",
+                                        "debug",
+                                        "info",
+                                        "warning",
+                                        "error",
+                                        "critical"
+                                    ],
+                                    "type": "string"
+                                },
+                                "reload": {
+                                    "type": "boolean"
+                                },
+                                "workers": {
+                                    "type": "int"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "securityContext": {
+            "type": "object"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object"
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tolerations": {
+            "type": "array"
+        }
+    }
+}

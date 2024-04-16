@@ -1,29 +1,28 @@
 import collections.abc
+
+import yaml
+from constants import (
+    CONF_DATASET_STORE,
+    CONF_DATASET_STORE_TYPE,
+    CONF_DB,
+    CONF_DB_TYPE,
+    CONF_DB_TYPE_MONGODB,
+    CONF_DEV_MODE,
+    CONF_RUNTIME_ARGS,
+    CONF_SERVER,
+    CONF_SETTINGS,
+    CONF_SUBMIT_LIMIT,
+    CONFIG_PATH,
+    SECRETS_PATH,
+    ConfDatasetStore,
+)
 from pydantic import BaseModel
 
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
 from typing_extensions import Literal
-import yaml
-
-from constants import (
-    CONFIG_PATH,
-    CONF_RUNTIME_ARGS,
-    CONF_SETTINGS,
-    CONF_DEV_MODE,
-    CONF_TIME_ATTACK,
-    CONF_DB,
-    CONF_DB_TYPE,
-    CONF_DB_TYPE_MONGODB,
-    CONF_SUBMIT_LIMIT,
-    CONF_DATASET_STORE,
-    CONF_DATASET_STORE_TYPE,
-    CONF_DATASET_STORE_TYPE_LRU,
-    CONF_DATASET_STORE_TYPE_BASIC,
-    SECRETS_PATH,
-)
-from utils.loggr import LOG
+from utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
@@ -31,14 +30,21 @@ class TimeAttack(BaseModel):
     magnitude: float = 1
 
 
+class Server(BaseModel):
+    time_attack: TimeAttack = None
+    host_ip: str = None
+    host_port: int = None
+    log_level: str = None
+    reload: bool = None
+    workers: int = None
+
+
 class DBConfig(BaseModel):
     db_type: str = Literal[CONF_DB_TYPE_MONGODB]
 
 
 class DatasetStoreConfig(BaseModel):
-    ds_store_type: Literal[
-        CONF_DATASET_STORE_TYPE_BASIC, CONF_DATASET_STORE_TYPE_LRU
-    ]
+    ds_store_type: Literal[ConfDatasetStore.BASIC, ConfDatasetStore.LRU]
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
@@ -56,42 +62,22 @@ class MongoDBConfig(DBConfig):
 class Config(BaseModel):
     # Develop mode
     develop_mode: bool = False
+
     # Server configs
-    time_attack: TimeAttack = None
+    server: Server = None
 
     # A limit on the rate which users can submit answers
-    submit_limit: float = (
-        5 * 60
-    )  # TODO not used for the moment, kept as a simple example field for now.
+    submit_limit: float = 5 * 60  # TODO ticket #145
 
     admin_database: DBConfig = None
 
     dataset_store: DatasetStoreConfig = None
+
     # validator example, for reference
     """ @validator('parties')
     def two_party_min(cls, v):
         assert len(v) >= 2
         return v
-    """
-
-    # Yet to determin what this was used for.
-    # TODO read this https://docs.pydantic.dev/usage/settings/#secret-support
-    # and update how config is loaded (similar to what was done by oblv.)
-    """
-    class Config:
-        @classmethod
-        def customise_sources(
-            cls,
-            init_settings,
-            env_settings,
-            file_secret_settings,
-        ):
-            return (
-                init_settings,
-                yaml_config,
-                env_settings,
-                file_secret_settings,
-            )
     """
 
 
@@ -121,9 +107,7 @@ def get_config() -> dict:
 
             update(config_data, secret_data)
 
-        time_attack: TimeAttack = TimeAttack.parse_obj(
-            config_data[CONF_TIME_ATTACK]
-        )
+        server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
 
         db_type = config_data[CONF_DB][CONF_DB_TYPE]
         if db_type == CONF_DB_TYPE_MONGODB:
@@ -131,34 +115,35 @@ def get_config() -> dict:
                 config_data[CONF_DB]
             )
         else:
-            raise Exception(f"User database type {db_type} not supported.")
+            raise InternalServerException(
+                f"User database type {db_type} not supported."
+            )
 
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
         ]
-        if ds_store_type == CONF_DATASET_STORE_TYPE_BASIC:
+        if ds_store_type == ConfDatasetStore.BASIC:
             ds_store_config = DatasetStoreConfig(
                 config_data[CONF_DATASET_STORE]
             )
-        elif ds_store_type == CONF_DATASET_STORE_TYPE_LRU:
+        elif ds_store_type == ConfDatasetStore.LRU:
             ds_store_config = LRUDatasetStoreConfig.parse_obj(
                 config_data[CONF_DATASET_STORE]
             )
 
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],
-            time_attack=time_attack,
+            server=server_config,
             submit_limit=config_data[CONF_SUBMIT_LIMIT],
             admin_database=admin_database_config,
             dataset_store=ds_store_config,
         )
 
     except Exception as e:
-        LOG.error(
-            f"Could not read config from disk at {CONFIG_PATH} \
-                or missing fields"
+        raise InternalServerException(
+            f"Could not read config from disk at {CONFIG_PATH}"
+            + f"or missing fields: {e}"
         )
-        raise e
 
     return config
 

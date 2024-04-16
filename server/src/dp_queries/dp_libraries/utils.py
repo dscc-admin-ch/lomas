@@ -1,18 +1,17 @@
-from constants import LIB_OPENDP, LIB_SMARTNOISE_SQL
+from constants import DPLibraries
 from dp_queries.dp_libraries.open_dp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
+from utils.error_handler import InternalServerException
 
 
 def querier_factory(lib, private_dataset):
-    if lib == LIB_SMARTNOISE_SQL:
-        querier = SmartnoiseSQLQuerier(private_dataset)
+    match lib:
+        case DPLibraries.SMARTNOISE_SQL:
+            querier = SmartnoiseSQLQuerier(private_dataset)
 
-    elif lib == LIB_OPENDP:
-        querier = OpenDPQuerier(private_dataset)
+        case DPLibraries.OPENDP:
+            querier = OpenDPQuerier(private_dataset)
 
-    else:
-        raise Exception(
-            f"Trying to create a querier for library {lib}. "
-            "This should never happen."
-        )
+        case _:
+            raise InternalServerException(f"Unknown library: {lib}")
     return querier

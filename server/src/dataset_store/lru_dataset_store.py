@@ -1,11 +1,11 @@
 from collections import OrderedDict
 
 from admin_database.admin_database import AdminDatabase
-from dp_queries.dp_querier import DPQuerier
-from dp_queries.dp_libraries.utils import querier_factory
 from dataset_store.dataset_store import DatasetStore
-from private_dataset.utils import private_dataset_factory
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
+from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_querier import DPQuerier
+from private_dataset.utils import private_dataset_factory
 from utils.loggr import LOG
 
 
@@ -35,8 +35,6 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         Adds all queriers for a dataset.
         The source data is fetched from an online csv, the paths are stored
         as constants for now.
-
-        TODO Get the info from the metadata stored in the db.
         """
         # Should not call this function if dataset already present.
         assert (

@@ -6,7 +6,7 @@
 ##########################################################################
 mongodb:
   resources: {}
-  fullnameOverride: sdd-mongodb
+  fullnameOverride: lomas-mongodb
   architecture: standalone
   image:
     tag: "6.0.9-debian-11-r5"

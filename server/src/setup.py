@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="sdd_poc_server_package",
+    name="lomas_server_package",
     description="SDD POC Server Package.",
     version="0.0.1",
     author="DSCC",

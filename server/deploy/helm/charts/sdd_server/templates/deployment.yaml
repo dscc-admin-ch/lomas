@@ -35,7 +35,7 @@ spec:
         volumeMounts:
           - name: config-and-secrets
             readOnly: True
-            mountPath: "/usr/sdd_poc_server/"
+            mountPath: "/usr/lomas_server/"
         resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

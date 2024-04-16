@@ -101,7 +101,7 @@ ingress:
           pathType: Prefix
   tls:
     hosts:
-      - lomas_server.example.com
+      - lomas-server.example.com
   #   - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

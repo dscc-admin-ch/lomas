@@ -1,6 +1,11 @@
 # Tips for developpers
 
 ## Automatic documentation
+If needed, install the sphinx package:
+```
+pip install sphinx
+```
+
 To automate the making of the documentation, in `lomas/client`, run:
 
 ```python
@@ -14,7 +19,10 @@ start .\index.html
 ```
 (in windows) and the doc page will open!
 
-
+In Linux, you can use:
+```
+firefox ./index.html
+```
 ## Push new version to Pypi
 To push a new client library version on Pypi:
 0. Verify the documentation and README.md are up to date

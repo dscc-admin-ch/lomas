@@ -17,12 +17,12 @@ Welcome to Lomas Client's documentation!
 Installation
 ------------
 
-This section explains how to install the dscc-sdd-client library.
+This section explains how to install the lomas-client library.
 
 Usage
 -----
 
-Here, we'll show you how to use the `Lomas Poc` Client part.
+Here, we'll show you how to use the `Lomas` Client part.
 
 
 Contributing

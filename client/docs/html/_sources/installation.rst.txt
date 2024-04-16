@@ -8,6 +8,6 @@ To install Your Project, follow these steps:
 
    .. code-block:: bash
 
-      pip install dscc-sdd-client
+      pip install lomas-client
 
 3. You're all set!

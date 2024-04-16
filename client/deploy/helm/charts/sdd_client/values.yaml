@@ -18,8 +18,8 @@ image:
 password: "'dprocks'"
 
 imagePullSecrets: []
-nameOverride: "sdd-client"
-fullnameOverride: "sdd-client"
+nameOverride: "lomas-client"
+fullnameOverride: "lomas-client"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -53,13 +53,13 @@ ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   hosts:
-    - host: sdd-client.lab.sspcloud.fr
+    - host: lomas-client.lab.sspcloud.fr
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - sdd-client.lab.sspcloud.fr
+      - lomas-client.lab.sspcloud.fr
   #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: sdd-client
+name: lomas-client
 description: Lomas's Secure Data Disclosure deployment chart for the client environment
 
 type: application

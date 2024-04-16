@@ -1,13 +1,11 @@
 from typing import List
-from fastapi import HTTPException
-from snsql import Privacy, from_connection, Stat, Mechanism
-import traceback
-import pandas as pd
 
-from constants import MAX_NAN_ITERATION, STATS
+import pandas as pd
+from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from utils.loggr import LOG
+from snsql import Mechanism, Privacy, Stat, from_connection
+from utils.error_handler import ExternalLibraryException, InvalidQueryException
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -30,16 +28,15 @@ class SmartnoiseSQLQuerier(DPQuerier):
         query_str = query_json.query_str
         try:
             result = reader.get_privacy_cost(query_str)
-        except Exception as err:
-            print(traceback.format_exc())
-            raise HTTPException(
-                400,
-                "Error executing query: " + query_str + ": " + str(err),
+        except Exception as e:
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SQL,
+                "Error obtaining cost:" + str(e),
             )
 
         return result
 
-    def query(self, query_json: dict, nb_iter=0) -> str:
+    def query(self, query_json: dict, nb_iter: int=0) -> str:
         epsilon, delta = query_json.epsilon, query_json.delta
 
         privacy = Privacy(epsilon=epsilon, delta=delta)
@@ -56,24 +53,19 @@ class SmartnoiseSQLQuerier(DPQuerier):
             result = reader.execute(
                 query_str, postprocess=query_json.postprocess
             )
-        except Exception as err:
-            raise HTTPException(
-                400,
-                "Error executing query: " + query_str + ": " + str(err),
+        except Exception as e:
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SQL,
+                "Error executing query:" + str(e),
             )
 
         if not query_json.postprocess:
             result = list(result)
 
-        # Should only be printed if logging level is debug
-        LOG.debug("********RESULT AFTER QUERY********")
-        LOG.debug(result)
-
         cols = result.pop(0)
-
         if result == []:
-            raise HTTPException(
-                400,
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SQL,
                 f"SQL Reader generated empty results,"
                 f"Epsilon: {epsilon} and Delta: {delta} are too small"
                 "to generate output.",
@@ -87,8 +79,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
             else:
-                raise HTTPException(
-                    400,
+                raise InvalidQueryException(
                     f"SQL Reader generated NAN results."
                     f" Epsilon: {epsilon} and Delta: {delta} are too small"
                     " to generate output.",

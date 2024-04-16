@@ -1,12 +1,12 @@
 version: '3.4'
 services:
   client:
-    image: damienaymon/sdd_client_dev
+    image: dsccadminch/lomas_client_dev
     build:
       dockerfile: ./Dockerfile
-      target: sdd_client_dev
-    container_name: sdd_client_dev
-    ports: 
+      target: lomas_client_dev
+    container_name: lomas_client_dev
+    ports:
       - 8888:8888
     volumes:
       - ./:/code/

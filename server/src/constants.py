@@ -1,12 +1,13 @@
 import string
+from enum import StrEnum
 
 # Configurations
-CONFIG_PATH = "/usr/sdd_poc_server/runtime.yaml"
-SECRETS_PATH = "/usr/sdd_poc_server/secrets.yaml"
-QUERIES_ARCHIVES_PATH = "/usr/sdd_poc_server/queries_archive.json"
+CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
+SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS = "runtime_args"
+CONF_SERVER = "server"
 CONF_SETTINGS = "settings"
 CONF_DEV_MODE = "develop_mode"
 CONF_TIME_ATTACK = "time_attack"
@@ -18,9 +19,13 @@ CONF_MONGODB_ADDR = "address"
 CONF_MONGODB_PORT = "port"
 CONF_DATASET_STORE = "dataset_store"
 CONF_DATASET_STORE_TYPE = "ds_store_type"
-CONF_DATASET_STORE_TYPE_BASIC = "basic"
-CONF_DATASET_STORE_TYPE_LRU = "LRU_cache"
 CONF_LRU_DATASET_STORE__MAX_SIZE = "max_memory_usage"
+
+
+class ConfDatasetStore(StrEnum):
+    BASIC = "basic"
+    LRU = "LRU_cache"
+
 
 # Server states
 QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
@@ -37,20 +42,33 @@ INTERNAL_SERVER_ERROR = (
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.0004
 
+
 # Supported DP libraries
-LIB_SMARTNOISE_SQL = "smartnoise_sql"
-LIB_OPENDP = "opendp"
-SUPPORTED_LIBS = [LIB_SMARTNOISE_SQL, LIB_OPENDP]
+class DPLibraries(StrEnum):
+    SMARTNOISE_SQL = "smartnoise_sql"
+    OPENDP = "opendp"
+
 
 # OpenDP pipeline input types
-OPENDP_INPUT_TYPE_DF = "df"
-OPENDP_INPUT_TYPE_PATH = "path"
+class OpenDPInputType(StrEnum):
+    DF = "df"
+    PATH = "path"
 
-# Databases
-LOCAL_DB = "LOCAL_DB"
-REMOTE_HTTP_DB = "REMOTE_HTTP_DB"
-S3_DB = "S3_DB"
-PRIVATE_DBS = [LOCAL_DB, REMOTE_HTTP_DB, S3_DB]
+
+# Private Databases
+class PrivateDatabaseType(StrEnum):
+    LOCAL = "LOCAL_DB"
+    REMOTE_HTTP = "REMOTE_HTTP_DB"
+    S3 = "S3_DB"
+
+
+# OpenDP Measurement Divergence Type
+class OpenDPMeasurement(StrEnum):
+    FIXED_SMOOTHED_MAX_DIVERGENCE = "fixed_smoothed_max_divergence"
+    MAX_DIVERGENCE = "max_divergence"
+    SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"
+    ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
+
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

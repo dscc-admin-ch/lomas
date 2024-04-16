@@ -1,6 +1,4 @@
 import io
-from fastapi.responses import StreamingResponse
-from fastapi import HTTPException
 
 import app
 from constants import (
@@ -9,6 +7,8 @@ from constants import (
     QUERY_HANDLER_NOT_LOADED,
     SERVER_LIVE,
 )
+from fastapi.responses import StreamingResponse
+from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
 
@@ -29,15 +29,14 @@ def stream_dataframe(df):
 
 async def server_live():
     if not app.SERVER_STATE["LIVE"]:
-        raise HTTPException(
-            status_code=403,
-            detail="Woops, the server did not start correctly. \
-                Contact the administrator of this service.",
+        raise InternalServerException(
+            "Woops, the server did not start correctly."
+            + "Contact the administrator of this service.",
         )
     yield
 
 
-def check_start_condition():
+def check_start_condition() -> None:
     """
     This function checks the server started correctly and SERVER_STATE is
     updated accordingly.

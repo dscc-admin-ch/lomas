@@ -1,7 +1,7 @@
-from fastapi import Request
-import time
 import random
+import time
 
+from fastapi import Request
 from utils.config import Config
 
 
@@ -9,15 +9,17 @@ async def anti_timing_att(request: Request, call_next, config: Config):
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
-    if config.time_attack:
-        if config.time_attack.method == "stall":
+    if config.server.time_attack:
+        if config.server.time_attack.method == "stall":
             # if stall is used slow fast callbacks
             # to a minimum response time defined by magnitude
-            if process_time < config.time_attack.magnitude:
-                time.sleep(config.time_attack.magnitude - process_time)
-        elif config.time_attack.method == "jitter":
+            if process_time < config.server.time_attack.magnitude:
+                time.sleep(config.server.time_attack.magnitude - process_time)
+        elif config.server.time_attack.method == "jitter":
             # if jitter is used it just adds some time
             # between 0 and magnitude secs
-            time.sleep(config.time_attack.magnitude * random.uniform(0, 1))
+            time.sleep(
+                config.server.time_attack.magnitude * random.uniform(0, 1)
+            )
 
     return response

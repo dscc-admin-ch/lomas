@@ -1,23 +1,23 @@
 version: '3.4'
 services:
-  sdd_poc_server:
-    image: dsccadminch/sdd_server_dev
+  lomas_server:
+    image: dsccadminch/lomas_server_dev
     build:
       dockerfile: ./Dockerfile
-      target: sdd_server_dev
-    container_name: sdd_server_dev
+      target: lomas_server_dev
+    container_name: lomas_server_dev
     ports:
       - 80:80
     restart: always
     volumes:
       - ./src:/code/
-      - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
-      - ./configs/example_secrets.yaml:/usr/sdd_poc_server/secrets.yaml
+      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
+      - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./data/:/data/
     depends_on:
       - mongodb
     networks:
-      - sdd-network
+      - lomas-network
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -28,7 +28,7 @@ services:
     ports:
       - 27017:27017
     networks:
-      - sdd-network
+      - lomas-network
     volumes:
       - mongodata:/data/db/
       - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
@@ -41,24 +41,24 @@ services:
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
   client:
-    image: dsccadminch/sdd_client_dev
+    image: dsccadminch/lomas_client_dev
     build:
       dockerfile: ../client/Dockerfile
-      target: sdd_client_dev
+      target: lomas_client_dev
       context: ../client/
-    container_name: sdd_client
-    ports: 
+    container_name: lomas_client
+    ports:
       - 8888:8888
     volumes:
       - ../client/:/code/
       - ./data/:/data/
       - ../client/configs/:/root/.jupyter/
     depends_on:
-      - sdd_poc_server
+      - lomas_server
     networks:
-    - sdd-network
+      - lomas-network
 networks:
-  sdd-network:
+  lomas-network:
     driver: bridge
 
 volumes:
@@ -69,4 +69,4 @@ volumes:
   #mongoconfig:
   #  external: true
 
-    
+

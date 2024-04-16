@@ -16,7 +16,7 @@ RUN pip install -e /code/
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM lomas_client_base AS lomas_client
-COPY ./images/ /code/notebooks/images/
+COPY ./notebooks/images/ /code/notebooks/images/
 COPY ./LICENSE /code/LICENSE
 COPY ./notebooks/Demo_Client_Notebook.ipynb /code/notebooks/Demo_Client_Notebook.ipynb
 

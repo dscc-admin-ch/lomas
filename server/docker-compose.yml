@@ -1,6 +1,6 @@
 version: '3.4'
 services:
-  sdd_poc_server:
+  lomas_server:
     image: dsccadminch/lomas_server_dev
     build:
       dockerfile: ./Dockerfile
@@ -11,13 +11,13 @@ services:
     restart: always
     volumes:
       - ./src:/code/
-      - ./configs/example_config.yaml:/usr/sdd_poc_server/runtime.yaml
-      - ./configs/example_secrets.yaml:/usr/sdd_poc_server/secrets.yaml
+      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
+      - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./data/:/data/
     depends_on:
       - mongodb
     networks:
-      - sdd-network
+      - lomas-network
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -28,7 +28,7 @@ services:
     ports:
       - 27017:27017
     networks:
-      - sdd-network
+      - lomas-network
     volumes:
       - mongodata:/data/db/
       - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
@@ -54,11 +54,11 @@ services:
       - ./data/:/data/
       - ../client/configs/:/root/.jupyter/
     depends_on:
-      - sdd_poc_server
+      - lomas_server
     networks:
-      - sdd-network
+      - lomas-network
 networks:
-  sdd-network:
+  lomas-network:
     driver: bridge
 
 volumes:

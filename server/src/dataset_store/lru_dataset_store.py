@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Optional
 
 from admin_database.admin_database import AdminDatabase
 from dataset_store.dataset_store import DatasetStore
@@ -18,7 +19,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
     the maximum memory usage.
     """
 
-    dataset_cache: OrderedDict = None
+    dataset_cache: Optional[OrderedDict] = None
 
     def __init__(
         self, admin_database: AdminDatabase, max_memory_usage: int = 1024

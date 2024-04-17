@@ -2,10 +2,10 @@ import json
 from enum import StrEnum
 from io import StringIO
 from typing import List, Optional
-import pandas as pd
-import requests
 
 import opendp as dp
+import pandas as pd
+import requests
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 
@@ -27,7 +27,7 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
 
 
-def error_message(res) -> str:
+def error_message(res: requests.Response) -> str:
     return f"Server error status {res.status_code}: {res.text}"
 
 
@@ -47,7 +47,6 @@ class Client:
         if res.status_code == 200:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
-
             return metadata
         else:
             print(error_message(res))
@@ -80,7 +79,7 @@ class Client:
         query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict = {},
+        mechanisms: dict[str, str] = {},
         postprocess: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -119,8 +118,8 @@ class Client:
         query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict = {},
-    ) -> Optional[dict]:
+        mechanisms: dict[str, str] = {},
+    ) -> Optional[dict[str, float]]:
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
@@ -184,9 +183,9 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline: dp.Measurement,
-        input_data_type: str="df",
+        input_data_type: str = "df",
         fixed_delta: Optional[float] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[dict[str, float]]:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
@@ -202,7 +201,7 @@ class Client:
             print(error_message(res))
             return None
 
-    def get_initial_budget(self) -> Optional[dict]:
+    def get_initial_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -214,7 +213,7 @@ class Client:
             print(error_message(res))
             return None
 
-    def get_total_spent_budget(self) -> Optional[dict]:
+    def get_total_spent_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -226,7 +225,7 @@ class Client:
             print(error_message(res))
             return None
 
-    def get_remaining_budget(self) -> Optional[dict]:
+    def get_remaining_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -273,7 +272,7 @@ class Client:
             print(error_message(res))
             return None
 
-    def _exec(self, endpoint: str, body_json: dict = {}):
+    def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
         r = requests.post(
             self.url + "/" + endpoint, json=body_json, headers=self.headers
         )

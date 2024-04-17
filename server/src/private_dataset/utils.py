@@ -1,3 +1,4 @@
+from admin_database.admin_database import AdminDatabase
 from constants import PrivateDatabaseType
 from private_dataset.local_dataset import LocalDataset
 from private_dataset.private_dataset import PrivateDataset
@@ -7,7 +8,7 @@ from utils.error_handler import InternalServerException
 
 
 def private_dataset_factory(
-    dataset_name: str, admin_database
+    dataset_name: str, admin_database: AdminDatabase
 ) -> PrivateDataset:
     """
     Returns the appropriate database class based on dataset storage location

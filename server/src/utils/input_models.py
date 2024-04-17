@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class BasicModel(BaseModel):
-    def toJSON(self):
+    def toJSON(self) -> str:
         return json.loads(
             json.dumps(
                 self,
@@ -18,7 +18,7 @@ class BasicModel(BaseModel):
             )
         )
 
-    def toJSONStr(self):
+    def toJSONStr(self) -> str:
         return json.dumps(
             self,
             default=lambda o: (

@@ -1,6 +1,8 @@
 import io
+from typing import AsyncGenerator
 
 import app
+import pandas as pd
 from constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -12,7 +14,7 @@ from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
 
-def stream_dataframe(df):
+def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     stream = io.StringIO()
 
     # CSV creation
@@ -27,7 +29,7 @@ def stream_dataframe(df):
     return response
 
 
-async def server_live():
+async def server_live() -> AsyncGenerator:
     if not app.SERVER_STATE["LIVE"]:
         raise InternalServerException(
             "Woops, the server did not start correctly."

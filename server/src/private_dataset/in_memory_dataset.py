@@ -10,7 +10,7 @@ class InMemoryDataset(PrivateDataset):
     Class to hold a dataset created from an in-memory pandas DataFrame
     """
 
-    def __init__(self, metadata, dataset_df) -> None:
+    def __init__(self, metadata: dict, dataset_df: pd.DataFrame) -> None:
         """
         Parameters:
             - dataset_df: Dataframe of the dataset

@@ -115,7 +115,7 @@ previous_queries = client.get_previous_queries()
 
 
 ### Examples
-To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin/lomas/blob/develop/client) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin/lomas/blob/develop/client/notebooks/Demo_Client_Notebook.ipynb).
+To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin-ch/lomas/tree/master/client/notebooks) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/client/notebooks/Demo_Client_Notebook.ipynb).
 
 
 ### More detailed documentation

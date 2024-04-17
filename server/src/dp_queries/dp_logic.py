@@ -79,41 +79,49 @@ class QueryHandler:
         # Block access to other queries to user
         self.admin_database.set_may_user_query(user_name, False)
 
-        # Get querier
-        dp_querier = self._get_querier(query_type, query_json)
-
-        # Get cost of the query
-        eps_cost, delta_cost = dp_querier.cost(query_json)
-
-        # Check that enough budget to do the query
-        eps_remain, delta_remain = self.admin_database.get_remaining_budget(
-            user_name, query_json.dataset_name
-        )
-        if (eps_remain < eps_cost) or (delta_remain < delta_cost):
-            raise UnauthorizedAccessException(
-                "Not enough budget for this query epsilon remaining "
-                f"{eps_remain}, delta remaining {delta_remain}."
-            )
-
-        # Query
         try:
-            query_response = dp_querier.query(query_json)
+            # Get querier
+            dp_querier = self._get_querier(query_type, query_json)
+
+            # Get cost of the query
+            eps_cost, delta_cost = dp_querier.cost(query_json)
+
+            # Check that enough budget to do the query
+            (
+                eps_remain,
+                delta_remain,
+            ) = self.admin_database.get_remaining_budget(
+                user_name, query_json.dataset_name
+            )
+            if (eps_remain < eps_cost) or (delta_remain < delta_cost):
+                raise UnauthorizedAccessException(
+                    "Not enough budget for this query epsilon remaining "
+                    f"{eps_remain}, delta remaining {delta_remain}."
+                )
+
+            # Query
+            try:
+                query_response = dp_querier.query(query_json)
+            except Exception as e:
+                raise InternalServerException(e)
+
+            # Deduce budget from user
+            self.admin_database.update_budget(
+                user_name, query_json.dataset_name, eps_cost, delta_cost
+            )
+            response = {
+                "requested_by": user_name,
+                "query_response": query_response,
+                "spent_epsilon": eps_cost,
+                "spent_delta": delta_cost,
+            }
+
+            # Add query to db (for archive)
+            self.admin_database.save_query(user_name, query_json, response)
+
         except Exception as e:
-            raise InternalServerException(e)
-
-        # Deduce budget from user
-        self.admin_database.update_budget(
-            user_name, query_json.dataset_name, eps_cost, delta_cost
-        )
-        response = {
-            "requested_by": user_name,
-            "query_response": query_response,
-            "spent_epsilon": eps_cost,
-            "spent_delta": delta_cost,
-        }
-
-        # Add query to db (for archive)
-        self.admin_database.save_query(user_name, query_json, response)
+            self.admin_database.set_may_user_query(user_name, True)
+            raise e
 
         # Re-enable user to query
         self.admin_database.set_may_user_query(user_name, True)

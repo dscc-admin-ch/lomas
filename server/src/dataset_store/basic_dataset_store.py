@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
@@ -20,7 +20,7 @@ class BasicDatasetStore(DatasetStore):
     (links stored in constants).
     """
 
-    dp_queriers: Optional[Dict[str, Dict[str, DPQuerier]]] = None
+    dp_queriers: Dict[str, Dict[str, DPQuerier]] = {}
 
     def __init__(self, admin_database: AdminDatabase) -> None:
         super().__init__(admin_database)

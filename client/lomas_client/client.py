@@ -1,7 +1,7 @@
 import json
 from enum import StrEnum
 from io import StringIO
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 
 import opendp as dp
 import pandas as pd
@@ -40,7 +40,7 @@ class Client:
 
     def get_dataset_metadata(
         self,
-    ) -> Optional[dict]:
+    ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
         )

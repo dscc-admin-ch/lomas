@@ -1,7 +1,7 @@
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
 from constants import CONF_DB_TYPE_MONGODB
-from utils.config import DBConfig
+from utils.config import Config, DBConfig
 from utils.error_handler import InternalServerException
 
 
@@ -23,7 +23,7 @@ def database_factory(config: DBConfig) -> AdminDatabase:
         )
 
 
-def get_mongodb_url(config: dict) -> str:
+def get_mongodb_url(config: Config) -> str:
     """
     Get URL of the administration MongoDB.
     """

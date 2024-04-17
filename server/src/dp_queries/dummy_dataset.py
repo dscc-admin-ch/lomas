@@ -17,6 +17,7 @@ from constants import (
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
+from utils.input_models import GetDummyDataset
 
 
 def make_dummy_dataset(
@@ -108,7 +109,7 @@ def make_dummy_dataset(
 
 
 def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: dict
+    admin_database: AdminDatabase, query_json: GetDummyDataset
 ) -> InMemoryDataset:
     # Create dummy dataset based on seed and number of rows
     ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)

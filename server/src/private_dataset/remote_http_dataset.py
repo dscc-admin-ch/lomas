@@ -1,7 +1,7 @@
 import os
 import tempfile
 import urllib
-
+from typing import Dict, Union
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import InternalServerException, InvalidQueryException
@@ -12,13 +12,17 @@ class RemoteHTTPDataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, metadata: dict, dataset_path: str) -> None:
+    def __init__(
+        self,
+        metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
+        dataset_path: str,
+    ) -> None:
         """
         Parameters:
             - dataset_path: path of the dataset
         """
         super().__init__(metadata)
-        self.ds_path = dataset_path
+        self.ds_path: str = dataset_path
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

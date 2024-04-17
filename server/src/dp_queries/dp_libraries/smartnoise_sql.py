@@ -4,6 +4,7 @@ import pandas as pd
 from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
+from utils.input_models import SNSQLInp, SNSQLInpCost
 from snsql import Mechanism, Privacy, Stat, from_connection
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
 
@@ -15,7 +16,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
     ) -> None:
         super().__init__(private_dataset)
 
-    def cost(self, query_json: dict) -> List[float]:
+    def cost(self, query_json: SNSQLInpCost) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
@@ -36,7 +37,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_json: dict, nb_iter: int = 0) -> str:
+    def query(self, query_json: SNSQLInp, nb_iter: int = 0) -> dict:
         epsilon, delta = query_json.epsilon, query_json.delta
 
         privacy = Privacy(epsilon=epsilon, delta=delta)
@@ -88,7 +89,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         return df_res.to_dict(orient="tight")
 
 
-def set_mechanisms(privacy, mechanisms):
+def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     # https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms
     for stat in STATS:
         if stat in mechanisms.keys():

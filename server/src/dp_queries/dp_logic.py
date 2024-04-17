@@ -1,6 +1,7 @@
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
 from dataset_store.dataset_store import DatasetStore
+from dp_queries.dp_querier import DPQuerier
 from fastapi import Header
 from utils.error_handler import (
     InternalServerException,
@@ -30,7 +31,7 @@ class QueryHandler:
         self,
         query_type: str,
         query_json: BasicModel,
-    ):
+    ) -> DPQuerier:
         # Check query type
         supported_lib = [lib.value for lib in DPLibraries]
         if query_type not in supported_lib:
@@ -54,7 +55,7 @@ class QueryHandler:
         self,
         query_type: str,
         query_json: BasicModel,
-    ):
+    ) -> dict[str, float]:
         # Get querier
         dp_querier = self._get_querier(query_type, query_json)
 
@@ -68,7 +69,7 @@ class QueryHandler:
         query_type: str,
         query_json: BasicModel,
         user_name: str = Header(None),
-    ):
+    ) -> dict:
         # Check that user may query
         if not self.admin_database.may_user_query(user_name):
             raise UnauthorizedAccessException(

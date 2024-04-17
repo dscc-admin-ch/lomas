@@ -14,12 +14,12 @@ class S3Dataset(PrivateDataset):
 
     def __init__(
         self,
-        metadata,
+        metadata: dict,
         s3_bucket: str,
         s3_key: str,
-        endpoint_url,
-        aws_access_key_id,
-        aws_secret_access_key,
+        endpoint_url: str,
+        aws_access_key_id: str,
+        aws_secret_access_key: str,
     ) -> None:
         """
         Parameters:

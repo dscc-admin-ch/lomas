@@ -36,7 +36,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_json: dict, nb_iter: int=0) -> str:
+    def query(self, query_json: dict, nb_iter: int = 0) -> str:
         epsilon, delta = query_json.epsilon, query_json.delta
 
         privacy = Privacy(epsilon=epsilon, delta=delta)

@@ -237,8 +237,8 @@ def dummy_smartnoise_sql_handler(
     dummy_querier = querier_factory(
         DPLibraries.SMARTNOISE_SQL, private_dataset=ds_private_dataset
     )
-
     try:
+        _ = dummy_querier.cost(query_json)  # verify cost works
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
     except custom_exceptions as e:
@@ -305,6 +305,7 @@ def dummy_opendp_query_handler(
     )
 
     try:
+        _ = dummy_querier.cost(query_json)  # verify cost works
         response_df = dummy_querier.query(query_json)
         response = {"query_response": response_df}
 
@@ -429,17 +430,3 @@ def get_user_previous_queries(
         raise InternalServerException(e)
 
     return {"previous_queries": previous_queries}
-
-
-@app.get("/submit_limit", dependencies=[Depends(server_live)])
-async def get_submit_limit() -> None:
-    """
-    Returns the value "submit_limit" used to limit the rate of submissions
-    """
-    """
-    An endpoint example with some dependecies.
-
-    Dummy endpoint to exemplify the use of the dependencies argument.
-    The depends.server_live function is called and it must yield in order for
-    this endpoint handler to execute.
-    """

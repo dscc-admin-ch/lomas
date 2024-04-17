@@ -1,9 +1,10 @@
 import time
 from typing import List
 
-import pymongo
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
+from pymongo import MongoClient
+from pymongo.database import Database
 from utils.error_handler import InternalServerException
 
 
@@ -20,7 +21,7 @@ class AdminMongoDatabase(AdminDatabase):
             - connection_string: Connection string to the mongodb
             - database_name: Mongodb database name.
         """
-        self.db = pymongo.MongoClient(connection_string)[database_name]
+        self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
         """

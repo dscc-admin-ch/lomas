@@ -1,3 +1,5 @@
+from typing import Callable, Dict, Union
+
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
 from constants import DPLibraries
@@ -8,7 +10,8 @@ from dp_queries.dummy_dataset import (
     get_dummy_dataset_for_query,
     make_dummy_dataset,
 )
-from fastapi import Body, Depends, FastAPI, Header, Request
+from fastapi import Body, Depends, FastAPI, Header, Request, Response
+from fastapi.responses import StreamingResponse
 from mongodb_admin import (
     add_datasets,
     create_users_collection,
@@ -128,7 +131,7 @@ def startup_event() -> None:
 
 # A simple hack to hinder the timing attackers
 @app.middleware("http")
-async def middleware(request: Request, call_next):
+async def middleware(request: Request, call_next: Callable) -> Response:
     global CONFIG
     return await anti_timing_att(request, call_next, CONFIG)
 
@@ -143,7 +146,7 @@ custom_exceptions = get_custom_exceptions_list()
 
 # Get server state
 @app.get("/state", tags=["ADMIN_USER"])
-async def get_state(user_name: str = Header(None)):
+async def get_state(user_name: str = Header(None)) -> Dict[str, str]:
     """
     Returns the current state dict of this server instance.
     """
@@ -161,7 +164,7 @@ async def get_state(user_name: str = Header(None)):
 )
 def get_dataset_metadata(
     query_json: GetDbData = Body(example_get_db_data),
-):
+) -> Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]:
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -183,7 +186,7 @@ def get_dataset_metadata(
 )
 def get_dummy_dataset(
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
-):
+) -> StreamingResponse:
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -209,7 +212,7 @@ def get_dummy_dataset(
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     user_name: str = Header(None),
-):
+) -> dict:
     try:
         response = QUERY_HANDLER.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name
@@ -230,7 +233,7 @@ def smartnoise_sql_handler(
 )
 def dummy_smartnoise_sql_handler(
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
-):
+) -> dict:
     ds_private_dataset = get_dummy_dataset_for_query(
         ADMIN_DATABASE, query_json
     )
@@ -256,7 +259,7 @@ def dummy_smartnoise_sql_handler(
 )
 def estimate_smartnoise_cost(
     query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
-):
+) -> Dict[str, float]:
     try:
         response = QUERY_HANDLER.estimate_cost(
             DPLibraries.SMARTNOISE_SQL,
@@ -276,7 +279,7 @@ def estimate_smartnoise_cost(
 def opendp_query_handler(
     query_json: OpenDPInp = Body(example_opendp),
     user_name: str = Header(None),
-):
+) -> dict:
     try:
         response = QUERY_HANDLER.handle_query(
             DPLibraries.OPENDP, query_json, user_name
@@ -296,7 +299,7 @@ def opendp_query_handler(
 )
 def dummy_opendp_query_handler(
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
-):
+) -> dict:
     ds_private_dataset = get_dummy_dataset_for_query(
         ADMIN_DATABASE, query_json
     )
@@ -323,7 +326,7 @@ def dummy_opendp_query_handler(
 )
 def estimate_opendp_cost(
     query_json: OpenDPInp = Body(example_opendp),
-):
+) -> Dict[str, float]:
     try:
         response = QUERY_HANDLER.estimate_cost(
             DPLibraries.OPENDP,
@@ -346,7 +349,7 @@ def estimate_opendp_cost(
 def get_initial_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
-):
+) -> Dict[str, float]:
     try:
         initial_epsilon, initial_delta = ADMIN_DATABASE.get_initial_budget(
             user_name, query_json.dataset_name
@@ -368,7 +371,7 @@ def get_initial_budget(
 def get_total_spent_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
-):
+) -> Dict[str, float]:
     try:
         (
             total_spent_epsilon,
@@ -396,7 +399,7 @@ def get_total_spent_budget(
 def get_remaining_budget(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
-):
+) -> Dict[str, float]:
     try:
         rem_epsilon, rem_delta = ADMIN_DATABASE.get_remaining_budget(
             user_name, query_json.dataset_name
@@ -418,7 +421,7 @@ def get_remaining_budget(
 def get_user_previous_queries(
     query_json: GetDbData = Body(example_get_db_data),
     user_name: str = Header(None),
-):
+) -> Dict[str, float]:
     try:
         previous_queries = ADMIN_DATABASE.get_user_previous_queries(
             user_name, query_json.dataset_name

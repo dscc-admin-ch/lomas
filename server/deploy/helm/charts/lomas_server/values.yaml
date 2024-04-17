@@ -95,13 +95,13 @@ ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   hosts:
-    - host: lomas-server.lab.sspcloud.fr
+    - host: chart-example.local
       paths:
         - path: /
           pathType: Prefix
   tls:
     hosts:
-      - lomas-server.example.com
+      - chart-example.local
   #   - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller

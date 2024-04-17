@@ -1,6 +1,6 @@
 import os
 import tempfile
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
@@ -22,6 +22,7 @@ class InMemoryDataset(PrivateDataset):
         """
         super().__init__(metadata)
         self.df = dataset_df.copy()
+        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, List, Union
 
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
@@ -146,7 +146,9 @@ custom_exceptions = get_custom_exceptions_list()
 
 # Get server state
 @app.get("/state", tags=["ADMIN_USER"])
-async def get_state(user_name: str = Header(None)) -> Dict[str, str]:
+async def get_state(
+    user_name: str = Header(None),
+) -> Dict[str, Union[str, Dict[str, Union[List[str], bool]]]]:
     """
     Returns the current state dict of this server instance.
     """

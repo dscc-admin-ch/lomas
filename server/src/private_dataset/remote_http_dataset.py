@@ -1,7 +1,7 @@
 import os
 import tempfile
 import urllib
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
@@ -24,6 +24,8 @@ class RemoteHTTPDataset(PrivateDataset):
         """
         super().__init__(metadata)
         self.ds_path: str = dataset_path
+        self.df: Optional[pd.DataFrame] = None
+        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

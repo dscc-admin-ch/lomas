@@ -139,6 +139,6 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     ):
         return OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
-        e = "Unknown type of output measure divergence:"
-        +f"{opendp_pipe.output_measure}."
-        raise InternalServerException(e)
+        raise InternalServerException(
+            f"Unknown type of output measure divergence: {output_measure}"
+        )

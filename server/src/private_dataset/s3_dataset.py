@@ -1,6 +1,6 @@
 import os
 import tempfile
-
+from typing import Optional
 import boto3
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
@@ -34,8 +34,10 @@ class S3Dataset(PrivateDataset):
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
         )
-        self.s3_bucket = s3_bucket
-        self.s3_key = s3_key
+        self.s3_bucket: str = s3_bucket
+        self.s3_key: str = s3_key
+        self.df: Optional[pd.DataFrame] = None
+        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

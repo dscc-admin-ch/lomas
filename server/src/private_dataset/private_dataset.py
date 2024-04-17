@@ -1,5 +1,6 @@
 import shutil
 from abc import ABC, abstractmethod
+from typing import Dict, Optional, Union
 
 import pandas as pd
 from constants import SSQL_METADATA_OPTIONS
@@ -11,11 +12,13 @@ class PrivateDataset(ABC):
     Overall access to sensitive data
     """
 
-    df = None
-    local_path = None
-    local_dir = None
+    df: Optional[pd.DataFrame] = None
+    local_path: Optional[str] = None
+    local_dir: Optional[str] = None
 
-    def __init__(self, metadata: dict) -> None:
+    def __init__(
+        self, metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]
+    ) -> None:
         """
         Connects to the DB
         Parameters:
@@ -78,7 +81,9 @@ class PrivateDataset(ABC):
         self.dataset_observers.append(dataset_observer)
 
 
-def get_dtypes(metadata: str) -> dict:
+def get_dtypes(
+    metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]
+) -> dict:
     dtypes = {}
     for col_name, data in metadata[""]["Schema"]["Table"].items():
         if col_name in SSQL_METADATA_OPTIONS:

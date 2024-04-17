@@ -1,6 +1,6 @@
 import functools
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Callable, Dict, List
 
 from utils.error_handler import (
     InvalidQueryException,
@@ -14,7 +14,7 @@ class AdminDatabase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, **connection_parameters) -> None:
+    def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """
         Connects to the DB
         Parameters:
@@ -31,7 +31,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _does_user_exist(func):
+    def _does_user_exist(func: Callable):
         """
         Decorator function to check if a user exists
         Parameters:

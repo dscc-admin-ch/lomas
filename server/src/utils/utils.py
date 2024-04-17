@@ -1,5 +1,5 @@
 import io
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Union
 
 import app
 import pandas as pd

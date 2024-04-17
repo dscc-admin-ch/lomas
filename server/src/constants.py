@@ -68,7 +68,8 @@ class OpenDPMeasurement(StrEnum):
     MAX_DIVERGENCE = "max_divergence"
     SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"
     ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
-    
+
+
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42

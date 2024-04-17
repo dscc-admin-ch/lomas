@@ -1,5 +1,3 @@
-from typing import List
-
 import opendp as dp
 from constants import DPLibraries, OpenDPInputType, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier

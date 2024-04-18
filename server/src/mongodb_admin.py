@@ -1,27 +1,31 @@
 import argparse
+from typing import Callable
 
 import boto3
-import pymongo
 import yaml
 from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
+from pymongo import MongoClient
+from pymongo.database import Database
 from utils.error_handler import InternalServerException
 
 
-def connect(function):
+def connect(
+    function: Callable[[Database, argparse.Namespace], None]
+) -> Callable:
     """Connect to the database"""
 
-    def wrap_function(*args, **kwargs):
-        db_url = get_mongodb_url(args[0])
-        db = pymongo.MongoClient(db_url)[args[0].db_name]
-        return function(db, *args, **kwargs)
+    def wrap_function(*args: argparse.Namespace) -> None:
+        db_url: str = get_mongodb_url(args[0])
+        db: Database = MongoClient(db_url)[args[0].db_name]
+        return function(db, *args)
 
     return wrap_function
 
 
 ##########################  USERS  ########################## # noqa: E266
 @connect
-def add_user(db, args):
+def add_user(db: Database, args: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values for all fields
     set by default.
@@ -40,7 +44,7 @@ def add_user(db, args):
 
 
 @connect
-def add_user_with_budget(db, args):
+def add_user_with_budget(db: Database, args: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values
     for all fields set by default.
@@ -70,7 +74,7 @@ def add_user_with_budget(db, args):
 
 
 @connect
-def del_user(db, args) -> None:
+def del_user(db: Database, args: argparse.Namespace) -> None:
     """
     Delete all related information for user from the users collection.
     """
@@ -79,7 +83,7 @@ def del_user(db, args) -> None:
 
 
 @connect
-def add_dataset_to_user(db, args):
+def add_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
     """
     Add dataset with initialized budget values to list of datasets
     that the user has access to.
@@ -112,7 +116,7 @@ def add_dataset_to_user(db, args):
 
 
 @connect
-def del_dataset_to_user(db, args) -> None:
+def del_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
     """
     Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
@@ -125,7 +129,7 @@ def del_dataset_to_user(db, args) -> None:
 
 
 @connect
-def set_budget_field(db, args) -> None:
+def set_budget_field(db: Database, args: argparse.Namespace) -> None:
     """
     Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
@@ -144,7 +148,7 @@ def set_budget_field(db, args) -> None:
 
 
 @connect
-def set_may_query(db, args) -> None:
+def set_may_query(db: Database, args: argparse.Namespace) -> None:
     """
     Set (for some reason) the 'may query' field to a given value
     if given user exists.
@@ -157,7 +161,7 @@ def set_may_query(db, args) -> None:
 
 
 @connect
-def show_user(db, args) -> None:
+def show_user(db: Database, args: argparse.Namespace) -> None:
     """
     Show a user
     """
@@ -167,7 +171,7 @@ def show_user(db, args) -> None:
 
 
 @connect
-def create_users_collection(db, args) -> None:
+def create_users_collection(db: Database, args: argparse.Namespace) -> None:
     """
     Add all users from yaml file to the user collection
     """
@@ -207,7 +211,7 @@ def create_users_collection(db, args) -> None:
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @connect
-def add_dataset(db, args):
+def add_dataset(db: Database, args: argparse.Namespace) -> None:
     """
     Set a database type to a dataset in dataset collection.
     """
@@ -267,21 +271,21 @@ def add_dataset(db, args):
 
 
 @connect
-def add_datasets(self, args):
+def add_datasets(db: Database, args: argparse.Namespace) -> None:
     """
     Set all database types to datasets in dataset collection based
     on yaml file.
     """
     if args.clean:
         # Collection created from scratch
-        self.db.datasets.drop()
-        self.db.metadata.drop()
+        db.datasets.drop()
+        db.metadata.drop()
         print("Cleaning done. \n")
 
     with open(args.path) as f:
         dataset_dict = yaml.safe_load(f)
 
-    def verify_keys(d, field, metadata: bool=False) -> None:
+    def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
         if metadata:
             assert (
                 field in d["metadata"].keys()
@@ -313,7 +317,7 @@ def add_datasets(self, args):
                 )
 
         # Fill datasets_list
-        if not self.db.datasets.find_one({"dataset_name": d["dataset_name"]}):
+        if not db.datasets.find_one({"dataset_name": d["dataset_name"]}):
             new_datasets.append(d)
         else:
             existing_datasets.append(d)
@@ -324,7 +328,7 @@ def add_datasets(self, args):
             for d in existing_datasets:
                 filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
-                self.db.datasets.update_many(filter, update_operation)
+                db.datasets.update_many(filter, update_operation)
             print(
                 f"Existing datasets updated with values"
                 f"from yaml at {args.path}. "
@@ -332,7 +336,7 @@ def add_datasets(self, args):
 
     # Add dataset collection
     if new_datasets != []:
-        self.db.datasets.insert_many(new_datasets)
+        db.datasets.insert_many(new_datasets)
         print(f"Added datasets collection from yaml at {args.path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
@@ -379,11 +383,11 @@ def add_datasets(self, args):
 
         # Overwrite or not depending on config if metadata already exists
         filter = {dataset_name: metadata_dict}
-        metadata = self.db.metadata.find_one(filter)
+        metadata = db.metadata.find_one(filter)
 
         if metadata and args.overwrite_metadata:
             print(f"Metadata updated for dataset : {dataset_name}.")
-            self.db.metadata.update_one(
+            db.metadata.update_one(
                 filter, {"$set": {dataset_name: metadata_dict}}
             )
         elif metadata:
@@ -392,12 +396,12 @@ def add_datasets(self, args):
                 "Use the command -om to overwrite with new values."
             )
         else:
-            self.db.metadata.insert_one({dataset_name: metadata_dict})
+            db.metadata.insert_one({dataset_name: metadata_dict})
             print(f"Added metadata of {dataset_name} dataset. ")
 
 
 @connect
-def del_dataset(db, args) -> None:
+def del_dataset(db: Database, args: argparse.Namespace) -> None:
     """
     Delete dataset from dataset collection.
     """
@@ -407,7 +411,7 @@ def del_dataset(db, args) -> None:
 
 #######################  COLLECTIONS  ####################### # noqa: E266
 @connect
-def drop_collection(db, args) -> None:
+def drop_collection(db: Database, args: argparse.Namespace) -> None:
     """
     Delete collection.
     """
@@ -416,7 +420,7 @@ def drop_collection(db, args) -> None:
 
 
 @connect
-def show_collection(db, args) -> None:
+def show_collection(db: Database, args: argparse.Namespace) -> None:
     """
     Show a collection
     """

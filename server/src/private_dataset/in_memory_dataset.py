@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Dict, Optional, Union
 
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
@@ -10,13 +11,18 @@ class InMemoryDataset(PrivateDataset):
     Class to hold a dataset created from an in-memory pandas DataFrame
     """
 
-    def __init__(self, metadata, dataset_df) -> None:
+    def __init__(
+        self,
+        metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
+        dataset_df: pd.DataFrame,
+    ) -> None:
         """
         Parameters:
             - dataset_df: Dataframe of the dataset
         """
         super().__init__(metadata)
         self.df = dataset_df.copy()
+        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

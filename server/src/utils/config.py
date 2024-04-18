@@ -21,57 +21,57 @@ from pydantic import BaseModel
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
-from typing_extensions import Literal
+from typing_extensions import Dict, Literal
 from utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
     method: Literal["jitter", "stall"]
-    magnitude: float = 1
+    magnitude: float
 
 
 class Server(BaseModel):
-    time_attack: TimeAttack = None
-    host_ip: str = None
-    host_port: int = None
-    log_level: str = None
-    reload: bool = None
-    workers: int = None
+    time_attack: TimeAttack
+    host_ip: str
+    host_port: int
+    log_level: str
+    reload: bool
+    workers: int
 
 
 class DBConfig(BaseModel):
-    db_type: str = Literal[CONF_DB_TYPE_MONGODB]
+    db_type: str = CONF_DB_TYPE_MONGODB
 
 
 class DatasetStoreConfig(BaseModel):
-    ds_store_type: Literal[ConfDatasetStore.BASIC, ConfDatasetStore.LRU]
+    ds_store_type: ConfDatasetStore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
-    max_memory_usage: int = None
+    max_memory_usage: int
 
 
 class MongoDBConfig(DBConfig):
-    address: str = None
-    port: int = None
-    username: str = None
-    password: str = None
-    db_name: str = None
+    address: str
+    port: int
+    username: str
+    password: str
+    db_name: str
 
 
 class Config(BaseModel):
     # Develop mode
-    develop_mode: bool = False
+    develop_mode: bool
 
     # Server configs
-    server: Server = None
+    server: Server
 
     # A limit on the rate which users can submit answers
-    submit_limit: float = 5 * 60  # TODO ticket #145
+    submit_limit: float
 
-    admin_database: DBConfig = None
+    admin_database: DBConfig
 
-    dataset_store: DatasetStoreConfig = None
+    dataset_store: DatasetStoreConfig
 
     # validator example, for reference
     """ @validator('parties')
@@ -84,7 +84,7 @@ class Config(BaseModel):
 # Utility functions -----------------------------------------------------------
 
 
-def get_config() -> dict:
+def get_config() -> Config:
     """
     Loads the config and the secret data from disk,
     merges them and returns the config object.
@@ -97,7 +97,7 @@ def get_config() -> dict:
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
 
-            def update(d, u):
+            def update(d: dict, u: Dict[str, Dict[str, str]]) -> dict:
                 for k, v in u.items():
                     if isinstance(v, collections.abc.Mapping):
                         d[k] = update(d.get(k, {}), v)
@@ -122,14 +122,19 @@ def get_config() -> dict:
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
         ]
-        if ds_store_type == ConfDatasetStore.BASIC:
-            ds_store_config = DatasetStoreConfig(
-                config_data[CONF_DATASET_STORE]
-            )
-        elif ds_store_type == ConfDatasetStore.LRU:
-            ds_store_config = LRUDatasetStoreConfig.parse_obj(
-                config_data[CONF_DATASET_STORE]
-            )
+        match ds_store_type:
+            case ConfDatasetStore.BASIC:
+                ds_store_config = DatasetStoreConfig(
+                    config_data[CONF_DATASET_STORE]
+                )
+            case ConfDatasetStore.LRU:
+                ds_store_config = LRUDatasetStoreConfig.parse_obj(
+                    config_data[CONF_DATASET_STORE]
+                )
+            case _:
+                raise InternalServerException(
+                    f"Dataset store {ds_store_type} not supported."
+                )
 
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],

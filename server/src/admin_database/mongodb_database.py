@@ -1,9 +1,10 @@
 import time
 from typing import List
 
-import pymongo
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
+from pymongo import MongoClient
+from pymongo.database import Database
 from utils.error_handler import InternalServerException
 
 
@@ -20,7 +21,7 @@ class AdminMongoDatabase(AdminDatabase):
             - connection_string: Connection string to the mongodb
             - database_name: Mongodb database name.
         """
-        self.db = pymongo.MongoClient(connection_string)[database_name]
+        self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
         """
@@ -53,9 +54,10 @@ class AdminMongoDatabase(AdminDatabase):
         Parameters:
             - dataset_name: name of the dataset to get the metadata for
         """
-        return self.db.metadata.find_one({dataset_name: {"$exists": True}})[
-            dataset_name
-        ]
+        metadatas = self.db.metadata.find_one(
+            {dataset_name: {"$exists": True}}
+        )
+        return metadatas[dataset_name]  # type: ignore
 
     @AdminDatabase._does_user_exist
     def may_user_query(self, user_name: str) -> bool:
@@ -65,7 +67,8 @@ class AdminMongoDatabase(AdminDatabase):
         Parameters:
             - user_name: name of the user
         """
-        return self.db.users.find_one({"user_name": user_name})["may_query"]
+        user = self.db.users.find_one({"user_name": user_name})
+        return user["may_query"]  # type: ignore
 
     @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -225,7 +228,8 @@ class AdminMongoDatabase(AdminDatabase):
             - dataset_name: name of the dataset
             - key: name of the field to get
         """
-        return self.db.datasets.find_one({"dataset_name": dataset_name})[key]
+        dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
+        return dataset[key]  # type: ignore
 
     @AdminDatabase._has_user_access_to_dataset
     def update_budget(

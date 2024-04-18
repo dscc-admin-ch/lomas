@@ -20,7 +20,7 @@ class BasicDatasetStore(DatasetStore):
     (links stored in constants).
     """
 
-    dp_queriers: Dict[str, Dict[str, DPQuerier]] = None
+    dp_queriers: Dict[str, Dict[str, DPQuerier]] = {}
 
     def __init__(self, admin_database: AdminDatabase) -> None:
         super().__init__(admin_database)

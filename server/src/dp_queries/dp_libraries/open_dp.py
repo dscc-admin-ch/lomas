@@ -1,5 +1,3 @@
-from typing import List
-
 import opendp as dp
 from constants import DPLibraries, OpenDPInputType, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
@@ -14,6 +12,7 @@ from utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
+from utils.input_models import OpenDPInp
 from utils.loggr import LOG
 
 enable_features("contrib")
@@ -28,7 +27,7 @@ class OpenDPQuerier(DPQuerier):
     ) -> None:
         super().__init__(private_dataset)
 
-    def cost(self, query_json: dict) -> List[float]:
+    def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         measurement_type = get_output_measure(opendp_pipe)
@@ -74,7 +73,7 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: dict) -> str:
+    def query(self, query_json: OpenDPInp) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         match query_json.input_data_type:
@@ -105,11 +104,11 @@ class OpenDPQuerier(DPQuerier):
         return release_data
 
 
-def is_measurement(value):
+def is_measurement(value: dp.Measurement) -> bool:
     return isinstance(value, dp.Measurement)
 
 
-def reconstruct_measurement_pipeline(pipeline):
+def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
     opendp_pipe = make_load_json(pipeline)
 
     if not is_measurement(opendp_pipe):
@@ -123,7 +122,7 @@ def reconstruct_measurement_pipeline(pipeline):
     return opendp_pipe
 
 
-def get_output_measure(opendp_pipe):
+def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_type = opendp_pipe.output_distance_type
     output_measure = opendp_pipe.output_measure
 
@@ -140,6 +139,6 @@ def get_output_measure(opendp_pipe):
     ):
         return OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
-        e = "Unknown type of output measure divergence:"
-        +f"{opendp_pipe.output_measure}."
-        raise InternalServerException(e)
+        raise InternalServerException(
+            f"Unknown type of output measure divergence: {output_measure}"
+        )

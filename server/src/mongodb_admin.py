@@ -10,13 +10,15 @@ from pymongo.database import Database
 from utils.error_handler import InternalServerException
 
 
-def connect(function: Callable) -> Callable:
+def connect(
+    function: Callable[[Database, argparse.Namespace], None]
+) -> Callable:
     """Connect to the database"""
 
-    def wrap_function(*args, **kwargs):
-        db_url = get_mongodb_url(args[0])
-        db = MongoClient(db_url)[args[0].db_name]
-        return function(db, *args, **kwargs)
+    def wrap_function(*args: argparse.Namespace) -> None:
+        db_url: str = get_mongodb_url(args[0])
+        db: Database = MongoClient(db_url)[args[0].db_name]
+        return function(db, *args)
 
     return wrap_function
 
@@ -283,7 +285,7 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
     with open(args.path) as f:
         dataset_dict = yaml.safe_load(f)
 
-    def verify_keys(d: dict, field, metadata: bool = False) -> None:
+    def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
         if metadata:
             assert (
                 field in d["metadata"].keys()

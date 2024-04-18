@@ -21,7 +21,7 @@ from pydantic import BaseModel
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
-from typing_extensions import Literal
+from typing_extensions import Dict, Literal
 from utils.error_handler import InternalServerException
 
 
@@ -44,7 +44,7 @@ class DBConfig(BaseModel):
 
 
 class DatasetStoreConfig(BaseModel):
-    ds_store_type: Literal[ConfDatasetStore.BASIC, ConfDatasetStore.LRU]
+    ds_store_type: ConfDatasetStore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
@@ -97,7 +97,7 @@ def get_config() -> Config:
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
 
-            def update(d: dict, u: dict) -> dict:
+            def update(d: dict, u: Dict[str, Dict[str, str]]) -> dict:
                 for k, v in u.items():
                     if isinstance(v, collections.abc.Mapping):
                         d[k] = update(d.get(k, {}), v)
@@ -122,14 +122,19 @@ def get_config() -> Config:
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
         ]
-        if ds_store_type == ConfDatasetStore.BASIC:
-            ds_store_config = DatasetStoreConfig(
-                config_data[CONF_DATASET_STORE]
-            )
-        elif ds_store_type == ConfDatasetStore.LRU:
-            ds_store_config = LRUDatasetStoreConfig.parse_obj(
-                config_data[CONF_DATASET_STORE]
-            )
+        match ds_store_type:
+            case ConfDatasetStore.BASIC:
+                ds_store_config = DatasetStoreConfig(
+                    config_data[CONF_DATASET_STORE]
+                )
+            case ConfDatasetStore.LRU:
+                ds_store_config = LRUDatasetStoreConfig.parse_obj(
+                    config_data[CONF_DATASET_STORE]
+                )
+            case _:
+                raise InternalServerException(
+                    f"Dataset store {ds_store_type} not supported."
+                )
 
         config: Config = Config(
             develop_mode=config_data[CONF_DEV_MODE],

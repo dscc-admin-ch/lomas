@@ -1,3 +1,4 @@
+import argparse
 import functools
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
@@ -40,7 +41,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs) -> None:
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             user_name = args[1]
             if not (self.does_user_exist(user_name)):
@@ -70,7 +73,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs) -> None:
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             dataset_name = args[1]
             if not (self.does_dataset_exist(dataset_name)):
@@ -138,7 +143,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs) -> None:
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             user_name = args[1]
             dataset_name = args[2]

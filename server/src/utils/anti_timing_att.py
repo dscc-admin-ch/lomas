@@ -1,11 +1,14 @@
 import random
 import time
+from typing import Callable
 
-from fastapi import Request
+from fastapi import Request, Response
 from utils.config import Config
 
 
-async def anti_timing_att(request: Request, call_next, config: Config):
+async def anti_timing_att(
+    request: Request, call_next: Callable, config: Config
+) -> Response:
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time

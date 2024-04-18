@@ -1,8 +1,9 @@
 import json
 from enum import StrEnum
 from io import StringIO
-from typing import Optional
+from typing import Dict, List, Optional, Union
 
+import opendp as dp
 import pandas as pd
 import requests
 from opendp.mod import enable_features
@@ -26,12 +27,12 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
 
 
-def error_message(res) -> str:
+def error_message(res: requests.Response) -> str:
     return f"Server error status {res.status_code}: {res.text}"
 
 
 class Client:
-    def __init__(self, url, user_name: str, dataset_name: str) -> None:
+    def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
         self.url = url
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.headers["user-name"] = user_name
@@ -39,23 +40,23 @@ class Client:
 
     def get_dataset_metadata(
         self,
-    ) -> dict:
+    ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
         )
         if res.status_code == 200:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
-
             return metadata
         else:
             print(error_message(res))
+            return None
 
     def get_dummy_dataset(
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> pd.DataFrame:
+    ) -> Optional[pd.DataFrame]:
         res = self._exec(
             "get_dummy_dataset",
             {
@@ -71,18 +72,19 @@ class Client:
             return df
         else:
             print(error_message(res))
+            return None
 
     def smartnoise_query(
         self,
-        query,
+        query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict = {},
+        mechanisms: dict[str, str] = {},
         postprocess: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> pd.DataFrame:
+    ) -> Optional[dict]:
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
@@ -109,14 +111,15 @@ class Client:
             return response_dict
         else:
             print(error_message(res))
+            return None
 
     def estimate_smartnoise_cost(
         self,
-        query,
+        query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict = {},
-    ) -> dict:
+        mechanisms: dict[str, str] = {},
+    ) -> Optional[dict[str, float]]:
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
@@ -130,16 +133,17 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         else:
             print(error_message(res))
+            return None
 
     def opendp_query(
         self,
-        opendp_pipeline,
+        opendp_pipeline: dp.Measurement,
         input_data_type: str = "df",
         fixed_delta: Optional[float] = None,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> pd.DataFrame:
+    ) -> Optional[dict]:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
@@ -174,13 +178,14 @@ class Client:
             return response_dict
         else:
             print(error_message(res))
+            return None
 
     def estimate_opendp_cost(
         self,
-        opendp_pipeline,
-        input_data_type: str="df",
+        opendp_pipeline: dp.Measurement,
+        input_data_type: str = "df",
         fixed_delta: Optional[float] = None,
-    ) -> dict:
+    ) -> Optional[dict[str, float]]:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
@@ -194,8 +199,9 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         else:
             print(error_message(res))
+            return None
 
-    def get_initial_budget(self):
+    def get_initial_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -205,8 +211,9 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         else:
             print(error_message(res))
+            return None
 
-    def get_total_spent_budget(self):
+    def get_total_spent_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -216,8 +223,9 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         else:
             print(error_message(res))
+            return None
 
-    def get_remaining_budget(self):
+    def get_remaining_budget(self) -> Optional[dict[str, float]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -227,8 +235,9 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         else:
             print(error_message(res))
+            return None
 
-    def get_previous_queries(self):
+    def get_previous_queries(self) -> Optional[List[dict]]:
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -261,8 +270,9 @@ class Client:
             return deserialised_queries
         else:
             print(error_message(res))
+            return None
 
-    def _exec(self, endpoint, body_json: dict = {}):
+    def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
         r = requests.post(
             self.url + "/" + endpoint, json=body_json, headers=self.headers
         )

@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from typing import Dict, Optional, Union
 
 import pandas as pd
 from private_dataset.private_dataset import PrivateDataset
@@ -12,13 +13,19 @@ class LocalDataset(PrivateDataset):
     Class to fetch dataset from constant path
     """
 
-    def __init__(self, metadata, dataset_path) -> None:
+    def __init__(
+        self,
+        metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
+        dataset_path: str,
+    ) -> None:
         """
         Parameters:
             - dataset_path: path of the dataset
         """
         super().__init__(metadata)
         self.ds_path = dataset_path
+        self.df: Optional[pd.DataFrame] = None
+        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """

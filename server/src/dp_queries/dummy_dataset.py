@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 import pandas as pd
+from admin_database.admin_database import AdminDatabase
 from constants import (
     DEFAULT_NUMERICAL_MAX,
     DEFAULT_NUMERICAL_MIN,
@@ -16,6 +17,7 @@ from constants import (
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
+from utils.input_models import GetDummyDataset
 
 
 def make_dummy_dataset(
@@ -106,7 +108,9 @@ def make_dummy_dataset(
     return df
 
 
-def get_dummy_dataset_for_query(admin_database, query_json):
+def get_dummy_dataset_for_query(
+    admin_database: AdminDatabase, query_json: GetDummyDataset
+) -> InMemoryDataset:
     # Create dummy dataset based on seed and number of rows
     ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
     ds_df = make_dummy_dataset(

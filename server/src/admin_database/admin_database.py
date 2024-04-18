@@ -1,6 +1,7 @@
+import argparse
 import functools
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Callable, Dict, List
 
 from utils.error_handler import (
     InvalidQueryException,
@@ -14,7 +15,7 @@ class AdminDatabase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, **connection_parameters) -> None:
+    def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """
         Connects to the DB
         Parameters:
@@ -31,7 +32,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _does_user_exist(func):
+    def _does_user_exist(func: Callable) -> Callable:
         """
         Decorator function to check if a user exists
         Parameters:
@@ -40,7 +41,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs):
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             user_name = args[1]
             if not (self.does_user_exist(user_name)):
@@ -61,7 +64,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _does_dataset_exist(func):
+    def _does_dataset_exist(func: Callable) -> Callable:
         """
         Decorator function to check if a user exists
         Parameters:
@@ -70,7 +73,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs):
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             dataset_name = args[1]
             if not (self.does_dataset_exist(dataset_name)):
@@ -128,7 +133,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _has_user_access_to_dataset(func):
+    def _has_user_access_to_dataset(func: Callable) -> Callable:
         """
         Decorator function to check if a user has access to a dataset
         Parameters:
@@ -138,7 +143,9 @@ class AdminDatabase(ABC):
         """
 
         @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs):
+        def wrapper_decorator(
+            *args: argparse.Namespace, **kwargs: Dict[str, str]
+        ) -> None:
             self = args[0]
             user_name = args[1]
             dataset_name = args[2]

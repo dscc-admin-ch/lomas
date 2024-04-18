@@ -18,7 +18,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
     the maximum memory usage.
     """
 
-    dataset_cache: OrderedDict = None
+    dataset_cache: OrderedDict = {}
 
     def __init__(
         self, admin_database: AdminDatabase, max_memory_usage: int = 1024

@@ -67,8 +67,8 @@ class AdminMongoDatabase(AdminDatabase):
         Parameters:
             - user_name: name of the user
         """
-        may_query = self.db.users.find_one({"user_name": user_name})
-        return may_query["may_query"]  # type: ignore
+        user = self.db.users.find_one({"user_name": user_name})
+        return user["may_query"]  # type: ignore
 
     @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:

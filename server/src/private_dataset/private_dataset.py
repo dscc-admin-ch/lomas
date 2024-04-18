@@ -1,6 +1,6 @@
 import shutil
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 from constants import SSQL_METADATA_OPTIONS
@@ -16,17 +16,15 @@ class PrivateDataset(ABC):
     local_path: Optional[str] = None
     local_dir: Optional[str] = None
 
-    def __init__(
-        self, metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]
-    ) -> None:
+    def __init__(self, metadata: dict) -> None:
         """
         Connects to the DB
         Parameters:
             - metadata: The metadata for this dataset
         """
-        self.metadata = metadata
-        self.dataset_observers = []
-        self.dtypes = get_dtypes(metadata)
+        self.metadata: dict = metadata
+        self.dataset_observers: List[PrivateDatasetObserver] = []
+        self.dtypes: dict = get_dtypes(metadata)
 
     def __del__(self) -> None:
         """
@@ -81,9 +79,7 @@ class PrivateDataset(ABC):
         self.dataset_observers.append(dataset_observer)
 
 
-def get_dtypes(
-    metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]
-) -> dict:
+def get_dtypes(metadata: dict) -> dict:
     dtypes = {}
     for col_name, data in metadata[""]["Schema"]["Table"].items():
         if col_name in SSQL_METADATA_OPTIONS:

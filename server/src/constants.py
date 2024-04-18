@@ -6,25 +6,25 @@ CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
 SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 # Configuration field names and values
-CONF_RUNTIME_ARGS = "runtime_args"
-CONF_SERVER = "server"
-CONF_SETTINGS = "settings"
-CONF_DEV_MODE = "develop_mode"
-CONF_TIME_ATTACK = "time_attack"
-CONF_SUBMIT_LIMIT = "submit_limit"
-CONF_DB = "admin_database"
-CONF_DB_TYPE = "db_type"
-CONF_DB_TYPE_MONGODB = "mongodb"
-CONF_MONGODB_ADDR = "address"
-CONF_MONGODB_PORT = "port"
-CONF_DATASET_STORE = "dataset_store"
-CONF_DATASET_STORE_TYPE = "ds_store_type"
-CONF_LRU_DATASET_STORE__MAX_SIZE = "max_memory_usage"
+CONF_RUNTIME_ARGS: str = "runtime_args"
+CONF_SERVER: str = "server"
+CONF_SETTINGS: str = "settings"
+CONF_DEV_MODE: str = "develop_mode"
+CONF_TIME_ATTACK: str = "time_attack"
+CONF_SUBMIT_LIMIT: str = "submit_limit"
+CONF_DB: str = "admin_database"
+CONF_DB_TYPE: str = "db_type"
+CONF_DB_TYPE_MONGODB: str = "mongodb"
+CONF_MONGODB_ADDR: str = "address"
+CONF_MONGODB_PORT: str = "port"
+CONF_DATASET_STORE: str = "dataset_store"
+CONF_DATASET_STORE_TYPE: str = "ds_store_type"
+CONF_LRU_DATASET_STORE__MAX_SIZE: str = "max_memory_usage"
 
 
 class ConfDatasetStore(StrEnum):
-    BASIC = "basic"
-    LRU = "LRU_cache"
+    BASIC: str = "basic"
+    LRU: str = "LRU_cache"
 
 
 # Server states

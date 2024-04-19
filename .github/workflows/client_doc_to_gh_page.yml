@@ -10,7 +10,6 @@ jobs:
   # Build job
   build:
 
-    # Set runner
     runs-on: ubuntu-latest
 
     steps:

@@ -3,8 +3,6 @@ name: Generate client library docs and push to dedicated repo for publishing
 on: 
   push: 
     branches: [ develop ]
-  pull_request:
-    branches: [ develop ] 
 
 jobs:
   build:

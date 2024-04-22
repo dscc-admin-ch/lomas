@@ -119,8 +119,4 @@ To see detailed examples of the library, many notebooks are available  in the [c
 
 
 ### More detailed documentation
-To see a more detailed documentation, clone the repo go to `lomas_client/client/docs/html` and run:
-```
-start .\index.html
-```
-(in windows) and the doc page will open!
+More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-client-docs/). 

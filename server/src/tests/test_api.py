@@ -14,8 +14,8 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_dummy_smartnoise_sql,
     example_smartnoise_sql_cost,
-    # example_opendp,
-    # example_dummy_opendp,
+    example_opendp,
+    example_dummy_opendp,
     PENGUIN_DATASET,
 )
 from utils.loggr import LOG
@@ -158,45 +158,43 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] > 0
             assert response_dict["delta_cost"] > 0.00001
 
-    # def test_opendp_query(self) -> None:
-    #     with TestClient(app, headers=self.headers) as client:
-    #         # Expect to work
-    #         response = client.post(
-    #             "/opendp_query",
-    #             json=example_opendp,
-    #             headers=self.headers,
-    #         )
-    #         assert response.status_code == status.HTTP_200_OK
+    def test_opendp_query(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/opendp_query",
+                json=example_opendp,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
 
-    #         response_dict = json.loads(response.content.decode("utf8"))
-    #         assert response_dict["requested_by"] == self.user_name
-    #         assert response_dict["query_response"] > 0
-    #         assert response_dict["spent_epsilon"] > 0.1
-    #         assert response_dict["spent_delta"] == 0
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"] > 0
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] == 0
 
-    # def test_dummy_opendp_query(self) -> None:
-    #     with TestClient(app) as client:
-    #         # Expect to work
-    #         response = client.post(
-    #             "/dummy_opendp_query", json=example_dummy_opendp
-    #         )
-    #         assert response.status_code == status.HTTP_200_OK
+    def test_dummy_opendp_query(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/dummy_opendp_query", json=example_dummy_opendp
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"] > 0
 
-    #         response_dict = json.loads(response.content.decode("utf8"))
-    #         assert response_dict["query_response"] > 0
+    def test_opendp_cost(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/estimate_opendp_cost", json=example_opendp
+            )
+            assert response.status_code == status.HTTP_200_OK
 
-    # def test_opendp_cost(self) -> None:
-    #     with TestClient(app) as client:
-    #         # Expect to work
-    #         response = client.post(
-    #             "/estimate_opendp_cost", json=example_opendp
-    #         )
-    #         assert response.status_code == status.HTTP_200_OK
-
-    #         response_dict = json.loads(response.content.decode("utf8"))
-    #         LOG.error(response_dict)
-    #         assert response_dict["epsilon_cost"] > 0.1
-    #         assert response_dict["delta_cost"] == 0
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["epsilon_cost"] > 0.1
+            assert response_dict["delta_cost"] == 0
 
     def test_get_initial_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:

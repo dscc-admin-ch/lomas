@@ -1,6 +1,6 @@
 # Dummy queries
-DUMMY_EPSILON = 1e32 * 1.0
-DUMMY_DELTA = 1.0
+DUMMY_EPSILON = 100.0
+DUMMY_DELTA = 0.99
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
@@ -34,7 +34,7 @@ example_dummy_smartnoise_sql = {
     "dataset_name": PENGUIN_DATASET,
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
-    "mechanisms": {"count": "discrete_gaussian"},
+    "mechanisms": {"count": "gaussian"},
     "postprocess": False,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
@@ -45,7 +45,7 @@ example_smartnoise_sql_cost = {
     "dataset_name": PENGUIN_DATASET,
     "epsilon": 0.1,
     "delta": 0.00001,
-    "mechanisms": {"count": "discrete_gaussian"},
+    "mechanisms": {"count": "gaussian"},
 }
 
 example_opendp = {

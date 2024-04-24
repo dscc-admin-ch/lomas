@@ -185,7 +185,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
-                "InvalidQueryException": "The pipeline provided is not a measurement. It cannot be processed in this server."
+                "InvalidQueryException": "The pipeline provided is not a "
+                + "measurement. It cannot be processed in this server."
             }
 
     def test_dummy_opendp_query(self) -> None:

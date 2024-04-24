@@ -164,7 +164,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response = client.post(
                 "/opendp_query",
                 json=example_opendp,
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -173,6 +172,21 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"] > 0
             assert response_dict["spent_epsilon"] > 0.1
             assert response_dict["spent_delta"] == 0
+
+            # Expect to fail: transormation instead of measurement
+            trans_pipeline = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501
+            response = client.post(
+                "/opendp_query",
+                json={
+                    "dataset_name": PENGUIN_DATASET,
+                    "opendp_json": trans_pipeline,
+                    "input_data_type": "df",
+                },
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": "The pipeline provided is not a measurement. It cannot be processed in this server."
+            }
 
     def test_dummy_opendp_query(self) -> None:
         with TestClient(app) as client:

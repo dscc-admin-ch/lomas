@@ -32,16 +32,16 @@ class TestRootAPIEndpoint(unittest.TestCase):
         }
         self.headers["user-name"] = self.user_name
 
-    def test_state(self):
+    def test_state(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK
 
-            response = json.loads(response.content.decode("utf8"))
-            assert response["requested_by"] == self.user_name
-            assert response["state"]["LIVE"] == True
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["state"]["LIVE"]
 
-    def test_get_dataset_metadata(self):
+    def test_get_dataset_metadata(self) -> None:
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -69,7 +69,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 + "exists. Please, verify the client object initialisation."
             }
 
-    def test_get_dummy_dataset(self):
+    def test_get_dummy_dataset(self) -> None:
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -114,7 +114,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             LOG.error(response.json())
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_smartnoise_query(self):
+    def test_smartnoise_query(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -131,7 +131,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["spent_epsilon"] == 0.1
             assert response_dict["spent_delta"] <= 1.5e-5
 
-    def test_dummy_smartnoise_query(self):
+    def test_dummy_smartnoise_query(self) -> None:
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -144,7 +144,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"]["data"][0][0] > 0
             assert response_dict["query_response"]["data"][0][0] < 200
 
-    def test_smartnoise_cost(self):
+    def test_smartnoise_cost(self) -> None:
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -158,7 +158,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] > 0
             assert response_dict["delta_cost"] > 0.00001
 
-    # def test_opendp_query(self):
+    # def test_opendp_query(self) -> None:
     #     with TestClient(app, headers=self.headers) as client:
     #         # Expect to work
     #         response = client.post(
@@ -174,7 +174,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
     #         assert response_dict["spent_epsilon"] > 0.1
     #         assert response_dict["spent_delta"] == 0
 
-    # def test_dummy_opendp_query(self):
+    # def test_dummy_opendp_query(self) -> None:
     #     with TestClient(app) as client:
     #         # Expect to work
     #         response = client.post(
@@ -185,7 +185,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
     #         response_dict = json.loads(response.content.decode("utf8"))
     #         assert response_dict["query_response"] > 0
 
-    # def test_opendp_cost(self):
+    # def test_opendp_cost(self) -> None:
     #     with TestClient(app) as client:
     #         # Expect to work
     #         response = client.post(
@@ -198,7 +198,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
     #         assert response_dict["epsilon_cost"] > 0.1
     #         assert response_dict["delta_cost"] == 0
 
-    def test_get_initial_budget(self):
+    def test_get_initial_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -210,7 +210,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["initial_epsilon"] == 10
             assert response_dict["initial_delta"] == 0.005
 
-    def test_get_total_spent_budget(self):
+    def test_get_total_spent_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -222,7 +222,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["total_spent_epsilon"] == 0
             assert response_dict["total_spent_delta"] == 0
 
-    def test_get_remaining_budget(self):
+    def test_get_remaining_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -233,3 +233,14 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["remaining_epsilon"] == 10
             assert response_dict["remaining_delta"] == 0.005
+
+    def test_get_previous_queries(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["previous_queries"] == []

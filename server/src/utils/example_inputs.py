@@ -10,7 +10,7 @@ DUMMY_SEED = 42
 IRIS_DATASET = "IRIS"
 
 
-example_get_db_data = {
+example_get_admin_db_data = {
     "dataset_name": IRIS_DATASET,
 }
 

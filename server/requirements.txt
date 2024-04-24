@@ -1,6 +1,7 @@
 boto3
 # diffprivlib==0.5.2
 fastapi
+httpx
 numpy
 opendp==0.8.0
 opendp-logger==0.3.0

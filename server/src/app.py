@@ -11,7 +11,7 @@ from dp_queries.dummy_dataset import (
     make_dummy_dataset,
 )
 from fastapi import Body, Depends, FastAPI, Header, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from mongodb_admin import (
     add_datasets,
     create_users_collection,
@@ -166,7 +166,7 @@ async def get_state(
 )
 def get_dataset_metadata(
     query_json: GetDbData = Body(example_get_admin_db_data),
-):
+) -> JSONResponse:
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -188,7 +188,7 @@ def get_dataset_metadata(
 )
 def get_dummy_dataset(
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
-):
+) -> JSONResponse:
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
@@ -214,7 +214,7 @@ def get_dummy_dataset(
 def smartnoise_sql_handler(
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     user_name: str = Header(None),
-):
+) -> JSONResponse:
     try:
         response = QUERY_HANDLER.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name

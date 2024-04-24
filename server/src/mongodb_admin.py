@@ -397,7 +397,7 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
             )
         else:
             db.metadata.insert_one({dataset_name: metadata_dict})
-            print(f"Added metadata of {dataset_name} dataset. ")
+            # print(f"Added metadata of {dataset_name} dataset. ")
 
 
 @connect

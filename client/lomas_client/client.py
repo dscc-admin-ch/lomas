@@ -138,7 +138,6 @@ class Client:
     def opendp_query(
         self,
         opendp_pipeline: dp.Measurement,
-        input_data_type: str = "df",
         fixed_delta: Optional[float] = None,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -148,7 +147,6 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
-            "input_data_type": input_data_type,
             "fixed_delta": fixed_delta,
         }
         if dummy:
@@ -183,14 +181,12 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline: dp.Measurement,
-        input_data_type: str = "df",
         fixed_delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
             "opendp_json": opendp_json,
-            "input_data_type": input_data_type,
             "fixed_delta": fixed_delta,
         }
         res = self._exec("estimate_opendp_cost", body_json)

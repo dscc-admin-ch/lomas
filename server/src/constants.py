@@ -49,12 +49,6 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
 
 
-# OpenDP pipeline input types
-class OpenDPInputType(StrEnum):
-    DF = "df"
-    PATH = "path"
-
-
 # Private Databases
 class PrivateDatabaseType(StrEnum):
     LOCAL = "LOCAL_DB"

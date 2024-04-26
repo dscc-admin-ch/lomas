@@ -154,7 +154,6 @@ This function executes an OpenDP query.
     res = client.opendp_query(
         self,
         opendp_pipeline,
-        input_data_type: str = "df",
         dummy: bool = False,
         nb_rows: int = 100,
         seed: int = 42,
@@ -162,7 +161,6 @@ This function executes an OpenDP query.
 
 Parameters:
     - `opendp_pipeline`: The OpenDP pipeline for the query.
-    - `input_data_type` (str, optional): The type of input data ("df" for DataFrame, default: "df").
     - `dummy` (bool, optional): Whether to use a dummy dataset (default: False).
     - `nb_rows` (int, optional): The number of rows in the dummy dataset (default: 100).
     - `seed` (int, optional): The random seed for generating the dummy dataset (default: 42).
@@ -186,12 +184,10 @@ This function estimates the cost of executing an OpenDP query.
 
     res = client.estimate_opendp_cost(
         opendp_pipeline,
-        input_data_type="df",
     )
 
 Parameters:
     - `opendp_pipeline`: The OpenDP pipeline for the query.
-    - `input_data_type` (str, optional): The type of input data ("df" for DataFrame, default: "df").
 
 Returns:
     - `dict`: A dictionary containing the estimated cost.

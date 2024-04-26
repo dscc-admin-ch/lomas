@@ -17,8 +17,13 @@ from utils.example_inputs import (
     example_opendp,
     example_dummy_opendp,
     PENGUIN_DATASET,
+    SMARTNOISE_QUERY_DELTA,
+    SMARTNOISE_QUERY_EPSILON,
 )
 from utils.loggr import LOG
+
+INITAL_EPSILON = 10
+INITIAL_DELTA = 0.005
 
 
 class TestRootAPIEndpoint(unittest.TestCase):
@@ -128,8 +133,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["query_response"]["columns"] == ["NB_ROW"]
             assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["spent_epsilon"] == 0.1
-            assert response_dict["spent_delta"] <= 1.5e-5
+            assert response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
 
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
@@ -137,7 +142,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json={
                     "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
                     "dataset_name": PENGUIN_DATASET,
-                    "epsilon": 0.1,
+                    "epsilon": SMARTNOISE_QUERY_EPSILON,
                     "postprocess": True,
                 },
                 headers=self.headers,
@@ -208,9 +213,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             response_dict = json.loads(response.content.decode("utf8"))
             LOG.error(response_dict)
-            assert response_dict["epsilon_cost"] == 0.1
-            assert response_dict["delta_cost"] > 0
-            assert response_dict["delta_cost"] > 0.00001
+            assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
     def test_opendp_query(self) -> None:
         with TestClient(app, headers=self.headers) as client:
@@ -273,8 +277,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["initial_epsilon"] == 10
-            assert response_dict["initial_delta"] == 0.005
+            assert response_dict["initial_epsilon"] == INITAL_EPSILON
+            assert response_dict["initial_delta"] == INITIAL_DELTA
 
             # Query to spend budget
             _ = client.post(
@@ -318,8 +322,13 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert response_dict_2 != response_dict
-            assert response_dict_2["total_spent_epsilon"] == 0.1
-            assert response_dict_2["total_spent_delta"] >= 0
+            assert (
+                response_dict_2["total_spent_epsilon"]
+                == SMARTNOISE_QUERY_EPSILON
+            )
+            assert (
+                response_dict_2["total_spent_delta"] >= SMARTNOISE_QUERY_DELTA
+            )
 
     def test_get_remaining_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
@@ -330,8 +339,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["remaining_epsilon"] == 10
-            assert response_dict["remaining_delta"] == 0.005
+            assert response_dict["remaining_epsilon"] == INITAL_EPSILON
+            assert response_dict["remaining_delta"] == INITIAL_DELTA
 
             # Query to spend budget
             _ = client.post(
@@ -348,8 +357,14 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert response_dict_2 != response_dict
-            assert response_dict_2["remaining_epsilon"] == 10 - 0.1
-            assert response_dict_2["remaining_delta"] <= 0.005
+            assert (
+                response_dict_2["remaining_epsilon"]
+                == INITAL_EPSILON - SMARTNOISE_QUERY_EPSILON
+            )
+            assert (
+                response_dict_2["remaining_delta"]
+                <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
+            )
 
     def test_get_previous_queries(self) -> None:
         with TestClient(app, headers=self.headers) as client:

@@ -8,7 +8,8 @@ DUMMY_SEED = 42
 
 # DUMMY dataset name
 PENGUIN_DATASET = "PENGUIN"
-
+SMARTNOISE_QUERY_EPSILON = 0.1
+SMARTNOISE_QUERY_DELTA = 0.00001
 
 example_get_admin_db_data = {
     "dataset_name": PENGUIN_DATASET,
@@ -23,8 +24,8 @@ example_get_dummy_dataset = {
 example_smartnoise_sql = {
     "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
     "dataset_name": PENGUIN_DATASET,
-    "epsilon": 0.1,
-    "delta": 0.00001,
+    "epsilon": SMARTNOISE_QUERY_EPSILON,
+    "delta": SMARTNOISE_QUERY_DELTA,
     "mechanisms": {"count": "gaussian"},
     "postprocess": True,
 }
@@ -43,8 +44,8 @@ example_dummy_smartnoise_sql = {
 example_smartnoise_sql_cost = {
     "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
     "dataset_name": PENGUIN_DATASET,
-    "epsilon": 0.1,
-    "delta": 0.00001,
+    "epsilon": SMARTNOISE_QUERY_EPSILON,
+    "delta": SMARTNOISE_QUERY_DELTA,
     "mechanisms": {"count": "gaussian"},
 }
 

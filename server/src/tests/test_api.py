@@ -7,6 +7,7 @@ import unittest
 
 from app import app
 
+from constants import EPSILON_LIMIT
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     example_get_admin_db_data,
@@ -424,3 +425,55 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert (
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )
+
+    def test_budget_limit_logic(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Should fail: too much budget on one go
+            smartnoise_body = dict(example_smartnoise_sql)
+            smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )
+
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "detail": [
+                    {
+                        "type": "less_than_equal",
+                        "loc": ["body", "epsilon"],
+                        "msg": "Input should be less than or equal to 5",
+                        "input": EPSILON_LIMIT * 2,
+                        "ctx": {"le": EPSILON_LIMIT},
+                    }
+                ]
+            }
+
+            # Should fail: too much budget after three queries
+            smartnoise_body["epsilon"] = 4.0
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_200_OK
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_200_OK
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": "Internal server error. "
+                + "Please contact the administrator of this service."
+            }

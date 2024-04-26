@@ -39,7 +39,7 @@ INTERNAL_SERVER_ERROR = (
 )
 
 # DP constants
-EPSILON_LIMIT: float = 10.0
+EPSILON_LIMIT: float = 5.0
 DELTA_LIMIT: float = 0.0004
 
 

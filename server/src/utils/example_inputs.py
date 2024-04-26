@@ -53,14 +53,12 @@ meas_pipeline = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": meas_pipeline,
-    "input_data_type": "df",
     "fixed_delta": 1e-6,
 }
 
 example_dummy_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": meas_pipeline,
-    "input_data_type": "df",
     "fixed_delta": 1e-6,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,

@@ -234,7 +234,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json={
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": trans_pipeline,
-                    "input_data_type": "df",
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST

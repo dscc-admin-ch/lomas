@@ -32,7 +32,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
-                "Error obtaining cost:" + str(e),
+                "Error obtaining cost: " + str(e),
             )
 
         return result

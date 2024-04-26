@@ -131,6 +131,60 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["spent_epsilon"] == 0.1
             assert response_dict["spent_delta"] <= 1.5e-5
 
+            # Expect to fail: missing parameters: delta and mechanisms
+            response = client.post(
+                "/smartnoise_query",
+                json={
+                    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+                    "dataset_name": PENGUIN_DATASET,
+                    "epsilon": 0.1,
+                    "postprocess": True,
+                },
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+            response_dict = json.loads(response.content.decode("utf8"))[
+                "detail"
+            ]
+            assert response_dict[0]["type"] == "missing"
+            assert response_dict[0]["loc"] == ["body", "delta"]
+            assert response_dict[1]["type"] == "missing"
+            assert response_dict[1]["loc"] == ["body", "mechanisms"]
+
+            # Expect to fail: query does not make sense
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise[
+                "query_str"
+            ] = "SELECT AVG(bill) FROM Schema.Table"  # no 'bill' column
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            LOG.error(response)
+            LOG.error(response.json())
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "ExternalLibraryException": "Error obtaining cost: "
+                + "Column cannot be found bill",
+                "library": "smartnoise_sql",
+            }
+
+            # Expect to fail: dataset without access
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["dataset_name"] = "IRIS"
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": "Internal server error. "
+                + "Please contact the administrator of this service."
+            }  # TODO: more meaningful error message
+
     def test_dummy_smartnoise_query(self) -> None:
         with TestClient(app) as client:
             # Expect to work

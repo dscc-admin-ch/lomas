@@ -276,6 +276,21 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["initial_epsilon"] == 10
             assert response_dict["initial_delta"] == 0.005
 
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should stay the same
+            response_2 = client.post(
+                "/get_initial_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 == response_dict
+
     def test_get_total_spent_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
@@ -287,6 +302,24 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["total_spent_epsilon"] == 0
             assert response_dict["total_spent_delta"] == 0
+
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should have updated spent budget
+            response_2 = client.post(
+                "/get_total_spent_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 != response_dict
+            assert response_dict_2["total_spent_epsilon"] == 0.1
+            assert response_dict_2["total_spent_delta"] >= 0
 
     def test_get_remaining_budget(self) -> None:
         with TestClient(app, headers=self.headers) as client:
@@ -300,6 +333,24 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["remaining_epsilon"] == 10
             assert response_dict["remaining_delta"] == 0.005
 
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should have removed spent budget
+            response_2 = client.post(
+                "/get_remaining_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 != response_dict
+            assert response_dict_2["remaining_epsilon"] == 10 - 0.1
+            assert response_dict_2["remaining_delta"] <= 0.005
+
     def test_get_previous_queries(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
@@ -310,3 +361,51 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["previous_queries"] == []
+
+            # Query to archive 1 (smartnoise)
+            query_res = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+            query_res = json.loads(query_res.content.decode("utf8"))
+
+            # Response should have one element in list
+            response_2 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert len(response_dict_2["previous_queries"]) == 1
+            assert (
+                response_dict_2["previous_queries"][0]["api"]
+                == "smartnoise_sql"
+            )
+            assert (
+                response_dict_2["previous_queries"][0]["response"] == query_res
+            )
+
+            # Query to archive 2 (opendp)
+            query_res = client.post(
+                "/opendp_query",
+                json=example_opendp,
+            )
+            query_res = json.loads(query_res.content.decode("utf8"))
+
+            # Response should have two elements in list
+            response_3 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response_3.status_code == status.HTTP_200_OK
+
+            response_dict_3 = json.loads(response_3.content.decode("utf8"))
+            assert len(response_dict_3["previous_queries"]) == 2
+            assert (
+                response_dict_3["previous_queries"][0]
+                == response_dict_2["previous_queries"][0]
+            )
+            assert response_dict_3["previous_queries"][1]["api"] == "opendp"
+            assert (
+                response_dict_3["previous_queries"][1]["response"] == query_res
+            )

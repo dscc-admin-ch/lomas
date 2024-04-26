@@ -76,14 +76,12 @@ class SNSQLInpCost(BasicModel):
 class OpenDPInp(BasicModel):
     dataset_name: str
     opendp_json: str
-    input_data_type: str
     fixed_delta: Optional[float] = None
 
 
 class DummyOpenDPInp(BasicModel):
     dataset_name: str
     opendp_json: str
-    input_data_type: str
     dummy_nb_rows: int
     dummy_seed: int
     fixed_delta: Optional[float] = None

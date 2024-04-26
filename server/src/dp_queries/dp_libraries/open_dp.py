@@ -1,5 +1,5 @@
 import opendp as dp
-from constants import DPLibraries, OpenDPInputType, OpenDPMeasurement
+from constants import DPLibraries, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
@@ -76,17 +76,9 @@ class OpenDPQuerier(DPQuerier):
     def query(self, query_json: OpenDPInp) -> str:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        match query_json.input_data_type:
-            case OpenDPInputType.DF:
-                input_data = self.private_dataset.get_pandas_df().to_csv(
-                    header=False, index=False
-                )
-            case OpenDPInputType.PATH:
-                input_data = self.private_dataset.get_local_path()
-            case _:
-                raise InvalidQueryException(
-                    f"Invalid input data type {query_json.input_data_type}"
-                )
+        input_data = self.private_dataset.get_pandas_df().to_csv(
+            header=False, index=False
+        )
 
         try:
             release_data = opendp_pipe(input_data)

@@ -399,6 +399,10 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 == "smartnoise_sql"
             )
             assert (
+                response_dict_2["previous_queries"][0]["client_input"]
+                == example_smartnoise_sql
+            )
+            assert (
                 response_dict_2["previous_queries"][0]["response"] == query_res
             )
 
@@ -422,6 +426,10 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 == response_dict_2["previous_queries"][0]
             )
             assert response_dict_3["previous_queries"][1]["api"] == "opendp"
+            assert (
+                response_dict_3["previous_queries"][1]["client_input"]
+                == example_opendp
+            )
             assert (
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )

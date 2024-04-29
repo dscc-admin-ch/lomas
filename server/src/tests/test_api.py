@@ -7,7 +7,7 @@ import unittest
 
 from app import app
 
-from constants import EPSILON_LIMIT
+from constants import DPLibraries, EPSILON_LIMIT
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     example_get_admin_db_data,
@@ -395,8 +395,12 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert len(response_dict_2["previous_queries"]) == 1
             assert (
-                response_dict_2["previous_queries"][0]["api"]
-                == "smartnoise_sql"
+                response_dict_2["previous_queries"][0]["dp_librairy"]
+                == DPLibraries.SMARTNOISE_SQL
+            )
+            assert (
+                response_dict_2["previous_queries"][0]["client_input"]
+                == example_smartnoise_sql
             )
             assert (
                 response_dict_2["previous_queries"][0]["response"] == query_res
@@ -421,7 +425,14 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 response_dict_3["previous_queries"][0]
                 == response_dict_2["previous_queries"][0]
             )
-            assert response_dict_3["previous_queries"][1]["api"] == "opendp"
+            assert (
+                response_dict_3["previous_queries"][1]["dp_librairy"]
+                == DPLibraries.OPENDP
+            )
+            assert (
+                response_dict_3["previous_queries"][1]["client_input"]
+                == example_opendp
+            )
             assert (
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )

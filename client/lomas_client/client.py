@@ -249,12 +249,14 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                match query["api"]:
+                match query["dp_librairy"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.OPENDP:
-                        opdp_query = make_load_json(query["query"])
-                        query["query"] = opdp_query
+                        opdp_query = make_load_json(
+                            query["client_input"]["opendp_json"]
+                        )
+                        query["client_input"]["opendp_json"] = opdp_query
                     case _:
                         raise ValueError(
                             "Cannot deserialise unknown query type:"

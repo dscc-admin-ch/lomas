@@ -1,6 +1,3 @@
-import os
-import tempfile
-import urllib
 from typing import Dict, Optional, Union
 
 import pandas as pd
@@ -25,7 +22,6 @@ class RemoteHTTPDataset(PrivateDataset):
         super().__init__(metadata)
         self.ds_path: str = dataset_path
         self.df: Optional[pd.DataFrame] = None
-        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """
@@ -55,21 +51,3 @@ class RemoteHTTPDataset(PrivateDataset):
             ]
 
         return self.df
-
-    def get_local_path(self) -> str:
-        """
-        Get the path to a local copy of the source file
-        Returns:
-            - path
-        """
-
-        if self.local_path is None:
-            # Create temp dir and file
-            self.local_dir = tempfile.mkdtemp()
-            file_name = self.ds_path.split("/")[-1]
-            self.local_path = os.path.join(self.local_dir, file_name)
-
-            # Download
-            urllib.request.urlretrieve(self.ds_path, self.local_path)
-
-        return self.local_path

@@ -1,6 +1,3 @@
-import os
-import shutil
-import tempfile
 from typing import Dict, Optional, Union
 
 import pandas as pd
@@ -25,7 +22,6 @@ class LocalDataset(PrivateDataset):
         super().__init__(metadata)
         self.ds_path = dataset_path
         self.df: Optional[pd.DataFrame] = None
-        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """
@@ -54,22 +50,3 @@ class LocalDataset(PrivateDataset):
                 for observer in self.dataset_observers
             ]
         return self.df.copy(deep=True)
-
-    def get_local_path(self) -> str:
-        """
-        Get the path to a local copy of the source file
-        Returns:
-            - path
-        """
-
-        if self.local_path is None:
-            # Create temp dir and file
-            self.local_dir = tempfile.mkdtemp()
-            file_name = self.ds_path.split("/")[-1]
-            self.local_path = os.path.join(self.local_dir, file_name)
-
-            # We make a local copy here for added safety:
-            # => The original version stays untouched.
-            shutil.copyfile(self.ds_path, self.local_path)
-
-        return self.local_path

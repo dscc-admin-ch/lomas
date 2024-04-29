@@ -1,9 +1,14 @@
+import sys
 import string
 from enum import StrEnum
 
 # Configurations
-CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+if 'unittest' in sys.modules.keys(): # would there be a better way ?
+    CONFIG_PATH = "tests/test_configs/example_config.yaml"
+    SECRETS_PATH = "tests/test_configs/example_secrets.yaml"
+else:
+    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
+    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS: str = "runtime_args"

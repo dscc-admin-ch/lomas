@@ -286,23 +286,15 @@ class AdminMongoDatabase(AdminDatabase):
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
+            "client_input": query_json.dict(),
             "response": response,
             "timestamp": time.time(),
         }
         match query_json.__class__.__name__:
             case "SNSQLInp":
-                to_archive["api"] = DPLibraries.SMARTNOISE_SQL
-                to_archive["query"] = query_json.query_str
-                to_archive["epsilon_parameter"] = query_json.epsilon
-                to_archive["delta_parameter"] = query_json.delta
-                to_archive["mechanisms"] = query_json.mechanisms
-                to_archive["postprocess"] = query_json.postprocess
-
+                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
             case "OpenDPInp":
-                to_archive["api"] = DPLibraries.OPENDP
-                to_archive["query"] = query_json.opendp_json
-                to_archive["fixed_delta"] = query_json.fixed_delta
-
+                to_archive["dp_librairy"] = DPLibraries.OPENDP
             case _:
                 raise InternalServerException(
                     f"Unknown query input: {query_json.__class__.__name__}"

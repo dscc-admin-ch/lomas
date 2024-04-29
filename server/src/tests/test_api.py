@@ -1,0 +1,490 @@
+from fastapi import status
+from fastapi.testclient import TestClient
+import json
+from io import StringIO
+import pandas as pd
+import unittest
+
+from app import app
+
+from constants import DPLibraries, EPSILON_LIMIT
+from utils.example_inputs import (
+    DUMMY_NB_ROWS,
+    example_get_admin_db_data,
+    example_get_dummy_dataset,
+    example_smartnoise_sql,
+    example_dummy_smartnoise_sql,
+    example_smartnoise_sql_cost,
+    example_opendp,
+    example_dummy_opendp,
+    PENGUIN_DATASET,
+    SMARTNOISE_QUERY_DELTA,
+    SMARTNOISE_QUERY_EPSILON,
+)
+from utils.loggr import LOG
+
+INITAL_EPSILON = 10
+INITIAL_DELTA = 0.005
+
+
+class TestRootAPIEndpoint(unittest.TestCase):
+    def setUp(self) -> None:
+        print("TestRootAPIEndpoint")
+        self.user_name = "Dr. Antartica"
+        self.dataset = PENGUIN_DATASET
+        self.headers = {
+            "Content-type": "application/json",
+            "Accept": "*/*",
+        }
+        self.headers["user-name"] = self.user_name
+
+    def test_state(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            response = client.get("/state", headers=self.headers)
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["state"]["LIVE"]
+
+    def test_get_dataset_metadata(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/get_dataset_metadata",
+                json=example_get_admin_db_data,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            metadata = json.loads(response.content.decode("utf8"))
+            assert isinstance(metadata, dict), "metadata should be a dict"
+            assert "max_ids" in metadata, "max_ids should be in metadata"
+            assert "row_privacy" in metadata, "max_ids should be in metadata"
+
+            # Expect to fail: dataset does not exist
+            fake_dataset = "I_do_not_exist"
+            response = client.post(
+                "/get_dataset_metadata",
+                json={"dataset_name": fake_dataset},
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": f"Dataset {fake_dataset} does not "
+                + "exists. Please, verify the client object initialisation."
+            }
+
+    def test_get_dummy_dataset(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/get_dummy_dataset", json=example_get_dummy_dataset
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            data = response.content.decode("utf8")
+            df = pd.read_csv(StringIO(data))
+            assert isinstance(
+                df, pd.DataFrame
+            ), "Response should be a pd.DataFrame"
+            assert (
+                df.shape[0] == DUMMY_NB_ROWS
+            ), "Dummy pd.DataFrame does not have expected number of rows"
+
+            # Expect to fail: dataset does not exist
+            fake_dataset = "I_do_not_exist"
+            response = client.post(
+                "/get_dummy_dataset",
+                json={
+                    "dataset_name": fake_dataset,
+                    "dummy_nb_rows": DUMMY_NB_ROWS,
+                    "dummy_seed": 0,
+                },
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": f"Dataset {fake_dataset} does not "
+                + "exists. Please, verify the client object initialisation."
+            }
+
+            # Expect to fail: missing argument dummy_nb_rows
+            response = client.post(
+                "/get_dummy_dataset",
+                json={
+                    "dataset_name": PENGUIN_DATASET,
+                },
+                headers=self.headers,
+            )
+            LOG.error(response.json())
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_smartnoise_query(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
+            assert response_dict["query_response"]["data"][0][0] > 0
+            assert response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
+
+            # Expect to fail: missing parameters: delta and mechanisms
+            response = client.post(
+                "/smartnoise_query",
+                json={
+                    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+                    "dataset_name": PENGUIN_DATASET,
+                    "epsilon": SMARTNOISE_QUERY_EPSILON,
+                    "postprocess": True,
+                },
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+            response_dict = json.loads(response.content.decode("utf8"))[
+                "detail"
+            ]
+            assert response_dict[0]["type"] == "missing"
+            assert response_dict[0]["loc"] == ["body", "delta"]
+            assert response_dict[1]["type"] == "missing"
+            assert response_dict[1]["loc"] == ["body", "mechanisms"]
+
+            # Expect to fail: query does not make sense
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise[
+                "query_str"
+            ] = "SELECT AVG(bill) FROM Schema.Table"  # no 'bill' column
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            LOG.error(response)
+            LOG.error(response.json())
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "ExternalLibraryException": "Error obtaining cost: "
+                + "Column cannot be found bill",
+                "library": "smartnoise_sql",
+            }
+
+            # Expect to fail: dataset without access
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["dataset_name"] = "IRIS"
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": "Internal server error. "
+                + "Please contact the administrator of this service."
+            }  # TODO: more meaningful error message
+
+    def test_dummy_smartnoise_query(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"]["columns"] == ["res_0"]
+            assert response_dict["query_response"]["data"][0][0] > 0
+            assert response_dict["query_response"]["data"][0][0] < 200
+
+    def test_smartnoise_cost(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/estimate_smartnoise_cost", json=example_smartnoise_sql_cost
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            LOG.error(response_dict)
+            assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
+
+    def test_opendp_query(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/opendp_query",
+                json=example_opendp,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"] > 0
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] == 0
+
+            # Expect to fail: transormation instead of measurement
+            trans_pipeline = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501
+            response = client.post(
+                "/opendp_query",
+                json={
+                    "dataset_name": PENGUIN_DATASET,
+                    "opendp_json": trans_pipeline,
+                },
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": "The pipeline provided is not a "
+                + "measurement. It cannot be processed in this server."
+            }
+
+    def test_dummy_opendp_query(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/dummy_opendp_query", json=example_dummy_opendp
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"] > 0
+
+    def test_opendp_cost(self) -> None:
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/estimate_opendp_cost", json=example_opendp
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["epsilon_cost"] > 0.1
+            assert response_dict["delta_cost"] == 0
+
+    def test_get_initial_budget(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/get_initial_budget", json=example_get_admin_db_data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["initial_epsilon"] == INITAL_EPSILON
+            assert response_dict["initial_delta"] == INITIAL_DELTA
+
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should stay the same
+            response_2 = client.post(
+                "/get_initial_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 == response_dict
+
+    def test_get_total_spent_budget(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/get_total_spent_budget", json=example_get_admin_db_data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["total_spent_epsilon"] == 0
+            assert response_dict["total_spent_delta"] == 0
+
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should have updated spent budget
+            response_2 = client.post(
+                "/get_total_spent_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 != response_dict
+            assert (
+                response_dict_2["total_spent_epsilon"]
+                == SMARTNOISE_QUERY_EPSILON
+            )
+            assert (
+                response_dict_2["total_spent_delta"] >= SMARTNOISE_QUERY_DELTA
+            )
+
+    def test_get_remaining_budget(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/get_remaining_budget", json=example_get_admin_db_data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["remaining_epsilon"] == INITAL_EPSILON
+            assert response_dict["remaining_delta"] == INITIAL_DELTA
+
+            # Query to spend budget
+            _ = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+
+            # Response should have removed spent budget
+            response_2 = client.post(
+                "/get_remaining_budget", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert response_dict_2 != response_dict
+            assert (
+                response_dict_2["remaining_epsilon"]
+                == INITAL_EPSILON - SMARTNOISE_QUERY_EPSILON
+            )
+            assert (
+                response_dict_2["remaining_delta"]
+                <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
+            )
+
+    def test_get_previous_queries(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["previous_queries"] == []
+
+            # Query to archive 1 (smartnoise)
+            query_res = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+            query_res = json.loads(query_res.content.decode("utf8"))
+
+            # Response should have one element in list
+            response_2 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response_2.status_code == status.HTTP_200_OK
+
+            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            assert len(response_dict_2["previous_queries"]) == 1
+            assert (
+                response_dict_2["previous_queries"][0]["dp_librairy"]
+                == DPLibraries.SMARTNOISE_SQL
+            )
+            assert (
+                response_dict_2["previous_queries"][0]["client_input"]
+                == example_smartnoise_sql
+            )
+            assert (
+                response_dict_2["previous_queries"][0]["response"] == query_res
+            )
+
+            # Query to archive 2 (opendp)
+            query_res = client.post(
+                "/opendp_query",
+                json=example_opendp,
+            )
+            query_res = json.loads(query_res.content.decode("utf8"))
+
+            # Response should have two elements in list
+            response_3 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
+            assert response_3.status_code == status.HTTP_200_OK
+
+            response_dict_3 = json.loads(response_3.content.decode("utf8"))
+            assert len(response_dict_3["previous_queries"]) == 2
+            assert (
+                response_dict_3["previous_queries"][0]
+                == response_dict_2["previous_queries"][0]
+            )
+            assert (
+                response_dict_3["previous_queries"][1]["dp_librairy"]
+                == DPLibraries.OPENDP
+            )
+            assert (
+                response_dict_3["previous_queries"][1]["client_input"]
+                == example_opendp
+            )
+            assert (
+                response_dict_3["previous_queries"][1]["response"] == query_res
+            )
+
+    def test_budget_limit_logic(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
+            # Should fail: too much budget on one go
+            smartnoise_body = dict(example_smartnoise_sql)
+            smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )
+
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "detail": [
+                    {
+                        "type": "less_than_equal",
+                        "loc": ["body", "epsilon"],
+                        "msg": "Input should be less than or equal to 5",
+                        "input": EPSILON_LIMIT * 2,
+                        "ctx": {"le": EPSILON_LIMIT},
+                    }
+                ]
+            }
+
+            # Should fail: too much budget after three queries
+            smartnoise_body["epsilon"] = 4.0
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_200_OK
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_200_OK
+
+            response = client.post(
+                "/smartnoise_query",
+                json=smartnoise_body,
+                headers=self.headers,
+            )  # spent 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": "Internal server error. "
+                + "Please contact the administrator of this service."
+            }

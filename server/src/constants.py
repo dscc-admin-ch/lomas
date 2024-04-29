@@ -39,7 +39,7 @@ INTERNAL_SERVER_ERROR = (
 )
 
 # DP constants
-EPSILON_LIMIT: float = 10.0
+EPSILON_LIMIT: float = 5.0
 DELTA_LIMIT: float = 0.0004
 
 
@@ -47,12 +47,6 @@ DELTA_LIMIT: float = 0.0004
 class DPLibraries(StrEnum):
     SMARTNOISE_SQL = "smartnoise_sql"
     OPENDP = "opendp"
-
-
-# OpenDP pipeline input types
-class OpenDPInputType(StrEnum):
-    DF = "df"
-    PATH = "path"
 
 
 # Private Databases

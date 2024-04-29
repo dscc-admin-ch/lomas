@@ -12,6 +12,7 @@ Welcome to Lomas Client's documentation!
 
    installation
    client
+   errors
    contributing
 
 Installation

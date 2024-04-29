@@ -21,7 +21,6 @@ from utils.example_inputs import (
     SMARTNOISE_QUERY_DELTA,
     SMARTNOISE_QUERY_EPSILON,
 )
-from utils.loggr import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -29,7 +28,6 @@ INITIAL_DELTA = 0.005
 
 class TestRootAPIEndpoint(unittest.TestCase):
     def setUp(self) -> None:
-        print("TestRootAPIEndpoint")
         self.user_name = "Dr. Antartica"
         self.dataset = PENGUIN_DATASET
         self.headers = {
@@ -117,7 +115,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 },
                 headers=self.headers,
             )
-            LOG.error(response.json())
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_query(self) -> None:
@@ -168,8 +165,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=input_smartnoise,
                 headers=self.headers,
             )
-            LOG.error(response)
-            LOG.error(response.json())
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
                 "ExternalLibraryException": "Error obtaining cost: "
@@ -185,11 +180,12 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=input_smartnoise,
                 headers=self.headers,
             )
+
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert response.json() == {
-                "UnauthorizedAccessException": "Internal server error. "
-                + "Please contact the administrator of this service."
-            }  # TODO: more meaningful error message
+                "UnauthorizedAccessException": ""
+                + "Dr. Antartica does not have access to IRIS."
+            }
 
     def test_dummy_smartnoise_query(self) -> None:
         with TestClient(app) as client:
@@ -213,7 +209,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error(response_dict)
             assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
@@ -483,8 +478,10 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=smartnoise_body,
                 headers=self.headers,
             )  # spent 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
-            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
-                "UnauthorizedAccessException": "Internal server error. "
-                + "Please contact the administrator of this service."
+                "InvalidQueryException": "Not enough budget for this query "
+                + "epsilon remaining 2.0, "
+                + "delta remaining 0.004970000100000034."
             }

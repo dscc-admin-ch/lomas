@@ -14,7 +14,7 @@ They are 4 custom errors describing the reasons why the queries fail and what to
 InvalidQueryException
 ---------------------
 - Happens when: error is due to an an invalid query from the user
-- Example: an "opendp" pipeline which is not a measurement.
+- Example: an "opendp" pipeline which is not a measurement, not enough budget for query
 - What to do: Based on the specific error message, the user should check and fix their relevant query parameters.
 
 
@@ -34,9 +34,8 @@ UnauthorizedAccessException
 - Happens when: user tries to query a dataset without sufficient authorisation:
     - when the user does not exist, 
     - when the user does not have access to the dataset, 
-    - when the user may not query,
-    - when the user has insufficient budget issues.
-- Example: user has a remaining `epsilon` of 1.0 and tries a query with an `epsilon` of 2.0
+    - when the user may not query.
+- Example: user tries to query a dataframe to which they do not have access
 - What to do: The user should decrease the budget parameters and check their access rights.
 
 .. _InternalServerException:

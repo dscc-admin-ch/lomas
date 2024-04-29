@@ -47,7 +47,7 @@
 <span id="id1"></span><h2>InvalidQueryException<a class="headerlink" href="#invalidqueryexception" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Happens when: error is due to an an invalid query from the user</p></li>
-<li><p>Example: an “opendp” pipeline which is not a measurement.</p></li>
+<li><p>Example: an “opendp” pipeline which is not a measurement, not enough budget for query</p></li>
 <li><p>What to do: Based on the specific error message, the user should check and fix their relevant query parameters.</p></li>
 </ul>
 </section>
@@ -66,13 +66,12 @@
 <dt>Happens when: user tries to query a dataset without sufficient authorisation:</dt><dd><ul>
 <li><p>when the user does not exist,</p></li>
 <li><p>when the user does not have access to the dataset,</p></li>
-<li><p>when the user may not query,</p></li>
-<li><p>when the user has insufficient budget issues.</p></li>
+<li><p>when the user may not query.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Example: user has a remaining <cite>epsilon</cite> of 1.0 and tries a query with an <cite>epsilon</cite> of 2.0</p></li>
+<li><p>Example: user tries to query a dataframe to which they do not have access</p></li>
 <li><p>What to do: The user should decrease the budget parameters and check their access rights.</p></li>
 </ul>
 </section>

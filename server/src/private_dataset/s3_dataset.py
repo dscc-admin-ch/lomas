@@ -1,5 +1,3 @@
-import os
-import tempfile
 from typing import Optional
 import boto3
 import pandas as pd
@@ -37,7 +35,6 @@ class S3Dataset(PrivateDataset):
         self.s3_bucket: str = s3_bucket
         self.s3_key: str = s3_key
         self.df: Optional[pd.DataFrame] = None
-        self.local_path: Optional[str] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """
@@ -64,22 +61,3 @@ class S3Dataset(PrivateDataset):
             ]
 
         return self.df
-
-    def get_local_path(self) -> str:
-        """
-        Get the path to a local copy of the source file
-        Returns:
-            - path
-        """
-        if self.local_path is None:
-            # Create temp dir and file
-            self.local_dir = tempfile.mkdtemp()
-            file_name = self.s3_key
-            self.local_path = os.path.join(self.local_dir, file_name)
-
-            # Download
-            self.client.download_file(
-                self.s3_bucket, self.s3_key, self.local_path
-            )
-
-        return self.local_path

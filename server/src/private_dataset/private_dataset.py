@@ -1,4 +1,3 @@
-import shutil
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
@@ -13,8 +12,6 @@ class PrivateDataset(ABC):
     """
 
     df: Optional[pd.DataFrame] = None
-    local_path: Optional[str] = None
-    local_dir: Optional[str] = None
 
     def __init__(self, metadata: dict) -> None:
         """
@@ -25,23 +22,6 @@ class PrivateDataset(ABC):
         self.metadata: dict = metadata
         self.dataset_observers: List[PrivateDatasetObserver] = []
         self.dtypes: dict = get_dtypes(metadata)
-
-    def __del__(self) -> None:
-        """
-        Cleans up the temporary directory used for storing
-        the dataset locally if needed.
-        """
-        if self.local_dir is not None:
-            shutil.rmtree(self.local_dir)
-
-    @abstractmethod
-    def get_local_path(self) -> str:
-        """
-        Get the path to  a local copy of the file.
-        Returns:
-            - path
-        """
-        pass
 
     @abstractmethod
     def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:

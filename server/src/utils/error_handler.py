@@ -50,13 +50,12 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-def get_custom_exceptions_list() -> tuple:
-    return (
-        ExternalLibraryException,
-        InternalServerException,
-        InvalidQueryException,
-        UnauthorizedAccessException,
-    )
+CUSTOM_EXCEPTIONS: tuple[str] = (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+    UnauthorizedAccessException,
+)
 
 
 # Custom exception handlers
@@ -91,7 +90,7 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content={"UnauthorizedAccessException": INTERNAL_SERVER_ERROR},
+            content={"UnauthorizedAccessException": exc.error_message},
         )
 
     @app.exception_handler(InternalServerException)

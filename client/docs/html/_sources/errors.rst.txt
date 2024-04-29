@@ -48,4 +48,3 @@ InternalServerException
 - What to do: contact the administrative team for help. Users are not responsible for the failure of their request.
 
 This error should never occur while the server is deployed.
----

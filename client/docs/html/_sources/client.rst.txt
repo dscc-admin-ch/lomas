@@ -95,8 +95,8 @@ Parameters:
     - `query`: The query to execute.
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
-    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `here <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>` for Smartnoise-SQL documentation.
-    - `postprocess` (bool, optional): Whether to postprocess the query results (default: True). See `here <https://docs.smartnoise.org/sql/advanced.html#postprocess>` for Smartnoise-SQL documentation.
+    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `Smartnoise-SQL mechanisms documentation <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`_.
+    - `postprocess` (bool, optional): Whether to postprocess the query results (default: True). See `Smartnoise-SQL postprocessing documentation <https://docs.smartnoise.org/sql/advanced.html#postprocess>`_.
     - `dummy` (bool, optional): Whether to use a dummy dataset (default: False).
     - `nb_rows` (int, optional): The number of rows in the dummy dataset (default: 100).
     - `seed` (int, optional): The random seed for generating the dummy dataset (default: 42).
@@ -132,7 +132,7 @@ Parameters:
     - `query`: The query to estimate the cost for.
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
-    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `here <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>` for Smartnoise-SQL documentation.
+    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `Smartnoise-SQL mechanisms documentation <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`_.
 
 Returns:
     - `dict`: A dictionary containing the estimated cost.
@@ -161,7 +161,7 @@ This function executes an OpenDP query.
 
 Parameters:
     - `opendp_pipeline`: The OpenDP pipeline for the query.
-    - `fixed_delta`: If the pipeline measurement is of type "ZeroConcentratedDivergence" (e.g. with `make_gaussian`) then it is converted to "SmoothedMaxDivergence" with `make_zCDP_to_approxDP` (see `here <https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP>` for opendp documentation). In that case a `fixed_delta` must be provided by the user.
+    - `fixed_delta`: If the pipeline measurement is of type "ZeroConcentratedDivergence" (e.g. with `make_gaussian`) then it is converted to "SmoothedMaxDivergence" with `make_zCDP_to_approxDP` (see `opendp measurements documentation <https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP>`_). In that case a `fixed_delta` must be provided by the user.
     - `dummy` (bool, optional): Whether to use a dummy dataset (default: False).
     - `nb_rows` (int, optional): The number of rows in the dummy dataset (default: 100).
     - `seed` (int, optional): The random seed for generating the dummy dataset (default: 42).

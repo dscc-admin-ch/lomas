@@ -5,7 +5,9 @@ from dp_queries.dp_querier import DPQuerier
 from fastapi import Header
 from utils.error_handler import (
     InternalServerException,
+    InvalidQueryException,
     UnauthorizedAccessException,
+    CUSTOM_EXCEPTIONS,
 )
 from utils.input_models import BasicModel
 
@@ -88,14 +90,18 @@ class QueryHandler:
             eps_cost, delta_cost = dp_querier.cost(query_json)
 
             # Check that enough budget to do the query
-            (
-                eps_remain,
-                delta_remain,
-            ) = self.admin_database.get_remaining_budget(
-                user_name, query_json.dataset_name
-            )
+            try:
+                (
+                    eps_remain,
+                    delta_remain,
+                ) = self.admin_database.get_remaining_budget(
+                    user_name, query_json.dataset_name
+                )
+            except UnauthorizedAccessException as e:
+                raise e
+
             if (eps_remain < eps_cost) or (delta_remain < delta_cost):
-                raise UnauthorizedAccessException(
+                raise InvalidQueryException(
                     "Not enough budget for this query epsilon remaining "
                     f"{eps_remain}, delta remaining {delta_remain}."
                 )
@@ -103,6 +109,8 @@ class QueryHandler:
             # Query
             try:
                 query_response = dp_querier.query(query_json)
+            except CUSTOM_EXCEPTIONS as e:
+                raise e
             except Exception as e:
                 raise InternalServerException(e)
 

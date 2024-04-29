@@ -116,8 +116,8 @@
 <li><p><cite>query</cite>: The query to execute.</p></li>
 <li><p><cite>epsilon</cite> (float): Privacy parameter (e.g., 0.1).</p></li>
 <li><p><cite>delta</cite> (float): Privacy parameter (e.g., 1e-5).</p></li>
-<li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <cite>here &lt;https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms&gt;</cite> for Smartnoise-SQL documentation.</p></li>
-<li><p><cite>postprocess</cite> (bool, optional): Whether to postprocess the query results (default: True). See <cite>here &lt;https://docs.smartnoise.org/sql/advanced.html#postprocess&gt;</cite> for Smartnoise-SQL documentation.</p></li>
+<li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <a class="reference external" href="https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms">Smartnoise-SQL mechanisms documentation</a>.</p></li>
+<li><p><cite>postprocess</cite> (bool, optional): Whether to postprocess the query results (default: True). See <a class="reference external" href="https://docs.smartnoise.org/sql/advanced.html#postprocess">Smartnoise-SQL postprocessing documentation</a>.</p></li>
 <li><p><cite>dummy</cite> (bool, optional): Whether to use a dummy dataset (default: False).</p></li>
 <li><p><cite>nb_rows</cite> (int, optional): The number of rows in the dummy dataset (default: 100).</p></li>
 <li><p><cite>seed</cite> (int, optional): The random seed for generating the dummy dataset (default: 42).</p></li>
@@ -149,7 +149,7 @@
 <li><p><cite>query</cite>: The query to estimate the cost for.</p></li>
 <li><p><cite>epsilon</cite> (float): Privacy parameter (e.g., 0.1).</p></li>
 <li><p><cite>delta</cite> (float): Privacy parameter (e.g., 1e-5).</p></li>
-<li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <cite>here &lt;https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms&gt;</cite> for Smartnoise-SQL documentation.</p></li>
+<li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <a class="reference external" href="https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms">Smartnoise-SQL mechanisms documentation</a>.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -162,7 +162,7 @@
 <p>—</p>
 </section>
 <section id="opendp-query">
-<span id="id5"></span><h2>opendp_query<a class="headerlink" href="#opendp-query" title="Link to this heading">¶</a></h2>
+<span id="id6"></span><h2>opendp_query<a class="headerlink" href="#opendp-query" title="Link to this heading">¶</a></h2>
 <p>This function executes an OpenDP query.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">opendp_query</span><span class="p">(</span>
     <span class="n">opendp_pipeline</span><span class="p">,</span>
@@ -176,7 +176,7 @@
 <dl class="simple">
 <dt>Parameters:</dt><dd><ul class="simple">
 <li><p><cite>opendp_pipeline</cite>: The OpenDP pipeline for the query.</p></li>
-<li><p><cite>fixed_delta</cite>: If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with <cite>make_gaussian</cite>) then it is converted to “SmoothedMaxDivergence” with <cite>make_zCDP_to_approxDP</cite> (see <cite>here &lt;https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP&gt;</cite> for opendp documentation). In that case a <cite>fixed_delta</cite> must be provided by the user.</p></li>
+<li><p><cite>fixed_delta</cite>: If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with <cite>make_gaussian</cite>) then it is converted to “SmoothedMaxDivergence” with <cite>make_zCDP_to_approxDP</cite> (see <a class="reference external" href="https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP">opendp measurements documentation</a>). In that case a <cite>fixed_delta</cite> must be provided by the user.</p></li>
 <li><p><cite>dummy</cite> (bool, optional): Whether to use a dummy dataset (default: False).</p></li>
 <li><p><cite>nb_rows</cite> (int, optional): The number of rows in the dummy dataset (default: 100).</p></li>
 <li><p><cite>seed</cite> (int, optional): The random seed for generating the dummy dataset (default: 42).</p></li>
@@ -192,7 +192,7 @@
 <p>—</p>
 </section>
 <section id="estimate-opendp-cost">
-<span id="id6"></span><h2>estimate_opendp_cost<a class="headerlink" href="#estimate-opendp-cost" title="Link to this heading">¶</a></h2>
+<span id="id7"></span><h2>estimate_opendp_cost<a class="headerlink" href="#estimate-opendp-cost" title="Link to this heading">¶</a></h2>
 <p>This function estimates the cost of executing an OpenDP query.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">estimate_opendp_cost</span><span class="p">(</span>
     <span class="n">opendp_pipeline</span><span class="p">,</span>
@@ -215,7 +215,7 @@
 <p>—</p>
 </section>
 <section id="get-initial-budget">
-<span id="id7"></span><h2>get_initial_budget<a class="headerlink" href="#get-initial-budget" title="Link to this heading">¶</a></h2>
+<span id="id8"></span><h2>get_initial_budget<a class="headerlink" href="#get-initial-budget" title="Link to this heading">¶</a></h2>
 <p>This function retrieves the initial budget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_initial_budget</span><span class="p">()</span>
 </pre></div>
@@ -233,7 +233,7 @@
 <p>—</p>
 </section>
 <section id="get-total-spent-budget">
-<span id="id8"></span><h2>get_total_spent_budget<a class="headerlink" href="#get-total-spent-budget" title="Link to this heading">¶</a></h2>
+<span id="id9"></span><h2>get_total_spent_budget<a class="headerlink" href="#get-total-spent-budget" title="Link to this heading">¶</a></h2>
 <p>This function retrieves the total spent budget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_total_spent_budget</span><span class="p">()</span>
 </pre></div>
@@ -251,7 +251,7 @@
 <p>—</p>
 </section>
 <section id="get-remaining-budget">
-<span id="id9"></span><h2>get_remaining_budget<a class="headerlink" href="#get-remaining-budget" title="Link to this heading">¶</a></h2>
+<span id="id10"></span><h2>get_remaining_budget<a class="headerlink" href="#get-remaining-budget" title="Link to this heading">¶</a></h2>
 <p>This function retrieves the remaining budget.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_remaining_budget</span><span class="p">():</span>
 </pre></div>

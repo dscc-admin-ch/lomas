@@ -32,7 +32,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
-                "Error obtaining cost:" + str(e),
+                "Error obtaining cost: " + str(e),
             )
 
         return result
@@ -62,14 +62,15 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         if not query_json.postprocess:
             result = list(result)
-
-        cols = result.pop(0)
+            cols = [f"res_{i}" for i in range(len(result))]
+        else:
+            cols = result.pop(0)
         if result == []:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
                 f"SQL Reader generated empty results,"
                 f"Epsilon: {epsilon} and Delta: {delta} are too small"
-                "to generate output.",
+                " to generate output.",
             )
 
         df_res = pd.DataFrame(result, columns=cols)

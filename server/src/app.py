@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Union
+from typing import Callable
 
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
@@ -27,7 +27,7 @@ from utils.error_handler import (
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
-    example_get_db_data,
+    example_get_admin_db_data,
     example_get_dummy_dataset,
     example_opendp,
     example_smartnoise_sql,
@@ -165,7 +165,7 @@ async def get_state(
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
-    query_json: GetDbData = Body(example_get_db_data),
+    query_json: GetDbData = Body(example_get_admin_db_data),
 ) -> JSONResponse:
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
@@ -350,7 +350,7 @@ def estimate_opendp_cost(
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
-    query_json: GetDbData = Body(example_get_db_data),
+    query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     try:
@@ -372,7 +372,7 @@ def get_initial_budget(
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
-    query_json: GetDbData = Body(example_get_db_data),
+    query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     try:
@@ -400,7 +400,7 @@ def get_total_spent_budget(
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
-    query_json: GetDbData = Body(example_get_db_data),
+    query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     try:
@@ -422,7 +422,7 @@ def get_remaining_budget(
     tags=["USER_BUDGET"],
 )
 def get_user_previous_queries(
-    query_json: GetDbData = Body(example_get_db_data),
+    query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     try:

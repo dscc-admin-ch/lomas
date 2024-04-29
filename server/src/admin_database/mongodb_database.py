@@ -292,9 +292,9 @@ class AdminMongoDatabase(AdminDatabase):
         }
         match query_json.__class__.__name__:
             case "SNSQLInp":
-                to_archive["api"] = DPLibraries.SMARTNOISE_SQL
+                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
             case "OpenDPInp":
-                to_archive["api"] = DPLibraries.OPENDP
+                to_archive["dp_librairy"] = DPLibraries.OPENDP
             case _:
                 raise InternalServerException(
                     f"Unknown query input: {query_json.__class__.__name__}"

@@ -249,7 +249,7 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                match query["api"]:
+                match query["dp_librairy"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.OPENDP:

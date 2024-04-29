@@ -260,7 +260,7 @@ class Client:
                     case _:
                         raise ValueError(
                             "Cannot deserialise unknown query type:"
-                            + f"{query['api']}"
+                            + f"{query['dp_librairy']}"
                         )
 
                 deserialised_queries.append(query)

@@ -1,5 +1,5 @@
 from constants import DPLibraries
-from dp_queries.dp_libraries.open_dp import OpenDPQuerier
+from dp_queries.dp_libraries.opendp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset

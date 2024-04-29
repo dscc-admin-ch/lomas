@@ -95,8 +95,8 @@ Parameters:
     - `query`: The query to execute.
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
-    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}).
-    - `postprocess` (bool, optional): Whether to postprocess the query results (default: True).
+    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `here <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>` for Smartnoise-SQL documentation.
+    - `postprocess` (bool, optional): Whether to postprocess the query results (default: True). See `here <https://docs.smartnoise.org/sql/advanced.html#postprocess>` for Smartnoise-SQL documentation.
     - `dummy` (bool, optional): Whether to use a dummy dataset (default: False).
     - `nb_rows` (int, optional): The number of rows in the dummy dataset (default: 100).
     - `seed` (int, optional): The random seed for generating the dummy dataset (default: 42).
@@ -132,7 +132,7 @@ Parameters:
     - `query`: The query to estimate the cost for.
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
-    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}).
+    - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `here <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>` for Smartnoise-SQL documentation.
 
 Returns:
     - `dict`: A dictionary containing the estimated cost.
@@ -152,8 +152,8 @@ This function executes an OpenDP query.
 .. code-block:: python
 
     res = client.opendp_query(
-        self,
         opendp_pipeline,
+        fixed_delta: float = None,
         dummy: bool = False,
         nb_rows: int = 100,
         seed: int = 42,
@@ -161,6 +161,7 @@ This function executes an OpenDP query.
 
 Parameters:
     - `opendp_pipeline`: The OpenDP pipeline for the query.
+    - `fixed_delta`: If the pipeline measurement is of type "ZeroConcentratedDivergence" (e.g. with `make_gaussian`) then it is converted to "SmoothedMaxDivergence" with `make_zCDP_to_approxDP` (see `here <https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP>` for opendp documentation). In that case a `fixed_delta` must be provided by the user.
     - `dummy` (bool, optional): Whether to use a dummy dataset (default: False).
     - `nb_rows` (int, optional): The number of rows in the dummy dataset (default: 100).
     - `seed` (int, optional): The random seed for generating the dummy dataset (default: 42).
@@ -184,6 +185,7 @@ This function estimates the cost of executing an OpenDP query.
 
     res = client.estimate_opendp_cost(
         opendp_pipeline,
+        fixed_delta: float = None,
     )
 
 Parameters:
@@ -250,7 +252,7 @@ This function retrieves the remaining budget.
 
 .. code-block:: python
 
-    res = client.get_remaining_budget(self):
+    res = client.get_remaining_budget():
 
 Parameters:
     None
@@ -261,3 +263,25 @@ Returns:
 Explanation:
 - Use this function to retrieve the remaining budget.
 
+
+---
+
+.. _get-previous-queris:
+
+get_previous_queries
+--------------------
+
+This function retrieves the previous queries of the user.
+
+.. code-block:: python
+
+    res = client.get_previous_queries():
+
+Parameters:
+    None
+
+Returns:
+    - `list[dict]`: A list of dictionary containing the different queries on the private dataset.
+
+Explanation:
+- Use this function to get the list af all the previous queries of the user on the dataset.

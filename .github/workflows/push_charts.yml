@@ -1,0 +1,24 @@
+name: Push Charts to Another Repo
+
+on: 
+  push: 
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Pushes to another repository
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_HELM }}
+      with:
+        source-directory: server/deploy/helm/charts/
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'helm-charts'
+        target-branch: master
+        target-directory: charts/

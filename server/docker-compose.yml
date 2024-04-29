@@ -1,6 +1,7 @@
 version: '3.4'
 services:
   lomas_server:
+    image: dsccadminch/lomas_server_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_server_dev

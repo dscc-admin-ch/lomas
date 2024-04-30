@@ -471,7 +471,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=smartnoise_body,
                 headers=self.headers,
             )  # spent 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
-
             assert response.status_code == status.HTTP_200_OK
 
             response = client.post(

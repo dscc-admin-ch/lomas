@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 import pandas as pd
-from constants import SSQL_METADATA_OPTIONS
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
 
 
@@ -61,8 +60,6 @@ class PrivateDataset(ABC):
 
 def get_dtypes(metadata: dict) -> dict:
     dtypes = {}
-    for col_name, data in metadata[""]["Schema"]["Table"].items():
-        if col_name in SSQL_METADATA_OPTIONS:
-            continue
+    for col_name, data in metadata["columns"].items():
         dtypes[col_name] = data["type"]
     return dtypes

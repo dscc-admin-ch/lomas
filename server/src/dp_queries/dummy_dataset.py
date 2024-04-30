@@ -13,7 +13,6 @@ from constants import (
     RANDOM_DATE_RANGE,
     RANDOM_DATE_START,
     RANDOM_STRINGS,
-    SSQL_METADATA_OPTIONS,
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
@@ -38,19 +37,16 @@ def make_dummy_dataset(
 
     # Create dataframe
     df = pd.DataFrame()
-    meta = metadata[""]["Schema"]["Table"]
-    for col_name, data in meta.items():
-        if col_name in SSQL_METADATA_OPTIONS:
-            continue
-
+    col_metadata = metadata["columns"]
+    for col_name, data in col_metadata.items():
         # Create a random serie based on the data type
         col_type = data["type"]
 
         if col_type == "string":
-            if "cardinality" in meta[col_name].keys():
-                cardinality = meta[col_name]["cardinality"]
-                if "categories" in meta[col_name].keys():
-                    categories = meta[col_name]["categories"]
+            if "cardinality" in col_metadata[col_name].keys():
+                cardinality = col_metadata[col_name]["cardinality"]
+                if "categories" in col_metadata[col_name].keys():
+                    categories = col_metadata[col_name]["categories"]
                     serie = pd.Series(random.choices(categories, k=nb_rows))
                 else:
                     serie = pd.Series(

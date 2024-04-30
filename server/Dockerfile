@@ -4,7 +4,7 @@ FROM python:3.11 as lomas_server_base
 # To install missing packages
 COPY ./requirements.txt /requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt 
-ENV IN_CONTAINER Yes
+ENV IN_CONTAINER=1
 
 WORKDIR /code
 FROM lomas_server_base AS lomas_server

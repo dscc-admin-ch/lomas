@@ -131,7 +131,6 @@ def startup_event() -> None:
 
 @app.on_event("shutdown")
 def shutdown_event():
-    
     if CONFIG.admin_database.db_type == AdminDBType.YAML_TYPE:
         ADMIN_DATABASE.save_current_database()
 

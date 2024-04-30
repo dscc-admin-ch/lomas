@@ -1,4 +1,5 @@
 poc_server/*
+server/src/tests/test_data/local_db_file_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,11 +1,8 @@
-import time
 from typing import List
 
 from admin_database.admin_database import AdminDatabase
-from constants import DPLibraries
 from pymongo import MongoClient
 from pymongo.database import Database
-from utils.error_handler import InternalServerException
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -194,21 +191,7 @@ class AdminMongoDatabase(AdminDatabase):
             - query_json: json received from client
             - response: response sent to the client
         """
-        to_archive = {
-            "user_name": user_name,
-            "dataset_name": query_json.dataset_name,
-            "client_input": query_json.dict(),
-            "response": response,
-            "timestamp": time.time(),
-        }
-        match query_json.__class__.__name__:
-            case "SNSQLInp":
-                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
-            case "OpenDPInp":
-                to_archive["dp_librairy"] = DPLibraries.OPENDP
-            case _:
-                raise InternalServerException(
-                    f"Unknown query input: {query_json.__class__.__name__}"
-                )
-
+        to_archive = super().prepare_save_query(
+            user_name, query_json, response
+        )
         self.db.queries_archives.insert_one(to_archive)

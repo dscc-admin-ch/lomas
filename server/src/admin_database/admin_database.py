@@ -1,11 +1,14 @@
 import argparse
 import functools
+import time
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
 
+from constants import DPLibraries
 from utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
+    InternalServerException,
 )
 
 
@@ -317,6 +320,34 @@ class AdminDatabase(ABC):
             - dataset_name: name of the dataset
         """
         pass
+
+    def prepare_save_query(
+        self, user_name: str, query_json: dict, response: dict
+    ) -> dict:
+        """
+        Prepare the query to save in archives
+        Parameters:
+            - user_name: name of the user
+            - query_json: json received from client
+            - response: response sent to the client
+        """
+        to_archive = {
+            "user_name": user_name,
+            "dataset_name": query_json.dataset_name,
+            "client_input": query_json.dict(),
+            "response": response,
+            "timestamp": time.time(),
+        }
+        match query_json.__class__.__name__:
+            case "SNSQLInp":
+                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
+            case "OpenDPInp":
+                to_archive["dp_librairy"] = DPLibraries.OPENDP
+            case _:
+                raise InternalServerException(
+                    f"Unknown query input: {query_json.__class__.__name__}"
+                )
+        return to_archive
 
     @abstractmethod
     def save_query(

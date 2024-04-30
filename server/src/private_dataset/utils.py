@@ -13,7 +13,6 @@ def private_dataset_factory(
     """
     Returns the appropriate database class based on dataset storage location
     """
-    # database_type = admin_database.get_database_type(dataset_name)
     database_type = admin_database.get_dataset_field(
         dataset_name, "database_type"
     )

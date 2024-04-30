@@ -2,11 +2,11 @@ import collections.abc
 
 import yaml
 from constants import (
+    AdminDBType,
     CONF_DATASET_STORE,
     CONF_DATASET_STORE_TYPE,
     CONF_DB,
     CONF_DB_TYPE,
-    CONF_DB_TYPE_MONGODB,
     CONF_DEV_MODE,
     CONF_RUNTIME_ARGS,
     CONF_SERVER,
@@ -39,16 +39,20 @@ class Server(BaseModel):
     workers: int
 
 
-class DBConfig(BaseModel):
-    db_type: str = CONF_DB_TYPE_MONGODB
-
-
 class DatasetStoreConfig(BaseModel):
     ds_store_type: ConfDatasetStore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
     max_memory_usage: int
+
+
+class DBConfig(BaseModel):
+    db_type: str = AdminDBType
+
+
+class YamlDBConfig(DBConfig):
+    db_file: str
 
 
 class MongoDBConfig(DBConfig):
@@ -110,14 +114,19 @@ def get_config() -> Config:
         server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
 
         db_type = config_data[CONF_DB][CONF_DB_TYPE]
-        if db_type == CONF_DB_TYPE_MONGODB:
-            admin_database_config = MongoDBConfig.parse_obj(
-                config_data[CONF_DB]
-            )
-        else:
-            raise InternalServerException(
-                f"User database type {db_type} not supported."
-            )
+        match db_type:
+            case AdminDBType.MONGODB_TYPE:
+                admin_database_config = MongoDBConfig.parse_obj(
+                    config_data[CONF_DB]
+                )
+            case AdminDBType.YAML_TYPE:
+                admin_database_config = YamlDBConfig.parse_obj(
+                    config_data[CONF_DB]
+                )
+            case _:
+                raise InternalServerException(
+                    f"Admin database type {db_type} not supported."
+                )
 
         ds_store_type = config_data[CONF_DATASET_STORE][
             CONF_DATASET_STORE_TYPE
@@ -147,7 +156,7 @@ def get_config() -> Config:
     except Exception as e:
         raise InternalServerException(
             f"Could not read config from disk at {CONFIG_PATH}"
-            + f"or missing fields: {e}"
+            + f" or missing fields: {e}"
         )
 
     return config

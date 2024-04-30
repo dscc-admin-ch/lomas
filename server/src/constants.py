@@ -10,7 +10,6 @@ else:
     CONFIG_PATH = "tests/test_configs/example_config.yaml"
     SECRETS_PATH = "tests/test_configs/example_secrets.yaml"
 
-
 # Configuration field names and values
 CONF_RUNTIME_ARGS: str = "runtime_args"
 CONF_SERVER: str = "server"

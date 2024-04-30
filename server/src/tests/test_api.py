@@ -166,10 +166,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=input_smartnoise,
                 headers=self.headers,
             )
-            from utils.loggr import LOG
-
-            LOG.error(response)
-            LOG.error(response.json())
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
                 "ExternalLibraryException": "Error obtaining cost: "

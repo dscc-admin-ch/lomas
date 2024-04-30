@@ -2,7 +2,8 @@
 
 ## Start service
 ### On local machine
-To start the container on a local machine, go to `lomas/server/` and run `docker compose up`.
+To start the container on a local machine, go to `lomas/server/` and run `docker compose up`. 
+If you encounter any issue, you might want to run `docker compose down` first.
 
 ### On a kubernetes cluser
 -- TODO: can someone fill it: like as few lines as possible

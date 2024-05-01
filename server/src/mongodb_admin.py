@@ -1,4 +1,5 @@
 import argparse
+import functools
 from typing import Callable
 
 import boto3
@@ -8,14 +9,18 @@ from pymongo.database import Database
 
 from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
+from pymongo.results import _WriteResult
 from utils.error_handler import InternalServerException
+from utils.loggr import LOG
+from warnings import warn
 
 
 def connect(
     function: Callable[[Database, argparse.Namespace], None]
-) -> Callable:
+    ) -> Callable:
     """Connect to the database"""
 
+    @functools.wraps(function)
     def wrap_function(*arguments: argparse.Namespace) -> None:
         db_url: str = get_mongodb_url(arguments[0])
         db: Database = MongoClient(db_url)[arguments[0].db_name]
@@ -24,36 +29,90 @@ def connect(
     return wrap_function
 
 
+def check_user_exists(enforce_true: bool) -> Callable:
+    """ Creates a wrapper function that raises a ValueError if the supplied user does
+    not already exist in the user collection.
+    """
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+    ) -> Callable:
+        @functools.wraps(function)
+        def wrapper_decorator(
+            *arguments: argparse.Namespace
+        ) -> None:
+            db = arguments[0]
+            user = arguments[1].user
+            
+            user_count = db.users.count_documents({"user_name": user})
+            
+            if enforce_true and user_count == 0:
+                raise ValueError(f"User {user} does not exist in user collecion")
+            elif not enforce_true and user_count > 0:
+                raise ValueError(f"User {user} already exists in user collection")
+            return function(*arguments)
+
+        return wrapper_decorator
+    return inner_func
+
+
+def check_user_has_dataset(enforce_true: bool) -> Callable:
+    """ Creates a wrapper function that raises a ValueError if the supplied user does
+    not already exist in the user collection.
+    """
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+    ) -> Callable:
+        @functools.wraps(function)
+        def wrapper_decorator(
+            *arguments: argparse.Namespace
+        ) -> None:
+            db = arguments[0]
+            user = arguments[1].user
+            dataset = arguments[1].dataset
+
+            user_and_ds_count = db.users.count_documents({"user_name": user, "datasets_list": { "$elemMatch": {"dataset_name": dataset}}})
+                        
+            if enforce_true and user_and_ds_count == 0:
+                raise ValueError(f"User {user} does not have dataset {dataset}")
+            elif not enforce_true and user_and_ds_count > 0:
+                raise ValueError(f"User {user} already has dataset {dataset}")
+            return function(*arguments)
+
+        return wrapper_decorator
+    return inner_func
+
+def check_result_acknowledged(res: _WriteResult) -> None:
+    if not res.acknowledged:
+        raise Exception("Write request not acknowledged by MongoDB database.")
+
 ##########################  USERS  ########################## # noqa: E266
 @connect
+@check_user_exists(False)
 def add_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values for all fields
     set by default.
     """
-    if db.users.count_documents({"user_name": arguments.user}) > 0:
-        raise ValueError("Cannot add user because already exists.")
 
-    db.users.insert_one(
+    res = db.users.insert_one(
         {
             "user_name": arguments.user,
             "may_query": True,
             "datasets_list": [],
         }
     )
-    print(f"Added user {arguments.user}.")
+
+    check_result_acknowledged(res)
+    
+    LOG.info(f"Added user {arguments.user}.")
 
 
 @connect
+@check_user_exists(False)
 def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values
     for all fields set by default.
     """
-    if db.users.count_documents({"user_name": arguments.user}) > 0:
-        raise ValueError("Cannot add user because already exists. ")
-
-    db.users.insert_one(
+    res = db.users.insert_one(
         {
             "user_name": arguments.user,
             "may_query": True,
@@ -68,7 +127,10 @@ def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
             ],
         }
     )
-    print(
+
+    check_result_acknowledged(res)
+
+    LOG.info(
         f"Added access to user {arguments.user} "
         + f"with dataset {arguments.dataset}, "
         + f"budget epsilon {arguments.epsilon} and "
@@ -77,25 +139,27 @@ def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
 
 
 @connect
+@check_user_exists(True)
 def del_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Delete all related information for user from the users collection.
     """
-    db.users.delete_many({"user_name": arguments.user})
-    print(f"Deleted user {arguments.user}.")
+    res = db.users.delete_many({"user_name": arguments.user})
+    check_result_acknowledged(res)
+
+    LOG.info(f"Deleted user {arguments.user}.")
 
 
 @connect
+@check_user_exists(True)
+@check_user_has_dataset(False)
 def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add dataset with initialized budget values to list of datasets
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
     """
-    if db.users.count_documents({"user_name": arguments.user}) == 0:
-        raise ValueError("Cannot add dataset because user does not exist. ")
-
-    db.users.update_one(
+    res = db.users.update_one(
         {
             "user_name": arguments.user,
             "datasets_list.dataset_name": {"$ne": arguments.dataset},
@@ -112,72 +176,86 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
             }
         },
     )
-    print(
+
+    check_result_acknowledged(res)
+    
+    LOG.info(
         f"Added access to dataset {arguments.dataset} to user {arguments.user}"
-        f" with budget epsilon {arguments.epsilon}, delta {arguments.delta}."
+        f" with budget epsilon {arguments.epsilon} and delta {arguments.delta}."
     )
 
 
 @connect
+@check_user_exists(True)
+@check_user_has_dataset(True)
 def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
     """
-    db.users.update_one(
+    res = db.users.update_one(
         {"user_name": arguments.user},
-        {
-            "$pull": {
-                "datasets_list": {"dataset_name": {"$eq": arguments.dataset}}
-            }
-        },
+        {"$pull": {"datasets_list": {"dataset_name": {"$eq": arguments.dataset}}}},
     )
-    print(
+
+    check_result_acknowledged(res)
+
+    LOG.info(
         f"Remove access to dataset {arguments.dataset}"
         + f" from user {arguments.user}."
     )
 
 
 @connect
+@check_user_exists(True)
+@check_user_has_dataset(True)
 def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
-    """
-    db.users.update_one(
+    """    
+    res = db.users.update_one(
         {
             "user_name": arguments.user,
             "datasets_list.dataset_name": arguments.dataset,
         },
         {"$set": {f"datasets_list.$.{arguments.field}": arguments.value}},
     )
-    print(
+
+    check_result_acknowledged(res)
+
+    LOG.info(
         f"Set budget of {arguments.user} for dataset {arguments.dataset}"
         f" of {arguments.field} to {arguments.value}."
     )
 
 
 @connect
+@check_user_exists(True)
 def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set (for some reason) the 'may query' field to a given value
     if given user exists.
-    """
-    db.users.update_one(
+    """    
+    res = db.users.update_one(
         {"user_name": arguments.user},
         {"$set": {"may_query": (arguments.value == "True")}},
     )
-    print(f"Set user {arguments.user} may query to True.")
+
+    check_result_acknowledged(res)
+
+    LOG.info(f"Set user {arguments.user} may query to True.")
 
 
 @connect
+@check_user_exists(True)
 def show_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Show a user
     """
     user = list(db.users.find({"user_name": arguments.user}))[0]
     user.pop("_id", None)
-    print(user)
+    LOG.info(user)
 
 
 @connect
@@ -190,7 +268,7 @@ def create_users_collection(
     if arguments.clean:
         # Collection created from scratch
         db.users.drop()
-        print("Cleaning done. \n")
+        LOG.info("Cleaning done. \n")
 
     # Load yaml data and insert it
     with open(arguments.path, encoding="utf-8") as f:
@@ -205,20 +283,24 @@ def create_users_collection(
                 existing_users.append(user)
 
         # Overwrite values for existing user with values from yaml
-        if arguments.overwrite:
-            if existing_users:
+        if existing_users != []:
+            if arguments.overwrite:
                 for user in existing_users:
                     user_filter = {"user_name": user["user_name"]}
                     update_operation = {"$set": user}
-                    db.users.update_many(user_filter, update_operation)
-                print("Existing users updated. ")
+                    res = db.users.update_many(filter, update_operation)
+                    check_result_acknowledged(res)
+                LOG.info("Existing users updated. ")
+            else:
+                warn("Some users already present in database. Overwrite is set to False.")
 
         if new_users:
             # Insert new users
-            db.users.insert_many(new_users)
-            print(f"Added user data from yaml at {arguments.path}.")
+            res = db.users.insert_many(new_users)
+            check_result_acknowledged(res)
+            LOG.info(f"Added user data from yaml at {arguments.path}.")
         else:
-            print("No new users added, they already exist in the server")
+            LOG.info("No new users added, they already exist in the server")
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
@@ -274,7 +356,7 @@ def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
         )
     db.metadata.insert_one({arguments.dataset: metadata_dict})
 
-    print(
+    LOG.info(
         f"Added dataset {arguments.dataset} with database "
         f"{arguments.database_type} and associated metadata."
     )
@@ -290,7 +372,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
         # Collection created from scratch
         db.datasets.drop()
         db.metadata.drop()
-        print("Cleaning done. \n")
+        LOG.info("Cleaning done. \n")
 
     with open(arguments.path, encoding="utf-8") as f:
         dataset_dict = yaml.safe_load(f)
@@ -337,7 +419,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
                 dataset_filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
                 db.datasets.update_many(dataset_filter, update_operation)
-            print(
+            LOG.info(
                 f"Existing datasets updated with values"
                 f"from yaml at {arguments.path}. "
             )
@@ -345,7 +427,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
     # Add dataset collection
     if new_datasets:
         db.datasets.insert_many(new_datasets)
-        print(f"Added datasets collection from yaml at {arguments.path}. ")
+        LOG.info(f"Added datasets collection from yaml at {arguments.path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict["datasets"]:
@@ -396,18 +478,18 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
         metadata = db.metadata.find_one(metadata_filter)
 
         if metadata and arguments.overwrite_metadata:
-            print(f"Metadata updated for dataset : {dataset_name}.")
+            LOG.info(f"Metadata updated for dataset : {dataset_name}.")
             db.metadata.update_one(
                 metadata_filter, {"$set": {dataset_name: metadata_dict}}
             )
         elif metadata:
-            print(
+            LOG.info(
                 "Metadata already exist. "
                 "Use the command -om to overwrite with new values."
             )
         else:
             db.metadata.insert_one({dataset_name: metadata_dict})
-            print(f"Added metadata of {dataset_name} dataset. ")
+            LOG.info(f"Added metadata of {dataset_name} dataset. ")
 
 
 @connect
@@ -416,7 +498,7 @@ def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
     Delete dataset from dataset collection.
     """
     db.users.delete_many({"dataset_name": arguments.dataset_name})
-    print(f"Deleted dataset {arguments.dataset_name}.")
+    LOG.info(f"Deleted dataset {arguments.dataset_name}.")
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266
@@ -426,7 +508,7 @@ def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
     Delete collection.
     """
     db.drop_collection(arguments.collection)
-    print(f"Deleted collection {arguments.collection}.")
+    LOG.info(f"Deleted collection {arguments.collection}.")
 
 
 @connect
@@ -439,7 +521,7 @@ def show_collection(db: Database, arguments: argparse.Namespace) -> None:
     for document in collection_query:
         document.pop("_id", None)
         collections.append(document)
-    print(collections)
+    LOG.info(collections)
 
 
 if __name__ == "__main__":

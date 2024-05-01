@@ -29,7 +29,7 @@ def database_factory(config: DBConfig) -> AdminDatabase:
             )
 
 
-def get_mongodb_url(config: Config) -> str:
+def get_mongodb_url(config: DBConfig) -> str:
     """
     Get URL of the administration MongoDB.
     """

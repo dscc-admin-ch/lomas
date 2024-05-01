@@ -1,0 +1,18 @@
+name: Server Integration Testing
+
+on: 
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+  
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Run test script
+      run: |
+        cd server
+        chmod +x run_integration_tests.sh
+        ./run_integration_tests.sh

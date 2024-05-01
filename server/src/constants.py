@@ -2,12 +2,19 @@ import os
 import string
 from enum import StrEnum
 
-if os.environ.get("IN_CONTAINER", False):
-    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+# Get config and secrets from correct location
+if "LOMAS_CONFIG_PATH" in os.environ:
+    CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
+    print(CONFIG_PATH)
 else:
-    CONFIG_PATH = "tests/test_configs/example_config.yaml"
-    SECRETS_PATH = "tests/test_configs/example_secrets.yaml"
+    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
+
+if "LOMAS_SECRETS_PATH" in os.environ:
+    SECRETS_PATH = f"""{os.environ.get("LOMAS_SECRETS_PATH")}"""
+else:
+    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+
+
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS: str = "runtime_args"

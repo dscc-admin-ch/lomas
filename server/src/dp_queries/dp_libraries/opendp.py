@@ -36,9 +36,7 @@ class OpenDPQuerier(DPQuerier):
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = self.private_dataset.get_metadata()[""]["Schema"]["Table"][
-            "max_ids"
-        ]
+        max_ids = self.private_dataset.get_metadata()["max_ids"]
         try:
             cost = opendp_pipe.map(d_in=int(max_ids))
         except Exception:

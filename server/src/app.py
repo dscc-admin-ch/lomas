@@ -175,7 +175,7 @@ def get_dataset_metadata(
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
-        )[""]["Schema"]["Table"]
+        )
 
     except CUSTOM_EXCEPTIONS as e:
         raise e

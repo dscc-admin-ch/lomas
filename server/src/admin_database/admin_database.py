@@ -1,11 +1,14 @@
 import argparse
 import functools
+import time
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
 
+from constants import DPLibraries
 from utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
+    InternalServerException,
 )
 
 
@@ -158,6 +161,19 @@ class AdminDatabase(ABC):
         return wrapper_decorator
 
     @abstractmethod
+    def get_epsilon_or_delta(
+        self, user_name: str, dataset_name: str, parameter: str
+    ) -> float:
+        """
+        Get the total spent epsilon or delta  by a specific user
+        on a specific dataset
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+            - parameter: total_spent_epsilon or total_spent_delta
+        """
+        pass
+
     @_has_user_access_to_dataset
     def get_total_spent_budget(
         self, user_name: str, dataset_name: str
@@ -169,9 +185,15 @@ class AdminDatabase(ABC):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        pass
+        return [
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "total_spent_epsilon"
+            ),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "total_spent_delta"
+            ),
+        ]
 
-    @abstractmethod
     @_has_user_access_to_dataset
     def get_initial_budget(
         self, user_name: str, dataset_name: str
@@ -182,7 +204,14 @@ class AdminDatabase(ABC):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        pass
+        return [
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "initial_epsilon"
+            ),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, "initial_delta"
+            ),
+        ]
 
     @_has_user_access_to_dataset
     def get_remaining_budget(
@@ -201,6 +230,54 @@ class AdminDatabase(ABC):
         return [init_eps - spent_eps, init_delta - spent_delta]
 
     @abstractmethod
+    def update_epsilon_or_delta(
+        self,
+        user_name: str,
+        dataset_name: str,
+        parameter: str,
+        spent_value: float,
+    ) -> None:
+        """
+        Update the current epsilon spent by a specific user
+        with the last spent epsilon
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+            - parameter: current_epsilon or current_delta
+            - spent_value: spending of epsilon or delta on last query
+        """
+        pass
+
+    def update_epsilon(
+        self, user_name: str, dataset_name: str, spent_epsilon: float
+    ) -> None:
+        """
+        Update the spent epsilon by a specific user
+        with the total spent epsilon
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+            - spent_epsilon: value of epsilon spent on last query
+        """
+        return self.update_epsilon_or_delta(
+            user_name, dataset_name, "total_spent_epsilon", spent_epsilon
+        )
+
+    def update_delta(
+        self, user_name: str, dataset_name: str, spent_delta: float
+    ) -> None:
+        """
+        Update the spent delta spent by a specific user
+        with the total spent delta of the user
+        Parameters:
+            - user_name: name of the user
+            - dataset_name: name of the dataset
+            - spent_delta: value of delta spent on last query
+        """
+        self.update_epsilon_or_delta(
+            user_name, dataset_name, "total_spent_delta", spent_delta
+        )
+
     @_has_user_access_to_dataset
     def update_budget(
         self,
@@ -218,7 +295,8 @@ class AdminDatabase(ABC):
             - spent_epsilon: value of epsilon spent on last query
             - spent_delta: value of delta spent on last query
         """
-        pass
+        self.update_epsilon(user_name, dataset_name, spent_epsilon)
+        self.update_delta(user_name, dataset_name, spent_delta)
 
     @abstractmethod
     @_does_dataset_exist
@@ -242,6 +320,34 @@ class AdminDatabase(ABC):
             - dataset_name: name of the dataset
         """
         pass
+
+    def prepare_save_query(
+        self, user_name: str, query_json: dict, response: dict
+    ) -> dict:
+        """
+        Prepare the query to save in archives
+        Parameters:
+            - user_name: name of the user
+            - query_json: json received from client
+            - response: response sent to the client
+        """
+        to_archive = {
+            "user_name": user_name,
+            "dataset_name": query_json.dataset_name,
+            "client_input": query_json.dict(),
+            "response": response,
+            "timestamp": time.time(),
+        }
+        match query_json.__class__.__name__:
+            case "SNSQLInp":
+                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
+            case "OpenDPInp":
+                to_archive["dp_librairy"] = DPLibraries.OPENDP
+            case _:
+                raise InternalServerException(
+                    f"Unknown query input: {query_json.__class__.__name__}"
+                )
+        return to_archive
 
     @abstractmethod
     def save_query(

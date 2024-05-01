@@ -1,9 +1,14 @@
+import os
 import string
 from enum import StrEnum
 
-# Configurations
-CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+
+if os.environ.get("IN_CONTAINER", False):
+    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
+    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+else:
+    CONFIG_PATH = "tests/test_configs/example_config.yaml"
+    SECRETS_PATH = "tests/test_configs/example_secrets.yaml"
 
 # Configuration field names and values
 CONF_RUNTIME_ARGS: str = "runtime_args"
@@ -20,6 +25,11 @@ CONF_MONGODB_PORT: str = "port"
 CONF_DATASET_STORE: str = "dataset_store"
 CONF_DATASET_STORE_TYPE: str = "ds_store_type"
 CONF_LRU_DATASET_STORE__MAX_SIZE: str = "max_memory_usage"
+
+
+class AdminDBType(StrEnum):
+    YAML_TYPE: str = "yaml"
+    MONGODB_TYPE: str = "mongodb"
 
 
 class ConfDatasetStore(StrEnum):

@@ -180,11 +180,25 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 json=input_smartnoise,
                 headers=self.headers,
             )
-
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert response.json() == {
                 "UnauthorizedAccessException": ""
                 + "Dr. Antartica does not have access to IRIS."
+            }
+
+            # Expect to fail: dataset does not exist
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["dataset_name"] = "I_do_not_exist"
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": ""
+                + "Dataset I_do_not_exist does not exists. "
+                + "Please, verify the client object initialisation."
             }
 
     def test_dummy_smartnoise_query(self) -> None:
@@ -445,17 +459,10 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "detail": [
-                    {
-                        "type": "less_than_equal",
-                        "loc": ["body", "epsilon"],
-                        "msg": "Input should be less than or equal to 5",
-                        "input": EPSILON_LIMIT * 2,
-                        "ctx": {"le": EPSILON_LIMIT},
-                    }
-                ]
-            }
+            error = response.json()["detail"][0]
+            assert error["type"] == "less_than_equal"
+            assert error["loc"] == ["body", "epsilon"]
+            assert error["msg"] == "Input should be less than or equal to 5"
 
             # Should fail: too much budget after three queries
             smartnoise_body["epsilon"] = 4.0

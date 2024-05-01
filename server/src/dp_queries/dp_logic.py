@@ -46,6 +46,8 @@ class QueryHandler:
             dp_querier = self.dataset_store.get_querier(
                 query_json.dataset_name, query_type
             )
+        except InvalidQueryException as e:
+            raise e
         except Exception as e:
             raise InternalServerException(
                 "Failed to get querier for dataset "

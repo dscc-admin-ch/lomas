@@ -2,7 +2,7 @@ from typing import Callable
 
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
-from constants import DPLibraries
+from constants import AdminDBType, DPLibraries
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_libraries.utils import querier_factory
 from dp_queries.dp_logic import QueryHandler
@@ -127,6 +127,12 @@ def startup_event() -> None:
 
     # Finally check everything in startup went well and update the state
     check_start_condition()
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    if CONFIG.admin_database.db_type == AdminDBType.YAML_TYPE:
+        ADMIN_DATABASE.save_current_database()
 
 
 # A simple hack to hinder the timing attackers

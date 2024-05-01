@@ -16,6 +16,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
     ) -> None:
         super().__init__(private_dataset)
 
+        # Reformat metadata
+        metadata = dict(self.private_dataset.get_metadata())
+        metadata.update(metadata["columns"])
+        del metadata["columns"]
+        self.snsql_metadata = {"": {"Schema": {"Table": metadata}}}
+
     def cost(self, query_json: SNSQLInpCost) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
@@ -23,12 +29,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
         reader = from_connection(
             self.private_dataset.get_pandas_df(),
             privacy=privacy,
-            metadata=self.private_dataset.get_metadata(),
+            metadata=self.snsql_metadata,
         )
 
-        query_str = query_json.query_str
         try:
-            result = reader.get_privacy_cost(query_str)
+            result = reader.get_privacy_cost(query_json.query_str)
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
@@ -46,13 +51,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
         reader = from_connection(
             self.private_dataset.get_pandas_df(),
             privacy=privacy,
-            metadata=self.private_dataset.get_metadata(),
+            metadata=self.snsql_metadata,
         )
 
-        query_str = query_json.query_str
         try:
             result = reader.execute(
-                query_str, postprocess=query_json.postprocess
+                query_json.query_str, postprocess=query_json.postprocess
             )
         except Exception as e:
             raise ExternalLibraryException(

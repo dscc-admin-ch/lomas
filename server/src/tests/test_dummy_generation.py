@@ -73,7 +73,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         # Should have null values
         self.assertTrue(df.col_nullable.isnull().values.any())
 
-    def test_seed(self):
+    def test_seed(self) -> None:
         # Test the behavior with different seeds
         metadata = {"": {"Schema": {"Table": {"col_int": {"type": "int", "nullable":True}}}}}
         seed1 = DUMMY_SEED

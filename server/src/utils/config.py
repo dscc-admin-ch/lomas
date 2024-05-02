@@ -21,7 +21,7 @@ from pydantic import BaseModel
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
-from typing_extensions import Dict, Literal
+from typing_extensions import Dict, Literal, Any
 from utils.error_handler import InternalServerException
 
 
@@ -100,8 +100,8 @@ def get_config() -> Config:
         # Merge secret data into config data
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
-
-            def update(d: dict, u: Dict[str, Dict[str, str]]) -> dict:
+            # to clarify
+            def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
                 for k, v in u.items():
                     if isinstance(v, collections.abc.Mapping):
                         d[k] = update(d.get(k, {}), v)

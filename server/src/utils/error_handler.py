@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from constants import INTERNAL_SERVER_ERROR
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse

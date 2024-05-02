@@ -59,6 +59,7 @@ def make_dummy_dataset(
             else:
                 serie = pd.Series(random.choices(RANDOM_STRINGS, k=nb_rows))
         elif col_type == "boolean":
+            # type boolean instead of bool will allow null values
             serie = pd.Series(random.choices([True, False], k=nb_rows), dtype = "boolean")
         elif col_type in ["int", "float"]:
             column_min = (
@@ -72,6 +73,7 @@ def make_dummy_dataset(
                 else DEFAULT_NUMERICAL_MAX
             )
             if col_type == "int":
+                # pd.Series to ensure consistency between different types
                 serie = pd.Series(np.random.randint(column_min, column_max, size=nb_rows))
             else:
                 serie = pd.Series(np.random.uniform(column_min, column_max, size=nb_rows))

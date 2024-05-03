@@ -138,7 +138,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response = client.post(
                 "/smartnoise_query",
                 json={
-                    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+                    "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
                     "dataset_name": PENGUIN_DATASET,
                     "epsilon": SMARTNOISE_QUERY_EPSILON,
                     "postprocess": True,
@@ -159,7 +159,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise[
                 "query_str"
-            ] = "SELECT AVG(bill) FROM Schema.Table"  # no 'bill' column
+            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,

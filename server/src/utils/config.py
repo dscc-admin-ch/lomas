@@ -100,7 +100,7 @@ def get_config() -> Config:
         # Merge secret data into config data
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
-            # to clarify
+            
             def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
                 for k, v in u.items():
                     if isinstance(v, dict):

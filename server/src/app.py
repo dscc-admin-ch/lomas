@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
@@ -52,7 +52,7 @@ ADMIN_DATABASE: AdminDatabase = None
 QUERY_HANDLER: QueryHandler = None
 
 # General server state, can add fields if need be.
-SERVER_STATE: dict = {
+SERVER_STATE: dict[str, Any] = {
     "state": [],
     "message": [],
     "LIVE": False,
@@ -137,7 +137,7 @@ def shutdown_event():
 
 # A simple hack to hinder the timing attackers
 @app.middleware("http")
-async def middleware(request: Request, call_next: Callable) -> Response:
+async def middleware(request: Request, call_next: Callable[[Request], Response]) -> Response:
     global CONFIG
     return await anti_timing_att(request, call_next, CONFIG)
 
@@ -157,10 +157,12 @@ async def get_state(
     """
     Returns the current state dict of this server instance.
     """
-    return {
-        "requested_by": user_name,
-        "state": SERVER_STATE,
-    }
+    return JSONResponse(
+        content={
+            "requested_by": user_name,
+            "state": SERVER_STATE,
+        }
+    )
 
 
 # Metadata query
@@ -175,7 +177,7 @@ def get_dataset_metadata(
     try:
         ds_metadata = ADMIN_DATABASE.get_dataset_metadata(
             query_json.dataset_name
-        )[""]["Schema"]["Table"]
+        )
 
     except CUSTOM_EXCEPTIONS as e:
         raise e
@@ -250,7 +252,11 @@ def dummy_smartnoise_sql_handler(
     try:
         _ = dummy_querier.cost(query_json)  # verify cost works
         response_df = dummy_querier.query(query_json)
-        response = {"query_response": response_df}
+        response = JSONResponse(
+            content={
+                "query_response": response_df
+                }
+            )
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -277,7 +283,7 @@ def estimate_smartnoise_cost(
     except Exception as e:
         raise InternalServerException(e)
 
-    return response
+    return JSONResponse(content=response)
 
 
 @app.post(
@@ -296,7 +302,7 @@ def opendp_query_handler(
     except Exception as e:
         raise InternalServerException(e)
 
-    return response
+    return JSONResponse(content=response)
 
 
 @app.post(
@@ -324,7 +330,7 @@ def dummy_opendp_query_handler(
     except Exception as e:
         raise InternalServerException(e)
 
-    return response
+    return JSONResponse(content=response)
 
 
 @app.post(
@@ -345,7 +351,7 @@ def estimate_opendp_cost(
     except Exception as e:
         raise InternalServerException(e)
 
-    return response
+    return JSONResponse(content=response)
 
 
 # MongoDB get initial budget
@@ -367,7 +373,12 @@ def get_initial_budget(
     except Exception as e:
         raise InternalServerException(e)
 
-    return {"initial_epsilon": initial_epsilon, "initial_delta": initial_delta}
+    return JSONResponse(
+        content={
+            "initial_epsilon": initial_epsilon, 
+            "initial_delta": initial_delta
+            }
+        )
 
 
 # MongoDB get total spent budget
@@ -392,11 +403,12 @@ def get_total_spent_budget(
     except Exception as e:
         raise InternalServerException(e)
 
-    return {
+    return JSONResponse(
+        content={
         "total_spent_epsilon": total_spent_epsilon,
-        "total_spent_delta": total_spent_delta,
-    }
-
+        "total_spent_delta": total_spent_delta
+        }
+    )
 
 # MongoDB get remaining budget
 @app.post(
@@ -416,8 +428,13 @@ def get_remaining_budget(
         raise e
     except Exception as e:
         raise InternalServerException(e)
-
-    return {"remaining_epsilon": rem_epsilon, "remaining_delta": rem_delta}
+    
+    return JSONResponse(
+        content={
+            "remaining_epsilon": rem_epsilon, 
+            "remaining_delta": rem_delta
+            }
+    )
 
 
 # MongoDB get archives
@@ -439,4 +456,6 @@ def get_user_previous_queries(
     except Exception as e:
         raise InternalServerException(e)
 
-    return {"previous_queries": previous_queries}
+    return JSONResponse(
+        content={"previous_queries": previous_queries}
+    )

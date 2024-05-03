@@ -21,7 +21,7 @@ from pydantic import BaseModel
 # Temporary workaround this issue:
 # https://github.com/pydantic/pydantic/issues/5821
 # from typing import Literal
-from typing_extensions import Dict, Literal
+from typing_extensions import Dict, Literal, Any
 from utils.error_handler import InternalServerException
 
 
@@ -100,10 +100,10 @@ def get_config() -> Config:
         # Merge secret data into config data
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
-
-            def update(d: dict, u: Dict[str, Dict[str, str]]) -> dict:
+            
+            def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
                 for k, v in u.items():
-                    if isinstance(v, collections.abc.Mapping):
+                    if isinstance(v, dict):
                         d[k] = update(d.get(k, {}), v)
                     else:
                         d[k] = v
@@ -122,7 +122,7 @@ def get_config() -> Config:
             case AdminDBType.YAML_TYPE:
                 admin_database_config = YamlDBConfig.parse_obj(
                     config_data[CONF_DB]
-                )
+                ) # type: ignore
             case _:
                 raise InternalServerException(
                     f"Admin database type {db_type} not supported."
@@ -133,7 +133,7 @@ def get_config() -> Config:
         ]
         match ds_store_type:
             case ConfDatasetStore.BASIC:
-                ds_store_config = DatasetStoreConfig(
+                ds_store_config = DatasetStoreConfig.parse_obj(
                     config_data[CONF_DATASET_STORE]
                 )
             case ConfDatasetStore.LRU:

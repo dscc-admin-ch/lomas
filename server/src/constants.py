@@ -77,15 +77,6 @@ class OpenDPMeasurement(StrEnum):
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
-SSQL_METADATA_OPTIONS = [
-    "max_ids",
-    "row_privacy",
-    "sample_max_ids",
-    "censor_dims",
-    "clamp_counts",
-    "clamp_columns",
-    "use_dpsu",
-]
 DEFAULT_NUMERICAL_MIN = -10000
 DEFAULT_NUMERICAL_MAX = 10000
 RANDOM_STRINGS = list(

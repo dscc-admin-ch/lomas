@@ -103,7 +103,7 @@ def get_config() -> Config:
             # to clarify
             def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
                 for k, v in u.items():
-                    if isinstance(v, collections.abc.Mapping):
+                    if isinstance(v, dict):
                         d[k] = update(d.get(k, {}), v)
                     else:
                         d[k] = v
@@ -133,7 +133,7 @@ def get_config() -> Config:
         ]
         match ds_store_type:
             case ConfDatasetStore.BASIC:
-                ds_store_config = DatasetStoreConfig(
+                ds_store_config = DatasetStoreConfig.parse_obj(
                     config_data[CONF_DATASET_STORE]
                 )
             case ConfDatasetStore.LRU:

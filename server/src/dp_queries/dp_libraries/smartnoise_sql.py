@@ -20,7 +20,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         metadata = dict(self.private_dataset.get_metadata())
         metadata.update(metadata["columns"])
         del metadata["columns"]
-        self.snsql_metadata = {"": {"Schema": {"Table": metadata}}}
+        self.snsql_metadata = {"": {"": {"df": metadata}}}
 
     def cost(self, query_json: SNSQLInpCost) -> List[float]:
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)

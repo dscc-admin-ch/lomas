@@ -59,6 +59,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert isinstance(metadata, dict), "metadata should be a dict"
             assert "max_ids" in metadata, "max_ids should be in metadata"
             assert "row_privacy" in metadata, "max_ids should be in metadata"
+            assert "columns" in metadata, "columns should be in metadata"
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -446,7 +447,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )
 
-    def test_budget_limit_logic(self) -> None:
+    def test_budget_over_limit(self) -> None:
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget on one go
             smartnoise_body = dict(example_smartnoise_sql)
@@ -464,28 +465,38 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert error["loc"] == ["body", "epsilon"]
             assert error["msg"] == "Input should be less than or equal to 5"
 
+    def test_subsequent_budget_limit_logic(self) -> None:
+        with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
+            smartnoise_body = dict(example_smartnoise_sql)
             smartnoise_body["epsilon"] = 4.0
+
+            # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             response = client.post(
                 "/smartnoise_query",
                 json=smartnoise_body,
                 headers=self.headers,
-            )  # spent 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
+            )
             assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
 
+            # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             response = client.post(
                 "/smartnoise_query",
                 json=smartnoise_body,
                 headers=self.headers,
-            )  # spent 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
+            )
             assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
 
+            # spend 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
             response = client.post(
                 "/smartnoise_query",
                 json=smartnoise_body,
                 headers=self.headers,
-            )  # spent 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
-
+            )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": "Not enough budget for this query "

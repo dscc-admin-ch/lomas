@@ -113,7 +113,7 @@
 </div>
 <dl class="simple">
 <dt>Parameters:</dt><dd><ul class="simple">
-<li><p><cite>query</cite>: The query to execute.</p></li>
+<li><p><cite>query</cite>: The SQL query to execute. NOTE: the table name is <cite>df</cite>, the query must end with “FROM df”.</p></li>
 <li><p><cite>epsilon</cite> (float): Privacy parameter (e.g., 0.1).</p></li>
 <li><p><cite>delta</cite> (float): Privacy parameter (e.g., 1e-5).</p></li>
 <li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <a class="reference external" href="https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms">Smartnoise-SQL mechanisms documentation</a>.</p></li>
@@ -146,7 +146,7 @@
 </div>
 <dl class="simple">
 <dt>Parameters:</dt><dd><ul class="simple">
-<li><p><cite>query</cite>: The query to estimate the cost for.</p></li>
+<li><p><cite>query</cite>: The SQL query to estimate the cost for. NOTE: the table name is <cite>df</cite>, the query must end with “FROM df”.</p></li>
 <li><p><cite>epsilon</cite> (float): Privacy parameter (e.g., 0.1).</p></li>
 <li><p><cite>delta</cite> (float): Privacy parameter (e.g., 1e-5).</p></li>
 <li><p><cite>mechanisms</cite> (dict, optional): Dictionary of mechanisms for the query (default: {}). See <a class="reference external" href="https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms">Smartnoise-SQL mechanisms documentation</a>.</p></li>

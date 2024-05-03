@@ -12,17 +12,20 @@ To automate the making of the documentation, in `lomas/client`, run:
 sphinx-build -M html documentation docs
 ```
 
-To see the pages, go to `lomas/client/docs/html`, run:
+To see the pages, go to `lomas/client/docs/html`,
 
+in windows, run:
 ```
 start .\index.html
 ```
-(in windows) and the doc page will open!
 
-In Linux, you can use:
+in Linux, run:
 ```
 firefox ./index.html
 ```
+
+and the doc page will open!
+
 ## Push new version to Pypi
 To push a new client library version on Pypi:
 0. Verify the documentation and README.md are up to date

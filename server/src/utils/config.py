@@ -1,5 +1,3 @@
-import collections.abc
-
 import yaml
 from constants import (
     AdminDBType,
@@ -100,7 +98,7 @@ def get_config() -> Config:
         # Merge secret data into config data
         with open(SECRETS_PATH, "r") as f:
             secret_data = yaml.safe_load(f)
-            
+
             def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
                 for k, v in u.items():
                     if isinstance(v, dict):
@@ -122,7 +120,7 @@ def get_config() -> Config:
             case AdminDBType.YAML_TYPE:
                 admin_database_config = YamlDBConfig.parse_obj(
                     config_data[CONF_DB]
-                ) # type: ignore
+                )  # type: ignore
             case _:
                 raise InternalServerException(
                     f"Admin database type {db_type} not supported."

@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from constants import INTERNAL_SERVER_ERROR
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -52,7 +50,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-CUSTOM_EXCEPTIONS: tuple[type,...] = (
+CUSTOM_EXCEPTIONS: tuple[type, ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

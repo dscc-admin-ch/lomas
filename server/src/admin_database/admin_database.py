@@ -35,7 +35,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _does_user_exist(func: Callable) -> Callable: # type: ignore
+    def _does_user_exist(func: Callable) -> Callable:  # type: ignore
         """
         Decorator function to check if a user exists
         Parameters:
@@ -67,7 +67,7 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _does_dataset_exist(func: Callable) -> Callable: # type: ignore
+    def _does_dataset_exist(func: Callable) -> Callable:  # type: ignore
         """
         Decorator function to check if a user exists
         Parameters:
@@ -136,7 +136,9 @@ class AdminDatabase(ABC):
         """
         pass
 
-    def _has_user_access_to_dataset(func: Callable) -> Callable: # type: ignore
+    def _has_user_access_to_dataset(
+        func: Callable
+    ) -> Callable:  # type: ignore
         """
         Decorator function to check if a user has access to a dataset
         Parameters:

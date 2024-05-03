@@ -152,14 +152,16 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @AdminDatabase._does_dataset_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:
+    def get_dataset_field(self, dataset_name: str, key: str) -> str: # type: ignore
         """
         Get dataset field type based on dataset name and key
         Parameters:
             - dataset_name: name of the dataset
             - key: name of the field to get
         """
-        return self.database["datasets"][dataset_name][key]
+        for dt in self.database["datasets"]:
+            if dt["dataset_name"] == dataset_name:
+                return dt[key]
 
     @AdminDatabase._has_user_access_to_dataset
     def get_user_previous_queries(

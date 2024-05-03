@@ -22,7 +22,7 @@ example_get_dummy_dataset = {
 }
 
 example_smartnoise_sql = {
-    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
     "dataset_name": PENGUIN_DATASET,
     "epsilon": SMARTNOISE_QUERY_EPSILON,
     "delta": SMARTNOISE_QUERY_DELTA,
@@ -31,7 +31,7 @@ example_smartnoise_sql = {
 }
 
 example_dummy_smartnoise_sql = {
-    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
     "dataset_name": PENGUIN_DATASET,
     "epsilon": DUMMY_EPSILON,
     "delta": DUMMY_DELTA,
@@ -42,7 +42,7 @@ example_dummy_smartnoise_sql = {
 }
 
 example_smartnoise_sql_cost = {
-    "query_str": "SELECT COUNT(*) AS NB_ROW FROM Schema.Table",
+    "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
     "dataset_name": PENGUIN_DATASET,
     "epsilon": SMARTNOISE_QUERY_EPSILON,
     "delta": SMARTNOISE_QUERY_DELTA,

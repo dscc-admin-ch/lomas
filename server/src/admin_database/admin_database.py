@@ -137,7 +137,7 @@ class AdminDatabase(ABC):
         pass
 
     def _has_user_access_to_dataset(
-        func: Callable
+        func: Callable,
     ) -> Callable:  # type: ignore
         """
         Decorator function to check if a user has access to a dataset

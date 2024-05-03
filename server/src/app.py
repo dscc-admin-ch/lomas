@@ -137,7 +137,9 @@ def shutdown_event():
 
 # A simple hack to hinder the timing attackers
 @app.middleware("http")
-async def middleware(request: Request, call_next: Callable[[Request], Response]) -> Response:
+async def middleware(
+    request: Request, call_next: Callable[[Request], Response]
+) -> Response:
     global CONFIG
     return await anti_timing_att(request, call_next, CONFIG)
 
@@ -252,11 +254,7 @@ def dummy_smartnoise_sql_handler(
     try:
         _ = dummy_querier.cost(query_json)  # verify cost works
         response_df = dummy_querier.query(query_json)
-        response = JSONResponse(
-            content={
-                "query_response": response_df
-                }
-            )
+        response = JSONResponse(content={"query_response": response_df})
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -375,10 +373,10 @@ def get_initial_budget(
 
     return JSONResponse(
         content={
-            "initial_epsilon": initial_epsilon, 
-            "initial_delta": initial_delta
-            }
-        )
+            "initial_epsilon": initial_epsilon,
+            "initial_delta": initial_delta,
+        }
+    )
 
 
 # MongoDB get total spent budget
@@ -405,10 +403,11 @@ def get_total_spent_budget(
 
     return JSONResponse(
         content={
-        "total_spent_epsilon": total_spent_epsilon,
-        "total_spent_delta": total_spent_delta
+            "total_spent_epsilon": total_spent_epsilon,
+            "total_spent_delta": total_spent_delta,
         }
     )
+
 
 # MongoDB get remaining budget
 @app.post(
@@ -428,12 +427,12 @@ def get_remaining_budget(
         raise e
     except Exception as e:
         raise InternalServerException(e)
-    
+
     return JSONResponse(
         content={
-            "remaining_epsilon": rem_epsilon, 
-            "remaining_delta": rem_delta
-            }
+            "remaining_epsilon": rem_epsilon,
+            "remaining_delta": rem_delta,
+        }
     )
 
 
@@ -456,6 +455,4 @@ def get_user_previous_queries(
     except Exception as e:
         raise InternalServerException(e)
 
-    return JSONResponse(
-        content={"previous_queries": previous_queries}
-    )
+    return JSONResponse(content={"previous_queries": previous_queries})

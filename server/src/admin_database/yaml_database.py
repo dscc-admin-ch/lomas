@@ -75,7 +75,6 @@ class AdminYamlDatabase(AdminDatabase):
                 return user["may_query"]
         # if user not found, return false
         return False
-        
 
     @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -152,7 +151,9 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @AdminDatabase._does_dataset_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str: # type: ignore
+    def get_dataset_field(
+        self, dataset_name: str, key: str
+    ) -> str:  # type: ignore
         """
         Get dataset field type based on dataset name and key
         Parameters:

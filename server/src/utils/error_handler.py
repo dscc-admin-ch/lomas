@@ -52,7 +52,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-CUSTOM_EXCEPTIONS: tuple[str] = (
+CUSTOM_EXCEPTIONS: tuple[type,...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

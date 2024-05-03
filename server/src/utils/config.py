@@ -122,7 +122,7 @@ def get_config() -> Config:
             case AdminDBType.YAML_TYPE:
                 admin_database_config = YamlDBConfig.parse_obj(
                     config_data[CONF_DB]
-                )
+                ) # type: ignore
             case _:
                 raise InternalServerException(
                     f"Admin database type {db_type} not supported."

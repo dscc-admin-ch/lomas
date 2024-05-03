@@ -73,6 +73,9 @@ class AdminYamlDatabase(AdminDatabase):
         for user in self.database["users"]:
             if user["user_name"] == user_name:
                 return user["may_query"]
+        # if user not found, return false
+        return False
+        
 
     @AdminDatabase._does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -122,6 +125,7 @@ class AdminYamlDatabase(AdminDatabase):
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
                         return dataset[parameter]
+        return False
 
     def update_epsilon_or_delta(
         self,
@@ -155,9 +159,7 @@ class AdminYamlDatabase(AdminDatabase):
             - dataset_name: name of the dataset
             - key: name of the field to get
         """
-        for dt in self.database["datasets"]:
-            if dt["dataset_name"] == dataset_name:
-                return dt[key]
+        return self.database["datasets"][dataset_name][key]
 
     @AdminDatabase._has_user_access_to_dataset
     def get_user_previous_queries(

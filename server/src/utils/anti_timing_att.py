@@ -3,6 +3,7 @@ import time
 from typing import Callable
 
 from fastapi import Request, Response
+
 from utils.config import Config
 
 

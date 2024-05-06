@@ -1,4 +1,9 @@
-from typing import Callable, Any
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Any, Callable
+
+from fastapi import Body, Depends, FastAPI, Header, Request, Response
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from admin_database.admin_database import AdminDatabase
 from admin_database.utils import database_factory
@@ -10,8 +15,6 @@ from dp_queries.dummy_dataset import (
     get_dummy_dataset_for_query,
     make_dummy_dataset,
 )
-from fastapi import Body, Depends, FastAPI, Header, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse
 from mongodb_admin import (
     add_datasets,
     create_users_collection,
@@ -20,9 +23,9 @@ from mongodb_admin import (
 from utils.anti_timing_att import anti_timing_att
 from utils.config import Config, get_config
 from utils.error_handler import (
+    CUSTOM_EXCEPTIONS,
     InternalServerException,
     add_exception_handlers,
-    CUSTOM_EXCEPTIONS,
 )
 from utils.example_inputs import (
     example_dummy_opendp,
@@ -58,18 +61,13 @@ SERVER_STATE: dict[str, Any] = {
     "LIVE": False,
 }
 
-# This object holds the server object
-app = FastAPI()
 
-
-# Startup
-# -----------------------------------------------------------------------------
-
-
-@app.on_event("startup")
-def startup_event() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
-    This function is executed once on server startup"""
+    This function is executed once on server startup
+    """
+    # Startup event
     LOG.info("Startup message")
     SERVER_STATE["state"].append("Startup event")
 
@@ -128,11 +126,15 @@ def startup_event() -> None:
     # Finally check everything in startup went well and update the state
     check_start_condition()
 
+    yield  # app is handling requests
 
-@app.on_event("shutdown")
-def shutdown_event():
+    # Shutdown event
     if CONFIG.admin_database.db_type == AdminDBType.YAML_TYPE:
         ADMIN_DATABASE.save_current_database()
+
+
+# This object holds the server object
+app = FastAPI(lifespan=lifespan)
 
 
 # A simple hack to hinder the timing attackers

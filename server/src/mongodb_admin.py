@@ -3,10 +3,11 @@ from typing import Callable
 
 import boto3
 import yaml
-from admin_database.utils import get_mongodb_url
-from constants import PrivateDatabaseType
 from pymongo import MongoClient
 from pymongo.database import Database
+
+from admin_database.utils import get_mongodb_url
+from constants import PrivateDatabaseType
 from utils.error_handler import InternalServerException
 
 

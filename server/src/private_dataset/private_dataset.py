@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 import pandas as pd
+
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
 
 
@@ -29,7 +30,6 @@ class PrivateDataset(ABC):
         Parameters:
             - dataset_name: name of the private dataset
         """
-        pass
 
     def get_metadata(self) -> dict:
         """

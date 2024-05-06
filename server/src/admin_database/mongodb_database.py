@@ -1,8 +1,9 @@
 from typing import List
 
-from admin_database.admin_database import AdminDatabase
 from pymongo import MongoClient
 from pymongo.database import Database
+
+from admin_database.admin_database import AdminDatabase
 
 
 class AdminMongoDatabase(AdminDatabase):

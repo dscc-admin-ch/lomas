@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 import pandas as pd
+
 from admin_database.admin_database import AdminDatabase
 from constants import (
     DEFAULT_NUMERICAL_MAX,

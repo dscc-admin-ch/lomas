@@ -72,10 +72,8 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         is back to below its maximum size.
         """
         self.memory_usage = sum(
-            [
-                private_ds.get_memory_usage()
-                for private_ds in self.dataset_cache.values()
-            ]
+            private_ds.get_memory_usage()
+            for private_ds in self.dataset_cache.values()
         )
 
         while self.memory_usage > self.max_memory_usage:

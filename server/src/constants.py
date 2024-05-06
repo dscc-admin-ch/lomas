@@ -60,8 +60,7 @@ class DPLibraries(StrEnum):
 
 # Private Databases
 class PrivateDatabaseType(StrEnum):
-    LOCAL = "LOCAL_DB"
-    REMOTE_HTTP = "REMOTE_HTTP_DB"
+    PATH = "PATH_DB"
     S3 = "S3_DB"
 
 

@@ -1,13 +1,14 @@
+from fastapi import Header
+
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
 from dataset_store.dataset_store import DatasetStore
 from dp_queries.dp_querier import DPQuerier
-from fastapi import Header
 from utils.error_handler import (
+    CUSTOM_EXCEPTIONS,
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
-    CUSTOM_EXCEPTIONS,
 )
 from utils.input_models import BasicModel
 
@@ -52,7 +53,7 @@ class QueryHandler:
             raise InternalServerException(
                 "Failed to get querier for dataset "
                 + f"{query_json.dataset_name}: {str(e)}"
-            )
+            ) from e
         return dp_querier
 
     def estimate_cost(
@@ -114,7 +115,7 @@ class QueryHandler:
             except CUSTOM_EXCEPTIONS as e:
                 raise e
             except Exception as e:
-                raise InternalServerException(e)
+                raise InternalServerException(e) from e
 
             # Deduce budget from user
             self.admin_database.update_budget(

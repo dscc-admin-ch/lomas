@@ -425,7 +425,7 @@ def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
     """
     Delete collection.
     """
-    eval(f"db.{arguments.collection}.drop()")
+    db.drop_collection(arguments.collection)
     print(f"Deleted collection {arguments.collection}.")
 
 

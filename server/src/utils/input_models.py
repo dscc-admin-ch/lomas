@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -6,37 +5,17 @@ from pydantic import BaseModel, Field
 from constants import DELTA_LIMIT, EPSILON_LIMIT
 
 
-class BasicModel(BaseModel):
-    def toJSON(self) -> str:
-        return json.loads(
-            json.dumps(
-                self,
-                default=lambda o: (
-                    str(o) if type(o).__name__ == "datetime" else o.__dict__
-                ),
-            )
-        )
-
-    def toJSONStr(self) -> str:
-        return json.dumps(
-            self,
-            default=lambda o: (
-                str(o) if type(o).__name__ == "datetime" else o.__dict__
-            ),
-        )
-
-
 class GetDbData(BaseModel):
     dataset_name: str
 
 
-class GetDummyDataset(BasicModel):
+class GetDummyDataset(BaseModel):
     dataset_name: str
     dummy_nb_rows: int
     dummy_seed: int
 
 
-class SNSQLInp(BasicModel):
+class SNSQLInp(BaseModel):
     query_str: str
     dataset_name: str
     epsilon: float = Field(
@@ -53,7 +32,7 @@ class SNSQLInp(BasicModel):
     postprocess: bool
 
 
-class DummySNSQLInp(BasicModel):
+class DummySNSQLInp(BaseModel):
     query_str: str
     dataset_name: str
     dummy_nb_rows: int
@@ -64,7 +43,7 @@ class DummySNSQLInp(BasicModel):
     postprocess: bool
 
 
-class SNSQLInpCost(BasicModel):
+class SNSQLInpCost(BaseModel):
     query_str: str
     dataset_name: str
     epsilon: float
@@ -72,13 +51,13 @@ class SNSQLInpCost(BasicModel):
     mechanisms: dict
 
 
-class OpenDPInp(BasicModel):
+class OpenDPInp(BaseModel):
     dataset_name: str
     opendp_json: str
     fixed_delta: Optional[float] = None
 
 
-class DummyOpenDPInp(BasicModel):
+class DummyOpenDPInp(BaseModel):
     dataset_name: str
     opendp_json: str
     dummy_nb_rows: int

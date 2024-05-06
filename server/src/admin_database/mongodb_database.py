@@ -30,7 +30,7 @@ class AdminMongoDatabase(AdminDatabase):
         doc_count = self.db.users.count_documents(
             {"user_name": f"{user_name}"}
         )
-        return True if doc_count > 0 else False
+        return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
         """
@@ -98,7 +98,7 @@ class AdminMongoDatabase(AdminDatabase):
                 "datasets_list.dataset_name": f"{dataset_name}",
             }
         )
-        return True if doc_count > 0 else False
+        return doc_count > 0
 
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
@@ -179,7 +179,7 @@ class AdminMongoDatabase(AdminDatabase):
             },
             {"_id": 0},
         )
-        return [q for q in queries]
+        return list(queries)
 
     def save_query(
         self, user_name: str, query_json: dict, response: dict

@@ -12,9 +12,7 @@ class BasicModel(BaseModel):
             json.dumps(
                 self,
                 default=lambda o: (
-                    o.__str__()
-                    if type(o).__name__ == "datetime"
-                    else o.__dict__
+                    str(o) if type(o).__name__ == "datetime" else o.__dict__
                 ),
             )
         )
@@ -23,7 +21,7 @@ class BasicModel(BaseModel):
         return json.dumps(
             self,
             default=lambda o: (
-                o.__str__() if type(o).__name__ == "datetime" else o.__dict__
+                str(o) if type(o).__name__ == "datetime" else o.__dict__
             ),
         )
 

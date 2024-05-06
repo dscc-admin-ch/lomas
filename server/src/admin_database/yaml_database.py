@@ -4,6 +4,7 @@ from typing import List
 import yaml
 
 from admin_database.admin_database import AdminDatabase
+from utils.error_handler import InternalServerException
 
 
 class AdminYamlDatabase(AdminDatabase):
@@ -164,6 +165,9 @@ class AdminYamlDatabase(AdminDatabase):
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
                 return dt[key]
+        raise InternalServerException(
+            f"Field {key} does not exist for dataset {dataset_name}."
+        )
 
     @AdminDatabase._has_user_access_to_dataset
     def get_user_previous_queries(

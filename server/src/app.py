@@ -186,7 +186,7 @@ def get_dataset_metadata(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return ds_metadata
 
@@ -211,7 +211,7 @@ def get_dummy_dataset(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return stream_dataframe(dummy_df)
 
@@ -233,7 +233,7 @@ def smartnoise_sql_handler(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return response
 
@@ -260,7 +260,7 @@ def dummy_smartnoise_sql_handler(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return response
 
@@ -281,7 +281,7 @@ def estimate_smartnoise_cost(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(content=response)
 
@@ -300,7 +300,7 @@ def opendp_query_handler(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(content=response)
 
@@ -328,7 +328,7 @@ def dummy_opendp_query_handler(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(content=response)
 
@@ -349,7 +349,7 @@ def estimate_opendp_cost(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(content=response)
 
@@ -371,7 +371,7 @@ def get_initial_budget(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(
         content={
@@ -401,7 +401,7 @@ def get_total_spent_budget(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(
         content={
@@ -428,7 +428,7 @@ def get_remaining_budget(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(
         content={
@@ -455,6 +455,6 @@ def get_user_previous_queries(
     except CUSTOM_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e)
+        raise InternalServerException(e) from e
 
     return JSONResponse(content={"previous_queries": previous_queries})

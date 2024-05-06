@@ -28,11 +28,9 @@ class DPQuerier(ABC):
         """
         Estimate cost of query
         """
-        pass
 
     @abstractmethod
     def query(self, query_json: JSON) -> str:
         """
         Does the query and return the response
         """
-        pass

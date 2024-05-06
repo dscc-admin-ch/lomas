@@ -85,12 +85,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
             if nb_iter < MAX_NAN_ITERATION:
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
-            else:
-                raise InvalidQueryException(
-                    f"SQL Reader generated NAN results."
-                    f" Epsilon: {epsilon} and Delta: {delta} are too small"
-                    " to generate output.",
-                )
+
+            raise InvalidQueryException(
+                f"SQL Reader generated NAN results."
+                f" Epsilon: {epsilon} and Delta: {delta} are too small"
+                " to generate output.",
+            )
 
         return df_res.to_dict(orient="tight")
 

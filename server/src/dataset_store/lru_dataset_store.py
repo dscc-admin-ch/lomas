@@ -66,8 +66,6 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
 
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
 
-        return
-
     def update_memory_usage(self) -> None:
         """
         Remove least recently used datasets until the cache

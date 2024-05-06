@@ -46,8 +46,7 @@ class PrivateDataset(ABC):
         """
         if self.df is None:
             return 0
-        else:
-            return self.df.memory_usage().sum() / (1024**2)
+        return self.df.memory_usage().sum() / (1024**2)
 
     def subscribe_for_memory_usage_updates(
         self, dataset_observer: PrivateDatasetObserver

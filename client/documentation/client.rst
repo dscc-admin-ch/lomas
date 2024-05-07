@@ -92,7 +92,7 @@ This function executes a SmartNoise query.
     )
 
 Parameters:
-    - `query`: The query to execute.
+    - `query`: The SQL query to execute. NOTE: the table name is `df`, the query must end with "FROM df".
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
     - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `Smartnoise-SQL mechanisms documentation <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`_.
@@ -129,7 +129,7 @@ This function estimates the cost of executing a SmartNoise query.
     )
 
 Parameters:
-    - `query`: The query to estimate the cost for.
+    - `query`: The SQL query to estimate the cost for. NOTE: the table name is `df`, the query must end with "FROM df".
     - `epsilon` (float): Privacy parameter (e.g., 0.1).
     - `delta` (float): Privacy parameter (e.g., 1e-5).
     - `mechanisms` (dict, optional): Dictionary of mechanisms for the query (default: {}). See `Smartnoise-SQL mechanisms documentation <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`_.

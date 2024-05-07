@@ -4,7 +4,10 @@ from typing import List, TypeAlias
 from private_dataset.private_dataset import PrivateDataset
 
 # https://stackoverflow.com/questions/51291722/define-a-jsonable-type-using-mypy-pep-526
-JSON: TypeAlias = dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None 
+JSON: TypeAlias = (
+    dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
+)
+
 
 class DPQuerier(ABC):
     """

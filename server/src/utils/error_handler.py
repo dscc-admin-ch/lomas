@@ -15,14 +15,10 @@ class InvalidQueryException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
-        """
+        """_summary_
+
         Args:
-            self (object) : Argument
-            error_message (str) : Argument
-
-    Returns:
-        ( None ) : 
-
+            error_message (str): _description_
         """
         self.error_message = error_message
 
@@ -36,15 +32,11 @@ class ExternalLibraryException(Exception):
     """
 
     def __init__(self, library: str, error_message: str) -> None:
-        """
+        """_summary_
+
         Args:
-            self (object) : Argument
-            library (str) : Argument
-            error_message (str) : Argument
-
-    Returns:
-        ( None ) : 
-
+            library (str): _description_
+            error_message (str): _description_
         """
         self.library = library
         self.error_message = error_message
@@ -57,14 +49,10 @@ class UnauthorizedAccessException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
-        """
+        """_summary_
+
         Args:
-            self (object) : Argument
-            error_message (str) : Argument
-
-    Returns:
-        ( None ) : 
-
+            error_message (str): _description_
         """
         self.error_message = error_message
 
@@ -76,14 +64,10 @@ class InternalServerException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
-        """
+        """_summary_
+
         Args:
-            self (object) : Argument
-            error_message (str) : Argument
-
-    Returns:
-        ( None ) : 
-
+            error_message (str): _description_
         """
         self.error_message = error_message
 

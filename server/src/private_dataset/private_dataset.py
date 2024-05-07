@@ -14,18 +14,10 @@ class PrivateDataset(ABC):
     df: Optional[pd.DataFrame] = None
 
     def __init__(self, metadata: dict) -> None:
-        """
-        Connects to the DB
-        Parameters:
-            - metadata: The metadata for this dataset
-        
+        """Connects to the DB
+
         Args:
-            self (object) : Argument
-            metadata (dict) : Argument.  The metadata for this dataset
-
-    Returns:
-        ( None ) : 
-
+            metadata (dict): The metadata for this dataset
         """
         self.metadata: dict = metadata
         self.dataset_observers: List[PrivateDatasetObserver] = []
@@ -33,30 +25,20 @@ class PrivateDataset(ABC):
 
     @abstractmethod
     def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
-        """
-        Get the data in pandas dataframe format
-        Parameters:
-            - dataset_name: name of the private dataset
-        
+        """Get the data in pandas dataframe format
+
         Args:
-            self (object) : Argument
-            dataset_name (str) : Argument. ame: name of the private dataset
+            dataset_name (str): name of the private dataset
 
-    Returns:
-        ( pd.DataFrame ) : 
-
+        Returns:
+            pd.DataFrame: _description_
         """
 
     def get_metadata(self) -> dict:
-        """
-        Get the metadata for this dataset
-        
-        Args:
-            self (object) : Argument
+        """Get the metadata for this dataset
 
-    Returns:
-        ( dict ) : 
-
+        Returns:
+            dict: _description_
         """
         return self.metadata
 

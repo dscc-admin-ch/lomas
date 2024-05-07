@@ -92,7 +92,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """Connects to the DB
-        
+
         Parameters:
             - **connection_parameters: parameters required to access the db
         """
@@ -153,7 +153,7 @@ class AdminDatabase(ABC):
         Args:
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
-        """        
+        """
         pass
 
     @abstractmethod

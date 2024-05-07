@@ -18,7 +18,8 @@ class LocalDataset(PrivateDataset):
         """_summary_
 
         Args:
-            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]): _description_
+            metadata (Dict[str, Union[int, bool,
+                Dict[str, Union[str, int]]]]): _description_
             dataset_path (str): path of the dataset
         """
         super().__init__(metadata)

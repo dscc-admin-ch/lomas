@@ -21,7 +21,8 @@ def connect(
     """Connect to the database
 
     Args:
-        function (Callable[[Database, argparse.Namespace], None]): _description_
+        function (Callable[[Database, argparse.Namespace], None]):
+            _description_
 
     Returns:
         Callable: _description_
@@ -127,7 +128,7 @@ def add_user(db: Database, arguments: argparse.Namespace) -> None:
 def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
     """Add new user in users collection with initial values
     for all fields set by default.
-    
+
     Args:
         db (Database): _description_
         arguments (argparse.Namespace): _description_

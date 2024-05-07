@@ -18,7 +18,8 @@ class InMemoryDataset(PrivateDataset):
         """_summary_
 
         Args:
-            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]): _description_
+            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]):
+                _description_
             dataset_df (pd.DataFrame): Dataframe of the dataset
         """
         super().__init__(metadata)

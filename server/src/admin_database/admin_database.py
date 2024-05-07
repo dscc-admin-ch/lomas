@@ -36,22 +36,21 @@ class AdminDatabase(ABC):
             bool: _description_
         """
 
-    def _does_user_exist(func: Callable) -> Callable:  # type: ignore
-        """
-        Decorator function to check if a user exists
+    def _does_user_exist(func: Callable) -> Callable: # type: ignore
+        """Decorator function to check if a user exists
+
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
-        
+            
         Args:
-            func (Callable) : Argument. to check if a user exists
-        Parameters:
-            - args[0]: expects self
-            - args[1]: expects username
+            func (Callable): Argument. to check if a user exists
 
-    Returns:
-        ( Callable ) : 
+        Raises:
+            UnauthorizedAccessException: _description_
 
+        Returns:
+            Callable: _description_
         """
 
         @functools.wraps(func)

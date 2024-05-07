@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any, Callable
+from types import SimpleNamespace
 
 from fastapi import Body, Depends, FastAPI, Header, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -69,19 +70,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
     # Startup event
     LOG.info("Startup message")
+    global CONFIG
+    global QUERY_HANDLER
+    global ADMIN_DATABASE
+
     SERVER_STATE["state"].append("Startup event")
 
     # Load config here
     LOG.info("Loading config")
     SERVER_STATE["message"].append("Loading config")
-    global CONFIG
     CONFIG = get_config()
 
     # Fill up user database if in develop mode ONLY
     if CONFIG.develop_mode:
         LOG.info("!! Develop mode ON !!")
         LOG.info("Creating example user collection")
-        from types import SimpleNamespace
 
         args = SimpleNamespace(**vars(CONFIG.admin_database))
 
@@ -105,7 +108,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     LOG.info("Loading admin database")
     SERVER_STATE["message"].append("Loading admin database")
     try:
-        global ADMIN_DATABASE
         ADMIN_DATABASE = database_factory(CONFIG.admin_database)
     except Exception as e:
         LOG.exception("Failed at startup:" + str(e))
@@ -117,7 +119,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     dataset_store = dataset_store_factory(CONFIG.dataset_store, ADMIN_DATABASE)
 
     SERVER_STATE["message"].append("Loading query handler")
-    global QUERY_HANDLER
     QUERY_HANDLER = QueryHandler(ADMIN_DATABASE, dataset_store)
 
     SERVER_STATE["state"].append("Startup completed")
@@ -142,7 +143,6 @@ app = FastAPI(lifespan=lifespan)
 async def middleware(
     request: Request, call_next: Callable[[Request], Response]
 ) -> Response:
-    global CONFIG
     return await anti_timing_att(request, call_next, CONFIG)
 
 

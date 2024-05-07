@@ -1,12 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, TypeAlias
+from typing import List
+from pydantic import BaseModel
 
 from private_dataset.private_dataset import PrivateDataset
-
-# https://stackoverflow.com/questions/51291722/define-a-jsonable-type-using-mypy-pep-526
-JSON: TypeAlias = (
-    dict[str, "JSON"] | list["JSON"] | str | int | float | bool | None
-)
 
 
 class DPQuerier(ABC):
@@ -24,13 +20,13 @@ class DPQuerier(ABC):
         self.private_dataset = private_dataset
 
     @abstractmethod
-    def cost(self, query_json: JSON) -> List[float]:
+    def cost(self, query_json: BaseModel) -> List[float]:
         """
         Estimate cost of query
         """
 
     @abstractmethod
-    def query(self, query_json: JSON) -> str:
+    def query(self, query_json: BaseModel) -> str:
         """
         Does the query and return the response
         """

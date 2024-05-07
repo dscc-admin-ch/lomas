@@ -64,7 +64,7 @@ SERVER_STATE: dict[str, Any] = {
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(_: FastAPI) -> AsyncGenerator:
     """
     This function is executed once on server startup
     """

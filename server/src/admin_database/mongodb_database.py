@@ -3,7 +3,12 @@ from typing import List
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from admin_database.admin_database import AdminDatabase
+from admin_database.admin_database import (
+    AdminDatabase,
+    dataset_must_exist,
+    user_must_exist,
+    user_must_have_access_to_dataset,
+)
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -45,7 +50,7 @@ class AdminMongoDatabase(AdminDatabase):
 
         return False
 
-    @AdminDatabase._does_dataset_exist
+    @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         """
         Returns the metadata dictionnary of the dataset
@@ -57,7 +62,7 @@ class AdminMongoDatabase(AdminDatabase):
         )
         return metadatas[dataset_name]  # type: ignore
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -68,7 +73,7 @@ class AdminMongoDatabase(AdminDatabase):
         user = self.db.users.find_one({"user_name": user_name})
         return user["may_query"]  # type: ignore
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -82,7 +87,7 @@ class AdminMongoDatabase(AdminDatabase):
             {"$set": {"may_query": may_query}},
         )
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -149,7 +154,7 @@ class AdminMongoDatabase(AdminDatabase):
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )
 
-    @AdminDatabase._does_dataset_exist
+    @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
         """
         Get dataset field type based on dataset name and key
@@ -160,7 +165,7 @@ class AdminMongoDatabase(AdminDatabase):
         dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
         return dataset[key]  # type: ignore
 
-    @AdminDatabase._has_user_access_to_dataset
+    @user_must_have_access_to_dataset
     def get_user_previous_queries(
         self,
         user_name: str,

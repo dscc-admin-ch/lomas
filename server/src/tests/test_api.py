@@ -243,12 +243,12 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["spent_delta"] == 0
 
             # Expect to fail: transormation instead of measurement
-            trans_pipeline = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501
+            trans = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501
             response = client.post(
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
-                    "opendp_json": trans_pipeline,
+                    "opendp_json": trans,
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST

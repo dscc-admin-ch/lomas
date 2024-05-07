@@ -181,7 +181,8 @@ def get_dataset_metadata(
     """_summary_
 
     Args:
-        query_json (GetDbData, optional): _description_. Defaults to Body(example_get_admin_db_data).
+        query_json (GetDbData, optional): _description_.
+            Defaults to Body(example_get_admin_db_data).
 
     Raises:
         e: _description_
@@ -215,7 +216,8 @@ def get_dummy_dataset(
     """_summary_
 
     Args:
-        query_json (GetDummyDataset, optional): _description_. Defaults to Body(example_get_dummy_dataset).
+        query_json (GetDummyDataset, optional): _description_.
+            Defaults to Body(example_get_dummy_dataset).
 
     Raises:
         e: _description_
@@ -253,8 +255,10 @@ def smartnoise_sql_handler(
     """_summary_
 
     Args:
-        query_json (SNSQLInp, optional): _description_. Defaults to Body(example_smartnoise_sql).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (SNSQLInp, optional): _description_.
+            Defaults to Body(example_smartnoise_sql).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_
@@ -287,7 +291,8 @@ def dummy_smartnoise_sql_handler(
     """_summary_
 
     Args:
-        query_json (DummySNSQLInp, optional): _description_. Defaults to Body(example_dummy_smartnoise_sql).
+        query_json (DummySNSQLInp, optional): _description_.
+            Defaults to Body(example_dummy_smartnoise_sql).
 
     Raises:
         e: _description_
@@ -325,7 +330,8 @@ def estimate_smartnoise_cost(
     """_summary_
 
     Args:
-        query_json (SNSQLInpCost, optional): _description_. Defaults to Body(example_smartnoise_sql_cost).
+        query_json (SNSQLInpCost, optional): _description_.
+            Defaults to Body(example_smartnoise_sql_cost).
 
     Raises:
         e: _description_
@@ -357,8 +363,10 @@ def opendp_query_handler(
     """_summary_
 
     Args:
-        query_json (OpenDPInp, optional): _description_. Defaults to Body(example_opendp).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (OpenDPInp, optional): _description_.
+            Defaults to Body(example_opendp).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_
@@ -390,7 +398,8 @@ def dummy_opendp_query_handler(
     """_summary_
 
     Args:
-        query_json (DummyOpenDPInp, optional): _description_. Defaults to Body(example_dummy_opendp).
+        query_json (DummyOpenDPInp, optional): _description_.
+            Defaults to Body(example_dummy_opendp).
 
     Raises:
         e: _description_
@@ -430,7 +439,8 @@ def estimate_opendp_cost(
     """_summary_
 
     Args:
-        query_json (OpenDPInp, optional): _description_. Defaults to Body(example_opendp).
+        query_json (OpenDPInp, optional): _description_.
+            Defaults to Body(example_opendp).
 
     Raises:
         e: _description_
@@ -465,8 +475,10 @@ def get_initial_budget(
     """_summary_
 
     Args:
-        query_json (GetDbData, optional): _description_. Defaults to Body(example_get_admin_db_data).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (GetDbData, optional): _description_.
+            Defaults to Body(example_get_admin_db_data).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_
@@ -505,8 +517,10 @@ def get_total_spent_budget(
     """_summary_
 
     Args:
-        query_json (GetDbData, optional): _description_. Defaults to Body(example_get_admin_db_data).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (GetDbData, optional): _description_.
+            Defaults to Body(example_get_admin_db_data).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_
@@ -548,8 +562,10 @@ def get_remaining_budget(
     """_summary_
 
     Args:
-        query_json (GetDbData, optional): _description_. Defaults to Body(example_get_admin_db_data).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (GetDbData, optional): _description_.
+            Defaults to Body(example_get_admin_db_data).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_
@@ -588,8 +604,10 @@ def get_user_previous_queries(
     """_summary_
 
     Args:
-        query_json (GetDbData, optional): _description_. Defaults to Body(example_get_admin_db_data).
-        user_name (str, optional): _description_. Defaults to Header(None).
+        query_json (GetDbData, optional): _description_.
+            Defaults to Body(example_get_admin_db_data).
+        user_name (str, optional): _description_.
+            Defaults to Header(None).
 
     Raises:
         e: _description_

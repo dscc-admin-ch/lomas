@@ -109,7 +109,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator:
     SERVER_STATE["message"].append("Loading admin database")
     try:
         ADMIN_DATABASE = database_factory(CONFIG.admin_database)
-    except Exception as e:
+    except InternalServerException as e:
         LOG.exception("Failed at startup:" + str(e))
         SERVER_STATE["state"].append("Loading user database at Startup failed")
         SERVER_STATE["message"].append(str(e))

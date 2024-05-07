@@ -19,34 +19,21 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
-        """
-        Connects to the DB
+        """Connects to the DB
+        
         Parameters:
             - **connection_parameters: parameters required to access the db
-        
-        Args:
-            self (object) : Argument
-            connection_parameters (Dict[str, str]) : Keyword arguments. ers: parameters required to access the db
-
-    Returns:
-        ( None ) : 
-
         """
 
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
-        """
-        Checks if user exist in the database
-        Parameters:
-            - user_name: name of the user to check
-        
+        """Checks if user exist in the database
+
         Args:
-            self (object) : Argument
-            user_name (str) : Argument. : name of the user to check
+            user_name (str): name of the user to check
 
-    Returns:
-        ( bool ) : 
-
+        Returns:
+            bool: _description_
         """
 
     def _does_user_exist(func: Callable) -> Callable:  # type: ignore
@@ -71,14 +58,13 @@ class AdminDatabase(ABC):
         def wrapper_decorator(
             *args: argparse.Namespace, **kwargs: Dict[str, str]
         ) -> None:
-            """
-            Args:
-                args (argparse.Namespace) : Variadic arguments
-                kwargs (Dict[str, str]) : Keyword arguments
+            """_summary_
 
-    Returns:
-            ( None ) : 
+            Raises:
+                UnauthorizedAccessException: _description_
 
+            Returns:
+                _type_: _description_
             """
             self = args[0]
             user_name = args[1]
@@ -93,50 +79,39 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def does_dataset_exist(self, dataset_name: str) -> bool:
-        """
-        Checks if dataset exist in the database
-        Parameters:
-            - dataset_name: name of the dataset to check
-        
+        """Checks if dataset exist in the database
+
         Args:
-            self (object) : Argument
-            dataset_name (str) : Argument. ame: name of the dataset to check
+            dataset_name (str): name of the dataset to check
 
-    Returns:
-        ( bool ) : 
-
+        Returns:
+            bool: _description_
         """
 
-    def _does_dataset_exist(func: Callable) -> Callable:  # type: ignore
-        """
-        Decorator function to check if a user exists
-        Parameters:
-            - args[0]: expects self
-            - args[1]: expects username
+    def _does_dataset_exist(func: Callable) -> Callable: # type: ignore
+        """Decorator function to check if a user exists
         
-        Args:
-            func (Callable) : Argument. to check if a user exists
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
 
-    Returns:
-        ( Callable ) : 
+        Args:
+            func (Callable): _description_
 
+        Returns:
+            Callable: _description_
         """
-
         @functools.wraps(func)
         def wrapper_decorator(
             *args: argparse.Namespace, **kwargs: Dict[str, str]
         ) -> None:
-            """
-            Args:
-                args (argparse.Namespace) : Variadic arguments
-                kwargs (Dict[str, str]) : Keyword arguments
+            """_summary_
 
-    Returns:
-            ( None ) : 
+            Raises:
+                InvalidQueryException: _description_
 
+            Returns:
+                _type_: _description_
             """
             self = args[0]
             dataset_name = args[1]
@@ -152,115 +127,83 @@ class AdminDatabase(ABC):
     @abstractmethod
     @_does_dataset_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
-        """
-        Returns the metadata dictionnary of the dataset
-        Parameters:
-            - dataset_name: name of the dataset to get the metadata for
-        
+        """Returns the metadata dictionnary of the dataset
+
         Args:
-            self (object) : Argument
-            dataset_name (str) : Argument. ame: name of the dataset to get the metadata for
+            dataset_name (str): name of the dataset to get the metadata
 
-    Returns:
-        ( dict ) : 
-
+        Returns:
+            dict: _description_
         """
 
     @abstractmethod
     @_does_user_exist
     def may_user_query(self, user_name: str) -> bool:
-        """
-        Checks if a user may query the server.
+        """Checks if a user may query the server.
         Cannot query if already querying.
-        Parameters:
-            - user_name: name of the user
-        
+
         Args:
-            self (object) : Argument
-            user_name (str) : Argument. : name of the user
+            user_name (str): name of the user
 
-    Returns:
-        ( bool ) : 
-
+        Returns:
+            bool: _description_
         """
 
     @abstractmethod
     @_does_user_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
-        """
-        Sets if a user may query the server.
+        """Sets if a user may query the server.
         (Set False before querying and True after updating budget)
-        Parameters:
-            - user_name: name of the user
-            - may_query: flag give or remove access to user
-        
+
         Args:
-            self (object) : Argument
-            user_name (str) : Argument. : name of the user
-            -
-            may_query (bool) : Argument. : flag give or remove access to user
-
-    Returns:
-        ( None ) : 
-
-        """
+            user_name (str): name of the user
+            may_query (bool): flag give or remove access to user
+        """        
+        pass
 
     @abstractmethod
     @_does_user_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
-        """
-        Checks if a user may access a particular dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-        
+        """Checks if a user may access a particular dataset
+
         Args:
-            self (object) : Argument
-            user_name (str) : Argument. : name of the user
-            -
-            dataset_name (str) : Argument. ame: name of the dataset
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
 
-    Returns:
-        ( bool ) : 
-
+        Returns:
+            bool: _description_
         """
 
     def _has_user_access_to_dataset(
         func: Callable,
     ) -> Callable:  # type: ignore
-        """
-        Decorator function to check if a user has access to a dataset
-        Parameters:
-            - args[0]: expects self
-            - args[1]: expects username
-            - args[2]: expects dataset_name
+        """Decorator function to check if a user has access to a dataset
         
-        Args:
-            func (Callable) : Argument. to check if a user has access to a dataset
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
             - args[2]: expects dataset_name
+            
+        Args:
+            func (Callable): _description_
 
-    Returns:
-        ( Callable ) : 
-
+        Returns:
+            Callable: _description_
         """
 
         @functools.wraps(func)
         def wrapper_decorator(
             *args: argparse.Namespace, **kwargs: Dict[str, str]
         ) -> None:
-            """
-            Args:
-                args (argparse.Namespace) : Variadic arguments
-                kwargs (Dict[str, str]) : Keyword arguments
+            """_summary_
 
-    Returns:
-            ( None ) : 
+            Raises:
+                UnauthorizedAccessException: _description_
 
+            Returns:
+                _type_: _description_
             """
             self = args[0]
             user_name = args[1]

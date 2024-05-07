@@ -288,7 +288,7 @@ def create_users_collection(
                 for user in existing_users:
                     user_filter = {"user_name": user["user_name"]}
                     update_operation = {"$set": user}
-                    res = db.users.update_many(filter, update_operation)
+                    res = db.users.update_many(user_filter, update_operation)
                     check_result_acknowledged(res)
                 LOG.info("Existing users updated. ")
             else:

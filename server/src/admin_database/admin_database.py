@@ -6,9 +6,9 @@ from typing import Callable, Dict, List
 
 from constants import DPLibraries
 from utils.error_handler import (
+    InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
-    InternalServerException,
 )
 
 
@@ -24,7 +24,6 @@ class AdminDatabase(ABC):
         Parameters:
             - **connection_parameters: parameters required to access the db
         """
-        pass
 
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
@@ -33,7 +32,6 @@ class AdminDatabase(ABC):
         Parameters:
             - user_name: name of the user to check
         """
-        pass
 
     def _does_user_exist(func: Callable) -> Callable:  # type: ignore
         """
@@ -49,7 +47,7 @@ class AdminDatabase(ABC):
         ) -> None:
             self = args[0]
             user_name = args[1]
-            if not (self.does_user_exist(user_name)):
+            if not self.does_user_exist(user_name):
                 raise UnauthorizedAccessException(
                     f"User {user_name} does not exist. "
                     + "Please, verify the client object initialisation.",
@@ -65,7 +63,6 @@ class AdminDatabase(ABC):
         Parameters:
             - dataset_name: name of the dataset to check
         """
-        pass
 
     def _does_dataset_exist(func: Callable) -> Callable:  # type: ignore
         """
@@ -81,7 +78,7 @@ class AdminDatabase(ABC):
         ) -> None:
             self = args[0]
             dataset_name = args[1]
-            if not (self.does_dataset_exist(dataset_name)):
+            if not self.does_dataset_exist(dataset_name):
                 raise InvalidQueryException(
                     f"Dataset {dataset_name} does not exists. "
                     + "Please, verify the client object initialisation.",
@@ -98,7 +95,6 @@ class AdminDatabase(ABC):
         Parameters:
             - dataset_name: name of the dataset to get the metadata for
         """
-        pass
 
     @abstractmethod
     @_does_user_exist
@@ -109,7 +105,6 @@ class AdminDatabase(ABC):
         Parameters:
             - user_name: name of the user
         """
-        pass
 
     @abstractmethod
     @_does_user_exist
@@ -121,7 +116,6 @@ class AdminDatabase(ABC):
             - user_name: name of the user
             - may_query: flag give or remove access to user
         """
-        pass
 
     @abstractmethod
     @_does_user_exist
@@ -134,7 +128,6 @@ class AdminDatabase(ABC):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        pass
 
     def _has_user_access_to_dataset(
         func: Callable,
@@ -174,7 +167,6 @@ class AdminDatabase(ABC):
             - dataset_name: name of the dataset
             - parameter: total_spent_epsilon or total_spent_delta
         """
-        pass
 
     @_has_user_access_to_dataset
     def get_total_spent_budget(
@@ -248,7 +240,6 @@ class AdminDatabase(ABC):
             - parameter: current_epsilon or current_delta
             - spent_value: spending of epsilon or delta on last query
         """
-        pass
 
     def update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
@@ -306,7 +297,6 @@ class AdminDatabase(ABC):
         """
         Get dataset field type based on dataset name and key
         """
-        pass
 
     @abstractmethod
     @_has_user_access_to_dataset
@@ -321,7 +311,6 @@ class AdminDatabase(ABC):
             - user_name: name of the user
             - dataset_name: name of the dataset
         """
-        pass
 
     def prepare_save_query(
         self, user_name: str, query_json: dict, response: dict
@@ -336,7 +325,7 @@ class AdminDatabase(ABC):
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
-            "client_input": query_json.dict(),
+            "client_input": query_json.model_dump(),
             "response": response,
             "timestamp": time.time(),
         }
@@ -363,4 +352,3 @@ class AdminDatabase(ABC):
             - query_json: json received from client
             - response: response sent to the client
         """
-        pass

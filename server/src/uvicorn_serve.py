@@ -1,6 +1,7 @@
 import os
 
 import uvicorn
+
 from utils.config import get_config
 from utils.loggr import LOG
 

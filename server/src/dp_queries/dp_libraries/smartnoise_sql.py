@@ -1,10 +1,11 @@
 from typing import List
 
 import pandas as pd
+from snsql import Mechanism, Privacy, Stat, from_connection
+
 from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
-from snsql import Mechanism, Privacy, Stat, from_connection
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
 from utils.input_models import SNSQLInp, SNSQLInpCost
 
@@ -38,7 +39,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
                 "Error obtaining cost: " + str(e),
-            )
+            ) from e
 
         return result
 
@@ -62,7 +63,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
                 "Error executing query:" + str(e),
-            )
+            ) from e
 
         if not query_json.postprocess:
             result = list(result)

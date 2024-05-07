@@ -1,4 +1,5 @@
 import unittest
+
 from dp_queries.dummy_dataset import make_dummy_dataset
 from utils.example_inputs import DUMMY_NB_ROWS, DUMMY_SEED
 

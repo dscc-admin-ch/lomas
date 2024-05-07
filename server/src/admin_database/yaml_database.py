@@ -1,6 +1,7 @@
 from datetime import datetime
-import yaml
 from typing import List
+
+import yaml
 
 from admin_database.admin_database import AdminDatabase
 
@@ -19,7 +20,7 @@ class AdminYamlDatabase(AdminDatabase):
             - database_name: Mongodb database name.
         """
         self.path: str = yaml_db_path
-        with open(yaml_db_path, "r") as f:
+        with open(yaml_db_path, mode="r", encoding="utf-8") as f:
             self.database = yaml.safe_load(f)
 
     def does_user_exist(self, user_name: str) -> bool:
@@ -57,7 +58,7 @@ class AdminYamlDatabase(AdminDatabase):
             if dt["dataset_name"] == dataset_name:
                 metadata_path = dt["metadata"]["metadata_path"]
 
-        with open(metadata_path, "r") as f:
+        with open(metadata_path, mode="r", encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
 
         return metadata
@@ -210,5 +211,5 @@ class AdminYamlDatabase(AdminDatabase):
         new_path = self.path.replace(
             ".yaml", f'_{datetime.now().strftime("%m_%d_%Y__%H_%M_%S")}.yaml'
         )
-        with open(new_path, "w") as file:
+        with open(new_path, mode="w", encoding="utf-8") as file:
             yaml.dump(self.database, file)

@@ -1,11 +1,12 @@
 from typing import Dict, Optional, Union
 
 import pandas as pd
+
 from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import InternalServerException, InvalidQueryException
 
 
-class LocalDataset(PrivateDataset):
+class PathDataset(PrivateDataset):
     """
     Class to fetch dataset from constant path
     """
@@ -20,7 +21,7 @@ class LocalDataset(PrivateDataset):
             - dataset_path: path of the dataset
         """
         super().__init__(metadata)
-        self.ds_path = dataset_path
+        self.ds_path: str = dataset_path
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
@@ -35,9 +36,9 @@ class LocalDataset(PrivateDataset):
                     self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
                 except Exception as err:
                     raise InternalServerException(
-                        "Error reading local at http path:"
+                        "Error reading csv at http path:"
                         f"{self.ds_path}: {err}",
-                    )
+                    ) from err
             else:
                 return InvalidQueryException(
                     "File type other than .csv not supported for"
@@ -49,4 +50,5 @@ class LocalDataset(PrivateDataset):
                 observer.update_memory_usage()
                 for observer in self.dataset_observers
             ]
-        return self.df.copy(deep=True)
+
+        return self.df

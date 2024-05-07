@@ -20,7 +20,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """Connects to the DB
-        
+
         Parameters:
             - **connection_parameters: parameters required to access the db
         """
@@ -36,13 +36,13 @@ class AdminDatabase(ABC):
             bool: _description_
         """
 
-    def _does_user_exist(func: Callable) -> Callable: # type: ignore
+    def _does_user_exist(func: Callable) -> Callable:  # type: ignore
         """Decorator function to check if a user exists
 
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
-            
+
         Args:
             func (Callable): Argument. to check if a user exists
 
@@ -87,9 +87,9 @@ class AdminDatabase(ABC):
             bool: _description_
         """
 
-    def _does_dataset_exist(func: Callable) -> Callable: # type: ignore
+    def _does_dataset_exist(func: Callable) -> Callable:  # type: ignore
         """Decorator function to check if a user exists
-        
+
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
@@ -100,6 +100,7 @@ class AdminDatabase(ABC):
         Returns:
             Callable: _description_
         """
+
         @functools.wraps(func)
         def wrapper_decorator(
             *args: argparse.Namespace, **kwargs: Dict[str, str]
@@ -157,7 +158,7 @@ class AdminDatabase(ABC):
         Args:
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
-        """        
+        """
         pass
 
     @abstractmethod
@@ -179,12 +180,12 @@ class AdminDatabase(ABC):
         func: Callable,
     ) -> Callable:  # type: ignore
         """Decorator function to check if a user has access to a dataset
-        
+
         Parameters:
             - args[0]: expects self
             - args[1]: expects username
             - args[2]: expects dataset_name
-            
+
         Args:
             func (Callable): _description_
 

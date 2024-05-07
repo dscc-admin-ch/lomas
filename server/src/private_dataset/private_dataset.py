@@ -44,7 +44,7 @@ class PrivateDataset(ABC):
 
     def get_memory_usage(self) -> int:
         """Returns the memory usage of this dataset, in MiB.
-        
+
         The number returned only takes into account the memory usage
         of the pandas DataFrame "cached" in the instance.
 

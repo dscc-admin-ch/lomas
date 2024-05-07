@@ -90,6 +90,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     Returns:
         _type_: _description_
     """
+
     @app.exception_handler(InvalidQueryException)
     async def invalid_query_exception_handler(
         _: Request, exc: InvalidQueryException

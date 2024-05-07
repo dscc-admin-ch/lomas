@@ -24,6 +24,12 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
     def __init__(
         self, admin_database: AdminDatabase, max_memory_usage: int = 1024
     ) -> None:
+        """_summary_
+
+        Args:
+            admin_database (AdminDatabase): _description_
+            max_memory_usage (int, optional): _description_. Defaults to 1024.
+        """
         super().__init__(admin_database)
         self.admin_database = admin_database
         self.max_memory_usage = max_memory_usage
@@ -32,10 +38,12 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         self.memory_usage = 0
 
     def _add_dataset(self, dataset_name: str) -> None:
-        """
-        Adds all queriers for a dataset.
+        """Adds all queriers for a dataset.
         The source data is fetched from an online csv, the paths are stored
         as constants for now.
+
+        Args:
+            dataset_name (str): _description_
         """
         # Should not call this function if dataset already present.
         assert (
@@ -67,8 +75,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
 
     def update_memory_usage(self) -> None:
-        """
-        Remove least recently used datasets until the cache
+        """Remove least recently used datasets until the cache
         is back to below its maximum size.
         """
         self.memory_usage = sum(
@@ -86,6 +93,15 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
 
     def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
+        """_summary_
+
+        Args:
+            dataset_name (str): _description_
+            library (str): _description_
+
+        Returns:
+            DPQuerier: _description_
+        """
         # Add dataset to cache if not present and get it.
         if dataset_name not in self.dataset_cache:
             self._add_dataset(dataset_name)

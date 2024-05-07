@@ -17,10 +17,11 @@ class S3Dataset(PrivateDataset):
         metadata: dict,
         s3_parameters: dict,
     ) -> None:
-        """
-        Parameters:
-            - metadata: dataset_metadata
-            - s3_parameters: informations to access metadata
+        """_summary_
+
+        Args:
+            metadata (dict): _description_
+            s3_parameters (dict): informations to access metadata
         """
         super().__init__(metadata)
 
@@ -35,10 +36,13 @@ class S3Dataset(PrivateDataset):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """
-        Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format
+
+        Raises:
+            InternalServerException: _description_
+
         Returns:
-            - pandas dataframe of dataset
+            pd.DataFrame: pandas dataframe of dataset
         """
         if self.df is None:
             obj = self.client.get_object(

@@ -7,6 +7,18 @@ from utils.error_handler import InternalServerException
 
 
 def querier_factory(lib: str, private_dataset: PrivateDataset) -> DPQuerier:
+    """_summary_
+
+    Args:
+        lib (str): _description_
+        private_dataset (PrivateDataset): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        DPQuerier: _description_
+    """
     match lib:
         case DPLibraries.SMARTNOISE_SQL:
             querier = SmartnoiseSQLQuerier(private_dataset)

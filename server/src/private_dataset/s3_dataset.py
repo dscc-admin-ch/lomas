@@ -21,10 +21,15 @@ class S3Dataset(PrivateDataset):
         aws_access_key_id: str,
         aws_secret_access_key: str,
     ) -> None:
-        """
-        Parameters:
-            - s3_bucket: s3 bucket of the dataset
-            - s3_key: s3 key of the path to the dataset
+        """_summary_
+
+        Args:
+            metadata (dict): _description_
+            s3_bucket (str): s3 bucket of the dataset
+            s3_key (str): s3 key of the path to the dataset
+            endpoint_url (str): _description_
+            aws_access_key_id (str): _description_
+            aws_secret_access_key (str): _description_
         """
         super().__init__(metadata)
 
@@ -39,10 +44,13 @@ class S3Dataset(PrivateDataset):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """
-        Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format
+
+        Raises:
+            InternalServerException: _description_
+
         Returns:
-            - pandas dataframe of dataset
+            pd.DataFrame: pandas dataframe of dataset
         """
         if self.df is None:
             obj = self.client.get_object(

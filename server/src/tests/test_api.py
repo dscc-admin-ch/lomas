@@ -28,7 +28,8 @@ INITIAL_DELTA = 0.005
 
 class TestRootAPIEndpoint(unittest.TestCase):
     def setUp(self) -> None:
-        self.user_name = "Dr. Antartica"
+        """_summary_
+        """
         self.dataset = PENGUIN_DATASET
         self.headers = {
             "Content-type": "application/json",
@@ -37,6 +38,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.headers["user-name"] = self.user_name
 
     def test_state(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK
@@ -46,6 +49,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["state"]["LIVE"]
 
     def test_get_dataset_metadata(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -75,6 +80,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_get_dummy_dataset(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -119,6 +126,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_query(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -203,6 +212,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_dummy_smartnoise_query(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -216,6 +227,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"]["data"][0][0] < 200
 
     def test_smartnoise_cost(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -228,6 +241,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
     def test_opendp_query(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -258,6 +273,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_dummy_opendp_query(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -268,6 +285,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"] > 0
 
     def test_opendp_cost(self) -> None:
+        """_summary_
+        """
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -280,6 +299,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] == 0
 
     def test_get_initial_budget(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -307,6 +328,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict_2 == response_dict
 
     def test_get_total_spent_budget(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -342,6 +365,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_get_remaining_budget(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -378,6 +403,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_get_previous_queries(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -448,6 +475,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_budget_over_limit(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget on one go
             smartnoise_body = dict(example_smartnoise_sql)
@@ -466,6 +495,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert error["msg"] == "Input should be less than or equal to 5"
 
     def test_subsequent_budget_limit_logic(self) -> None:
+        """_summary_
+        """
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(example_smartnoise_sql)

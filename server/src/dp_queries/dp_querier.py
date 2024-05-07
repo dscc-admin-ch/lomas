@@ -18,21 +18,33 @@ class DPQuerier(ABC):
         self,
         private_dataset: PrivateDataset,
     ) -> None:
-        """
-        Initialise with specific dataset
+        """_summary_
+
+        Args:
+            private_dataset (PrivateDataset): _description_
         """
         self.private_dataset = private_dataset
 
     @abstractmethod
     def cost(self, query_json: JSON) -> List[float]:
-        """
-        Estimate cost of query
+        """_summary_
+
+        Args:
+            query_json (JSON): _description_
+
+        Returns:
+            List[float]: _description_
         """
         pass
 
     @abstractmethod
     def query(self, query_json: JSON) -> str:
-        """
-        Does the query and return the response
+        """_summary_
+
+        Args:
+            query_json (JSON): _description_
+
+        Returns:
+            str: _description_
         """
         pass

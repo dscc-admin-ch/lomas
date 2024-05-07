@@ -15,6 +15,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
         self,
         private_dataset: PrivateDataset,
     ) -> None:
+        """_summary_
+
+        Args:
+            private_dataset (PrivateDataset): _description_
+        """
         super().__init__(private_dataset)
 
         # Reformat metadata
@@ -24,6 +29,17 @@ class SmartnoiseSQLQuerier(DPQuerier):
         self.snsql_metadata = {"": {"": {"df": metadata}}}
 
     def cost(self, query_json: SNSQLInpCost) -> List[float]:
+        """_summary_
+
+        Args:
+            query_json (SNSQLInpCost): _description_
+
+        Raises:
+            ExternalLibraryException: _description_
+
+        Returns:
+            List[float]: _description_
+        """
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
@@ -44,6 +60,20 @@ class SmartnoiseSQLQuerier(DPQuerier):
         return result
 
     def query(self, query_json: SNSQLInp, nb_iter: int = 0) -> dict:
+        """_summary_
+
+        Args:
+            query_json (SNSQLInp): _description_
+            nb_iter (int, optional): _description_. Defaults to 0.
+
+        Raises:
+            ExternalLibraryException: _description_
+            ExternalLibraryException: _description_
+            InvalidQueryException: _description_
+
+        Returns:
+            dict: _description_
+        """
         epsilon, delta = query_json.epsilon, query_json.delta
 
         privacy = Privacy(epsilon=epsilon, delta=delta)
@@ -96,6 +126,15 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
 
 def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
+    """_summary_
+
+    Args:
+        privacy (Privacy): _description_
+        mechanisms (dict[str, str]): _description_
+
+    Returns:
+        Privacy: _description_
+    """
     # https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms
     for stat in STATS:
         if stat in mechanisms.keys():

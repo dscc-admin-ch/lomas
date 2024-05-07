@@ -14,9 +14,20 @@ from utils.error_handler import InternalServerException
 def connect(
     function: Callable[[Database, argparse.Namespace], None]
 ) -> Callable:
-    """Connect to the database"""
+    """Connect to the database
 
+    Args:
+        function (Callable[[Database, argparse.Namespace], None]): _description_
+
+    Returns:
+        Callable: _description_
+    """
     def wrap_function(*args: argparse.Namespace) -> None:
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         db_url: str = get_mongodb_url(args[0])
         db: Database = MongoClient(db_url)[args[0].db_name]
         return function(db, *args)
@@ -27,9 +38,15 @@ def connect(
 ##########################  USERS  ########################## # noqa: E266
 @connect
 def add_user(db: Database, args: argparse.Namespace) -> None:
-    """
-    Add new user in users collection with initial values for all fields
+    """Add new user in users collection with initial values for all fields
     set by default.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
     if db.users.count_documents({"user_name": args.user}) > 0:
         raise ValueError("Cannot add user because already exists.")
@@ -46,9 +63,15 @@ def add_user(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def add_user_with_budget(db: Database, args: argparse.Namespace) -> None:
-    """
-    Add new user in users collection with initial values
+    """Add new user in users collection with initial values
     for all fields set by default.
+    
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
     if db.users.count_documents({"user_name": args.user}) > 0:
         raise ValueError("Cannot add user because already exists. ")
@@ -76,8 +99,11 @@ def add_user_with_budget(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def del_user(db: Database, args: argparse.Namespace) -> None:
-    """
-    Delete all related information for user from the users collection.
+    """Delete all related information for user from the users collection.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     db.users.delete_many({"user_name": args.user})
     print(f"Deleted user {args.user}.")
@@ -85,10 +111,16 @@ def del_user(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def add_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
-    """
-    Add dataset with initialized budget values to list of datasets
+    """Add dataset with initialized budget values to list of datasets
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
     if db.users.count_documents({"user_name": args.user}) == 0:
         raise ValueError("Cannot add dataset because user does not exist. ")
@@ -118,9 +150,12 @@ def add_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def del_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
-    """
-    Remove if exists the dataset (and all related budget info)
+    """Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     db.users.update_one(
         {"user_name": args.user},
@@ -131,9 +166,12 @@ def del_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def set_budget_field(db: Database, args: argparse.Namespace) -> None:
-    """
-    Set (for some reason) a budget field to a given value
+    """Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     db.users.update_one(
         {
@@ -150,9 +188,12 @@ def set_budget_field(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def set_may_query(db: Database, args: argparse.Namespace) -> None:
-    """
-    Set (for some reason) the 'may query' field to a given value
+    """Set (for some reason) the 'may query' field to a given value
     if given user exists.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     db.users.update_one(
         {"user_name": args.user},
@@ -163,8 +204,11 @@ def set_may_query(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def show_user(db: Database, args: argparse.Namespace) -> None:
-    """
-    Show a user
+    """Show a user
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     user = list(db.users.find({"user_name": args.user}))[0]
     user.pop("_id", None)
@@ -173,8 +217,11 @@ def show_user(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def create_users_collection(db: Database, args: argparse.Namespace) -> None:
-    """
-    Add all users from yaml file to the user collection
+    """Add all users from yaml file to the user collection
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     if args.clean:
         # Collection created from scratch
@@ -213,8 +260,19 @@ def create_users_collection(db: Database, args: argparse.Namespace) -> None:
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @connect
 def add_dataset(db: Database, args: argparse.Namespace) -> None:
-    """
-    Set a database type to a dataset in dataset collection.
+    """Set a database type to a dataset in dataset collection.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
     """
     if db.datasets.count_documents({"dataset_name": args.dataset}) > 0:
         raise ValueError("Cannot add database because already set. ")
@@ -271,9 +329,19 @@ def add_dataset(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def add_datasets(db: Database, args: argparse.Namespace) -> None:
-    """
-    Set all database types to datasets in dataset collection based
+    """Set all database types to datasets in dataset collection based
     on yaml file.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
+
+    Raises:
+        InternalServerException: _description_
+        InternalServerException: _description_
+
+    Returns:
+        _type_: _description_
     """
     if args.clean:
         # Collection created from scratch
@@ -285,6 +353,13 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
         dataset_dict = yaml.safe_load(f)
 
     def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
+        """_summary_
+
+        Args:
+            d (dict): _description_
+            field (str): _description_
+            metadata (bool, optional): _description_. Defaults to False.
+        """
         if metadata:
             assert (
                 field in d["metadata"].keys()
@@ -399,8 +474,11 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def del_dataset(db: Database, args: argparse.Namespace) -> None:
-    """
-    Delete dataset from dataset collection.
+    """Delete dataset from dataset collection.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     db.users.delete_many({"dataset_name": args.dataset_name})
     print(f"Deleted dataset {args.dataset_name}.")
@@ -409,8 +487,11 @@ def del_dataset(db: Database, args: argparse.Namespace) -> None:
 #######################  COLLECTIONS  ####################### # noqa: E266
 @connect
 def drop_collection(db: Database, args: argparse.Namespace) -> None:
-    """
-    Delete collection.
+    """Delete collection.
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     eval(f"db.{args.collection}.drop()")
     print(f"Deleted collection {args.collection}.")
@@ -418,8 +499,11 @@ def drop_collection(db: Database, args: argparse.Namespace) -> None:
 
 @connect
 def show_collection(db: Database, args: argparse.Namespace) -> None:
-    """
-    Show a collection
+    """Show a collection
+
+    Args:
+        db (Database): _description_
+        args (argparse.Namespace): _description_
     """
     collection_query = db[args.collection].find({})
     collections = []

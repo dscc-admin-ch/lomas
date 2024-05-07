@@ -8,6 +8,11 @@ from constants import DELTA_LIMIT, EPSILON_LIMIT
 
 class BasicModel(BaseModel):
     def toJSON(self) -> str:
+        """_summary_
+
+        Returns:
+            str: _description_
+        """
         return json.loads(
             json.dumps(
                 self,
@@ -20,6 +25,11 @@ class BasicModel(BaseModel):
         )
 
     def toJSONStr(self) -> str:
+        """_summary_
+
+        Returns:
+            str: _description_
+        """
         return json.dumps(
             self,
             default=lambda o: (

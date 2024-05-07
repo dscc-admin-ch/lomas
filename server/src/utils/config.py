@@ -88,9 +88,16 @@ class Config(BaseModel):
 
 
 def get_config() -> Config:
-    """
-    Loads the config and the secret data from disk,
+    """Loads the config and the secret data from disk,
     merges them and returns the config object.
+
+    Raises:
+        InternalServerException: _description_
+        InternalServerException: _description_
+        InternalServerException: _description_
+
+    Returns:
+        Config: _description_
     """
     try:
         with open(CONFIG_PATH, mode="r", encoding="utf-8") as f:
@@ -101,6 +108,15 @@ def get_config() -> Config:
             secret_data = yaml.safe_load(f)
 
             def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
+                """_summary_
+
+                Args:
+                    d (Dict[str, Any]): _description_
+                    u (Dict[str, Any]): _description_
+
+                Returns:
+                    Dict[str, Any]: _description_
+                """
                 for k, v in u.items():
                     if isinstance(v, dict):
                         d[k] = update(d.get(k, {}), v)

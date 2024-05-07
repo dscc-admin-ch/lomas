@@ -7,9 +7,17 @@ from utils.error_handler import InternalServerException
 
 
 def database_factory(config: DBConfig) -> AdminDatabase:
-    """
-    Instantiates and returns the correct database type described in the
+    """Instantiates and returns the correct database type described in the
     provided config.
+
+    Args:
+        config (DBConfig): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        AdminDatabase: _description_
     """
     db_type = config.db_type
 
@@ -30,8 +38,13 @@ def database_factory(config: DBConfig) -> AdminDatabase:
 
 
 def get_mongodb_url(config: DBConfig) -> str:
-    """
-    Get URL of the administration MongoDB.
+    """Get URL of the administration MongoDB.
+
+    Args:
+        config (DBConfig): _description_
+
+    Returns:
+        str: _description_
     """
     db_username = config.username
     db_password = config.password

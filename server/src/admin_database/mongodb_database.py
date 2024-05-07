@@ -17,20 +17,22 @@ class AdminMongoDatabase(AdminDatabase):
     """
 
     def __init__(self, connection_string: str, database_name: str) -> None:
-        """
-        Load DB
+        """Load DB
 
-        Parameters:
-            - connection_string: Connection string to the mongodb
-            - database_name: Mongodb database name.
+        Args:
+            connection_string (str): Connection string to the mongodb
+            database_name (str): Mongodb database name.
         """
         self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
-        """
-        Checks if user exist in the database
-        Parameters:
-            - user_name: name of the user to check
+        """Checks if user exist in the database
+
+        Args:
+            user_name (str): name of the user to check
+
+        Returns:
+            bool: _description_
         """
         doc_count = self.db.users.count_documents(
             {"user_name": f"{user_name}"}
@@ -38,10 +40,13 @@ class AdminMongoDatabase(AdminDatabase):
         return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
-        """
-        Checks if dataset exist in the database
-        Parameters:
-            - dataset_name: name of the dataset to check
+        """Checks if dataset exist in the database
+
+        Args:
+            dataset_name (str): name of the dataset to check
+
+        Returns:
+            bool: _description_
         """
         collection_query = self.db.datasets.find({})
         for document in collection_query:
@@ -52,10 +57,13 @@ class AdminMongoDatabase(AdminDatabase):
 
     @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
-        """
-        Returns the metadata dictionnary of the dataset
-        Parameters:
-            - dataset_name: name of the dataset to get the metadata for
+        """Returns the metadata dictionnary of the dataset
+
+        Args:
+            dataset_name (str): _description_
+
+        Returns:
+            dict: _description_
         """
         metadatas = self.db.metadata.find_one(
             {dataset_name: {"$exists": True}}
@@ -64,23 +72,26 @@ class AdminMongoDatabase(AdminDatabase):
 
     @user_must_exist
     def may_user_query(self, user_name: str) -> bool:
-        """
-        Checks if a user may query the server.
+        """Checks if a user may query the server.
         Cannot query if already querying.
-        Parameters:
-            - user_name: name of the user
+
+        Args:
+            user_name (str): _description_
+
+        Returns:
+            bool: _description_
         """
         user = self.db.users.find_one({"user_name": user_name})
         return user["may_query"]  # type: ignore
 
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
-        """
-        Sets if a user may query the server.
+        """Sets if a user may query the server.
         (Set False before querying and True after updating budget)
-        Parameters:
-            - user_name: name of the user
-            - may_query: flag give or remove access to user
+
+        Args:
+            user_name (str): name of the user
+            may_query (bool): flag give or remove access to user
         """
         self.db.users.update_one(
             {"user_name": f"{user_name}"},
@@ -91,11 +102,14 @@ class AdminMongoDatabase(AdminDatabase):
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
-        """
-        Checks if a user may access a particular dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+        """Checks if a user may access a particular dataset
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            bool: _description_
         """
         doc_count = self.db.users.count_documents(
             {
@@ -108,13 +122,16 @@ class AdminMongoDatabase(AdminDatabase):
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """
-        Get the total spent epsilon or delta  by a specific user
+        """Get the total spent epsilon or delta  by a specific user
         on a specific dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - parameter: total_spent_epsilon or total_spent_delta
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            parameter (str): total_spent_epsilon or total_spent_delta
+
+        Returns:
+            float: _description_
         """
         return list(
             self.db.users.aggregate(
@@ -137,14 +154,14 @@ class AdminMongoDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """
-        Update the current epsilon spent by a specific user
+        """Update the current epsilon spent by a specific user
         with the last spent epsilon
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - parameter: current_epsilon or current_delta
-            - spent_value: spending of epsilon or delta on last query
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            parameter (str): current_epsilon or current_delta
+            spent_value (float): spending of epsilon or delta on last query
         """
         self.db.users.update_one(
             {
@@ -156,11 +173,14 @@ class AdminMongoDatabase(AdminDatabase):
 
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
-        """
-        Get dataset field type based on dataset name and key
-        Parameters:
-            - dataset_name: name of the dataset
-            - key: name of the field to get
+        """Get dataset field type based on dataset name and key
+
+        Args:
+            dataset_name (str): name of the dataset
+            key (str): name of the field to get
+
+        Returns:
+            str: _description_
         """
         dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
         return dataset[key]  # type: ignore
@@ -171,11 +191,14 @@ class AdminMongoDatabase(AdminDatabase):
         user_name: str,
         dataset_name: str,
     ) -> List[dict]:
-        """
-        Retrieves and return the queries already done by a user
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+        """Retrieves and return the queries already done by a user
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            List[dict]: _description_
         """
         queries = self.db.queries_archives.find(
             {
@@ -189,13 +212,13 @@ class AdminMongoDatabase(AdminDatabase):
     def save_query(
         self, user_name: str, query_json: dict, response: dict
     ) -> None:
-        """
-        Save queries of user on datasets in a separate collection (table)
+        """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
-        Parameters:
-            - user_name: name of the user
-            - query_json: json received from client
-            - response: response sent to the client
+
+        Args:
+            user_name (str): name of the user
+            query_json (dict): json received from client
+            response (dict): response sent to the client
         """
         to_archive = super().prepare_save_query(
             user_name, query_json, response

@@ -95,6 +95,14 @@ class AdminDatabase(ABC):
         Connects to the DB
         Parameters:
             - **connection_parameters: parameters required to access the db
+        
+        Args:
+            self (object) : Argument
+            connection_parameters (Dict[str, str]) : Keyword arguments. ers: parameters required to access the db
+
+    Returns:
+        ( None ) : 
+
         """
 
     @abstractmethod
@@ -103,6 +111,14 @@ class AdminDatabase(ABC):
         Checks if user exist in the database
         Parameters:
             - user_name: name of the user to check
+        
+        Args:
+            self (object) : Argument
+            user_name (str) : Argument. : name of the user to check
+
+    Returns:
+        ( bool ) : 
+
         """
 
     @abstractmethod
@@ -111,6 +127,14 @@ class AdminDatabase(ABC):
         Checks if dataset exist in the database
         Parameters:
             - dataset_name: name of the dataset to check
+        
+        Args:
+            self (object) : Argument
+            dataset_name (str) : Argument. ame: name of the dataset to check
+
+    Returns:
+        ( bool ) : 
+
         """
 
     @abstractmethod
@@ -120,6 +144,14 @@ class AdminDatabase(ABC):
         Returns the metadata dictionnary of the dataset
         Parameters:
             - dataset_name: name of the dataset to get the metadata for
+        
+        Args:
+            self (object) : Argument
+            dataset_name (str) : Argument. ame: name of the dataset to get the metadata for
+
+    Returns:
+        ( dict ) : 
+
         """
 
     @abstractmethod
@@ -130,6 +162,14 @@ class AdminDatabase(ABC):
         Cannot query if already querying.
         Parameters:
             - user_name: name of the user
+        
+        Args:
+            self (object) : Argument
+            user_name (str) : Argument. : name of the user
+
+    Returns:
+        ( bool ) : 
+
         """
 
     @abstractmethod
@@ -141,6 +181,16 @@ class AdminDatabase(ABC):
         Parameters:
             - user_name: name of the user
             - may_query: flag give or remove access to user
+        
+        Args:
+            self (object) : Argument
+            user_name (str) : Argument. : name of the user
+            -
+            may_query (bool) : Argument. : flag give or remove access to user
+
+    Returns:
+        ( None ) : 
+
         """
 
     @abstractmethod
@@ -153,31 +203,47 @@ class AdminDatabase(ABC):
         Parameters:
             - user_name: name of the user
             - dataset_name: name of the dataset
+        
+        Args:
+            self (object) : Argument
+            user_name (str) : Argument. : name of the user
+            -
+            dataset_name (str) : Argument. ame: name of the dataset
+
+    Returns:
+        ( bool ) : 
+
         """
 
     @abstractmethod
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """
-        Get the total spent epsilon or delta  by a specific user
+        """Get the total spent epsilon or delta  by a specific user
         on a specific dataset
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - parameter: total_spent_epsilon or total_spent_delta
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            parameter (str): total_spent_epsilon or total_spent_delta
+
+        Returns:
+            float: _description_
         """
 
     @user_must_have_access_to_dataset
     def get_total_spent_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
-        """
-        Get the total spent epsilon and delta spent by a specific user
+        """Get the total spent epsilon and delta spent by a specific user
         on a specific dataset (since the initialisation)
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            List[float]: _description_
         """
         return [
             self.get_epsilon_or_delta(
@@ -192,11 +258,14 @@ class AdminDatabase(ABC):
     def get_initial_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
-        """
-        Get the initial epsilon and delta budget
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+        """Get the initial epsilon and delta budget
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            List[float]: _description_
         """
         return [
             self.get_epsilon_or_delta(
@@ -211,11 +280,14 @@ class AdminDatabase(ABC):
     def get_remaining_budget(
         self, user_name: str, dataset_name: str
     ) -> List[float]:
-        """
-        Get the remaining epsilon and delta budget (initial - total spent)
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+        """Get the remaining epsilon and delta budget (initial - total spent)
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            List[float]: _description_
         """
         init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
         spent_eps, spent_delta = self.get_total_spent_budget(
@@ -231,26 +303,29 @@ class AdminDatabase(ABC):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """
-        Update the current epsilon spent by a specific user
+        """Update the current epsilon spent by a specific user
         with the last spent epsilon
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - parameter: current_epsilon or current_delta
-            - spent_value: spending of epsilon or delta on last query
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            parameter (str): current_epsilon or current_delta
+            spent_value (float): spending of epsilon or delta on last query
         """
 
     def update_epsilon(
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
-        """
-        Update the spent epsilon by a specific user
+        """Update the spent epsilon by a specific user
         with the total spent epsilon
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - spent_epsilon: value of epsilon spent on last query
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            spent_epsilon (float): value of epsilon spent on last query
+
+        Returns:
+            _type_: _description_
         """
         return self.update_epsilon_or_delta(
             user_name, dataset_name, "total_spent_epsilon", spent_epsilon
@@ -259,13 +334,13 @@ class AdminDatabase(ABC):
     def update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
-        """
-        Update the spent delta spent by a specific user
+        """Update the spent delta spent by a specific user
         with the total spent delta of the user
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - spent_delta: value of delta spent on last query
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            spent_delta (float): value of delta spent on last query
         """
         self.update_epsilon_or_delta(
             user_name, dataset_name, "total_spent_delta", spent_delta
@@ -279,14 +354,14 @@ class AdminDatabase(ABC):
         spent_epsilon: float,
         spent_delta: float,
     ) -> None:
-        """
-        Update the current epsilon and delta spent by a specific user
+        """Update the current epsilon and delta spent by a specific user
         with the last spent delta
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
-            - spent_epsilon: value of epsilon spent on last query
-            - spent_delta: value of delta spent on last query
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+            spent_epsilon (float): value of epsilon spent on last query
+            spent_delta (float): value of delta spent on last query
         """
         self.update_epsilon(user_name, dataset_name, spent_epsilon)
         self.update_delta(user_name, dataset_name, spent_delta)
@@ -294,8 +369,14 @@ class AdminDatabase(ABC):
     @abstractmethod
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
-        """
-        Get dataset field type based on dataset name and key
+        """Get dataset field type based on dataset name and key
+
+        Args:
+            dataset_name (str): _description_
+            key (str): _description_
+
+        Returns:
+            str: _description_
         """
 
     @abstractmethod
@@ -305,22 +386,31 @@ class AdminDatabase(ABC):
         user_name: str,
         dataset_name: str,
     ) -> List[dict]:
-        """
-        Retrieves and return the queries already done by a user
-        Parameters:
-            - user_name: name of the user
-            - dataset_name: name of the dataset
+        """Retrieves and return the queries already done by a user
+
+        Args:
+            user_name (str): name of the user
+            dataset_name (str): name of the dataset
+
+        Returns:
+            List[dict]: _description_
         """
 
     def prepare_save_query(
         self, user_name: str, query_json: dict, response: dict
     ) -> dict:
-        """
-        Prepare the query to save in archives
-        Parameters:
-            - user_name: name of the user
-            - query_json: json received from client
-            - response: response sent to the client
+        """Prepare the query to save in archives
+
+        Args:
+            user_name (str): name of the user
+            query_json (dict): json received from client
+            response (dict): response sent to the client
+
+        Raises:
+            InternalServerException: _description_
+
+        Returns:
+            dict: _description_
         """
         to_archive = {
             "user_name": user_name,
@@ -344,11 +434,11 @@ class AdminDatabase(ABC):
     def save_query(
         self, user_name: str, query_json: dict, response: dict
     ) -> None:
-        """
-        Save queries of user on datasets in a separate collection (table)
+        """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
-        Parameters:
-            - user_name: name of the user
-            - query_json: json received from client
-            - response: response sent to the client
+
+        Args:
+            user_name (str): name of the user
+            query_json (dict): json received from client
+            response (dict): response sent to the client
         """

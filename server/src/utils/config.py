@@ -108,9 +108,20 @@ class ConfigLoader(object):
         self,
         config_path: str = CONFIG_PATH,
         secrets_path: str = SECRETS_PATH) -> None:
-        """
-        Loads the config and the secret data from disk,
+        """Loads the config and the secret data from disk,
         merges them and returns the config object.
+
+        Args:
+            config_path (str, optional): _description_. Defaults to CONFIG_PATH.
+            secrets_path (str, optional): _description_. Defaults to SECRETS_PATH.
+
+        Raises:
+            InternalServerException: _description_
+            InternalServerException: _description_
+            InternalServerException: _description_
+
+        Returns:
+            _type_: _description_
         """
         try:
             with open(config_path, "r", encoding="utf-8") as f:

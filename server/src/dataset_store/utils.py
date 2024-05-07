@@ -11,7 +11,18 @@ def dataset_store_factory(
     config: DatasetStoreConfig, admin_database: AdminDatabase
 ) -> DatasetStore:
     """
-    Instantiates and returns the correct DatasetStore based on the config."""
+    Instantiates and returns the correct DatasetStore based on the config.
+
+    Args:
+        config (DatasetStoreConfig): _description_
+        admin_database (AdminDatabase): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        DatasetStore: _description_
+    """
     ds_store_type = config.ds_store_type
 
     match config.ds_store_type:

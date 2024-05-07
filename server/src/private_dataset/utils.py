@@ -9,8 +9,17 @@ from utils.error_handler import InternalServerException
 def private_dataset_factory(
     dataset_name: str, admin_database: AdminDatabase
 ) -> PrivateDataset:
-    """
-    Returns the appropriate database class based on dataset storage location
+    """Returns the appropriate database class based on dataset storage location
+
+    Args:
+        dataset_name (str): _description_
+        admin_database (AdminDatabase): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        PrivateDataset: _description_
     """
     database_type = admin_database.get_dataset_field(
         dataset_name, "database_type"

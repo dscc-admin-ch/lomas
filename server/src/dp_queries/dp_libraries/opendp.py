@@ -20,6 +20,19 @@ PT_TYPE = "^py_type:*"
 
 class OpenDPQuerier(DPQuerier):
     def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
+        """_summary_
+
+        Args:
+            query_json (OpenDPInp): _description_
+
+        Raises:
+            ExternalLibraryException: _description_
+            InvalidQueryException: _description_
+            InternalServerException: _description_
+
+        Returns:
+            tuple[float, float]: _description_
+        """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         measurement_type = get_output_measure(opendp_pipe)
@@ -69,6 +82,17 @@ class OpenDPQuerier(DPQuerier):
         return epsilon, delta
 
     def query(self, query_json: OpenDPInp) -> str:
+        """_summary_
+
+        Args:
+            query_json (OpenDPInp): _description_
+
+        Raises:
+            ExternalLibraryException: _description_
+
+        Returns:
+            str: _description_
+        """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
         input_data = self.private_dataset.get_pandas_df().to_csv(
@@ -92,10 +116,29 @@ class OpenDPQuerier(DPQuerier):
 
 
 def is_measurement(value: dp.Measurement) -> bool:
+    """_summary_
+
+    Args:
+        value (dp.Measurement): _description_
+
+    Returns:
+        bool: _description_
+    """
     return isinstance(value, dp.Measurement)
 
 
 def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
+    """_summary_
+
+    Args:
+        pipeline (str): _description_
+
+    Raises:
+        InvalidQueryException: _description_
+
+    Returns:
+        dp.Measurement: _description_
+    """
     opendp_pipe = make_load_json(pipeline)
 
     if not is_measurement(opendp_pipe):
@@ -110,6 +153,17 @@ def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
 
 
 def get_output_measure(opendp_pipe: dp.Measurement) -> str:
+    """_summary_
+
+    Args:
+        opendp_pipe (dp.Measurement): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        str: _description_
+    """
     output_type = opendp_pipe.output_distance_type
     output_measure = opendp_pipe.output_measure
 

@@ -3,10 +3,11 @@ from typing import Callable
 
 import boto3
 import yaml
-from admin_database.utils import get_mongodb_url
-from constants import PrivateDatabaseType
 from pymongo import MongoClient
 from pymongo.database import Database
+
+from admin_database.utils import get_mongodb_url
+from constants import PrivateDatabaseType
 from utils.error_handler import InternalServerException
 
 
@@ -224,11 +225,9 @@ def add_dataset(db: Database, args: argparse.Namespace) -> None:
         "database_type": args.database_type,
     }
 
-    if args.database_type == "LOCAL_DB":
+    if args.database_type == PrivateDatabaseType.PATH:
         dataset["dataset_path"] = args.dataset_path
-    elif args.database_type == "REMOTE_HTTP_DB":
-        dataset["dataset_url"] = args.dataset_url
-    elif args.database_type == "S3_DB":
+    elif args.database_type == PrivateDatabaseType.S3:
         dataset["s3_bucket"] = args.s3_bucket
         dataset["s3_key"] = args.s3_key
         dataset["endpoint_url"] = args.endpoint_url
@@ -239,12 +238,12 @@ def add_dataset(db: Database, args: argparse.Namespace) -> None:
     db.datasets.insert_one(dataset)
 
     # Step 2: add metadata
-    if args.metadata_database_type == "LOCAL_DB":
+    if args.metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
         with open(args.metadata_path) as f:
             metadata_dict = yaml.safe_load(f)
 
-    elif args.metadata_database_type == "S3_DB":
+    elif args.metadata_database_type == PrivateDatabaseType.S3:
         client = boto3.client(
             "s3",
             endpoint_url=args.metadata_endpoint_url,
@@ -304,13 +303,11 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
         verify_keys(d, "metadata")
 
         match d["database_type"]:
-            case PrivateDatabaseType.REMOTE_HTTP:
-                verify_keys(d, "dataset_url")
+            case PrivateDatabaseType.PATH:
+                verify_keys(d, "dataset_path")
             case PrivateDatabaseType.S3:
                 verify_keys(d, "s3_bucket")
                 verify_keys(d, "s3_key")
-            case PrivateDatabaseType.LOCAL:
-                verify_keys(d, "dataset_path")
             case _:
                 raise InternalServerException(
                     f"Unknown PrivateDatabaseType: {d['database_type']}"
@@ -346,7 +343,7 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
 
         verify_keys(d, "database_type", metadata=True)
         match metadata_db_type:
-            case PrivateDatabaseType.LOCAL:
+            case PrivateDatabaseType.PATH:
                 verify_keys(d, "metadata_path", metadata=True)
 
                 with open(d["metadata"]["metadata_path"]) as f:
@@ -605,7 +602,6 @@ if __name__ == "__main__":
     # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
-    add_dataset_parser.add_argument("-db_url", "--dataset_url", required=False)
     add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
     add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
     add_dataset_parser.add_argument(

@@ -1,6 +1,8 @@
 from typing import Optional
+
 import boto3
 import pandas as pd
+
 from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import InternalServerException
 
@@ -52,7 +54,7 @@ class S3Dataset(PrivateDataset):
                 raise InternalServerException(
                     "Error reading csv at s3 path:"
                     + f"{self.s3_bucket}/{self.s3_key}: {err}"
-                )
+                ) from err
 
             # Notify observer since memory usage has changed
             [

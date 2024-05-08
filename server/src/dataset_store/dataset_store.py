@@ -25,11 +25,9 @@ class DatasetStore(ABC):
         """
         Adds a dataset to the manager
         """
-        pass
 
     @abstractmethod
     def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
         """
         Returns the querier for the given dataset and library
         """
-        pass

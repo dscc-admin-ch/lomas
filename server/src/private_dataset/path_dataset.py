@@ -46,9 +46,7 @@ class PathDataset(PrivateDataset):
                 )
 
             # Notify observer since memory usage has changed
-            [
+            for observer in self.dataset_observers:
                 observer.update_memory_usage()
-                for observer in self.dataset_observers
-            ]
 
         return self.df

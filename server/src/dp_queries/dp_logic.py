@@ -1,4 +1,5 @@
 from fastapi import Header
+from pydantic import BaseModel
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
@@ -10,7 +11,6 @@ from utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from utils.input_models import BasicModel
 
 
 class QueryHandler:
@@ -33,7 +33,7 @@ class QueryHandler:
     def _get_querier(
         self,
         query_type: str,
-        query_json: BasicModel,
+        query_json: BaseModel,
     ) -> DPQuerier:
         # Check query type
         supported_lib = [lib.value for lib in DPLibraries]
@@ -59,7 +59,7 @@ class QueryHandler:
     def estimate_cost(
         self,
         query_type: str,
-        query_json: BasicModel,
+        query_json: BaseModel,
     ) -> dict[str, float]:
         # Get querier
         dp_querier = self._get_querier(query_type, query_json)
@@ -72,7 +72,7 @@ class QueryHandler:
     def handle_query(
         self,
         query_type: str,
-        query_json: BasicModel,
+        query_json: BaseModel,
         user_name: str = Header(None),
     ) -> dict:
         # Check that user may query

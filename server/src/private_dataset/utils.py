@@ -25,27 +25,27 @@ def private_dataset_factory(
             )
             private_db = PathDataset(ds_metadata, dataset_path)
         case PrivateDatabaseType.S3:
-            s3_bucket = admin_database.get_dataset_field(
+            s3_parameters = {}
+            s3_parameters["s3_bucket"] = admin_database.get_dataset_field(
                 dataset_name, "s3_bucket"
             )
-            s3_key = admin_database.get_dataset_field(dataset_name, "s3_key")
-            s3_endpoint = admin_database.get_dataset_field(
+            s3_parameters["s3_key"] = admin_database.get_dataset_field(
+                dataset_name, "s3_key"
+            )
+            s3_parameters["s3_endpoint"] = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
             )
-            s3_aws_access_key_id = admin_database.get_dataset_field(
+            s3_parameters[
+                "s3_aws_access_key_id"
+            ] = admin_database.get_dataset_field(
                 dataset_name, "aws_access_key_id"
             )
-            s3_aws_secret_access_key = admin_database.get_dataset_field(
+            s3_parameters[
+                "aws_secret_access_key"
+            ] = admin_database.get_dataset_field(
                 dataset_name, "aws_secret_access_key"
             )
-            private_db = S3Dataset(
-                ds_metadata,
-                s3_bucket,
-                s3_key,
-                s3_endpoint,
-                s3_aws_access_key_id,
-                s3_aws_secret_access_key,
-            )
+            private_db = S3Dataset(ds_metadata, s3_parameters)
         case _:
             raise InternalServerException(
                 f"Unknown database type: {database_type}"

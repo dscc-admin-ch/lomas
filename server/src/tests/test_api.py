@@ -63,6 +63,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             
     def setUp(self) -> None:
         """_summary_"""
+        self.user_name = "Dr. Antartica"
         self.dataset = PENGUIN_DATASET
         self.headers = {
             "Content-type": "application/json",

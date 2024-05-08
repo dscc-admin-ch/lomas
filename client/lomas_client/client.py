@@ -26,11 +26,26 @@ class DPLibraries(StrEnum):
 
 
 def error_message(res: requests.Response) -> str:
+    """_summary_
+
+    Args:
+        res (requests.Response): _description_
+
+    Returns:
+        str: _description_
+    """
     return f"Server error status {res.status_code}: {res.text}"
 
 
 class Client:
     def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
+        """_summary_
+
+        Args:
+            url (str): _description_
+            user_name (str): _description_
+            dataset_name (str): _description_
+        """
         self.url = url
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.headers["user-name"] = user_name
@@ -39,6 +54,12 @@ class Client:
     def get_dataset_metadata(
         self,
     ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
+        """_summary_
+
+        Returns:
+            Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
+                _description_
+        """
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
         )
@@ -55,6 +76,15 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[pd.DataFrame]:
+        """_summary_
+
+        Args:
+            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+
+        Returns:
+            Optional[pd.DataFrame]: _description_
+        """
         res = self._exec(
             "get_dummy_dataset",
             {
@@ -82,6 +112,22 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
+        """_summary_
+
+        Args:
+            query (str): _description_
+            epsilon (float): _description_
+            delta (float): _description_
+            mechanisms (dict[str, str], optional):
+                _description_. Defaults to {}.
+            postprocess (bool, optional): _description_. Defaults to True.
+            dummy (bool, optional): _description_. Defaults to False.
+            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+
+        Returns:
+            Optional[dict]: _description_
+        """
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
@@ -117,6 +163,18 @@ class Client:
         delta: float,
         mechanisms: dict[str, str] = {},
     ) -> Optional[dict[str, float]]:
+        """_summary_
+
+        Args:
+            query (str): _description_
+            epsilon (float): _description_
+            delta (float): _description_
+            mechanisms (dict[str, str], optional):
+                _description_. Defaults to {}.
+
+        Returns:
+            Optional[dict[str, float]]: _description_
+        """
         body_json = {
             "query_str": query,
             "dataset_name": self.dataset_name,
@@ -139,6 +197,22 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
+        """_summary_
+
+        Args:
+            opendp_pipeline (dp.Measurement): _description_
+            fixed_delta (Optional[float], optional): _description_.
+                Defaults to None.
+            dummy (bool, optional): _description_. Defaults to False.
+            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            Optional[dict]: _description_
+        """
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
@@ -179,6 +253,17 @@ class Client:
         opendp_pipeline: dp.Measurement,
         fixed_delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
+        """_summary_
+
+        Args:
+            opendp_pipeline (dp.Measurement):
+                _description_
+            fixed_delta (Optional[float], optional):
+                _description_. Defaults to None.
+
+        Returns:
+            Optional[dict[str, float]]: _description_
+        """
         opendp_json = opendp_pipeline.to_json()
         body_json = {
             "dataset_name": self.dataset_name,
@@ -194,6 +279,11 @@ class Client:
         return None
 
     def get_initial_budget(self) -> Optional[dict[str, float]]:
+        """_summary_
+
+        Returns:
+            Optional[dict[str, float]]: _description_
+        """
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -206,6 +296,11 @@ class Client:
         return None
 
     def get_total_spent_budget(self) -> Optional[dict[str, float]]:
+        """_summary_
+
+        Returns:
+            Optional[dict[str, float]]: _description_
+        """
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -218,6 +313,11 @@ class Client:
         return None
 
     def get_remaining_budget(self) -> Optional[dict[str, float]]:
+        """_summary_
+
+        Returns:
+            Optional[dict[str, float]]: _description_
+        """
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -230,6 +330,14 @@ class Client:
         return None
 
     def get_previous_queries(self) -> Optional[List[dict]]:
+        """_summary_
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            Optional[List[dict]]: _description_
+        """
         body_json = {
             "dataset_name": self.dataset_name,
         }
@@ -267,6 +375,15 @@ class Client:
         return None
 
     def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
+        """_summary_
+
+        Args:
+            endpoint (str): _description_
+            body_json (dict, optional): _description_. Defaults to {}.
+
+        Returns:
+            requests.Response: _description_
+        """
         r = requests.post(
             self.url + "/" + endpoint,
             json=body_json,

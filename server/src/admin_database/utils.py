@@ -2,14 +2,22 @@ from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
 from admin_database.yaml_database import AdminYamlDatabase
 from constants import AdminDBType
-from utils.config import Config, DBConfig
+from utils.config import DBConfig
 from utils.error_handler import InternalServerException
 
 
 def database_factory(config: DBConfig) -> AdminDatabase:
-    """
-    Instantiates and returns the correct database type described in the
+    """Instantiates and returns the correct database type described in the
     provided config.
+
+    Args:
+        config (DBConfig): _description_
+
+    Raises:
+        InternalServerException: _description_
+
+    Returns:
+        AdminDatabase: _description_
     """
     db_type = config.db_type
 
@@ -30,8 +38,13 @@ def database_factory(config: DBConfig) -> AdminDatabase:
 
 
 def get_mongodb_url(config: DBConfig) -> str:
-    """
-    Get URL of the administration MongoDB.
+    """Get URL of the administration MongoDB.
+
+    Args:
+        config (DBConfig): _description_
+
+    Returns:
+        str: _description_
     """
     db_username = config.username
     db_password = config.password

@@ -16,6 +16,14 @@ from utils.loggr import LOG
 
 
 def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
+    """_summary_
+
+    Args:
+        df (pd.DataFrame): _description_
+
+    Returns:
+        StreamingResponse: _description_
+    """
     stream = io.StringIO()
 
     # CSV creation
@@ -24,9 +32,9 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     response = StreamingResponse(
         iter([stream.getvalue()]), media_type="text/csv"
     )
-    response.headers[
-        "Content-Disposition"
-    ] = "attachment; filename=synthetic_data.csv"
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=synthetic_data.csv"
+    )
     return response
 
 
@@ -40,8 +48,7 @@ async def server_live() -> AsyncGenerator:
 
 
 def check_start_condition() -> None:
-    """
-    This function checks the server started correctly and SERVER_STATE is
+    """This function checks the server started correctly and SERVER_STATE is
     updated accordingly.
 
     This has potential side effects on the return values of the "depends"

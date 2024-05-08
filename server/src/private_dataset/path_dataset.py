@@ -16,19 +16,25 @@ class PathDataset(PrivateDataset):
         metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
         dataset_path: str,
     ) -> None:
-        """
-        Parameters:
-            - dataset_path: path of the dataset
+        """_summary_
+
+        Args:
+            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]):
+                _description_
+            dataset_path (str): path of the dataset
         """
         super().__init__(metadata)
         self.ds_path: str = dataset_path
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """
-        Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format
+
+        Raises:
+            InternalServerException: _description_
+
         Returns:
-            - pandas dataframe of dataset
+            pd.DataFrame: pandas dataframe of dataset
         """
         if self.df is None:
             if self.ds_path.endswith(".csv"):

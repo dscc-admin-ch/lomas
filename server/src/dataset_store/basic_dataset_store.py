@@ -23,15 +23,20 @@ class BasicDatasetStore(DatasetStore):
     dp_queriers: Dict[str, Dict[str, DPQuerier]] = {}
 
     def __init__(self, admin_database: AdminDatabase) -> None:
+        """_summary_
+
+        Args:
+            admin_database (AdminDatabase): _description_
+        """
         super().__init__(admin_database)
         self.dp_queriers = {}
         self.admin_database = admin_database
 
     def _add_dataset(self, dataset_name: str) -> None:
-        """
-        Adds all queriers for a dataset.
-        The source data is fetched from an online csv, the paths are stored
-        as constants for now.
+        """_summary_
+
+        Args:
+            dataset_name (str): _description_
         """
         # Should not call this function if dataset already present.
         assert (
@@ -52,6 +57,15 @@ class BasicDatasetStore(DatasetStore):
             self.dp_queriers[dataset_name][lib.value] = querier
 
     def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
+        """_summary_
+
+        Args:
+            dataset_name (str): _description_
+            query_type (str): _description_
+
+        Returns:
+            DPQuerier: _description_
+        """
         if dataset_name not in self.dp_queriers:
             self._add_dataset(dataset_name)
 

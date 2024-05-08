@@ -17,11 +17,24 @@ from warnings import warn
 
 def connect(
     function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
-    """Connect to the database"""
+) -> Callable:
+    """Connect to the database
+
+    Args:
+        function (Callable[[Database, argparse.Namespace], None]):
+            _description_
+
+    Returns:
+        Callable: _description_
+    """
 
     @functools.wraps(function)
     def wrap_function(*arguments: argparse.Namespace) -> None:
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         db_url: str = get_mongodb_url(arguments[0])
         db: Database = MongoClient(db_url)[arguments[0].db_name]
         return function(db, *arguments)
@@ -30,66 +43,87 @@ def connect(
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
-    """ Creates a wrapper function that raises a ValueError if the supplied user does
-    not already exist in the user collection.
+    """Creates a wrapper function that raises a ValueError if the supplied
+    user does not already exist in the user collection.
     """
-    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+
+    def inner_func(
+        function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
             user = arguments[1].user
-            
+
             user_count = db.users.count_documents({"user_name": user})
-            
+
             if enforce_true and user_count == 0:
-                raise ValueError(f"User {user} does not exist in user collecion")
+                raise ValueError(
+                    f"User {user} does not exist in user collecion"
+                )
             elif not enforce_true and user_count > 0:
-                raise ValueError(f"User {user} already exists in user collection")
+                raise ValueError(
+                    f"User {user} already exists in user collection"
+                )
             return function(*arguments)
 
         return wrapper_decorator
+
     return inner_func
 
 
 def check_user_has_dataset(enforce_true: bool) -> Callable:
-    """ Creates a wrapper function that raises a ValueError if the supplied user does
-    not already exist in the user collection.
+    """Creates a wrapper function that raises a ValueError if the supplied
+    user does not already exist in the user collection.
     """
-    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+
+    def inner_func(
+        function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
             user = arguments[1].user
             dataset = arguments[1].dataset
 
-            user_and_ds_count = db.users.count_documents({"user_name": user, "datasets_list": { "$elemMatch": {"dataset_name": dataset}}})
-                        
+            user_and_ds_count = db.users.count_documents(
+                {
+                    "user_name": user,
+                    "datasets_list": {"$elemMatch": {"dataset_name": dataset}},
+                }
+            )
+
             if enforce_true and user_and_ds_count == 0:
-                raise ValueError(f"User {user} does not have dataset {dataset}")
+                raise ValueError(
+                    f"User {user} does not have dataset {dataset}"
+                )
             elif not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
             return function(*arguments)
 
         return wrapper_decorator
+
     return inner_func
+
 
 def check_result_acknowledged(res: _WriteResult) -> None:
     if not res.acknowledged:
         raise Exception("Write request not acknowledged by MongoDB database.")
 
+
 ##########################  USERS  ########################## # noqa: E266
 @connect
 @check_user_exists(False)
 def add_user(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Add new user in users collection with initial values for all fields
+    """Add new user in users collection with initial values for all fields
     set by default.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
 
     res = db.users.insert_one(
@@ -101,16 +135,22 @@ def add_user(db: Database, arguments: argparse.Namespace) -> None:
     )
 
     check_result_acknowledged(res)
-    
+
     LOG.info(f"Added user {arguments.user}.")
 
 
 @connect
 @check_user_exists(False)
 def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Add new user in users collection with initial values
+    """Add new user in users collection with initial values
     for all fields set by default.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
     res = db.users.insert_one(
         {
@@ -141,8 +181,11 @@ def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
 @connect
 @check_user_exists(True)
 def del_user(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Delete all related information for user from the users collection.
+    """Delete all related information for user from the users collection.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     res = db.users.delete_many({"user_name": arguments.user})
     check_result_acknowledged(res)
@@ -154,10 +197,16 @@ def del_user(db: Database, arguments: argparse.Namespace) -> None:
 @check_user_exists(True)
 @check_user_has_dataset(False)
 def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Add dataset with initialized budget values to list of datasets
+    """Add dataset with initialized budget values to list of datasets
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
     """
     res = db.users.update_one(
         {
@@ -178,10 +227,12 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     )
 
     check_result_acknowledged(res)
-    
+
     LOG.info(
-        f"Added access to dataset {arguments.dataset} to user {arguments.user}"
-        f" with budget epsilon {arguments.epsilon} and delta {arguments.delta}."
+        f"""Added access to dataset {arguments.dataset}
+        to user {arguments.user}"""
+        f""" with budget epsilon {arguments.epsilon}
+        and delta {arguments.delta}."""
     )
 
 
@@ -189,13 +240,20 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
 @check_user_exists(True)
 @check_user_has_dataset(True)
 def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Remove if exists the dataset (and all related budget info)
+    """Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     res = db.users.update_one(
         {"user_name": arguments.user},
-        {"$pull": {"datasets_list": {"dataset_name": {"$eq": arguments.dataset}}}},
+        {
+            "$pull": {
+                "datasets_list": {"dataset_name": {"$eq": arguments.dataset}}
+            }
+        },
     )
 
     check_result_acknowledged(res)
@@ -210,10 +268,13 @@ def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
 @check_user_exists(True)
 @check_user_has_dataset(True)
 def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Set (for some reason) a budget field to a given value
+    """Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
-    """    
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+    """
     res = db.users.update_one(
         {
             "user_name": arguments.user,
@@ -233,10 +294,13 @@ def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
 @connect
 @check_user_exists(True)
 def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Set (for some reason) the 'may query' field to a given value
+    """Set (for some reason) the 'may query' field to a given value
     if given user exists.
-    """    
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+    """
     res = db.users.update_one(
         {"user_name": arguments.user},
         {"$set": {"may_query": (arguments.value == "True")}},
@@ -250,8 +314,11 @@ def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
 @connect
 @check_user_exists(True)
 def show_user(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Show a user
+    """Show a user
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     user = list(db.users.find({"user_name": arguments.user}))[0]
     user.pop("_id", None)
@@ -262,8 +329,11 @@ def show_user(db: Database, arguments: argparse.Namespace) -> None:
 def create_users_collection(
     db: Database, arguments: argparse.Namespace
 ) -> None:
-    """
-    Add all users from yaml file to the user collection
+    """Add all users from yaml file to the user collection
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     if arguments.clean:
         # Collection created from scratch
@@ -292,7 +362,10 @@ def create_users_collection(
                     check_result_acknowledged(res)
                 LOG.info("Existing users updated. ")
             else:
-                warn("Some users already present in database. Overwrite is set to False.")
+                warn(
+                    """Some users already present in database.
+                    Overwrite is set to False."""
+                )
 
         if new_users:
             # Insert new users
@@ -306,8 +379,19 @@ def create_users_collection(
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @connect
 def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Set a database type to a dataset in dataset collection.
+    """Set a database type to a dataset in dataset collection.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+
+    Raises:
+        ValueError: _description_
+        ValueError: _description_
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
     """
     if db.datasets.count_documents({"dataset_name": arguments.dataset}) > 0:
         raise ValueError("Cannot add database because already set. ")
@@ -364,9 +448,19 @@ def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
 
 @connect
 def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Set all database types to datasets in dataset collection based
+    """Set all database types to datasets in dataset collection based
     on yaml file.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
+
+    Raises:
+        InternalServerException: _description_
+        InternalServerException: _description_
+
+    Returns:
+        _type_: _description_
     """
     if arguments.clean:
         # Collection created from scratch
@@ -378,6 +472,13 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
         dataset_dict = yaml.safe_load(f)
 
     def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
+        """_summary_
+
+        Args:
+            d (dict): _description_
+            field (str): _description_
+            metadata (bool, optional): _description_. Defaults to False.
+        """
         if metadata:
             assert (
                 field in d["metadata"].keys()
@@ -494,8 +595,11 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
 
 @connect
 def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Delete dataset from dataset collection.
+    """Delete dataset from dataset collection.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     db.users.delete_many({"dataset_name": arguments.dataset_name})
     LOG.info(f"Deleted dataset {arguments.dataset_name}.")
@@ -504,8 +608,11 @@ def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
 #######################  COLLECTIONS  ####################### # noqa: E266
 @connect
 def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Delete collection.
+    """Delete collection.
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     db.drop_collection(arguments.collection)
     LOG.info(f"Deleted collection {arguments.collection}.")
@@ -513,8 +620,11 @@ def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
 
 @connect
 def show_collection(db: Database, arguments: argparse.Namespace) -> None:
-    """
-    Show a collection
+    """Show a collection
+
+    Args:
+        db (Database): _description_
+        arguments (argparse.Namespace): _description_
     """
     collection_query = db[arguments.collection].find({})
     collections = []

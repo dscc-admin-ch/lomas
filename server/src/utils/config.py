@@ -86,8 +86,9 @@ class Config(BaseModel):
 
 # Utility functions -----------------------------------------------------------
 
+
 class ConfigLoader(object):
-    """ Singleton object that holds the config for the server.
+    """Singleton object that holds the config for the server.
 
     Initialises the config by calling load_config() with its
     default arguments.
@@ -105,22 +106,38 @@ class ConfigLoader(object):
         return cls._instance
 
     def load_config(
-        self,
-        config_path: str = CONFIG_PATH,
-        secrets_path: str = SECRETS_PATH) -> None:
-        """
-        Loads the config and the secret data from disk,
+        self, config_path: str = CONFIG_PATH, secrets_path: str = SECRETS_PATH
+    ) -> None:
+        """Loads the config and the secret data from disk,
         merges them and returns the config object.
+
+        Args:
+            config_path (str, optional):
+                _description_. Defaults to CONFIG_PATH.
+            secrets_path (str, optional):
+                _description_. Defaults to SECRETS_PATH.
+
+        Raises:
+            InternalServerException: _description_
+            InternalServerException: _description_
+            InternalServerException: _description_
+
+        Returns:
+            _type_: _description_
         """
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]
+                config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][
+                    CONF_SETTINGS
+                ]
 
             # Merge secret data into config data
             with open(secrets_path, "r", encoding="utf-8") as f:
                 secret_data = yaml.safe_load(f)
 
-                def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
+                def update(
+                    d: Dict[str, Any], u: Dict[str, Any]
+                ) -> Dict[str, Any]:
                     for k, v in u.items():
                         if isinstance(v, dict):
                             d[k] = update(d.get(k, {}), v)
@@ -190,8 +207,10 @@ class ConfigLoader(object):
 
 CONFIG_LOADER = ConfigLoader()
 
+
 def get_config():
     return CONFIG_LOADER.get_config()
+
 
 """
 def reload_config() -> Config:

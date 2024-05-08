@@ -5,19 +5,12 @@ from io import StringIO
 import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
-import json
-from io import StringIO
-import pandas as pd
-import unittest
 import os
-from pymongo import MongoClient
-from pymongo.database import Database
 from tests.constants import ENV_MONGO_INTEGRATION
 from types import SimpleNamespace
 
 from app import app
 
-from admin_database.utils import get_mongodb_url
 from constants import DPLibraries, EPSILON_LIMIT
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
@@ -35,9 +28,9 @@ from utils.example_inputs import (
 from mongodb_admin import (
     create_users_collection,
     add_datasets,
-    drop_collection
+    drop_collection,
 )
-from utils.config import Config, get_config, CONFIG_LOADER
+from utils.config import get_config, CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -51,17 +44,20 @@ class TestRootAPIEndpoint(unittest.TestCase):
         if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml")
+                secrets_path="tests/test_configs/test_secrets.yaml",
+            )
         else:
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml")
+                secrets_path="tests/test_configs/test_secrets.yaml",
+            )
 
     @classmethod
     def tearDownClass(self) -> None:
-        pass  
-            
+        pass
+
     def setUp(self) -> None:
+        """_summary_"""
         self.user_name = "Dr. Antartica"
         self.dataset = PENGUIN_DATASET
         self.headers = {
@@ -73,7 +69,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         # Fill up database if needed
         if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             args = SimpleNamespace(**vars(get_config().admin_database))
-            
+
             args.clean = True
             args.overwrite = True
             args.path = "tests/test_data/test_user_collection.yaml"
@@ -88,9 +84,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:            
+        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             args = SimpleNamespace(**vars(get_config().admin_database))
-            
+
             args.collection = "metadata"
             drop_collection(args)
 
@@ -104,6 +100,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             drop_collection(args)
 
     def test_state(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK
@@ -112,8 +109,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
-    
     def test_get_dataset_metadata(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -143,6 +140,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_get_dummy_dataset(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -187,6 +185,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_query(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -226,9 +225,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise[
-                "query_str"
-            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
+            input_smartnoise["query_str"] = (
+                "SELECT AVG(bill) FROM df"  # no 'bill' column
+            )
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,
@@ -271,6 +270,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_dummy_smartnoise_query(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -284,6 +284,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"]["data"][0][0] < 200
 
     def test_smartnoise_cost(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -296,6 +297,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
     def test_opendp_query(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -326,6 +328,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             }
 
     def test_dummy_opendp_query(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -336,6 +339,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["query_response"] > 0
 
     def test_opendp_cost(self) -> None:
+        """_summary_"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -348,6 +352,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["delta_cost"] == 0
 
     def test_get_initial_budget(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -375,6 +380,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict_2 == response_dict
 
     def test_get_total_spent_budget(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -410,6 +416,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_get_remaining_budget(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -446,6 +453,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_get_previous_queries(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -516,6 +524,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     def test_budget_over_limit(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget on one go
             smartnoise_body = dict(example_smartnoise_sql)
@@ -534,6 +543,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert error["msg"] == "Input should be less than or equal to 5"
 
     def test_subsequent_budget_limit_logic(self) -> None:
+        """_summary_"""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(example_smartnoise_sql)

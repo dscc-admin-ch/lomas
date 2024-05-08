@@ -15,18 +15,21 @@ class InMemoryDataset(PrivateDataset):
         metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
         dataset_df: pd.DataFrame,
     ) -> None:
-        """
-        Parameters:
-            - dataset_df: Dataframe of the dataset
+        """_summary_
+
+        Args:
+            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]):
+                _description_
+            dataset_df (pd.DataFrame): Dataframe of the dataset
         """
         super().__init__(metadata)
         self.df = dataset_df.copy()
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """
-        Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format
+
         Returns:
-            - pandas dataframe of dataset (a copy)
+            pd.DataFrame: pandas dataframe of dataset (a copy)
         """
         # We use a copy here for safety.
         return self.df.copy()

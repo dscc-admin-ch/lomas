@@ -15,6 +15,11 @@ class InvalidQueryException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
+        """_summary_
+
+        Args:
+            error_message (str): _description_
+        """
         self.error_message = error_message
 
 
@@ -27,6 +32,12 @@ class ExternalLibraryException(Exception):
     """
 
     def __init__(self, library: str, error_message: str) -> None:
+        """_summary_
+
+        Args:
+            library (str): _description_
+            error_message (str): _description_
+        """
         self.library = library
         self.error_message = error_message
 
@@ -38,6 +49,11 @@ class UnauthorizedAccessException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
+        """_summary_
+
+        Args:
+            error_message (str): _description_
+        """
         self.error_message = error_message
 
 
@@ -48,6 +64,11 @@ class InternalServerException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
+        """_summary_
+
+        Args:
+            error_message (str): _description_
+        """
         self.error_message = error_message
 
 
@@ -61,6 +82,15 @@ CUSTOM_EXCEPTIONS: tuple[type, ...] = (
 
 # Custom exception handlers
 def add_exception_handlers(app: FastAPI) -> None:
+    """_summary_
+
+    Args:
+        app (FastAPI): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
     @app.exception_handler(InvalidQueryException)
     async def invalid_query_exception_handler(
         _: Request, exc: InvalidQueryException

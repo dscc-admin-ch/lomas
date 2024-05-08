@@ -27,6 +27,12 @@ class QueryHandler:
     def __init__(
         self, admin_database: AdminDatabase, dataset_store: DatasetStore
     ) -> None:
+        """_summary_
+
+        Args:
+            admin_database (AdminDatabase): _description_
+            dataset_store (DatasetStore): _description_
+        """
         self.admin_database = admin_database
         self.dataset_store = dataset_store
 
@@ -35,6 +41,20 @@ class QueryHandler:
         query_type: str,
         query_json: BaseModel,
     ) -> DPQuerier:
+        """_summary_
+
+        Args:
+            query_type (str): _description_
+            query_json (BasicModel): _description_
+
+        Raises:
+            InternalServerException: _description_
+            e: _description_
+            InternalServerException: _description_
+
+        Returns:
+            DPQuerier: _description_
+        """
         # Check query type
         supported_lib = [lib.value for lib in DPLibraries]
         if query_type not in supported_lib:
@@ -61,6 +81,15 @@ class QueryHandler:
         query_type: str,
         query_json: BaseModel,
     ) -> dict[str, float]:
+        """_summary_
+
+        Args:
+            query_type (str): _description_
+            query_json (BasicModel): _description_
+
+        Returns:
+            dict[str, float]: _description_
+        """
         # Get querier
         dp_querier = self._get_querier(query_type, query_json)
 
@@ -75,6 +104,24 @@ class QueryHandler:
         query_json: BaseModel,
         user_name: str = Header(None),
     ) -> dict:
+        """_summary_
+
+        Args:
+            query_type (str): _description_
+            query_json (BasicModel): _description_
+            user_name (str, optional): _description_. Defaults to Header(None).
+
+        Raises:
+            UnauthorizedAccessException: _description_
+            e: _description_
+            InvalidQueryException: _description_
+            e: _description_
+            InternalServerException: _description_
+            e: _description_
+
+        Returns:
+            dict: _description_
+        """
         # Check that user may query
         if not self.admin_database.may_user_query(user_name):
             raise UnauthorizedAccessException(

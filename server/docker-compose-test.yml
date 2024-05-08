@@ -1,0 +1,23 @@
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    # Use only if volume is not a docker volume but a bind mount (e.g. ./data/:/data/db/)
+    # The reason has to do with permissions (see https://stackoverflow.com/questions/29245216/write-in-shared-volumes-docker/29251160#29251160)
+    # Still unclear why just setting chmod 777 ./data does not solve the issue.
+    #user: 1000:1000
+    network_mode: "host"
+    ports:
+      - 127.0.0.1:27017:27017
+    volumes:
+      - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
+    # We use this in docker compose to have a user/password for mongodb
+    # Proper deployment on a kubernetes cluster should use a helm chart
+    # and parametrize a user specific to the fastAPI server.
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
+      - MONGODB_INITDB_DATABASE=defaultdb
+      # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+
+

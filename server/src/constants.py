@@ -15,7 +15,6 @@ else:
     SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 
-
 # Configuration field names and values
 CONF_RUNTIME_ARGS: str = "runtime_args"
 CONF_SERVER: str = "server"

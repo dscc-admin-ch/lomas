@@ -5,19 +5,12 @@ from io import StringIO
 import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
-import json
-from io import StringIO
-import pandas as pd
-import unittest
 import os
-from pymongo import MongoClient
-from pymongo.database import Database
 from tests.constants import ENV_MONGO_INTEGRATION
 from types import SimpleNamespace
 
 from app import app
 
-from admin_database.utils import get_mongodb_url
 from constants import DPLibraries, EPSILON_LIMIT
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
@@ -35,9 +28,9 @@ from utils.example_inputs import (
 from mongodb_admin import (
     create_users_collection,
     add_datasets,
-    drop_collection
+    drop_collection,
 )
-from utils.config import Config, get_config, CONFIG_LOADER
+from utils.config import get_config, CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -51,16 +44,18 @@ class TestRootAPIEndpoint(unittest.TestCase):
         if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml")
+                secrets_path="tests/test_configs/test_secrets.yaml",
+            )
         else:
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml")
+                secrets_path="tests/test_configs/test_secrets.yaml",
+            )
 
     @classmethod
     def tearDownClass(self) -> None:
-        pass  
-            
+        pass
+
     def setUp(self) -> None:
         """_summary_"""
         self.user_name = "Dr. Antartica"
@@ -74,7 +69,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         # Fill up database if needed
         if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             args = SimpleNamespace(**vars(get_config().admin_database))
-            
+
             args.clean = True
             args.overwrite = True
             args.path = "tests/test_data/test_user_collection.yaml"
@@ -89,9 +84,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:            
+        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
             args = SimpleNamespace(**vars(get_config().admin_database))
-            
+
             args.collection = "metadata"
             drop_collection(args)
 
@@ -114,7 +109,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
-    
     def test_get_dataset_metadata(self) -> None:
         """_summary_"""
         with TestClient(app) as client:

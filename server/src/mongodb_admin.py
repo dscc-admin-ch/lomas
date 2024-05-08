@@ -16,52 +16,52 @@ def connect(
 ) -> Callable:
     """Connect to the database"""
 
-    def wrap_function(*args: argparse.Namespace) -> None:
-        db_url: str = get_mongodb_url(args[0])
-        db: Database = MongoClient(db_url)[args[0].db_name]
-        return function(db, *args)
+    def wrap_function(*arguments: argparse.Namespace) -> None:
+        db_url: str = get_mongodb_url(arguments[0])
+        db: Database = MongoClient(db_url)[arguments[0].db_name]
+        return function(db, *arguments)
 
     return wrap_function
 
 
 ##########################  USERS  ########################## # noqa: E266
 @connect
-def add_user(db: Database, args: argparse.Namespace) -> None:
+def add_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values for all fields
     set by default.
     """
-    if db.users.count_documents({"user_name": args.user}) > 0:
+    if db.users.count_documents({"user_name": arguments.user}) > 0:
         raise ValueError("Cannot add user because already exists.")
 
     db.users.insert_one(
         {
-            "user_name": args.user,
+            "user_name": arguments.user,
             "may_query": True,
             "datasets_list": [],
         }
     )
-    print(f"Added user {args.user}.")
+    print(f"Added user {arguments.user}.")
 
 
 @connect
-def add_user_with_budget(db: Database, args: argparse.Namespace) -> None:
+def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add new user in users collection with initial values
     for all fields set by default.
     """
-    if db.users.count_documents({"user_name": args.user}) > 0:
+    if db.users.count_documents({"user_name": arguments.user}) > 0:
         raise ValueError("Cannot add user because already exists. ")
 
     db.users.insert_one(
         {
-            "user_name": args.user,
+            "user_name": arguments.user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": args.dataset,
-                    "initial_epsilon": args.epsilon,
-                    "initial_delta": args.delta,
+                    "dataset_name": arguments.dataset,
+                    "initial_epsilon": arguments.epsilon,
+                    "initial_delta": arguments.delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
@@ -69,41 +69,43 @@ def add_user_with_budget(db: Database, args: argparse.Namespace) -> None:
         }
     )
     print(
-        f"Added access to user {args.user} with dataset {args.dataset},"
-        f" budget epsilon {args.epsilon} and delta {args.delta}."
+        f"Added access to user {arguments.user} "
+        + f"with dataset {arguments.dataset}, "
+        + f"budget epsilon {arguments.epsilon} and "
+        + f"delta {arguments.delta}."
     )
 
 
 @connect
-def del_user(db: Database, args: argparse.Namespace) -> None:
+def del_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Delete all related information for user from the users collection.
     """
-    db.users.delete_many({"user_name": args.user})
-    print(f"Deleted user {args.user}.")
+    db.users.delete_many({"user_name": arguments.user})
+    print(f"Deleted user {arguments.user}.")
 
 
 @connect
-def add_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
+def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Add dataset with initialized budget values to list of datasets
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
     """
-    if db.users.count_documents({"user_name": args.user}) == 0:
+    if db.users.count_documents({"user_name": arguments.user}) == 0:
         raise ValueError("Cannot add dataset because user does not exist. ")
 
     db.users.update_one(
         {
-            "user_name": args.user,
-            "datasets_list.dataset_name": {"$ne": args.dataset},
+            "user_name": arguments.user,
+            "datasets_list.dataset_name": {"$ne": arguments.dataset},
         },
         {
             "$push": {
                 "datasets_list": {
-                    "dataset_name": args.dataset,
-                    "initial_epsilon": args.epsilon,
-                    "initial_delta": args.delta,
+                    "dataset_name": arguments.dataset,
+                    "initial_epsilon": arguments.epsilon,
+                    "initial_delta": arguments.delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
@@ -111,78 +113,87 @@ def add_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
         },
     )
     print(
-        f"Added access to dataset {args.dataset} to user {args.user}"
-        f" with budget epsilon {args.epsilon} and delta {args.delta}."
+        f"Added access to dataset {arguments.dataset} to user {arguments.user}"
+        f" with budget epsilon {arguments.epsilon}, delta {arguments.delta}."
     )
 
 
 @connect
-def del_dataset_to_user(db: Database, args: argparse.Namespace) -> None:
+def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
     """
     db.users.update_one(
-        {"user_name": args.user},
-        {"$pull": {"datasets_list": {"dataset_name": {"$eq": args.dataset}}}},
+        {"user_name": arguments.user},
+        {
+            "$pull": {
+                "datasets_list": {"dataset_name": {"$eq": arguments.dataset}}
+            }
+        },
     )
-    print(f"Remove access to dataset {args.dataset} from user {args.user}.")
+    print(
+        f"Remove access to dataset {arguments.dataset}"
+        + f" from user {arguments.user}."
+    )
 
 
 @connect
-def set_budget_field(db: Database, args: argparse.Namespace) -> None:
+def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
     """
     db.users.update_one(
         {
-            "user_name": args.user,
-            "datasets_list.dataset_name": args.dataset,
+            "user_name": arguments.user,
+            "datasets_list.dataset_name": arguments.dataset,
         },
-        {"$set": {f"datasets_list.$.{args.field}": args.value}},
+        {"$set": {f"datasets_list.$.{arguments.field}": arguments.value}},
     )
     print(
-        f"Set budget of {args.user} for dataset {args.dataset}"
-        f" of {args.field} to {args.value}."
+        f"Set budget of {arguments.user} for dataset {arguments.dataset}"
+        f" of {arguments.field} to {arguments.value}."
     )
 
 
 @connect
-def set_may_query(db: Database, args: argparse.Namespace) -> None:
+def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set (for some reason) the 'may query' field to a given value
     if given user exists.
     """
     db.users.update_one(
-        {"user_name": args.user},
-        {"$set": {"may_query": (args.value == "True")}},
+        {"user_name": arguments.user},
+        {"$set": {"may_query": (arguments.value == "True")}},
     )
-    print(f"Set user {args.user} may query to True.")
+    print(f"Set user {arguments.user} may query to True.")
 
 
 @connect
-def show_user(db: Database, args: argparse.Namespace) -> None:
+def show_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     Show a user
     """
-    user = list(db.users.find({"user_name": args.user}))[0]
+    user = list(db.users.find({"user_name": arguments.user}))[0]
     user.pop("_id", None)
     print(user)
 
 
 @connect
-def create_users_collection(db: Database, args: argparse.Namespace) -> None:
+def create_users_collection(
+    db: Database, arguments: argparse.Namespace
+) -> None:
     """
     Add all users from yaml file to the user collection
     """
-    if args.clean:
+    if arguments.clean:
         # Collection created from scratch
         db.users.drop()
         print("Cleaning done. \n")
 
     # Load yaml data and insert it
-    with open(args.path) as f:
+    with open(arguments.path, encoding="utf-8") as f:
         user_dict = yaml.safe_load(f)
         # Filter out duplicates
         new_users = []
@@ -194,94 +205,94 @@ def create_users_collection(db: Database, args: argparse.Namespace) -> None:
                 existing_users.append(user)
 
         # Overwrite values for existing user with values from yaml
-        if args.overwrite:
-            if existing_users != []:
+        if arguments.overwrite:
+            if existing_users:
                 for user in existing_users:
-                    filter = {"user_name": user["user_name"]}
+                    user_filter = {"user_name": user["user_name"]}
                     update_operation = {"$set": user}
-                    db.users.update_many(filter, update_operation)
+                    db.users.update_many(user_filter, update_operation)
                 print("Existing users updated. ")
 
-        if new_users != []:
+        if new_users:
             # Insert new users
             db.users.insert_many(new_users)
-            print(f"Added user data from yaml at {args.path}.")
+            print(f"Added user data from yaml at {arguments.path}.")
         else:
             print("No new users added, they already exist in the server")
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @connect
-def add_dataset(db: Database, args: argparse.Namespace) -> None:
+def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set a database type to a dataset in dataset collection.
     """
-    if db.datasets.count_documents({"dataset_name": args.dataset}) > 0:
+    if db.datasets.count_documents({"dataset_name": arguments.dataset}) > 0:
         raise ValueError("Cannot add database because already set. ")
 
     # Step 1: add dataset
     dataset = {
-        "dataset_name": args.dataset,
-        "database_type": args.database_type,
+        "dataset_name": arguments.dataset,
+        "database_type": arguments.database_type,
     }
 
-    if args.database_type == PrivateDatabaseType.PATH:
-        dataset["dataset_path"] = args.dataset_path
-    elif args.database_type == PrivateDatabaseType.S3:
-        dataset["s3_bucket"] = args.s3_bucket
-        dataset["s3_key"] = args.s3_key
-        dataset["endpoint_url"] = args.endpoint_url
-        dataset["aws_access_key_id"] = args.aws_access_key_id
-        dataset["aws_secret_access_key"] = args.aws_secret_access_key
+    if arguments.database_type == PrivateDatabaseType.PATH:
+        dataset["dataset_path"] = arguments.dataset_path
+    elif arguments.database_type == PrivateDatabaseType.S3:
+        dataset["s3_bucket"] = arguments.s3_bucket
+        dataset["s3_key"] = arguments.s3_key
+        dataset["endpoint_url"] = arguments.endpoint_url
+        dataset["aws_access_key_id"] = arguments.aws_access_key_id
+        dataset["aws_secret_access_key"] = arguments.aws_secret_access_key
     else:
-        raise ValueError(f"Unknown database type {args.database_type}")
+        raise ValueError(f"Unknown database type {arguments.database_type}")
     db.datasets.insert_one(dataset)
 
     # Step 2: add metadata
-    if args.metadata_database_type == PrivateDatabaseType.PATH:
+    if arguments.metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
-        with open(args.metadata_path) as f:
+        with open(arguments.metadata_path, encoding="utf-8") as f:
             metadata_dict = yaml.safe_load(f)
 
-    elif args.metadata_database_type == PrivateDatabaseType.S3:
+    elif arguments.metadata_database_type == PrivateDatabaseType.S3:
         client = boto3.client(
             "s3",
-            endpoint_url=args.metadata_endpoint_url,
-            aws_access_key_id=args.metadata_aws_access_key_id,
-            aws_secret_access_key=args.metadata_aws_secret_access_key,
+            endpoint_url=arguments.metadata_endpoint_url,
+            aws_access_key_id=arguments.metadata_aws_access_key_id,
+            aws_secret_access_key=arguments.metadata_aws_secret_access_key,
         )
         response = client.get_object(
-            Bucket=args.metadata_s3_bucket, Key=args.metadata_s3_key
+            Bucket=arguments.metadata_s3_bucket, Key=arguments.metadata_s3_key
         )
         try:
             metadata_dict = yaml.safe_load(response["Body"])
         except yaml.YAMLError as e:
-            return e
+            raise e
     else:
         raise ValueError(
-            f"Unknown database type {args.metadata_database_type}"
+            f"Unknown database type {arguments.metadata_database_type}"
         )
-    db.metadata.insert_one({args.dataset: metadata_dict})
+    db.metadata.insert_one({arguments.dataset: metadata_dict})
 
     print(
-        f"Added dataset {args.dataset} with database {args.database_type} "
-        f"and associated metadata."
+        f"Added dataset {arguments.dataset} with database "
+        f"{arguments.database_type} and associated metadata."
     )
 
 
 @connect
-def add_datasets(db: Database, args: argparse.Namespace) -> None:
+def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
     """
     Set all database types to datasets in dataset collection based
     on yaml file.
     """
-    if args.clean:
+    if arguments.clean:
         # Collection created from scratch
         db.datasets.drop()
         db.metadata.drop()
         print("Cleaning done. \n")
 
-    with open(args.path) as f:
+    with open(arguments.path, encoding="utf-8") as f:
         dataset_dict = yaml.safe_load(f)
 
     def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
@@ -320,21 +331,21 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
             existing_datasets.append(d)
 
     # Overwrite values for existing dataset with values from yaml
-    if args.overwrite_datasets:
-        if existing_datasets != []:
+    if arguments.overwrite_datasets:
+        if existing_datasets:
             for d in existing_datasets:
-                filter = {"dataset_name": d["dataset_name"]}
+                dataset_filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
-                db.datasets.update_many(filter, update_operation)
+                db.datasets.update_many(dataset_filter, update_operation)
             print(
                 f"Existing datasets updated with values"
-                f"from yaml at {args.path}. "
+                f"from yaml at {arguments.path}. "
             )
 
     # Add dataset collection
-    if new_datasets != []:
+    if new_datasets:
         db.datasets.insert_many(new_datasets)
-        print(f"Added datasets collection from yaml at {args.path}. ")
+        print(f"Added datasets collection from yaml at {arguments.path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict["datasets"]:
@@ -346,7 +357,9 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
             case PrivateDatabaseType.PATH:
                 verify_keys(d, "metadata_path", metadata=True)
 
-                with open(d["metadata"]["metadata_path"]) as f:
+                with open(
+                    d["metadata"]["metadata_path"], encoding="utf-8"
+                ) as f:
                     metadata_dict = yaml.safe_load(f)
 
             case PrivateDatabaseType.S3:
@@ -379,13 +392,13 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
                 )
 
         # Overwrite or not depending on config if metadata already exists
-        filter = {dataset_name: metadata_dict}
-        metadata = db.metadata.find_one(filter)
+        metadata_filter = {dataset_name: metadata_dict}
+        metadata = db.metadata.find_one(metadata_filter)
 
-        if metadata and args.overwrite_metadata:
+        if metadata and arguments.overwrite_metadata:
             print(f"Metadata updated for dataset : {dataset_name}.")
             db.metadata.update_one(
-                filter, {"$set": {dataset_name: metadata_dict}}
+                metadata_filter, {"$set": {dataset_name: metadata_dict}}
             )
         elif metadata:
             print(
@@ -398,30 +411,30 @@ def add_datasets(db: Database, args: argparse.Namespace) -> None:
 
 
 @connect
-def del_dataset(db: Database, args: argparse.Namespace) -> None:
+def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
     """
     Delete dataset from dataset collection.
     """
-    db.users.delete_many({"dataset_name": args.dataset_name})
-    print(f"Deleted dataset {args.dataset_name}.")
+    db.users.delete_many({"dataset_name": arguments.dataset_name})
+    print(f"Deleted dataset {arguments.dataset_name}.")
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266
 @connect
-def drop_collection(db: Database, args: argparse.Namespace) -> None:
+def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
     """
     Delete collection.
     """
-    eval(f"db.{args.collection}.drop()")
-    print(f"Deleted collection {args.collection}.")
+    db.drop_collection(arguments.collection)
+    print(f"Deleted collection {arguments.collection}.")
 
 
 @connect
-def show_collection(db: Database, args: argparse.Namespace) -> None:
+def show_collection(db: Database, arguments: argparse.Namespace) -> None:
     """
     Show a collection
     """
-    collection_query = db[args.collection].find({})
+    collection_query = db[arguments.collection].find({})
     collections = []
     for document in collection_query:
         document.pop("_id", None)

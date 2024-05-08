@@ -9,8 +9,6 @@ import requests
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 
-# Note: leaving this here. Support for opendp_polars
-# import polars
 
 # Opendp_logger
 enable_logging()
@@ -48,9 +46,9 @@ class Client:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
             return metadata
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def get_dummy_dataset(
         self,
@@ -70,9 +68,8 @@ class Client:
             data = res.content.decode("utf8")
             df = pd.read_csv(StringIO(data))
             return df
-        else:
-            print(error_message(res))
-            return None
+        print(error_message(res))
+        return None
 
     def smartnoise_query(
         self,
@@ -109,9 +106,9 @@ class Client:
                 response_dict["query_response"], orient="tight"
             )
             return response_dict
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def estimate_smartnoise_cost(
         self,
@@ -131,9 +128,8 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(error_message(res))
-            return None
+        print(error_message(res))
+        return None
 
     def opendp_query(
         self,
@@ -174,9 +170,9 @@ class Client:
                 # )
 
             return response_dict
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def estimate_opendp_cost(
         self,
@@ -193,9 +189,9 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def get_initial_budget(self) -> Optional[dict[str, float]]:
         body_json = {
@@ -205,9 +201,9 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def get_total_spent_budget(self) -> Optional[dict[str, float]]:
         body_json = {
@@ -217,9 +213,9 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def get_remaining_budget(self) -> Optional[dict[str, float]]:
         body_json = {
@@ -229,9 +225,9 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def get_previous_queries(self) -> Optional[List[dict]]:
         body_json = {
@@ -244,7 +240,7 @@ class Client:
                 "previous_queries"
             ]
 
-            if not len(queries):
+            if not queries:
                 return queries
 
             deserialised_queries = []
@@ -266,12 +262,15 @@ class Client:
                 deserialised_queries.append(query)
 
             return deserialised_queries
-        else:
-            print(error_message(res))
-            return None
+
+        print(error_message(res))
+        return None
 
     def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
         r = requests.post(
-            self.url + "/" + endpoint, json=body_json, headers=self.headers
+            self.url + "/" + endpoint,
+            json=body_json,
+            headers=self.headers,
+            timeout=50,
         )
         return r

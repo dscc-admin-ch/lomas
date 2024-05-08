@@ -5,9 +5,6 @@ from opendp_logger import make_load_json
 from constants import DPLibraries, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
 
-# Note: leaving this here, support for opendp_polars
-# import polars
-from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
@@ -22,12 +19,6 @@ PT_TYPE = "^py_type:*"
 
 
 class OpenDPQuerier(DPQuerier):
-    def __init__(
-        self,
-        private_dataset: PrivateDataset,
-    ) -> None:
-        super().__init__(private_dataset)
-
     def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
@@ -40,7 +31,7 @@ class OpenDPQuerier(DPQuerier):
         max_ids = self.private_dataset.get_metadata()["max_ids"]
         try:
             cost = opendp_pipe.map(d_in=int(max_ids))
-        except Exception:
+        except TypeError:
             try:
                 cost = opendp_pipe.map(d_in=float(max_ids))
             except Exception as e:
@@ -48,7 +39,12 @@ class OpenDPQuerier(DPQuerier):
                 raise ExternalLibraryException(
                     DPLibraries.OPENDP,
                     "Error obtaining cost:" + str(e),
-                )
+                ) from e
+        except Exception as e:
+            LOG.exception(e)
+            raise ExternalLibraryException(
+                DPLibraries.OPENDP, "Error obtaining cost:" + str(e)
+            ) from e
 
         # Cost interpretation
         match measurement_type:
@@ -86,7 +82,7 @@ class OpenDPQuerier(DPQuerier):
             raise ExternalLibraryException(
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
-            )
+            ) from e
 
         # Note: leaving this here, support for opendp_polars
         # if isinstance(release_data, polars.dataframe.frame.DataFrame):
@@ -120,16 +116,17 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     if output_measure == dp.measures.fixed_smoothed_max_divergence(
         T=output_type
     ):
-        return OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
+        measurement = OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
     elif output_measure == dp.measures.max_divergence(T=output_type):
-        return OpenDPMeasurement.MAX_DIVERGENCE
+        measurement = OpenDPMeasurement.MAX_DIVERGENCE
     elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
-        return OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
+        measurement = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
     elif output_measure == dp.measures.zero_concentrated_divergence(
         T=output_type
     ):
-        return OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
+        measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
         raise InternalServerException(
             f"Unknown type of output measure divergence: {output_measure}"
         )
+    return measurement

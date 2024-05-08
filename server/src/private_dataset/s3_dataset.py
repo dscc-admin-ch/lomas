@@ -15,27 +15,23 @@ class S3Dataset(PrivateDataset):
     def __init__(
         self,
         metadata: dict,
-        s3_bucket: str,
-        s3_key: str,
-        endpoint_url: str,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
+        s3_parameters: dict,
     ) -> None:
         """
         Parameters:
-            - s3_bucket: s3 bucket of the dataset
-            - s3_key: s3 key of the path to the dataset
+            - metadata: dataset_metadata
+            - s3_parameters: informations to access metadata
         """
         super().__init__(metadata)
 
         self.client = boto3.client(
             "s3",
-            endpoint_url=endpoint_url,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
+            endpoint_url=s3_parameters["s3_endpoint"],
+            aws_access_key_id=s3_parameters["s3_aws_access_key_id"],
+            aws_secret_access_key=s3_parameters["aws_secret_access_key"],
         )
-        self.s3_bucket: str = s3_bucket
-        self.s3_key: str = s3_key
+        self.s3_bucket: str = s3_parameters["s3_bucket"]
+        self.s3_key: str = s3_parameters["s3_key"]
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
@@ -57,9 +53,7 @@ class S3Dataset(PrivateDataset):
                 ) from err
 
             # Notify observer since memory usage has changed
-            [
+            for observer in self.dataset_observers:
                 observer.update_memory_usage()
-                for observer in self.dataset_observers
-            ]
 
         return self.df

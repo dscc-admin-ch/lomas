@@ -3,7 +3,13 @@ from typing import List
 
 import yaml
 
-from admin_database.admin_database import AdminDatabase
+from admin_database.admin_database import (
+    AdminDatabase,
+    dataset_must_exist,
+    user_must_exist,
+    user_must_have_access_to_dataset,
+)
+from utils.error_handler import InternalServerException
 
 
 class AdminYamlDatabase(AdminDatabase):
@@ -47,7 +53,7 @@ class AdminYamlDatabase(AdminDatabase):
 
         return False
 
-    @AdminDatabase._does_dataset_exist
+    @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         """
         Returns the metadata dictionnary of the dataset
@@ -63,7 +69,7 @@ class AdminYamlDatabase(AdminDatabase):
 
         return metadata
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def may_user_query(self, user_name: str) -> bool:
         """
         Checks if a user may query the server.
@@ -77,7 +83,7 @@ class AdminYamlDatabase(AdminDatabase):
         # if user not found, return false
         return False
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server.
@@ -92,7 +98,7 @@ class AdminYamlDatabase(AdminDatabase):
                 user["may_query"] = may_query
         self.database["users"] = users
 
-    @AdminDatabase._does_user_exist
+    @user_must_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:
@@ -151,7 +157,7 @@ class AdminYamlDatabase(AdminDatabase):
                         dataset[parameter] += spent_value
         self.database["users"] = users
 
-    @AdminDatabase._does_dataset_exist
+    @dataset_must_exist
     def get_dataset_field(
         self, dataset_name: str, key: str
     ) -> str:  # type: ignore
@@ -164,8 +170,11 @@ class AdminYamlDatabase(AdminDatabase):
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
                 return dt[key]
+        raise InternalServerException(
+            f"Field {key} does not exist for dataset {dataset_name}."
+        )
 
-    @AdminDatabase._has_user_access_to_dataset
+    @user_must_have_access_to_dataset
     def get_user_previous_queries(
         self,
         user_name: str,

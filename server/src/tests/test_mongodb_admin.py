@@ -34,9 +34,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
-        self.db_config: Config = get_config().admin_database
-        db_url: str = get_mongodb_url(self.db_config)
-        self.db: Database = MongoClient(db_url)[self.db_config.db_name]
+        self.db_config = get_config().admin_database
+        db_url = get_mongodb_url(self.db_config)
+        self.db = MongoClient(db_url)[self.db_config.db_name]
 
     def setUp(self) -> None:
         self.args = SimpleNamespace(**vars(get_config().admin_database))
@@ -56,7 +56,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.args.collection = "queries_archives"
         drop_collection(self.args)
 
-        self.args = None
+        self.args = None # type: ignore
 
     def test_add_user(self) -> None:
         self.args.user = "Tintin"

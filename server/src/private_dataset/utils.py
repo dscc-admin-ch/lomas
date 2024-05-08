@@ -44,15 +44,15 @@ def private_dataset_factory(
             s3_parameters["s3_endpoint"] = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
             )
-            s3_parameters[
-                "s3_aws_access_key_id"
-            ] = admin_database.get_dataset_field(
-                dataset_name, "aws_access_key_id"
+            s3_parameters["s3_aws_access_key_id"] = (
+                admin_database.get_dataset_field(
+                    dataset_name, "aws_access_key_id"
+                )
             )
-            s3_parameters[
-                "aws_secret_access_key"
-            ] = admin_database.get_dataset_field(
-                dataset_name, "aws_secret_access_key"
+            s3_parameters["aws_secret_access_key"] = (
+                admin_database.get_dataset_field(
+                    dataset_name, "aws_secret_access_key"
+                )
             )
             private_db = S3Dataset(ds_metadata, s3_parameters)
         case _:

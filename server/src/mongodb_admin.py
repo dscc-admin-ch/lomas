@@ -17,7 +17,7 @@ from warnings import warn
 
 def connect(
     function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+) -> Callable:
     """Connect to the database
 
     Args:
@@ -27,6 +27,7 @@ def connect(
     Returns:
         Callable: _description_
     """
+
     @functools.wraps(function)
     def wrap_function(*arguments: argparse.Namespace) -> None:
         """_summary_
@@ -42,58 +43,73 @@ def connect(
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
-    """ Creates a wrapper function that raises a ValueError if the supplied user does
-    not already exist in the user collection.
+    """Creates a wrapper function that raises a ValueError if the supplied
+    user does not already exist in the user collection.
     """
-    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+
+    def inner_func(
+        function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
             user = arguments[1].user
-            
+
             user_count = db.users.count_documents({"user_name": user})
-            
+
             if enforce_true and user_count == 0:
-                raise ValueError(f"User {user} does not exist in user collecion")
+                raise ValueError(
+                    f"User {user} does not exist in user collecion"
+                )
             elif not enforce_true and user_count > 0:
-                raise ValueError(f"User {user} already exists in user collection")
+                raise ValueError(
+                    f"User {user} already exists in user collection"
+                )
             return function(*arguments)
 
         return wrapper_decorator
+
     return inner_func
 
 
 def check_user_has_dataset(enforce_true: bool) -> Callable:
-    """ Creates a wrapper function that raises a ValueError if the supplied user does
-    not already exist in the user collection.
+    """Creates a wrapper function that raises a ValueError if the supplied
+    user does not already exist in the user collection.
     """
-    def inner_func(function: Callable[[Database, argparse.Namespace], None]
+
+    def inner_func(
+        function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
             user = arguments[1].user
             dataset = arguments[1].dataset
 
-            user_and_ds_count = db.users.count_documents({"user_name": user, "datasets_list": { "$elemMatch": {"dataset_name": dataset}}})
-                        
+            user_and_ds_count = db.users.count_documents(
+                {
+                    "user_name": user,
+                    "datasets_list": {"$elemMatch": {"dataset_name": dataset}},
+                }
+            )
+
             if enforce_true and user_and_ds_count == 0:
-                raise ValueError(f"User {user} does not have dataset {dataset}")
+                raise ValueError(
+                    f"User {user} does not have dataset {dataset}"
+                )
             elif not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
             return function(*arguments)
 
         return wrapper_decorator
+
     return inner_func
+
 
 def check_result_acknowledged(res: _WriteResult) -> None:
     if not res.acknowledged:
         raise Exception("Write request not acknowledged by MongoDB database.")
+
 
 ##########################  USERS  ########################## # noqa: E266
 @connect
@@ -119,7 +135,7 @@ def add_user(db: Database, arguments: argparse.Namespace) -> None:
     )
 
     check_result_acknowledged(res)
-    
+
     LOG.info(f"Added user {arguments.user}.")
 
 
@@ -211,10 +227,12 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     )
 
     check_result_acknowledged(res)
-    
+
     LOG.info(
-        f"Added access to dataset {arguments.dataset} to user {arguments.user}"
-        f" with budget epsilon {arguments.epsilon} and delta {arguments.delta}."
+        f"""Added access to dataset {arguments.dataset}
+        to user {arguments.user}"""
+        f""" with budget epsilon {arguments.epsilon}
+        and delta {arguments.delta}."""
     )
 
 
@@ -231,7 +249,11 @@ def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     """
     res = db.users.update_one(
         {"user_name": arguments.user},
-        {"$pull": {"datasets_list": {"dataset_name": {"$eq": arguments.dataset}}}},
+        {
+            "$pull": {
+                "datasets_list": {"dataset_name": {"$eq": arguments.dataset}}
+            }
+        },
     )
 
     check_result_acknowledged(res)
@@ -252,7 +274,7 @@ def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
     Args:
         db (Database): _description_
         arguments (argparse.Namespace): _description_
-    """  
+    """
     res = db.users.update_one(
         {
             "user_name": arguments.user,
@@ -278,7 +300,7 @@ def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
     Args:
         db (Database): _description_
         arguments (argparse.Namespace): _description_
-    """  
+    """
     res = db.users.update_one(
         {"user_name": arguments.user},
         {"$set": {"may_query": (arguments.value == "True")}},
@@ -340,7 +362,10 @@ def create_users_collection(
                     check_result_acknowledged(res)
                 LOG.info("Existing users updated. ")
             else:
-                warn("Some users already present in database. Overwrite is set to False.")
+                warn(
+                    """Some users already present in database.
+                    Overwrite is set to False."""
+                )
 
         if new_users:
             # Insert new users

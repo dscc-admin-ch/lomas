@@ -1,6 +1,5 @@
 import os
 from pymongo import MongoClient
-from pymongo.database import Database
 from types import SimpleNamespace
 import unittest
 
@@ -16,7 +15,7 @@ from mongodb_admin import (
     drop_collection,
     create_users_collection,
 )
-from utils.config import Config, get_config, CONFIG_LOADER
+from utils.config import get_config, CONFIG_LOADER
 from tests.constants import ENV_MONGO_INTEGRATION
 
 
@@ -56,7 +55,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.args.collection = "queries_archives"
         drop_collection(self.args)
 
-        self.args = None # type: ignore
+        self.args = None  # type: ignore
 
     def test_add_user(self) -> None:
         self.args.user = "Tintin"

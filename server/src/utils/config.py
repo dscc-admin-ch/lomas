@@ -202,7 +202,7 @@ class ConfigLoader(object):
     def get_config(self) -> Config:
         if self._config is None:
             self.load_config()
-        return self._config # type: ignore
+        return self._config  # type: ignore
 
 
 CONFIG_LOADER = ConfigLoader()

@@ -86,76 +86,115 @@ class Config(BaseModel):
 
 # Utility functions -----------------------------------------------------------
 
+class ConfigLoader(object):
+    """ Singleton object that holds the config for the server.
 
-def get_config() -> Config:
+    Initialises the config by calling load_config() with its
+    default arguments.
+
+    The config can be reloaded by calling load_config with
+    other arguments.
     """
-    Loads the config and the secret data from disk,
-    merges them and returns the config object.
-    """
-    try:
-        with open(CONFIG_PATH, mode="r", encoding="utf-8") as f:
-            config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]
 
-        # Merge secret data into config data
-        with open(SECRETS_PATH, mode="r", encoding="utf-8") as f:
-            secret_data = yaml.safe_load(f)
+    _instance = None
+    _config: Config = None
 
-            def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
-                for k, v in u.items():
-                    if isinstance(v, dict):
-                        d[k] = update(d.get(k, {}), v)
-                    else:
-                        d[k] = v
-                return d
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-            update(config_data, secret_data)
+    def load_config(
+        self,
+        config_path: str = CONFIG_PATH,
+        secrets_path: str = SECRETS_PATH) -> None:
+        """
+        Loads the config and the secret data from disk,
+        merges them and returns the config object.
+        """
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][CONF_SETTINGS]
 
-        server_config: Server = Server.model_validate(config_data[CONF_SERVER])
+            # Merge secret data into config data
+            with open(secrets_path, "r", encoding="utf-8") as f:
+                secret_data = yaml.safe_load(f)
 
-        db_type = config_data[CONF_DB][CONF_DB_TYPE]
-        match db_type:
-            case AdminDBType.MONGODB_TYPE:
-                admin_database_config = MongoDBConfig.model_validate(
-                    config_data[CONF_DB]
-                )
-            case AdminDBType.YAML_TYPE:
-                admin_database_config = YamlDBConfig.model_validate(
-                    config_data[CONF_DB]
-                )  # type: ignore
-            case _:
-                raise InternalServerException(
-                    f"Admin database type {db_type} not supported."
-                )
+                def update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
+                    for k, v in u.items():
+                        if isinstance(v, dict):
+                            d[k] = update(d.get(k, {}), v)
+                        else:
+                            d[k] = v
+                    return d
 
-        ds_store_type = config_data[CONF_DATASET_STORE][
-            CONF_DATASET_STORE_TYPE
-        ]
-        match ds_store_type:
-            case ConfDatasetStore.BASIC:
-                ds_store_config = DatasetStoreConfig.model_validate(
-                    config_data[CONF_DATASET_STORE]
-                )
-            case ConfDatasetStore.LRU:
-                ds_store_config = LRUDatasetStoreConfig.model_validate(
-                    config_data[CONF_DATASET_STORE]
-                )
-            case _:
-                raise InternalServerException(
-                    f"Dataset store {ds_store_type} not supported."
-                )
+                update(config_data, secret_data)
 
-        config: Config = Config(
-            develop_mode=config_data[CONF_DEV_MODE],
-            server=server_config,
-            submit_limit=config_data[CONF_SUBMIT_LIMIT],
-            admin_database=admin_database_config,
-            dataset_store=ds_store_config,
-        )
+            server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
 
-    except Exception as e:
-        raise InternalServerException(
-            f"Could not read config from disk at {CONFIG_PATH}"
-            + f" or missing fields: {e}"
-        ) from e
+            db_type = config_data[CONF_DB][CONF_DB_TYPE]
+            match db_type:
+                case AdminDBType.MONGODB_TYPE:
+                    admin_database_config = MongoDBConfig.model_validate(
+                        config_data[CONF_DB]
+                    )
+                case AdminDBType.YAML_TYPE:
+                    admin_database_config = YamlDBConfig.model_validate(
+                        config_data[CONF_DB]
+                    )  # type: ignore
+                case _:
+                    raise InternalServerException(
+                        f"Admin database type {db_type} not supported."
+                    )
 
-    return config
+            ds_store_type = config_data[CONF_DATASET_STORE][
+                CONF_DATASET_STORE_TYPE
+            ]
+            match ds_store_type:
+                case ConfDatasetStore.BASIC:
+                    ds_store_config = DatasetStoreConfig.model_validate(
+                        config_data[CONF_DATASET_STORE]
+                    )
+                case ConfDatasetStore.LRU:
+                    ds_store_config = LRUDatasetStoreConfig.model_validate(
+                        config_data[CONF_DATASET_STORE]
+                    )
+                case _:
+                    raise InternalServerException(
+                        f"Dataset store {ds_store_type} not supported."
+                    )
+
+            config: Config = Config(
+                develop_mode=config_data[CONF_DEV_MODE],
+                server=server_config,
+                submit_limit=config_data[CONF_SUBMIT_LIMIT],
+                admin_database=admin_database_config,
+                dataset_store=ds_store_config,
+            )
+        except Exception as e:
+            raise InternalServerException(
+                f"Could not read config from disk at {CONFIG_PATH}"
+                + f" or missing fields: {e}"
+            )
+
+        self._config = config
+
+    def set_config(self, config: Config) -> None:
+        self._config = config
+
+    def get_config(self) -> Config:
+        if self._config is None:
+            self.load_config()
+        return self._config
+
+
+CONFIG_LOADER = ConfigLoader()
+
+def get_config():
+    return CONFIG_LOADER.get_config()
+
+"""
+def reload_config() -> Config:
+    # Potentially?
+    return None
+"""

@@ -1,0 +1,25 @@
+name: Server Integration Testing
+
+on: 
+  pull_request:
+    branches: [ develop, master]
+  workflow_dispatch:
+  
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        cd server
+        pip install -r requirements.txt
+    - name: Run test script
+      run: |
+        cd server
+        chmod +x run_integration_tests.sh
+        ./run_integration_tests.sh

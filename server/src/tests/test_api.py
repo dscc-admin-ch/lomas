@@ -1,17 +1,16 @@
+from types import SimpleNamespace
+import os
+
 import json
 import unittest
 from io import StringIO
-
 import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
-import os
-from tests.constants import ENV_MONGO_INTEGRATION
-from types import SimpleNamespace
 
 from app import app
-
 from constants import DPLibraries, EPSILON_LIMIT
+from tests.constants import ENV_MONGO_INTEGRATION
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -25,12 +24,12 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
+from utils.config import get_config, CONFIG_LOADER
 from mongodb_admin import (
     create_users_collection,
     add_datasets,
     drop_collection,
 )
-from utils.config import get_config, CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -39,9 +38,9 @@ INITIAL_DELTA = 0.005
 class TestRootAPIEndpoint(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self) -> None:
+    def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
+        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
                 secrets_path="tests/test_configs/test_secrets.yaml",
@@ -53,7 +52,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             )
 
     @classmethod
-    def tearDownClass(self) -> None:
+    def tearDownClass(cls) -> None:
         pass
 
     def setUp(self) -> None:
@@ -67,7 +66,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.headers["user-name"] = self.user_name
 
         # Fill up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
+        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.clean = True
@@ -75,7 +74,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             args.path = "tests/test_data/test_user_collection.yaml"
             create_users_collection(args)
 
-            args.path = "tests/test_data/penguin_dataset.yaml"
+            args.path = "tests/test_data/test_datasets.yaml"
             args.dataset = "PENGUIN_DATASET"
             args.dataset_type = "LOCAL_DB"
             args.overwrite_datasets = True
@@ -84,7 +83,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, False)) is True:
+        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.collection = "metadata"

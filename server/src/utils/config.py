@@ -98,7 +98,7 @@ class ConfigLoader(object):
     """
 
     _instance = None
-    _config: Config = None
+    _config = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -202,7 +202,7 @@ class ConfigLoader(object):
     def get_config(self) -> Config:
         if self._config is None:
             self.load_config()
-        return self._config
+        return self._config # type: ignore
 
 
 CONFIG_LOADER = ConfigLoader()

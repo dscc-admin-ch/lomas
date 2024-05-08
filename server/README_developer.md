@@ -5,8 +5,11 @@
 To start the container on a local machine, go to `lomas/server/` and run `docker compose up`. 
 If you encounter any issue, you might want to run `docker compose down` first.
 
-### On a kubernetes cluser
--- TODO: can someone fill it: like as few lines as possible
+### On a kubernetes cluster
+To start the server on a kubernetes cluster, first add the repo with:
+`helm repo add lomas https://dscc-admin-ch.github.io/helm-charts`
+and then install the chart with:
+`helm install lomas-sever lomas/lomas-server`
 
 ### On Onyxia
 To start the server on Onyxia, select the `lomas `service, (optionnally adapt the administration and runtime parameters) et click on 'Lancer'.

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 
 from admin_database.utils import get_mongodb_url
-from mongodb_admin import (
+from administration.mongodb_admin import (
     add_user,
     add_user_with_budget,
     del_user,

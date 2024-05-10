@@ -16,7 +16,7 @@ from dp_queries.dummy_dataset import (
     get_dummy_dataset_for_query,
     make_dummy_dataset,
 )
-from mongodb_admin import (
+from administration.mongodb_admin import (
     add_datasets,
     create_users_collection,
     drop_collection,

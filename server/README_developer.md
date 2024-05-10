@@ -23,3 +23,11 @@ Therefore, go to `lomas/server/src` and run `python -m unittest discover -s .`
 
 ### In container
 The tests will be based on the config in `lomas/server/src/tests/test_config` and be executed with the AdminMongoDatabase. For this, go to `lomas/server/src` and run `python -m unittest discover -s .`
+
+## Streamlit App
+
+### On local machine
+Go to `lomas/server/src/` and run `streamlit run .\administration\dashboard\about.py`.
+
+### In container
+TODO

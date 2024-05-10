@@ -1,13 +1,13 @@
+import os
 import json
 import unittest
 from io import StringIO
+from types import SimpleNamespace
 
 import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
-import os
 from tests.constants import ENV_MONGO_INTEGRATION
-from types import SimpleNamespace
 
 from app import app
 
@@ -25,7 +25,7 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from mongodb_admin import (
+from administration.mongodb_admin import (
     create_users_collection,
     add_datasets,
     drop_collection,

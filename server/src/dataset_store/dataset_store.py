@@ -22,7 +22,7 @@ class DatasetStore(ABC):
 
     @abstractmethod
     def _add_dataset(self, dataset_name: str) -> None:
-        """_summary_
+        """Adds a dataset to the manager
 
         Args:
             dataset_name (str): _description_
@@ -30,7 +30,7 @@ class DatasetStore(ABC):
 
     @abstractmethod
     def get_querier(self, dataset_name: str, library: str) -> DPQuerier:
-        """_summary_
+        """Returns the querier for the given dataset and library
 
         Args:
             dataset_name (str): _description_

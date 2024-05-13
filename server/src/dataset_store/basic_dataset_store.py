@@ -33,7 +33,9 @@ class BasicDatasetStore(DatasetStore):
         self.admin_database = admin_database
 
     def _add_dataset(self, dataset_name: str) -> None:
-        """_summary_
+        """Adds all queriers for a dataset.
+        The source data is fetched from an online csv, the paths are stored
+        as constants for now.
 
         Args:
             dataset_name (str): _description_

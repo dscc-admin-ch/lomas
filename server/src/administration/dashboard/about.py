@@ -34,10 +34,8 @@ if __name__ == "__main__":
     
     st.title("Welcome!")
 
-    st.header("Introduction")
+    st.header("Lomas Administation Dashboard")
     st.write("""
-    Lomas Administation Dashboard
-    
     Users, datasets metadata and archives are managed via an 'admninistration database'. 
     Currently, the database is a MongoDB database is used. 
     - User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). 
@@ -53,21 +51,24 @@ if __name__ == "__main__":
 
     #### 2. Admin database Management
     Enables to manage admin db. 
-        User Management
-            add_user,
-            add_user_with_budget,
-            del_user,
-            add_dataset_to_user,
-            del_dataset_to_user,
-            set_budget_field,
-            set_may_query,
-            show_user,
-            create_users_collection,
-        Dataset Management (always with metadata)
-            add_dataset,
-            add_datasets,
-            del_dataset,
-        Database Content (quick global overview)
+    
+        - User Management
+            - add_user,
+            - add_user_with_budget,
+            - del_user,
+            - add_dataset_to_user,
+            - del_dataset_to_user,
+            - set_budget_field,
+            - set_may_query,
+            - show_user,
+            - create_users_collection,
+
+        - Dataset Management (always with metadata)
+            - add_dataset,
+            - add_datasets,
+            - del_dataset,
+
+        - Database Content (quick global overview)
             - full user collection 
             - full dataset collection 
             - full metadata collection

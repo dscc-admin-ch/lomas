@@ -1,7 +1,7 @@
 import docker
 import streamlit as st
 from administration.mongodb_admin import (
-    # add_user,
+    add_user,
     add_user_with_budget,
     del_user,
     add_dataset_to_user,
@@ -22,9 +22,14 @@ from administration.mongodb_admin import (
 # BACKEND
 ###############################################################################
 
-def add_user(name):
+def show_dataset(name): # TODO in mongodb_admin.py
     print(name)
-    pass
+
+def show_metadata_of_dataset(name): # TODO in mongodb_admin.py
+    print(name)
+
+def show_archives_of_user(name): # TODO in mongodb_admin.py
+    print(name)
 
 ###############################################################################
 # GUI and user interactions
@@ -48,7 +53,7 @@ if "server_container" not in st.session_state:
 
 with user_tab:
     st.subheader("Add user")
-    au_username = st.text_input("Username (add user)", value="", key="au_username_input")
+    au_username = st.text_input("Username (add user)", value="", key=None)
     if au_username:
         st.write("Click to add user", au_username, "to the list of users.")
         if st.button("Add user", on_click=add_user, args=(au_username,)):
@@ -103,6 +108,19 @@ with user_tab:
             st.write(f"Dataset {adtu_dataset} was added to user {adtu_username}.")
 
     st.subheader("Remove dataset from user")
+    rdtu_1, rdtu_2 = st.columns(2)
+    with rdtu_1:
+        rdtu_username = st.text_input("Username (remove dataset from user)", None)
+    with rdtu_2:
+        rdtu_dataset = st.text_input("Dataset (remove dataset from user)", None)
+    if rdtu_username and rdtu_dataset:
+        st.write("Click to remove dataset", rdtu_dataset, "from user", adtu_username)
+        if st.button(
+            "Remove dataset from user",
+            on_click=del_dataset_to_user,
+            args=(rdtu_username, rdtu_dataset),
+        ):
+            st.write(f"Dataset {rdtu_dataset} was removed from user {rdtu_username}.")
 
     st.subheader("Set user epsilon")
 
@@ -124,11 +142,40 @@ with dataset_tab:
 
 
 with content_tab:
-    st.subheader("Show a collection")
-    # user, dataset, metadata, (archives ? - do we show archive @Raphael?)
+    st.subheader("Show collection")
+    col_users, col_datasets, col_metadata, col_archives = st.columns(4)
+    with col_users:
+        st.button("Show all users", on_click=show_collection, args=("users"),)
+        # TODO: display info
+    with col_datasets:
+        st.button("Show all datasets", on_click=show_collection, args=("datasets"),)
+        # TODO: display info
+    with col_metadata:
+        st.button("Show all metadata", on_click=show_collection, args=("datasets"),)
+        # TODO: display info
+    with col_archives:
+        st.button("Show archives", on_click=show_collection, args=("archives"),)
+        # TODO: display info
 
-    st.subheader("Show a user")
+    st.subheader("Show element")
+    elem_users, elem_archives = st.columns(2)
+    list_users = ("Dr. Antartica", "Dr. FSO") # TODO get from db
+    with elem_users:
+        option = st.selectbox("User to show", list_users)
+        st.write("Displaying information of:", option)
+        # TODO: display info
+    with elem_archives:
+        option = st.selectbox("Archives from user", list_users)
+        st.write("Displaying information of:", option)
+        # TODO: display info
 
-    st.subheader("Show a dataset")  # TODO function
-
-    st.subheader("Show metadata of a dataset")  # TODO function
+    elem_datasets, elem_metadata = st.columns(2)
+    list_datasets = ("PENGUIN", "IRIS") # TODO get from db
+    with elem_datasets:
+        option = st.selectbox("Dataset to show", list_datasets)
+        st.write("Displaying information of:", option)
+        # TODO: display info
+    with elem_metadata:
+        option = st.selectbox("Metadata to show from dataset", list_datasets)
+        st.write("Displaying information of:", option)
+        # TODO: display info

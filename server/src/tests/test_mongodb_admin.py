@@ -26,6 +26,8 @@ from tests.constants import ENV_MONGO_INTEGRATION
         environment variable not set to True.""",
 )
 class TestRootAPIEndpoint(unittest.TestCase):
+    """Class for testing mongodb admin database functionnalities"""
+
     @classmethod
     def setUpClass(self) -> None:
         CONFIG_LOADER.load_config(

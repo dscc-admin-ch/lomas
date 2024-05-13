@@ -6,16 +6,22 @@ from constants import DELTA_LIMIT, EPSILON_LIMIT
 
 
 class GetDbData(BaseModel):
+    """Model input to get information about a dataset"""
+
     dataset_name: str
 
 
 class GetDummyDataset(BaseModel):
+    """Model input to get a dummy dataset"""
+
     dataset_name: str
     dummy_nb_rows: int
     dummy_seed: int
 
 
 class SNSQLInp(BaseModel):
+    """Model input for a smarnoise-sql query"""
+
     query_str: str
     dataset_name: str
     epsilon: float = Field(
@@ -33,6 +39,8 @@ class SNSQLInp(BaseModel):
 
 
 class DummySNSQLInp(BaseModel):
+    """Model input for a smarnoise-sql dummy query"""
+
     query_str: str
     dataset_name: str
     dummy_nb_rows: int
@@ -44,6 +52,8 @@ class DummySNSQLInp(BaseModel):
 
 
 class SNSQLInpCost(BaseModel):
+    """Model input for a smarnoise-sql cost query"""
+
     query_str: str
     dataset_name: str
     epsilon: float
@@ -52,12 +62,16 @@ class SNSQLInpCost(BaseModel):
 
 
 class OpenDPInp(BaseModel):
+    """Model input for an opendp query"""
+
     dataset_name: str
     opendp_json: str
     fixed_delta: Optional[float] = None
 
 
 class DummyOpenDPInp(BaseModel):
+    """Model input for a dummy opendp query"""
+
     dataset_name: str
     opendp_json: str
     dummy_nb_rows: int

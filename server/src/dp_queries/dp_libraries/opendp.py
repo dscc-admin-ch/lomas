@@ -19,6 +19,8 @@ PT_TYPE = "^py_type:*"
 
 
 class OpenDPQuerier(DPQuerier):
+    """Class to handle opendp queries"""
+
     def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
         """_summary_
 

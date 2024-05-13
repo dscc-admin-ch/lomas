@@ -11,6 +11,8 @@ from utils.input_models import SNSQLInp, SNSQLInpCost
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
+    """Class to handle smartnoise-sql queries"""
+
     def __init__(
         self,
         private_dataset: PrivateDataset,

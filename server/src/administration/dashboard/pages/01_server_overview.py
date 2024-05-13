@@ -5,7 +5,7 @@ import streamlit as st
 ###############################################################################
 # BACKEND
 ###############################################################################
-url = "http://lomas_server_dev:80" # TODO get from config
+url = "http://lomas_server_dev:80"  # TODO get from config
 
 ###############################################################################
 # GUI and user interactions

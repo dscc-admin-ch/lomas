@@ -39,6 +39,14 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
 
 
 async def server_live() -> AsyncGenerator:
+    """_summary_
+
+    Args:
+        df (pd.DataFrame): _description_
+
+    Returns:
+        StreamingResponse: _description_
+    """
     if not app.SERVER_STATE["LIVE"]:
         raise InternalServerException(
             "Woops, the server did not start correctly."

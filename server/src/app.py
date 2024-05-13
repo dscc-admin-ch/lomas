@@ -143,6 +143,14 @@ app = FastAPI(lifespan=lifespan)
 async def middleware(
     request: Request, call_next: Callable[[Request], Response]
 ) -> Response:
+    """_summary_
+
+    Args:
+        df (pd.DataFrame): _description_
+
+    Returns:
+        StreamingResponse: _description_
+    """
     return await anti_timing_att(request, call_next, CONFIG)
 
 

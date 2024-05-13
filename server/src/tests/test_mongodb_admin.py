@@ -30,6 +30,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
     @classmethod
     def setUpClass(self) -> None:
+        """_summary_"""
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
@@ -40,9 +41,11 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.db: Database = MongoClient(db_url)[self.db_config.db_name]
 
     def setUp(self) -> None:
+        """_summary_"""
         self.args = SimpleNamespace(**vars(get_config().admin_database))
 
     def tearDown(self) -> None:
+        """_summary_"""
         self.args = SimpleNamespace(**vars(get_config().admin_database))
 
         self.args.collection = "metadata"
@@ -60,6 +63,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.args = None
 
     def test_add_user(self) -> None:
+        """_summary_"""
         self.args.user = "Tintin"
 
         # Add user
@@ -81,6 +85,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             add_user(self.args)
 
     def test_add_user_wb(self) -> None:
+        """_summary_"""
         self.args.user = "Tintin"
         self.args.dataset = "Bijoux de la Castafiore"
         self.args.epsilon = 10
@@ -111,6 +116,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             add_user_with_budget(self.args)
 
     def test_del_user(self) -> None:
+        """_summary_"""
         # Setup: add a user
         self.args.user = "Tintin"
         add_user(self.args)
@@ -127,6 +133,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             del_user(self.args)
 
     def test_add_dataset_to_user(self) -> None:
+        """_summary_"""
         self.args.user = "Tintin"
         self.args.dataset = "Bijoux de la Castafiore"
         self.args.epsilon = 10
@@ -165,6 +172,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             add_dataset_to_user(self.args)
 
     def test_del_dataset_to_user(self) -> None:
+        """_summary_"""
         # Setup: add user with dataset
         self.args.user = "Tintin"
         self.args.dataset = "Bijoux de la Castafiore"
@@ -199,6 +207,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             del_dataset_to_user(self.args)
 
     def test_set_budget_field(self) -> None:
+        """_summary_"""
         # Setup: add user with budget
         self.args.user = "Tintin"
         self.args.dataset = "Bijoux de la Castafiore"
@@ -245,6 +254,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             set_budget_field(self.args)
 
     def test_set_may_query(self) -> None:
+        """_summary_"""
         # Setup: add user with budget
         self.args.user = "Tintin"
         self.args.dataset = "PENGUIN"
@@ -283,6 +293,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             set_may_query(self.args)
 
     def test_create_users_collection(self) -> None:
+        """_summary_"""
         # Adding two users
         self.args.path = "./tests/test_data/test_user_collection.yaml"
         self.args.clean = False

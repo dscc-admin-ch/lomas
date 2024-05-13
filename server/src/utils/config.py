@@ -219,9 +219,11 @@ class ConfigLoader(object):
         self._config = config
 
     def set_config(self, config: Config) -> None:
+        """Configuration setter"""
         self._config = config
 
     def get_config(self) -> Config:
+        """Configuration getter"""
         if self._config is None:
             self.load_config()
         return self._config
@@ -230,7 +232,8 @@ class ConfigLoader(object):
 CONFIG_LOADER = ConfigLoader()
 
 
-def get_config():
+def get_config() -> Config:
+    """Getter for the configuration"""
     return CONFIG_LOADER.get_config()
 
 

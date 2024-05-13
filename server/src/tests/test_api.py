@@ -37,7 +37,6 @@ INITIAL_DELTA = 0.005
 
 
 class TestRootAPIEndpoint(unittest.TestCase):
-
     @classmethod
     def setUpClass(self) -> None:
         # Read correct config depending on the database we test against
@@ -225,9 +224,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise["query_str"] = (
-                "SELECT AVG(bill) FROM df"  # no 'bill' column
-            )
+            input_smartnoise[
+                "query_str"
+            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,

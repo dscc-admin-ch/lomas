@@ -36,7 +36,12 @@ if __name__ == "__main__":
 
     st.header("Introduction")
     st.write("""
-    Lomas dashboard
+    Lomas Administation Dashboard
+    
+    Users, datasets metadata and archives are managed via an 'admninistration database'. 
+    Currently, the database is a MongoDB database is used. 
+    - User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). 
+    - Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
     """)
 
     st.header("Tabs explanation")
@@ -48,6 +53,25 @@ if __name__ == "__main__":
 
     #### 2. Admin database Management
     Enables to manage admin db. 
-        user (add, remove, may_query) etc
-        datasets (add, remove, metadata) etc
+        User Management
+            add_user,
+            add_user_with_budget,
+            del_user,
+            add_dataset_to_user,
+            del_dataset_to_user,
+            set_budget_field,
+            set_may_query,
+            show_user,
+            create_users_collection,
+        Dataset Management (always with metadata)
+            add_dataset,
+            add_datasets,
+            del_dataset,
+        Database Content (quick global overview)
+            - full user collection 
+            - full dataset collection 
+            - full metadata collection
+            - full archives collection
+            - a user with all info + all his/her queries.
+            - a dataset will all info + metadata + all queries and by who on it (use archive as well).
     """)

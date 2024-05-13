@@ -1,11 +1,11 @@
+import requests
 import streamlit as st
 
-from app import SERVER_STATE
 
 ###############################################################################
 # BACKEND
 ###############################################################################
-
+url = "http://lomas_server_dev:80" # TODO get from config
 
 ###############################################################################
 # GUI and user interactions
@@ -16,4 +16,12 @@ st.set_page_config(layout="wide")
 
 st.title("Lomas server overview")
 
-st.write(f"Server live : {SERVER_STATE['LIVE']}")
+st.subheader("Server state")
+# state = requests.post(f"{url}/state", timeout=50)
+# st.write(f"Server live : {state}")
+
+st.subheader("Server config")
+# show config
+
+st.subheader("Server data")
+# show memory used ? and other stuff if we want

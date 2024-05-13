@@ -353,7 +353,7 @@ def create_users_collection(
                 existing_users.append(user)
 
         # Overwrite values for existing user with values from yaml
-        if existing_users != []:
+        if existing_users:
             if arguments.overwrite:
                 for user in existing_users:
                     user_filter = {"user_name": user["user_name"]}

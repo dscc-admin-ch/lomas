@@ -5,6 +5,8 @@ from utils.example_inputs import DUMMY_NB_ROWS, DUMMY_SEED
 
 
 class TestMakeDummyDataset(unittest.TestCase):
+    """Class to test dummy dataset generation"""
+
     def test_cardinality_column(self) -> None:
         """_summary_"""
         metadata = {

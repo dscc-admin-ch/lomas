@@ -25,7 +25,11 @@ from utils.loggr import LOG
 
 # put these in mongodb_admin.py (+ tests). Here for now to avoid conflicts.
 from pymongo.database import Database
-def del_metadata_of_dataset(db: Database, dataset_name: str) -> None:  # TODO put in mongodb_admin.py + test
+
+
+def del_metadata_of_dataset(
+    db: Database, dataset_name: str
+) -> None:  # TODO put in mongodb_admin.py + test
     """Delete metadata from metadata collection.
 
     Args:
@@ -35,7 +39,10 @@ def del_metadata_of_dataset(db: Database, dataset_name: str) -> None:  # TODO pu
     db.metadata.delete_many({"dataset_name": dataset_name})
     LOG.info(f"Deleted ¨metadata {dataset_name}.")
 
-def show_dataset(db: Database, dataset_name:str) -> None:  # TODO in mongodb_admin.py + test
+
+def show_dataset(
+    db: Database, dataset_name: str
+) -> None:  # TODO in mongodb_admin.py + test
     """Show a dataset from dataset collection.
 
     Args:
@@ -46,7 +53,10 @@ def show_dataset(db: Database, dataset_name:str) -> None:  # TODO in mongodb_adm
     dataset.pop("_id", None)
     LOG.info(dataset)
 
-def show_metadata_of_dataset(db: Database, dataset_name:str) -> None:  # TODO in mongodb_admin.py + test
+
+def show_metadata_of_dataset(
+    db: Database, dataset_name: str
+) -> None:  # TODO in mongodb_admin.py + test
     """Show a metadata from metadata collection.
 
     Args:
@@ -57,7 +67,10 @@ def show_metadata_of_dataset(db: Database, dataset_name:str) -> None:  # TODO in
     metadata.pop("_id", None)
     LOG.info(metadata)
 
-def show_archives_of_user(db: Database, user_name: str) -> None:  # TODO in mongodb_admin.py + test
+
+def show_archives_of_user(
+    db: Database, user_name: str
+) -> None:  # TODO in mongodb_admin.py + test
     archives = list(db.archives.find_many({"user_name": user_name}))
     LOG.info(archives)
 
@@ -377,7 +390,9 @@ with content_tab:
 with deletion_tab:
     _, center, _ = st.columns(3)
     with center:
-        st.markdown(":warning: :red[**Danger Zone: deleting is final**] :warning:")
+        st.markdown(
+            ":warning: :red[**Danger Zone: deleting is final**] :warning:"
+        )
 
     st.subheader("Delete full collection")
     d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)

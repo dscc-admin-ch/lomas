@@ -25,11 +25,17 @@ from utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
+    """BaseModel for method and arguments for against side-channel
+    timing attacks protection in middleware
+    """
+
     method: Literal["jitter", "stall"]
     magnitude: float
 
 
 class Server(BaseModel):
+    """BaseModel forparameters for uvicorn serve"""
+
     time_attack: TimeAttack
     host_ip: str
     host_port: int
@@ -39,22 +45,36 @@ class Server(BaseModel):
 
 
 class DatasetStoreConfig(BaseModel):
+    """BaseModel for specifying type of dataset store"""
+
     ds_store_type: ConfDatasetStore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
+    """BaseModel for LRU dataset store type specific configurations"""
+
     max_memory_usage: int
 
 
 class DBConfig(BaseModel):
+    """BaseModel for specifying type of admin database"""
+
     db_type: str = AdminDBType
 
 
 class YamlDBConfig(DBConfig):
+    """BaseModel for YAML specific configurations in case
+    of a yaml admin database
+    """
+
     db_file: str
 
 
 class MongoDBConfig(DBConfig):
+    """BaseModel for MongoDB specific configurations in case
+    of a MongoDB admin database
+    """
+
     address: str
     port: int
     username: str
@@ -63,6 +83,8 @@ class MongoDBConfig(DBConfig):
 
 
 class Config(BaseModel):
+    """BaseModel for high-level configurations of the server"""
+
     # Develop mode
     develop_mode: bool
 

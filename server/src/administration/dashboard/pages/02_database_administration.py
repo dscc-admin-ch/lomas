@@ -1,4 +1,3 @@
-import docker
 import streamlit as st
 from administration.mongodb_admin import (
     add_user,
@@ -17,23 +16,50 @@ from administration.mongodb_admin import (
     show_collection,
 )
 from constants import PrivateDatabaseType
+from utils.loggr import LOG
 
 
 ###############################################################################
 # BACKEND
 ###############################################################################
 
+# put these in mongodb_admin.py (+ tests). Here for now to avoid conflicts.
+from pymongo.database import Database
+def del_metadata_of_dataset(db: Database, dataset_name: str) -> None:  # TODO put in mongodb_admin.py + test
+    """Delete metadata from metadata collection.
 
-def show_dataset(name):  # TODO in mongodb_admin.py
-    print(name)
+    Args:
+        db (Database): administration database
+        dataset_name: name of the metadata dataset to delete
+    """
+    db.metadata.delete_many({"dataset_name": dataset_name})
+    LOG.info(f"Deleted ¨metadata {dataset_name}.")
 
+def show_dataset(db: Database, dataset_name:str) -> None:  # TODO in mongodb_admin.py + test
+    """Show a dataset from dataset collection.
 
-def show_metadata_of_dataset(name):  # TODO in mongodb_admin.py
-    print(name)
+    Args:
+        db (Database): administration database
+        dataset_name (str): name of the dataset to show
+    """
+    dataset = list(db.datasets.find({"dataset_name": dataset_name}))[0]
+    dataset.pop("_id", None)
+    LOG.info(dataset)
 
+def show_metadata_of_dataset(db: Database, dataset_name:str) -> None:  # TODO in mongodb_admin.py + test
+    """Show a metadata from metadata collection.
 
-def show_archives_of_user(name):  # TODO in mongodb_admin.py
-    print(name)
+    Args:
+        db (Database): administration database
+        dataset_name (str): name of the dataset of the metadata to show
+    """
+    metadata = list(db.metadata.find({"dataset_name": dataset_name}))[0]
+    metadata.pop("_id", None)
+    LOG.info(metadata)
+
+def show_archives_of_user(db: Database, user_name: str) -> None:  # TODO in mongodb_admin.py + test
+    archives = list(db.archives.find_many({"user_name": user_name}))
+    LOG.info(archives)
 
 
 ###############################################################################
@@ -46,15 +72,13 @@ st.set_page_config(layout="wide")
 st.title("Admin Database Management")
 
 user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
-    ["User Management", "Dataset Management", "View Database Content", "Delete Content (DANGEROUS)"]
+    [
+        ":technologist: User Management",
+        ":file_cabinet: Dataset Management",
+        ":eyes: View Database Content",
+        ":wastebasket: Delete Content (:red[DANGEROUS])",
+    ]
 )
-
-if "server_container" not in st.session_state:
-    with st.spinner("Loading..."):
-        client = docker.DockerClient()
-        st.session_state["server_container"] = client.containers.get(
-            "lomas_server_dev"
-        )
 
 with user_tab:
     st.subheader("Add user")
@@ -113,7 +137,9 @@ with user_tab:
     with sue_2:
         sue_dataset = st.text_input("Dataset (modify user epsilon)", None)
     with sue_3:
-        sue_epsilon = st.number_input("Epsilon value (modify user epsilon)", None)
+        sue_epsilon = st.number_input(
+            "Epsilon value (modify user epsilon)", None
+        )
     if sue_username and sue_dataset and sue_epsilon:
         st.write(
             "Click to modify initial epsilon value from user",
@@ -124,7 +150,7 @@ with user_tab:
             sue_epsilon,
         )
         if st.button(
-            "Set user epsilon",
+            "Modify user epsilon",
             on_click=set_budget_field,
             args=(sue_username, sue_dataset, "initial_epsilon"),
         ):
@@ -154,7 +180,7 @@ with user_tab:
         ):
             st.write(f"User {sud_username} delta value was modified.")
 
-    st.subheader("Set user may query")
+    st.subheader("Modify user may query")
     umq_1, umq_2 = st.columns(2)
     with umq_1:
         umq_username = st.text_input("Username (user may query)", None)
@@ -165,7 +191,7 @@ with user_tab:
             f"Change user {umq_username} may query to", umq_may_query, "."
         )
         if st.button(
-            "Set user may query",
+            "Modify user may query",
             on_click=set_may_query,
             args=(umq_username, umq_may_query),
         ):
@@ -349,40 +375,44 @@ with content_tab:
         # TODO: display info
 
 with deletion_tab:
+    _, center, _ = st.columns(3)
+    with center:
+        st.markdown(":warning: :red[**Danger Zone: deleting is final**] :warning:")
+
     st.subheader("Delete full collection")
     d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)
     with d_col_users:
         if st.button(
-                "Delete all datasets",
-                on_click=drop_collection,
-                args=("datasets"),
-            ):
-                st.write("Datasets were all deleted.")
-    
+            "Delete all datasets",
+            on_click=drop_collection,
+            args=("datasets"),
+        ):
+            st.write("Datasets were all deleted.")
+
     with d_col_datasets:
         if st.button(
-                "Delete all metadata",
-                on_click=drop_collection,
-                args=("metadata"),
-            ):
-                st.write("Metadata were all deleted.")
+            "Delete all metadata",
+            on_click=drop_collection,
+            args=("metadata"),
+        ):
+            st.write("Metadata were all deleted.")
 
     with d_col_metadata:
         if st.button(
-                "Delete all users",
-                on_click=drop_collection,
-                args=("users"),
-            ):
-                st.write("Users were all deleted.")
-    
+            "Delete all users",
+            on_click=drop_collection,
+            args=("users"),
+        ):
+            st.write("Users were all deleted.")
+
     with d_col_archives:
         if st.button(
-                "Delete all archives",
-                on_click=drop_collection,
-                args=("archives"),
-            ):
-                st.write("Archives were all deleted.")
-                
+            "Delete all archives",
+            on_click=drop_collection,
+            args=("archives"),
+        ):
+            st.write("Archives were all deleted.")
+
     st.subheader("Delete one element")
     st.markdown("**Delete one user**")
     du_username = st.text_input("Username (delete user)", None)
@@ -417,14 +447,29 @@ with deletion_tab:
             )
 
     st.markdown("**Remove dataset**")
-    rd_username = st.text_input("Dataset (remove dataset)", None)
-    if rd_username:
+    rd_dataset = st.text_input("Dataset (remove dataset)", None)
+    if rd_dataset:
         st.write(
             "Click to delete dataset",
-            rd_username,
+            rd_dataset,
             "from the list of datasets.",
         )
         if st.button(
-            "Delete dataset", on_click=del_dataset, args=(rd_username,)
+            "Delete dataset", on_click=del_dataset, args=(rd_dataset,)
         ):
-            st.write(f"Dataset {rd_username} was deleted.")
+            st.write(f"Dataset {rd_dataset} was deleted.")
+
+    st.markdown("**Remove metadata from dataset**")
+    rm_dataset = st.text_input("Dataset (remove metadata)", None)
+    if rm_dataset:
+        st.write(
+            "Click to delete dataset",
+            rm_dataset,
+            "from the list of datasets.",
+        )
+        if st.button(
+            "Delete metadata",
+            on_click=del_metadata_of_dataset,
+            args=(rm_dataset,),
+        ):
+            st.write(f"Metadata from {rm_dataset} was deleted.")

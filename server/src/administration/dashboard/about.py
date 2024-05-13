@@ -37,10 +37,12 @@ if __name__ == "__main__":
     st.header("Lomas Administation Dashboard")
     st.write(
         """
-    Users, datasets metadata and archives are managed via an 'admninistration database'.
-    Currently, the database is a MongoDB database is used.
-    - User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives").
-    - Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
+    The administration dashboard enables to control the state of the server.
+    It displays informations about the client-facing HTTP server and the administration database.
+    - In the first tab, the state of the server and URL to access it via the client are shown.
+    - In the second tab, it is possible to interact with the administration database to manage:
+        - User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user ("archives").
+        - Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
     """
     )
 
@@ -53,14 +55,12 @@ if __name__ == "__main__":
     See SERVER_STATE (running or not)
 
     #### 2. Admin database Management
-    Enables to manage admin db.
+    Enables to manage admin db. # TODO refer to doc or one line each
 
         - User Management
             - add_user,
             - add_user_with_budget,
-            - del_user,
             - add_dataset_to_user,
-            - del_dataset_to_user,
             - set_budget_field,
             - set_may_query,
             - show_user,
@@ -69,9 +69,8 @@ if __name__ == "__main__":
         - Dataset Management (always with metadata)
             - add_dataset,
             - add_datasets,
-            - del_dataset,
 
-        - Database Content (quick global overview)
+        - View Database Content
             - full user collection
             - full dataset collection
             - full metadata collection
@@ -80,5 +79,15 @@ if __name__ == "__main__":
             - all queries of a users
             - a dataset will all info
             - metadata of a dataset
+            
+        - Delete Content (DANGEROUS)
+            - delete full user collection
+            - delete full dataset collection
+            - delete full metadata collection
+            - delete full archives collection
+            - delete a user with all info 
+            - remove dataset from a users
+            - delete a dataset
+            - delete metadata of a dataset
     """
-)
+    )

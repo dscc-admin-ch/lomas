@@ -10,12 +10,10 @@ services:
       - 80:80
     restart: always
     volumes:
-      - ./src:/code/
+      - ./lomas_server:/code/
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./data/:/data/
-    environment:
-      - IN_CONTAINER=1
     depends_on:
       - mongodb
     networks:

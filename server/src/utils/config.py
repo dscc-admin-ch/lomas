@@ -87,7 +87,7 @@ class Config(BaseModel):
 # Utility functions -----------------------------------------------------------
 
 
-class ConfigLoader(object):
+class ConfigLoader:
     """Singleton object that holds the config for the server.
 
     Initialises the config by calling load_config() with its
@@ -192,7 +192,7 @@ class ConfigLoader(object):
             raise InternalServerException(
                 f"Could not read config from disk at {CONFIG_PATH}"
                 + f" or missing fields: {e}"
-            )
+            ) from e
 
         self._config = config
 
@@ -210,10 +210,3 @@ CONFIG_LOADER = ConfigLoader()
 
 def get_config():
     return CONFIG_LOADER.get_config()
-
-
-"""
-def reload_config() -> Config:
-    # Potentially?
-    return None
-"""

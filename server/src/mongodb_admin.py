@@ -1,18 +1,19 @@
 import argparse
 import functools
 from typing import Callable
+from warnings import warn
 
 import boto3
-import yaml
 from pymongo import MongoClient
 from pymongo.database import Database
+from pymongo.errors import WriteConcernError
+from pymongo.results import _WriteResult
+import yaml
 
 from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
-from pymongo.results import _WriteResult
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
-from warnings import warn
 
 
 def connect(
@@ -61,10 +62,12 @@ def check_user_exists(enforce_true: bool) -> Callable:
                 raise ValueError(
                     f"User {user} does not exist in user collecion"
                 )
-            elif not enforce_true and user_count > 0:
+
+            if not enforce_true and user_count > 0:
                 raise ValueError(
                     f"User {user} already exists in user collection"
                 )
+
             return function(*arguments)
 
         return wrapper_decorator
@@ -97,8 +100,58 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
                 raise ValueError(
                     f"User {user} does not have dataset {dataset}"
                 )
-            elif not enforce_true and user_and_ds_count > 0:
+
+            if not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
+
+            return function(*arguments)
+
+        return wrapper_decorator
+
+    return inner_func
+
+
+def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
+    """Creates a wrapper function that raises a ValueError
+    if the supplied user does not already exist in the user collection.
+    """
+
+    def inner_func(
+        function: Callable[[Database, argparse.Namespace], None]
+    ) -> Callable:
+        @functools.wraps(function)
+        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
+            db = arguments[0]
+            dataset = arguments[1].dataset
+
+            dataset_count = db.datasets.count_documents(
+                {"dataset_name": dataset}
+            )
+
+            if enforce_true and dataset_count == 0:
+                raise ValueError(
+                    f"Dataset {dataset} does not exist in dataset collecion"
+                )
+            if not enforce_true and dataset_count > 0:
+                raise ValueError(
+                    f"Dataset {dataset} already exists in dataset collection"
+                )
+
+            metadata_count = db.metadata.count_documents(
+                {dataset: {"$exists": True}}
+            )
+
+            if enforce_true and metadata_count == 0:
+                raise ValueError(
+                    f"Metadata for dataset {dataset} does"
+                    "not exist in metadata collecion"
+                )
+            if not enforce_true and metadata_count > 0:
+                raise ValueError(
+                    f"Metadata for dataset {dataset} already"
+                    "exists in metadata collection"
+                )
+
             return function(*arguments)
 
         return wrapper_decorator
@@ -108,7 +161,9 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
 def check_result_acknowledged(res: _WriteResult) -> None:
     if not res.acknowledged:
-        raise Exception("Write request not acknowledged by MongoDB database.")
+        raise WriteConcernError(
+            "Write request not acknowledged by MongoDB database."
+        )
 
 
 ##########################  USERS  ########################## # noqa: E266
@@ -229,10 +284,10 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     check_result_acknowledged(res)
 
     LOG.info(
-        f"""Added access to dataset {arguments.dataset}
-        to user {arguments.user}"""
-        f""" with budget epsilon {arguments.epsilon}
-        and delta {arguments.delta}."""
+        f"Added access to dataset {arguments.dataset}"
+        f"to user {arguments.user}"
+        f" with budget epsilon {arguments.epsilon}"
+        f" and delta {arguments.delta}."
     )
 
 
@@ -353,7 +408,7 @@ def create_users_collection(
                 existing_users.append(user)
 
         # Overwrite values for existing user with values from yaml
-        if existing_users != []:
+        if existing_users:
             if arguments.overwrite:
                 for user in existing_users:
                     user_filter = {"user_name": user["user_name"]}
@@ -363,8 +418,8 @@ def create_users_collection(
                 LOG.info("Existing users updated. ")
             else:
                 warn(
-                    """Some users already present in database.
-                    Overwrite is set to False."""
+                    "Some users already present in database."
+                    "Overwrite is set to False."
                 )
 
         if new_users:
@@ -378,6 +433,7 @@ def create_users_collection(
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @connect
+@check_dataset_and_metadata_exist(False)
 def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
     """Set a database type to a dataset in dataset collection.
 
@@ -396,7 +452,7 @@ def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
     if db.datasets.count_documents({"dataset_name": arguments.dataset}) > 0:
         raise ValueError("Cannot add database because already set. ")
 
-    # Step 1: add dataset
+    # Step 1: Build dataset
     dataset = {
         "dataset_name": arguments.dataset,
         "database_type": arguments.database_type,
@@ -412,13 +468,15 @@ def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
         dataset["aws_secret_access_key"] = arguments.aws_secret_access_key
     else:
         raise ValueError(f"Unknown database type {arguments.database_type}")
-    db.datasets.insert_one(dataset)
 
-    # Step 2: add metadata
+    # Step 2: Build metadata
+    dataset["metadata"] = {"database_type": arguments.metadata_database_type}
     if arguments.metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
         with open(arguments.metadata_path, encoding="utf-8") as f:
             metadata_dict = yaml.safe_load(f)
+
+        dataset["metadata"]["metadata_path"] = arguments.metadata_path
 
     elif arguments.metadata_database_type == PrivateDatabaseType.S3:
         client = boto3.client(
@@ -434,11 +492,27 @@ def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
             metadata_dict = yaml.safe_load(response["Body"])
         except yaml.YAMLError as e:
             raise e
+
+        dataset["metadata"]["s3_bucket"] = arguments.metadata_s3_bucket
+        dataset["metadata"]["s3_key"] = arguments.metadata_s3_key
+        dataset["metadata"]["endpoint_url"] = arguments.metadata_endpoint_url
+        dataset["metadata"][
+            "aws_access_key_id"
+        ] = arguments.metadata_aws_access_key_id
+        dataset["metadata"][
+            "aws_secret_access_key"
+        ] = arguments.metadata_aws_secret_access_key
+
     else:
         raise ValueError(
             f"Unknown database type {arguments.metadata_database_type}"
         )
-    db.metadata.insert_one({arguments.dataset: metadata_dict})
+
+    # Step 3: Insert into db
+    res = db.datasets.insert_one(dataset)
+    check_result_acknowledged(res)
+    res = db.metadata.insert_one({arguments.dataset: metadata_dict})
+    check_result_acknowledged(res)
 
     LOG.info(
         f"Added dataset {arguments.dataset} with database "
@@ -514,20 +588,27 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
             existing_datasets.append(d)
 
     # Overwrite values for existing dataset with values from yaml
-    if arguments.overwrite_datasets:
-        if existing_datasets:
+    if existing_datasets:
+        if arguments.overwrite_datasets:
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
-                db.datasets.update_many(dataset_filter, update_operation)
+                res = db.datasets.update_many(dataset_filter, update_operation)
+                check_result_acknowledged(res)
             LOG.info(
                 f"Existing datasets updated with values"
                 f"from yaml at {arguments.path}. "
             )
+        else:
+            warn(
+                "Some datasets already present in database."
+                "Overwrite is set to False."
+            )
 
     # Add dataset collection
     if new_datasets:
-        db.datasets.insert_many(new_datasets)
+        res = db.datasets.insert_many(new_datasets)
+        check_result_acknowledged(res)
         LOG.info(f"Added datasets collection from yaml at {arguments.path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
@@ -580,20 +661,23 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
 
         if metadata and arguments.overwrite_metadata:
             LOG.info(f"Metadata updated for dataset : {dataset_name}.")
-            db.metadata.update_one(
+            res = db.metadata.update_one(
                 metadata_filter, {"$set": {dataset_name: metadata_dict}}
             )
+            check_result_acknowledged(res)
         elif metadata:
             LOG.info(
                 "Metadata already exist. "
                 "Use the command -om to overwrite with new values."
             )
         else:
-            db.metadata.insert_one({dataset_name: metadata_dict})
+            res = db.metadata.insert_one({dataset_name: metadata_dict})
+            check_result_acknowledged(res)
             LOG.info(f"Added metadata of {dataset_name} dataset. ")
 
 
 @connect
+@check_dataset_and_metadata_exist(True)
 def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
     """Delete dataset from dataset collection.
 
@@ -601,8 +685,11 @@ def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
         db (Database): _description_
         arguments (argparse.Namespace): _description_
     """
-    db.users.delete_many({"dataset_name": arguments.dataset_name})
-    LOG.info(f"Deleted dataset {arguments.dataset_name}.")
+    res = db.datasets.delete_many({"dataset_name": arguments.dataset})
+    check_result_acknowledged(res)
+    res = db.metadata.delete_many({arguments.dataset: {"$exists": True}})
+    check_result_acknowledged(res)
+    LOG.info(f"Deleted dataset and metadata for {arguments.dataset}.")
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266
@@ -797,7 +884,7 @@ if __name__ == "__main__":
         func=create_users_collection
     )
 
-    #######################  ADD DATASETS  ####################### # noqa: E266
+    #######################  DATASETS  ####################### # noqa: E266
     # Create parser for dataset private database
     add_dataset_parser = subparsers.add_parser(
         "add_dataset",
@@ -872,6 +959,16 @@ if __name__ == "__main__":
         default=False,
     )
     add_datasets_parser.set_defaults(func=add_datasets)
+
+    # Create the parser for the "del_dataset" command
+    del_dataset_parser = subparsers.add_parser(
+        "del_dataset",
+        help="delete dataset and metadata from "
+        "datasets and metadata collection",
+        parents=[connection_parser],
+    )
+    del_dataset_parser.add_argument("-d", "--dataset", required=True, type=str)
+    del_dataset_parser.set_defaults(func=del_dataset)
 
     #######################  COLLECTIONS  ####################### # noqa: E266
     # Create the parser for the "drop_collection" command

@@ -154,7 +154,6 @@ class AdminDatabase(ABC):
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
         """
-        pass
 
     @abstractmethod
     @user_must_exist

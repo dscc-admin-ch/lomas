@@ -1,6 +1,7 @@
 <h1 align="center">
-<img src="https://raw.githubusercontent.com/dscc-admin-ch/lomas/develop/images/lomas_logo.svg" width="135">
+<img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
 </h1><br>
+
 
 # Lomas Platform
 

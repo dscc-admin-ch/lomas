@@ -1,3 +1,7 @@
+<h1 align="center">
+<img src="https://raw.githubusercontent.com/dscc-admin-ch/lomas/develop/images/lomas_logo.svg" width="135">
+</h1><br>
+
 # Lomas Platform
 
 The lomas platform follows a classic server/client model.

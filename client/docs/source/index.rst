@@ -16,7 +16,6 @@ Welcome to Lomas-client's documentation!
    api
    errors
    contributing
-   notebooks/Example
 
 Quickstart
 ------------

@@ -9,11 +9,31 @@ Welcome to Lomas-client's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :hidden:
 
    quickstart
    examples
    api
+   errors
    contributing
+   notebooks/Example
+
+Quickstart
+------------
+
+This is the quickstart guide for Lomas-client, providing initial setup and usage instructions.
+
+API
+------------
+
+This section provides the complete API reference for the Lomas-client package.
+
+
+Contributing
+------------
+
+We welcome contributions to Your Project. If you'd like to help, please read our contributing guidelines.
+
 
 Indices and tables
 ==================

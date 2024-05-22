@@ -2,6 +2,8 @@ from typing import List
 
 from pymongo import MongoClient
 from pymongo.database import Database
+from pymongo.errors import WriteConcernError
+from pymongo.results import _WriteResult
 
 from admin_database.admin_database import (
     AdminDatabase,
@@ -99,11 +101,39 @@ class AdminMongoDatabase(AdminDatabase):
         Args:
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
+
+        Raises:
+            WriteConcernError: If the result is not acknowledged.
         """
-        self.db.users.update_one(
+        res = self.db.users.update_one(
             {"user_name": f"{user_name}"},
             {"$set": {"may_query": may_query}},
         )
+        check_result_acknowledged(res)
+
+    @user_must_exist
+    def get_and_set_may_user_query(
+        self, user_name: str, may_query: bool
+    ) -> bool:
+        """
+        Atomic operation to check and set if the user may query the server.
+
+        (Set False before querying and True after updating budget)
+
+        Wrapped by :py:func:`user_must_exist`.
+
+        Args:
+            user_name (str): name of the user
+            may_query (bool): flag give or remove access to user
+
+        Returns:
+            bool: The may_query status of the user before the update.
+        """
+        res = self.db.users.find_one_and_update(
+            {"user_name": user_name}, {"$set": {"may_query": may_query}}
+        )
+
+        return res["may_query"]  # type: ignore
 
     @user_must_exist
     def has_user_access_to_dataset(
@@ -171,14 +201,19 @@ class AdminMongoDatabase(AdminDatabase):
             dataset_name (str): name of the dataset
             parameter (str): "current_epsilon" or "current_delta"
             spent_value (float): spending of epsilon or delta on last query
+
+        Raises:
+            WriteConcernError: If the result is not acknowledged.
+
         """
-        self.db.users.update_one(
+        res = self.db.users.update_one(
             {
                 "user_name": f"{user_name}",
                 "datasets_list.dataset_name": f"{dataset_name}",
             },
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )
+        check_result_acknowledged(res)
 
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
@@ -232,8 +267,27 @@ class AdminMongoDatabase(AdminDatabase):
             user_name (str): name of the user
             query_json (dict): json received from client
             response (dict): response sent to the client
+
+        Raises:
+            WriteConcernError: If the result is not acknowledged.
         """
         to_archive = super().prepare_save_query(
             user_name, query_json, response
         )
-        self.db.queries_archives.insert_one(to_archive)
+        res = self.db.queries_archives.insert_one(to_archive)
+        check_result_acknowledged(res)
+
+
+def check_result_acknowledged(res: _WriteResult) -> None:
+    """Raises an exception if the result is not acknowledged.
+
+    Args:
+        res (_WriteResult): The PyMongo WriteResult to check.
+
+    Raises:
+        WriteConcernError: If the result is not acknowledged.
+    """
+    if not res.acknowledged:
+        raise WriteConcernError(
+            "Write request not acknowledged by MongoDB database."
+        )

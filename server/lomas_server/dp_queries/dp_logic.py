@@ -138,15 +138,14 @@ class QueryHandler:
                   for the query.
 
         """
-        # Check that user may query
-        if not self.admin_database.may_user_query(user_name):
+        # Block access to other queries to user
+        if not self.admin_database.get_and_set_may_user_query(
+            user_name, False
+        ):
             raise UnauthorizedAccessException(
                 f"User {user_name} is trying to query"
                 + " before end of previous query."
             )
-
-        # Block access to other queries to user
-        self.admin_database.set_may_user_query(user_name, False)
 
         try:
             # Get querier

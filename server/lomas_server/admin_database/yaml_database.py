@@ -116,6 +116,33 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @user_must_exist
+    def get_and_set_may_user_query(
+        self, user_name: str, may_query: bool
+    ) -> bool:
+        """
+        Atomic operation to check and set if the user may query the server.
+
+        (Set False before querying and True after updating budget)
+
+        Wrapped by :py:func:`user_must_exist`.
+
+        Args:
+            user_name (str): name of the user
+            may_query (bool): flag give or remove access to user
+
+        Returns:
+            bool: The may_query status of the user before the update.
+        """
+        users = self.database["users"]
+        for user in users:
+            if user["user_name"] == user_name:
+                old_may_query = user["may_query"]
+                user["may_query"] = may_query
+        self.database["users"] = users
+
+        return old_may_query
+
+    @user_must_exist
     def has_user_access_to_dataset(
         self, user_name: str, dataset_name: str
     ) -> bool:

@@ -26,25 +26,25 @@ class DPLibraries(StrEnum):
 
 
 def error_message(res: requests.Response) -> str:
-    """_summary_
+    """Generates an error message based on the HTTP response.
 
     Args:
-        res (requests.Response): _description_
+        res (requests.Response): The response object from an HTTP request.
 
     Returns:
-        str: _description_
+        str: A formatted string describing the server error, including the status code and response text.
     """
     return f"Server error status {res.status_code}: {res.text}"
 
 
 class Client:
     def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
-        """_summary_
+        """Initializes the Client with the specified URL, user name, and dataset name.
 
         Args:
-            url (str): _description_
-            user_name (str): _description_
-            dataset_name (str): _description_
+            url (str): The base URL for the API server.
+            user_name (str): The name of the user allowed to perform queries.
+            dataset_name (str): The name of the dataset to be accessed or manipulated.
         """
         self.url = url
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
@@ -54,11 +54,11 @@ class Client:
     def get_dataset_metadata(
         self,
     ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
-        """_summary_
+        """This function retrieves metadata for the dataset.
 
         Returns:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
-                _description_
+                A dictionary containing dataset metadata.
         """
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
@@ -76,14 +76,14 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[pd.DataFrame]:
-        """_summary_
+        """This function retrieves a dummy dataset with optional parameters.
 
         Args:
-            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+            nb_rows (int, optional): The number of rows in the dummy dataset. Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset. Defaults to DUMMY_SEED.
 
         Returns:
-            Optional[pd.DataFrame]: _description_
+            Optional[pd.DataFrame]: A Pandas DataFrame representing the dummy dataset.
         """
         res = self._exec(
             "get_dummy_dataset",
@@ -112,21 +112,34 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
-        """_summary_
+        """This function executes a SmartNoise query.
 
         Args:
-            query (str): _description_
-            epsilon (float): _description_
-            delta (float): _description_
-            mechanisms (dict[str, str], optional):
-                _description_. Defaults to {}.
-            postprocess (bool, optional): _description_. Defaults to True.
-            dummy (bool, optional): _description_. Defaults to False.
-            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+            query (str): The SQL query to execute. 
+                NOTE: the table name is df, the query must end with “FROM df”.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the query 
+                `See Smartnoise-SQL postprocessing documentation. 
+                <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__ 
+                
+                Defaults to {}.
+            postprocess (bool, optional): Whether to postprocess the query results. 
+                `See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__ 
+            
+                Defaults to True.
+            dummy (bool, optional): Whether to use a dummy dataset. 
+                
+                Defaults to False.
+            nb_rows (int, optional): The number of rows in the dummy dataset. 
+                
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset. 
+                
+                Defaults to DUMMY_SEED.
 
         Returns:
-            Optional[dict]: _description_
+            Optional[dict]: A Pandas DataFrame containing the query results.
         """
         body_json = {
             "query_str": query,
@@ -163,17 +176,16 @@ class Client:
         delta: float,
         mechanisms: dict[str, str] = {},
     ) -> Optional[dict[str, float]]:
-        """_summary_
+        """This function estimates the cost of executing a SmartNoise query.
 
         Args:
-            query (str): _description_
-            epsilon (float): _description_
-            delta (float): _description_
-            mechanisms (dict[str, str], optional):
-                _description_. Defaults to {}.
+            query (str): The SQL query to estimate the cost for. NOTE: the table name is df, the query must end with “FROM df”.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the query `See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__ Defaults to {}.
 
         Returns:
-            Optional[dict[str, float]]: _description_
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
         body_json = {
             "query_str": query,
@@ -197,21 +209,20 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
-        """_summary_
+        """This function executes an OpenDP query.
 
         Args:
-            opendp_pipeline (dp.Measurement): _description_
-            fixed_delta (Optional[float], optional): _description_.
-                Defaults to None.
-            dummy (bool, optional): _description_. Defaults to False.
-            nb_rows (int, optional): _description_. Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): _description_. Defaults to DUMMY_SEED.
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP (`See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__). In that case a fixed_delta must be provided by the user. Defaults to None.
+            dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
+            nb_rows (int, optional): The number of rows in the dummy dataset. Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset. Defaults to DUMMY_SEED.
 
         Raises:
-            Exception: _description_
+            Exception: If the server returns dataframes
 
         Returns:
-            Optional[dict]: _description_
+            Optional[dict]: A Pandas DataFrame containing the query results.
         """
         opendp_json = opendp_pipeline.to_json()
         body_json = {
@@ -253,16 +264,15 @@ class Client:
         opendp_pipeline: dp.Measurement,
         fixed_delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
-        """_summary_
+        """This function estimates the cost of executing an OpenDP query.
 
         Args:
-            opendp_pipeline (dp.Measurement):
-                _description_
-            fixed_delta (Optional[float], optional):
-                _description_. Defaults to None.
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP (`See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__). In that case a fixed_delta must be provided by the user. Defaults to None.
+            
 
         Returns:
-            Optional[dict[str, float]]: _description_
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
         opendp_json = opendp_pipeline.to_json()
         body_json = {
@@ -279,10 +289,10 @@ class Client:
         return None
 
     def get_initial_budget(self) -> Optional[dict[str, float]]:
-        """_summary_
+        """This function retrieves the initial budget.
 
         Returns:
-            Optional[dict[str, float]]: _description_
+            Optional[dict[str, float]]: A dictionary containing the initial budget.
         """
         body_json = {
             "dataset_name": self.dataset_name,
@@ -296,10 +306,10 @@ class Client:
         return None
 
     def get_total_spent_budget(self) -> Optional[dict[str, float]]:
-        """_summary_
+        """This function retrieves the total spent budget.
 
         Returns:
-            Optional[dict[str, float]]: _description_
+            Optional[dict[str, float]]: A dictionary containing the total spent budget.
         """
         body_json = {
             "dataset_name": self.dataset_name,
@@ -313,10 +323,10 @@ class Client:
         return None
 
     def get_remaining_budget(self) -> Optional[dict[str, float]]:
-        """_summary_
+        """This function retrieves the remaining budget.
 
         Returns:
-            Optional[dict[str, float]]: _description_
+            Optional[dict[str, float]]: A dictionary containing the remaining budget.
         """
         body_json = {
             "dataset_name": self.dataset_name,
@@ -330,13 +340,13 @@ class Client:
         return None
 
     def get_previous_queries(self) -> Optional[List[dict]]:
-        """_summary_
+        """This function retrieves the previous queries of the user.
 
         Raises:
-            ValueError: _description_
+            ValueError: If an unknown query type is encountered during deserialization.
 
         Returns:
-            Optional[List[dict]]: _description_
+            Optional[List[dict]]: A list of dictionary containing the different queries on the private dataset.
         """
         body_json = {
             "dataset_name": self.dataset_name,
@@ -375,14 +385,14 @@ class Client:
         return None
 
     def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
-        """_summary_
+        """Executes a POST request to the specified endpoint with the provided JSON body.
 
         Args:
-            endpoint (str): _description_
-            body_json (dict, optional): _description_. Defaults to {}.
+            endpoint (str): The API endpoint to which the request will be sent.
+            body_json (dict, optional): The JSON body to include in the POST request. Defaults to {}.
 
         Returns:
-            requests.Response: _description_
+            requests.Response: The response object resulting from the POST request.
         """
         r = requests.post(
             self.url + "/" + endpoint,

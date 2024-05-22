@@ -10,7 +10,10 @@ Welcome to Lomas-client's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   quickstart
+   examples
+   api
+   contributing
 
 Indices and tables
 ==================

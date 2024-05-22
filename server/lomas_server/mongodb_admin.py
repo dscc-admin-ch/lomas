@@ -6,11 +6,11 @@ from warnings import warn
 import boto3
 from pymongo import MongoClient
 from pymongo.database import Database
-from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
 import yaml
 
 from admin_database.utils import get_mongodb_url
+from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
@@ -175,21 +175,6 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
     return inner_func
 
 
-def check_result_acknowledged(res: _WriteResult) -> None:
-    """Raises an exception if the result is not acknowledged.
-
-    Args:
-        res (_WriteResult): The PyMongo WriteResult to check.
-
-    Raises:
-        Exception: If the result is not acknowledged.
-    """
-    if not res.acknowledged:
-        raise WriteConcernError(
-            "Write request not acknowledged by MongoDB database."
-        )
-
-
 ##########################  USERS  ########################## # noqa: E266
 @connect
 @check_user_exists(False)
@@ -203,7 +188,7 @@ def add_user(db: Database, arguments: argparse.Namespace) -> None:
 
     Raises:
         ValueError: If the user already exists.
-        Exception: If the write result is not acknowledged.
+        WriteConcernError: If the result is not acknowledged.
     """
 
     res = db.users.insert_one(

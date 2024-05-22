@@ -66,6 +66,7 @@ class Config(BaseModel):
     """
     Server runtime config.
     """
+
     # Develop mode
     develop_mode: bool
 
@@ -83,7 +84,7 @@ class Config(BaseModel):
 # Utility functions -----------------------------------------------------------
 
 
-class ConfigLoader():
+class ConfigLoader:
     """Singleton object that holds the config for the server.
 
     Initialises the config by calling load_config() with its

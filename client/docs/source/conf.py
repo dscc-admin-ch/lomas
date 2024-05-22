@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../../"))
-scripts = "../../lomas_server"
+scripts = "../../lomas_client"
 if scripts not in sys.path:
     sys.path.append(os.path.abspath(scripts))
 
@@ -35,7 +35,7 @@ release = '0.0.2'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc", "sphinx.ext.viewcode", "sphinx.ext.napoleon"
+    "sphinx.ext.autodoc", "sphinx.ext.viewcode", "sphinx.ext.napoleon", "nbsphinx",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,3 +59,6 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# The name of an image file (relative to this directory) to place at the top of the sidebar.
+html_logo = '_static/logo.png'

@@ -155,6 +155,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @dataset_must_exist
+    @user_must_have_access_to_dataset
     def get_dataset_metadata(self, dataset_name: str) -> dict:
         """
         Returns the metadata dictionnary of the dataset.
@@ -186,9 +187,9 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+    def set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
-        Sets if a user may query the server.
+        Sets if a user may query the server..
 
         (Set False before querying and True after updating budget)
 
@@ -197,6 +198,26 @@ class AdminDatabase(ABC):
         Args:
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
+        """
+
+    @abstractmethod
+    @user_must_exist
+    def get_and_set_may_user_query(
+        self, user_name: str, may_query: bool
+    ) -> bool:
+        """
+        Atomic operation to check and set if the user may query the server.
+
+        (Set False before querying and True after updating budget)
+
+        Wrapped by :py:func:`user_must_exist`.
+
+        Args:
+            user_name (str): name of the user
+            may_query (bool): flag give or remove access to user
+
+        Returns:
+            bool: The may_query status of the user before the update.
         """
 
     @abstractmethod

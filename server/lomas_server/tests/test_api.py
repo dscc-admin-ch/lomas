@@ -44,10 +44,11 @@ class TestRootAPIEndpoint(unittest.TestCase):
     or a standard test. The first requires a mongodb to be started
     before running while the latter will use a local YamlDatabase.
     """
+
     @classmethod
     def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
                 secrets_path="tests/test_configs/test_secrets.yaml",
@@ -73,7 +74,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
         self.headers["user-name"] = self.user_name
 
         # Fill up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.clean = True
@@ -90,7 +92,8 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if bool(os.getenv(ENV_MONGO_INTEGRATION, "0")):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.collection = "metadata"

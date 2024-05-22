@@ -21,10 +21,14 @@ jobs:
       - name: flake8 server
         uses: py-actions/flake8@v2
         with:
-          path: server/src
+          path: server/
       - name: flake8 client
         uses: py-actions/flake8@v2
         with:
           path: client
       - name: mypy
-        run: mypy .
+        run: |
+          cd client
+          mypy .
+          cd ../server
+          mypy .

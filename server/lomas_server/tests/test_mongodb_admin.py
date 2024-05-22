@@ -26,7 +26,8 @@ from tests.constants import ENV_MONGO_INTEGRATION
 
 
 @unittest.skipIf(
-    not (bool(os.getenv(ENV_MONGO_INTEGRATION, "0"))),
+    ENV_MONGO_INTEGRATION not in os.environ
+    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("false", "0", "f"),
     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
         environment variable not set to True.""",
 )

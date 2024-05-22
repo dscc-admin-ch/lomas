@@ -8,6 +8,7 @@ class TestMakeDummyDataset(unittest.TestCase):
     """
     Tests for the generation of dummy datasets.
     """
+
     def test_cardinality_column(self) -> None:
         """_summary_"""
         metadata = {

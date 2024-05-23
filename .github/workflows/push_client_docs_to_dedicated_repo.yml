@@ -2,7 +2,7 @@ name: Generate client library docs and push to dedicated repo for publishing
 
 on: 
   push: 
-    branches: [ develop ]
+    branches: [ wip_207_client-docstring ]
 
 jobs:
   build:

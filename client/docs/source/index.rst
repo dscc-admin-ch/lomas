@@ -22,6 +22,14 @@ Quickstart
 
 This is the quickstart guide for Lomas-client, providing initial setup and usage instructions.
 
+
+Examples
+------------
+
+In this section, you will find various examples demonstrating how to use Lomas-client in different scenarios. These examples will help you understand the practical applications and features of the library.
+
+You can also find additional notebooks and examples in our `GitHub repository <https://github.com/dscc-admin-ch/lomas/tree/master/client/notebooks>`_.
+
 API
 ------------
 

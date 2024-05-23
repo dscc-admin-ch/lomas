@@ -21,8 +21,12 @@ jobs:
         pip install -r requirements.txt
     - name: Build with sphinx
       run: |
-        pip install sphinx
-        pip install sphinxcontrib.napoleon
+        if [ ! -d "server/docs/source/_static" ]; then
+          mkdir server/docs/source/_static
+        fi
+        cp images/lomas_logo_txt.png server/docs/source/_static/logo.png
+        sudo apt-get install pandoc
+        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon
         cd server
         sphinx-apidoc -o docs/source ./lomas_server/
         cd docs

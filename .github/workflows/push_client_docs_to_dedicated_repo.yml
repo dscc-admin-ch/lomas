@@ -2,7 +2,7 @@ name: Generate client library docs and push to dedicated repo for publishing
 
 on: 
   push: 
-    branches: [ wip_207_client-docstring ]
+    branches: [ develop ]
 
 jobs:
   build:
@@ -14,11 +14,12 @@ jobs:
       uses: actions/checkout@v3
     - name: Build with sphinx
       run: |
-        pip install sphinx
-        pip install sphinxcontrib.napoleon
+        sudo apt-get install pandoc
+        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon
         cd client
         sphinx-apidoc -o docs/source ./lomas_client/
-        cp -r notebooks/* docs/source/notebooks/
+        mkdir docs/source/notebooks
+        cp -r notebooks/* docs/source/notebooks
         cd docs
         make html
         cd build/html/
@@ -28,7 +29,7 @@ jobs:
       env:
         SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
       with:
-        source-directory: client/docs/html/
+        source-directory: client/docs/build/html/
         destination-github-username: 'dscc-admin-ch'
         destination-repository-name: 'lomas-client-docs'
         target-branch: main

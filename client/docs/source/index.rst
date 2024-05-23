@@ -39,7 +39,7 @@ This section provides the complete API reference for the Lomas-client package.
 Contributing
 ------------
 
-We welcome contributions to Your Project. If you'd like to help, please read our contributing guidelines.
+We welcome contributions to Lomas. If you'd like to help, please read our contributing guidelines.
 
 
 Indices and tables

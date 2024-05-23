@@ -17,8 +17,11 @@ jobs:
         pip install sphinx
         pip install sphinxcontrib.napoleon
         cd client
-        sphinx-build -M html documentation docs
-        cd docs/html/
+        sphinx-apidoc -o docs/source ./lomas_client/
+        cp -r notebooks/* docs/source/notebooks/
+        cd docs
+        make html
+        cd build/html/
         ls
     - name: Pushes to another repository
       uses: cpina/github-action-push-to-another-repository@main

@@ -1,7 +1,7 @@
 Administration
 ==============
 
-TODO
+This section explains how the data owner can manage the administrative database.
 
 .. toctree::
    :maxdepth: 2

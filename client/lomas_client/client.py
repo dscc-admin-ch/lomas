@@ -125,12 +125,12 @@ class Client:
                 NOTE: the table name is df, the query must end with “FROM df”.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the
+            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__
 
                 Defaults to {}.
-            postprocess (bool, optional): Whether to postprocess the query results.
+            postprocess (bool, optional): Whether to postprocess the query results.\
                 `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
 
@@ -186,11 +186,11 @@ class Client:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
-            query (str): The SQL query to estimate the cost for. NOTE: the table name is
-                df, the query must end with “FROM df”.
+            query (str): The SQL query to estimate the cost for. NOTE: the table name \
+                is df, the query must end with “FROM df”.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
                 Defaults to {}.
@@ -224,17 +224,17 @@ class Client:
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of
-                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is
-                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
                 (`See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
                 In that case a fixed_delta must be provided by the user.
                 Defaults to None.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
-            nb_rows (int, optional): The number of rows in the dummy dataset.
+            nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.
+            seed (int, optional): The random seed for generating the dummy dataset.\
             Defaults to DUMMY_SEED.
 
         Raises:
@@ -287,12 +287,12 @@ class Client:
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of
-                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is
-                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP
-                (`See Smartnoise-SQL postprocessing documentation.
-                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
-                In that case a fixed_delta must be provided by the user.
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
+                (`See Smartnoise-SQL postprocessing documentation.\
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
+                In that case a fixed_delta must be provided by the user.\
                 Defaults to None.
 
 
@@ -416,7 +416,7 @@ class Client:
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
-            body_json (dict, optional): The JSON body to include in the POST request.
+            body_json (dict, optional): The JSON body to include in the POST request.\
             Defaults to {}.
 
         Returns:

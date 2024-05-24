@@ -1,4 +1,4 @@
-name: Generate client library docs and push to dedicated repo for publishing
+name: Generate server library docs and push to dedicated repo for publishing
 
 on: 
   push: 
@@ -29,6 +29,8 @@ jobs:
         pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon
         cd server
         sphinx-apidoc -o docs/source ./lomas_server/
+        mkdir docs/source/notebooks
+        cp -r notebooks/* docs/source/notebooks
         cd docs
         make html
         cd build/html/

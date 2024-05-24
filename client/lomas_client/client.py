@@ -32,7 +32,8 @@ def error_message(res: requests.Response) -> str:
         res (requests.Response): The response object from an HTTP request.
 
     Returns:
-        str: A formatted string describing the server error, including the status code and response text.
+        str: A formatted string describing the server error,
+            including the status code and response text.
     """
     return f"Server error status {res.status_code}: {res.text}"
 
@@ -79,8 +80,13 @@ class Client:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
-            nb_rows (int, optional): The number of rows in the dummy dataset. Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset. Defaults to DUMMY_SEED.
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+
+                Defaults to DUMMY_NB_ROWS.
+
+            seed (int, optional): The random seed for generating the dummy dataset.
+
+                Defaults to DUMMY_SEED.
 
         Returns:
             Optional[pd.DataFrame]: A Pandas DataFrame representing the dummy dataset.
@@ -115,27 +121,28 @@ class Client:
         """This function executes a SmartNoise query.
 
         Args:
-            query (str): The SQL query to execute. 
+            query (str): The SQL query to execute.
                 NOTE: the table name is df, the query must end with “FROM df”.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the query 
-                `See Smartnoise-SQL postprocessing documentation. 
-                <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__ 
-                
+            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms>`__
+
                 Defaults to {}.
-            postprocess (bool, optional): Whether to postprocess the query results. 
-                `See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__ 
-            
+            postprocess (bool, optional): Whether to postprocess the query results.
+                `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+
                 Defaults to True.
-            dummy (bool, optional): Whether to use a dummy dataset. 
-                
+            dummy (bool, optional): Whether to use a dummy dataset.
+
                 Defaults to False.
-            nb_rows (int, optional): The number of rows in the dummy dataset. 
-                
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+
                 Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset. 
-                
+            seed (int, optional): The random seed for generating the dummy dataset.
+
                 Defaults to DUMMY_SEED.
 
         Returns:
@@ -179,10 +186,14 @@ class Client:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
-            query (str): The SQL query to estimate the cost for. NOTE: the table name is df, the query must end with “FROM df”.
+            query (str): The SQL query to estimate the cost for. NOTE: the table name is
+                df, the query must end with “FROM df”.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-            mechanisms (dict[str, str], optional): Dictionary of mechanisms for the query `See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__ Defaults to {}.
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to {}.
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
@@ -213,10 +224,18 @@ class Client:
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP (`See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__). In that case a fixed_delta must be provided by the user. Defaults to None.
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP
+                (`See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
+                In that case a fixed_delta must be provided by the user.
+                Defaults to None.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
-            nb_rows (int, optional): The number of rows in the dummy dataset. Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset. Defaults to DUMMY_SEED.
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+            Defaults to DUMMY_SEED.
 
         Raises:
             Exception: If the server returns dataframes
@@ -268,8 +287,14 @@ class Client:
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP (`See Smartnoise-SQL postprocessing documentation. <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__). In that case a fixed_delta must be provided by the user. Defaults to None.
-            
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP
+                (`See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
+                In that case a fixed_delta must be provided by the user.
+                Defaults to None.
+
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
@@ -346,7 +371,8 @@ class Client:
             ValueError: If an unknown query type is encountered during deserialization.
 
         Returns:
-            Optional[List[dict]]: A list of dictionary containing the different queries on the private dataset.
+            Optional[List[dict]]: A list of dictionary containing the different queries
+            on the private dataset.
         """
         body_json = {
             "dataset_name": self.dataset_name,
@@ -385,11 +411,13 @@ class Client:
         return None
 
     def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
-        """Executes a POST request to the specified endpoint with the provided JSON body.
+        """Executes a POST request to the specified endpoint with the provided
+        JSON body.
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
-            body_json (dict, optional): The JSON body to include in the POST request. Defaults to {}.
+            body_json (dict, optional): The JSON body to include in the POST request.
+            Defaults to {}.
 
         Returns:
             requests.Response: The response object resulting from the POST request.

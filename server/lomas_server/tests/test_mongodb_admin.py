@@ -408,6 +408,7 @@ class TestMongoDBAdmin(unittest.TestCase):
             create_users_collection(self.args)
 
     def test_add_dataset(self) -> None:
+        """_summary_"""
         self.args.dataset = "PENGUIN"
         self.args.database_type = PrivateDatabaseType.PATH
         self.args.dataset_path = "some_path"
@@ -443,6 +444,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets(self) -> None:
+        """_summary_"""
         # Load reference data
         with open(
             "./tests/test_data/test_datasets.yaml",
@@ -518,6 +520,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         verify_datasets()
 
     def test_del_dataset(self) -> None:
+        """_summary_"""
         # Setup: add one dataset
         self.args.dataset = "PENGUIN"
         self.args.database_type = PrivateDatabaseType.PATH
@@ -543,6 +546,7 @@ class TestMongoDBAdmin(unittest.TestCase):
             del_dataset(self.args)
 
     def test_drop_collection(self) -> None:
+        """_summary_"""
         # Setup: add one dataset
         self.args.dataset = "PENGUIN"
         self.args.database_type = PrivateDatabaseType.PATH

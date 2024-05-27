@@ -25,12 +25,12 @@ from utils.config import get_config, CONFIG_LOADER
 from tests.constants import ENV_MONGO_INTEGRATION
 
 
-# @unittest.skipIf(
-#     ENV_MONGO_INTEGRATION not in os.environ
-#     and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("false", "0", "f"),
-#     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
-#         environment variable not set to True.""",
-# )
+@unittest.skipIf(
+    ENV_MONGO_INTEGRATION not in os.environ
+    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("false", "0", "f"),
+    f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
+        environment variable not set to True.""",
+)
 class TestMongoDBAdmin(unittest.TestCase):
     """
     Tests for the functions in mongodb_admin.py.
@@ -44,32 +44,25 @@ class TestMongoDBAdmin(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Check access to database"""
+        """Connection to database"""
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
-        # cls.db_config = get_config().admin_database
-        # db_url = get_mongodb_url(cls.db_config)
-        # cls.db = MongoClient(db_url)[cls.db_config.db_name]
-
-    def setUp(self) -> None:
-        """Connection to database"""
         db_args = SimpleNamespace(**vars(get_config().admin_database))
         db_url = get_mongodb_url(db_args)
-        self.db = MongoClient(db_url)[db_args.db_name]
+        cls.db = MongoClient(db_url)[db_args.db_name]
+
+    # def setUp(self) -> None:
+    #     """Connection to database"""
 
     def tearDown(self) -> None:
         """Drop all data from database"""
-        db_args = SimpleNamespace(**vars(get_config().admin_database))
-        db_url = get_mongodb_url(db_args)
-        db = MongoClient(db_url)[db_args.db_name]
-
-        drop_collection(db, "metadata")
-        drop_collection(db, "datasets")
-        drop_collection(db, "users")
-        drop_collection(db, "queries_archives")
+        drop_collection(self.db, "metadata")
+        drop_collection(self.db, "datasets")
+        drop_collection(self.db, "users")
+        drop_collection(self.db, "queries_archives")
 
     def test_add_user(self) -> None:
         """Test adding a user"""

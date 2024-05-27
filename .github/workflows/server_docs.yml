@@ -1,0 +1,40 @@
+name: Generate client library docs and push to dedicated repo for publishing
+
+on: 
+  push: 
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        cd server
+        pip install -r requirements.txt
+    - name: Build with sphinx
+      run: |
+        pip install sphinx
+        cd server
+        sphinx-apidoc -o docs/source ./lomas_server/
+        cd docs
+        make html
+        cd build/html/
+        ls
+    - name: Pushes to another repository
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_SERVER_DOCS }}
+      with:
+        source-directory: server/docs/build/html/
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'lomas-server-docs'
+        target-branch: main
+        target-directory: html/

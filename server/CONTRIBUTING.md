@@ -33,7 +33,7 @@ Here is a list of the checks performed:
     - Use black to automatically format the code: `black .`
     - Use flake to verify formating and performing a static code analysis: `flake8 .`
     - Use mypy for static type checking: `mypy .`
-    - Use pylint for further static analysis: `pylint . --disable=E0401 --disable=C0114 --disable=C0115 --disable=C0116 --disable=R0903 --disable=C0301`
+    - Use pylint for further static analysis: `pylint . --disable=E0401 --disable=C0114 --disable=R0903 --disable=C0301`
 
 We rely on a github workflow to automatically run the checks on pull requests.
 
@@ -51,7 +51,7 @@ on a dedicated repo's github pages for easy access from the web.
 ## Streamlit App
 
 ### On local machine
-Go to `lomas/server/src/` and run `streamlit run .\administration\dashboard\about.py`.
+Go to `lomas/lomas_server/` and run `streamlit run .\administration\dashboard\about.py`.
 
 ### In container
 TODO

@@ -22,10 +22,12 @@ jobs:
         uses: py-actions/flake8@v2
         with:
           path: server/
+          max-line-length: "88"
       - name: flake8 client
         uses: py-actions/flake8@v2
         with:
           path: client
+          max-line-length: "88"
       - name: mypy
         run: |
           cd client

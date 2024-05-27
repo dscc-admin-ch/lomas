@@ -12,6 +12,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+    - name: Set up Python 11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        cd client
+        pip install -r requirements.txt
     - name: Build with sphinx
       run: |
         if [ ! -d "client/docs/source/_static" ]; then

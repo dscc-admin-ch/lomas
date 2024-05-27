@@ -75,7 +75,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.clean = True
@@ -93,7 +92,6 @@ class TestRootAPIEndpoint(unittest.TestCase):
     def tearDown(self) -> None:
         # Clean up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-
             args = SimpleNamespace(**vars(get_config().admin_database))
 
             args.collection = "metadata"

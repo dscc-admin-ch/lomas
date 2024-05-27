@@ -22,6 +22,7 @@ jobs:
     - name: Build with sphinx
       run: |
         pip install sphinx
+        pip install sphinxcontrib.napoleon
         cd server
         sphinx-apidoc -o docs/source ./lomas_server/
         cd docs

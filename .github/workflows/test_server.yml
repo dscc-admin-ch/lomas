@@ -1,4 +1,4 @@
-name: Server Integration Testing
+name: Server Testing
 
 on: 
   pull_request:

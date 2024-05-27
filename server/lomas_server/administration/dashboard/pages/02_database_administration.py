@@ -1,3 +1,4 @@
+# type: ignore
 import streamlit as st
 from administration.mongodb_admin import (
     add_user,

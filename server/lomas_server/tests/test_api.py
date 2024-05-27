@@ -5,9 +5,12 @@ from types import SimpleNamespace
 import unittest
 
 import pandas as pd
+from pymongo import MongoClient
+from pymongo.database import Database
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from admin_database.utils import get_mongodb_url
 from administration.mongodb_admin import (
     create_users_collection,
     add_datasets,
@@ -75,36 +78,31 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-            args = SimpleNamespace(**vars(get_config().admin_database))
+            db_args = SimpleNamespace(**vars(get_config().admin_database))
+            db_url = get_mongodb_url(db_args)
+            self.db: Database = MongoClient(db_url)[db_args.db_name]
 
-            args.clean = True
-            args.overwrite = True
-            args.path = "tests/test_data/test_user_collection.yaml"
-            create_users_collection(args)
-
-            args.path = "tests/test_data/test_datasets.yaml"
-            args.dataset = "PENGUIN_DATASET"
-            args.dataset_type = "LOCAL_DB"
-            args.overwrite_datasets = True
-            args.overwrite_metadata = True
-            add_datasets(args)
+            create_users_collection(
+                self.db,
+                path="tests/test_data/test_user_collection.yaml",
+                clean=True,
+                overwrite=True,
+            )
+            add_datasets(
+                self.db,
+                path="tests/test_data/test_datasets.yaml",
+                clean=True,
+                overwrite_datasets=True,
+                overwrite_metadata=True,
+            )
 
     def tearDown(self) -> None:
         # Clean up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-            args = SimpleNamespace(**vars(get_config().admin_database))
-
-            args.collection = "metadata"
-            drop_collection(args)
-
-            args.collection = "datasets"
-            drop_collection(args)
-
-            args.collection = "users"
-            drop_collection(args)
-
-            args.collection = "queries_archives"
-            drop_collection(args)
+            drop_collection(self.db, "metadata")
+            drop_collection(self.db, "datasets")
+            drop_collection(self.db, "users")
+            drop_collection(self.db, "queries_archives")
 
     def test_state(self) -> None:
         """_summary_"""

@@ -1,6 +1,6 @@
 import argparse
 import functools
-from typing import Callable
+from typing import Callable, Dict
 from warnings import warn
 
 import boto3
@@ -449,7 +449,7 @@ def show_archives_of_user(db: Database, user: str) -> None:  # TODO  test
         db (Database): mongo database object
         user (str): username of the user to show archives
     """
-    archives = list(db.archives.find_many({"user_name": user}))
+    archives: list = list(db.archives.find_many({"user_name": user}))
     LOG.info(archives)
 
 
@@ -459,19 +459,19 @@ def add_dataset(
     db: Database,
     dataset_name: str,
     database_type: str,
-    dataset_path: str = None,
-    s3_bucket: str = None,
-    s3_key: str = None,
-    endpoint_url: str = None,
-    aws_access_key_id: str = None,
-    aws_secret_access_key: str = None,
-    metadata_database_type: str = None,
-    metadata_path: str = None,
-    metadata_s3_bucket: str = None,
-    metadata_s3_key: str = None,
-    metadata_endpoint_url: str = None,
-    metadata_aws_access_key_id: str = None,
-    metadata_aws_secret_access_key: str = None,
+    dataset_path: str,
+    s3_bucket: str,
+    s3_key: str,
+    endpoint_url: str,
+    aws_access_key_id: str,
+    aws_secret_access_key: str,
+    metadata_database_type: str,
+    metadata_path: str,
+    metadata_s3_bucket: str,
+    metadata_s3_key: str,
+    metadata_endpoint_url: str,
+    metadata_aws_access_key_id: str,
+    metadata_aws_secret_access_key: str,
 ) -> None:
     """Set a database type to a dataset in dataset collection.
 
@@ -504,7 +504,7 @@ def add_dataset(
         raise ValueError("Cannot add database because already set. ")
 
     # Step 1: Build dataset
-    dataset = {
+    dataset: Dict = {
         "dataset_name": dataset_name,
         "database_type": database_type,
     }
@@ -1087,7 +1087,7 @@ if __name__ == "__main__":
     #######################  FUNCTION CALL  ###################### # noqa: E266
     # Get MongoDB
     db_url = get_mongodb_url(args)
-    mongo_db = MongoClient(db_url)[args.db_name]
+    mongo_db: Database = MongoClient(db_url)[args.db_name]
 
     function_map = {
         "add_user": lambda args: add_user(mongo_db, args.user),

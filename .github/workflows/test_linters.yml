@@ -1,0 +1,34 @@
+name: Linter checks
+
+on: 
+  pull_request:
+    branches: [ develop, master]
+  workflow_dispatch:
+  
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install mypy
+      - name: flake8 server
+        uses: py-actions/flake8@v2
+        with:
+          path: server/
+      - name: flake8 client
+        uses: py-actions/flake8@v2
+        with:
+          path: client
+      - name: mypy
+        run: |
+          cd client
+          mypy .
+          cd ../server
+          mypy .

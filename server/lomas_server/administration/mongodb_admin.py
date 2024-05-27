@@ -382,19 +382,22 @@ def show_user(db: Database, user: str) -> None:
 
 
 def create_users_collection(
-    db: Database, clean: bool, overwrite: bool, path: str
+    db: Database,
+    path: str,
+    clean: bool,
+    overwrite: bool,
 ) -> None:
     """Add all users from yaml file to the user collection
 
     Args:
         db (Database): mongo database object
+        path (str): flag, True if drop previous collection
         clean (bool): boolean flag
             True if drop current user collection
             False if keep current user collection
         overwrite (bool): boolean flag
             True if overwrite already existing users
             False errors if new values for already existing users
-        path (str): flag, True if drop previous collection
     """
     if clean:
         # Collection created from scratch
@@ -491,7 +494,8 @@ def add_dataset(
         metadata_aws_secret_access_key (str): Metadata AWS secret access key.
 
     Raises:
-        ValueError: If the dataset already exists or if the database type is unknown.
+        ValueError: If the dataset already exists
+                    or if the database type is unknown.
 
     Returns:
         None
@@ -1080,7 +1084,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    #######################  FUNCTION CALL  ####################### # noqa: E266
+    #######################  FUNCTION CALL  ###################### # noqa: E266
     # Get MongoDB
     db_url = get_mongodb_url(args)
     mongo_db = MongoClient(db_url)[args.db_name]
@@ -1105,7 +1109,7 @@ if __name__ == "__main__":
         ),
         "show_user": lambda args: show_user(mongo_db, args.user),
         "create_users_collection": lambda args: create_users_collection(
-            mongo_db, args.clean, args.overwrite, args.path
+            mongo_db, args.path, args.clean, args.overwrite
         ),
         "add_dataset": lambda args: add_dataset(
             mongo_db,

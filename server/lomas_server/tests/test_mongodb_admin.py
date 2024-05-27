@@ -362,12 +362,7 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         user = "Milou"
         del_user(self.db, user)
-
-        user = None
-        value = None
-        clean = False
-        overwrite = True
-        create_users_collection(self.db, path, clean, overwrite)
+        create_users_collection(self.db, path, clean=False, overwrite=True)
 
         user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
@@ -378,9 +373,10 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(user_found, milou)
 
         # Overwrite to false and existing users should warn
-        overwrite = False
         with self.assertWarns(UserWarning):
-            create_users_collection(self.db, path, clean, overwrite)
+            create_users_collection(
+                self.db, path, clean=False, overwrite=False
+            )
 
     def test_add_dataset(self) -> None:
         """Test adding a dataset"""

@@ -6,6 +6,7 @@ import pandas as pd
 from fastapi import Request
 from fastapi.responses import StreamingResponse
 from pymongo import MongoClient
+from pymongo.database import Database
 
 from admin_database.utils import get_mongodb_url
 from administration.mongodb_admin import (
@@ -75,7 +76,7 @@ def add_demo_data_to_admindb() -> None:
     config = get_config()
     args = SimpleNamespace(**vars(config.admin_database))
     db_url = get_mongodb_url(args)
-    mongo_db = MongoClient(db_url)[args.db_name]
+    mongo_db: Database = MongoClient(db_url)[args.db_name]
 
     LOG.info("Creating user collection")
     create_users_collection(

@@ -155,7 +155,9 @@ class ConfigLoader:
 
                 update(config_data, secret_data)
 
-            server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
+            server_config: Server = Server.model_validate(
+                config_data[CONF_SERVER]
+            )
 
             db_type = config_data[CONF_DB][CONF_DB_TYPE]
             match db_type:

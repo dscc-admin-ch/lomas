@@ -1,18 +1,41 @@
+from collections.abc import AsyncGenerator
 import io
-from typing import AsyncGenerator
+from types import SimpleNamespace
 
 import pandas as pd
+from fastapi import Request
 from fastapi.responses import StreamingResponse
 
-import app
-from constants import (
-    CONFIG_NOT_LOADED,
-    DB_NOT_LOADED,
-    QUERY_HANDLER_NOT_LOADED,
-    SERVER_LIVE,
+
+from mongodb_admin import (
+    add_datasets,
+    create_users_collection,
+    drop_collection,
 )
+from utils.config import get_config
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
+
+
+async def server_live(request: Request) -> AsyncGenerator:
+    """
+    Checks the server is live and throws an exception otherwise.
+
+    Args:
+        request (Request): Raw request
+
+    Raises:
+        InternalServerException: If the server is not live.
+
+    Returns:
+        AsyncGenerator
+    """
+    if not request.app.state.server_state["LIVE"]:
+        raise InternalServerException(
+            "Woops, the server did not start correctly."
+            + "Contact the administrator of this service.",
+        )
+    yield
 
 
 def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
@@ -39,55 +62,30 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     return response
 
 
-async def server_live() -> AsyncGenerator:
+def add_demo_data_to_admindb() -> None:
     """
-    Checks the server is live and throws an exception otherwise.
+    Adds the demo data to the mongodb admindb.
 
-    Raises:
-        InternalServerException: If the server is not live.
-
-    Returns:
-        AsyncGenerator
+    Uses hardcoded paths to user and dataset collections.
+    Meant to be used in the develop mode of the service.
     """
-    if not app.SERVER_STATE["LIVE"]:
-        raise InternalServerException(
-            "Woops, the server did not start correctly."
-            + "Contact the administrator of this service.",
-        )
-    yield
+    LOG.info("Creating example user collection")
 
+    config = get_config()
+    args = SimpleNamespace(**vars(config.admin_database))
 
-def check_start_condition() -> None:
-    """This function checks the server started correctly and SERVER_STATE is
-    updated accordingly.
+    LOG.info("Creating user collection")
+    args.clean = True
+    args.overwrite = True
+    args.path = "/data/collections/user_collection.yaml"
+    create_users_collection(args)
 
-    This has potential side effects on the return values of the "depends"
-    functions, which check the server state.
-    """
-    status_ok = True
-    if app.CONFIG is None:
-        LOG.info("Config not loaded")
-        app.SERVER_STATE["state"].append(CONFIG_NOT_LOADED)
-        app.SERVER_STATE["message"].append("Server could not be started!")
-        app.SERVER_STATE["LIVE"] = False
-        status_ok = False
+    LOG.info("Creating datasets and metadata collection")
+    args.path = "/data/collections/dataset_collection.yaml"
+    args.overwrite_datasets = True
+    args.overwrite_metadata = True
+    add_datasets(args)
 
-    if app.ADMIN_DATABASE is None:
-        LOG.info("Admin database not loaded")
-        app.SERVER_STATE["state"].append(DB_NOT_LOADED)
-        app.SERVER_STATE["message"].append("Server could not be started!")
-        app.SERVER_STATE["LIVE"] = False
-        status_ok = False
-
-    if app.QUERY_HANDLER is None:
-        LOG.info("QueryHandler not loaded")
-        app.SERVER_STATE["state"].append(QUERY_HANDLER_NOT_LOADED)
-        app.SERVER_STATE["message"].append("Server could not be started!")
-        app.SERVER_STATE["LIVE"] = False
-        status_ok = False
-
-    if status_ok:
-        LOG.info("Server start condition OK")
-        app.SERVER_STATE["state"].append(SERVER_LIVE)
-        app.SERVER_STATE["message"].append("Server start condition OK")
-        app.SERVER_STATE["LIVE"] = True
+    LOG.info("Empty archives")
+    args.collection = "queries_archives"
+    drop_collection(args)

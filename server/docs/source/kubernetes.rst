@@ -46,9 +46,10 @@ Modifying the ``ingress`` Section
 To change the ``ingress`` configuration, follow these steps:
 
 1. **Get the default values**
-   .. code-block:: sh
 
-      helm show values lomas/lomas-server > values.yaml
+.. code-block:: sh
+
+    helm show values lomas/lomas-server > values.yaml
 
 2. **Edit values.yaml file**
 

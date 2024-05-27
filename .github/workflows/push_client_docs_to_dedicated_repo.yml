@@ -15,6 +15,7 @@ jobs:
     - name: Build with sphinx
       run: |
         pip install sphinx
+        pip install sphinxcontrib.napoleon
         cd client
         sphinx-build -M html documentation docs
         cd docs/html/

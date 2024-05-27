@@ -11,7 +11,7 @@ Welcome to Lomas Server's documentation!
    api
    contributing
 
-TODO: Hih level description of the project (server-side)
+TODO: High level description of the project (server-side)
 
 Deployment
 --------------

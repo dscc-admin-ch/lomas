@@ -6,8 +6,7 @@ import yaml
 from pymongo import MongoClient
 
 from admin_database.utils import get_mongodb_url
-from constants import PrivateDatabaseType
-from mongodb_admin import (
+from administration.mongodb_admin import (
     add_user,
     add_user_with_budget,
     del_user,
@@ -21,6 +20,7 @@ from mongodb_admin import (
     del_dataset,
     drop_collection,
 )
+from constants import PrivateDatabaseType
 from utils.config import get_config, CONFIG_LOADER
 from tests.constants import ENV_MONGO_INTEGRATION
 

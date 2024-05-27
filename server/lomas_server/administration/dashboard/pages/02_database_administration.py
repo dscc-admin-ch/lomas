@@ -13,66 +13,17 @@ from administration.mongodb_admin import (
     add_datasets,
     del_dataset,
     drop_collection,
+    show_archives_of_user,
     show_collection,
+    show_dataset,
+    show_metadata_of_dataset,
 )
 from constants import PrivateDatabaseType
-from utils.loggr import LOG
 
 
 ###############################################################################
 # BACKEND
 ###############################################################################
-
-# put these in mongodb_admin.py (+ tests). Here for now to avoid conflicts.
-from pymongo.database import Database
-
-
-def del_metadata_of_dataset(
-    db: Database, dataset_name: str
-) -> None:  # TODO put in mongodb_admin.py + test
-    """Delete metadata from metadata collection.
-
-    Args:
-        db (Database): administration database
-        dataset_name: name of the metadata dataset to delete
-    """
-    db.metadata.delete_many({"dataset_name": dataset_name})
-    LOG.info(f"Deleted ¨metadata {dataset_name}.")
-
-
-def show_dataset(
-    db: Database, dataset_name: str
-) -> None:  # TODO in mongodb_admin.py + test
-    """Show a dataset from dataset collection.
-
-    Args:
-        db (Database): administration database
-        dataset_name (str): name of the dataset to show
-    """
-    dataset = list(db.datasets.find({"dataset_name": dataset_name}))[0]
-    dataset.pop("_id", None)
-    LOG.info(dataset)
-
-
-def show_metadata_of_dataset(
-    db: Database, dataset_name: str
-) -> None:  # TODO in mongodb_admin.py + test
-    """Show a metadata from metadata collection.
-
-    Args:
-        db (Database): administration database
-        dataset_name (str): name of the dataset of the metadata to show
-    """
-    metadata = list(db.metadata.find({"dataset_name": dataset_name}))[0]
-    metadata.pop("_id", None)
-    LOG.info(metadata)
-
-
-def show_archives_of_user(
-    db: Database, user_name: str
-) -> None:  # TODO in mongodb_admin.py + test
-    archives = list(db.archives.find_many({"user_name": user_name}))
-    LOG.info(archives)
 
 
 ###############################################################################
@@ -214,7 +165,8 @@ with user_tab:
     amu_1, amu_2 = st.columns(2)
     with amu_1:
         u_clean = st.toggle(
-            "Clean: recreate collection from scratch (will delete all previous users)"
+            "Clean: recreate collection from scratch "
+            + "(will delete all previous users)"
         )
     with amu_2:
         u_overwrite = st.toggle(
@@ -310,14 +262,16 @@ with dataset_tab:
     amd_1, amd_2 = st.columns(2)
     with amd_1:
         d_clean = st.toggle(
-            "Clean: recreate collection from scratch (will delete all previous datasets)"
+            "Clean: recreate collection from scratch "
+            + "(will delete all previous datasets)"
         )
     with amd_2:
         d_overwrite = st.toggle(
             "Overwrite: if dataset already exists, overwrites values"
         )
     uploaded_files = st.file_uploader(
-        "Choose a YAML file for the dataset collection and associated metadatas",
+        "Choose a YAML file for the dataset collection"
+        + "and associated metadatas",
         accept_multiple_files=True,
     )
     if uploaded_files and d_clean and d_overwrite:
@@ -372,20 +326,34 @@ with content_tab:
             args=(user_selected),
         )
     with elem_archives:
-        option = st.selectbox("Archives from user", list_users)
-        st.write("Displaying information of:", option)
-        # TODO: display info
+        archives_selected = st.selectbox("Archives from user", list_users)
+        st.write("Displaying information of:", archives_selected)
+        st.button(
+            f"Displaying previous queries of: {archives_selected}",
+            on_click=show_archives_of_user,
+            args=(archives_selected),
+        )
 
     elem_datasets, elem_metadata = st.columns(2)
     list_datasets = ("PENGUIN", "IRIS")  # TODO get from db
     with elem_datasets:
-        option = st.selectbox("Dataset to show", list_datasets)
-        st.write("Displaying information of:", option)
-        # TODO: display info
+        dataset_selected = st.selectbox("Dataset to show", list_datasets)
+        st.write("Displaying information of:", dataset_selected)
+        st.button(
+            f"Displaying dataset: {dataset_selected}",
+            on_click=show_dataset,
+            args=(dataset_selected),
+        )
     with elem_metadata:
-        option = st.selectbox("Metadata to show from dataset", list_datasets)
-        st.write("Displaying information of:", option)
-        # TODO: display info
+        metadata_selected = st.selectbox(
+            "Metadata to show from dataset", list_datasets
+        )
+        st.write("Displaying metadata of:", dataset_selected)
+        st.button(
+            f"Displaying metadata of: {metadata_selected}",
+            on_click=show_metadata_of_dataset,
+            args=(metadata_selected),
+        )
 
 with deletion_tab:
     _, center, _ = st.columns(3)
@@ -441,27 +409,25 @@ with deletion_tab:
     st.markdown("**Remove dataset from user**")
     rdtu_1, rdtu_2 = st.columns(2)
     with rdtu_1:
-        rdtu_username = st.text_input(
-            "Username (remove dataset from user)", None
-        )
+        rdtu_user = st.text_input("Username (remove dataset from user)", None)
     with rdtu_2:
         rdtu_dataset = st.text_input(
             "Dataset (remove dataset from user)", None
         )
-    if rdtu_username and rdtu_dataset:
+    if rdtu_user and rdtu_dataset:
         st.write(
-            "Click to remove dataset", rdtu_dataset, "from user", adtu_username
+            "Click to remove dataset", rdtu_dataset, "from user", rdtu_user
         )
         if st.button(
             "Remove dataset from user",
             on_click=del_dataset_to_user,
-            args=(rdtu_username, rdtu_dataset),
+            args=(rdtu_user, rdtu_dataset),
         ):
             st.write(
-                f"Dataset {rdtu_dataset} was removed from user {rdtu_username}."
+                f"Dataset {rdtu_dataset} was removed from user {rdtu_user}."
             )
 
-    st.markdown("**Remove dataset**")
+    st.markdown("**Remove dataset and it's associated metadata**")
     rd_dataset = st.text_input("Dataset (remove dataset)", None)
     if rd_dataset:
         st.write(
@@ -473,18 +439,3 @@ with deletion_tab:
             "Delete dataset", on_click=del_dataset, args=(rd_dataset,)
         ):
             st.write(f"Dataset {rd_dataset} was deleted.")
-
-    st.markdown("**Remove metadata from dataset**")
-    rm_dataset = st.text_input("Dataset (remove metadata)", None)
-    if rm_dataset:
-        st.write(
-            "Click to delete dataset",
-            rm_dataset,
-            "from the list of datasets.",
-        )
-        if st.button(
-            "Delete metadata",
-            on_click=del_metadata_of_dataset,
-            args=(rm_dataset,),
-        ):
-            st.write(f"Metadata from {rm_dataset} was deleted.")

@@ -16,30 +16,6 @@ from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
 
-def connect(
-    function: Callable[[Database, argparse.Namespace], None]
-) -> Callable:
-    """Returns a wrapping function to connect to the database
-
-    Args:
-        function (Callable[[Database, argparse.Namespace], None]):
-            Any function taking a Database instance as argument,
-            as well as some argparse.Namespace object.
-
-    Returns:
-        Callable: The wrapping function which sets up the database
-        connection before calling the wrapped function.
-    """
-
-    @functools.wraps(function)
-    def wrap_function(*arguments: argparse.Namespace) -> None:
-        db_url: str = get_mongodb_url(arguments[0])
-        db: Database = MongoClient(db_url)[arguments[0].db_name]
-        return function(db, *arguments)
-
-    return wrap_function
-
-
 def check_user_exists(enforce_true: bool) -> Callable:
     """Creates a wrapper function that raises a ValueError if the supplied
     user does (not) exist in the user collection depending on the
@@ -61,7 +37,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
-            user = arguments[1].user
+            user = arguments[1]
 
             user_count = db.users.count_documents({"user_name": user})
 
@@ -103,8 +79,8 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
-            user = arguments[1].user
-            dataset = arguments[1].dataset
+            user = arguments[1]
+            dataset = arguments[2]
 
             user_and_ds_count = db.users.count_documents(
                 {
@@ -138,7 +114,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace) -> None:
             db = arguments[0]
-            dataset = arguments[1].dataset
+            dataset = arguments[1]
 
             dataset_count = db.datasets.count_documents(
                 {"dataset_name": dataset}
@@ -176,24 +152,26 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 
 
 ##########################  USERS  ########################## # noqa: E266
-@connect
 @check_user_exists(False)
-def add_user(db: Database, arguments: argparse.Namespace) -> None:
+def add_user(db: Database, user: str) -> None:
     """Add new user in users collection with initial values for all fields
     set by default.
 
     Args:
-        db (Database): The database connection.
-        arguments (argparse.Namespace):
+        db (Database): mongo database object
+        user (str): username to be added
 
     Raises:
         ValueError: If the user already exists.
         WriteConcernError: If the result is not acknowledged.
+
+    Returns:
+        None
     """
 
     res = db.users.insert_one(
         {
-            "user_name": arguments.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [],
         }
@@ -201,31 +179,38 @@ def add_user(db: Database, arguments: argparse.Namespace) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Added user {arguments.user}.")
+    LOG.info(f"Added user {user}.")
 
 
-@connect
 @check_user_exists(False)
-def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
+def add_user_with_budget(
+    db: Database, user: str, dataset: str, epsilon: float, delta: float
+) -> None:
     """Add new user in users collection with initial values
     for all fields set by default.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username to be added
+        dataset (str): name of the dataset to add to user
+        epsilon (float): epsilon value for initial budget of user
+        delta (float): delta value for initial budget of user
 
     Raises:
         ValueError: _description_
+
+    Returns:
+        None
     """
     res = db.users.insert_one(
         {
-            "user_name": arguments.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": arguments.dataset,
-                    "initial_epsilon": arguments.epsilon,
-                    "initial_delta": arguments.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
@@ -236,54 +221,61 @@ def add_user_with_budget(db: Database, arguments: argparse.Namespace) -> None:
     check_result_acknowledged(res)
 
     LOG.info(
-        f"Added access to user {arguments.user} "
-        + f"with dataset {arguments.dataset}, "
-        + f"budget epsilon {arguments.epsilon} and "
-        + f"delta {arguments.delta}."
+        f"Added access to user {user} with dataset {dataset}, "
+        + f"budget epsilon {epsilon} and delta {delta}."
     )
 
 
-@connect
 @check_user_exists(True)
-def del_user(db: Database, arguments: argparse.Namespace) -> None:
+def del_user(db: Database, user: str) -> None:
     """Delete all related information for user from the users collection.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username to be deleted
+
+    Returns:
+        None
     """
-    res = db.users.delete_many({"user_name": arguments.user})
+    res = db.users.delete_many({"user_name": user})
     check_result_acknowledged(res)
 
-    LOG.info(f"Deleted user {arguments.user}.")
+    LOG.info(f"Deleted user {user}.")
 
 
-@connect
 @check_user_exists(True)
 @check_user_has_dataset(False)
-def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
+def add_dataset_to_user(
+    db: Database, user: str, dataset: str, epsilon: float, delta: float
+) -> None:
     """Add dataset with initialized budget values to list of datasets
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username of the user to check
+        dataset (str): name of the dataset to add to user
+        epsilon (float): epsilon value for initial budget of user
+        delta (float): delta value for initial budget of user
 
     Raises:
         ValueError: _description_
+
+    Returns:
+        None
     """
     res = db.users.update_one(
         {
-            "user_name": arguments.user,
-            "datasets_list.dataset_name": {"$ne": arguments.dataset},
+            "user_name": user,
+            "datasets_list.dataset_name": {"$ne": dataset},
         },
         {
             "$push": {
                 "datasets_list": {
-                    "dataset_name": arguments.dataset,
-                    "initial_epsilon": arguments.epsilon,
-                    "initial_delta": arguments.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
@@ -294,119 +286,123 @@ def add_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
     check_result_acknowledged(res)
 
     LOG.info(
-        f"Added access to dataset {arguments.dataset}"
-        f"to user {arguments.user}"
-        f" with budget epsilon {arguments.epsilon}"
-        f" and delta {arguments.delta}."
+        f"Added access to dataset {dataset}"
+        f"to user {user}"
+        f" with budget epsilon {epsilon}"
+        f" and delta {delta}."
     )
 
 
-@connect
 @check_user_exists(True)
 @check_user_has_dataset(True)
-def del_dataset_to_user(db: Database, arguments: argparse.Namespace) -> None:
+def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
     """Remove if exists the dataset (and all related budget info)
     from list of datasets that user has access to.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username of the user to which to delete a dataset
+        dataset (str): name of the dataset to remove from user
+
+    Returns:
+        None
     """
     res = db.users.update_one(
-        {"user_name": arguments.user},
-        {
-            "$pull": {
-                "datasets_list": {"dataset_name": {"$eq": arguments.dataset}}
-            }
-        },
+        {"user_name": user},
+        {"$pull": {"datasets_list": {"dataset_name": {"$eq": dataset}}}},
     )
 
     check_result_acknowledged(res)
 
-    LOG.info(
-        f"Remove access to dataset {arguments.dataset}"
-        + f" from user {arguments.user}."
-    )
+    LOG.info(f"Remove access to dataset {dataset}" + f" from user {user}.")
 
 
-@connect
 @check_user_exists(True)
 @check_user_has_dataset(True)
-def set_budget_field(db: Database, arguments: argparse.Namespace) -> None:
+def set_budget_field(
+    db: Database, user: str, dataset: str, field: str, value: float
+) -> None:
     """Set (for some reason) a budget field to a given value
     if given user exists and has access to given dataset.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username of the user to set budget to
+        dataset (str): name of the dataset to set budget to
+        field (str): one of 'epsilon' or 'delta'
+        value (float): value to set as epsilon or delta
     """
     res = db.users.update_one(
         {
-            "user_name": arguments.user,
-            "datasets_list.dataset_name": arguments.dataset,
+            "user_name": user,
+            "datasets_list.dataset_name": dataset,
         },
-        {"$set": {f"datasets_list.$.{arguments.field}": arguments.value}},
+        {"$set": {f"datasets_list.$.{field}": value}},
     )
 
     check_result_acknowledged(res)
 
     LOG.info(
-        f"Set budget of {arguments.user} for dataset {arguments.dataset}"
-        f" of {arguments.field} to {arguments.value}."
+        f"Set budget of {user} for dataset {dataset}"
+        f" of {field} to {value}."
     )
 
 
-@connect
 @check_user_exists(True)
-def set_may_query(db: Database, arguments: argparse.Namespace) -> None:
+def set_may_query(db: Database, user: str, value: bool) -> None:
     """Set (for some reason) the 'may query' field to a given value
     if given user exists.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username of the user to enable/disable
+        value (bool): may query value (True or False)
     """
     res = db.users.update_one(
-        {"user_name": arguments.user},
-        {"$set": {"may_query": (arguments.value == "True")}},
+        {"user_name": user},
+        {"$set": {"may_query": (value == "True")}},
     )
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Set user {arguments.user} may query to True.")
+    LOG.info(f"Set user {user} may query to True.")
 
 
-@connect
 @check_user_exists(True)
-def show_user(db: Database, arguments: argparse.Namespace) -> None:
+def show_user(db: Database, user: str) -> None:
     """Show a user
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        user (str): username of the user to show
     """
-    user = list(db.users.find({"user_name": arguments.user}))[0]
+    user = list(db.users.find({"user_name": user}))[0]
     user.pop("_id", None)
     LOG.info(user)
 
 
-@connect
 def create_users_collection(
-    db: Database, arguments: argparse.Namespace
+    db: Database, clean: bool, overwrite: bool, path: str
 ) -> None:
     """Add all users from yaml file to the user collection
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        clean (bool): boolean flag
+            True if drop current user collection
+            False if keep current user collection
+        overwrite (bool): boolean flag
+            True if overwrite already existing users
+            False errors if new values for already existing users
+        path (str): flag, True if drop previous collection
     """
-    if arguments.clean:
+    if clean:
         # Collection created from scratch
         db.users.drop()
         LOG.info("Cleaning done. \n")
 
     # Load yaml data and insert it
-    with open(arguments.path, encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         user_dict = yaml.safe_load(f)
         # Filter out duplicates
         new_users = []
@@ -419,7 +415,7 @@ def create_users_collection(
 
         # Overwrite values for existing user with values from yaml
         if existing_users:
-            if arguments.overwrite:
+            if overwrite:
                 for user in existing_users:
                     user_filter = {"user_name": user["user_name"]}
                     update_operation = {"$set": user}
@@ -438,123 +434,165 @@ def create_users_collection(
             # Insert new users
             res = db.users.insert_many(new_users)
             check_result_acknowledged(res)
-            LOG.info(f"Added user data from yaml at {arguments.path}.")
+            LOG.info(f"Added user data from yaml at {path}.")
         else:
             LOG.info("No new users added, they already exist in the server")
 
 
+def show_archives_of_user(db: Database, user: str) -> None:  # TODO  test
+    """Show all previous queries frm a user
+
+    Args:
+        db (Database): mongo database object
+        user (str): username of the user to show archives
+    """
+    archives = list(db.archives.find_many({"user_name": user}))
+    LOG.info(archives)
+
+
 ###################  DATASET TO DATABASE  ################### # noqa: E266
-@connect
 @check_dataset_and_metadata_exist(False)
-def add_dataset(db: Database, arguments: argparse.Namespace) -> None:
+def add_dataset(
+    db: Database,
+    dataset_name: str,
+    database_type: str,
+    dataset_path: str = None,
+    s3_bucket: str = None,
+    s3_key: str = None,
+    endpoint_url: str = None,
+    aws_access_key_id: str = None,
+    aws_secret_access_key: str = None,
+    metadata_database_type: str = None,
+    metadata_path: str = None,
+    metadata_s3_bucket: str = None,
+    metadata_s3_key: str = None,
+    metadata_endpoint_url: str = None,
+    metadata_aws_access_key_id: str = None,
+    metadata_aws_secret_access_key: str = None,
+) -> None:
     """Set a database type to a dataset in dataset collection.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        dataset_name (str): Dataset name.
+        database_type (str): Type of the database.
+        dataset_path (str): Path to the dataset (for local db type)
+        s3_bucket (str): S3 bucket name.
+        s3_key (str): S3 key.
+        endpoint_url (str): S3 endpoint URL.
+        aws_access_key_id (str): AWS access key ID.
+        aws_secret_access_key (str): AWS secret access key.
+        metadata_database_type (str): Metadata database type.
+        metadata_path (str): Path to metadata. (for local db type)
+        metadata_s3_bucket (str): Metadata S3 bucket name.
+        metadata_s3_key (str): Metadata S3 key.
+        metadata_endpoint_url (str): Metadata S3 endpoint URL.
+        metadata_aws_access_key_id (str): Metadata AWS access key ID.
+        metadata_aws_secret_access_key (str): Metadata AWS secret access key.
 
     Raises:
-        ValueError: _description_
-        ValueError: _description_
-        ValueError: _description_
+        ValueError: If the dataset already exists or if the database type is unknown.
 
     Returns:
-        _type_: _description_
+        None
     """
-    if db.datasets.count_documents({"dataset_name": arguments.dataset}) > 0:
+    if db.datasets.count_documents({"dataset_name": dataset_name}) > 0:
         raise ValueError("Cannot add database because already set. ")
 
     # Step 1: Build dataset
     dataset = {
-        "dataset_name": arguments.dataset,
-        "database_type": arguments.database_type,
+        "dataset_name": dataset_name,
+        "database_type": database_type,
     }
 
-    if arguments.database_type == PrivateDatabaseType.PATH:
-        dataset["dataset_path"] = arguments.dataset_path
-    elif arguments.database_type == PrivateDatabaseType.S3:
-        dataset["s3_bucket"] = arguments.s3_bucket
-        dataset["s3_key"] = arguments.s3_key
-        dataset["endpoint_url"] = arguments.endpoint_url
-        dataset["aws_access_key_id"] = arguments.aws_access_key_id
-        dataset["aws_secret_access_key"] = arguments.aws_secret_access_key
+    if database_type == PrivateDatabaseType.PATH:
+        dataset["dataset_path"] = dataset_path
+    elif database_type == PrivateDatabaseType.S3:
+        dataset["s3_bucket"] = s3_bucket
+        dataset["s3_key"] = s3_key
+        dataset["endpoint_url"] = endpoint_url
+        dataset["aws_access_key_id"] = aws_access_key_id
+        dataset["aws_secret_access_key"] = aws_secret_access_key
     else:
-        raise ValueError(f"Unknown database type {arguments.database_type}")
+        raise ValueError(f"Unknown database type {database_type}")
 
     # Step 2: Build metadata
-    dataset["metadata"] = {"database_type": arguments.metadata_database_type}
-    if arguments.metadata_database_type == PrivateDatabaseType.PATH:
+    dataset["metadata"] = {"database_type": metadata_database_type}
+    if metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
-        with open(arguments.metadata_path, encoding="utf-8") as f:
+        with open(metadata_path, encoding="utf-8") as f:
             metadata_dict = yaml.safe_load(f)
 
-        dataset["metadata"]["metadata_path"] = arguments.metadata_path
+        dataset["metadata"]["metadata_path"] = metadata_path
 
-    elif arguments.metadata_database_type == PrivateDatabaseType.S3:
+    elif metadata_database_type == PrivateDatabaseType.S3:
         client = boto3.client(
             "s3",
-            endpoint_url=arguments.metadata_endpoint_url,
-            aws_access_key_id=arguments.metadata_aws_access_key_id,
-            aws_secret_access_key=arguments.metadata_aws_secret_access_key,
+            endpoint_url=metadata_endpoint_url,
+            aws_access_key_id=metadata_aws_access_key_id,
+            aws_secret_access_key=metadata_aws_secret_access_key,
         )
         response = client.get_object(
-            Bucket=arguments.metadata_s3_bucket, Key=arguments.metadata_s3_key
+            Bucket=metadata_s3_bucket, Key=metadata_s3_key
         )
         try:
             metadata_dict = yaml.safe_load(response["Body"])
         except yaml.YAMLError as e:
             raise e
 
-        dataset["metadata"]["s3_bucket"] = arguments.metadata_s3_bucket
-        dataset["metadata"]["s3_key"] = arguments.metadata_s3_key
-        dataset["metadata"]["endpoint_url"] = arguments.metadata_endpoint_url
-        dataset["metadata"][
-            "aws_access_key_id"
-        ] = arguments.metadata_aws_access_key_id
+        dataset["metadata"]["s3_bucket"] = metadata_s3_bucket
+        dataset["metadata"]["s3_key"] = metadata_s3_key
+        dataset["metadata"]["endpoint_url"] = metadata_endpoint_url
+        dataset["metadata"]["aws_access_key_id"] = metadata_aws_access_key_id
         dataset["metadata"][
             "aws_secret_access_key"
-        ] = arguments.metadata_aws_secret_access_key
+        ] = metadata_aws_secret_access_key
 
     else:
-        raise ValueError(
-            f"Unknown database type {arguments.metadata_database_type}"
-        )
+        raise ValueError(f"Unknown database type {metadata_database_type}")
 
     # Step 3: Insert into db
     res = db.datasets.insert_one(dataset)
     check_result_acknowledged(res)
-    res = db.metadata.insert_one({arguments.dataset: metadata_dict})
+    res = db.metadata.insert_one({dataset_name: metadata_dict})
     check_result_acknowledged(res)
 
     LOG.info(
-        f"Added dataset {arguments.dataset} with database "
-        f"{arguments.database_type} and associated metadata."
+        f"Added dataset {dataset_name} with database "
+        f"{database_type} and associated metadata."
     )
 
 
-@connect
-def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
+def add_datasets(
+    db: Database,
+    path: str,
+    clean: bool,
+    overwrite_datasets: bool,
+    overwrite_metadata: bool,
+) -> None:
     """Set all database types to datasets in dataset collection based
     on yaml file.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        path (str): Path to the YAML file.
+        clean (bool): Whether to clean the collection before adding.
+        overwrite_datasets (bool): Whether to overwrite existing datasets.
+        overwrite_metadata (bool): Whether to overwrite existing metadata.
 
     Raises:
-        InternalServerException: _description_
-        InternalServerException: _description_
+        ValueError: If there are errors in the YAML file format.
 
     Returns:
-        _type_: _description_
+        None
     """
-    if arguments.clean:
+    if clean:
         # Collection created from scratch
         db.datasets.drop()
         db.metadata.drop()
         LOG.info("Cleaning done. \n")
 
-    with open(arguments.path, encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         dataset_dict = yaml.safe_load(f)
 
     def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
@@ -601,7 +639,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
 
     # Overwrite values for existing dataset with values from yaml
     if existing_datasets:
-        if arguments.overwrite_datasets:
+        if overwrite_datasets:
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d["dataset_name"]}
                 update_operation = {"$set": d}
@@ -611,7 +649,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
                 check_result_acknowledged(res)
             LOG.info(
                 f"Existing datasets updated with values"
-                f"from yaml at {arguments.path}. "
+                f"from yaml at {path}. "
             )
         else:
             warn(
@@ -623,7 +661,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
     if new_datasets:
         res = db.datasets.insert_many(new_datasets)
         check_result_acknowledged(res)
-        LOG.info(f"Added datasets collection from yaml at {arguments.path}. ")
+        LOG.info(f"Added datasets collection from yaml at {path}. ")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict["datasets"]:
@@ -673,7 +711,7 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
         metadata_filter = {dataset_name: metadata_dict}
         metadata = db.metadata.find_one(metadata_filter)
 
-        if metadata and arguments.overwrite_metadata:
+        if metadata and overwrite_metadata:
             LOG.info(f"Metadata updated for dataset : {dataset_name}.")
             res = db.metadata.update_one(
                 metadata_filter, {"$set": {dataset_name: metadata_dict}}
@@ -690,44 +728,80 @@ def add_datasets(db: Database, arguments: argparse.Namespace) -> None:
             LOG.info(f"Added metadata of {dataset_name} dataset. ")
 
 
-@connect
 @check_dataset_and_metadata_exist(True)
-def del_dataset(db: Database, arguments: argparse.Namespace) -> None:
+def del_dataset(db: Database, dataset: str) -> None:
     """Delete dataset from dataset collection.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        dataset (str): Dataset name to be deleted.
+
+    Returns:
+        None
     """
-    res = db.datasets.delete_many({"dataset_name": arguments.dataset})
+    res = db.datasets.delete_many({"dataset_name": dataset})
     check_result_acknowledged(res)
-    res = db.metadata.delete_many({arguments.dataset: {"$exists": True}})
+    res = db.metadata.delete_many({dataset: {"$exists": True}})
     check_result_acknowledged(res)
-    LOG.info(f"Deleted dataset and metadata for {arguments.dataset}.")
+    LOG.info(f"Deleted dataset and metadata for {dataset}.")
+
+
+def show_dataset(db: Database, dataset: str) -> None:  # TODO test
+    """Show a dataset from dataset collection.
+
+    Args:
+        db (Database): mongo database object
+        dataset (str): name of the dataset to show
+
+    Returns:
+        None
+    """
+    dataset = list(db.datasets.find({"dataset_name": dataset}))[0]
+    dataset.pop("_id", None)
+    LOG.info(dataset)
+
+
+def show_metadata_of_dataset(db: Database, dataset: str) -> None:  # test
+    """Show a metadata from metadata collection.
+
+    Args:
+        db (Database): mongo database object
+        dataset (str): name of the dataset of the metadata to show
+
+    Returns:
+        None
+    """
+    metadata = list(db.metadata.find({"dataset_name": dataset}))[0]
+    metadata.pop("_id", None)
+    LOG.info(metadata)
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266
-@connect
-def drop_collection(db: Database, arguments: argparse.Namespace) -> None:
+def drop_collection(db: Database, collection: str) -> None:
     """Delete collection.
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        collection (str): Collection name to be deleted.
+
+    Returns:
+        None
     """
-    db.drop_collection(arguments.collection)
-    LOG.info(f"Deleted collection {arguments.collection}.")
+    db.drop_collection(collection)
+    LOG.info(f"Deleted collection {collection}.")
 
 
-@connect
-def show_collection(db: Database, arguments: argparse.Namespace) -> None:
+def show_collection(db: Database, collection: str) -> None:
     """Show a collection
 
     Args:
-        db (Database): _description_
-        arguments (argparse.Namespace): _description_
+        db (Database): mongo database object
+        collection (str): Collection name to be shown.
+
+    Returns:
+        None
     """
-    collection_query = db[arguments.collection].find({})
+    collection_query = db[collection].find({})
     collections = []
     for document in collection_query:
         document.pop("_id", None)
@@ -908,6 +982,7 @@ if __name__ == "__main__":
     # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
+    add_dataset_parser.add_argument("-d_path", "--dataset_path", required=True)
     add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
     add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
     add_dataset_parser.add_argument(
@@ -1004,4 +1079,65 @@ if __name__ == "__main__":
     show_collection_parser.set_defaults(func=show_collection)
 
     args = parser.parse_args()
-    args.func(args)
+
+    #######################  FUNCTION CALL  ####################### # noqa: E266
+    # Get MongoDB
+    db_url = get_mongodb_url(args)
+    mongo_db = MongoClient(db_url)[args.db_name]
+
+    function_map = {
+        "add_user": lambda args: add_user(mongo_db, args.user),
+        "add_user_with_budget": lambda args: add_user_with_budget(
+            mongo_db, args.user, args.dataset, args.epsilon, args.delta
+        ),
+        "del_user": lambda args: del_user(mongo_db, args.user),
+        "add_dataset_to_user": lambda args: add_dataset_to_user(
+            mongo_db, args.user, args.dataset, args.epsilon, args.delta
+        ),
+        "del_dataset_to_user": lambda args: del_dataset_to_user(
+            mongo_db, args.user, args.dataset
+        ),
+        "set_budget_field": lambda args: set_budget_field(
+            mongo_db, args.user, args.dataset, args.field, args.value
+        ),
+        "set_may_query": lambda args: set_may_query(
+            mongo_db, args.user, args.value
+        ),
+        "show_user": lambda args: show_user(mongo_db, args.user),
+        "create_users_collection": lambda args: create_users_collection(
+            mongo_db, args.clean, args.overwrite, args.path
+        ),
+        "add_dataset": lambda args: add_dataset(
+            mongo_db,
+            args.dataset,
+            args.database_type,
+            args.dataset_path,
+            args.s3_bucket,
+            args.s3_key,
+            args.endpoint_url,
+            args.aws_access_key_id,
+            args.aws_secret_access_key,
+            args.metadata_database_type,
+            args.metadata_path,
+            args.metadata_s3_bucket,
+            args.metadata_s3_key,
+            args.metadata_endpoint_url,
+            args.metadata_aws_access_key_id,
+            args.metadata_aws_secret_access_key,
+        ),
+        "add_datasets": lambda args: add_datasets(
+            mongo_db,
+            args.path,
+            args.clean,
+            args.overwrite_datasets,
+            args.overwrite_metadata,
+        ),
+        "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
+        "drop_collection": lambda args: drop_collection(
+            mongo_db, args.collection
+        ),
+        "show_collection": lambda args: show_collection(
+            mongo_db, args.collection
+        ),
+    }
+    function_map[args.func](args)

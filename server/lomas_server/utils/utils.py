@@ -5,9 +5,10 @@ from types import SimpleNamespace
 import pandas as pd
 from fastapi import Request
 from fastapi.responses import StreamingResponse
+from pymongo import MongoClient
 
-
-from mongodb_admin import (
+from admin_database.utils import get_mongodb_url
+from administration.mongodb_admin import (
     add_datasets,
     create_users_collection,
     drop_collection,
@@ -73,19 +74,25 @@ def add_demo_data_to_admindb() -> None:
 
     config = get_config()
     args = SimpleNamespace(**vars(config.admin_database))
+    db_url = get_mongodb_url(args)
+    mongo_db = MongoClient(db_url)[args.db_name]
 
     LOG.info("Creating user collection")
-    args.clean = True
-    args.overwrite = True
-    args.path = "/data/collections/user_collection.yaml"
-    create_users_collection(args)
+    create_users_collection(
+        mongo_db,
+        clean=True,
+        overwrite=True,
+        path="/data/collections/user_collection.yaml",
+    )
 
     LOG.info("Creating datasets and metadata collection")
-    args.path = "/data/collections/dataset_collection.yaml"
-    args.overwrite_datasets = True
-    args.overwrite_metadata = True
-    add_datasets(args)
+    add_datasets(
+        mongo_db,
+        clean=True,
+        overwrite_datasets=True,
+        overwrite_metadata=True,
+        path="/data/collections/dataset_collection.yaml",
+    )
 
     LOG.info("Empty archives")
-    args.collection = "queries_archives"
-    drop_collection(args)
+    drop_collection(mongo_db, collection="queries_archives")

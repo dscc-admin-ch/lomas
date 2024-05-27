@@ -23,7 +23,7 @@ It is possible to test the server with standard tests or integration tests (for 
 The `run_integration_tests.sh` script runs the integration tests, make sure to have an activated python venv
 with the server requirements installed for it to work.
 
-Local tests can be run with a simple `python -m unittest -s discover . ` from the `lomas_server` directory. The tests will be based on the config in `lomas/server/lomas_server/tests/test_configs/test_config.yaml` and be executed with the AdminYamlDatabase. 
+Local tests can be run with a simple `python -m unittest discover -s . ` from the `lomas_server` directory. The tests will be based on the config in `lomas/server/lomas_server/tests/test_configs/test_config.yaml` and be executed with the AdminYamlDatabase. 
 
 A github workflow is configured to run the integration tests script for pull requests on the develop and master branches.
 

@@ -16,16 +16,17 @@ if __name__ == "__main__":
     sys.path.append(src_dir)
 
     st.set_page_config(page_title="Lomas Dashboard")
+    FOLDER = "./administration/dashboard"  # TODO move
     show_pages(
         [
-            Page("./administration/dashboard/about.py", "Home Page", "🏠"),
+            Page(f"{FOLDER}/about.py", "Home Page", "🏠"),
             Page(
-                "./administration/dashboard/pages/01_server_overview.py",
+                f"{FOLDER}/pages/01_server_overview.py",
                 "Lomas server overview",
                 ":computer:",
             ),
             Page(
-                "./administration/dashboard/pages/02_database_administration.py",
+                f"{FOLDER}/pages/02_database_administration.py",
                 "Admin database management",
                 ":file_folder:",
             ),
@@ -38,12 +39,12 @@ if __name__ == "__main__":
     st.write(
         """
     The administration dashboard enables to control the state of the server.
-    It displays informations about the client-facing HTTP server and the administration database.
-    - In the first tab, the state of the server and URL to access it via the client are shown.
+    It displays informations about the server and the administration database.
+    - In the first tab, informations about the server are shown.
     - In the second tab, it is possible to interact with the administration database to manage:
-        - User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user ("archives").
-        - Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
-    """
+        - User-related data and
+        - Dataset-related data.
+    """  # noqa: E501
     )
 
     st.header("Tabs explanation")
@@ -75,17 +76,17 @@ if __name__ == "__main__":
             - full dataset collection
             - full metadata collection
             - full archives collection
-            - a user with all info 
+            - a user with all info
             - all queries of a users
             - a dataset will all info
             - metadata of a dataset
-            
+
         - Delete Content (DANGEROUS)
             - delete full user collection
             - delete full dataset collection
             - delete full metadata collection
             - delete full archives collection
-            - delete a user with all info 
+            - delete a user with all info
             - remove dataset from a users
             - delete a dataset
             - delete metadata of a dataset

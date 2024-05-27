@@ -673,10 +673,11 @@ def get_initial_budget(
             - initial_delta (float): initial delta budget.
     """
     try:
-        initial_epsilon, initial_delta = (
-            app.state.admin_database.get_initial_budget(
-                user_name, query_json.dataset_name
-            )
+        (
+            initial_epsilon,
+            initial_delta,
+        ) = app.state.admin_database.get_initial_budget(
+            user_name, query_json.dataset_name
         )
     except CUSTOM_EXCEPTIONS as e:
         raise e

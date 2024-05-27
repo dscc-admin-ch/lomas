@@ -205,11 +205,10 @@ async def get_state(
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
-    request: Request,
+    _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
 ) -> JSONResponse:
     """
-    ```
     Retrieves metadata for a given dataset.
 
     Args:
@@ -226,7 +225,6 @@ def get_dataset_metadata(
     Returns:
         JSONResponse: The metadata dictionary for the specified
             dataset_name.
-    ```
     """
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
@@ -248,11 +246,10 @@ def get_dataset_metadata(
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
-    request: Request,
+    _request: Request,
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
 ) -> StreamingResponse:
     """
-    ```
     Generates and returns a dummy dataset.
 
     Args:
@@ -272,7 +269,6 @@ def get_dummy_dataset(
 
     Returns:
         StreamingResponse: a pd.DataFrame representing the dummy dataset.
-    ```
     """
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
@@ -297,27 +293,26 @@ def get_dummy_dataset(
     tags=["USER_QUERY"],
 )
 def smartnoise_sql_handler(
-    request: Request,
+    _request: Request,
     query_json: SNSQLInp = Body(example_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-    ```
     Handles queries for the SmartNoiseSQL library.
 
     Args:
         request (Request): Raw request object
         query_json (SNSQLInp): A JSON object containing:
-            - query: The SQL query to execute. NOTE: the table name is `df`,
+            - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
             - mechanisms (dict, optional): Dictionary of mechanisms for the
-              query (default: {}). See `Smartnoise-SQL mechanisms documentation
+              query (default: {}). See "Smartnoise-SQL mechanisms documentation
               https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms.
             - postprocess (bool, optional): Whether to postprocess the query
               results (default: True).
-              See `Smartnoise-SQL postprocessing documentation
+              See "Smartnoise-SQL postprocessing documentation
               https://docs.smartnoise.org/sql/advanced.html#postprocess.
 
             Defaults to Body(example_smartnoise_sql).
@@ -343,7 +338,6 @@ def smartnoise_sql_handler(
               for the query.
             - spent_delta (float): The amount of delta budget spent
               for the query.
-    ```
     """
     try:
         response = app.state.query_handler.handle_query(
@@ -364,26 +358,25 @@ def smartnoise_sql_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_smartnoise_sql_handler(
-    request: Request,
+    _request: Request,
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
 ) -> JSONResponse:
     """
-    ```
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
     Args:
         request (Request): Raw request object
         query_json (DummySNSQLInp, optional): A JSON object containing:
-            - query: The SQL query to execute. NOTE: the table name is `df`,
+            - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
             - mechanisms (dict, optional): Dictionary of mechanisms for the
-              query (default: {}). See `Smartnoise-SQL mechanisms documentation
+              query (default: {}). See Smartnoise-SQL mechanisms documentation
               https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms.
             - postprocess (bool, optional): Whether to postprocess the query
               results (default: True).
-              See `Smartnoise-SQL postprocessing documentation
+              See Smartnoise-SQL postprocessing documentation
               https://docs.smartnoise.org/sql/advanced.html#postprocess.
             - dummy (bool, optional): Whether to use a dummy dataset
               (default: False).
@@ -405,7 +398,6 @@ def dummy_smartnoise_sql_handler(
         JSONResponse: A JSON object containing:
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
-    ```
     """
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
@@ -431,11 +423,10 @@ def dummy_smartnoise_sql_handler(
     tags=["USER_QUERY"],
 )
 def estimate_smartnoise_cost(
-    request: Request,
+    _request: Request,
     query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
 ) -> JSONResponse:
     """
-    ```
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
     Args:
@@ -443,12 +434,12 @@ def estimate_smartnoise_cost(
         query_json (SNSQLInpCost, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
-              NOTE: the table name is `df`, the query must end with "FROM df".
+              NOTE: the table name is "df", the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
             - mechanisms (dict, optional): Dictionary of mechanisms
               for the query (default: {}).
-              See `Smartnoise-SQL mechanisms documentation
+              See Smartnoise-SQL mechanisms documentation
               https://docs.smartnoise.org/sql/advanced.html#overriding-mechanisms.
 
             Defaults to Body(example_smartnoise_sql_cost).
@@ -463,7 +454,6 @@ def estimate_smartnoise_cost(
         JSONResponse: A JSON object containing:
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
-    ```
     """
     try:
         response = app.state.query_handler.estimate_cost(
@@ -482,24 +472,23 @@ def estimate_smartnoise_cost(
     "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
 )
 def opendp_query_handler(
-    request: Request,
+    _request: Request,
     query_json: OpenDPInp = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-    ```
     Handles queries for the OpenDP Library.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
         query_json (OpenDPInp, optional): A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type
-              "ZeroConcentratedDivergence" (e.g. with `make_gaussian`) then it is
-              converted to "SmoothedMaxDivergence" with `make_zCDP_to_approxDP`
-              (see `opendp measurements documentation
-              <https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP>`_). # noqa
-              In that case a `fixed_delta` must be provided by the user.
+                "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
+                converted to "SmoothedMaxDivergence" with "make_zCDP_to_approxDP"
+                (see "opendp measurements documentation at
+                https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+                In that case a "fixed_delta" must be provided by the user.
 
             Defaults to Body(example_opendp).
 
@@ -524,7 +513,6 @@ def opendp_query_handler(
               for the query.
             - spent_delta (float): The amount of delta budget spent
               for the query.
-    ```
     """
     try:
         response = app.state.query_handler.handle_query(
@@ -544,24 +532,23 @@ def opendp_query_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_opendp_query_handler(
-    request: Request,
+    _request: Request,
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
 ) -> JSONResponse:
     """
-    ```
     Handles queries on dummy datasets for the OpenDP library.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
         query_json (DummyOpenDPInp, optional):
-            A JSON object containing the follwing:
+            A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
-            - fixed_delta: If the pipeline measurement is of type
-              "ZeroConcentratedDivergence" (e.g. with `make_gaussian`) then
+            - fixed_delta: If the pipeline measurement is of type\
+              "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then
               it is converted to "SmoothedMaxDivergence" with
-              `make_zCDP_to_approxDP` (see `opendp measurements documentation
-              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP).
-              In that case a `fixed_delta` must be provided by the user.
+              "make_zCDP_to_approxDP" (see opendp measurements documentation at
+              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+              In that case a "fixed_delta" must be provided by the user.
             - dummy (bool, optional): Whether to use a dummy dataset
               (default: False).
             - nb_rows (int, optional): The number of rows
@@ -582,7 +569,6 @@ def dummy_opendp_query_handler(
         JSONResponse: A JSON object containing:
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
-    ```
     """
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
@@ -610,18 +596,17 @@ def dummy_opendp_query_handler(
     tags=["USER_QUERY"],
 )
 def estimate_opendp_cost(
-    request: Request,
+    _request: Request,
     query_json: OpenDPInp = Body(example_opendp),
 ) -> JSONResponse:
     """
-    ```
     Estimates the privacy loss budget cost of an OpenDP query.
 
     Args:
         request (Request): Raw request object
         query_json (OpenDPInp, optional):
             A JSON object containing the following:
-            - `opendp_pipeline`: The OpenDP pipeline for the query.
+            - "opendp_pipeline": The OpenDP pipeline for the query.
 
             Defaults to Body(example_opendp).
 
@@ -636,7 +621,6 @@ def estimate_opendp_cost(
         JSONResponse: A JSON object containing:
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
-    ```
     """
     try:
         response = app.state.query_handler.estimate_cost(
@@ -658,12 +642,11 @@ def estimate_opendp_cost(
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
-    request: Request,
+    _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-    ```
     Returns the initial budget for a user and dataset.
 
     Args:
@@ -687,7 +670,6 @@ def get_initial_budget(
         JSONResponse: a JSON object with:
             - initial_epsilon (float): initial epsilon budget.
             - initial_delta (float): initial delta budget.
-    ```
     """
     try:
         initial_epsilon, initial_delta = (
@@ -715,12 +697,11 @@ def get_initial_budget(
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
-    request: Request,
+    _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-    ```
     Returns the spent budget for a user and dataset.
 
     Args:
@@ -744,7 +725,6 @@ def get_total_spent_budget(
         JSONResponse: a JSON object with:
             - total_spent_epsilon (float): total spent epsilon budget.
             - total_spent_delta (float): total spent delta budget.
-    ```
     """
     try:
         (
@@ -773,12 +753,11 @@ def get_total_spent_budget(
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
-    request: Request,
+    _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-        ```
     Returns the remaining budget for a user and dataset.
 
     Args:
@@ -802,7 +781,6 @@ def get_remaining_budget(
         JSONResponse: a JSON object with:
             - remaining_epsilon (float): remaining epsilon budget.
             - remaining_delta (float): remaining delta budget.
-    ```
     """
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
@@ -828,12 +806,11 @@ def get_remaining_budget(
     tags=["USER_BUDGET"],
 )
 def get_user_previous_queries(
-    request: Request,
+    _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
-    ```
     Returns the query history of a user on a specific dataset.
 
     Args:

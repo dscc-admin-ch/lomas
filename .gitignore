@@ -1,5 +1,5 @@
-poc_server/*
-server/src/tests/test_data/local_db_file_*
+server/lomas_server/tests/test_data/local_db_file_*
+server/lomas_server/.streamlit/*
 client/notebooks/personal_notebooks/*
 
 # Byte-compiled / optimized / DLL files

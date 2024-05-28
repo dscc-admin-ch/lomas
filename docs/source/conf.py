@@ -13,7 +13,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../"))
+sys.path.insert(0, os.path.abspath("../../server"))
+sys.path.insert(0, os.path.abspath("../../client"))
 scripts_client = "../../client/lomas_client"
 scripts_server = "../../server/lomas_server"
 if scripts_client not in sys.path:

@@ -9,9 +9,9 @@ from administration.mongodb_admin import (
     set_budget_field,
     set_may_query,
     show_user,
-    create_users_collection,
+    add_users_via_yaml,
     add_dataset,
-    add_datasets,
+    add_datasets_via_yaml,
     del_dataset,
     drop_collection,
     show_archives_of_user,
@@ -181,7 +181,7 @@ with user_tab:
         st.write("Click to add users")
         if st.button(
             "Add users",
-            on_click=create_users_collection,
+            on_click=add_users_via_yaml,
             args=(u_clean, u_overwrite, u_uploaded_file),
         ):
             st.write("Users were added.")
@@ -279,7 +279,7 @@ with dataset_tab:
         st.write("Click to add datasets")
         if st.button(
             "Add datasets",
-            on_click=add_datasets,
+            on_click=add_datasets_via_yaml,
             args=(d_clean, d_overwrite, uploaded_file),
         ):
             st.write("Datasets were added.")

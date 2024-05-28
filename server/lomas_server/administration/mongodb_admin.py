@@ -381,7 +381,7 @@ def show_user(db: Database, user: str) -> None:
     LOG.info(user)
 
 
-def create_users_collection(
+def add_users_via_yaml(
     db: Database,
     path: str,
     clean: bool,
@@ -567,7 +567,7 @@ def add_dataset(
     )
 
 
-def add_datasets(
+def add_datasets_via_yaml(
     db: Database,
     path: str,
     clean: bool,
@@ -949,7 +949,7 @@ if __name__ == "__main__":
 
     # Create the parser for the "create_example_users" command
     users_collection_from_yaml_parser = subparsers.add_parser(
-        "create_users_collection",
+        "add_users_via_yaml",
         help="create users collection from yaml file",
         parents=[connection_parser],
     )
@@ -972,9 +972,7 @@ if __name__ == "__main__":
     users_collection_from_yaml_parser.add_argument(
         "-p", "--path", required=True, type=str
     )
-    users_collection_from_yaml_parser.set_defaults(
-        func=create_users_collection
-    )
+    users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
     #######################  DATASETS  ####################### # noqa: E266
     # Create parser for dataset private database
@@ -1020,14 +1018,16 @@ if __name__ == "__main__":
     )
     add_dataset_parser.set_defaults(func=add_dataset)
 
-    # Create the parser for the "add_datasets" command
-    add_datasets_parser = subparsers.add_parser(
-        "add_datasets",
+    # Create the parser for the "add_datasets_via_yaml" command
+    add_datasets_via_yaml_parser = subparsers.add_parser(
+        "add_datasets_via_yaml",
         help="create dataset to database type collection",
         parents=[connection_parser],
     )
-    add_datasets_parser.add_argument("-p", "--path", required=True, type=str)
-    add_datasets_parser.add_argument(
+    add_datasets_via_yaml_parser.add_argument(
+        "-p", "--path", required=True, type=str
+    )
+    add_datasets_via_yaml_parser.add_argument(
         "-c",
         "--clean",
         required=False,
@@ -1035,7 +1035,7 @@ if __name__ == "__main__":
         const=True,
         default=False,
     )
-    add_datasets_parser.add_argument(
+    add_datasets_via_yaml_parser.add_argument(
         "-od",
         "--overwrite_datasets",
         required=False,
@@ -1043,7 +1043,7 @@ if __name__ == "__main__":
         const=True,
         default=False,
     )
-    add_datasets_parser.add_argument(
+    add_datasets_via_yaml_parser.add_argument(
         "-om",
         "--overwrite_metadata",
         required=False,
@@ -1051,7 +1051,7 @@ if __name__ == "__main__":
         const=True,
         default=False,
     )
-    add_datasets_parser.set_defaults(func=add_datasets)
+    add_datasets_via_yaml_parser.set_defaults(func=add_datasets_via_yaml)
 
     # Create the parser for the "del_dataset" command
     del_dataset_parser = subparsers.add_parser(
@@ -1108,7 +1108,7 @@ if __name__ == "__main__":
             mongo_db, args.user, args.value
         ),
         "show_user": lambda args: show_user(mongo_db, args.user),
-        "create_users_collection": lambda args: create_users_collection(
+        "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.path, args.clean, args.overwrite
         ),
         "add_dataset": lambda args: add_dataset(
@@ -1129,7 +1129,7 @@ if __name__ == "__main__":
             args.metadata_aws_access_key_id,
             args.metadata_aws_secret_access_key,
         ),
-        "add_datasets": lambda args: add_datasets(
+        "add_datasets_via_yaml": lambda args: add_datasets_via_yaml(
             mongo_db,
             args.path,
             args.clean,

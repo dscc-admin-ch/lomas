@@ -65,11 +65,11 @@ if __name__ == "__main__":
             - set_budget_field,
             - set_may_query,
             - show_user,
-            - create_users_collection,
+            - add_users_via_yaml,
 
         - Dataset Management (always with metadata)
             - add_dataset,
-            - add_datasets,
+            - add_datasets_via_yaml,
 
         - View Database Content
             - full user collection

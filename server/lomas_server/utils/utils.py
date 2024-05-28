@@ -10,8 +10,8 @@ from pymongo.database import Database
 
 from admin_database.utils import get_mongodb_url
 from administration.mongodb_admin import (
-    add_datasets,
-    create_users_collection,
+    add_datasets_via_yaml,
+    add_users_via_yaml,
     drop_collection,
 )
 from utils.config import get_config
@@ -79,7 +79,7 @@ def add_demo_data_to_admindb() -> None:
     mongo_db: Database = MongoClient(db_url)[args.db_name]
 
     LOG.info("Creating user collection")
-    create_users_collection(
+    add_users_via_yaml(
         mongo_db,
         clean=True,
         overwrite=True,
@@ -87,7 +87,7 @@ def add_demo_data_to_admindb() -> None:
     )
 
     LOG.info("Creating datasets and metadata collection")
-    add_datasets(
+    add_datasets_via_yaml(
         mongo_db,
         clean=True,
         overwrite_datasets=True,

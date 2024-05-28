@@ -1,0 +1,5 @@
+[server]
+address = "0.0.0.0"
+port = "8501"
+# Set this when there is a base path before the streamlit root address.
+# baseUrlPath = "..."

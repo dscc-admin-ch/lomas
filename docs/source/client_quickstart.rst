@@ -9,7 +9,7 @@ Client
 Installation
 ~~~~~~~~~~~~
 
-To install Your Project, follow these steps:
+To install lomas-client, follow these steps:
 
 1. Open a terminal.
 2. Run the following command:

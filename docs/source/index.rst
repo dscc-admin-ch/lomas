@@ -73,7 +73,7 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
 .. toctree::
    :maxdepth: 2
-   :caption: Client:
+   :caption: Client
    :hidden:
 
    client_quickstart
@@ -83,7 +83,7 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
 .. toctree::
    :maxdepth: 2
-   :caption: Server:
+   :caption: Server
    :hidden:
 
    server_deployment

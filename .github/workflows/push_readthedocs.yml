@@ -2,7 +2,7 @@ name: Generate docs and push to dedicated repo for publishing
 
 on: 
   push: 
-    branches: [ wip_215_merged-docs ]
+    branches: [ develop ]
 
 jobs:
   build:

@@ -12,8 +12,8 @@ from fastapi.testclient import TestClient
 
 from admin_database.utils import get_mongodb_url
 from administration.mongodb_admin import (
-    create_users_collection,
-    add_datasets,
+    add_users_via_yaml,
+    add_datasets_via_yaml,
     drop_collection,
 )
 from app import app
@@ -82,13 +82,13 @@ class TestRootAPIEndpoint(unittest.TestCase):
             db_url = get_mongodb_url(db_args)
             self.db: Database = MongoClient(db_url)[db_args.db_name]
 
-            create_users_collection(
+            add_users_via_yaml(
                 self.db,
                 path="tests/test_data/test_user_collection.yaml",
                 clean=True,
                 overwrite=True,
             )
-            add_datasets(
+            add_datasets_via_yaml(
                 self.db,
                 path="tests/test_data/test_datasets.yaml",
                 clean=True,

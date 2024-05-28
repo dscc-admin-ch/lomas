@@ -14,9 +14,9 @@ from administration.mongodb_admin import (
     del_dataset_to_user,
     set_budget_field,
     set_may_query,
-    create_users_collection,
+    add_users_via_yaml,
     add_dataset,
-    add_datasets,
+    add_datasets_via_yaml,
     del_dataset,
     drop_collection,
 )
@@ -289,13 +289,13 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertRaises(ValueError):
             set_may_query(self.db, user, value)
 
-    def test_create_users_collection(self) -> None:
+    def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file"""
         # Adding two users
         path = "./tests/test_data/test_user_collection.yaml"
         clean = False
         overwrite = False
-        create_users_collection(self.db, path, clean, overwrite)
+        add_users_via_yaml(self.db, path, clean, overwrite)
 
         tintin = {
             "user_name": "Tintin",
@@ -343,7 +343,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         set_budget_field(self.db, user, dataset, field, value)
 
         clean = True
-        create_users_collection(self.db, path, clean, overwrite)
+        add_users_via_yaml(self.db, path, clean, overwrite)
 
         user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
@@ -362,7 +362,7 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         user = "Milou"
         del_user(self.db, user)
-        create_users_collection(self.db, path, clean=False, overwrite=True)
+        add_users_via_yaml(self.db, path, clean=False, overwrite=True)
 
         user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
@@ -374,9 +374,7 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Overwrite to false and existing users should warn
         with self.assertWarns(UserWarning):
-            create_users_collection(
-                self.db, path, clean=False, overwrite=False
-            )
+            add_users_via_yaml(self.db, path, clean=False, overwrite=False)
 
     def test_add_dataset(self) -> None:
         """Test adding a dataset"""
@@ -419,7 +417,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         )[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
-    def test_add_datasets(self) -> None:
+    def test_add_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file"""
         # Load reference data
         with open(
@@ -463,7 +461,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets(
+        add_datasets_via_yaml(
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
 
@@ -471,13 +469,13 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Check clean works
 
-        # Add new dataset and then add_datasets with clean option
+        # Add new dataset and then add_datasets_via_yaml with clean option
         self.db.datasets.insert_one(
             {"dataset_name": "Les aventures de Tintin"}
         )
 
         clean = True
-        add_datasets(
+        add_datasets_via_yaml(
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         verify_datasets()
@@ -485,7 +483,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         # Check no overwrite triggers warning
         clean = False
         with self.assertWarns(UserWarning):
-            add_datasets(
+            add_datasets_via_yaml(
                 self.db, path, clean, overwrite_datasets, overwrite_metadata
             )
 
@@ -495,7 +493,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         )
 
         overwrite_datasets = True
-        add_datasets(
+        add_datasets_via_yaml(
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         verify_datasets()

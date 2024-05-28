@@ -386,9 +386,9 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset_name=dataset,
-            database_type=database_type,
-            metadata_database_type=metadata_database_type,
+            dataset,
+            database_type,
+            metadata_database_type,
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
@@ -509,9 +509,9 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset_name=dataset,
-            database_type=database_type,
-            metadata_database_type=metadata_database_type,
+            dataset,
+            database_type,
+            metadata_database_type,
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
@@ -540,9 +540,9 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset_name=dataset,
-            database_type=database_type,
-            metadata_database_type=metadata_database_type,
+            dataset,
+            database_type,
+            metadata_database_type,
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )

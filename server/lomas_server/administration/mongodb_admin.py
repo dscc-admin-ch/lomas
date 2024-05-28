@@ -35,7 +35,9 @@ def check_user_exists(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
+        def wrapper_decorator(
+            *arguments: argparse.Namespace, **kwargs: Dict
+        ) -> None:
             db = arguments[0]
             user = arguments[1]
 
@@ -50,7 +52,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
                     f"User {user} already exists in user collection"
                 )
 
-            return function(*arguments)  # type: ignore
+            return function(*arguments, **kwargs)  # type: ignore
 
         return wrapper_decorator
 
@@ -77,7 +79,9 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
+        def wrapper_decorator(
+            *arguments: argparse.Namespace, **kwargs: Dict
+        ) -> None:
             db = arguments[0]
             user = arguments[1]
             dataset = arguments[2]
@@ -96,7 +100,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
             if not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
 
-            return function(*arguments)  # type: ignore
+            return function(*arguments, **kwargs)  # type: ignore
 
         return wrapper_decorator
 
@@ -112,7 +116,9 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace) -> None:
+        def wrapper_decorator(
+            *arguments: argparse.Namespace, **kwargs: Dict
+        ) -> None:
             db = arguments[0]
             dataset = arguments[1]
 
@@ -144,7 +150,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
                     "exists in metadata collection"
                 )
 
-            return function(*arguments)  # type: ignore
+            return function(*arguments, **kwargs)  # type: ignore
 
         return wrapper_decorator
 

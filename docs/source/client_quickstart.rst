@@ -1,7 +1,7 @@
 Quickstart
 ==========
 
-This is the quickstart guide for Lomas-client.
+This is the quickstart guide for Lomas-client, providing initial setup and usage instructions.
 
 Client
 ------
@@ -44,9 +44,3 @@ To use FSO lomas client, you can do the following:
     res = client.any_query(parameters)
 
 with `any_query` being one of the function presented below and `parameters` being its associated parameters.
-
-Server
-------
-
-# TODO
-Instructions for setting up and running the server.

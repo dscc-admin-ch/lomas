@@ -54,9 +54,6 @@ class TestMongoDBAdmin(unittest.TestCase):
         db_url = get_mongodb_url(db_args)
         cls.db = MongoClient(db_url)[db_args.db_name]
 
-    # def setUp(self) -> None:
-    #     """Connection to database"""
-
     def tearDown(self) -> None:
         """Drop all data from database"""
         drop_collection(self.db, "metadata")

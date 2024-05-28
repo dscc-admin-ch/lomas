@@ -1,20 +1,17 @@
 from collections.abc import AsyncGenerator
 import io
-from types import SimpleNamespace
 
 import pandas as pd
 from fastapi import Request
 from fastapi.responses import StreamingResponse
-from pymongo import MongoClient
 from pymongo.database import Database
 
-from admin_database.utils import get_mongodb_url
+from admin_database.utils import get_mongodb
 from administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from utils.config import get_config
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
@@ -72,11 +69,7 @@ def add_demo_data_to_admindb() -> None:
     Meant to be used in the develop mode of the service.
     """
     LOG.info("Creating example user collection")
-
-    config = get_config()
-    args = SimpleNamespace(**vars(config.admin_database))
-    db_url = get_mongodb_url(args)
-    mongo_db: Database = MongoClient(db_url)[args.db_name]
+    mongo_db: Database = get_mongodb()
 
     LOG.info("Creating user collection")
     add_users_via_yaml(

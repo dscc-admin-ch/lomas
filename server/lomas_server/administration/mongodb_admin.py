@@ -984,7 +984,7 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     # Dataset location
-    add_dataset_parser.add_argument("-d", "--dataset", required=True)
+    add_dataset_parser.add_argument("-d", "--dataset_name", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
     add_dataset_parser.add_argument("-d_path", "--dataset_path", required=True)
     add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
@@ -1115,7 +1115,7 @@ if __name__ == "__main__":
         ),
         "add_dataset": lambda args: add_dataset(
             mongo_db,
-            args.dataset,
+            args.dataset_name,
             args.database_type,
             args.metadata_database_type,
             args.dataset_path,

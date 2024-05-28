@@ -1,6 +1,6 @@
 import argparse
 import functools
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional
 from warnings import warn
 
 import boto3
@@ -459,39 +459,41 @@ def add_dataset(
     db: Database,
     dataset_name: str,
     database_type: str,
-    dataset_path: str,
-    s3_bucket: str,
-    s3_key: str,
-    endpoint_url: str,
-    aws_access_key_id: str,
-    aws_secret_access_key: str,
     metadata_database_type: str,
-    metadata_path: str,
-    metadata_s3_bucket: str,
-    metadata_s3_key: str,
-    metadata_endpoint_url: str,
-    metadata_aws_access_key_id: str,
-    metadata_aws_secret_access_key: str,
+    dataset_path: Optional[str] = "",
+    metadata_path: Optional[str] = "",
+    s3_bucket: Optional[str] = "",
+    s3_key: Optional[str] = "",
+    endpoint_url: Optional[str] = "",
+    aws_access_key_id: Optional[str] = "",
+    aws_secret_access_key: Optional[str] = "",
+    metadata_s3_bucket: Optional[str] = "",
+    metadata_s3_key: Optional[str] = "",
+    metadata_endpoint_url: Optional[str] = "",
+    metadata_aws_access_key_id: Optional[str] = "",
+    metadata_aws_secret_access_key: Optional[str] = "",
 ) -> None:
     """Set a database type to a dataset in dataset collection.
 
     Args:
         db (Database): mongo database object
-        dataset_name (str): Dataset name.
-        database_type (str): Type of the database.
+        dataset_name (str): Dataset name
+        database_type (str): Type of the database
+        metadata_database_type (str): Metadata database type
+
         dataset_path (str): Path to the dataset (for local db type)
-        s3_bucket (str): S3 bucket name.
-        s3_key (str): S3 key.
-        endpoint_url (str): S3 endpoint URL.
-        aws_access_key_id (str): AWS access key ID.
-        aws_secret_access_key (str): AWS secret access key.
-        metadata_database_type (str): Metadata database type.
-        metadata_path (str): Path to metadata. (for local db type)
-        metadata_s3_bucket (str): Metadata S3 bucket name.
-        metadata_s3_key (str): Metadata S3 key.
-        metadata_endpoint_url (str): Metadata S3 endpoint URL.
-        metadata_aws_access_key_id (str): Metadata AWS access key ID.
-        metadata_aws_secret_access_key (str): Metadata AWS secret access key.
+        metadata_path (str): Path to metadata (for local db type)
+
+        s3_bucket (str): S3 bucket name
+        s3_key (str): S3 key
+        endpoint_url (str): S3 endpoint URL
+        aws_access_key_id (str): AWS access key ID
+        aws_secret_access_key (str): AWS secret access key
+        metadata_s3_bucket (str): Metadata S3 bucket name
+        metadata_s3_key (str): Metadata S3 key
+        metadata_endpoint_url (str): Metadata S3 endpoint URL
+        metadata_aws_access_key_id (str): Metadata AWS access key ID
+        metadata_aws_secret_access_key (str): Metadata AWS secret access key
 
     Raises:
         ValueError: If the dataset already exists
@@ -524,7 +526,7 @@ def add_dataset(
     dataset["metadata"] = {"database_type": metadata_database_type}
     if metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
-        with open(metadata_path, encoding="utf-8") as f:
+        with open(metadata_path, encoding="utf-8") as f:  # type: ignore
             metadata_dict = yaml.safe_load(f)
 
         dataset["metadata"]["metadata_path"] = metadata_path
@@ -1115,14 +1117,14 @@ if __name__ == "__main__":
             mongo_db,
             args.dataset,
             args.database_type,
+            args.metadata_database_type,
             args.dataset_path,
+            args.metadata_path,
             args.s3_bucket,
             args.s3_key,
             args.endpoint_url,
             args.aws_access_key_id,
             args.aws_secret_access_key,
-            args.metadata_database_type,
-            args.metadata_path,
             args.metadata_s3_bucket,
             args.metadata_s3_key,
             args.metadata_endpoint_url,

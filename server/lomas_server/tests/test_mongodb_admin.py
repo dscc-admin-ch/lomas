@@ -376,8 +376,8 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertWarns(UserWarning):
             add_users_via_yaml(self.db, path, clean=False, overwrite=False)
 
-    def test_add_dataset(self) -> None:
-        """Test adding a dataset"""
+    def test_add_local_dataset(self) -> None:
+        """Test adding a local dataset"""
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
@@ -386,11 +386,11 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset,
-            database_type,
-            dataset_path,
-            metadata_database_type,
-            metadata_path,
+            dataset_name=dataset,
+            database_type=database_type,
+            metadata_database_type=metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
         expected_dataset = {
@@ -509,11 +509,11 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset,
-            database_type,
-            dataset_path,
-            metadata_database_type,
-            metadata_path,
+            dataset_name=dataset,
+            database_type=database_type,
+            metadata_database_type=metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
         # Verify delete works
@@ -540,11 +540,11 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         add_dataset(
             self.db,
-            dataset,
-            database_type,
-            dataset_path,
-            metadata_database_type,
-            metadata_path,
+            dataset_name=dataset,
+            database_type=database_type,
+            metadata_database_type=metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
         # Test

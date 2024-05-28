@@ -1,6 +1,6 @@
 import argparse
 import functools
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional
 from warnings import warn
 
 import boto3
@@ -337,6 +337,9 @@ def set_budget_field(
         dataset (str): name of the dataset to set budget to
         field (str): one of 'epsilon' or 'delta'
         value (float): value to set as epsilon or delta
+
+    Returns:
+        None
     """
     res = db.users.update_one(
         {
@@ -363,6 +366,9 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
         db (Database): mongo database object
         user (str): username of the user to enable/disable
         value (bool): may query value (True or False)
+
+    Returns:
+        None
     """
     res = db.users.update_one(
         {"user_name": user},
@@ -375,16 +381,20 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
 
 @check_user_exists(True)
-def show_user(db: Database, user: str) -> None:
+def show_user(db: Database, user: str) -> dict:
     """Show a user
 
     Args:
         db (Database): mongo database object
         user (str): username of the user to show
+
+    Returns:
+        user (dict): all information of user from 'users' collection
     """
-    user = list(db.users.find({"user_name": user}))[0]
-    user.pop("_id", None)
-    LOG.info(user)
+    user_info = list(db.users.find({"user_name": user}))[0]
+    user_info.pop("_id", None)
+    LOG.info(user_info)
+    return user_info
 
 
 def add_users_via_yaml(
@@ -404,6 +414,9 @@ def add_users_via_yaml(
         overwrite (bool): boolean flag
             True if overwrite already existing users
             False errors if new values for already existing users
+
+    Returns:
+        None
     """
     if clean:
         # Collection created from scratch
@@ -448,15 +461,34 @@ def add_users_via_yaml(
             LOG.info("No new users added, they already exist in the server")
 
 
-def show_archives_of_user(db: Database, user: str) -> None:  # TODO  test
+def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
     """Show all previous queries frm a user
 
     Args:
         db (Database): mongo database object
         user (str): username of the user to show archives
+
+    Returns:
+        archives (List): list of previous queries from the user
     """
-    archives: list = list(db.archives.find_many({"user_name": user}))
-    LOG.info(archives)
+    archives_infos: List[dict] = list(db.archives.find_many({"user_name": user}))
+    LOG.info(archives_infos)
+    return archives_infos
+
+
+def get_list_of_users(db: Database) -> list:  # TODO  test
+    """Get the list of all users is 'users' collection
+
+    Args:
+        db (Database): mongo database object
+
+    Returns:
+        user_names (list): list of names of all users
+    """
+    user_names = []
+    for elem in db.users.find():
+        user_names.append(elem["user_name"])
+    return user_names
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
@@ -575,6 +607,27 @@ def add_dataset(
     )
 
 
+def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
+    """Verify that a key is present in the dictionnary
+
+    Args:
+        d (dict): dictionnary in which to check data
+        field (str): fielt that must exists
+        metadata (bool, optional): boolean for depth of verification
+
+    Returns:
+        None
+    """
+    if metadata:
+        assert (
+            field in d["metadata"].keys()
+        ), f"Metadata of {d['dataset_name']} requires '{field}' key."
+    else:
+        assert (
+            field in d.keys()
+        ), f"Dataset {d['dataset_name']} requires '{field}' key."
+
+
 def add_datasets_via_yaml(
     db: Database,
     path: str,
@@ -606,23 +659,6 @@ def add_datasets_via_yaml(
 
     with open(path, encoding="utf-8") as f:
         dataset_dict = yaml.safe_load(f)
-
-    def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
-        """_summary_
-
-        Args:
-            d (dict): _description_
-            field (str): _description_
-            metadata (bool, optional): _description_. Defaults to False.
-        """
-        if metadata:
-            assert (
-                field in d["metadata"].keys()
-            ), f"Metadata of {d['dataset_name']} requires '{field}' key."
-        else:
-            assert (
-                field in d.keys()
-            ), f"Dataset {d['dataset_name']} requires '{field}' key."
 
     # Step 1: add datasets
     new_datasets = []
@@ -746,7 +782,7 @@ def del_dataset(db: Database, dataset: str) -> None:
 
     Args:
         db (Database): mongo database object
-        dataset (str): Dataset name to be deleted.
+        dataset (str): Dataset name to be deleted
 
     Returns:
         None
@@ -758,7 +794,7 @@ def del_dataset(db: Database, dataset: str) -> None:
     LOG.info(f"Deleted dataset and metadata for {dataset}.")
 
 
-def show_dataset(db: Database, dataset: str) -> None:  # TODO test
+def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
     """Show a dataset from dataset collection.
 
     Args:
@@ -766,14 +802,15 @@ def show_dataset(db: Database, dataset: str) -> None:  # TODO test
         dataset (str): name of the dataset to show
 
     Returns:
-        None
+        dataset_info (dict): informations about the dataset
     """
-    dataset = list(db.datasets.find({"dataset_name": dataset}))[0]
-    dataset.pop("_id", None)
-    LOG.info(dataset)
+    dataset_info = list(db.datasets.find({"dataset_name": dataset}))[0]
+    dataset_info.pop("_id", None)
+    LOG.info(dataset_info)
+    return dataset_info
 
 
-def show_metadata_of_dataset(db: Database, dataset: str) -> None:  # test
+def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # test
     """Show a metadata from metadata collection.
 
     Args:
@@ -781,11 +818,27 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> None:  # test
         dataset (str): name of the dataset of the metadata to show
 
     Returns:
-        None
+        metadata (dict): informations about the metadata
     """
     metadata = list(db.metadata.find({"dataset_name": dataset}))[0]
     metadata.pop("_id", None)
     LOG.info(metadata)
+    return metadata
+
+
+def get_list_of_datasets(db: Database) -> list:  # TODO  test
+    """Get the list of all dataset is 'datasets' collection
+
+    Args:
+        db (Database): mongo database object
+
+    Returns:
+        dataset_names (list): list of names of all datasets
+    """
+    dataset_names = []
+    for elem in db.datasets.find():
+        dataset_names.append(elem["dataset_name"])
+    return dataset_names
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266

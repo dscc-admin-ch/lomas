@@ -1,16 +1,14 @@
 from io import StringIO
 import json
 import os
-from types import SimpleNamespace
 import unittest
 
 import pandas as pd
-from pymongo import MongoClient
 from pymongo.database import Database
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from admin_database.utils import get_mongodb_url
+from admin_database.utils import get_mongodb
 from administration.mongodb_admin import (
     add_users_via_yaml,
     add_datasets_via_yaml,
@@ -32,7 +30,7 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.config import get_config, CONFIG_LOADER
+from utils.config import CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -78,9 +76,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-            db_args = SimpleNamespace(**vars(get_config().admin_database))
-            db_url = get_mongodb_url(db_args)
-            self.db: Database = MongoClient(db_url)[db_args.db_name]
+            self.db: Database = get_mongodb()
 
             add_users_via_yaml(
                 self.db,

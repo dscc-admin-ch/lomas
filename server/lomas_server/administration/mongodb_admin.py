@@ -1,6 +1,6 @@
 import argparse
 import functools
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import boto3
@@ -12,6 +12,7 @@ import yaml
 from admin_database.utils import get_mongodb_url
 from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType
+# from utils.collections_models import DatasetsCollection
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
@@ -399,7 +400,7 @@ def show_user(db: Database, user: str) -> dict:
 
 def add_users_via_yaml(
     db: Database,
-    path: str,
+    yaml_file: Union[str, Dict],
     clean: bool,
     overwrite: bool,
 ) -> None:
@@ -407,7 +408,9 @@ def add_users_via_yaml(
 
     Args:
         db (Database): mongo database object
-        path (str): flag, True if drop previous collection
+        yaml_file (Union[str, Dict]):
+            if str: a path to the YAML file location
+            if Dict: a dictionnary containing the collection data
         clean (bool): boolean flag
             True if drop current user collection
             False if keep current user collection
@@ -424,41 +427,45 @@ def add_users_via_yaml(
         LOG.info("Cleaning done. \n")
 
     # Load yaml data and insert it
-    with open(path, encoding="utf-8") as f:
-        user_dict = yaml.safe_load(f)
-        # Filter out duplicates
-        new_users = []
-        existing_users = []
-        for user in user_dict["users"]:
-            if not db.users.find_one({"user_name": user["user_name"]}):
-                new_users.append(user)
-            else:
-                existing_users.append(user)
+    if isinstance(yaml_file, str):
+        with open(yaml_file, encoding="utf-8") as f:
+            user_dict = yaml.safe_load(f)
+    else:
+        user_dict = yaml_file
 
-        # Overwrite values for existing user with values from yaml
-        if existing_users:
-            if overwrite:
-                for user in existing_users:
-                    user_filter = {"user_name": user["user_name"]}
-                    update_operation = {"$set": user}
-                    res: _WriteResult = db.users.update_many(
-                        user_filter, update_operation
-                    )
-                    check_result_acknowledged(res)
-                LOG.info("Existing users updated. ")
-            else:
-                warn(
-                    "Some users already present in database."
-                    "Overwrite is set to False."
-                )
-
-        if new_users:
-            # Insert new users
-            res = db.users.insert_many(new_users)
-            check_result_acknowledged(res)
-            LOG.info(f"Added user data from yaml at {path}.")
+    # Filter out duplicates
+    new_users = []
+    existing_users = []
+    for user in user_dict["users"]:
+        if not db.users.find_one({"user_name": user["user_name"]}):
+            new_users.append(user)
         else:
-            LOG.info("No new users added, they already exist in the server")
+            existing_users.append(user)
+
+    # Overwrite values for existing user with values from yaml
+    if existing_users:
+        if overwrite:
+            for user in existing_users:
+                user_filter = {"user_name": user["user_name"]}
+                update_operation = {"$set": user}
+                res: _WriteResult = db.users.update_many(
+                    user_filter, update_operation
+                )
+                check_result_acknowledged(res)
+            LOG.info("Existing users updated. ")
+        else:
+            warn(
+                "Some users already present in database."
+                "Overwrite is set to False."
+            )
+
+    if new_users:
+        # Insert new users
+        res = db.users.insert_many(new_users)
+        check_result_acknowledged(res)
+        LOG.info("Added user data from yaml.")
+    else:
+        LOG.info("No new users added, they already exist in the server")
 
 
 def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
@@ -471,7 +478,7 @@ def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.archives.find_many({"user_name": user}))
+    archives_infos: List[dict] = list(db.archives.find({"user_name": user}))
     LOG.info(archives_infos)
     return archives_infos
 
@@ -607,30 +614,30 @@ def add_dataset(
     )
 
 
-def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
-    """Verify that a key is present in the dictionnary
+# def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
+#     """Verify that a key is present in the dictionnary
 
-    Args:
-        d (dict): dictionnary in which to check data
-        field (str): fielt that must exists
-        metadata (bool, optional): boolean for depth of verification
+#     Args:
+#         d (dict): dictionnary in which to check data
+#         field (str): fielt that must exists
+#         metadata (bool, optional): boolean for depth of verification
 
-    Returns:
-        None
-    """
-    if metadata:
-        assert (
-            field in d["metadata"].keys()
-        ), f"Metadata of {d['dataset_name']} requires '{field}' key."
-    else:
-        assert (
-            field in d.keys()
-        ), f"Dataset {d['dataset_name']} requires '{field}' key."
+#     Returns:
+#         None
+#     """
+#     if metadata:
+#         assert (
+#             field in d["metadata"].keys()
+#         ), f"Metadata of {d['dataset_name']} requires '{field}' key."
+#     else:
+#         assert (
+#             field in d.keys()
+#         ), f"Dataset {d['dataset_name']} requires '{field}' key."
 
 
 def add_datasets_via_yaml(
     db: Database,
-    path: str,
+    yaml_file: Union[str, Dict],
     clean: bool,
     overwrite_datasets: bool,
     overwrite_metadata: bool,
@@ -640,7 +647,9 @@ def add_datasets_via_yaml(
 
     Args:
         db (Database): mongo database object
-        path (str): Path to the YAML file.
+        yaml_file (Union[str, Dict]):
+            if str: a path to the YAML file location
+            if Dict: a dictionnary containing the collection data
         clean (bool): Whether to clean the collection before adding.
         overwrite_datasets (bool): Whether to overwrite existing datasets.
         overwrite_metadata (bool): Whether to overwrite existing metadata.
@@ -657,27 +666,30 @@ def add_datasets_via_yaml(
         db.metadata.drop()
         LOG.info("Cleaning done. \n")
 
-    with open(path, encoding="utf-8") as f:
-        dataset_dict = yaml.safe_load(f)
+    if isinstance(yaml_file, str):
+        with open(yaml_file, encoding="utf-8") as f:
+            dataset_dict = yaml.safe_load(f)  # TODO model_validate
+    else:
+        dataset_dict = yaml_file
 
     # Step 1: add datasets
     new_datasets = []
     existing_datasets = []
     for d in dataset_dict["datasets"]:
-        verify_keys(d, "dataset_name")
-        verify_keys(d, "database_type")
-        verify_keys(d, "metadata")
+        # verify_keys(d, "dataset_name")
+        # verify_keys(d, "database_type")
+        # verify_keys(d, "metadata")
 
-        match d["database_type"]:
-            case PrivateDatabaseType.PATH:
-                verify_keys(d, "dataset_path")
-            case PrivateDatabaseType.S3:
-                verify_keys(d, "s3_bucket")
-                verify_keys(d, "s3_key")
-            case _:
-                raise InternalServerException(
-                    f"Unknown PrivateDatabaseType: {d['database_type']}"
-                )
+        # match d["database_type"]:
+        #     case PrivateDatabaseType.PATH:
+        #         verify_keys(d, "dataset_path")
+        #     case PrivateDatabaseType.S3:
+        #         verify_keys(d, "s3_bucket")
+        #         verify_keys(d, "s3_key")
+        #     case _:
+        #         raise InternalServerException(
+        #             f"Unknown PrivateDatabaseType: {d['database_type']}"
+        #         )
 
         # Fill datasets_list
         if not db.datasets.find_one({"dataset_name": d["dataset_name"]}):
@@ -695,10 +707,7 @@ def add_datasets_via_yaml(
                     dataset_filter, update_operation
                 )
                 check_result_acknowledged(res)
-            LOG.info(
-                f"Existing datasets updated with values"
-                f"from yaml at {path}. "
-            )
+            LOG.info("Existing datasets updated with new collection")
         else:
             warn(
                 "Some datasets already present in database."
@@ -709,17 +718,17 @@ def add_datasets_via_yaml(
     if new_datasets:
         res = db.datasets.insert_many(new_datasets)
         check_result_acknowledged(res)
-        LOG.info(f"Added datasets collection from yaml at {path}. ")
+        LOG.info("Added datasets collection from yaml.")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict["datasets"]:
         dataset_name = d["dataset_name"]
         metadata_db_type = d["metadata"]["database_type"]
 
-        verify_keys(d, "database_type", metadata=True)
+        # verify_keys(d, "database_type", metadata=True)
         match metadata_db_type:
             case PrivateDatabaseType.PATH:
-                verify_keys(d, "metadata_path", metadata=True)
+                # verify_keys(d, "metadata_path", metadata=True)
 
                 with open(
                     d["metadata"]["metadata_path"], encoding="utf-8"
@@ -727,11 +736,11 @@ def add_datasets_via_yaml(
                     metadata_dict = yaml.safe_load(f)
 
             case PrivateDatabaseType.S3:
-                verify_keys(d, "s3_bucket", metadata=True)
-                verify_keys(d, "s3_key", metadata=True)
-                verify_keys(d, "endpoint_url", metadata=True)
-                verify_keys(d, "aws_access_key_id", metadata=True)
-                verify_keys(d, "aws_secret_access_key", metadata=True)
+                # verify_keys(d, "s3_bucket", metadata=True)
+                # verify_keys(d, "s3_key", metadata=True)
+                # verify_keys(d, "endpoint_url", metadata=True)
+                # verify_keys(d, "aws_access_key_id", metadata=True)
+                # verify_keys(d, "aws_secret_access_key", metadata=True)
                 client = boto3.client(
                     "s3",
                     endpoint_url=d["metadata"]["endpoint_url"],
@@ -856,7 +865,7 @@ def drop_collection(db: Database, collection: str) -> None:
     LOG.info(f"Deleted collection {collection}.")
 
 
-def show_collection(db: Database, collection: str) -> None:
+def show_collection(db: Database, collection: str) -> list:
     """Show a collection
 
     Args:
@@ -867,11 +876,15 @@ def show_collection(db: Database, collection: str) -> None:
         None
     """
     collection_query = db[collection].find({})
+    if not collection_query:
+        return []
+
     collections = []
     for document in collection_query:
         document.pop("_id", None)
         collections.append(document)
     LOG.info(collections)
+    return collections
 
 
 if __name__ == "__main__":

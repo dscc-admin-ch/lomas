@@ -64,7 +64,6 @@ if __name__ == "__main__":
             - add_dataset_to_user,
             - set_budget_field,
             - set_may_query,
-            - show_user,
             - add_users_via_yaml,
 
         - Dataset Management (always with metadata)
@@ -72,23 +71,23 @@ if __name__ == "__main__":
             - add_datasets_via_yaml,
 
         - View Database Content
-            - full user collection
-            - full dataset collection
-            - full metadata collection
-            - full archives collection
             - a user with all info
             - all queries of a users
             - a dataset will all info
             - metadata of a dataset
+            - full user collection
+            - full dataset collection
+            - full metadata collection
+            - full archives collection
 
         - Delete Content (DANGEROUS)
-            - delete full user collection
-            - delete full dataset collection
-            - delete full metadata collection
-            - delete full archives collection
             - delete a user with all info
             - remove dataset from a users
             - delete a dataset
             - delete metadata of a dataset
+            - delete full user collection
+            - delete full dataset collection
+            - delete full metadata collection
+            - delete full archives collection
     """
     )

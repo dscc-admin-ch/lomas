@@ -40,7 +40,7 @@ class AdminDBType(StrEnum):
 
 
 class ConfDatasetStore(StrEnum):
-    """Types of classes to hanfle datasets in memory"""
+    """Types of classes to handle datasets in memory"""
 
     BASIC: str = "basic"
     LRU: str = "LRU_cache"

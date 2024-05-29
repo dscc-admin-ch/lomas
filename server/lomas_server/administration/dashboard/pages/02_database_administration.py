@@ -377,6 +377,8 @@ with dataset_tab:
                 args=(st.session_state.admin_db, ad_dataset, ad_type),
                 kwargs=keyword_args,
             ):
+                dataset_ready = False
+                metadata_ready = False
                 st.session_state["list_datasets"] = get_list_of_datasets(
                     st.session_state.admin_db
                 )
@@ -492,7 +494,9 @@ with deletion_tab:
 
     st.subheader("Delete one element")
     st.markdown("**Delete one user**")
-    du_username = st.text_input("Username (delete user)", None)
+    du_username = st.selectbox(
+        "Username (delete user)", st.session_state.list_users
+    )
     if du_username:
         st.write(
             "Click to delete user", du_username, "from the list of users."
@@ -505,15 +509,21 @@ with deletion_tab:
                 du_username,
             ),
         ):
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
             st.write(f"User {du_username} was deleted.")
 
     st.markdown("**Remove dataset from user**")
     rdtu_1, rdtu_2 = st.columns(2)
     with rdtu_1:
-        rdtu_user = st.text_input("Username (remove dataset from user)", None)
+        rdtu_user = st.selectbox(
+            "Username (remove dataset from user)", st.session_state.list_users
+        )
     with rdtu_2:
-        rdtu_dataset = st.text_input(
-            "Dataset (remove dataset from user)", None
+        rdtu_dataset = st.selectbox(
+            "Dataset (remove dataset from user)",
+            st.session_state.list_datasets,
         )
     if rdtu_user and rdtu_dataset:
         st.write(
@@ -524,12 +534,17 @@ with deletion_tab:
             on_click=del_dataset_to_user,
             args=(st.session_state.admin_db, rdtu_user, rdtu_dataset),
         ):
+            st.session_state["list_datasets"] = get_list_of_datasets(
+                st.session_state.admin_db
+            )
             st.write(
                 f"Dataset {rdtu_dataset} was removed from user {rdtu_user}."
             )
 
     st.markdown("**Remove dataset and it's associated metadata**")
-    rd_dataset = st.text_input("Dataset (remove dataset)", None)
+    rd_dataset = st.selectbox(
+        "Dataset (remove dataset)", st.session_state.list_datasets
+    )
     if rd_dataset:
         st.write(
             "Click to delete dataset",
@@ -544,6 +559,9 @@ with deletion_tab:
                 rd_dataset,
             ),
         ):
+            st.session_state["list_datasets"] = get_list_of_datasets(
+                st.session_state.admin_db
+            )
             st.write(f"Dataset {rd_dataset} was deleted.")
 
     st.subheader("Delete full collection")
@@ -555,6 +573,9 @@ with deletion_tab:
             on_click=drop_collection,
             args=(st.session_state.admin_db, "users"),
         ):
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
             st.write("Users were all deleted.")
 
     with d_col_users:
@@ -563,6 +584,9 @@ with deletion_tab:
             on_click=drop_collection,
             args=(st.session_state.admin_db, "datasets"),
         ):
+            st.session_state["list_datasets"] = get_list_of_datasets(
+                st.session_state.admin_db
+            )
             st.write("Datasets were all deleted.")
 
     with d_col_metadata:

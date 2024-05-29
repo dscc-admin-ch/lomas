@@ -435,8 +435,8 @@ def add_users_via_yaml(
     # Filter out duplicates
     new_users = []
     existing_users = []
-    for user in user_dict["users"]:
-        if not db.users.find_one({"user_name": user["user_name"]}):
+    for user in user_dict.users:
+        if not db.users.find_one({"user_name": user.user_name}):
             new_users.append(user)
         else:
             existing_users.append(user)
@@ -445,8 +445,8 @@ def add_users_via_yaml(
     if existing_users:
         if overwrite:
             for user in existing_users:
-                user_filter = {"user_name": user["user_name"]}
-                update_operation = {"$set": user}
+                user_filter = {"user_name": user.user_name}
+                update_operation = {"$set": user.dict()}
                 res: _WriteResult = db.users.update_many(
                     user_filter, update_operation
                 )
@@ -460,7 +460,8 @@ def add_users_via_yaml(
 
     if new_users:
         # Insert new users
-        res = db.users.insert_many(new_users)
+        new_users_dicts = [user.dict() for user in new_users]
+        res = db.users.insert_many(new_users_dicts)
         check_result_acknowledged(res)
         LOG.info("Added user data from yaml.")
     else:
@@ -654,9 +655,9 @@ def add_datasets_via_yaml(
     # Step 1: add datasets
     new_datasets = []
     existing_datasets = []
-    for d in dataset_dict["datasets"]:
+    for d in dataset_dict.datasets:
         # Fill datasets_list
-        if not db.datasets.find_one({"dataset_name": d["dataset_name"]}):
+        if not db.datasets.find_one({"dataset_name": d.dataset_name}):
             new_datasets.append(d)
         else:
             existing_datasets.append(d)
@@ -665,8 +666,8 @@ def add_datasets_via_yaml(
     if existing_datasets:
         if overwrite_datasets:
             for d in existing_datasets:
-                dataset_filter = {"dataset_name": d["dataset_name"]}
-                update_operation = {"$set": d}
+                dataset_filter = {"dataset_name": d.dataset_name}
+                update_operation = {"$set": d.dict()}
                 res: _WriteResult = db.datasets.update_many(
                     dataset_filter, update_operation
                 )
@@ -680,34 +681,31 @@ def add_datasets_via_yaml(
 
     # Add dataset collection
     if new_datasets:
-        res = db.datasets.insert_many(new_datasets)
+        new_datasets_dicts = [d.dict() for d in new_datasets]
+        res = db.datasets.insert_many(new_datasets_dicts)
         check_result_acknowledged(res)
         LOG.info("Added datasets collection from yaml.")
 
     # Step 2: add metadata collections (one metadata per dataset)
-    for d in dataset_dict["datasets"]:
-        dataset_name = d["dataset_name"]
-        metadata_db_type = d["metadata"]["database_type"]
+    for d in dataset_dict.datasets:
+        dataset_name = d.dataset_name
+        metadata_db_type = d.metadata.database_type
 
         match metadata_db_type:
             case PrivateDatabaseType.PATH:
-                with open(
-                    d["metadata"]["metadata_path"], encoding="utf-8"
-                ) as f:
+                with open(d.metadata.metadata_path, encoding="utf-8") as f:
                     metadata_dict = yaml.safe_load(f)
 
             case PrivateDatabaseType.S3:
                 client = boto3.client(
                     "s3",
-                    endpoint_url=d["metadata"]["endpoint_url"],
-                    aws_access_key_id=d["metadata"]["aws_access_key_id"],
-                    aws_secret_access_key=d["metadata"][
-                        "aws_secret_access_key"
-                    ],
+                    endpoint_url=d.metadata.endpoint_url,
+                    aws_access_key_id=d.metadata.aws_access_key_id,
+                    aws_secret_access_key=d.metadata.aws_secret_access_key,
                 )
                 response = client.get_object(
-                    Bucket=d["metadata"]["s3_bucket"],
-                    Key=d["metadata"]["s3_key"],
+                    Bucket=d.metadata.s3_bucket,
+                    Key=d.metadata.s3_key,
                 )
                 try:
                     metadata_dict = yaml.safe_load(response["Body"])
@@ -785,10 +783,10 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # test
     Returns:
         metadata (dict): informations about the metadata
     """
-    metadata = list(db.metadata.find({"dataset_name": dataset}))[0]
-    metadata.pop("_id", None)
-    LOG.info(metadata)
-    return metadata
+    metadata_info = list(db.metadata.find({"dataset_name": dataset}))[0]
+    metadata_info.pop("_id", None)
+    LOG.info(metadata_info)
+    return metadata_info
 
 
 def get_list_of_datasets(db: Database) -> list:  # TODO  test

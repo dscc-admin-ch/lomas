@@ -12,7 +12,7 @@ import yaml
 from admin_database.utils import get_mongodb_url
 from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType
-# from utils.collections_models import DatasetsCollection
+from utils.collections_models import DatasetsCollection, UserCollection
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
@@ -429,9 +429,8 @@ def add_users_via_yaml(
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
-            user_dict = yaml.safe_load(f)
-    else:
-        user_dict = yaml_file
+            yaml_file = yaml.safe_load(f)
+    user_dict = UserCollection(**yaml_file)
 
     # Filter out duplicates
     new_users = []
@@ -469,7 +468,7 @@ def add_users_via_yaml(
 
 
 def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
-    """Show all previous queries frm a user
+    """Show all previous queries from a user
 
     Args:
         db (Database): mongo database object
@@ -478,7 +477,9 @@ def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.archives.find({"user_name": user}))
+    archives_infos: List[dict] = list(
+        db.queries_archives.find({"user_name": user})
+    )
     LOG.info(archives_infos)
     return archives_infos
 
@@ -614,27 +615,6 @@ def add_dataset(
     )
 
 
-# def verify_keys(d: dict, field: str, metadata: bool = False) -> None:
-#     """Verify that a key is present in the dictionnary
-
-#     Args:
-#         d (dict): dictionnary in which to check data
-#         field (str): fielt that must exists
-#         metadata (bool, optional): boolean for depth of verification
-
-#     Returns:
-#         None
-#     """
-#     if metadata:
-#         assert (
-#             field in d["metadata"].keys()
-#         ), f"Metadata of {d['dataset_name']} requires '{field}' key."
-#     else:
-#         assert (
-#             field in d.keys()
-#         ), f"Dataset {d['dataset_name']} requires '{field}' key."
-
-
 def add_datasets_via_yaml(
     db: Database,
     yaml_file: Union[str, Dict],
@@ -668,29 +648,13 @@ def add_datasets_via_yaml(
 
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
-            dataset_dict = yaml.safe_load(f)  # TODO model_validate
-    else:
-        dataset_dict = yaml_file
+            yaml_file = yaml.safe_load(f)
+    dataset_dict = DatasetsCollection(**yaml_file)
 
     # Step 1: add datasets
     new_datasets = []
     existing_datasets = []
     for d in dataset_dict["datasets"]:
-        # verify_keys(d, "dataset_name")
-        # verify_keys(d, "database_type")
-        # verify_keys(d, "metadata")
-
-        # match d["database_type"]:
-        #     case PrivateDatabaseType.PATH:
-        #         verify_keys(d, "dataset_path")
-        #     case PrivateDatabaseType.S3:
-        #         verify_keys(d, "s3_bucket")
-        #         verify_keys(d, "s3_key")
-        #     case _:
-        #         raise InternalServerException(
-        #             f"Unknown PrivateDatabaseType: {d['database_type']}"
-        #         )
-
         # Fill datasets_list
         if not db.datasets.find_one({"dataset_name": d["dataset_name"]}):
             new_datasets.append(d)
@@ -725,22 +689,14 @@ def add_datasets_via_yaml(
         dataset_name = d["dataset_name"]
         metadata_db_type = d["metadata"]["database_type"]
 
-        # verify_keys(d, "database_type", metadata=True)
         match metadata_db_type:
             case PrivateDatabaseType.PATH:
-                # verify_keys(d, "metadata_path", metadata=True)
-
                 with open(
                     d["metadata"]["metadata_path"], encoding="utf-8"
                 ) as f:
                     metadata_dict = yaml.safe_load(f)
 
             case PrivateDatabaseType.S3:
-                # verify_keys(d, "s3_bucket", metadata=True)
-                # verify_keys(d, "s3_key", metadata=True)
-                # verify_keys(d, "endpoint_url", metadata=True)
-                # verify_keys(d, "aws_access_key_id", metadata=True)
-                # verify_keys(d, "aws_secret_access_key", metadata=True)
                 client = boto3.client(
                     "s3",
                     endpoint_url=d["metadata"]["endpoint_url"],

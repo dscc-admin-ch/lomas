@@ -76,7 +76,7 @@ def add_demo_data_to_admindb() -> None:
         mongo_db,
         clean=True,
         overwrite=True,
-        path="/data/collections/user_collection.yaml",
+        yaml_file="/data/collections/user_collection.yaml",
     )
 
     LOG.info("Creating datasets and metadata collection")
@@ -85,7 +85,7 @@ def add_demo_data_to_admindb() -> None:
         clean=True,
         overwrite_datasets=True,
         overwrite_metadata=True,
-        path="/data/collections/dataset_collection.yaml",
+        yaml_file="/data/collections/dataset_collection.yaml",
     )
 
     LOG.info("Empty archives")

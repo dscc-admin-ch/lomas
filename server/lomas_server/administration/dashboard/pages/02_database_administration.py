@@ -466,8 +466,6 @@ with content_tab:
     with col_users:
         if st.button("Show all users"):
             users = show_collection(st.session_state.admin_db, "users")
-            st.write("Done")
-            st.write(users[0])
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets"):
@@ -550,6 +548,15 @@ with deletion_tab:
 
     st.subheader("Delete full collection")
     d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)
+
+    with d_col_users:
+        if st.button(
+            "Delete all users",
+            on_click=drop_collection,
+            args=(st.session_state.admin_db, "users"),
+        ):
+            st.write("Users were all deleted.")
+
     with d_col_users:
         if st.button(
             "Delete all datasets",
@@ -558,21 +565,13 @@ with deletion_tab:
         ):
             st.write("Datasets were all deleted.")
 
-    with d_col_datasets:
+    with d_col_metadata:
         if st.button(
             "Delete all metadata",
             on_click=drop_collection,
             args=(st.session_state.admin_db, "metadata"),
         ):
             st.write("Metadata were all deleted.")
-
-    with d_col_metadata:
-        if st.button(
-            "Delete all users",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "users"),
-        ):
-            st.write("Users were all deleted.")
 
     with d_col_archives:
         if st.button(

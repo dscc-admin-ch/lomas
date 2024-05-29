@@ -1,5 +1,6 @@
 # type: ignore
 import streamlit as st
+import yaml
 
 from admin_database.utils import get_mongodb
 from administration.mongodb_admin import (
@@ -30,6 +31,16 @@ from constants import PrivateDatabaseType
 ###############################################################################
 if "admin_db" not in st.session_state:
     st.session_state["admin_db"] = get_mongodb()
+
+if "list_users" not in st.session_state:
+    st.session_state["list_users"] = get_list_of_users(
+        st.session_state.admin_db
+    )
+
+if "list_datasets" not in st.session_state:
+    st.session_state["list_datasets"] = get_list_of_datasets(
+        st.session_state.admin_db
+    )
 
 ###############################################################################
 # GUI and user interactions
@@ -62,6 +73,9 @@ with user_tab:
                 au_username,
             ),
         ):
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
             st.write(f"User {au_username} was added.")
 
     st.subheader("Add user with budget")
@@ -87,6 +101,9 @@ with user_tab:
                 auwb_delta,
             ),
         ):
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
             st.write(
                 f"User {auwb_username} was added with dataset {auwb_dataset}."
             )
@@ -94,17 +111,21 @@ with user_tab:
     st.subheader("Add dataset to user")
     adtu_1, adtu_2, adtu_3, adtu_4 = st.columns(4)
     with adtu_1:
-        adtu_username = st.text_input("Username (add dataset to user)", None)
+        adtu_username = st.selectbox(
+            "Username (add dataset to user)", st.session_state.list_users
+        )
     with adtu_2:
-        adtu_dataset = st.text_input("Dataset (add dataset to user)", None)
+        adtu_dataset = st.selectbox(
+            "Dataset (add dataset to user)", st.session_state.list_datasets
+        )
     with adtu_3:
         adtu_epsilon = st.number_input("Epsilon (add dataset to user)", None)
     with adtu_4:
         adtu_delta = st.number_input("Delta (add dataset to user)", None)
     if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
-        st.write("Click to add user", adtu_username, "to the list of users.")
+        st.write("Click to add dataset", adtu_dataset, "to", adtu_username)
         if st.button(
-            "Add user with dataset",
+            "Add dataset to user",
             on_click=add_dataset_to_user,
             args=(
                 st.session_state.admin_db,
@@ -121,9 +142,13 @@ with user_tab:
     st.subheader("Modify user epsilon")
     sue_1, sue_2, sue_3 = st.columns(3)
     with sue_1:
-        sue_username = st.text_input("Username (modify user epsilon)", None)
+        sue_username = st.selectbox(
+            "Username (modify user epsilon)", st.session_state.list_users
+        )
     with sue_2:
-        sue_dataset = st.text_input("Dataset (modify user epsilon)", None)
+        sue_dataset = st.selectbox(
+            "Dataset (modify user epsilon)", st.session_state.list_datasets
+        )
     with sue_3:
         sue_epsilon = st.number_input(
             "Epsilon value (modify user epsilon)", None
@@ -145,6 +170,7 @@ with user_tab:
                 sue_username,
                 sue_dataset,
                 "initial_epsilon",
+                sue_epsilon,
             ),
         ):
             st.write(f"User {sue_username} epsilon value was modified.")
@@ -152,12 +178,16 @@ with user_tab:
     st.subheader("Modify user delta")
     sud_1, sud_2, sud_3 = st.columns(3)
     with sud_1:
-        sud_username = st.text_input("Username (modify user delta)", None)
+        sud_username = st.selectbox(
+            "Username (modify user delta)", st.session_state.list_users
+        )
     with sud_2:
-        sud_dataset = st.text_input("Dataset (modify user delta)", None)
+        sud_dataset = st.selectbox(
+            "Dataset (modify user delta)", st.session_state.list_datasets
+        )
     with sud_3:
         sud_delta = st.number_input("Delta value (modify user delta)", None)
-    if sue_username and sue_dataset and sud_delta:
+    if sud_username and sud_dataset and sud_delta:
         st.write(
             "Click to modify initial delta value from user",
             sud_username,
@@ -167,13 +197,14 @@ with user_tab:
             sud_delta,
         )
         if st.button(
-            "Modify user epsilon",
+            "Modify user delta",
             on_click=set_budget_field,
             args=(
                 st.session_state.admin_db,
                 sud_username,
                 sud_dataset,
                 "initial_delta",
+                sud_delta,
             ),
         ):
             st.write(f"User {sud_username} delta value was modified.")
@@ -181,10 +212,12 @@ with user_tab:
     st.subheader("Modify user may query")
     umq_1, umq_2 = st.columns(2)
     with umq_1:
-        umq_username = st.text_input("Username (user may query)", None)
+        umq_username = st.selectbox(
+            "Username (user may query)", st.session_state.list_users
+        )
     with umq_2:
         umq_may_query = st.selectbox("May query", (True, False))
-    if umq_username and umq_may_query:
+    if umq_username:
         st.write(
             f"Change user {umq_username} may query to", umq_may_query, "."
         )
@@ -210,18 +243,19 @@ with user_tab:
         "Choose a YAML file for the user collection",
         accept_multiple_files=False,
     )
-    if u_uploaded_file and u_clean and u_overwrite:
+    if u_uploaded_file:
         st.write("Click to add users")
-        if st.button(
-            "Add users",
-            on_click=add_users_via_yaml,
-            args=(
+        if st.button("Add users"):
+            user_collection = yaml.safe_load(u_uploaded_file)
+            add_users_via_yaml(
                 st.session_state.admin_db,
+                user_collection,
                 u_clean,
                 u_overwrite,
-                u_uploaded_file,
-            ),
-        ):
+            )
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
             st.write("Users were added.")
 
 with dataset_tab:
@@ -255,9 +289,7 @@ with dataset_tab:
                     "aws_access_key_id (add dataset)", None
                 )
             with ad_s3_5:
-                ad_s3_sk = st.text_input(
-                    "aws_secret_access_key (add dataset)", None
-                )
+                ad_s3_sk = st.text_input("aws_secret_key (add dataset)", None)
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
             ad_meta_path = st.text_input("Metadata path (add dataset)", None)
@@ -287,7 +319,7 @@ with dataset_tab:
                 )
             with ad_meta_s3_5:
                 ad_meta_s3_sk = st.text_input(
-                    "Metadata aws_secret_access_key (add dataset)", None
+                    "Metadata aws_secret_key (add dataset)", None
                 )
 
     if ad_dataset and ad_type and ad_meta_type:
@@ -345,15 +377,15 @@ with dataset_tab:
                 args=(st.session_state.admin_db, ad_dataset, ad_type),
                 kwargs=keyword_args,
             ):
+                st.session_state["list_datasets"] = get_list_of_datasets(
+                    st.session_state.admin_db
+                )
                 st.write("Dataset", ad_dataset, "added.")
 
     st.subheader("Add many datasets via a yaml file")
     amd_1, amd_2, amd_3 = st.columns(3)
     with amd_1:
-        d_clean = st.toggle(
-            "Clean: recreate collection from scratch "
-            + "(will delete all previous datasets)"
-        )
+        d_clean = st.toggle("Clean: will delete all previous datasets")
     with amd_2:
         d_overwrite_datasets = st.toggle(
             "Overwrite: if dataset already exists, overwrites values"
@@ -363,34 +395,79 @@ with dataset_tab:
             "Overwrite: if metadata already exists, overwrites values"
         )
     dataset_collection = st.file_uploader(
-        "Select a YAML file for the dataset collection"
+        "Select a YAML file for the dataset collection",
+        type="yaml",
+        accept_multiple_files=False,
     )
-    if (
-        dataset_collection
-        and d_clean
-        and d_overwrite_datasets
-        and d_overwrite_metadata
-    ):
+    if dataset_collection:
         st.write("Click to add datasets")
-        if st.button(
-            "Add datasets",
-            on_click=add_datasets_via_yaml,
-            args=(
+        if st.button("Add datasets"):
+            dataset_collection = yaml.safe_load(dataset_collection)
+
+            add_datasets_via_yaml(
                 st.session_state.admin_db,
                 dataset_collection,
                 d_clean,
                 d_overwrite_datasets,
                 d_overwrite_metadata,
-            ),
-        ):
+            )
+            st.session_state["list_datasets"] = get_list_of_datasets(
+                st.session_state.admin_db
+            )
             st.write("Datasets were added.")
 
 with content_tab:
+    st.subheader("Show one element")
+    elem_users, elem_archives = st.columns(2)
+    with elem_users:
+        user_selected = st.selectbox(
+            "User to show", st.session_state.list_users
+        )
+        if st.button(f"Displaying information of: {user_selected}"):
+            user_to_show = show_user(st.session_state.admin_db, user_selected)
+            st.write(user_to_show)
+    with elem_archives:
+        user_archives_selected = st.selectbox(
+            "Archives from user", st.session_state.list_users
+        )
+        st.write("Displaying information of:", user_archives_selected)
+        if st.button(
+            f"Displaying previous queries of: {user_archives_selected}"
+        ):
+            user_archives_to_show = show_archives_of_user(
+                st.session_state.admin_db, user_archives_selected
+            )
+            st.write(user_archives_to_show)
+
+    elem_datasets, elem_metadata = st.columns(2)
+    with elem_datasets:
+        dataset_selected = st.selectbox(
+            "Dataset to show", st.session_state.list_datasets
+        )
+        st.write("Displaying information of:", dataset_selected)
+        if st.button(f"Displaying dataset: {dataset_selected}"):
+            dataset_to_show = show_dataset(
+                st.session_state.admin_db, dataset_selected
+            )
+            st.write(dataset_to_show)
+    with elem_metadata:
+        metadata_selected = st.selectbox(
+            "Metadata to show from dataset", st.session_state.list_datasets
+        )
+        st.write("Displaying metadata of:", metadata_selected)
+        if st.button(f"Displaying metadata of: {metadata_selected}"):
+            metadata_to_show = show_metadata_of_dataset(
+                st.session_state.admin_db, metadata_selected
+            )
+            st.write(metadata_to_show)
+
     st.subheader("Show full collection")
     col_users, col_datasets, col_metadata, col_archives = st.columns(4)
     with col_users:
         if st.button("Show all users"):
             users = show_collection(st.session_state.admin_db, "users")
+            st.write("Done")
+            st.write(users[0])
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets"):
@@ -407,45 +484,6 @@ with content_tab:
             archives = show_collection(st.session_state.admin_db, "archives")
             st.write(archives)
 
-    st.subheader("Show one element")
-    elem_users, elem_archives = st.columns(2)
-    list_users = get_list_of_users(st.session_state.admin_db)
-    with elem_users:
-        user_selected = st.selectbox("User to show", list_users)
-        if st.button(f"Displaying information of: {user_selected}"):
-            user_to_show = show_user(st.session_state.admin_db, user_selected)
-            st.write(user_to_show)
-    with elem_archives:
-        user_archives_selected = st.selectbox("Archives from user", list_users)
-        st.write("Displaying information of:", user_archives_selected)
-        if st.button(
-            f"Displaying previous queries of: {user_archives_selected}"
-        ):
-            user_archives_to_show = show_archives_of_user(
-                st.session_state.admin_db, user_archives_selected
-            )
-            st.write(user_archives_to_show)
-
-    elem_datasets, elem_metadata = st.columns(2)
-    list_datasets = get_list_of_datasets(st.session_state.admin_db)
-    with elem_datasets:
-        dataset_selected = st.selectbox("Dataset to show", list_datasets)
-        st.write("Displaying information of:", dataset_selected)
-        if st.button(f"Displaying dataset: {dataset_selected}"):
-            dataset_to_show = show_dataset(
-                st.session_state.admin_db, dataset_selected
-            )
-            st.write(dataset_to_show)
-    with elem_metadata:
-        metadata_selected = st.selectbox(
-            "Metadata to show from dataset", list_datasets
-        )
-        st.write("Displaying metadata of:", dataset_selected)
-        if st.button(f"Displaying metadata of: {metadata_selected}"):
-            metadata_to_show = show_metadata_of_dataset(
-                st.session_state.admin_db, metadata_selected
-            )
-            st.write(metadata_to_show)
 
 with deletion_tab:
     _, center, _ = st.columns(3)
@@ -453,40 +491,6 @@ with deletion_tab:
         st.markdown(
             ":warning: :red[**Danger Zone: deleting is final**] :warning:"
         )
-
-    st.subheader("Delete full collection")
-    d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)
-    with d_col_users:
-        if st.button(
-            "Delete all datasets",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "datasets"),
-        ):
-            st.write("Datasets were all deleted.")
-
-    with d_col_datasets:
-        if st.button(
-            "Delete all metadata",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "metadata"),
-        ):
-            st.write("Metadata were all deleted.")
-
-    with d_col_metadata:
-        if st.button(
-            "Delete all users",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "users"),
-        ):
-            st.write("Users were all deleted.")
-
-    with d_col_archives:
-        if st.button(
-            "Delete all archives",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "archives"),
-        ):
-            st.write("Archives were all deleted.")
 
     st.subheader("Delete one element")
     st.markdown("**Delete one user**")
@@ -543,3 +547,37 @@ with deletion_tab:
             ),
         ):
             st.write(f"Dataset {rd_dataset} was deleted.")
+
+    st.subheader("Delete full collection")
+    d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)
+    with d_col_users:
+        if st.button(
+            "Delete all datasets",
+            on_click=drop_collection,
+            args=(st.session_state.admin_db, "datasets"),
+        ):
+            st.write("Datasets were all deleted.")
+
+    with d_col_datasets:
+        if st.button(
+            "Delete all metadata",
+            on_click=drop_collection,
+            args=(st.session_state.admin_db, "metadata"),
+        ):
+            st.write("Metadata were all deleted.")
+
+    with d_col_metadata:
+        if st.button(
+            "Delete all users",
+            on_click=drop_collection,
+            args=(st.session_state.admin_db, "users"),
+        ):
+            st.write("Users were all deleted.")
+
+    with d_col_archives:
+        if st.button(
+            "Delete all archives",
+            on_click=drop_collection,
+            args=(st.session_state.admin_db, "archives"),
+        ):
+            st.write("Archives were all deleted.")

@@ -3,11 +3,18 @@ name: Build and Push Docker images
 on:
   push:
     branches:
-      - develop 
+      - develop
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: dsccadminch/lomas_server
+            target: lomas_server
+          - image: dsccadminch/lomas_admin_dashboard
+            target: lomas_admin_dashboard
     steps:
       -
         name: Checkout
@@ -17,7 +24,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images:
-            dsccadminch/lomas_server   
+            ${{ matrix.image }} 
           tags: |
             type=sha
             latest        
@@ -34,10 +41,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
+        name: Build and push image
         uses: docker/build-push-action@v5
         with:
           context: ./server
           push: true
-          target: lomas_server
+          target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}

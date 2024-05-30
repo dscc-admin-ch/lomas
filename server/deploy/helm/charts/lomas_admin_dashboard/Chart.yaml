@@ -1,0 +1,9 @@
+apiVersion: v2
+name: lomas-admin-dashboard
+description: FSO's Lomas Server Administration Dashboard Deployment Chart
+
+type: application
+
+version: 0.0.1
+
+appVersion: "0.0.1"

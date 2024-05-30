@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "lomas_server.fullname" . }}
+  name: {{ include "lomas_admin_dashboard.fullname" . }}
   labels:
-    {{- include "lomas_server.labels" . | nindent 4 }}
+    {{- include "lomas_admin_dashboard.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
     protocol: TCP
     name: http
   selector:
-    {{- include "lomas_server.selectorLabels" . | nindent 4 }}
+    {{- include "lomas_admin_dashboard.selectorLabels" . | nindent 4 }}

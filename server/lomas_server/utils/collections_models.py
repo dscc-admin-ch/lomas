@@ -3,7 +3,7 @@
 from typing import Dict, List, Union
 from pydantic import BaseModel
 
-# from constants import PrivateDatabaseType
+from constants import PrivateDatabaseType
 
 
 class DatasetOfUser(BaseModel):
@@ -33,7 +33,7 @@ class UserCollection(BaseModel):
 class MetadataOfDataset(BaseModel):
     """BaseModel for metadata of a dataset"""
 
-    database_type: str
+    database_type: PrivateDatabaseType
 
 
 class MetadataOfPathDB(MetadataOfDataset):
@@ -56,14 +56,14 @@ class Dataset(BaseModel):
     """BaseModel for a dataset"""
 
     dataset_name: str
-    database_type: str
+    database_type: PrivateDatabaseType
     metadata: Union[MetadataOfPathDB, MetadataOfS3DB]
 
 
 class DatasetOfPathDB(Dataset):
     """BaseModel for a local dataset"""
 
-    database_type: str
+    dataset_path: str
 
 
 class DatasetOfS3DB(Dataset):

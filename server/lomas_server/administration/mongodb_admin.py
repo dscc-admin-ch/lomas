@@ -794,7 +794,7 @@ def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
     return dataset_info
 
 
-def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # test
+def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # TODO test
     """Show a metadata from metadata collection.
 
     Args:
@@ -1028,6 +1028,44 @@ if __name__ == "__main__":
     )
     users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
+    # Function: Show Archives of User
+    show_archives_parser = subparsers.add_parser(
+        "show_archives",
+        help="show all previous queries from a user",
+        parents=[connection_parser],
+    )
+    show_archives_parser.add_argument(
+        "-u",
+        "--user",
+        required=True,
+        type=str,
+        help="username of the user to show archives",
+    )
+    show_archives_parser.set_defaults(func=show_archives_of_user)
+
+    # Function: Get List of Users
+    get_users_parser = subparsers.add_parser(
+        "get_users",
+        help="get the list of all users in 'users' collection",
+        parents=[connection_parser],
+    )
+    get_users_parser.set_defaults(func=get_list_of_users)
+
+    # Function: Get List of Datasets from User
+    get_user_datasets_parser = subparsers.add_parser(
+        "get_user_datasets",
+        help="get the list of all datasets from a user",
+        parents=[connection_parser],
+    )
+    get_user_datasets_parser.add_argument(
+        "-u",
+        "--user",
+        required=True,
+        type=str,
+        help="username of the user to show datasets",
+    )
+    get_user_datasets_parser.set_defaults(func=get_list_of_datasets_from_user)
+
     #######################  DATASETS  ####################### # noqa: E266
     # Create parser for dataset private database
     add_dataset_parser = subparsers.add_parser(
@@ -1119,6 +1157,44 @@ if __name__ == "__main__":
     del_dataset_parser.add_argument("-d", "--dataset", required=True, type=str)
     del_dataset_parser.set_defaults(func=del_dataset)
 
+    # Function: Show Dataset
+    show_dataset_parser = subparsers.add_parser(
+        "show_dataset",
+        help="show a dataset from the dataset collection",
+        parents=[connection_parser],
+    )
+    show_dataset_parser.add_argument(
+        "-d",
+        "--dataset",
+        required=True,
+        type=str,
+        help="name of the dataset to show",
+    )
+    show_dataset_parser.set_defaults(func=show_dataset)
+
+    # Function: Show Metadata of Dataset
+    show_metadata_parser = subparsers.add_parser(
+        "show_metadata",
+        help="show metadata from the metadata collection",
+        parents=[connection_parser],
+    )
+    show_metadata_parser.add_argument(
+        "-d",
+        "--dataset",
+        required=True,
+        type=str,
+        help="name of the dataset of the metadata to show",
+    )
+    show_metadata_parser.set_defaults(func=show_metadata_of_dataset)
+
+    # Function: Get List of Datasets
+    get_datasets_parser = subparsers.add_parser(
+        "get_datasets",
+        help="get the list of all datasets in 'datasets' collection",
+        parents=[connection_parser],
+    )
+    get_datasets_parser.set_defaults(func=get_list_of_datasets)
+
     #######################  COLLECTIONS  ####################### # noqa: E266
     # Create the parser for the "drop_collection" command
     drop_collection_parser = subparsers.add_parser(
@@ -1177,6 +1253,13 @@ if __name__ == "__main__":
         "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.path, args.clean, args.overwrite
         ),
+        "show_archives": lambda args: show_archives_of_user(
+            mongo_db, args.user
+        ),
+        "get_users": lambda args: get_list_of_users(mongo_db),
+        "get_user_datasets": lambda args: get_list_of_datasets_from_user(
+            mongo_db, args.user
+        ),
         "add_dataset": lambda args: add_dataset(
             mongo_db,
             args.dataset_name,
@@ -1203,6 +1286,11 @@ if __name__ == "__main__":
             args.overwrite_metadata,
         ),
         "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
+        "show_dataset": lambda args: show_dataset(mongo_db, args.dataset),
+        "show_metadata": lambda args: show_metadata_of_dataset(
+            mongo_db, args.dataset
+        ),
+        "get_datasets": lambda args: get_list_of_datasets(mongo_db),
         "drop_collection": lambda args: drop_collection(
             mongo_db, args.collection
         ),

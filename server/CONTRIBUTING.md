@@ -8,6 +8,11 @@ To start the container on a local machine, first create a mondodb volume
 with `docker volume create mongodata`, then go to `lomas/server/` and run `docker compose up`. 
 If you encounter any issue, you might want to run `docker compose down` first.
 
+#### Additional services
+Running `docker compose up` will also start two additional services automatically:
+- a jupyter notebook environment that will be available at the address http://127.0.0.1:8888/ to interact as a user with the server
+- a streamlit application that will be available at the address http://localhost:8501/ to interact with the server and the administration database as an administrator.
+
 ### On a kubernetes cluster
 To start the server on a kubernetes cluster, first add the repo with:
 `helm repo add lomas https://dscc-admin-ch.github.io/helm-charts`

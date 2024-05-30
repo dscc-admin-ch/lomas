@@ -34,32 +34,52 @@ class MetadataOfDataset(BaseModel):
     """BaseModel for metadata of a dataset"""
 
     database_type: str
-    metadata_path: str = None
-    s3_bucket: str = None
-    s3_key: str = None
-    endpoint_url: str = None
-    aws_access_key_id: str = None
-    aws_secret_access_key: str = None
+
+
+class MetadataOfPathDB(MetadataOfDataset):
+    """BaseModel for metadata of a dataset with PATH_DB"""
+
+    metadata_path: str
+
+
+class MetadataOfS3DB(MetadataOfDataset):
+    """BaseModel for metadata of a dataset with S3_DB"""
+
+    s3_bucket: str
+    s3_key: str
+    endpoint_url: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
 
 
 class Dataset(BaseModel):
-    """BaseModel for a dataset in a datasets collection"""
+    """BaseModel for a dataset"""
 
     dataset_name: str
     database_type: str
-    dataset_path: str = None
-    s3_bucket: str = None
-    s3_key: str = None
-    endpoint_url: str = None
-    aws_access_key_id: str = None
-    aws_secret_access_key: str = None
-    metadata: MetadataOfDataset
+    metadata: Union[MetadataOfPathDB, MetadataOfS3DB]
+
+
+class DatasetOfPathDB(Dataset):
+    """BaseModel for a local dataset"""
+
+    database_type: str
+
+
+class DatasetOfS3DB(Dataset):
+    """BaseModel for a dataset on S3"""
+
+    s3_bucket: str
+    s3_key: str
+    endpoint_url: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
 
 
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Dataset]
+    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]]
 
 
 class Metadata(BaseModel):

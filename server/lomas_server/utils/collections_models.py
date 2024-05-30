@@ -1,5 +1,3 @@
-# type: ignore
-
 from typing import Dict, List, Union
 from pydantic import BaseModel
 

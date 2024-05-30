@@ -1,5 +1,7 @@
 # Tips for developers
 
+It is recommended to run the project with python 3.11.
+
 ## Start service
 
 The different notebooks in `./notebooks` provide more complete documentation regarding the set up and administration of the server.
@@ -25,8 +27,7 @@ To start the server on Onyxia, select the `lomas `service, (optionnally adapt th
 ## Tests
 
 It is possible to test the server with standard tests or integration tests (for the mongodb).
-The `run_integration_tests.sh` script runs the integration tests, make sure to have an activated python venv
-with the server requirements installed for it to work.
+The `run_integration_tests.sh` script runs the integration tests, make sure to have an activated python venv in a linux environment with the server requirements installed for it to work.
 
 Local tests (except for those using the mongodb_admin) can be run with a simple `python -m unittest discover -s . ` from the `lomas_server` directory. The tests will be based on the config in `lomas/server/lomas_server/tests/test_configs/test_config.yaml` and be executed with the AdminYamlDatabase. 
 For local tests on the mongodb_admin, first get in the container with `docker exec -it lomas_server_dev bash` and then run the tests.
@@ -53,12 +54,3 @@ The process goes in two steps
 
 We do not check the documentation files into the repo, but rather rely on a github workflow to generate and publish it 
 on a dedicated repo's github pages for easy access from the web.
-
-
-## Streamlit App
-
-### On local machine
-Go to `lomas/lomas_server/` and run `streamlit run .\administration\dashboard\about.py`.
-
-### In container
-TODO

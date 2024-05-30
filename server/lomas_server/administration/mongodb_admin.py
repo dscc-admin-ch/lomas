@@ -1140,7 +1140,12 @@ if __name__ == "__main__":
         help="print a collection",
         parents=[connection_parser],
     )
-    show_collection_parser.add_argument("-c", "--collection", required=True,choices=["users", "datasets", "metadata", "queries_archives"])
+    show_collection_parser.add_argument(
+        "-c",
+        "--collection",
+        required=True,
+        choices=["users", "datasets", "metadata", "queries_archives"],
+    )
     show_collection_parser.set_defaults(func=show_collection)
 
     args = parser.parse_args()

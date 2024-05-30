@@ -80,13 +80,13 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             add_users_via_yaml(
                 self.db,
-                path="tests/test_data/test_user_collection.yaml",
+                yaml_file="tests/test_data/test_user_collection.yaml",
                 clean=True,
                 overwrite=True,
             )
             add_datasets_via_yaml(
                 self.db,
-                path="tests/test_data/test_datasets.yaml",
+                yaml_file="tests/test_data/test_datasets.yaml",
                 clean=True,
                 overwrite_datasets=True,
                 overwrite_metadata=True,

@@ -38,56 +38,48 @@ if __name__ == "__main__":
     st.header("Lomas Administation Dashboard")
     st.write(
         """
-    The administration dashboard enables to control the state of the server.
-    It displays informations about the server and the administration database.
-    - In the first tab, informations about the server are shown.
-    - In the second tab, it is possible to interact with the administration database to manage:
-        - User-related data and
-        - Dataset-related data.
+    The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database.
+    Whether you need to monitor server status, manage user accounts, or administer datasets, this dashboard offers a convenient way to do so.
     """  # noqa: E501
     )
 
-    st.header("Tabs explanation")
+    st.header("Key Features")
 
     st.write(
         """
-    #### 1. Server overview
-    See URL
-    See SERVER_STATE (running or not)
+        - **Server Overview**: Quickly check the status of your server, including live status and configuration details.
+        - **Admin Database Management**: Effortlessly manage users and datasets through intuitive interfaces.
+        - **User Management**: Add, modify, or delete user accounts, set budget parameters, and control user permissions.
+        - **Dataset Management**: Add, remove, or modify datasets and associated metadata with ease.
+        - **View Database Content**: Dive deep into the database to view detailed information about users, datasets, metadata, and archives.
+        - **Delete Content (DANGEROUS)**: Safely delete users, datasets, metadata, or entire collections when necessary.
+        """  # noqa: E501
+    )
 
-    #### 2. Admin database Management
-    Enables to manage admin db. # TODO refer to doc or one line each
+    st.header("Quick Start")
 
-        - User Management
-            - add_user,
-            - add_user_with_budget,
-            - add_dataset_to_user,
-            - set_budget_field,
-            - set_may_query,
-            - add_users_via_yaml,
+    st.write(
+        """
+        1. Navigate through the tabs to access different functionalities:
+            - **Server Overview**: Check server status and configuration.
+            - **Admin Database Management**: Manage users, datasets, and database content.
 
-        - Dataset Management (always with metadata)
-            - add_dataset,
-            - add_datasets_via_yaml,
+        2. Use the intuitive interfaces to perform actions such as adding users, modifying datasets, or viewing database content.
 
-        - View Database Content
-            - a user with all info
-            - all queries of a users
-            - a dataset will all info
-            - metadata of a dataset
-            - full user collection
-            - full dataset collection
-            - full metadata collection
-            - full archives collection
+        3. Exercise caution when using deletion functionalities, as they can permanently remove data.
 
-        - Delete Content (DANGEROUS)
-            - delete a user with all info
-            - remove dataset from a users
-            - delete a dataset
-            - delete metadata of a dataset
-            - delete full user collection
-            - delete full dataset collection
-            - delete full metadata collection
-            - delete full archives collection
-    """
+        4. Refer to the documentation or tooltips for additional guidance on specific features.
+    """  # noqa: E501
+    )
+
+    # Additional resources
+    st.header("Resources")
+
+    st.write(
+        "**Documentation**: [server documentation](%s)"
+        % "https://dscc-admin-ch.github.io/lomas-server-docs/lomas_server.admin_database.html"  # noqa: E501
+    )
+    st.write(
+        "**Support**: If you encounter any issues or have questions, reach out on [Github issues](%s)"  # noqa: E501
+        % "https://github.com/dscc-admin-ch/lomas/issues"
     )

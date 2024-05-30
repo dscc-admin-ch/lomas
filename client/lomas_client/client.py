@@ -60,9 +60,7 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 _description_
         """
-        res = self._exec(
-            "get_dataset_metadata", {"dataset_name": self.dataset_name}
-        )
+        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name})
         if res.status_code == 200:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -235,9 +233,7 @@ class Client:
             # we handle the latter here.
             # This is a hack for now, maybe use parquet to send results over.
             if isinstance(response_dict["query_response"], str):
-                raise Exception(
-                    "Not implemented: server should not return dataframes"
-                )
+                raise Exception("Not implemented: server should not return dataframes")
                 # Note: leaving this here. Support for opendp_polars
                 # response_dict["query_response"] = polars.read_json(
                 #    StringIO(response_dict["query_response"])
@@ -344,9 +340,7 @@ class Client:
         res = self._exec("get_previous_queries", body_json)
 
         if res.status_code == 200:
-            queries = json.loads(res.content.decode("utf8"))[
-                "previous_queries"
-            ]
+            queries = json.loads(res.content.decode("utf8"))["previous_queries"]
 
             if not queries:
                 return queries

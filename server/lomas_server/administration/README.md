@@ -53,6 +53,12 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
   - `-p, --path`: Path to the YAML file (required).
   - `-c, --clean`: Clean the existing users collection (optional, default: False).
   - `-o, --overwrite`: Overwrite the existing users collection (optional, default: False).
+- `show_archives`: Show all previous queries from a user.
+  - `-u, --user`: Username of the user to show archives (required).
+- `get_users`: Get the list of all users in the 'users' collection.
+- `get_user_datasets`: Get the list of all datasets from a user.
+  - `-u, --user`: Username of the user to show datasets (required).
+
 
 #### Datasets
 
@@ -79,6 +85,11 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
   - `-om, --overwrite_metadata`: Overwrite the existing metadata collection (optional, default: False).
 - `del_dataset`: Delete dataset and metadata from datasets and metadata collection.
   - `-d, --dataset`: Name of the dataset to be deleted (required).
+- `show_dataset`: Show a dataset from the dataset collection.
+  - `-d, --dataset`: Name of the dataset to show (required).
+- `show_metadata`: Show metadata from the metadata collection.
+  - `-d, --dataset`: Name of the dataset of the metadata to show (required).
+- `get_datasets`: Get the list of all datasets in the 'datasets' collection.
 
 #### Collections
 
@@ -116,6 +127,15 @@ python mongodb_admin.py show_user -u username
 # Create users collection from a YAML file
 python mongodb_admin.py add_users_via_yaml -p users.yaml -c
 
+# Show all previous queries from user "username"
+python mongodb_admin.py show_archives -u username
+
+# Get the list of all users
+python mongodb_admin.py get_users
+
+# Get the list of all datasets from user "username"
+python mongodb_admin.py get_user_datasets -u username
+
 # Add a dataset
 python mongodb_admin.py add_dataset -d dataset_name -db database_type -d_path dataset_path -m_db metadata_database_type
 
@@ -124,6 +144,12 @@ python mongodb_admin.py add_datasets_via_yaml -p datasets.yaml -c -od -om
 
 # Delete a dataset
 python mongodb_admin.py del_dataset -d dataset_name
+
+# Show dataset "dataset_name"
+python mongodb_admin.py show_dataset -d dataset_name
+
+# Show metadata for dataset "dataset_name"
+python mongodb_admin.py show_metadata -d dataset_name
 
 # Drop a collection
 python mongodb_admin.py drop_collection -c users

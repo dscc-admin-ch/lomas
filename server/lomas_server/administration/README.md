@@ -65,19 +65,19 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
 - `add_dataset`: Set in which database the dataset is stored.
   - `-d, --dataset_name`: Name of the dataset (required).
   - `-db, --database_type`: Type of the database where the dataset is stored (required).
-  - `-d_path, --dataset_path`: Path to the dataset (optional).
-  - `-s3b, --s3_bucket`: S3 bucket name (optional).
-  - `-s3k, --s3_key`: S3 key (optional).
-  - `-s3_url, --endpoint_url`: S3 endpoint URL (optional).
-  - `-s3_ak, --aws_access_key_id`: AWS access key ID for S3 (optional).
-  - `-s3_sak, --aws_secret_access_key`: AWS secret access key for S3 (optional).
+  - `-d_path, --dataset_path`: Path to the dataset (required if database_type is 'PATH_DB').
+  - `-s3b, --s3_bucket`: S3 bucket name (required if database_type is 'S3_DB').
+  - `-s3k, --s3_key`: S3 key (required if database_type is 'S3_DB').
+  - `-s3_url, --endpoint_url`: S3 endpoint URL (required if database_type is 'S3_DB').
+  - `-s3_ak, --aws_access_key_id`: AWS access key ID for S3 (required if database_type is 'S3_DB').
+  - `-s3_sak, --aws_secret_access_key`: AWS secret access key for S3 (required if database_type is 'S3_DB').
   - `-m_db, --metadata_database_type`: Type of the database where metadata is stored (required).
-  - `-mp, --metadata_path`: Path to the metadata (optional).
-  - `-m_s3b, --metadata_s3_bucket`: S3 bucket name for metadata (optional).
-  - `-m_s3k, --metadata_s3_key`: S3 key for metadata (optional).
-  - `-m_s3_url, --metadata_endpoint_url`: S3 endpoint URL for metadata (optional).
-  - `-m_s3_ak, --metadata_aws_access_key_id`: AWS access key ID for metadata (optional).
-  - `-m_s3_sak, --metadata_aws_secret_access_key`: AWS secret access key for metadata (optional).
+  - `-mp, --metadata_path`: Path to the metadata (required if metadata_database_type is 'PATH_DB').
+  - `-m_s3b, --metadata_s3_bucket`: S3 bucket name for metadata (required if metadata_database_type is 'S3_DB').
+  - `-m_s3k, --metadata_s3_key`: S3 key for metadata (required if metadata_database_type is 'S3_DB').
+  - `-m_s3_url, --metadata_endpoint_url`: S3 endpoint URL for metadata (required if metadata_database_type is 'S3_DB').
+  - `-m_s3_ak, --metadata_aws_access_key_id`: AWS access key ID for metadata (required if metadata_database_type is 'S3_DB').
+  - `-m_s3_sak, --metadata_aws_secret_access_key`: AWS secret access key for metadata (required if metadata_database_type is 'S3_DB').
 - `add_datasets_via_yaml`: Create datasets to database type collection.
   - `-p, --path`: Path to the YAML file (required).
   - `-c, --clean`: Clean the existing datasets collection (optional, default: False).

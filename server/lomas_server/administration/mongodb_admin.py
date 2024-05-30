@@ -1024,7 +1024,7 @@ if __name__ == "__main__":
         default=False,
     )
     users_collection_from_yaml_parser.add_argument(
-        "-p", "--path", required=True, type=str
+        "-yf", "--yaml_file", required=True, type=str
     )
     users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
@@ -1119,7 +1119,7 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     add_datasets_via_yaml_parser.add_argument(
-        "-p", "--path", required=True, type=str
+        "-yf", "--yaml_file", required=True, type=str
     )
     add_datasets_via_yaml_parser.add_argument(
         "-c",
@@ -1251,7 +1251,7 @@ if __name__ == "__main__":
         ),
         "show_user": lambda args: show_user(mongo_db, args.user),
         "add_users_via_yaml": lambda args: add_users_via_yaml(
-            mongo_db, args.path, args.clean, args.overwrite
+            mongo_db, args.yaml_file, args.clean, args.overwrite
         ),
         "show_archives": lambda args: show_archives_of_user(
             mongo_db, args.user
@@ -1280,7 +1280,7 @@ if __name__ == "__main__":
         ),
         "add_datasets_via_yaml": lambda args: add_datasets_via_yaml(
             mongo_db,
-            args.path,
+            args.yaml_file,
             args.clean,
             args.overwrite_datasets,
             args.overwrite_metadata,

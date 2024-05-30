@@ -47,10 +47,10 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
 - `set_may_query`: Set the "may query" field to a given value for a specified user.
   - `-u, --user`: Username of the user (required).
   - `-v, --value`: Value to set for "may query" (choices: "False" or "True") (required).
-- `show_user`: Show all metadata of a user.
+- `show_user`: Show all information about a user in the users collection.
   - `-u, --user`: Username of the user to be shown (required).
 - `add_users_via_yaml`: Create users collection from a YAML file.
-  - `-p, --path`: Path to the YAML file (required).
+  - `-yf, --yaml_file`: Path to the YAML file (required).
   - `-c, --clean`: Clean the existing users collection (optional, default: False).
   - `-o, --overwrite`: Overwrite the existing users collection (optional, default: False).
 - `show_archives`: Show all previous queries from a user.
@@ -62,15 +62,15 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
 
 #### Datasets
 
-- `add_dataset`: Set in which database the dataset is stored.
+- `add_dataset`: Add a dataset to the datasets collection.
   - `-d, --dataset_name`: Name of the dataset (required).
   - `-db, --database_type`: Type of the database where the dataset is stored (required).
   - `-d_path, --dataset_path`: Path to the dataset (required if database_type is 'PATH_DB').
-  - `-s3b, --s3_bucket`: S3 bucket name (required if database_type is 'S3_DB').
-  - `-s3k, --s3_key`: S3 key (required if database_type is 'S3_DB').
-  - `-s3_url, --endpoint_url`: S3 endpoint URL (required if database_type is 'S3_DB').
-  - `-s3_ak, --aws_access_key_id`: AWS access key ID for S3 (required if database_type is 'S3_DB').
-  - `-s3_sak, --aws_secret_access_key`: AWS secret access key for S3 (required if database_type is 'S3_DB').
+  - `-s3b, --s3_bucket`: S3 bucket name for the dataset file (required if database_type is 'S3_DB').
+  - `-s3k, --s3_key`: S3 key for the dataset file  (required if database_type is 'S3_DB').
+  - `-s3_url, --endpoint_url`: S3 endpoint URL for the dataset file  (required if database_type is 'S3_DB').
+  - `-s3_ak, --aws_access_key_id`: AWS access key ID for S3 for the dataset file (required if database_type is 'S3_DB').
+  - `-s3_sak, --aws_secret_access_key`: AWS secret access key for S3 for the dataset file  (required if database_type is 'S3_DB').
   - `-m_db, --metadata_database_type`: Type of the database where metadata is stored (required).
   - `-mp, --metadata_path`: Path to the metadata (required if metadata_database_type is 'PATH_DB').
   - `-m_s3b, --metadata_s3_bucket`: S3 bucket name for metadata (required if metadata_database_type is 'S3_DB').
@@ -78,8 +78,8 @@ The CLI requires connection parameters to establish a connection with MongoDB. T
   - `-m_s3_url, --metadata_endpoint_url`: S3 endpoint URL for metadata (required if metadata_database_type is 'S3_DB').
   - `-m_s3_ak, --metadata_aws_access_key_id`: AWS access key ID for metadata (required if metadata_database_type is 'S3_DB').
   - `-m_s3_sak, --metadata_aws_secret_access_key`: AWS secret access key for metadata (required if metadata_database_type is 'S3_DB').
-- `add_datasets_via_yaml`: Create datasets to database type collection.
-  - `-p, --path`: Path to the YAML file (required).
+- `add_datasets_via_yaml`: Create datasets to database type collection based on a yaml file.
+  - `-yf, --yaml_file`: Path to the YAML file (required).
   - `-c, --clean`: Clean the existing datasets collection (optional, default: False).
   - `-od, --overwrite_datasets`: Overwrite the existing datasets collection (optional, default: False).
   - `-om, --overwrite_metadata`: Overwrite the existing metadata collection (optional, default: False).
@@ -125,7 +125,7 @@ python mongodb_admin.py set_may_query -u username -v True
 python mongodb_admin.py show_user -u username
 
 # Create users collection from a YAML file
-python mongodb_admin.py add_users_via_yaml -p users.yaml -c
+python mongodb_admin.py add_users_via_yaml -yf users.yaml -c
 
 # Show all previous queries from user "username"
 python mongodb_admin.py show_archives -u username
@@ -140,7 +140,7 @@ python mongodb_admin.py get_user_datasets -u username
 python mongodb_admin.py add_dataset -d dataset_name -db database_type -d_path dataset_path -m_db metadata_database_type
 
 # Create datasets from a YAML file
-python mongodb_admin.py add_datasets_via_yaml -p datasets.yaml -c -od -om
+python mongodb_admin.py add_datasets_via_yaml -yf datasets.yaml -c -od -om
 
 # Delete a dataset
 python mongodb_admin.py del_dataset -d dataset_name

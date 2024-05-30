@@ -1038,7 +1038,9 @@ if __name__ == "__main__":
     # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset_name", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
-    add_dataset_parser.add_argument("-d_path", "--dataset_path", required=True)
+    add_dataset_parser.add_argument(
+        "-d_path", "--dataset_path", required=False
+    )
     add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
     add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
     add_dataset_parser.add_argument(
@@ -1124,7 +1126,12 @@ if __name__ == "__main__":
         help="delete collection from database",
         parents=[connection_parser],
     )
-    drop_collection_parser.add_argument("-c", "--collection", required=True)
+    drop_collection_parser.add_argument(
+        "-c",
+        "--collection",
+        required=True,
+        choices=["users", "datasets", "metadata", "queries_archives"],
+    )
     drop_collection_parser.set_defaults(func=drop_collection)
 
     # Create the parser for the "show_users_collection" command
@@ -1133,7 +1140,7 @@ if __name__ == "__main__":
         help="print a collection",
         parents=[connection_parser],
     )
-    show_collection_parser.add_argument("-c", "--collection", required=True)
+    show_collection_parser.add_argument("-c", "--collection", required=True,choices=["users", "datasets", "metadata", "queries_archives"])
     show_collection_parser.set_defaults(func=show_collection)
 
     args = parser.parse_args()

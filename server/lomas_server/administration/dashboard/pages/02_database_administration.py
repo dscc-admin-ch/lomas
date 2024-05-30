@@ -19,6 +19,7 @@ from administration.mongodb_admin import (
     drop_collection,
     get_list_of_users,
     get_list_of_datasets,
+    get_list_of_datasets_from_user,
     show_archives_of_user,
     show_collection,
     show_dataset,
@@ -83,7 +84,9 @@ with user_tab:
     with auwb_1:
         auwb_username = st.text_input("Username (add user with budget)", None)
     with auwb_2:
-        auwb_dataset = st.text_input("Dataset (add user with budget)", None)
+        auwb_dataset = st.selectbox(
+            "Dataset (add user with budget)", st.session_state.list_datasets
+        )
     with auwb_3:
         auwb_epsilon = st.number_input("Epsilon (add user with budget)", None)
     with auwb_4:
@@ -115,13 +118,25 @@ with user_tab:
             "Username (add dataset to user)", st.session_state.list_users
         )
     with adtu_2:
+        if adtu_username:
+            adtu_datasets_from_user = get_list_of_datasets_from_user(
+                st.session_state.admin_db, adtu_username
+            )
+            adtu_dataset_available = [
+                dataset
+                for dataset in st.session_state.list_datasets
+                if dataset not in adtu_datasets_from_user
+            ]
+        else:
+            adtu_dataset_available = st.session_state.list_datasets
         adtu_dataset = st.selectbox(
-            "Dataset (add dataset to user)", st.session_state.list_datasets
+            "Dataset (add dataset to user)", adtu_dataset_available
         )
     with adtu_3:
         adtu_epsilon = st.number_input("Epsilon (add dataset to user)", None)
     with adtu_4:
         adtu_delta = st.number_input("Delta (add dataset to user)", None)
+
     if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
         st.write("Click to add dataset", adtu_dataset, "to", adtu_username)
         if st.button(
@@ -146,8 +161,14 @@ with user_tab:
             "Username (modify user epsilon)", st.session_state.list_users
         )
     with sue_2:
+        if sue_username:
+            sue_datasets_from_user = get_list_of_datasets_from_user(
+                st.session_state.admin_db, sue_username
+            )
+        else:
+            sue_datasets_from_user = st.session_state.list_datasets
         sue_dataset = st.selectbox(
-            "Dataset (modify user epsilon)", st.session_state.list_datasets
+            "Dataset (modify user epsilon)", sue_datasets_from_user
         )
     with sue_3:
         sue_epsilon = st.number_input(
@@ -182,8 +203,14 @@ with user_tab:
             "Username (modify user delta)", st.session_state.list_users
         )
     with sud_2:
+        if sud_username:
+            sud_datasets_from_user = get_list_of_datasets_from_user(
+                st.session_state.admin_db, sud_username
+            )
+        else:
+            sud_datasets_from_user = st.session_state.list_datasets
         sud_dataset = st.selectbox(
-            "Dataset (modify user delta)", st.session_state.list_datasets
+            "Dataset (modify user delta)", sud_datasets_from_user
         )
     with sud_3:
         sud_delta = st.number_input("Delta value (modify user delta)", None)
@@ -290,6 +317,7 @@ with dataset_tab:
                 )
             with ad_s3_5:
                 ad_s3_sk = st.text_input("aws_secret_key (add dataset)", None)
+
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
             ad_meta_path = st.text_input("Metadata path (add dataset)", None)
@@ -326,12 +354,13 @@ with dataset_tab:
         keyword_args = {}
         dataset_ready = False
         metadata_ready = False
+        button_text = ""
         if ad_type == PrivateDatabaseType.PATH and ad_path:
             keyword_args["dataset_path"] = ad_path
-            button_text = f"Add local dataset {ad_dataset} at path {ad_path}"
+            button_text += f"Add local dataset {ad_dataset} at path {ad_path}"
             dataset_ready = True
         elif (
-            ad_type == PrivateDatabaseType.PATH
+            ad_type == PrivateDatabaseType.S3
             and ad_s3_bucket
             and ad_s3_key
             and ad_s3_url
@@ -343,7 +372,7 @@ with dataset_tab:
             keyword_args["endpoint_url"] = ad_s3_url
             keyword_args["aws_access_key_id"] = ad_s3_kid
             keyword_args["aws_secret_access_key"] = ad_s3_sk
-            button_text = f"Add S3 dataset {ad_dataset}"
+            button_text += f"Add S3 dataset {ad_dataset}"
             dataset_ready = True
         else:
             st.write("Please, fill all empty fields for dataset.")
@@ -353,7 +382,7 @@ with dataset_tab:
             button_text += f" with local metadata at path {ad_meta_path}"
             metadata_ready = True
         elif (
-            ad_meta_type == PrivateDatabaseType.PATH
+            ad_meta_type == PrivateDatabaseType.S3
             and ad_meta_s3_bucket
             and ad_meta_s3_key
             and ad_meta_s3_url
@@ -374,7 +403,12 @@ with dataset_tab:
             if st.button(
                 button_text,
                 on_click=add_dataset,
-                args=(st.session_state.admin_db, ad_dataset, ad_type),
+                args=(
+                    st.session_state.admin_db,
+                    ad_dataset,
+                    ad_type,
+                    ad_meta_type,
+                ),
                 kwargs=keyword_args,
             ):
                 dataset_ready = False
@@ -481,7 +515,9 @@ with content_tab:
         if st.button(
             "Show archives",
         ):
-            archives = show_collection(st.session_state.admin_db, "archives")
+            archives = show_collection(
+                st.session_state.admin_db, "queries_archives"
+            )
             st.write(archives)
 
 
@@ -521,9 +557,14 @@ with deletion_tab:
             "Username (remove dataset from user)", st.session_state.list_users
         )
     with rdtu_2:
+        if rdtu_user:
+            rdtu_datasets_from_user = get_list_of_datasets_from_user(
+                st.session_state.admin_db, rdtu_user
+            )
+        else:
+            rdtu_datasets_from_user = st.session_state.list_datasets
         rdtu_dataset = st.selectbox(
-            "Dataset (remove dataset from user)",
-            st.session_state.list_datasets,
+            "Dataset (remove dataset from user)", rdtu_datasets_from_user
         )
     if rdtu_user and rdtu_dataset:
         st.write(
@@ -578,7 +619,7 @@ with deletion_tab:
             )
             st.write("Users were all deleted.")
 
-    with d_col_users:
+    with d_col_datasets:
         if st.button(
             "Delete all datasets",
             on_click=drop_collection,

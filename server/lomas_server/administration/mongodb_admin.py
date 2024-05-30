@@ -500,6 +500,27 @@ def get_list_of_users(db: Database) -> list:  # TODO  test
     return user_names
 
 
+def get_list_of_datasets_from_user(
+    db: Database, user: str
+) -> list:  # TODO  test
+    """Get the list of all datasets from the user
+
+    Args:
+        db (Database): mongo database object
+        user (str): username of the user to show archives
+
+    Returns:
+        user_datasets (list): list of names of all users
+    """
+    user_data = db.users.find_one({"user_name": user})
+    if user_data:
+        return [
+            dataset["dataset_name"] for dataset in user_data["datasets_list"]
+        ]
+    else:
+        return []
+
+
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @check_dataset_and_metadata_exist(False)
 def add_dataset(
@@ -783,10 +804,15 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # test
     Returns:
         metadata (dict): informations about the metadata
     """
-    metadata_info = list(db.metadata.find({"dataset_name": dataset}))[0]
-    metadata_info.pop("_id", None)
-    LOG.info(metadata_info)
-    return metadata_info
+    # Retrieve the document containing metadata for the specified dataset
+    metadata_document = db.metadata.find_one({dataset: {"$exists": True}})
+
+    if metadata_document:
+        # Extract metadata for the specified dataset
+        metadata_info = metadata_document[dataset]
+        return metadata_info
+    else:
+        raise ValueError(f"No metadata found for dataset: {dataset}")
 
 
 def get_list_of_datasets(db: Database) -> list:  # TODO  test

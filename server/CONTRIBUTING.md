@@ -42,7 +42,7 @@ Here is a list of the checks performed:
     - Use black to automatically format the code: `black .`
     - Use flake to verify formating and performing a static code analysis: `flake8 .`
     - Use mypy for static type checking: `mypy .`
-    - Use pylint for further static analysis: `pylint . --disable=E0401 --disable=C0114 --disable=R0903 --disable=C0301 --disable=E0611`
+    - Use pylint for further static analysis: `pylint --disable=E0401 --disable=C0114 --disable=C0301 --disable=R0903 --disable=E0611 --disable=W0621 --disable=R0915 .`
     
         - `disable=E0401` to ignore import-error (false positive)
         - `disable=C0114` to ignore missing-module-docstring (don't think it is necessary)

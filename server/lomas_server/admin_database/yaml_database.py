@@ -76,7 +76,7 @@ class AdminYamlDatabase(AdminDatabase):
                 with open(metadata_path, mode="r", encoding="utf-8") as f:
                     metadata = yaml.safe_load(f)
 
-                return metadata
+        return metadata
 
     @user_must_exist
     def may_user_query(self, user_name: str) -> bool:
@@ -133,7 +133,7 @@ class AdminYamlDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
-        previous_may_query = None
+        previous_may_query = False
 
         users = self.database["users"]
         new_users = []

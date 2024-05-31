@@ -5,4 +5,4 @@ Server API
    :maxdepth: 2
    :glob:
 
-   modules
+   server_modules

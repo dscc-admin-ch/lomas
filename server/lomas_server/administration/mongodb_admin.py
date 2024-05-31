@@ -4,13 +4,13 @@ from typing import Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import boto3
+import yaml
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.results import _WriteResult
-import yaml
 
-from admin_database.utils import get_mongodb_url
 from admin_database.mongodb_database import check_result_acknowledged
+from admin_database.utils import get_mongodb_url
 from constants import PrivateDatabaseType
 from utils.collections_models import DatasetsCollection, UserCollection
 from utils.error_handler import InternalServerException

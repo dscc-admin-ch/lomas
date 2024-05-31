@@ -193,7 +193,7 @@ class ConfigLoader:
         Args:
             db_type (AdminDBType): type of admin database
             config_data (dict): additionnal configuration data
-        
+
         Raises:
         InternalServerException: If the admin database type from the config
             does not exist.
@@ -218,7 +218,7 @@ class ConfigLoader:
         Args:
             ds_store_type (DatasetStoreType): type of admin database
             config_data (dict): additionnal configuration data
-        
+
         Raises:
         InternalServerException: If the dataset store type from the config
             does not exist.

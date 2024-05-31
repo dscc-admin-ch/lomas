@@ -73,10 +73,10 @@ class AdminYamlDatabase(AdminDatabase):
             if dt["dataset_name"] == dataset_name:
                 metadata_path = dt["metadata"]["metadata_path"]
 
-        with open(metadata_path, mode="r", encoding="utf-8") as f:
-            metadata = yaml.safe_load(f)
+                with open(metadata_path, mode="r", encoding="utf-8") as f:
+                    metadata = yaml.safe_load(f)
 
-        return metadata
+                return metadata
 
     @user_must_exist
     def may_user_query(self, user_name: str) -> bool:
@@ -133,14 +133,18 @@ class AdminYamlDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
+        previous_may_query = None
+        
         users = self.database["users"]
+        new_users = []
         for user in users:
             if user["user_name"] == user_name:
-                old_may_query = user["may_query"]
+                previous_may_query = user["may_query"]
                 user["may_query"] = may_query
-        self.database["users"] = users
+                new_users.append(user)
+        self.database["users"] = new_users
 
-        return old_may_query
+        return previous_may_query
 
     @user_must_exist
     def has_user_access_to_dataset(

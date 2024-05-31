@@ -49,6 +49,8 @@ Here is a list of the checks performed:
         - `disable=R0903` to ignore too-few-public-methods (maybe refactor ?)
         - `disable=C0301` to ignore line-too-long (already handled by flake8)
         - `disable=E0611` to ignore no-name-in-module (false positive)
+        - `disable=W0621` to ignore redefined-outer-name (in app.py)
+        - `disable=R0915` to ignore too-many-statements (in app.py)
         
 We rely on a github workflow to automatically run the checks on pull requests.
 

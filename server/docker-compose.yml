@@ -40,6 +40,26 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+  lomas_streamlit:
+    image: dsccadminch/lomas_streamlit_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_streamlit_dev
+    container_name: lomas_streamlit_dev
+    ports:
+      - 8501:8501
+    restart: always
+    volumes:
+      - ./lomas_server:/code/
+      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
+      - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
+      - ./configs/example_secrets.yaml:/usr/lomas_server/streamlit.yaml
+      - ./configs/example_streamlit_server_config.toml:/code/.streamlit/config.toml
+      - ./data/:/data/
+    depends_on:
+      - lomas_server
+    networks:
+      - lomas-network
   client:
     image: dsccadminch/lomas_client_dev
     build:

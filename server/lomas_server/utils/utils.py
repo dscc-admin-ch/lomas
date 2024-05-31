@@ -1,18 +1,17 @@
 from collections.abc import AsyncGenerator
 import io
-from types import SimpleNamespace
 
 import pandas as pd
 from fastapi import Request
 from fastapi.responses import StreamingResponse
+from pymongo.database import Database
 
-
-from mongodb_admin import (
-    add_datasets,
-    create_users_collection,
+from admin_database.utils import get_mongodb
+from administration.mongodb_admin import (
+    add_datasets_via_yaml,
+    add_users_via_yaml,
     drop_collection,
 )
-from utils.config import get_config
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
@@ -56,9 +55,9 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     response = StreamingResponse(
         iter([stream.getvalue()]), media_type="text/csv"
     )
-    response.headers["Content-Disposition"] = (
-        "attachment; filename=synthetic_data.csv"
-    )
+    response.headers[
+        "Content-Disposition"
+    ] = "attachment; filename=synthetic_data.csv"
     return response
 
 
@@ -70,22 +69,24 @@ def add_demo_data_to_admindb() -> None:
     Meant to be used in the develop mode of the service.
     """
     LOG.info("Creating example user collection")
-
-    config = get_config()
-    args = SimpleNamespace(**vars(config.admin_database))
+    mongo_db: Database = get_mongodb()
 
     LOG.info("Creating user collection")
-    args.clean = True
-    args.overwrite = True
-    args.path = "/data/collections/user_collection.yaml"
-    create_users_collection(args)
+    add_users_via_yaml(
+        mongo_db,
+        clean=True,
+        overwrite=True,
+        yaml_file="/data/collections/user_collection.yaml",
+    )
 
     LOG.info("Creating datasets and metadata collection")
-    args.path = "/data/collections/dataset_collection.yaml"
-    args.overwrite_datasets = True
-    args.overwrite_metadata = True
-    add_datasets(args)
+    add_datasets_via_yaml(
+        mongo_db,
+        clean=True,
+        overwrite_datasets=True,
+        overwrite_metadata=True,
+        yaml_file="/data/collections/dataset_collection.yaml",
+    )
 
     LOG.info("Empty archives")
-    args.collection = "queries_archives"
-    drop_collection(args)
+    drop_collection(mongo_db, collection="queries_archives")

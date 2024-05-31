@@ -33,11 +33,15 @@ CONF_LRU_DATASET_STORE__MAX_SIZE: str = "max_memory_usage"
 
 
 class AdminDBType(StrEnum):
+    """Types of administration databases"""
+
     YAML_TYPE: str = "yaml"
     MONGODB_TYPE: str = "mongodb"
 
 
 class ConfDatasetStore(StrEnum):
+    """Types of classes to handle datasets in memory"""
+
     BASIC: str = "basic"
     LRU: str = "LRU_cache"
 
@@ -60,18 +64,24 @@ DELTA_LIMIT: float = 0.0004
 
 # Supported DP libraries
 class DPLibraries(StrEnum):
+    """Name of DP Library used in the query"""
+
     SMARTNOISE_SQL = "smartnoise_sql"
     OPENDP = "opendp"
 
 
 # Private Databases
 class PrivateDatabaseType(StrEnum):
+    """Type of Private Database for the private data"""
+
     PATH = "PATH_DB"
     S3 = "S3_DB"
 
 
 # OpenDP Measurement Divergence Type
 class OpenDPMeasurement(StrEnum):
+    """Type of divergence for opendp measurement"""
+
     FIXED_SMOOTHED_MAX_DIVERGENCE = "fixed_smoothed_max_divergence"
     MAX_DIVERGENCE = "max_divergence"
     SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"

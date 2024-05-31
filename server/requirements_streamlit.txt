@@ -1,0 +1,3 @@
+requests==2.31.0
+streamlit==1.34.0
+st-pages==0.4.5

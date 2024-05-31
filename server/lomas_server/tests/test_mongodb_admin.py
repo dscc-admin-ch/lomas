@@ -6,8 +6,7 @@ import yaml
 from pymongo import MongoClient
 
 from admin_database.utils import get_mongodb_url
-from constants import PrivateDatabaseType
-from mongodb_admin import (
+from administration.mongodb_admin import (
     add_user,
     add_user_with_budget,
     del_user,
@@ -15,12 +14,13 @@ from mongodb_admin import (
     del_dataset_to_user,
     set_budget_field,
     set_may_query,
-    create_users_collection,
+    add_users_via_yaml,
     add_dataset,
-    add_datasets,
+    add_datasets_via_yaml,
     del_dataset,
     drop_collection,
 )
+from constants import PrivateDatabaseType
 from utils.config import get_config, CONFIG_LOADER
 from tests.constants import ENV_MONGO_INTEGRATION
 
@@ -44,43 +44,32 @@ class TestMongoDBAdmin(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        """Connection to database"""
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
-        cls.db_config = get_config().admin_database
-        db_url = get_mongodb_url(cls.db_config)
-        cls.db = MongoClient(db_url)[cls.db_config.db_name]
-
-    def setUp(self) -> None:
-        self.args = SimpleNamespace(**vars(get_config().admin_database))
+        db_args = SimpleNamespace(**vars(get_config().admin_database))
+        db_url = get_mongodb_url(db_args)
+        cls.db = MongoClient(db_url)[db_args.db_name]
 
     def tearDown(self) -> None:
-        self.args = SimpleNamespace(**vars(get_config().admin_database))
-
-        self.args.collection = "metadata"
-        drop_collection(self.args)
-
-        self.args.collection = "datasets"
-        drop_collection(self.args)
-
-        self.args.collection = "users"
-        drop_collection(self.args)
-
-        self.args.collection = "queries_archives"
-        drop_collection(self.args)
-
-        self.args = None  # type: ignore
+        """Drop all data from database"""
+        drop_collection(self.db, "metadata")
+        drop_collection(self.db, "datasets")
+        drop_collection(self.db, "users")
+        drop_collection(self.db, "queries_archives")
 
     def test_add_user(self) -> None:
-        self.args.user = "Tintin"
+        """Test adding a user"""
+        user = "Tintin"
 
         # Add user
-        add_user(self.args)
+        add_user(self.db, user)
 
         expected_user = {
-            "user_name": self.args.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [],
         }
@@ -92,216 +81,218 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Adding existing user raises error
         with self.assertRaises(ValueError):
-            add_user(self.args)
+            add_user(self.db, user)
 
     def test_add_user_wb(self) -> None:
-        self.args.user = "Tintin"
-        self.args.dataset = "Bijoux de la Castafiore"
-        self.args.epsilon = 10
-        self.args.delta = 0.02
+        """Test adding a user with a dataset"""
+        user = "Tintin"
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 10
+        delta = 0.02
 
-        add_user_with_budget(self.args)
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
         expected_user = {
-            "user_name": self.args.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": self.args.dataset,
-                    "initial_epsilon": self.args.epsilon,
-                    "initial_delta": self.args.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Adding budget to existing user should raise error
         with self.assertRaises(ValueError):
-            add_user_with_budget(self.args)
+            add_user_with_budget(self.db, user, dataset, epsilon, delta)
 
     def test_del_user(self) -> None:
+        """Test deleting a user"""
         # Setup: add a user
-        self.args.user = "Tintin"
-        add_user(self.args)
+        user = "Tintin"
+        add_user(self.db, user)
 
         # Deleting user
-        del_user(self.args)
+        del_user(self.db, user)
 
         expected_user = None
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         self.assertEqual(user_found, expected_user)
 
         # Removing non-existing should raise error
         with self.assertRaises(ValueError):
-            del_user(self.args)
+            del_user(self.db, user)
 
     def test_add_dataset_to_user(self) -> None:
-        self.args.user = "Tintin"
-        self.args.dataset = "Bijoux de la Castafiore"
-        self.args.epsilon = 10
-        self.args.delta = 0.02
+        """Test add dataset to a user"""
+        user = "Tintin"
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 10
+        delta = 0.02
 
-        add_user(self.args)
-        add_dataset_to_user(self.args)
+        add_user(self.db, user)
+        add_dataset_to_user(self.db, user, dataset, epsilon, delta)
         expected_user = {
-            "user_name": self.args.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": self.args.dataset,
-                    "initial_epsilon": self.args.epsilon,
-                    "initial_delta": self.args.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         del user_found["_id"]
 
         assert user_found == expected_user
 
         # Adding dataset to existing user with existing dataset should
         # raise and error
-        self.args.epsilon = 20
+        epsilon = 20
         with self.assertRaises(ValueError):
-            add_dataset_to_user(self.args)
+            add_dataset_to_user(self.db, user, dataset, epsilon, delta)
 
         # Adding dataset to non-existing user should raise an error
-        self.args.user = "Milou"
+        user = "Milou"
         with self.assertRaises(ValueError):
-            add_dataset_to_user(self.args)
+            add_dataset_to_user(self.db, user, dataset, epsilon, delta)
 
     def test_del_dataset_to_user(self) -> None:
+        """Test delete dataset from user"""
         # Setup: add user with dataset
-        self.args.user = "Tintin"
-        self.args.dataset = "Bijoux de la Castafiore"
-        self.args.epsilon = 10
-        self.args.delta = 0.02
+        user = "Tintin"
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 10
+        delta = 0.02
 
-        add_user_with_budget(self.args)
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
 
         # Test dataset deletion
-        del_dataset_to_user(self.args)
+        del_dataset_to_user(self.db, user, dataset)
         expected_user = {
-            "user_name": self.args.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [],
         }
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Remove dataset from non-existant user should raise error
-        self.args.user = "Milou"
-
+        user = "Milou"
         with self.assertRaises(ValueError):
-            del_dataset_to_user(self.args)
+            del_dataset_to_user(self.db, user, dataset)
 
         # Remove dataset not present in user should raise error
-        self.args.user = "Tintin"
-        self.args.dataset = "Bijoux de la Castafiore"
-
+        user = "Tintin"
+        dataset = "Bijoux de la Castafiore"
         with self.assertRaises(Exception):
-            del_dataset_to_user(self.args)
+            del_dataset_to_user(self.db, user, dataset)
 
     def test_set_budget_field(self) -> None:
+        """Test setting a budget field"""
         # Setup: add user with budget
-        self.args.user = "Tintin"
-        self.args.dataset = "Bijoux de la Castafiore"
-        self.args.epsilon = 10
-        self.args.delta = 0.02
+        user = "Tintin"
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 10
+        delta = 0.02
 
-        add_user_with_budget(self.args)
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
 
         # Updating budget should work
-        self.args.field = "initial_epsilon"
-        self.args.value = 15
-        set_budget_field(self.args)
+        field = "initial_epsilon"
+        value = 15
+        set_budget_field(self.db, user, dataset, field, value)
 
         expected_user = {
-            "user_name": self.args.user,
+            "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": self.args.dataset,
-                    "initial_epsilon": self.args.value,
-                    "initial_delta": self.args.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": value,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Setting budget for non-existing user should fail
-        self.args.user = "Milou"
-
+        user = "Milou"
         with self.assertRaises(ValueError):
-            set_budget_field(self.args)
+            set_budget_field(self.db, user, dataset, field, value)
 
         # Setting budget for non-existing dataset should fail
-        self.args.user = "Tintin"
-        self.args.dataset = "os de Milou"
-
+        user = "Tintin"
+        dataset = "os de Milou"
         with self.assertRaises(ValueError):
-            set_budget_field(self.args)
+            set_budget_field(self.db, user, dataset, field, value)
 
     def test_set_may_query(self) -> None:
+        """Test set may query"""
         # Setup: add user with budget
-        self.args.user = "Tintin"
-        self.args.dataset = "PENGUIN"
-        self.args.epsilon = 10
-        self.args.delta = 0.02
+        user = "Tintin"
+        dataset = "PENGUIN"
+        epsilon = 10
+        delta = 0.02
 
-        add_user_with_budget(self.args)
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
 
         # Set may query
-        self.args.value = False
-        set_may_query(self.args)
+        value = False
+        set_may_query(self.db, user, value)
 
         expected_user = {
-            "user_name": self.args.user,
-            "may_query": False,
+            "user_name": user,
+            "may_query": value,
             "datasets_list": [
                 {
-                    "dataset_name": self.args.dataset,
-                    "initial_epsilon": self.args.epsilon,
-                    "initial_delta": self.args.delta,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"user_name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Raises error when user does not exist
-        self.args.user = "Milou"
-
+        user = "Milou"
         with self.assertRaises(ValueError):
-            set_may_query(self.args)
+            set_may_query(self.db, user, value)
 
-    def test_create_users_collection(self) -> None:
+    def test_add_users_via_yaml(self) -> None:
+        """Test create user collection via YAML file"""
         # Adding two users
-        self.args.path = "./tests/test_data/test_user_collection.yaml"
-        self.args.clean = False
-        self.args.overwrite = False
-        create_users_collection(self.args)
+        path = "./tests/test_data/test_user_collection.yaml"
+        clean = False
+        overwrite = False
+        add_users_via_yaml(self.db, path, clean, overwrite)
 
         tintin = {
             "user_name": "Tintin",
@@ -342,18 +333,14 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(user_found, milou)
 
         # Check cleaning
-        self.args.user = "Tintin"
-        self.args.field = "initial_epsilon"
-        self.args.value = 25.0
-        self.args.dataset = "Bijoux de la Castafiore"
-        set_budget_field(self.args)
-        del self.args.user
-        del self.args.field
-        del self.args.value
-        del self.args.dataset
+        user = "Tintin"
+        field = "initial_epsilon"
+        value = 25.0
+        dataset = "Bijoux de la Castafiore"
+        set_budget_field(self.db, user, dataset, field, value)
 
-        self.args.clean = True
-        create_users_collection(self.args)
+        clean = True
+        add_users_via_yaml(self.db, path, clean, overwrite)
 
         user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
@@ -364,24 +351,15 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(user_found, milou)
 
         # Check overwriting (with new user)
-        self.args.user = "Tintin"
-        self.args.field = "initial_epsilon"
-        self.args.value = False
-        self.args.dataset = "Bijoux de la Castafiore"
-        set_budget_field(self.args)
-        del self.args.user
-        del self.args.field
-        del self.args.value
-        del self.args.dataset
+        user = "Tintin"
+        field = "initial_epsilon"
+        value = False
+        dataset = "Bijoux de la Castafiore"
+        set_budget_field(self.db, user, dataset, field, value)
 
-        self.args.user = "Milou"
-        del_user(self.args)
-
-        self.args.user = None
-        self.args.value = None
-        self.args.clean = False
-        self.args.overwrite = True
-        create_users_collection(self.args)
+        user = "Milou"
+        del_user(self.db, user)
+        add_users_via_yaml(self.db, path, clean=False, overwrite=True)
 
         user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
@@ -392,29 +370,33 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(user_found, milou)
 
         # Overwrite to false and existing users should warn
-        self.args.overwrite = False
-
         with self.assertWarns(UserWarning):
-            create_users_collection(self.args)
+            add_users_via_yaml(self.db, path, clean=False, overwrite=False)
 
-    def test_add_dataset(self) -> None:
-        self.args.dataset = "PENGUIN"
-        self.args.database_type = PrivateDatabaseType.PATH
-        self.args.dataset_path = "some_path"
-        self.args.metadata_database_type = PrivateDatabaseType.PATH
-        self.args.metadata_path = (
-            "./tests/test_data/metadata/penguin_metadata.yaml"
+    def test_add_local_dataset(self) -> None:
+        """Test adding a local dataset"""
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
-        add_dataset(self.args)
-
         expected_dataset = {
-            "dataset_name": self.args.dataset,
-            "database_type": self.args.database_type,
-            "dataset_path": self.args.dataset_path,
+            "dataset_name": dataset,
+            "database_type": database_type,
+            "dataset_path": dataset_path,
             "metadata": {
-                "database_type": self.args.metadata_database_type,
-                "metadata_path": self.args.metadata_path,
+                "database_type": metadata_database_type,
+                "metadata_path": metadata_path,
             },
         }
         with open(
@@ -428,11 +410,12 @@ class TestMongoDBAdmin(unittest.TestCase):
         self.assertEqual(dataset_found, expected_dataset)
 
         metadata_found = self.db.metadata.find_one(
-            {self.args.dataset: {"$exists": True}}
-        )[self.args.dataset]
+            {dataset: {"$exists": True}}
+        )[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
-    def test_add_datasets(self) -> None:
+    def test_add_datasets_via_yaml(self) -> None:
+        """Test add datasets via a YAML file"""
         # Load reference data
         with open(
             "./tests/test_data/test_datasets.yaml",
@@ -470,57 +453,68 @@ class TestMongoDBAdmin(unittest.TestCase):
             )["IRIS"]
             self.assertEqual(metadata_found, penguin_metadata)
 
-        self.args.clean = False
-        self.args.overwrite_datasets = False
-        self.args.overwrite_metadata = False
-        self.args.path = "./tests/test_data/test_datasets.yaml"
+        path = "./tests/test_data/test_datasets.yaml"
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
 
-        add_datasets(self.args)
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
 
         verify_datasets()
 
         # Check clean works
 
-        # Add new dataset and then add_datasets with clean option
+        # Add new dataset and then add_datasets_via_yaml with clean option
         self.db.datasets.insert_one(
             {"dataset_name": "Les aventures de Tintin"}
         )
 
-        self.args.clean = True
-        add_datasets(self.args)
+        clean = True
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
         verify_datasets()
 
         # Check no overwrite triggers warning
-        self.args.clean = False
-
+        clean = False
         with self.assertWarns(UserWarning):
-            add_datasets(self.args)
+            add_datasets_via_yaml(
+                self.db, path, clean, overwrite_datasets, overwrite_metadata
+            )
 
         # Check overwrite works
-
         self.db.datasets.update_one(
             {"dataset_name": "IRIS"}, {"$set": {"dataset_name": "IRIS"}}
         )
 
-        self.args.overwrite = True
-        add_datasets(self.args)
-
+        overwrite_datasets = True
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
         verify_datasets()
 
     def test_del_dataset(self) -> None:
+        """Test dataset deletion"""
         # Setup: add one dataset
-        self.args.dataset = "PENGUIN"
-        self.args.database_type = PrivateDatabaseType.PATH
-        self.args.dataset_path = "some_path"
-        self.args.metadata_database_type = PrivateDatabaseType.PATH
-        self.args.metadata_path = (
-            "./tests/test_data/metadata/penguin_metadata.yaml"
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
-        add_dataset(self.args)
-
         # Verify delete works
-        del_dataset(self.args)
+        del_dataset(self.db, dataset)
 
         dataset_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
         self.assertEqual(dataset_found, None)
@@ -530,23 +524,29 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Delete non-existing dataset should trigger error
         with self.assertRaises(ValueError):
-            del_dataset(self.args)
+            del_dataset(self.db, dataset)
 
     def test_drop_collection(self) -> None:
+        """Test drop collection from db"""
         # Setup: add one dataset
-        self.args.dataset = "PENGUIN"
-        self.args.database_type = PrivateDatabaseType.PATH
-        self.args.dataset_path = "some_path"
-        self.args.metadata_database_type = PrivateDatabaseType.PATH
-        self.args.metadata_path = (
-            "./tests/test_data/metadata/penguin_metadata.yaml"
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
         )
 
-        add_dataset(self.args)
-
         # Test
-        self.args.collection = "datasets"
-        drop_collection(self.args)
+        collection = "datasets"
+        drop_collection(self.db, collection)
 
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)

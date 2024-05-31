@@ -11,4 +11,4 @@ class PrivateDatasetObserver(ABC):
 
     @abstractmethod
     def update_memory_usage(self) -> None:
-        pass
+        """Abstract method to update total memory used by datasets"""

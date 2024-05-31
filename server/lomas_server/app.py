@@ -51,7 +51,7 @@ from utils.utils import server_live, add_demo_data_to_admindb, stream_dataframe
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(app: FastAPI) -> AsyncGenerator:  # pylint: disable=W0621, R0915
     """
     Lifespan function for the server.
 

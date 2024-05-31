@@ -28,12 +28,12 @@ def database_factory(config: DBConfig) -> AdminDatabase:
     db_type = config.db_type
 
     match db_type:
-        case AdminDBType.MONGODB_TYPE:
+        case AdminDBType.MONGODB:
             db_url = get_mongodb_url(config)
             db_name = config.db_name
             return AdminMongoDatabase(db_url, db_name)
 
-        case AdminDBType.YAML_TYPE:
+        case AdminDBType.YAML:
             yaml_database_file = config.db_file
             return AdminYamlDatabase(yaml_database_file)
 

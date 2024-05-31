@@ -153,7 +153,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     if (
         config is not None
         and app.state.admin_database is not None
-        and config.admin_database.db_type == AdminDBType.YAML_TYPE
+        and config.admin_database.db_type == AdminDBType.YAML
     ):
         app.state.admin_database.save_current_database()
 

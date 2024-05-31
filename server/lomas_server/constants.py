@@ -15,35 +15,44 @@ else:
     SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 
-# Configuration field names and values
-CONF_RUNTIME_ARGS: str = "runtime_args"
-CONF_SERVER: str = "server"
-CONF_SETTINGS: str = "settings"
-CONF_DEV_MODE: str = "develop_mode"
-CONF_TIME_ATTACK: str = "time_attack"
-CONF_SUBMIT_LIMIT: str = "submit_limit"
-CONF_DB: str = "admin_database"
-CONF_DB_TYPE: str = "db_type"
-CONF_DB_TYPE_MONGODB: str = "mongodb"
-CONF_MONGODB_ADDR: str = "address"
-CONF_MONGODB_PORT: str = "port"
-CONF_DATASET_STORE: str = "dataset_store"
-CONF_DATASET_STORE_TYPE: str = "ds_store_type"
-CONF_LRU_DATASET_STORE__MAX_SIZE: str = "max_memory_usage"
+class ConfigKeys(StrEnum):
+    """Keys of the configuration file"""
+
+    RUNTIME_ARGS: str = "runtime_args"
+    SERVER: str = "server"
+    SETTINGS: str = "settings"
+    DEVELOP_MODE: str = "develop_mode"
+    TIME_ATTACK: str = "time_attack"
+    SUBMIT_LIMIT: str = "submit_limit"
+    DB: str = "admin_database"
+    DB_TYPE: str = "db_type"
+    DB_TYPE_MONGODB: str = "mongodb"
+    MONGODB_ADDR: str = "address"
+    MONGODB_PORT: str = "port"
+    DATASET_STORE: str = "dataset_store"
+    DATASET_STORE_TYPE: str = "ds_store_type"
+    LRU_DATASET_STORE_MAX_SIZE: str = "max_memory_usage"
 
 
 class AdminDBType(StrEnum):
     """Types of administration databases"""
 
-    YAML_TYPE: str = "yaml"
-    MONGODB_TYPE: str = "mongodb"
+    YAML: str = "yaml"
+    MONGODB: str = "mongodb"
 
 
-class ConfDatasetStore(StrEnum):
+class DatasetStoreType(StrEnum):
     """Types of classes to handle datasets in memory"""
 
     BASIC: str = "basic"
     LRU: str = "LRU_cache"
+
+
+class TimeAttackMethod(StrEnum):
+    """Possible methods against timing attacks"""
+
+    JITTER = "jitter"
+    STALL = "stall"
 
 
 # Server states

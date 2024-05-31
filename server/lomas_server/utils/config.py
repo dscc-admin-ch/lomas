@@ -1,25 +1,15 @@
 import yaml
 from pydantic import BaseModel
 
-# Temporary workaround this issue:
-# https://github.com/pydantic/pydantic/issues/5821
-# from typing import Literal
-from typing_extensions import Any, Dict, Literal
+from typing_extensions import Dict
 
 from constants import (
-    CONF_DATASET_STORE,
-    CONF_DATASET_STORE_TYPE,
-    CONF_DB,
-    CONF_DB_TYPE,
-    CONF_DEV_MODE,
-    CONF_RUNTIME_ARGS,
-    CONF_SERVER,
-    CONF_SETTINGS,
-    CONF_SUBMIT_LIMIT,
+    ConfigKeys,
     CONFIG_PATH,
     SECRETS_PATH,
     AdminDBType,
-    ConfDatasetStore,
+    DatasetStoreType,
+    TimeAttackMethod,
 )
 from utils.error_handler import InternalServerException
 
@@ -27,7 +17,7 @@ from utils.error_handler import InternalServerException
 class TimeAttack(BaseModel):
     """BaseModel for configs to prevent timing attacks"""
 
-    method: Literal["jitter", "stall"]
+    method: TimeAttackMethod
     magnitude: float
 
 
@@ -45,7 +35,7 @@ class Server(BaseModel):
 class DatasetStoreConfig(BaseModel):
     """BaseModel for dataset store configs"""
 
-    ds_store_type: ConfDatasetStore
+    ds_store_type: DatasetStoreType
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
@@ -95,9 +85,6 @@ class Config(BaseModel):
     dataset_store: DatasetStoreConfig
 
 
-# Utility functions -----------------------------------------------------------
-
-
 class ConfigLoader:
     """Singleton object that holds the config for the server.
 
@@ -135,76 +122,118 @@ class ConfigLoader:
         """
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                config_data = yaml.safe_load(f)[CONF_RUNTIME_ARGS][
-                    CONF_SETTINGS
+                config_data = yaml.safe_load(f)[ConfigKeys.RUNTIME_ARGS][
+                    ConfigKeys.SETTINGS
                 ]
 
             # Merge secret data into config data
             with open(secrets_path, "r", encoding="utf-8") as f:
                 secret_data = yaml.safe_load(f)
+                config_data = self._merge_dicts(config_data, secret_data)
 
-                def update(
-                    d: Dict[str, Any], u: Dict[str, Any]
-                ) -> Dict[str, Any]:
-                    for k, v in u.items():
-                        if isinstance(v, dict):
-                            d[k] = update(d.get(k, {}), v)
-                        else:
-                            d[k] = v
-                    return d
-
-                update(config_data, secret_data)
-
+            # Server configuration
             server_config: Server = Server.model_validate(
-                config_data[CONF_SERVER]
+                config_data[ConfigKeys.SERVER]
             )
 
-            db_type = config_data[CONF_DB][CONF_DB_TYPE]
-            match db_type:
-                case AdminDBType.MONGODB_TYPE:
-                    admin_database_config = MongoDBConfig.model_validate(
-                        config_data[CONF_DB]
-                    )
-                case AdminDBType.YAML_TYPE:
-                    admin_database_config = YamlDBConfig.model_validate(
-                        config_data[CONF_DB]
-                    )  # type: ignore
-                case _:
-                    raise InternalServerException(
-                        f"Admin database type {db_type} not supported."
-                    )
+            # Admin database
+            db_type = AdminDBType(
+                config_data[ConfigKeys.DB][ConfigKeys.DB_TYPE]
+            )
+            admin_database_config = self._validate_admin_db_config(
+                db_type, config_data[ConfigKeys.DB]
+            )
 
-            ds_store_type = config_data[CONF_DATASET_STORE][
-                CONF_DATASET_STORE_TYPE
-            ]
-            match ds_store_type:
-                case ConfDatasetStore.BASIC:
-                    ds_store_config = DatasetStoreConfig.model_validate(
-                        config_data[CONF_DATASET_STORE]
-                    )
-                case ConfDatasetStore.LRU:
-                    ds_store_config = LRUDatasetStoreConfig.model_validate(
-                        config_data[CONF_DATASET_STORE]
-                    )
-                case _:
-                    raise InternalServerException(
-                        f"Dataset store {ds_store_type} not supported."
-                    )
+            # Dataset store
+            ds_store_type = DatasetStoreType(
+                config_data[ConfigKeys.DATASET_STORE][
+                    ConfigKeys.DATASET_STORE_TYPE
+                ]
+            )
+            ds_store_config = self._validate_ds_store_config(
+                ds_store_type, config_data[ConfigKeys.DATASET_STORE]
+            )
 
-            config: Config = Config(
-                develop_mode=config_data[CONF_DEV_MODE],
+            self._config = Config(
+                develop_mode=config_data[ConfigKeys.DEVELOP_MODE],
                 server=server_config,
-                submit_limit=config_data[CONF_SUBMIT_LIMIT],
+                submit_limit=config_data[ConfigKeys.SUBMIT_LIMIT],
                 admin_database=admin_database_config,
                 dataset_store=ds_store_config,
             )
+
         except Exception as e:
             raise InternalServerException(
-                f"Could not read config from disk at {CONFIG_PATH}"
+                f"Could not read config from disk at {config_path}"
                 + f" or missing fields: {e}"
             ) from e
 
-        self._config = config
+    def _merge_dicts(self, d: Dict, u: Dict) -> Dict:
+        """Recursively add dictionnary u to dictionnary v
+
+        Args:
+            d (Dict): dictionnary to add data to
+            u (Dict): dictionnary to be added to d
+
+        Returns:
+            d (Dict): dictionnary d and u merged recursively
+        """
+        for k, v in u.items():
+            if isinstance(v, dict):
+                d[k] = self._merge_dicts(d.get(k, {}), v)
+            else:
+                d[k] = v
+        return d
+
+    def _validate_admin_db_config(
+        self, db_type: AdminDBType, config_data: dict
+    ) -> DBConfig:
+        """Validate admin database based on configuration parameters
+
+        Args:
+            db_type (AdminDBType): type of admin database
+            config_data (dict): additionnal configuration data
+        
+        Raises:
+        InternalServerException: If the admin database type from the config
+            does not exist.
+
+        Returns:
+            DBConfig validated admin database configuration
+        """
+        if db_type == AdminDBType.MONGODB:
+            return MongoDBConfig.model_validate(config_data)
+        if db_type == AdminDBType.YAML:
+            return YamlDBConfig.model_validate(config_data)
+
+        raise InternalServerException(
+            f"Admin database type {db_type} not supported."
+        )
+
+    def _validate_ds_store_config(
+        self, ds_store_type: DatasetStoreType, config_data: dict
+    ) -> DatasetStoreConfig:
+        """Validate dataset store configuration parameters
+
+        Args:
+            ds_store_type (DatasetStoreType): type of admin database
+            config_data (dict): additionnal configuration data
+        
+        Raises:
+        InternalServerException: If the dataset store type from the config
+            does not exist.
+
+        Returns:
+            DatasetStoreConfig validated dataset store configuration
+        """
+        if ds_store_type == DatasetStoreType.BASIC:
+            return DatasetStoreConfig.model_validate(config_data)
+        if ds_store_type == DatasetStoreType.LRU:
+            return LRUDatasetStoreConfig.model_validate(config_data)
+
+        raise InternalServerException(
+            f"Dataset store {ds_store_type} not supported."
+        )
 
     def set_config(self, config: Config) -> None:
         """

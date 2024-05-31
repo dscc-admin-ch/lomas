@@ -7,12 +7,12 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from admin_database.utils import database_factory
 from constants import (
-    AdminDBType,
-    DPLibraries,
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     QUERY_HANDLER_NOT_LOADED,
     SERVER_LIVE,
+    AdminDBType,
+    DPLibraries,
 )
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_libraries.utils import querier_factory
@@ -47,11 +47,13 @@ from utils.input_models import (
     SNSQLInpCost,
 )
 from utils.loggr import LOG
-from utils.utils import server_live, add_demo_data_to_admindb, stream_dataframe
+from utils.utils import add_demo_data_to_admindb, server_live, stream_dataframe
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:  # pylint: disable=W0621, R0915
+async def lifespan(
+    app: FastAPI,
+) -> AsyncGenerator:  # pylint: disable=W0621, R0915
     """
     Lifespan function for the server.
 

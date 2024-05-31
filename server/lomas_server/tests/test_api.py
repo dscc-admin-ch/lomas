@@ -1,22 +1,23 @@
-from io import StringIO
 import json
 import os
 import unittest
+from io import StringIO
 
 import pandas as pd
-from pymongo.database import Database
 from fastapi import status
 from fastapi.testclient import TestClient
+from pymongo.database import Database
 
 from admin_database.utils import get_mongodb
 from administration.mongodb_admin import (
-    add_users_via_yaml,
     add_datasets_via_yaml,
+    add_users_via_yaml,
     drop_collection,
 )
 from app import app
-from constants import DPLibraries, EPSILON_LIMIT
+from constants import EPSILON_LIMIT, DPLibraries
 from tests.constants import ENV_MONGO_INTEGRATION
+from utils.config import CONFIG_LOADER
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -30,7 +31,6 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.config import CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005

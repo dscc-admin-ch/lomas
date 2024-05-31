@@ -4,7 +4,6 @@ from opendp_logger import make_load_json
 
 from constants import DPLibraries, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
-
 from utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,

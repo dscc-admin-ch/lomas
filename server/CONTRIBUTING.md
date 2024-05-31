@@ -51,7 +51,7 @@ Here is a list of the checks performed:
         - `disable=E0611` to ignore no-name-in-module (false positive)
         - `disable=W0621` to ignore redefined-outer-name (in app.py)
         - `disable=R0915` to ignore too-many-statements (in app.py)
-        - `disable=E606` to ignore possibly-used-before-assignment
+        - `disable=E0606` to ignore possibly-used-before-assignment
         
 We rely on a github workflow to automatically run the checks on pull requests.
 

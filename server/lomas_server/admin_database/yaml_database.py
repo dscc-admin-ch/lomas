@@ -134,7 +134,7 @@ class AdminYamlDatabase(AdminDatabase):
             bool: The may_query status of the user before the update.
         """
         previous_may_query = None
-        
+
         users = self.database["users"]
         new_users = []
         for user in users:

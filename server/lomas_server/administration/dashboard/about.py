@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     st.write(
         "**Documentation**: [server documentation](%s)"
-        % "https://dscc-admin-ch.github.io/lomas-server-docs/lomas_server.admin_database.html"  # noqa: E501
+        % "https://dscc-admin-ch.github.io/lomas-docs/lomas_server.admin_database.html"  # noqa: E501
     )
     st.write(
         "**Support**: If you encounter any issues or have questions, reach out on [Github issues](%s)"  # noqa: E501

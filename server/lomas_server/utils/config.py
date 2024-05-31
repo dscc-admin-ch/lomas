@@ -25,11 +25,15 @@ from utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
+    """BaseModel for configs to prevent timing attacks"""
+
     method: Literal["jitter", "stall"]
     magnitude: float
 
 
 class Server(BaseModel):
+    """BaseModel for uvicorn server configs"""
+
     time_attack: TimeAttack
     host_ip: str
     host_port: int
@@ -39,22 +43,32 @@ class Server(BaseModel):
 
 
 class DatasetStoreConfig(BaseModel):
+    """BaseModel for dataset store configs"""
+
     ds_store_type: ConfDatasetStore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
+    """BaseModel for dataset store configs in case of a LRU dataset store"""
+
     max_memory_usage: int
 
 
 class DBConfig(BaseModel):
+    """BaseModel for database type config"""
+
     db_type: str = AdminDBType
 
 
 class YamlDBConfig(DBConfig):
+    """BaseModel for dataset store configs  in case of a Yaml database"""
+
     db_file: str
 
 
 class MongoDBConfig(DBConfig):
+    """BaseModel for dataset store configs  in case of a  MongoDB database"""
+
     address: str
     port: int
     username: str
@@ -141,7 +155,9 @@ class ConfigLoader:
 
                 update(config_data, secret_data)
 
-            server_config: Server = Server.parse_obj(config_data[CONF_SERVER])
+            server_config: Server = Server.model_validate(
+                config_data[CONF_SERVER]
+            )
 
             db_type = config_data[CONF_DB][CONF_DB_TYPE]
             match db_type:

@@ -1,13 +1,19 @@
 from io import StringIO
 import json
 import os
-from types import SimpleNamespace
 import unittest
 
 import pandas as pd
+from pymongo.database import Database
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from admin_database.utils import get_mongodb
+from administration.mongodb_admin import (
+    add_users_via_yaml,
+    add_datasets_via_yaml,
+    drop_collection,
+)
 from app import app
 from constants import DPLibraries, EPSILON_LIMIT
 from tests.constants import ENV_MONGO_INTEGRATION
@@ -24,12 +30,7 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.config import get_config, CONFIG_LOADER
-from mongodb_admin import (
-    create_users_collection,
-    add_datasets,
-    drop_collection,
-)
+from utils.config import CONFIG_LOADER
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -75,38 +76,29 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+            self.db: Database = get_mongodb()
 
-            args = SimpleNamespace(**vars(get_config().admin_database))
-
-            args.clean = True
-            args.overwrite = True
-            args.path = "tests/test_data/test_user_collection.yaml"
-            create_users_collection(args)
-
-            args.path = "tests/test_data/test_datasets.yaml"
-            args.dataset = "PENGUIN_DATASET"
-            args.dataset_type = "LOCAL_DB"
-            args.overwrite_datasets = True
-            args.overwrite_metadata = True
-            add_datasets(args)
+            add_users_via_yaml(
+                self.db,
+                yaml_file="tests/test_data/test_user_collection.yaml",
+                clean=True,
+                overwrite=True,
+            )
+            add_datasets_via_yaml(
+                self.db,
+                yaml_file="tests/test_data/test_datasets.yaml",
+                clean=True,
+                overwrite_datasets=True,
+                overwrite_metadata=True,
+            )
 
     def tearDown(self) -> None:
         # Clean up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
-
-            args = SimpleNamespace(**vars(get_config().admin_database))
-
-            args.collection = "metadata"
-            drop_collection(args)
-
-            args.collection = "datasets"
-            drop_collection(args)
-
-            args.collection = "users"
-            drop_collection(args)
-
-            args.collection = "queries_archives"
-            drop_collection(args)
+            drop_collection(self.db, "metadata")
+            drop_collection(self.db, "datasets")
+            drop_collection(self.db, "users")
+            drop_collection(self.db, "queries_archives")
 
     def test_state(self) -> None:
         """_summary_"""
@@ -234,9 +226,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise["query_str"] = (
-                "SELECT AVG(bill) FROM df"  # no 'bill' column
-            )
+            input_smartnoise[
+                "query_str"
+            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,

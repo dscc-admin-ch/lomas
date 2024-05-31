@@ -1,8 +1,13 @@
+from types import SimpleNamespace
+
+from pymongo import MongoClient
+from pymongo.database import Database
+
 from admin_database.admin_database import AdminDatabase
 from admin_database.mongodb_database import AdminMongoDatabase
 from admin_database.yaml_database import AdminYamlDatabase
 from constants import AdminDBType
-from utils.config import DBConfig
+from utils.config import DBConfig, get_config
 from utils.error_handler import InternalServerException
 
 
@@ -60,3 +65,18 @@ def get_mongodb_url(config: DBConfig) -> str:
     )
 
     return db_url
+
+
+def get_mongodb() -> Database:
+    """Get URL of the administration MongoDB.
+
+    Args:
+        config (DBConfig): An instance of DBConfig.
+
+    Returns:
+        str: A correctly formatted url for connecting to the
+            MongoDB database.
+    """
+    db_args = SimpleNamespace(**vars(get_config().admin_database))
+    db_url = get_mongodb_url(db_args)
+    return MongoClient(db_url)[db_args.db_name]

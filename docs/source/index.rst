@@ -35,7 +35,7 @@ it enables a seamless interaction with the server.
 
 For additional informations about the client, please see the 
 `README.md <https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md>`_ of 
-the client and for addictional examples please see the 
+the client and for additional examples please see the 
 :doc:`examples <client_examples>` section.
 
 

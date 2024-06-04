@@ -9,7 +9,6 @@ from pymongo.database import Database
 from pymongo.results import _WriteResult
 import yaml
 
-import pathmagic  # noqa
 from admin_database.utils import get_mongodb_url
 from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType

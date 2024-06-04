@@ -6,7 +6,7 @@ import yaml
 from pymongo import MongoClient
 
 from admin_database.utils import get_mongodb_url
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_user,
     add_user_with_budget,
     del_user,

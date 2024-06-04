@@ -25,7 +25,10 @@ from administration.mongodb_admin import (
     show_dataset,
     show_metadata_of_dataset,
 )
-from constants import PrivateDatabaseType
+from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
+
+EPSILON_STEP = 0.01
+DELTA_STEP = 0.00001
 
 ###############################################################################
 # BACKEND
@@ -42,6 +45,42 @@ if "list_datasets" not in st.session_state:
     st.session_state["list_datasets"] = get_list_of_datasets(
         st.session_state.admin_db
     )
+
+
+def check_user_warning(user: str) -> bool:
+    """Verify if user already present and warning if it is
+
+    Args:
+        user (str): name of user
+
+    Returns:
+        boolean: True if warning
+    """
+    if user in st.session_state.list_users:
+        st.warning(f"User {user} is already in the database.")
+        return True
+    return False
+
+
+def check_dataset_warning(ds: str) -> bool:
+    """Verify if dataset already present and warning if it is
+
+    Args:
+        user (str): name of user
+
+    Returns:
+        boolean: True if warning
+    """
+    if ds in st.session_state.list_datasets:
+        st.warning(f"Dataset {ds} is already in the database.")
+        return True
+    return False
+
+
+def warning_field_missing() -> None:
+    """Writes warning that some fields are missing"""
+    st.warning("Please fill all fields.")
+
 
 ###############################################################################
 # GUI and user interactions
@@ -64,58 +103,71 @@ user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
 with user_tab:
     st.subheader("Add user")
     au_username = st.text_input("Username (add user)", value="", key=None)
-    if au_username:
-        st.write("Click to add user", au_username, "to the list of users.")
-        if st.button(
-            "Add user",
-            on_click=add_user,
-            args=(
-                st.session_state.admin_db,
-                au_username,
-            ),
-        ):
-            st.session_state["list_users"] = get_list_of_users(
-                st.session_state.admin_db
-            )
-            st.write(f"User {au_username} was added.")
+    if st.button("Add user"):
+        if au_username:
+            au_user_warning = check_user_warning(au_username)
+            if not au_user_warning:
+                add_user(st.session_state.admin_db, au_username)
+                st.session_state["list_users"] = get_list_of_users(
+                    st.session_state.admin_db
+                )
+                st.write(f"User {au_username} was added.")
+        else:
+            warning_field_missing()
 
     st.subheader("Add user with budget")
     auwb_1, auwb_2, auwb_3, auwb_4 = st.columns(4)
     with auwb_1:
         auwb_username = st.text_input("Username (add user with budget)", None)
+        auwb_user_warning = check_user_warning(auwb_username)
     with auwb_2:
         auwb_dataset = st.selectbox(
-            "Dataset (add user with budget)", st.session_state.list_datasets
+            "Dataset (add user with budget)",
+            st.session_state.list_datasets,
+            key="dataset of add user with budget",
         )
     with auwb_3:
-        auwb_epsilon = st.number_input("Epsilon (add user with budget)", None)
+        auwb_epsilon = st.number_input(
+            "Epsilon (add user with budget)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
+        )
     with auwb_4:
-        auwb_delta = st.number_input("Delta (add user with budget)", None)
-    if auwb_username and auwb_dataset and auwb_epsilon and auwb_delta:
-        st.write("Click to add user", auwb_username, "to the list of users.")
-        if st.button(
-            "Add user with dataset",
-            on_click=add_user_with_budget,
-            args=(
+        auwb_delta = st.number_input(
+            "Delta (add user with budget)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
+        )
+
+    if st.button("Add user with dataset"):
+        if auwb_username and auwb_dataset and auwb_epsilon and auwb_delta:
+            add_user_with_budget(
                 st.session_state.admin_db,
                 auwb_username,
                 auwb_dataset,
                 auwb_epsilon,
                 auwb_delta,
-            ),
-        ):
+            )
             st.session_state["list_users"] = get_list_of_users(
                 st.session_state.admin_db
             )
             st.write(
                 f"User {auwb_username} was added with dataset {auwb_dataset}."
             )
+        else:
+            warning_field_missing()
 
     st.subheader("Add dataset to user")
     adtu_1, adtu_2, adtu_3, adtu_4 = st.columns(4)
     with adtu_1:
         adtu_username = st.selectbox(
-            "Username (add dataset to user)", st.session_state.list_users
+            "Username (add dataset to user)",
+            st.session_state.list_users,
+            key="username of add dataset to user",
         )
     with adtu_2:
         if adtu_username:
@@ -130,35 +182,50 @@ with user_tab:
         else:
             adtu_dataset_available = st.session_state.list_datasets
         adtu_dataset = st.selectbox(
-            "Dataset (add dataset to user)", adtu_dataset_available
+            "Dataset (add dataset to user)",
+            adtu_dataset_available,
+            key="dataset of add dataset to user",
         )
     with adtu_3:
-        adtu_epsilon = st.number_input("Epsilon (add dataset to user)", None)
+        adtu_epsilon = st.number_input(
+            "Epsilon (add dataset to user)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
+        )
     with adtu_4:
-        adtu_delta = st.number_input("Delta (add dataset to user)", None)
+        adtu_delta = st.number_input(
+            "Delta (add dataset to user)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
+        )
 
-    if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
-        st.write("Click to add dataset", adtu_dataset, "to", adtu_username)
-        if st.button(
-            "Add dataset to user",
-            on_click=add_dataset_to_user,
-            args=(
+    if st.button("Add dataset to user"):
+        if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
+            add_dataset_to_user(
                 st.session_state.admin_db,
                 adtu_username,
                 adtu_dataset,
                 adtu_epsilon,
                 adtu_delta,
-            ),
-        ):
-            st.write(
-                f"Dataset {adtu_dataset} was added to user {adtu_username}."
             )
+            st.write(
+                f"Dataset {adtu_dataset} was added to user {adtu_username}"
+                + f" with epsilon = {adtu_epsilon} and delta = {adtu_delta}"
+            )
+        else:
+            warning_field_missing()
 
     st.subheader("Modify user epsilon")
     sue_1, sue_2, sue_3 = st.columns(3)
     with sue_1:
         sue_username = st.selectbox(
-            "Username (modify user epsilon)", st.session_state.list_users
+            "Username (modify user epsilon)",
+            st.session_state.list_users,
+            key="username of modify user epsilon",
         )
     with sue_2:
         if sue_username:
@@ -168,39 +235,42 @@ with user_tab:
         else:
             sue_datasets_from_user = st.session_state.list_datasets
         sue_dataset = st.selectbox(
-            "Dataset (modify user epsilon)", sue_datasets_from_user
+            "Dataset (modify user epsilon)",
+            sue_datasets_from_user,
+            key="dataset of modify user epsilon",
         )
     with sue_3:
         sue_epsilon = st.number_input(
-            "Epsilon value (modify user epsilon)", None
+            "Epsilon value (modify user epsilon)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
         )
-    if sue_username and sue_dataset and sue_epsilon:
-        st.write(
-            "Click to modify initial epsilon value from user",
-            sue_username,
-            "on dataset",
-            sue_dataset,
-            "to",
-            sue_epsilon,
-        )
-        if st.button(
-            "Modify user epsilon",
-            on_click=set_budget_field,
-            args=(
+
+    if st.button("Modify user epsilon"):
+        if sue_username and sue_dataset and sue_epsilon:
+            set_budget_field(
                 st.session_state.admin_db,
                 sue_username,
                 sue_dataset,
                 "initial_epsilon",
                 sue_epsilon,
-            ),
-        ):
-            st.write(f"User {sue_username} epsilon value was modified.")
+            )
+            st.write(
+                f"User {sue_username} on dataset {sue_dataset} "
+                + f"initial epsilon value was modified to {sue_epsilon}"
+            )
+        else:
+            warning_field_missing()
 
     st.subheader("Modify user delta")
     sud_1, sud_2, sud_3 = st.columns(3)
     with sud_1:
         sud_username = st.selectbox(
-            "Username (modify user delta)", st.session_state.list_users
+            "Username (modify user delta)",
+            st.session_state.list_users,
+            key="username of modify user delta",
         )
     with sud_2:
         if sud_username:
@@ -210,50 +280,53 @@ with user_tab:
         else:
             sud_datasets_from_user = st.session_state.list_datasets
         sud_dataset = st.selectbox(
-            "Dataset (modify user delta)", sud_datasets_from_user
+            "Dataset (modify user delta)",
+            sud_datasets_from_user,
+            key="dataset of modify user delta",
         )
     with sud_3:
-        sud_delta = st.number_input("Delta value (modify user delta)", None)
-    if sud_username and sud_dataset and sud_delta:
-        st.write(
-            "Click to modify initial delta value from user",
-            sud_username,
-            "on dataset",
-            sud_dataset,
-            "to",
-            sud_delta,
+        sud_delta = st.number_input(
+            "Delta value (modify user delta)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
         )
-        if st.button(
-            "Modify user delta",
-            on_click=set_budget_field,
-            args=(
+
+    if st.button("Modify user delta"):
+        if sud_username and sud_dataset and sud_delta:
+            set_budget_field(
                 st.session_state.admin_db,
                 sud_username,
                 sud_dataset,
                 "initial_delta",
                 sud_delta,
-            ),
-        ):
-            st.write(f"User {sud_username} delta value was modified.")
+            )
+            st.write(
+                f"User {sud_username} on dataset {sud_dataset} "
+                + f"initial delta value was modified to {sud_delta}"
+            )
+        else:
+            warning_field_missing()
 
     st.subheader("Modify user may query")
     umq_1, umq_2 = st.columns(2)
     with umq_1:
         umq_username = st.selectbox(
-            "Username (user may query)", st.session_state.list_users
+            "Username (user may query)",
+            st.session_state.list_users,
+            key="username of user may query",
         )
     with umq_2:
         umq_may_query = st.selectbox("May query", (True, False))
-    if umq_username:
-        st.write(
-            f"Change user {umq_username} may query to", umq_may_query, "."
-        )
-        if st.button(
-            "Modify user may query",
-            on_click=set_may_query,
-            args=(st.session_state.admin_db, umq_username, umq_may_query),
-        ):
+    if st.button("Modify user may query"):
+        if umq_username:
+            set_may_query(
+                st.session_state.admin_db, umq_username, umq_may_query
+            )
             st.write("User", umq_username, "may_query is now:", umq_may_query)
+        else:
+            warning_field_missing()
 
     st.subheader("Add many users via a yaml file")
     amu_1, amu_2 = st.columns(2)
@@ -270,26 +343,35 @@ with user_tab:
         "Choose a YAML file for the user collection",
         accept_multiple_files=False,
     )
-    if u_uploaded_file:
-        st.write("Click to add users")
-        if st.button("Add users"):
+
+    if st.button("Add users"):
+        if u_uploaded_file:
+            st.write("Click to add users")
             user_collection = yaml.safe_load(u_uploaded_file)
-            add_users_via_yaml(
-                st.session_state.admin_db,
-                user_collection,
-                u_clean,
-                u_overwrite,
-            )
-            st.session_state["list_users"] = get_list_of_users(
-                st.session_state.admin_db
-            )
-            st.write("Users were added.")
+            try:
+                add_users_via_yaml(
+                    st.session_state.admin_db,
+                    user_collection,
+                    u_clean,
+                    u_overwrite,
+                )
+                st.session_state["list_users"] = get_list_of_users(
+                    st.session_state.admin_db
+                )
+                st.write("Users were added.")
+            except Exception as e:
+                st.error(f"Failed to import collection because {e}")
+
+            st.write(f"Users imported: {st.session_state.list_users}")
+        else:
+            warning_field_missing()
 
 with dataset_tab:
     st.subheader("Add one dataset")
     ad_1, ad_2, ad_3 = st.columns(3)
     with ad_1:
         ad_dataset = st.text_input("Dataset name (add dataset)", None)
+        ad_dataset_warning = check_dataset_warning(ad_dataset)
     with ad_2:
         ad_type = st.selectbox(
             "Dataset type (add dataset)",
@@ -350,73 +432,73 @@ with dataset_tab:
                     "Metadata aws_secret_key (add dataset)", None
                 )
 
-    if ad_dataset and ad_type and ad_meta_type:
-        keyword_args = {}
-        dataset_ready = False
-        metadata_ready = False
-        button_text = ""
-        if ad_type == PrivateDatabaseType.PATH and ad_path:
-            keyword_args["dataset_path"] = ad_path
-            button_text += f"Add local dataset {ad_dataset} at path {ad_path}"
-            dataset_ready = True
-        elif (
-            ad_type == PrivateDatabaseType.S3
-            and ad_s3_bucket
-            and ad_s3_key
-            and ad_s3_url
-            and ad_s3_kid
-            and ad_s3_sk
-        ):
-            keyword_args["s3_bucket"] = ad_s3_bucket
-            keyword_args["s3_key"] = ad_s3_key
-            keyword_args["endpoint_url"] = ad_s3_url
-            keyword_args["aws_access_key_id"] = ad_s3_kid
-            keyword_args["aws_secret_access_key"] = ad_s3_sk
-            button_text += f"Add S3 dataset {ad_dataset}"
-            dataset_ready = True
-        else:
+    keyword_args = {}
+    DATASET_READY = False
+    METADATA_READY = False
+
+    if ad_type == PrivateDatabaseType.PATH and ad_path:
+        keyword_args["dataset_path"] = ad_path
+        DATASET_READY = True
+    elif (
+        ad_type == PrivateDatabaseType.S3
+        and ad_s3_bucket
+        and ad_s3_key
+        and ad_s3_url
+        and ad_s3_kid
+        and ad_s3_sk
+    ):
+        keyword_args["s3_bucket"] = ad_s3_bucket
+        keyword_args["s3_key"] = ad_s3_key
+        keyword_args["endpoint_url"] = ad_s3_url
+        keyword_args["aws_access_key_id"] = ad_s3_kid
+        keyword_args["aws_secret_access_key"] = ad_s3_sk
+        DATASET_READY = True
+    else:
+        if ad_dataset is not None:
             st.write("Please, fill all empty fields for dataset.")
 
-        if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
-            keyword_args["metadata_path"] = ad_meta_path
-            button_text += f" with local metadata at path {ad_meta_path}"
-            metadata_ready = True
-        elif (
-            ad_meta_type == PrivateDatabaseType.S3
-            and ad_meta_s3_bucket
-            and ad_meta_s3_key
-            and ad_meta_s3_url
-            and ad_meta_s3_kid
-            and ad_meta_s3_sk
-        ):
-            keyword_args["metadata_s3_bucket"] = ad_meta_s3_bucket
-            keyword_args["metadata_s3_key"] = ad_meta_s3_key
-            keyword_args["metadata_endpoint_url"] = ad_meta_s3_url
-            keyword_args["metadata_aws_access_key_id"] = ad_meta_s3_kid
-            keyword_args["metadata_aws_secret_access_key"] = ad_meta_s3_sk
-            button_text += " with S3 metadata"
-            metadata_ready = True
-        else:
+    if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
+        keyword_args["metadata_path"] = ad_meta_path
+        METADATA_READY = True
+    elif (
+        ad_meta_type == PrivateDatabaseType.S3
+        and ad_meta_s3_bucket
+        and ad_meta_s3_key
+        and ad_meta_s3_url
+        and ad_meta_s3_kid
+        and ad_meta_s3_sk
+    ):
+        keyword_args["metadata_s3_bucket"] = ad_meta_s3_bucket
+        keyword_args["metadata_s3_key"] = ad_meta_s3_key
+        keyword_args["metadata_endpoint_url"] = ad_meta_s3_url
+        keyword_args["metadata_aws_access_key_id"] = ad_meta_s3_kid
+        keyword_args["metadata_aws_secret_access_key"] = ad_meta_s3_sk
+        METADATA_READY = True
+    else:
+        if ad_dataset is not None:
             st.write("Please, fill all empty fields for the metadata.")
 
-        if dataset_ready and metadata_ready:
-            if st.button(
-                button_text,
-                on_click=add_dataset,
-                args=(
+    if st.button(f"Add {ad_type} dataset with {ad_meta_type} metadata"):
+        if DATASET_READY and METADATA_READY and not ad_dataset_warning:
+            try:
+                add_dataset(
                     st.session_state.admin_db,
                     ad_dataset,
                     ad_type,
                     ad_meta_type,
-                ),
-                kwargs=keyword_args,
-            ):
-                dataset_ready = False
-                metadata_ready = False
-                st.session_state["list_datasets"] = get_list_of_datasets(
-                    st.session_state.admin_db
+                    **keyword_args,
                 )
-                st.write("Dataset", ad_dataset, "added.")
+            except Exception as e:
+                st.error(f"Failed to add dataset because {e}")
+
+            DATASET_READY = False
+            METADATA_READY = False
+            st.session_state["list_datasets"] = get_list_of_datasets(
+                st.session_state.admin_db
+            )
+            st.write("Dataset", ad_dataset, "was added.")
+        else:
+            warning_field_missing()
 
     st.subheader("Add many datasets via a yaml file")
     amd_1, amd_2, amd_3 = st.columns(3)
@@ -435,9 +517,10 @@ with dataset_tab:
         type="yaml",
         accept_multiple_files=False,
     )
-    if dataset_collection:
-        st.write("Click to add datasets")
-        if st.button("Add datasets"):
+
+    if st.button("Add datasets"):
+        if dataset_collection:
+            st.write("Click to add datasets")
             dataset_collection = yaml.safe_load(dataset_collection)
 
             add_datasets_via_yaml(
@@ -450,23 +533,29 @@ with dataset_tab:
             st.session_state["list_datasets"] = get_list_of_datasets(
                 st.session_state.admin_db
             )
-            st.write("Datasets were added.")
+            st.write(f"Datasets imported: {st.session_state.list_datasets}")
+        else:
+            warning_field_missing()
 
 with content_tab:
     st.subheader("Show one element")
     elem_users, elem_archives = st.columns(2)
     with elem_users:
         user_selected = st.selectbox(
-            "User to show", st.session_state.list_users
+            "User to show",
+            st.session_state.list_users,
+            key="username of user to show",
         )
         if st.button(f"Displaying information of: {user_selected}"):
             user_to_show = show_user(st.session_state.admin_db, user_selected)
             st.write(user_to_show)
+
     with elem_archives:
         user_archives_selected = st.selectbox(
-            "Archives from user", st.session_state.list_users
+            "Archives from user",
+            st.session_state.list_users,
+            key="username of archives from user",
         )
-        st.write("Displaying information of:", user_archives_selected)
         if st.button(
             f"Displaying previous queries of: {user_archives_selected}"
         ):
@@ -478,19 +567,22 @@ with content_tab:
     elem_datasets, elem_metadata = st.columns(2)
     with elem_datasets:
         dataset_selected = st.selectbox(
-            "Dataset to show", st.session_state.list_datasets
+            "Dataset to show",
+            st.session_state.list_datasets,
+            key="dataset of dataset to show",
         )
-        st.write("Displaying information of:", dataset_selected)
         if st.button(f"Displaying dataset: {dataset_selected}"):
             dataset_to_show = show_dataset(
                 st.session_state.admin_db, dataset_selected
             )
             st.write(dataset_to_show)
+
     with elem_metadata:
         metadata_selected = st.selectbox(
-            "Metadata to show from dataset", st.session_state.list_datasets
+            "Metadata to show from dataset",
+            st.session_state.list_datasets,
+            key="dataset of metadata to show",
         )
-        st.write("Displaying metadata of:", metadata_selected)
         if st.button(f"Displaying metadata of: {metadata_selected}"):
             metadata_to_show = show_metadata_of_dataset(
                 st.session_state.admin_db, metadata_selected
@@ -531,30 +623,28 @@ with deletion_tab:
     st.subheader("Delete one element")
     st.markdown("**Delete one user**")
     du_username = st.selectbox(
-        "Username (delete user)", st.session_state.list_users
+        "Username (delete user)",
+        st.session_state.list_users,
+        key="username of user to delete",
     )
-    if du_username:
-        st.write(
-            "Click to delete user", du_username, "from the list of users."
-        )
-        if st.button(
-            "Delete user",
-            on_click=del_user,
-            args=(
-                st.session_state.admin_db,
-                du_username,
-            ),
-        ):
+
+    if st.button(label=f"Delete user {du_username} from the list of users."):
+        if du_username:
+            del_user(st.session_state.admin_db, du_username)
             st.session_state["list_users"] = get_list_of_users(
                 st.session_state.admin_db
             )
             st.write(f"User {du_username} was deleted.")
+        else:
+            warning_field_missing()
 
     st.markdown("**Remove dataset from user**")
     rdtu_1, rdtu_2 = st.columns(2)
     with rdtu_1:
         rdtu_user = st.selectbox(
-            "Username (remove dataset from user)", st.session_state.list_users
+            "Username (remove dataset from user)",
+            st.session_state.list_users,
+            key="username of remove dataset from user",
         )
     with rdtu_2:
         if rdtu_user:
@@ -564,46 +654,46 @@ with deletion_tab:
         else:
             rdtu_datasets_from_user = st.session_state.list_datasets
         rdtu_dataset = st.selectbox(
-            "Dataset (remove dataset from user)", rdtu_datasets_from_user
+            "Dataset (remove dataset from user)",
+            rdtu_datasets_from_user,
+            key="dataset of remove dataset from user",
         )
-    if rdtu_user and rdtu_dataset:
-        st.write(
-            "Click to remove dataset", rdtu_dataset, "from user", rdtu_user
-        )
-        if st.button(
-            "Remove dataset from user",
-            on_click=del_dataset_to_user,
-            args=(st.session_state.admin_db, rdtu_user, rdtu_dataset),
-        ):
+
+    if st.button(
+        label=f"Remove dataset {rdtu_dataset} from user {rdtu_user}."
+    ):
+        if rdtu_user and rdtu_dataset:
+            del_dataset_to_user(
+                st.session_state.admin_db, rdtu_user, rdtu_dataset
+            )
             st.session_state["list_datasets"] = get_list_of_datasets(
                 st.session_state.admin_db
             )
             st.write(
                 f"Dataset {rdtu_dataset} was removed from user {rdtu_user}."
             )
+        else:
+            warning_field_missing()
 
     st.markdown("**Remove dataset and it's associated metadata**")
     rd_dataset = st.selectbox(
-        "Dataset (remove dataset)", st.session_state.list_datasets
+        "Dataset (remove dataset)",
+        st.session_state.list_datasets,
+        key="dataset of remove dataset and metadata",
     )
-    if rd_dataset:
-        st.write(
-            "Click to delete dataset",
-            rd_dataset,
-            "from the list of datasets.",
-        )
-        if st.button(
-            "Delete dataset",
-            on_click=del_dataset,
-            args=(
-                st.session_state.admin_db,
-                rd_dataset,
-            ),
-        ):
+
+    if st.button(
+        label=f"Delete dataset {rd_dataset} from the list of datasets.",
+        key="delete button of remove dataset and metadata",
+    ):
+        if rd_dataset:
+            del_dataset(st.session_state.admin_db, rd_dataset)
             st.session_state["list_datasets"] = get_list_of_datasets(
                 st.session_state.admin_db
             )
             st.write(f"Dataset {rd_dataset} was deleted.")
+        else:
+            warning_field_missing()
 
     st.subheader("Delete full collection")
     d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)

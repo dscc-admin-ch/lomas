@@ -27,6 +27,9 @@ from administration.mongodb_admin import (
 )
 from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
 
+EPSILON_STEP = 0.01
+DELTA_STEP = 0.00001
+
 ###############################################################################
 # BACKEND
 ###############################################################################
@@ -42,42 +45,6 @@ if "list_datasets" not in st.session_state:
     st.session_state["list_datasets"] = get_list_of_datasets(
         st.session_state.admin_db
     )
-
-
-def check_epsilon_warning(epsilon: float) -> bool:
-    """Verify if epsilon within bounds and print warning if not
-
-    Args:
-        epsilon (float): epsilon value
-
-    Returns:
-        boolean: True if warning
-    """
-    if epsilon < 0:
-        st.warning("Epsilon must be positive.")
-        return True
-    if epsilon > EPSILON_LIMIT:
-        st.warning(f"Epsilon {epsilon} is above limit ({EPSILON_LIMIT}).")
-        return True
-    return False
-
-
-def check_delta_warning(delta) -> bool:
-    """Verify if delta within bounds and print warning if not
-
-    Args:
-        delta (float): epsilon value
-
-    Returns:
-        boolean: True if warning
-    """
-    if delta < 0:
-        st.warning("Delta must be positive.")
-        return True
-    if delta > DELTA_LIMIT:
-        st.warning(f"Delta {delta} is above limit ({DELTA_LIMIT}).")
-        return True
-    return False
 
 
 def check_user_warning(user: str) -> bool:
@@ -160,32 +127,37 @@ with user_tab:
             key="dataset of add user with budget",
         )
     with auwb_3:
-        auwb_epsilon = st.number_input("Epsilon (add user with budget)", None)
-        auwb_epsilon_warning = check_epsilon_warning(auwb_epsilon)
+        auwb_epsilon = st.number_input(
+            "Epsilon (add user with budget)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
+        )
     with auwb_4:
-        auwb_delta = st.number_input("Delta (add user with budget)", None)
-        auwb_delta_warning = check_delta_warning(auwb_delta)
+        auwb_delta = st.number_input(
+            "Delta (add user with budget)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
+        )
 
     if st.button("Add user with dataset"):
         if auwb_username and auwb_dataset and auwb_epsilon and auwb_delta:
-            if (
-                not auwb_epsilon_warning
-                or auwb_delta_warning
-                or auwb_user_warning
-            ):
-                add_user_with_budget(
-                    st.session_state.admin_db,
-                    auwb_username,
-                    auwb_dataset,
-                    auwb_epsilon,
-                    auwb_delta,
-                )
-                st.session_state["list_users"] = get_list_of_users(
-                    st.session_state.admin_db
-                )
-                st.write(
-                    f"User {auwb_username} was added with dataset {auwb_dataset}."
-                )
+            add_user_with_budget(
+                st.session_state.admin_db,
+                auwb_username,
+                auwb_dataset,
+                auwb_epsilon,
+                auwb_delta,
+            )
+            st.session_state["list_users"] = get_list_of_users(
+                st.session_state.admin_db
+            )
+            st.write(
+                f"User {auwb_username} was added with dataset {auwb_dataset}."
+            )
         else:
             warning_field_missing()
 
@@ -215,26 +187,35 @@ with user_tab:
             key="dataset of add dataset to user",
         )
     with adtu_3:
-        adtu_epsilon = st.number_input("Epsilon (add dataset to user)", None)
-        adtu_epsilon_warning = check_epsilon_warning(adtu_epsilon)
+        adtu_epsilon = st.number_input(
+            "Epsilon (add dataset to user)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
+        )
     with adtu_4:
-        adtu_delta = st.number_input("Delta (add dataset to user)", None)
-        adtu_delta_warning = check_delta_warning(adtu_delta)
+        adtu_delta = st.number_input(
+            "Delta (add dataset to user)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
+        )
 
     if st.button("Add dataset to user"):
         if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
-            if not adtu_epsilon_warning or adtu_delta_warning:
-                add_dataset_to_user(
-                    st.session_state.admin_db,
-                    adtu_username,
-                    adtu_dataset,
-                    adtu_epsilon,
-                    adtu_delta,
-                )
-                st.write(
-                    f"Dataset {adtu_dataset} was added to user {adtu_username}"
-                    + f" with epsilon = {adtu_epsilon} and delta = {adtu_delta}"
-                )
+            add_dataset_to_user(
+                st.session_state.admin_db,
+                adtu_username,
+                adtu_dataset,
+                adtu_epsilon,
+                adtu_delta,
+            )
+            st.write(
+                f"Dataset {adtu_dataset} was added to user {adtu_username}"
+                + f" with epsilon = {adtu_epsilon} and delta = {adtu_delta}"
+            )
         else:
             warning_field_missing()
 
@@ -260,24 +241,26 @@ with user_tab:
         )
     with sue_3:
         sue_epsilon = st.number_input(
-            "Epsilon value (modify user epsilon)", None
+            "Epsilon value (modify user epsilon)",
+            min_value=0.0,
+            max_value=EPSILON_LIMIT,
+            step=EPSILON_STEP,
+            format="%f",
         )
-        sue_epsilon_warning = check_epsilon_warning(sue_epsilon)
 
     if st.button("Modify user epsilon"):
         if sue_username and sue_dataset and sue_epsilon:
-            if not sue_epsilon_warning:
-                set_budget_field(
-                    st.session_state.admin_db,
-                    sue_username,
-                    sue_dataset,
-                    "initial_epsilon",
-                    sue_epsilon,
-                )
-                st.write(
-                    f"User {sue_username} on dataset {sue_dataset} "
-                    + f"initial epsilon value was modified to {sue_epsilon}"
-                )
+            set_budget_field(
+                st.session_state.admin_db,
+                sue_username,
+                sue_dataset,
+                "initial_epsilon",
+                sue_epsilon,
+            )
+            st.write(
+                f"User {sue_username} on dataset {sue_dataset} "
+                + f"initial epsilon value was modified to {sue_epsilon}"
+            )
         else:
             warning_field_missing()
 
@@ -302,23 +285,27 @@ with user_tab:
             key="dataset of modify user delta",
         )
     with sud_3:
-        sud_delta = st.number_input("Delta value (modify user delta)", None)
-        sud_delta_warning = check_delta_warning(sud_delta)
+        sud_delta = st.number_input(
+            "Delta value (modify user delta)",
+            min_value=0.0,
+            max_value=DELTA_LIMIT,
+            step=DELTA_STEP,
+            format="%f",
+        )
 
     if st.button("Modify user delta"):
         if sud_username and sud_dataset and sud_delta:
-            if not sud_delta_warning:
-                set_budget_field(
-                    st.session_state.admin_db,
-                    sud_username,
-                    sud_dataset,
-                    "initial_delta",
-                    sud_delta,
-                )
-                st.write(
-                    f"User {sud_username} on dataset {sud_dataset} "
-                    + f"initial delta value was modified to {sud_delta}"
-                )
+            set_budget_field(
+                st.session_state.admin_db,
+                sud_username,
+                sud_dataset,
+                "initial_delta",
+                sud_delta,
+            )
+            st.write(
+                f"User {sud_username} on dataset {sud_dataset} "
+                + f"initial delta value was modified to {sud_delta}"
+            )
         else:
             warning_field_missing()
 
@@ -467,7 +454,8 @@ with dataset_tab:
         keyword_args["aws_secret_access_key"] = ad_s3_sk
         DATASET_READY = True
     else:
-        st.write("Please, fill all empty fields for dataset.")
+        if ad_dataset is not None:
+            st.write("Please, fill all empty fields for dataset.")
 
     if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
         keyword_args["metadata_path"] = ad_meta_path
@@ -487,7 +475,8 @@ with dataset_tab:
         keyword_args["metadata_aws_secret_access_key"] = ad_meta_s3_sk
         METADATA_READY = True
     else:
-        st.write("Please, fill all empty fields for the metadata.")
+        if ad_dataset is not None:
+            st.write("Please, fill all empty fields for the metadata.")
 
     if st.button(f"Add {ad_type} dataset with {ad_meta_type} metadata"):
         if DATASET_READY and METADATA_READY and not ad_dataset_warning:

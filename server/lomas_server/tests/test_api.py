@@ -9,7 +9,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from admin_database.utils import get_mongodb
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_users_via_yaml,
     add_datasets_via_yaml,
     drop_collection,

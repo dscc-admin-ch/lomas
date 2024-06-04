@@ -51,7 +51,11 @@ from utils.utils import add_demo_data_to_admindb, server_live, stream_dataframe
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(
+    app: FastAPI,
+) -> (
+    AsyncGenerator
+):  # pylint: disable=redefined-outer-name, too-many-statements
     """
     Lifespan function for the server.
 
@@ -509,7 +513,7 @@ def opendp_query_handler(
                 "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
                 converted to "SmoothedMaxDivergence" with "make_zCDP_to_approxDP"
                 (see "opendp measurements documentation at
-                https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+                https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
                 In that case a "fixed_delta" must be provided by the user.
 
             Defaults to Body(example_opendp).
@@ -569,7 +573,7 @@ def dummy_opendp_query_handler(
               "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then
               it is converted to "SmoothedMaxDivergence" with
               "make_zCDP_to_approxDP" (see opendp measurements documentation at
-              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
               In that case a "fixed_delta" must be provided by the user.
             - dummy (bool, optional): Whether to use a dummy dataset
               (default: False).

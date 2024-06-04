@@ -226,9 +226,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise[
-                "query_str"
-            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
+            input_smartnoise["query_str"] = (
+                "SELECT AVG(bill) FROM df"  # no 'bill' column
+            )
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,

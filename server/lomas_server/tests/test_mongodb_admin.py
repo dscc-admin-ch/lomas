@@ -91,7 +91,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         delta = 0.02
 
         add_user_with_budget(self.db, user, dataset, epsilon, delta)
-        expected_user = {
+        expected_user = {  # pylint: disable=duplicate-code
             "user_name": user,
             "may_query": True,
             "datasets_list": [

@@ -23,7 +23,6 @@ st.set_page_config(layout="wide")
 
 st.title("Lomas configurations")
 
-# TODO after deploy: address from deployment
 st.write(
     f"The server is available for requests at the address: {FASTAPI_URL}/"
 )

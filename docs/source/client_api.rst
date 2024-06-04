@@ -5,4 +5,4 @@ Client API
    :maxdepth: 2
    :glob:
 
-   modules
+   client_modules

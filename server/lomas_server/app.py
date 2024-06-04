@@ -69,6 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Set some app state
     app.state.admin_database = None
     app.state.query_handler = None
+    app.state.dataset_store = None
 
     # General server state, can add fields if need be.
     app.state.server_state = {
@@ -120,13 +121,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     if status_ok:
         LOG.info("Loading query handler")
         app.state.server_state["message"].append("Loading dataset store")
-        dataset_store = dataset_store_factory(
+        app.state.dataset_store = dataset_store_factory(
             config.dataset_store, app.state.admin_database
         )
 
         app.state.server_state["message"].append("Loading query handler")
         app.state.query_handler = QueryHandler(
-            app.state.admin_database, dataset_store
+            app.state.admin_database, app.state.dataset_store
         )
 
         app.state.server_state["state"].append("Startup completed")
@@ -195,6 +196,26 @@ async def get_state(
         content={
             "requested_by": user_name,
             "state": app.state.server_state,
+        }
+    )
+
+
+@app.get(
+    "/get_memory_usage",
+    dependencies=[Depends(server_live)],
+    tags=["ADMIN_USER"],
+)
+async def get_memory_usage() -> JSONResponse:
+    """Return the dataset store object memory usage
+    Args:
+        user_name (str, optional): The user name. Defaults to Header(None).
+
+    Returns:
+        JSONResponse: with DatasetStore object memory usage
+    """
+    return JSONResponse(
+        content={
+            "memory_usage": app.state.dataset_store.memory_usage,
         }
     )
 

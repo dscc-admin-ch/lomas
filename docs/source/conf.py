@@ -13,20 +13,24 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../"))
-scripts = "../../lomas_client"
-if scripts not in sys.path:
-    sys.path.append(os.path.abspath(scripts))
+sys.path.insert(0, os.path.abspath("../../server"))
+sys.path.insert(0, os.path.abspath("../../client"))
+scripts_client = "../../client/lomas_client"
+scripts_server = "../../server/lomas_server"
+if scripts_client not in sys.path:
+    sys.path.append(os.path.abspath(scripts_client))
+if scripts_server not in sys.path:
+    sys.path.append(os.path.abspath(scripts_server))
 
 
 # -- Project information -----------------------------------------------------
 
-project = "Lomas-client"
+project = "Lomas"
 copyright = "2024, DSCC"
 author = "DSCC"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.2"
+release = "0.0.1"
 
 
 # -- General configuration ---------------------------------------------------

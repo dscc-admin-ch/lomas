@@ -200,7 +200,11 @@ async def get_state(
     )
 
 
-@app.get("/get_memory_usage", dependencies=[Depends(server_live)], tags=["ADMIN_USER"])
+@app.get(
+    "/get_memory_usage",
+    dependencies=[Depends(server_live)],
+    tags=["ADMIN_USER"],
+)
 async def get_memory_usage() -> JSONResponse:
     """Return the dataset store object memory usage
     Args:

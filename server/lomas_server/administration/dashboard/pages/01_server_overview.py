@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-from constants import AdminDBType, ConfDatasetStore
+from constants import AdminDBType, DatasetStoreType
 from utils.config import get_config
 from utils.error_handler import InternalServerException
 
@@ -66,12 +66,12 @@ with tab_2:
     st.subheader("Administration Database")
     db_type = st.session_state.config.admin_database.db_type
     st.write("The administration database type is: ", db_type)
-    if db_type == AdminDBType.YAML_TYPE:
+    if db_type == AdminDBType.YAML:
         st.write(
             "The database file is: ",
             st.session_state.config.admin_database.db_file,
         )
-    elif db_type == AdminDBType.MONGODB_TYPE:
+    elif db_type == AdminDBType.MONGODB:
         st.write(
             "Its address is: ", st.session_state.config.admin_database.address
         )
@@ -93,7 +93,7 @@ with tab_3:
     st.subheader("Dataset Store")
     ds_store_type = st.session_state.config.dataset_store.ds_store_type
     st.write("The dataset store type is: ", ds_store_type)
-    if ds_store_type == ConfDatasetStore.LRU:
+    if ds_store_type == DatasetStoreType.LRU:
         st.write(
             "The maximum memory usage is: ",
             st.session_state.config.dataset_store.max_memory_usage,

@@ -47,7 +47,7 @@ else:
 
 tab_1, tab_2, tab_3 = st.columns(3)
 with tab_1:
-    st.header("Server configurations")
+    st.subheader("Server configurations")
 
     st.write(
         "The host IP of the server is: ",

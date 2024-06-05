@@ -143,61 +143,61 @@ Examples
 .. code-block:: console
 
    # Add a user
-   python mongodb_admin.py add_user -u username
+   python mongodb_admin_cli.py add_user -u username
 
    # Add a user with budget
-   python mongodb_admin.py add_user_with_budget -u username -d dataset_name -e 0.5 -del 0.1
+   python mongodb_admin_cli.py add_user_with_budget -u username -d dataset_name -e 0.5 -del 0.1
 
    # Delete a user
-   python mongodb_admin.py del_user -u username
+   python mongodb_admin_cli.py del_user -u username
 
    # Add a dataset to a user
-   python mongodb_admin.py add_dataset_to_user -u username -d dataset_name -e 0.5 -del 0.1
+   python mongodb_admin_cli.py add_dataset_to_user -u username -d dataset_name -e 0.5 -del 0.1
 
    # Delete a dataset from a user
-   python mongodb_admin.py del_dataset_to_user -u username -d dataset_name
+   python mongodb_admin_cli.py del_dataset_to_user -u username -d dataset_name
 
    # Set budget field for a user and dataset
-   python mongodb_admin.py set_budget_field -u username -d dataset_name -f initial_epsilon -v 0.5
+   python mongodb_admin_cli.py set_budget_field -u username -d dataset_name -f initial_epsilon -v 0.5
 
    # Set may query field for a user
-   python mongodb_admin.py set_may_query -u username -v True
+   python mongodb_admin_cli.py set_may_query -u username -v True
 
    # Show user metadata
-   python mongodb_admin.py show_user -u username
+   python mongodb_admin_cli.py show_user -u username
 
    # Create users collection from a YAML file
-   python mongodb_admin.py add_users_via_yaml -yf users.yaml -c
+   python mongodb_admin_cli.py add_users_via_yaml -yf users.yaml -c
 
    # Show all previous queries from user "username"
-   python mongodb_admin.py show_archives -u username
+   python mongodb_admin_cli.py show_archives -u username
 
    # Get the list of all users
-   python mongodb_admin.py get_users
+   python mongodb_admin_cli.py get_users
 
    # Get the list of all datasets from user "username"
-   python mongodb_admin.py get_user_datasets -u username
+   python mongodb_admin_cli.py get_user_datasets -u username
 
    # Add a dataset
-   python mongodb_admin.py add_dataset -d dataset_name -db database_type -d_path dataset_path -m_db metadata_database_type
+   python mongodb_admin_cli.py add_dataset -d dataset_name -db database_type -d_path dataset_path -m_db metadata_database_type
 
    # Create datasets from a YAML file
-   python mongodb_admin.py add_datasets_via_yaml -yf datasets.yaml -c -od -om
+   python mongodb_admin_cli.py add_datasets_via_yaml -yf datasets.yaml -c -od -om
 
    # Delete a dataset
-   python mongodb_admin.py del_dataset -d dataset_name
+   python mongodb_admin_cli.py del_dataset -d dataset_name
 
    # Show dataset "dataset_name"
-   python mongodb_admin.py show_dataset -d dataset_name
+   python mongodb_admin_cli.py show_dataset -d dataset_name
 
    # Show metadata for dataset "dataset_name"
-   python mongodb_admin.py show_metadata -d dataset_name
+   python mongodb_admin_cli.py show_metadata -d dataset_name
 
    # Drop a collection
-   python mongodb_admin.py drop_collection -c users
+   python mongodb_admin_cli.py drop_collection -c users
 
    # Show a collection
-   python mongodb_admin.py show_collection -c datasets
+   python mongodb_admin_cli.py show_collection -c datasets
 
 .. toctree::
    :maxdepth: 2

@@ -1,28 +1,28 @@
 import os
-from types import SimpleNamespace
 import unittest
-import yaml
+from types import SimpleNamespace
 
+import yaml
 from pymongo import MongoClient
 
 from admin_database.utils import get_mongodb_url
 from administration.mongodb_admin import (
+    add_dataset,
+    add_dataset_to_user,
+    add_datasets_via_yaml,
     add_user,
     add_user_with_budget,
-    del_user,
-    add_dataset_to_user,
+    add_users_via_yaml,
+    del_dataset,
     del_dataset_to_user,
+    del_user,
+    drop_collection,
     set_budget_field,
     set_may_query,
-    add_users_via_yaml,
-    add_dataset,
-    add_datasets_via_yaml,
-    del_dataset,
-    drop_collection,
 )
 from constants import PrivateDatabaseType
-from utils.config import get_config, CONFIG_LOADER
 from tests.constants import ENV_MONGO_INTEGRATION
+from utils.config import CONFIG_LOADER, get_config
 
 
 @unittest.skipIf(
@@ -91,7 +91,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         delta = 0.02
 
         add_user_with_budget(self.db, user, dataset, epsilon, delta)
-        expected_user = {
+        expected_user = {  # pylint: disable=duplicate-code
             "user_name": user,
             "may_query": True,
             "datasets_list": [

@@ -38,11 +38,19 @@ A github workflow is configured to run the integration tests script for pull req
 ## Linting and other checks
 
 Here is a list of the checks performed:
+
     - Use black to automatically format the code: `black .`
     - Use flake to verify formating and performing a static code analysis: `flake8 .`
     - Use mypy for static type checking: `mypy .`
-    - Use pylint for further static analysis: `pylint . --disable=E0401 --disable=C0114 --disable=R0903 --disable=C0301`
-
+    - Use pylint for further static analysis: `pylint --disable=E0401 --disable=C0114 --disable=R0903 --disable=E0611 --disable=W0511 --disable=duplicate-code tests/ .`
+    
+        - `--disable=E0401` to ignore import-error
+        - `--disable=C0114` to ignore missing-module-docstring
+        - `--disable=R0903` to ignore too-few-public-methods
+        - `--disable=E0611` to ignore no-name-in-module
+        - `--disable=W0511` to ignore fixme (TODOs)
+        - `--disable=duplicate-code tests/` to ignore duplicate-code statements related to the tests
+        
 We rely on a github workflow to automatically run the checks on pull requests.
 
 ## Documentation

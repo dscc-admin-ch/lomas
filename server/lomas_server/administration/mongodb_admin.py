@@ -775,7 +775,8 @@ def del_dataset(db: Database, dataset: str) -> None:
     LOG.info(f"Deleted dataset and metadata for {dataset}.")
 
 
-def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
+@check_dataset_and_metadata_exist(True)
+def show_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
     Args:
@@ -791,7 +792,8 @@ def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
     return dataset_info
 
 
-def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # TODO test
+@check_dataset_and_metadata_exist(True)
+def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 
     Args:

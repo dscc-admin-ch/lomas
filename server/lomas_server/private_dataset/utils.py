@@ -1,7 +1,7 @@
 from admin_database.admin_database import AdminDatabase
 from constants import PrivateDatabaseType
-from private_dataset.private_dataset import PrivateDataset
 from private_dataset.path_dataset import PathDataset
+from private_dataset.private_dataset import PrivateDataset
 from private_dataset.s3_dataset import S3Dataset
 from utils.error_handler import InternalServerException
 

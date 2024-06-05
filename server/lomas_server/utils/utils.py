@@ -1,5 +1,5 @@
-from collections.abc import AsyncGenerator
 import io
+from collections.abc import AsyncGenerator
 
 import pandas as pd
 from fastapi import Request

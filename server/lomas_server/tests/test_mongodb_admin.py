@@ -17,8 +17,16 @@ from administration.mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_list_of_datasets,
+    get_list_of_datasets_from_user,
+    get_list_of_users,
     set_budget_field,
     set_may_query,
+    show_archives_of_user,
+    show_collection,
+    show_dataset,
+    show_metadata_of_dataset,
+    show_user,
 )
 from constants import PrivateDatabaseType
 from tests.constants import ENV_MONGO_INTEGRATION
@@ -286,6 +294,27 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertRaises(ValueError):
             set_may_query(self.db, user, value)
 
+    def test_show_user(self) -> None:
+        """Test show user"""
+        user_found = show_user(self.db, "Milou")
+        expected_user = {
+            "user_name": "Milou",
+            "may_query": True,
+            "datasets_list": [
+                {
+                    "dataset_name": "os",
+                    "initial_epsilon": 20,
+                    "initial_delta": 0.005,
+                    "total_spent_epsilon": 0.0,
+                    "total_spent_delta": 0.0,
+                }
+            ],
+        }
+        self.assertEqual(user_found, expected_user)
+
+        with self.assertRaises(ValueError):
+            user_found = show_user(self.db, "Bianca Castafiore")
+
     def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file"""
         # Adding two users
@@ -372,6 +401,34 @@ class TestMongoDBAdmin(unittest.TestCase):
         # Overwrite to false and existing users should warn
         with self.assertWarns(UserWarning):
             add_users_via_yaml(self.db, path, clean=False, overwrite=False)
+
+    def test_show_archives_of_user(
+        self,
+    ) -> None:
+        """Test show archives of user"""
+        archives_found = show_archives_of_user(self.db, "Milou")
+        expected_archives = []
+        self.assertEqual(archives_found, expected_archives)
+
+        with self.assertRaises(ValueError):
+            archives_found = show_archives_of_user(
+                self.db, "Bianca Castafiore"
+            )
+
+        path = "./tests/test_data/test_archives_collection.yaml"
+        with open(path, encoding="utf-8") as f:
+            archives = yaml.safe_load(f)
+        self.db.users.insert_many(archives)
+
+        # Milou still empty
+        archives_found = show_archives_of_user(self.db, "Milou")
+        expected_archives = []
+        self.assertEqual(archives_found, expected_archives)
+
+        # Dr. Antartica has archives
+        archives_found = show_archives_of_user(self.db, "Tintin")
+        expected_archives = archives[1]
+        self.assertEqual(archives_found, expected_archives)
 
     def test_add_local_dataset(self) -> None:
         """Test adding a local dataset"""

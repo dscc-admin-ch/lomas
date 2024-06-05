@@ -413,15 +413,18 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         add_user(self.db, "Milou")
         add_user(self.db, "Tintin")
 
+        # User exist but empty
         archives_found = show_archives_of_user(self.db, "Milou")
         expected_archives: list[Dict] = []
         self.assertEqual(archives_found, expected_archives)
 
+        # User does not exist
         with self.assertRaises(ValueError):
             archives_found = show_archives_of_user(
                 self.db, "Bianca Castafiore"
             )
 
+        # Add archives for Tintin and Dr. Antartica
         path = "./tests/test_data/test_archives_collection.yaml"
         with open(path, encoding="utf-8") as f:
             archives = yaml.safe_load(f)
@@ -432,9 +435,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
 
-        # Dr. Antartica has archives
-        archives_found = show_archives_of_user(self.db, "Tintin")
+        # Tintin has archives
+        archives_found = show_archives_of_user(self.db, "Tintin")[0]
         expected_archives = archives[1]
+
+        archives_found.pop("_id")
+        expected_archives.pop("_id")
 
         print("archives_found")
         print(archives_found)

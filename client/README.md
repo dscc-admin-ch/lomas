@@ -13,7 +13,7 @@ pip install lomas_client
 ### Simple introduction to clien use
 
 #### Creat Client object:
-Once the library is installed, a Client object must be created. To create the client, the researcher needs to give it a few parameters:
+Once the library is installed, a Client object must be created. To create the client, the user needs to give it a few parameters:
 - a url: the root application endpoint to the remote secure server.
 - a user_name: her name as registered in the database (Emilie)
 - a dataset_name: the name of the dataset that she wants to query (PENGUIN)
@@ -96,7 +96,7 @@ real_cost_epsilon, real_cost_delta = client.estimate_opendp_cost(opendp_pipeline
 
 
 #### Get budget information
-There are various for the researcher to track her budget:
+There are various functions for the user to track her budget:
 - get\_initial\_budget() retrieves the initial budget that was allocated to her by the platform administrator.
 - get\_total\_spent\_budget() provides the total amount spent from the budget (accumulated from all previous queries).
 - get\_remaining\_budget() returns the remaining budget available for future queries. It is the difference between the initial budget and the total spent budget.

@@ -440,7 +440,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         expected_archives = archives[1]
 
         archives_found.pop("_id")
-        expected_archives.pop("_id")
+        if isinstance(expected_archives, dict):
+            expected_archives.pop("_id")
 
         print("archives_found")
         print(archives_found)

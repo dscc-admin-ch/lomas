@@ -814,7 +814,7 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     raise ValueError(f"No metadata found for dataset: {dataset}")
 
 
-def get_list_of_datasets(db: Database) -> list:  # TODO  test
+def get_list_of_datasets(db: Database) -> list:
     """Get the list of all dataset is 'datasets' collection
 
     Args:

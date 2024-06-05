@@ -484,7 +484,7 @@ def show_archives_of_user(db: Database, user: str) -> List[dict]:
     return archives_infos
 
 
-def get_list_of_users(db: Database) -> list:  # TODO  test
+def get_list_of_users(db: Database) -> list:
     """Get the list of all users is 'users' collection
 
     Args:
@@ -499,9 +499,8 @@ def get_list_of_users(db: Database) -> list:  # TODO  test
     return user_names
 
 
-def get_list_of_datasets_from_user(
-    db: Database, user: str
-) -> list:  # TODO  test
+@check_user_exists(True)
+def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """Get the list of all datasets from the user
 
     Args:

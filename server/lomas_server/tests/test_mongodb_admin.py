@@ -296,15 +296,20 @@ class TestMongoDBAdmin(unittest.TestCase):
 
     def test_show_user(self) -> None:
         """Test show user"""
+        user = "Milou"
+        dataset = "os"
+        epsilon = 20
+        delta = 0.005
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
         user_found = show_user(self.db, "Milou")
         expected_user = {
-            "user_name": "Milou",
+            "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
-                    "dataset_name": "os",
-                    "initial_epsilon": 20,
-                    "initial_delta": 0.005,
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
                     "total_spent_epsilon": 0.0,
                     "total_spent_delta": 0.0,
                 }
@@ -402,10 +407,10 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertWarns(UserWarning):
             add_users_via_yaml(self.db, path, clean=False, overwrite=False)
 
-    def test_show_archives_of_user(
-        self,
-    ) -> None:
+    def test_show_archives_of_user(self) -> None:
         """Test show archives of user"""
+        add_user(self.db, "Milou")
+
         archives_found = show_archives_of_user(self.db, "Milou")
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
@@ -429,6 +434,49 @@ class TestMongoDBAdmin(unittest.TestCase):
         archives_found = show_archives_of_user(self.db, "Tintin")
         expected_archives = archives[1]
         self.assertEqual(archives_found, expected_archives)
+
+    def test_get_list_of_users(self) -> None:
+        """Test get list of users"""
+        users_list = get_list_of_users(self.db)
+        self.assertEqual(users_list, [])
+
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 0.1
+        delta = 0.0001
+        add_user(self.db, "Bianca Castafiore")
+        add_user_with_budget(self.db, "Tintin", dataset, epsilon, delta)
+        add_user_with_budget(self.db, "Milou", dataset, epsilon, delta)
+        users_list = get_list_of_users(self.db)
+        self.assertEqual(users_list, ["Bianca Castafiore", "Tintin", "Milou"])
+
+    def test_get_list_of_datasets_from_users(self) -> None:
+        """Test get list of datasets from users"""
+        users_list = get_list_of_datasets_from_user(self.db)
+        self.assertEqual(users_list, [])
+
+        user = "Bianca Castafiore"
+        epsilon = 0.1
+        delta = 0.0001
+        add_user(self.db, user)
+        add_dataset_to_user(
+            self.db, user, "Bijoux de la Castafiore", epsilon, delta
+        )
+        add_dataset_to_user(
+            self.db, user, "Le Sceptre d'Ottokar", epsilon, delta
+        )
+        add_dataset_to_user(
+            self.db, user, "Les Sept Boules de cristal", epsilon, delta
+        )
+
+        users_list = get_list_of_datasets_from_user(self.db, user)
+        self.assertEqual(
+            users_list,
+            [
+                "Bijoux de la Castafiore",
+                "Le Sceptre d'Ottokar",
+                "Les Sept Boules de cristal",
+            ],
+        )
 
     def test_add_local_dataset(self) -> None:
         """Test adding a local dataset"""

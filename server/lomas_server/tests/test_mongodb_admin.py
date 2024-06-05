@@ -701,6 +701,17 @@ class TestMongoDBAdmin(unittest.TestCase):
         list_datasets = get_list_of_datasets(self.db)
         self.assertEqual(list_datasets, [])
 
+        path = "./tests/test_data/test_datasets.yaml"
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
+
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
+        list_datasets = get_list_of_datasets(self.db)
+        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""
         # Setup: add one dataset
@@ -725,3 +736,20 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
+
+    def test_show_collection(self) -> None:
+        """Test show collection from db"""
+        dataset_collection = show_collection(self.db, "datasets")
+        self.assertEqual(dataset_collection, [])
+
+        path = "./tests/test_data/test_datasets.yaml"
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
+        with open(path, encoding="utf-8") as f:
+            expected_dataset_collection = yaml.safe_load(f)
+        dataset_collection = show_collection(self.db, "datasets")
+        self.assertEqual(expected_dataset_collection, dataset_collection)

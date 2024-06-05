@@ -6,8 +6,8 @@
 Welcome to Lomas documentation
 ========================================
 The lomas platform follows a classic server/client model. On the client side, the 
-researcher prepares queries for statistical analyses which are sent to the 
-service's REST API via HTTP. The researcher never has direct access to the sensitive 
+user prepares queries for statistical analyses which are sent to the 
+service's REST API via HTTP. The user never has direct access to the sensitive 
 data. On the server side, the service is implemented in a micro-service architecture and is 
 thus split into two parts: the administration database and the client-facing HTTP server 
 (which we call server for brevity) that implements the service logic. The server 
@@ -43,7 +43,9 @@ Server
 ========
 The server side, implemented in a micro-service architecture, is composed of two main services:
 
-- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (researcher) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
+- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. 
+Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different 
+queries (SmartnoiseSQL, OpenDP, etc.).
 
 
 - A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.

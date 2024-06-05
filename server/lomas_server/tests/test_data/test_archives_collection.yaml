@@ -1,5 +1,4 @@
-- _id: ObjectId('66601e2b1e698e790113cf55')
-  user_name: Dr. Antartica
+- user_name: Dr. Antartica
   dataset_name: PENGUIN
   client_input:
     query_str: "SELECT COUNT(*) AS nb_penguins,         AVG(bill_length_mm) AS avg_bill_length_mm         FROM df"
@@ -27,8 +26,7 @@
     spent_delta: 0.00014999500000001387
   timestamp: 1717575211.9354818
   dp_librairy: smartnoise_sql
-- _id: ObjectId('66601f1a1e698e790113cf58')
-  user_name: Tintin
+- user_name: Tintin
   dataset_name: PENGUIN
   client_input:
     query_str: "SELECT COUNT(*) AS nb_penguins FROM df"

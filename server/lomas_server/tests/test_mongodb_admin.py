@@ -40,7 +40,7 @@ from utils.config import CONFIG_LOADER, get_config
     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
         environment variable not set to True.""",
 )
-class TestMongoDBAdmin(unittest.TestCase):
+class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     """
     Tests for the functions in mongodb_admin.py.
 
@@ -434,12 +434,10 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
-        archives_found.pop("_id")
         expected_archives = archives[1]
-        if isinstance(expected_archives, dict):
-            expected_archives.pop("_id")
-        print("archives[1]")
-        print(archives[1])
+
+        print("archives_found")
+        print(archives_found)
         print("expected_archives")
         print(expected_archives)
         self.assertEqual(archives_found, expected_archives)

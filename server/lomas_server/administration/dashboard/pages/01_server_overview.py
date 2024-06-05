@@ -9,7 +9,6 @@ from utils.error_handler import InternalServerException
 ###############################################################################
 # BACKEND
 ###############################################################################
-# FASTAPI_URL = "http://lomas_server"
 
 try:
     if "config" not in st.session_state:

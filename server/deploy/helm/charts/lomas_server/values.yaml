@@ -2,7 +2,7 @@
 
 # General stuff
 nameOverride: ""
-fullnameOverride: "test"
+fullnameOverride: "lomas"
 
 # MongoDB 
 ##########################################################################

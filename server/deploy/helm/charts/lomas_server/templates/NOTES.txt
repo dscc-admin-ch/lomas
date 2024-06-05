@@ -1,6 +1,6 @@
 The Lomas service was successfully deployed!
 
-1. From within the your namespace, the server is available at
+1. From within your namespace, the server is available at
   
   {{ include "lomas.server.fullname" . -}}:{{- .Values.server.service.port}}
 
@@ -14,7 +14,7 @@ Since server ingress was enabled, the application is also reachable from the int
 
 {{- if .Values.dashboard.create }}
 
-2. From within the your namespace, the admin dashboard is available at
+2. From within your namespace, the admin dashboard is available at
   
   {{ include "lomas.dashboard.fullname" . -}}:{{- .Values.dashboard.service.port}}
 

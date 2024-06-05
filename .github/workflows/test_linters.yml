@@ -17,7 +17,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install mypy
+        run: |
+          pip install mypy
+          pip install pylint==3.1.0
       - name: flake8 server
         uses: py-actions/flake8@v2
         with:
@@ -34,3 +36,9 @@ jobs:
           mypy .
           cd ../server
           mypy .
+      - name: pylint
+        run: |
+          cd client/lomas_client
+          pylint --disable=E0401 --disable=C0114 --disable=W0102 --disable=R0913 .
+          cd ../../server/lomas_server
+          pylint --disable=E0401 --disable=C0114 --disable=R0903 --disable=E0611 --disable=W0511 --disable=duplicate-code tests/ .

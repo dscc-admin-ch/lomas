@@ -7,12 +7,12 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from admin_database.utils import database_factory
 from constants import (
-    AdminDBType,
-    DPLibraries,
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     QUERY_HANDLER_NOT_LOADED,
     SERVER_LIVE,
+    AdminDBType,
+    DPLibraries,
 )
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_libraries.utils import querier_factory
@@ -47,11 +47,15 @@ from utils.input_models import (
     SNSQLInpCost,
 )
 from utils.loggr import LOG
-from utils.utils import server_live, add_demo_data_to_admindb, stream_dataframe
+from utils.utils import add_demo_data_to_admindb, server_live, stream_dataframe
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator:
+async def lifespan(
+    app: FastAPI,
+) -> (
+    AsyncGenerator
+):  # pylint: disable=redefined-outer-name, too-many-statements
     """
     Lifespan function for the server.
 
@@ -69,6 +73,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Set some app state
     app.state.admin_database = None
     app.state.query_handler = None
+    app.state.dataset_store = None
 
     # General server state, can add fields if need be.
     app.state.server_state = {
@@ -120,13 +125,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     if status_ok:
         LOG.info("Loading query handler")
         app.state.server_state["message"].append("Loading dataset store")
-        dataset_store = dataset_store_factory(
+        app.state.dataset_store = dataset_store_factory(
             config.dataset_store, app.state.admin_database
         )
 
         app.state.server_state["message"].append("Loading query handler")
         app.state.query_handler = QueryHandler(
-            app.state.admin_database, dataset_store
+            app.state.admin_database, app.state.dataset_store
         )
 
         app.state.server_state["state"].append("Startup completed")
@@ -153,7 +158,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     if (
         config is not None
         and app.state.admin_database is not None
-        and config.admin_database.db_type == AdminDBType.YAML_TYPE
+        and config.admin_database.db_type == AdminDBType.YAML
     ):
         app.state.admin_database.save_current_database()
 
@@ -195,6 +200,26 @@ async def get_state(
         content={
             "requested_by": user_name,
             "state": app.state.server_state,
+        }
+    )
+
+
+@app.get(
+    "/get_memory_usage",
+    dependencies=[Depends(server_live)],
+    tags=["ADMIN_USER"],
+)
+async def get_memory_usage() -> JSONResponse:
+    """Return the dataset store object memory usage
+    Args:
+        user_name (str, optional): The user name. Defaults to Header(None).
+
+    Returns:
+        JSONResponse: with DatasetStore object memory usage
+    """
+    return JSONResponse(
+        content={
+            "memory_usage": app.state.dataset_store.memory_usage,
         }
     )
 
@@ -488,7 +513,7 @@ def opendp_query_handler(
                 "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
                 converted to "SmoothedMaxDivergence" with "make_zCDP_to_approxDP"
                 (see "opendp measurements documentation at
-                https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+                https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
                 In that case a "fixed_delta" must be provided by the user.
 
             Defaults to Body(example_opendp).
@@ -548,7 +573,7 @@ def dummy_opendp_query_handler(
               "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then
               it is converted to "SmoothedMaxDivergence" with
               "make_zCDP_to_approxDP" (see opendp measurements documentation at
-              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa
+              https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
               In that case a "fixed_delta" must be provided by the user.
             - dummy (bool, optional): Whether to use a dummy dataset
               (default: False).

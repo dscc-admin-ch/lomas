@@ -1,5 +1,5 @@
 from admin_database.admin_database import AdminDatabase
-from constants import ConfDatasetStore
+from constants import DatasetStoreType
 from dataset_store.basic_dataset_store import BasicDatasetStore
 from dataset_store.dataset_store import DatasetStore
 from dataset_store.lru_dataset_store import LRUDatasetStore
@@ -27,9 +27,9 @@ def dataset_store_factory(
     ds_store_type = config.ds_store_type
 
     match config.ds_store_type:
-        case ConfDatasetStore.BASIC:
+        case DatasetStoreType.BASIC:
             return BasicDatasetStore(admin_database)
-        case ConfDatasetStore.LRU:
+        case DatasetStoreType.LRU:
             return LRUDatasetStore(admin_database, config.max_memory_usage)
         case _:
             raise InternalServerException(

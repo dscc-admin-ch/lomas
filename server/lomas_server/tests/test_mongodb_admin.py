@@ -423,17 +423,17 @@ class TestMongoDBAdmin(unittest.TestCase):
         path = "./tests/test_data/test_archives_collection.yaml"
         with open(path, encoding="utf-8") as f:
             archives = yaml.safe_load(f)
+            print(archives)
         self.db.users.insert_many(archives)
 
         # Milou still empty
         archives_found = show_archives_of_user(self.db, "Milou")
-        print(archives_found)
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
 
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
-        expected_archives = archives_found[1]
+        expected_archives = archives[1]
         self.assertEqual(archives_found, expected_archives)
 
     def test_get_list_of_users(self) -> None:
@@ -667,6 +667,30 @@ class TestMongoDBAdmin(unittest.TestCase):
             },
         }
         self.assertEqual(dataset_found, expected_dataset)
+
+    def test_show_metadata_of_dataset(self) -> None:
+        """Test show metadata_dataset"""
+        with self.assertRaises(ValueError):
+            metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+        with open(metadata_path, encoding="utf-8") as f:
+            expected_metadata = yaml.safe_load(f)
+        self.assertEqual(metadata_found, expected_metadata)
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""

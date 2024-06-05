@@ -443,10 +443,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         if isinstance(expected_archives, dict):
             expected_archives.pop("_id")
 
-        print("archives_found")
-        print(archives_found)
-        print("expected_archives")
-        print(expected_archives)
         self.assertEqual(archives_found, expected_archives)
 
     def test_get_list_of_users(self) -> None:

@@ -433,7 +433,9 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
+        archives_found.pop("_id", None)
         expected_archives = archives[1]
+        expected_archives.pop("_id", None)
         print("archives[1]")
         print(archives[1])
         print("expected_archives")

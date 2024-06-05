@@ -30,8 +30,9 @@ jobs:
           mkdir docs/source/_static
         fi
         cp images/lomas_logo_txt.png docs/source/_static/logo.png
+        cp server/CONTRIBUTING.md docs/source/CONTRIBUTING.md
         sudo apt-get install pandoc
-        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon
+        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser
         sphinx-apidoc -o docs/source ./client/lomas_client/ --tocfile client_modules
         sphinx-apidoc -o docs/source ./server/lomas_server/ --tocfile server_modules
         mkdir docs/source/notebooks

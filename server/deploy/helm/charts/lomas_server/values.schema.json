@@ -280,12 +280,12 @@
                                 "dataset_store": {
                                     "type": "object",
                                     "properties": {
-                                            "description": "The type of dataset store.",
-                                        "enum": [
-                                            "basic",
-                                            "LRU_cache"
-                                        ],
                                         "ds_store_type": {
+                                            "description": "The type of dataset store.",
+                                            "enum": [
+                                                "basic",
+                                                "LRU_cache"
+                                            ],
                                             "type": "string"
                                         },
                                         "max_memory_usage": {

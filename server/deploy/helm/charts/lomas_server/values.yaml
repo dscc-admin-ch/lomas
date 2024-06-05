@@ -112,7 +112,7 @@ server:
 ##########################################################################
 
 dashboard:
-  create: false
+  create: true
 
   image:
     repository: dsccadminch/lomas_admin_dashboard
@@ -134,7 +134,7 @@ dashboard:
     className: "nginx"
     annotations: 
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: lomas-admin-dashboard.example.com
+    hostname: "lomas-admin-dashboard.example.com"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now

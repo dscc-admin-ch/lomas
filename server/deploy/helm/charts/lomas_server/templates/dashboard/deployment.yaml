@@ -53,7 +53,7 @@ spec:
                 name: {{ include "lomas.server.fullname" . }}
             - configMap:
                 name: {{ include "lomas.server.fullname" . }}
-        {{- $fullname := include lomas.server.fullname . }}
+        {{- $fullname := include "lomas.dashboard.fullname" . }}
         - name: dashboard-config
           projected:
             sources:

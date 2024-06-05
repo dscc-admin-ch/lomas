@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from pydantic import BaseModel
 
 from private_dataset.private_dataset import PrivateDataset

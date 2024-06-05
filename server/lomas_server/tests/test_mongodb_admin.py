@@ -433,7 +433,7 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
-        expected_archives = archives[1]
+        expected_archives = archives_found[1]
         self.assertEqual(archives_found, expected_archives)
 
     def test_get_list_of_users(self) -> None:
@@ -481,7 +481,7 @@ class TestMongoDBAdmin(unittest.TestCase):
             ],
         )
 
-        users_list = get_list_of_datasets_from_user(self.db, "Milou")
+        dataset_list = get_list_of_datasets_from_user(self.db, "Milou")
         self.assertEqual(dataset_list, ["os"])
 
     def test_add_local_dataset(self) -> None:
@@ -636,6 +636,37 @@ class TestMongoDBAdmin(unittest.TestCase):
         # Delete non-existing dataset should trigger error
         with self.assertRaises(ValueError):
             del_dataset(self.db, dataset)
+
+    def test_show_dataset(self) -> None:
+        """Test show dataset"""
+        with self.assertRaises(ValueError):
+            dataset_found = show_dataset(self.db, "PENGUIN")
+
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        dataset_found = show_dataset(self.db, "PENGUIN")
+        expected_dataset = {
+            "dataset_name": dataset,
+            "database_type": database_type,
+            "dataset_path": dataset_path,
+            "metadata": {
+                "database_type": metadata_database_type,
+                "metadata_path": metadata_path,
+            },
+        }
+        self.assertEqual(dataset_found, expected_dataset)
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""

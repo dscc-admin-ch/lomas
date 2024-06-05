@@ -16,8 +16,9 @@ well as administrative data (users data, budgets, query archives, etc.) in
 the administration database.
 
 The service is not responsible for storing and managing private datasets, 
-these are usually already stored on the provider's infrastructure. See 
-our white paper (TODO link) for detailed explanation of the platform.
+these are usually already stored on the provider's infrastructure. 
+
+.. See our white paper (TODO link) for detailed explanation of the platform.
 
 You can find our `GitHub repository <https://github.com/dscc-admin-ch/lomas/tree/master/>`_
 following this link.
@@ -98,6 +99,13 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    api
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contributing
+   :hidden:
+
+   CONTRIBUTING.md
 
 Indices and tables
 ==================

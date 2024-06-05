@@ -37,7 +37,10 @@ spec:
           - name: server-config-and-secrets
             readOnly: True
             mountPath: "/usr/lomas_server/"
-          - name: dashboard-config-and-secrets
+          - name: dashboard-config
+            readOnly: True
+            mountPath: "/usr/lomas_dashboard/"
+          - name: dashboard-server-config
             readOnly: True
             mountPath: "/code/.streamlit/"
         resources:
@@ -50,11 +53,17 @@ spec:
                 name: {{ include "lomas.server.fullname" . }}
             - configMap:
                 name: {{ include "lomas.server.fullname" . }}
-        - name: dashboard-config-and-secrets
+        {{- $fullname := include lomas.server.fullname . }}
+        - name: dashboard-config
           projected:
             sources:
             - configMap:
-                name: {{ include "lomas.dashboard.fullname" . }}
+                name: {{ printf "%s-dashboard-config" $fullname }}
+        - name: dashboard-server-config
+          projected:
+            sources:
+            - configMap:
+                name: {{ printf "%s-server-config" $fullname }}
       {{- with .Values.dashboard.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

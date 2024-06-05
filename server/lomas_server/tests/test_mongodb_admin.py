@@ -434,6 +434,10 @@ class TestMongoDBAdmin(unittest.TestCase):
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
         expected_archives = archives[1]
+        print("archives[1]")
+        print(archives[1])
+        print("expected_archives")
+        print(expected_archives)
         self.assertEqual(archives_found, expected_archives)
 
     def test_get_list_of_users(self) -> None:
@@ -691,6 +695,11 @@ class TestMongoDBAdmin(unittest.TestCase):
         with open(metadata_path, encoding="utf-8") as f:
             expected_metadata = yaml.safe_load(f)
         self.assertEqual(metadata_found, expected_metadata)
+
+    def test_get_list_of_datasets(self) -> None:
+        """Test get list of datasets"""
+        list_datasets = get_list_of_datasets(self.db)
+        self.assertEqual(list_datasets, [])
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""

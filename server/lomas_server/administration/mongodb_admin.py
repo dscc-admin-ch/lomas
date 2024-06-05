@@ -466,7 +466,8 @@ def add_users_via_yaml(
         LOG.info("No new users added, they already exist in the server")
 
 
-def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
+@check_user_exists(True)
+def show_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user
 
     Args:

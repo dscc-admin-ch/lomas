@@ -411,6 +411,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_show_archives_of_user(self) -> None:
         """Test show archives of user"""
         add_user(self.db, "Milou")
+        add_user(self.db, "Tintin")
 
         archives_found = show_archives_of_user(self.db, "Milou")
         expected_archives: list[Dict] = []

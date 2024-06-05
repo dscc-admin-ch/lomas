@@ -1,0 +1,2 @@
+server_url: "http://localhost:80"
+server_service: "http://lomas_server:80"

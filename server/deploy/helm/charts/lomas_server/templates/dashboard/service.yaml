@@ -1,0 +1,17 @@
+{{- if .Values.dashboard.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.dashboard.fullname" . }}
+  labels:
+    {{- include "lomas.dashboard.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.dashboard.service.type }}
+  ports:
+  - port: {{ .Values.dashboard.service.port}}
+    targetPort: {{ .Values.dashboard.serverConfig.port }}
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "lomas.dashboard.selectorLabels" . | nindent 4 }}
+{{- end }}

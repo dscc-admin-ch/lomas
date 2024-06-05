@@ -427,6 +427,7 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Milou still empty
         archives_found = show_archives_of_user(self.db, "Milou")
+        print(archives_found)
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
 
@@ -451,13 +452,14 @@ class TestMongoDBAdmin(unittest.TestCase):
 
     def test_get_list_of_datasets_from_users(self) -> None:
         """Test get list of datasets from users"""
-        users_list = get_list_of_datasets_from_user(self.db)
+        user = "Bianca Castafiore"
+        add_user(self.db, user)
+
+        users_list = get_list_of_datasets_from_user(self.db, user)
         self.assertEqual(users_list, [])
 
-        user = "Bianca Castafiore"
         epsilon = 0.1
         delta = 0.0001
-        add_user(self.db, user)
         add_dataset_to_user(
             self.db, user, "Bijoux de la Castafiore", epsilon, delta
         )
@@ -467,16 +469,20 @@ class TestMongoDBAdmin(unittest.TestCase):
         add_dataset_to_user(
             self.db, user, "Les Sept Boules de cristal", epsilon, delta
         )
+        add_user_with_budget(self.db, "Milou", "os", 0.1, 0.001)
 
-        users_list = get_list_of_datasets_from_user(self.db, user)
+        dataset_list = get_list_of_datasets_from_user(self.db, user)
         self.assertEqual(
-            users_list,
+            dataset_list,
             [
                 "Bijoux de la Castafiore",
                 "Le Sceptre d'Ottokar",
                 "Les Sept Boules de cristal",
             ],
         )
+
+        users_list = get_list_of_datasets_from_user(self.db, "Milou")
+        self.assertEqual(dataset_list, ["os"])
 
     def test_add_local_dataset(self) -> None:
         """Test adding a local dataset"""

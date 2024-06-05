@@ -1,6 +1,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from typing import Dict
 
 import yaml
 from pymongo import MongoClient
@@ -412,7 +413,7 @@ class TestMongoDBAdmin(unittest.TestCase):
         add_user(self.db, "Milou")
 
         archives_found = show_archives_of_user(self.db, "Milou")
-        expected_archives = []
+        expected_archives: list[Dict] = []
         self.assertEqual(archives_found, expected_archives)
 
         with self.assertRaises(ValueError):
@@ -433,9 +434,10 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         # Dr. Antartica has archives
         archives_found = show_archives_of_user(self.db, "Tintin")
-        archives_found.pop("_id", None)
+        archives_found.pop("_id")
         expected_archives = archives[1]
-        expected_archives.pop("_id", None)
+        if isinstance(expected_archives, dict):
+            expected_archives.pop("_id")
         print("archives[1]")
         print(archives[1])
         print("expected_archives")
@@ -754,4 +756,6 @@ class TestMongoDBAdmin(unittest.TestCase):
         with open(path, encoding="utf-8") as f:
             expected_dataset_collection = yaml.safe_load(f)
         dataset_collection = show_collection(self.db, "datasets")
-        self.assertEqual(expected_dataset_collection, dataset_collection)
+        self.assertEqual(
+            expected_dataset_collection["datasets"], dataset_collection
+        )

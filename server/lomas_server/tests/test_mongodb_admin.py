@@ -424,8 +424,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         path = "./tests/test_data/test_archives_collection.yaml"
         with open(path, encoding="utf-8") as f:
             archives = yaml.safe_load(f)
-            print(archives)
-        self.db.users.insert_many(archives)
+        self.db.queries_archives.insert_many(archives)
 
         # Milou still empty
         archives_found = show_archives_of_user(self.db, "Milou")

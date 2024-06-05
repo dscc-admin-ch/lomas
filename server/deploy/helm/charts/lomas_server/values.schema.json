@@ -2,51 +2,118 @@
     "$schema": "http://json-schema.org/schema#",
     "type": "object",
     "properties": {
-        "affinity": {
-            "type": "object"
-        },
-        "fullnameOverride": {
-            "description": "Fully overrides the lomas-server.fullname template.",
-            "type": "string"
-        },
-        "image": {
+        "dashboard": {
             "type": "object",
             "properties": {
-                "pullPolicy": {
-                    "type": "string"
+                "affinity": {
+                    "type": "object"
                 },
-                "repository": {
-                    "type": "string"
+                "create": {
+                    "description": "Setting this to true also deploys the administration dashboard for this service.",
+                    "type": "boolean"
                 },
-                "tag": {
-                    "type": "string"
-                }
-            }
-        },
-        "imagePullSecrets": {
-            "type": "array"
-        },
-        "ingress": {
-            "type": "object",
-            "properties": {
-                "annotations": {
+                "image": {
                     "type": "object",
                     "properties": {
-                        "nginx.ingress.kubernetes.io/proxy-read-timeout": {
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
                             "type": "string"
                         }
                     }
                 },
-                "className": {
-                    "type": "string"
+                "imagePullSecrets": {
+                    "type": "array"
                 },
-                "enabled": {
-                    "type": "boolean"
+                "ingress": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object",
+                            "properties": {
+                                "nginx.ingress.kubernetes.io/proxy-read-timeout": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "className": {
+                            "type": "string"
+                        },
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "hostname": {
+                            "type": "string"
+                        }
+                    }
                 },
-                "hostname":{
-                    "type":"string"
-                  }
+                "nodeSelector": {
+                    "type": "object"
+                },
+                "podAnnotations": {
+                    "type": "object"
+                },
+                "podSecurityContext": {
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "object"
+                },
+                "securityContext": {
+                    "type": "object"
+                },
+                "serverConfig": {
+                    "description": "The values for building the streamlit server config.",
+                    "type": "object",
+                    "properties": {
+                        "address": {
+                            "type": "string"
+                        },
+                        "port": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "type": "integer"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "create": {
+                            "type": "boolean"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array"
+                }
             }
+        },
+        "fullnameOverride": {
+            "description": "Fully overrides the chart name",
+            "type": "string"
         },
         "mongodb": {
             "description": "The configuration for the mongodb database. Refer to the subchart for more detailed description.",
@@ -141,131 +208,178 @@
             }
         },
         "nameOverride": {
-            "description": "Partially overrides lomas-server.fullname template, keeping the version number.",
+            "description": "Gives a name to this chart.",
             "type": "string"
         },
-        "nodeSelector": {
-            "type": "object"
-        },
-        "podAnnotations": {
-            "type": "object"
-        },
-        "podSecurityContext": {
-            "type": "object"
-        },
-        "replicaCount": {
-            "type": "integer"
-        },
-        "resources": {
-            "type": "object"
-        },
-        "runtime_args": {
+        "server": {
             "type": "object",
             "properties": {
-                "settings": {
+                "affinity": {
+                    "type": "object"
+                },
+                "image": {
                     "type": "object",
                     "properties": {
-                        "dataset_store": {
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "imagePullSecrets": {
+                    "type": "array"
+                },
+                "ingress": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
                             "type": "object",
                             "properties": {
-                                "ds_store_type": {
-                                    "description": "The type of dataset store.",
-                                    "enum": [
-                                        "basic",
-                                        "LRU_cache"
-                                    ],
+                                "nginx.ingress.kubernetes.io/proxy-read-timeout": {
                                     "type": "string"
-                                },
-                                "max_memory_usage": {
-                                    "description": "Max memory usage of dataset store. Only useful for LRU_cache type.",
-                                    "type": "integer"
                                 }
                             }
                         },
-                        "develop_mode": {
-                            "description": "When True, service database is reset to default user and dataset collections.",
+                        "className": {
+                            "type": "string"
+                        },
+                        "enabled": {
                             "type": "boolean"
                         },
-                        "submit_limit": {
-                            "type": "integer"
-                        },
-                        "server": {
+                        "hostname": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "type": "object"
+                },
+                "podAnnotations": {
+                    "type": "object"
+                },
+                "podSecurityContext": {
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "object"
+                },
+                "runtime_args": {
+                    "type": "object",
+                    "properties": {
+                        "settings": {
                             "type": "object",
                             "properties": {
-                                "time_attack": {
+                                "dataset_store": {
                                     "type": "object",
                                     "properties": {
-                                        "magnitude": {
-                                            "type": "integer"
-                                        },
-                                        "method": {
-                                            "enum": [
-                                                "jitter",
-                                                "stall"
-                                            ],
+                                            "description": "The type of dataset store.",
+                                        "enum": [
+                                            "basic",
+                                            "LRU_cache"
+                                        ],
+                                        "ds_store_type": {
                                             "type": "string"
+                                        },
+                                        "max_memory_usage": {
+                                            "description": "Max memory usage of dataset store. Only useful for LRU_cache type.",
+                                            "type": "integer"
                                         }
                                     }
                                 },
-                                "host_ip": {
-                                    "type": "string"
-                                },
-                                "host_port": {
-                                    "type": "string"
-                                },
-                                "log_level": {
-                                    "enum": [
-                                        "notset",
-                                        "debug",
-                                        "info",
-                                        "warning",
-                                        "error",
-                                        "critical"
-                                    ],
-                                    "type": "string"
-                                },
-                                "reload": {
+                                "develop_mode": {
+                                    "description": "When True, service database is reset to default user and dataset collections.",
                                     "type": "boolean"
                                 },
-                                "workers": {
+                                "server": {
+                                    "type": "object",
+                                    "properties": {
+                                        "host_ip": {
+                                            "type": "string"
+                                        },
+                                        "host_port": {
+                                            "type": "string"
+                                        },
+                                        "log_level": {
+                                            "enum": [
+                                                "notset",
+                                                "debug",
+                                                "info",
+                                                "warning",
+                                                "error",
+                                                "critical"
+                                            ],
+                                            "type": "string"
+                                        },
+                                        "reload": {
+                                            "type": "boolean"
+                                        },
+                                        "time_attack": {
+                                            "type": "object",
+                                            "properties": {
+                                                "magnitude": {
+                                                    "type": "integer"
+                                                },
+                                                "method": {
+                                                    "enum": [
+                                                        "jitter",
+                                                        "stall"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        "workers": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "submit_limit": {
                                     "type": "integer"
                                 }
                             }
                         }
                     }
-                }
-            }
-        },
-        "securityContext": {
-            "type": "object"
-        },
-        "service": {
-            "type": "object",
-            "properties": {
-                "port": {
-                    "type": "integer"
                 },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "serviceAccount": {
-            "type": "object",
-            "properties": {
-                "annotations": {
+                "securityContext": {
                     "type": "object"
                 },
-                "create": {
-                    "type": "boolean"
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "type": "integer"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
                 },
-                "name": {
-                    "type": "string"
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        },
+                        "create": {
+                            "type": "boolean"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array"
                 }
             }
-        },
-        "tolerations": {
-            "type": "array"
         }
     }
 }

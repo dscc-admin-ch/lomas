@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kubernetes &mdash; Lomas 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Onyxia" href="server_onyxia.html" />
+    <link rel="prev" title="Local" href="server_local.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lomas
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Client</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_errors.html">Errors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Server</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="server_deployment.html">Deployment</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="server_local.html">Local</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Kubernetes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deploying-the-service-on-kubernetes">Deploying the Service on Kubernetes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-the-helm-chart">Accessing the Helm Chart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modifying-values-yaml">Modifying <code class="docutils literal notranslate"><span class="pre">values.yaml</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#modifying-the-ingress-section">Modifying the <code class="docutils literal notranslate"><span class="pre">ingress</span></code> Section</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#installing-the-helm-chart">Installing the Helm Chart</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_onyxia.html">Onyxia</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="server_administration.html">Administration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lomas</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="server_deployment.html">Deployment</a></li>
+      <li class="breadcrumb-item active">Kubernetes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/server_kubernetes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="kubernetes">
+<h1>Kubernetes<a class="headerlink" href="#kubernetes" title="Link to this heading"></a></h1>
+<p>In this chapter, we will guide you through deploying the service on Kubernetes.
+We provide a Helm chart to simplify this process.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>Before you begin, make sure you have the following:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt><strong>Kubernetes Cluster</strong>: A running Kubernetes cluster.</dt><dd><p>If you don’t have one, you can set up a local cluster using Minikube
+or Kind, or use a cloud provider like GKE, EKS, or AKS.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Helm</strong>: Helm installed on your local machine.</dt><dd><p>Follow the <a class="reference external" href="https://helm.sh/docs/intro/install/">official Helm installation guide</a>
+if you haven’t installed Helm yet.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>kubectl</strong>: Kubernetes command-line tool <code class="docutils literal notranslate"><span class="pre">kubectl</span></code></dt><dd><p>installed and configured to communicate with your cluster.
+You can install <code class="docutils literal notranslate"><span class="pre">kubectl</span></code> by following the
+<a class="reference external" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">official Kubernetes installation guide</a>.</p>
+</dd>
+</dl>
+</li>
+</ol>
+</section>
+<section id="deploying-the-service-on-kubernetes">
+<h2>Deploying the Service on Kubernetes<a class="headerlink" href="#deploying-the-service-on-kubernetes" title="Link to this heading"></a></h2>
+<p>To deploy the service on Kubernetes, follow the instructions below.</p>
+</section>
+<section id="accessing-the-helm-chart">
+<h2>Accessing the Helm Chart<a class="headerlink" href="#accessing-the-helm-chart" title="Link to this heading"></a></h2>
+<p>The Helm chart for deploying the service on Kubernetes is available here:</p>
+</section>
+<section id="modifying-values-yaml">
+<h2>Modifying <code class="docutils literal notranslate"><span class="pre">values.yaml</span></code><a class="headerlink" href="#modifying-values-yaml" title="Link to this heading"></a></h2>
+<p>Before installing the Helm chart, you need to adapt the <code class="docutils literal notranslate"><span class="pre">values.yaml</span></code> file to
+fit your specific requirements, especially the <code class="docutils literal notranslate"><span class="pre">ingress</span></code> configuration.</p>
+<section id="modifying-the-ingress-section">
+<h3>Modifying the <code class="docutils literal notranslate"><span class="pre">ingress</span></code> Section<a class="headerlink" href="#modifying-the-ingress-section" title="Link to this heading"></a></h3>
+<p>To change the <code class="docutils literal notranslate"><span class="pre">ingress</span></code> configuration, follow these steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Get the default values</strong></p></li>
+</ol>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>lomas/lomas-server<span class="w"> </span>&gt;<span class="w"> </span>values.yaml
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Edit values.yaml file</strong></p></li>
+<li><p><strong>Save the Changes</strong></p></li>
+</ol>
+</section>
+</section>
+<section id="installing-the-helm-chart">
+<h2>Installing the Helm Chart<a class="headerlink" href="#installing-the-helm-chart" title="Link to this heading"></a></h2>
+<p>Once you have modified the <code class="docutils literal notranslate"><span class="pre">values.yaml</span></code> file, you can proceed
+to install the Helm chart with your custom configurations:</p>
+<ol class="arabic">
+<li><p><strong>Install the Helm Chart</strong></p>
+<p>Navigate to the directory containing the modified <code class="docutils literal notranslate"><span class="pre">values.yaml</span></code>
+file and run the following command:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>helm<span class="w"> </span>install<span class="w"> </span>lomas-sever<span class="w"> </span>lomas/lomas-server<span class="w"> </span>-f<span class="w"> </span>values.yaml
+</pre></div>
+</div>
+</li>
+</ol>
+<p>By following these steps, you will have successfully configured and deployed the service
+on Kubernetes using the provided Helm chart.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="server_local.html" class="btn btn-neutral float-left" title="Local" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server_onyxia.html" class="btn btn-neutral float-right" title="Onyxia" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DSCC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      Version: master
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        <dt>Languages</dt>
+          
+            <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/master/en/index.html">en</a></dd>
+          
+      </dl>
+      
+      
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/index.html">latest</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/master/en/index.html">master</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/develop/en/index.html">develop</a></dd>
+        
+      </dl>
+      
+      <br>
+      </dl>
+    </div>
+  </div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

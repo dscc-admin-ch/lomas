@@ -1,0 +1,8 @@
+"master":
+  tag: 'master'
+  languages: 
+    - "en"
+"develop":
+  tag: 'develop' 
+  languages: 
+    - "en"

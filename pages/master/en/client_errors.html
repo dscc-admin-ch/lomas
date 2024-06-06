@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Errors &mdash; Lomas 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Deployment" href="server_deployment.html" />
+    <link rel="prev" title="Examples" href="client_examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lomas
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Client</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="client_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Errors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#invalidqueryexception">InvalidQueryException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#externallibraryexception">ExternalLibraryException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unauthorizedaccessexception">UnauthorizedAccessException</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#internalserverexception">InternalServerException</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Server</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server_deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server_administration.html">Administration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lomas</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Errors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/client_errors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="errors">
+<h1>Errors<a class="headerlink" href="#errors" title="Link to this heading"></a></h1>
+<dl class="simple">
+<dt>They are 4 custom errors describing the reasons why the queries fail and what to do:</dt><dd><ol class="arabic simple">
+<li><p>InvalidQueryException</p></li>
+<li><p>ExternalLibraryException</p></li>
+<li><p>UnauthorizedAccessException</p></li>
+<li><p>InternalServerException</p></li>
+</ol>
+</dd>
+</dl>
+<hr class="docutils" />
+<section id="invalidqueryexception">
+<span id="id1"></span><h2>InvalidQueryException<a class="headerlink" href="#invalidqueryexception" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Happens when: error is due to an an invalid query from the user</p></li>
+<li><p>Example: an “opendp” pipeline which is not a measurement, not enough budget for query</p></li>
+<li><p>What to do: Based on the specific error message, the user should check and fix their relevant query parameters.</p></li>
+</ul>
+</section>
+<section id="externallibraryexception">
+<span id="id2"></span><h2>ExternalLibraryException<a class="headerlink" href="#externallibraryexception" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Happens when: error comes from an external differential privacy library (“smartnoise-sql” or “opendp”).</p></li>
+<li><p>Example: invalid values in Smartnoise-SQL <cite>mechanisms</cite> parameter.</p></li>
+<li><p>What to do: Based on the specific error message, the user should check and fix their “smartnoise-sql” <cite>query</cite> parameter or “opendp” <cite>pipeline</cite> parameter.</p></li>
+</ul>
+</section>
+<section id="unauthorizedaccessexception">
+<span id="id3"></span><h2>UnauthorizedAccessException<a class="headerlink" href="#unauthorizedaccessexception" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Happens when: user tries to query a dataset without sufficient authorisation:</dt><dd><ul>
+<li><p>when the user does not exist,</p></li>
+<li><p>when the user does not have access to the dataset,</p></li>
+<li><p>when the user may not query.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Example: user tries to query a dataframe to which they do not have access</p></li>
+<li><p>What to do: The user should decrease the budget parameters and check their access rights.</p></li>
+</ul>
+</section>
+<section id="internalserverexception">
+<span id="id4"></span><h2>InternalServerException<a class="headerlink" href="#internalserverexception" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Happens when: there are internal issues within the server.</p></li>
+<li><p>Example: failed startup of the server</p></li>
+<li><p>What to do: contact the administrative team for help. Users are not responsible for the failure of their request.</p></li>
+</ul>
+<p>This error should never occur while the server is deployed.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="client_examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server_deployment.html" class="btn btn-neutral float-right" title="Deployment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DSCC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      Version: master
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        <dt>Languages</dt>
+          
+            <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/master/en/index.html">en</a></dd>
+          
+      </dl>
+      
+      
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/index.html">latest</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/master/en/index.html">master</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/develop/en/index.html">develop</a></dd>
+        
+      </dl>
+      
+      <br>
+      </dl>
+    </div>
+  </div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

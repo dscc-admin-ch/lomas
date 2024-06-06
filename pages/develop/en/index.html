@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Lomas documentation &mdash; Lomas 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quickstart" href="client_quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Lomas
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Client</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client_quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client_errors.html">Errors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Server</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server_deployment.html">Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server_administration.html">Administration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Lomas</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to Lomas documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-lomas-documentation">
+<h1>Welcome to Lomas documentation<a class="headerlink" href="#welcome-to-lomas-documentation" title="Link to this heading"></a></h1>
+<p>The lomas platform follows a classic server/client model. On the client side, the
+user prepares queries for statistical analyses which are sent to the
+service’s REST API via HTTP. The user never has direct access to the sensitive
+data. On the server side, the service is implemented in a micro-service architecture and is
+thus split into two parts: the administration database and the client-facing HTTP server
+(which we call server for brevity) that implements the service logic. The server
+is responsible for processing the client requests and updating its own state as
+well as administrative data (users data, budgets, query archives, etc.) in
+the administration database.</p>
+<p>The service is not responsible for storing and managing private datasets,
+these are usually already stored on the provider’s infrastructure.</p>
+<p>You can find our <a class="reference external" href="https://github.com/dscc-admin-ch/lomas/tree/master/">GitHub repository</a>
+following this link.</p>
+</section>
+<section id="client">
+<h1>Client<a class="headerlink" href="#client" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">lomas_client</span></code> library is a client to interact with the Lomas server. It is available on
+Pypi. Reasearcher and Data Scientists ‘using’ the service to query the sensitive data will
+only interact with the client and never with the server.</p>
+<p>Utilizing this client library is strongly advised for querying and interacting with the
+server, as it takes care of all the necessary tasks such as serialization, deserialization,
+REST API calls, and ensures the correct installation of other required libraries. In short,
+it enables a seamless interaction with the server.</p>
+<p>For additional informations about the client, please see the
+<a class="reference external" href="https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md">README.md</a> of
+the client and for additional examples please see the
+<a class="reference internal" href="client_examples.html"><span class="doc">examples</span></a> section.</p>
+</section>
+<section id="server">
+<h1>Server<a class="headerlink" href="#server" title="Link to this heading"></a></h1>
+<p>The server side, implemented in a micro-service architecture, is composed of two main services:</p>
+<ul class="simple">
+<li><p>A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries.</p></li>
+</ul>
+<p>Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different
+queries (SmartnoiseSQL, OpenDP, etc.).</p>
+<ul class="simple">
+<li><p>A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as “archives”). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.</p></li>
+</ul>
+<p>The server connects to external databases, typically deployed by a data owner, to download the
+sensitive datasets for query execution. Currently, the server can manage adapters to S3,
+http file download and local files.</p>
+<p>For extensive informations about how to administrate the MongoDB database,
+please refer to <a class="reference internal" href="server_administration.html"><span class="doc">Administration</span></a> section.</p>
+<p>We aim to facilitate the platform configuration, deployment and testing on commonly available
+IT infrastructure for NSOs and other potential users.</p>
+<p>In this regard, we provide two Helm charts for deploying the server components (server and
+MongoDB database) and a client development environment in a Kubernetes cluster.</p>
+<p>For extensive informations about how to deploy, please refer to <a class="reference internal" href="server_deployment.html"><span class="doc">Deployment</span></a>
+documentation.</p>
+</section>
+<section id="history">
+<h1>History<a class="headerlink" href="#history" title="Link to this heading"></a></h1>
+<p>The starting point of our platform was the code shared to us by <a class="reference external" href="https://www.oblivious.com/">Oblivious</a>.</p>
+<p>They originally developed a client/server platform for the <a class="reference external" href="https://petlab.officialstatistics.org/">UN PET Lab Hackathon 2022</a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="client_quickstart.html" class="btn btn-neutral float-right" title="Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, DSCC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      Version: develop
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      
+      <dl>
+        <dt>Languages</dt>
+          
+            <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/develop/en/index.html">en</a></dd>
+          
+      </dl>
+      
+      
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/index.html">latest</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/master/en/index.html">master</a></dd>
+        
+          <dd><a href="file:///home/azureuser/Desktop/POC/lomas/pages/develop/en/index.html">develop</a></dd>
+        
+      </dl>
+      
+      <br>
+      </dl>
+    </div>
+  </div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

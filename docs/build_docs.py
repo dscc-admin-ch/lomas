@@ -8,9 +8,16 @@ import yaml
 def build_doc(version, language, tag):
     os.environ["current_version"] = version
     os.environ["current_language"] = language
-    subprocess.run("git checkout " + tag, shell=True)
-    subprocess.run("git checkout main -- conf.py", shell=True)
-    subprocess.run("git checkout main -- versions.yaml", shell=True)
+    # subprocess.run("git checkout " + tag, shell=True)
+    # subprocess.run("git checkout main -- conf.py", shell=True)
+    # subprocess.run("git checkout main -- versions.yaml", shell=True)
+    subprocess.run("cp images/lomas_logo_txt.png docs/source/_static/logo.png", shell=True)
+    subprocess.run("cp server/CONTRIBUTING.md docs/source/CONTRIBUTING.md", shell=True)
+    subprocess.run("sphinx-apidoc -o docs/source ./client/lomas_client/ --tocfile client_modules", shell=True)
+    subprocess.run("sphinx-apidoc -o docs/source ./server/lomas_server/ --tocfile server_modules", shell=True)
+    subprocess.run("mkdir docs/source/notebooks", shell=True)
+    subprocess.run("cp -r client/notebooks/* docs/source/notebooks", shell=True)
+    subprocess.run("cp -r server/notebooks/* docs/source/notebooks", shell=True)
     subprocess.run("doxygen Doxyfile", shell=True)
     os.environ['SPHINXOPTS'] = "-D language='{}'".format(language)
     subprocess.run("make html", shell=True)    
@@ -26,10 +33,8 @@ os.environ["build_all_docs"] = str(True)
 os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
 # manually the main branch build in the current supported languages
-build_doc("latest", "en", "main")
+build_doc("latest", "en", "master")
 move_dir("./build/html/", "../pages/")
-build_doc("latest", "de", "main")
-move_dir("./build/html/", "../pages/de/")
 
 # reading the yaml file
 with open("versions.yaml", "r") as yaml_file:

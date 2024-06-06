@@ -47,16 +47,9 @@ def run_cli_command(command: str, args: List[str]) -> None:
     """
     cli_command = ["python", "mongodb_admin_cli.py", command] + args
     print(cli_command)
-    result = subprocess.run(
+    subprocess.run(
         cli_command, capture_output=True, text=True, check=True
     )
-    if result.returncode != 0:
-        error_message = (
-            f"Command: {cli_command}\n"
-            + f"Return Code: {result.returncode}\n"
-            + f"Error: {result.stderr.strip()}"
-        )
-        raise ValueError(error_message)
 
 
 @unittest.skipIf(

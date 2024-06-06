@@ -35,7 +35,7 @@ from tests.constants import ENV_MONGO_INTEGRATION
 from utils.config import CONFIG_LOADER, get_config
 
 
-def run_cli_command(command: str, args: List[str]) -> str:
+def run_cli_command(command: str, args: List[str]) -> None:
     """Run a MongoDB administration CLI command.
 
     Args:
@@ -44,15 +44,14 @@ def run_cli_command(command: str, args: List[str]) -> str:
 
     Raises:
         ValueError: If the command returns a non-zero exit status, indicating an error.
-
-    Returns:
-        str: The standard output from running the command.
     """
     cli_command = ["python", "mongodb_admin_cli.py", command] + args
-    result = subprocess.run(cli_command, capture_output=True, text=True)
+    print(cli_command)
+    result = subprocess.run(
+        cli_command, capture_output=True, text=True, check=True
+    )
     if result.returncode != 0:
         raise ValueError(result.stderr.strip())
-    return result.stdout.strip()
 
 
 @unittest.skipIf(
@@ -112,9 +111,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Adding existing user raises error
         with self.assertRaises(ValueError):
             add_user(self.db, user)
-            
+
         # CLI test
         run_cli_command("add_user", ["-u", "Milou"])
+        expected_user["user_name"] = "Milou"
+        user_found = self.db.users.find_one({"user_name": "Milou"})
+        del user_found["_id"]
+        self.assertEqual(user_found, expected_user)
+
+        with self.assertRaises(ValueError):
+            add_user(self.db, "Milou")
 
     def test_add_user_wb(self) -> None:
         """Test adding a user with a dataset"""

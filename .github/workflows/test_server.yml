@@ -23,8 +23,7 @@ jobs:
         cd server
         chmod +x run_tests.sh
         ./run_tests.sh
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: server/lomas_server/coverage.xml
+    - name: Coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}

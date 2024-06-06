@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ./lomas_server
-python --source=. -m unittest discover -s .
+python -m unittest discover -s .
 ret=$?
 cd ..
 

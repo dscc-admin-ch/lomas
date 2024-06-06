@@ -50,20 +50,23 @@ def run_cli_command(command: str, args: List[str]) -> None:
     result = subprocess.run(
         cli_command, capture_output=True, text=True, check=True
     )
-    print(result)
+    print(result.stdout)
+    
     cli_command = ["python", "mongodb_admin_cli.py", command] + args
     print(cli_command)
-    result = subprocess.run(
-        cli_command, capture_output=True, text=True, check=True
-    )
-    print(result)
-    if result.returncode != 0:
+    try:
+        result = subprocess.run(
+            cli_command, capture_output=True, text=True, check=True
+        )
+        print(result)
+    except subprocess.CalledProcessError as e:
         error_message = (
             f"Command: {cli_command}\n"
-            + f"Return Code: {result.returncode}\n"
-            + f"Error: {result.stderr.strip()}"
+            f"Return Code: {e.returncode}\n"
+            f"Output: {e.output.strip()}\n"
+            f"Error: {e.stderr.strip()}"
         )
-        raise ValueError(error_message)
+        raise ValueError(error_message) from e
 
 
 @unittest.skipIf(

@@ -32,8 +32,8 @@ jobs:
     - name: Run test script
       run: |
         cd server
-        chmod +x run_integration_tests.sh
-        ./run_integration_tests.sh
+        chmod +x run_tests_and_coverage.sh
+        ./run_tests_and_coverage.sh
     - name: Coverage comment
       uses: py-cov-action/python-coverage-comment-action@v3
       with:

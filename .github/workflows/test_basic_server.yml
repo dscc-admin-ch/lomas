@@ -21,5 +21,5 @@ jobs:
     - name: Run test script
       run: |
         cd server
-        chmod +x run_tests.sh
-        ./run_tests.sh
+        chmod +x run_basic_tests.sh
+        ./run_basic_tests.sh

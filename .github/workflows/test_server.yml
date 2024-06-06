@@ -23,3 +23,8 @@ jobs:
         cd server
         chmod +x run_tests.sh
         ./run_tests.sh
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: server/lomas_server/coverage.xml

@@ -83,7 +83,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             "datasets_list": [],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tinti"})
+        user_found = self.db.users.find_one({"user_name": "Tintin"})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)

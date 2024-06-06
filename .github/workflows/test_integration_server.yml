@@ -3,11 +3,22 @@ name: Server Integration Testing
 on: 
   pull_request:
     branches: [ develop, master]
+  push:
+    branches:
+      - new_default
   workflow_dispatch:
   
 jobs:
   tests:
     runs-on: ubuntu-latest
+    permissions:
+      # Gives the action the necessary permissions for publishing new
+      # comments in pull requests.
+      pull-requests: write
+      # Gives the action the necessary permissions for pushing data to the
+      # python-coverage-comment-action branch, and for editing existing
+      # comments (to avoid publishing multiple comments in the same PR)
+      contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -23,3 +34,8 @@ jobs:
         cd server
         chmod +x run_integration_tests.sh
         ./run_integration_tests.sh
+    - name: Coverage comment
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}
+        COVERAGE_PATH: server/lomas_server/

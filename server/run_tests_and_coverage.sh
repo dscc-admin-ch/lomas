@@ -9,12 +9,12 @@ cd ./lomas_server
 # On admin_database: "mongodb" and dataset_store: "LRU_cache" and production mode
 export LOMAS_TEST_MONGO_INTEGRATION=1
 coverage run --source=. -m unittest discover -s .
-ret=$?
+ret1=$?
 
 # On admin_database: "yaml" and dataset_store: "basic" and developer mode
 export LOMAS_TEST_MONGO_INTEGRATION=0
 coverage run -a --source=. -m unittest discover -s .
-ret=$?
+ret2=$?
 
 coverage report
 coverage xml -o coverage.xml
@@ -23,4 +23,5 @@ cd ..
 
 docker compose -f docker-compose-test.yml down --volumes
 
+ret=$((ret1 + ret2))
 exit $ret

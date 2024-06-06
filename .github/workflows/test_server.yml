@@ -35,3 +35,4 @@ jobs:
       uses: py-cov-action/python-coverage-comment-action@v3
       with:
         GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}
+        COVERAGE_PATH: server/lomas_server/.coverage

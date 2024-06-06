@@ -59,4 +59,4 @@ The starting point of our platform was the code shared to us by [Oblivious](http
 
 ## Test coverage
 
-For full test coverage information, see [here](https://github.com/dscc-admin-ch/lomas/tree/python-coverage-comment-action-data).
+For full test coverage information, see [here](https://htmlpreview.github.io/?https://github.com/dscc-admin-ch/lomas/blob/python-coverage-comment-action-data/htmlcov/index.html).

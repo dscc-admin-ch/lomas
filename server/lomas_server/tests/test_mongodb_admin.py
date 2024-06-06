@@ -6,7 +6,7 @@ import yaml
 from pymongo import MongoClient
 
 from admin_database.utils import get_mongodb_url
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,

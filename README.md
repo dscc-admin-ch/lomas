@@ -3,6 +3,11 @@
 </h1><br>
 
 
+[![Coverage badge](https://raw.githubusercontent.com/lomas/python-coverage-comment-action-v3-example/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/lomas/python-coverage-comment-action-v3-example/blob/python-coverage-comment-action-data/htmlcov/index.html)
+
+
+
+
 # Lomas Platform
 
 The lomas platform follows a classic server/client model.

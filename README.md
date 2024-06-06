@@ -14,11 +14,11 @@
 | app.py                                       |      204 |       63 |     69% |92-99, 103-107, 115-122, 141-147, 220, 262-263, 309-310, 374-375, 438-441, 489-492, 549-550, 611-614, 656-659, 707-710, 763-766, 816-819, 870-873 |
 | constants.py                                 |       62 |        3 |     95% |   7-8, 13 |
 | dataset\_store/\_\_init\_\_.py               |        0 |        0 |    100% |           |
-| dataset\_store/basic\_dataset\_store.py      |       24 |       12 |     50% |28-30, 39-54, 68-71 |
+| dataset\_store/basic\_dataset\_store.py      |       24 |        0 |    100% |           |
 | dataset\_store/dataset\_store.py             |       11 |        0 |    100% |           |
 | dataset\_store/lru\_dataset\_store.py        |       46 |        7 |     85% |66, 75-79, 96-100 |
 | dataset\_store/private\_dataset\_observer.py |        4 |        0 |    100% |           |
-| dataset\_store/utils.py                      |       16 |        3 |     81% | 31, 34-35 |
+| dataset\_store/utils.py                      |       16 |        2 |     88% |     34-35 |
 | dp\_queries/\_\_init\_\_.py                  |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/\_\_init\_\_.py    |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/opendp.py          |       73 |       28 |     62% |49-50, 55-66, 75, 78-86, 114-116, 183, 186-193 |
@@ -43,14 +43,14 @@
 | utils/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | utils/anti\_timing\_att.py                   |       20 |        4 |     80% |37-38, 47-48 |
 | utils/collections\_models.py                 |       43 |        0 |    100% |           |
-| utils/config.py                              |       84 |        7 |     92% |165-166, 209, 230, 234, 245, 255 |
+| utils/config.py                              |       84 |        6 |     93% |165-166, 209, 234, 245, 255 |
 | utils/error\_handler.py                      |       35 |        3 |     91% |62, 118-119 |
 | utils/example\_inputs.py                     |       15 |        0 |    100% |           |
 | utils/input\_models.py                       |       41 |        0 |    100% |           |
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       29 |        9 |     69% | 33, 71-92 |
 | uvicorn\_serve.py                            |       10 |       10 |      0% |      1-20 |
-|                                    **TOTAL** | **2204** |  **399** | **82%** |           |
+|                                    **TOTAL** | **2204** |  **385** | **83%** |           |
 
 
 ## Setup coverage badge

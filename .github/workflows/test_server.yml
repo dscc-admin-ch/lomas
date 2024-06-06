@@ -3,6 +3,9 @@ name: Server Testing
 on: 
   pull_request:
     branches: [ develop, master]
+  push:
+    branches:
+      - new_default
   workflow_dispatch:
   
 jobs:

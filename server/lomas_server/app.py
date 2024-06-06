@@ -101,10 +101,13 @@ async def lifespan(
     # Fill up user database if in develop mode ONLY
     if status_ok and config.develop_mode:
         LOG.info("!! Develop mode ON !!")
-        LOG.info("Adding demo data to AdminDB")
         app.state.server_state["message"].append("!! Develop mode ON !!")
-        app.state.server_state["message"].append("Adding demo data to AdminDB")
-        add_demo_data_to_admindb()
+        if config.admin_database.db_type == AdminDBType.MONGODB:
+            LOG.info("Adding demo data to MongoDB Admin")
+            app.state.server_state["message"].append(
+                "Adding demo data to MongoDB Admin"
+            )
+            add_demo_data_to_admindb()
 
     # Load admin database
     if status_ok:

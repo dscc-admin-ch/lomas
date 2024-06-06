@@ -466,7 +466,8 @@ def add_users_via_yaml(
         LOG.info("No new users added, they already exist in the server")
 
 
-def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
+@check_user_exists(True)
+def show_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user
 
     Args:
@@ -483,7 +484,7 @@ def show_archives_of_user(db: Database, user: str) -> List[dict]:  # TODO  test
     return archives_infos
 
 
-def get_list_of_users(db: Database) -> list:  # TODO  test
+def get_list_of_users(db: Database) -> list:
     """Get the list of all users is 'users' collection
 
     Args:
@@ -499,9 +500,8 @@ def get_list_of_users(db: Database) -> list:  # TODO  test
     return user_names
 
 
-def get_list_of_datasets_from_user(
-    db: Database, user: str
-) -> list:  # TODO  test
+@check_user_exists(True)
+def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """Get the list of all datasets from the user
 
     Args:
@@ -780,7 +780,8 @@ def del_dataset(db: Database, dataset: str) -> None:
     LOG.info(f"Deleted dataset and metadata for {dataset}.")
 
 
-def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
+@check_dataset_and_metadata_exist(True)
+def show_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
     Args:
@@ -796,7 +797,8 @@ def show_dataset(db: Database, dataset: str) -> dict:  # TODO test
     return dataset_info
 
 
-def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # TODO test
+@check_dataset_and_metadata_exist(True)
+def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 
     Args:
@@ -818,7 +820,7 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:  # TODO test
     raise ValueError(f"No metadata found for dataset: {dataset}")
 
 
-def get_list_of_datasets(db: Database) -> list:  # TODO  test
+def get_list_of_datasets(db: Database) -> list:
     """Get the list of all dataset is 'datasets' collection
 
     Args:

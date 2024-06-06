@@ -226,9 +226,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise["query_str"] = (
-                "SELECT AVG(bill) FROM df"  # no 'bill' column
-            )
+            input_smartnoise[
+                "query_str"
+            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,
@@ -269,10 +269,10 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 + "Dataset I_do_not_exist does not exists. "
                 + "Please, verify the client object initialisation."
             }
-            
+
             # Expect to fail: user does not exist
             new_headers = self.headers
-            new_headers["user-name"] = 'I_do_not_exist'
+            new_headers["user-name"] = "I_do_not_exist"
             response = client.post(
                 "/smartnoise_query",
                 json=example_smartnoise_sql,

@@ -78,7 +78,6 @@ class AdminYamlDatabase(AdminDatabase):
 
         return metadata
 
-
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """Sets if a user may query the server.

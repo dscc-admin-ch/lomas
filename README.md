@@ -3,6 +3,10 @@
 </h1><br>
 
 
+![Coverage badge](https://camo.githubusercontent.com/7804f44d05091c54c940b2efc14e2bb5ac97a88a66feb28f6297cbd42c0b3959/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f436f7665726167652d36332532352d7265642e737667)
+
+
+
 # Lomas Platform
 
 The lomas platform follows a classic server/client model.

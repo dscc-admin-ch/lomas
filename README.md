@@ -27,7 +27,7 @@
 | dp\_queries/dp\_logic.py                     |       53 |        8 |     85% |65, 76-77, 145, 177-180 |
 | dp\_queries/dp\_querier.py                   |       10 |        0 |    100% |           |
 | dp\_queries/dummy\_dataset.py                |       51 |        6 |     88% |58-64, 106-110 |
-| mongodb\_admin.py                            |      282 |       78 |     72% |133, 142, 147, 393-396, 479-483, 495-499, 514-523, 576, 586-593, 604-628, 722-739, 749-753, 793-796, 810-818, 830-834, 862-871 |
+| mongodb\_admin.py                            |      286 |       40 |     86% |133, 142, 147, 522-523, 576, 586-593, 604-628, 722-739, 749-753, 820, 866 |
 | mongodb\_admin\_cli.py                       |      107 |      107 |      0% |     1-461 |
 | private\_dataset/\_\_init\_\_.py             |        0 |        0 |    100% |           |
 | private\_dataset/in\_memory\_dataset.py      |        9 |        0 |    100% |           |
@@ -39,7 +39,7 @@
 | tests/constants.py                           |        1 |        0 |    100% |           |
 | tests/test\_api.py                           |      238 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py             |       52 |        0 |    100% |           |
-| tests/test\_mongodb\_admin.py                |      240 |        0 |    100% |           |
+| tests/test\_mongodb\_admin.py                |      346 |        0 |    100% |           |
 | utils/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | utils/anti\_timing\_att.py                   |       20 |        4 |     80% |37-38, 47-48 |
 | utils/collections\_models.py                 |       43 |        0 |    100% |           |
@@ -50,7 +50,7 @@
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       29 |        9 |     69% | 33, 71-92 |
 | uvicorn\_serve.py                            |       10 |       10 |      0% |      1-20 |
-|                                    **TOTAL** | **2204** |  **385** | **83%** |           |
+|                                    **TOTAL** | **2314** |  **347** | **85%** |           |
 
 
 ## Setup coverage badge

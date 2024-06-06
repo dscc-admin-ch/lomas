@@ -1,6 +1,6 @@
 runtime_args:
   settings:
-    develop_mode: False
+    develop_mode: True
     submit_limit: 300
     server:
       host_ip: "0.0.0.0"

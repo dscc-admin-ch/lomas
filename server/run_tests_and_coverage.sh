@@ -6,12 +6,12 @@ sleep 3
 
 cd ./lomas_server
 
-# "mongodb", "LRU_cache", developer mode, "jitter"
+# "mongodb", "LRU_cache", production mode, "jitter"
 export LOMAS_TEST_MONGO_INTEGRATION=1
 coverage run --source=. -m unittest discover -s .
 ret1=$?
 
-# "yaml", "basic", production mode, "stall"
+# "yaml", "basic", developer mode, "stall"
 export LOMAS_TEST_MONGO_INTEGRATION=0
 coverage run -a --source=. -m unittest discover -s .
 ret2=$?

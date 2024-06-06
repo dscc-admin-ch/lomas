@@ -1,6 +1,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from typing import Dict
 
 import yaml
 from pymongo import MongoClient
@@ -17,8 +18,16 @@ from mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_list_of_datasets,
+    get_list_of_datasets_from_user,
+    get_list_of_users,
     set_budget_field,
     set_may_query,
+    show_archives_of_user,
+    show_collection,
+    show_dataset,
+    show_metadata_of_dataset,
+    show_user,
 )
 from constants import PrivateDatabaseType
 from tests.constants import ENV_MONGO_INTEGRATION
@@ -31,7 +40,7 @@ from utils.config import CONFIG_LOADER, get_config
     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
         environment variable not set to True.""",
 )
-class TestMongoDBAdmin(unittest.TestCase):
+class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     """
     Tests for the functions in mongodb_admin.py.
 
@@ -286,6 +295,32 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertRaises(ValueError):
             set_may_query(self.db, user, value)
 
+    def test_show_user(self) -> None:
+        """Test show user"""
+        user = "Milou"
+        dataset = "os"
+        epsilon = 20
+        delta = 0.005
+        add_user_with_budget(self.db, user, dataset, epsilon, delta)
+        user_found = show_user(self.db, "Milou")
+        expected_user = {
+            "user_name": user,
+            "may_query": True,
+            "datasets_list": [
+                {
+                    "dataset_name": dataset,
+                    "initial_epsilon": epsilon,
+                    "initial_delta": delta,
+                    "total_spent_epsilon": 0.0,
+                    "total_spent_delta": 0.0,
+                }
+            ],
+        }
+        self.assertEqual(user_found, expected_user)
+
+        with self.assertRaises(ValueError):
+            user_found = show_user(self.db, "Bianca Castafiore")
+
     def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file"""
         # Adding two users
@@ -372,6 +407,91 @@ class TestMongoDBAdmin(unittest.TestCase):
         # Overwrite to false and existing users should warn
         with self.assertWarns(UserWarning):
             add_users_via_yaml(self.db, path, clean=False, overwrite=False)
+
+    def test_show_archives_of_user(self) -> None:
+        """Test show archives of user"""
+        add_user(self.db, "Milou")
+        add_user(self.db, "Tintin")
+
+        # User exist but empty
+        archives_found = show_archives_of_user(self.db, "Milou")
+        expected_archives: list[Dict] = []
+        self.assertEqual(archives_found, expected_archives)
+
+        # User does not exist
+        with self.assertRaises(ValueError):
+            archives_found = show_archives_of_user(
+                self.db, "Bianca Castafiore"
+            )
+
+        # Add archives for Tintin and Dr. Antartica
+        path = "./tests/test_data/test_archives_collection.yaml"
+        with open(path, encoding="utf-8") as f:
+            archives = yaml.safe_load(f)
+        self.db.queries_archives.insert_many(archives)
+
+        # Milou still empty
+        archives_found = show_archives_of_user(self.db, "Milou")
+        expected_archives = []
+        self.assertEqual(archives_found, expected_archives)
+
+        # Tintin has archives
+        archives_found = show_archives_of_user(self.db, "Tintin")[0]
+        expected_archives = archives[1]
+
+        archives_found.pop("_id")
+        if isinstance(expected_archives, dict):
+            expected_archives.pop("_id")
+
+        self.assertEqual(archives_found, expected_archives)
+
+    def test_get_list_of_users(self) -> None:
+        """Test get list of users"""
+        users_list = get_list_of_users(self.db)
+        self.assertEqual(users_list, [])
+
+        dataset = "Bijoux de la Castafiore"
+        epsilon = 0.1
+        delta = 0.0001
+        add_user(self.db, "Bianca Castafiore")
+        add_user_with_budget(self.db, "Tintin", dataset, epsilon, delta)
+        add_user_with_budget(self.db, "Milou", dataset, epsilon, delta)
+        users_list = get_list_of_users(self.db)
+        self.assertEqual(users_list, ["Bianca Castafiore", "Tintin", "Milou"])
+
+    def test_get_list_of_datasets_from_users(self) -> None:
+        """Test get list of datasets from users"""
+        user = "Bianca Castafiore"
+        add_user(self.db, user)
+
+        users_list = get_list_of_datasets_from_user(self.db, user)
+        self.assertEqual(users_list, [])
+
+        epsilon = 0.1
+        delta = 0.0001
+        add_dataset_to_user(
+            self.db, user, "Bijoux de la Castafiore", epsilon, delta
+        )
+        add_dataset_to_user(
+            self.db, user, "Le Sceptre d'Ottokar", epsilon, delta
+        )
+        add_dataset_to_user(
+            self.db, user, "Les Sept Boules de cristal", epsilon, delta
+        )
+        add_user_with_budget(self.db, "Milou", "os", 0.1, 0.001)
+
+        dataset_list = get_list_of_datasets_from_user(self.db, user)
+        self.assertEqual(
+            dataset_list,
+            [
+                "Bijoux de la Castafiore",
+                "Le Sceptre d'Ottokar",
+                "Les Sept Boules de cristal",
+            ],
+        )
+
+        dataset_list = get_list_of_datasets_from_user(self.db, "Milou")
+        self.assertEqual(dataset_list, ["os"])
 
     def test_add_local_dataset(self) -> None:
         """Test adding a local dataset"""
@@ -526,6 +646,77 @@ class TestMongoDBAdmin(unittest.TestCase):
         with self.assertRaises(ValueError):
             del_dataset(self.db, dataset)
 
+    def test_show_dataset(self) -> None:
+        """Test show dataset"""
+        with self.assertRaises(ValueError):
+            dataset_found = show_dataset(self.db, "PENGUIN")
+
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        dataset_found = show_dataset(self.db, "PENGUIN")
+        expected_dataset = {
+            "dataset_name": dataset,
+            "database_type": database_type,
+            "dataset_path": dataset_path,
+            "metadata": {
+                "database_type": metadata_database_type,
+                "metadata_path": metadata_path,
+            },
+        }
+        self.assertEqual(dataset_found, expected_dataset)
+
+    def test_show_metadata_of_dataset(self) -> None:
+        """Test show metadata_dataset"""
+        with self.assertRaises(ValueError):
+            metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+        with open(metadata_path, encoding="utf-8") as f:
+            expected_metadata = yaml.safe_load(f)
+        self.assertEqual(metadata_found, expected_metadata)
+
+    def test_get_list_of_datasets(self) -> None:
+        """Test get list of datasets"""
+        list_datasets = get_list_of_datasets(self.db)
+        self.assertEqual(list_datasets, [])
+
+        path = "./tests/test_data/test_datasets.yaml"
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
+
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
+        list_datasets = get_list_of_datasets(self.db)
+        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""
         # Setup: add one dataset
@@ -550,3 +741,22 @@ class TestMongoDBAdmin(unittest.TestCase):
 
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
+
+    def test_show_collection(self) -> None:
+        """Test show collection from db"""
+        dataset_collection = show_collection(self.db, "datasets")
+        self.assertEqual(dataset_collection, [])
+
+        path = "./tests/test_data/test_datasets.yaml"
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
+        add_datasets_via_yaml(
+            self.db, path, clean, overwrite_datasets, overwrite_metadata
+        )
+        with open(path, encoding="utf-8") as f:
+            expected_dataset_collection = yaml.safe_load(f)
+        dataset_collection = show_collection(self.db, "datasets")
+        self.assertEqual(
+            expected_dataset_collection["datasets"], dataset_collection
+        )

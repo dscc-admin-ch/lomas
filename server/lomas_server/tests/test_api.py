@@ -186,7 +186,7 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_query(self) -> None:
-        """_summary_"""
+        """Test smartnoise-sql query"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -267,6 +267,21 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response.json() == {
                 "InvalidQueryException": ""
                 + "Dataset I_do_not_exist does not exists. "
+                + "Please, verify the client object initialisation."
+            }
+            
+            # Expect to fail: user does not exist
+            new_headers = self.headers
+            new_headers["user-name"] = 'I_do_not_exist'
+            response = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=new_headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + "User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             }
 

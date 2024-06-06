@@ -39,7 +39,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
         ) -> None:
             db = arguments[0]
             user = arguments[1]
-
+            print(f"\n\n user in decorator {user}")
             user_count = db.users.count_documents({"user_name": user})
 
             if enforce_true and user_count == 0:

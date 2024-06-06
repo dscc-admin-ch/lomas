@@ -44,7 +44,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
 
             if enforce_true and user_count == 0:
                 raise ValueError(
-                    f"User {user} does not exist in user collecion"
+                    f"User {user} does not exist in user collection"
                 )
             if not enforce_true and user_count > 0:
                 raise ValueError(
@@ -127,7 +127,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 
             if enforce_true and dataset_count == 0:
                 raise ValueError(
-                    f"Dataset {dataset} does not exist in dataset collecion"
+                    f"Dataset {dataset} does not exist in dataset collection"
                 )
             if not enforce_true and dataset_count > 0:
                 raise ValueError(
@@ -141,12 +141,12 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             if enforce_true and metadata_count == 0:
                 raise ValueError(
                     f"Metadata for dataset {dataset} does"
-                    "not exist in metadata collecion"
+                    " not exist in metadata collection"
                 )
             if not enforce_true and metadata_count > 0:
                 raise ValueError(
                     f"Metadata for dataset {dataset} already"
-                    "exists in metadata collection"
+                    " exists in metadata collection"
                 )
 
             return function(*arguments, **kwargs)  # type: ignore
@@ -292,7 +292,7 @@ def add_dataset_to_user(
 
     LOG.info(
         f"Added access to dataset {dataset}"
-        f"to user {user}"
+        f" to user {user}"
         f" with budget epsilon {epsilon}"
         f" and delta {delta}."
     )
@@ -376,7 +376,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Set user {user} may query to True.")
+    LOG.info(f"Set user {user} may query to {value}.")
 
 
 @check_user_exists(True)
@@ -496,6 +496,7 @@ def get_list_of_users(db: Database) -> list:
     user_names = []
     for elem in db.users.find():
         user_names.append(elem["user_name"])
+    LOG.info(user_names)
     return user_names
 
 
@@ -512,9 +513,13 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """
     user_data = db.users.find_one({"user_name": user})
     if user_data:
+        LOG.info(
+            [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
+        )
         return [
             dataset["dataset_name"] for dataset in user_data["datasets_list"]
         ]
+    LOG.info([])
     return []
 
 
@@ -809,6 +814,7 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     if metadata_document:
         # Extract metadata for the specified dataset
         metadata_info = metadata_document[dataset]
+        LOG.info(metadata_info)
         return metadata_info
 
     raise ValueError(f"No metadata found for dataset: {dataset}")
@@ -826,6 +832,7 @@ def get_list_of_datasets(db: Database) -> list:
     dataset_names = []
     for elem in db.datasets.find():
         dataset_names.append(elem["dataset_name"])
+    LOG.info(dataset_names)
     return dataset_names
 
 

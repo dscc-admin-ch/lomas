@@ -8,10 +8,10 @@
 | admin\_database/\_\_init\_\_.py              |        0 |        0 |    100% |           |
 | admin\_database/admin\_database.py           |       96 |        3 |     97% |38, 473-474 |
 | admin\_database/mongodb\_database.py         |       58 |        3 |     95% |90-91, 291 |
-| admin\_database/utils.py                     |       33 |        5 |     85% |     36-41 |
-| admin\_database/yaml\_database.py            |       96 |       69 |     28% |26-28, 39-43, 54-58, 72-79, 94-98, 112-116, 136-147, 164-169, 185-190, 208-214, 231-234, 255-262, 275-278, 285-289 |
+| admin\_database/utils.py                     |       33 |        2 |     94% |     40-41 |
+| admin\_database/yaml\_database.py            |       96 |        7 |     93% |43, 94-98, 190, 234 |
 | administration/\_\_init\_\_.py               |        0 |        0 |    100% |           |
-| app.py                                       |      204 |       64 |     69% |92-99, 103-107, 115-122, 141-147, 163, 220, 262-263, 309-310, 374-375, 438-441, 489-492, 549-550, 611-614, 656-659, 707-710, 763-766, 816-819, 870-873 |
+| app.py                                       |      204 |       63 |     69% |92-99, 103-107, 115-122, 141-147, 220, 262-263, 309-310, 374-375, 438-441, 489-492, 549-550, 611-614, 656-659, 707-710, 763-766, 816-819, 870-873 |
 | constants.py                                 |       62 |        3 |     95% |   7-8, 13 |
 | dataset\_store/\_\_init\_\_.py               |        0 |        0 |    100% |           |
 | dataset\_store/basic\_dataset\_store.py      |       24 |       12 |     50% |28-30, 39-54, 68-71 |
@@ -37,20 +37,20 @@
 | private\_dataset/utils.py                    |       24 |       10 |     58% |     38-61 |
 | tests/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | tests/constants.py                           |        1 |        0 |    100% |           |
-| tests/test\_api.py                           |      238 |        1 |     99% |        58 |
+| tests/test\_api.py                           |      238 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py             |       52 |        0 |    100% |           |
 | tests/test\_mongodb\_admin.py                |      240 |        0 |    100% |           |
 | utils/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | utils/anti\_timing\_att.py                   |       20 |        4 |     80% |37-38, 47-48 |
 | utils/collections\_models.py                 |       43 |        0 |    100% |           |
-| utils/config.py                              |       84 |        9 |     89% |165-166, 206-209, 230, 234, 245, 255 |
+| utils/config.py                              |       84 |        7 |     92% |165-166, 209, 230, 234, 245, 255 |
 | utils/error\_handler.py                      |       35 |        3 |     91% |62, 118-119 |
 | utils/example\_inputs.py                     |       15 |        0 |    100% |           |
 | utils/input\_models.py                       |       41 |        0 |    100% |           |
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       29 |        9 |     69% | 33, 71-92 |
 | uvicorn\_serve.py                            |       10 |       10 |      0% |      1-20 |
-|                                    **TOTAL** | **2204** |  **468** | **79%** |           |
+|                                    **TOTAL** | **2204** |  **399** | **82%** |           |
 
 
 ## Setup coverage badge

@@ -5,7 +5,7 @@ on:
     branches: [ develop, master]
   push:
     branches:
-      - master
+      - new_default
   workflow_dispatch:
   
 jobs:

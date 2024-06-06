@@ -45,14 +45,7 @@ def run_cli_command(command: str, args: List[str]) -> None:
     Raises:
         ValueError: If the command returns a non-zero exit status, indicating an error.
     """
-    cli_command = ["ls"]
-    print(cli_command)
-    result = subprocess.run(
-        cli_command, capture_output=True, text=True, check=True
-    )
-    print(result.stdout)
-    
-    cli_command = ["python", "mongodb_admin_cli.py", command] + args
+    cli_command = ["python", "mongodb_admin_cli.py", command] + ["-db_a", "127.0.0.1"] + args
     print(cli_command)
     try:
         result = subprocess.run(

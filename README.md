@@ -3,7 +3,7 @@
 </h1><br>
 
 
-[![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/dscc-admin-ch/lomas/blob/python-coverage-comment-action-data/htmlcov/index.html)
+[![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
 
 
 

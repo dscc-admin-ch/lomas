@@ -6,12 +6,12 @@ sleep 3
 
 cd ./lomas_server
 
-# On admin_database: "mongodb" and dataset_store: "LRU_cache"
+# On admin_database: "mongodb" and dataset_store: "LRU_cache" and production mode
 export LOMAS_TEST_MONGO_INTEGRATION=1
 coverage run --source=. -m unittest discover -s .
 ret=$?
 
-# On admin_database: "yaml" and dataset_store: "basic"
+# On admin_database: "yaml" and dataset_store: "basic" and developer mode
 export LOMAS_TEST_MONGO_INTEGRATION=0
 coverage run -a --source=. -m unittest discover -s .
 ret=$?

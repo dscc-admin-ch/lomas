@@ -2,7 +2,7 @@ name: Server Integration Testing
 
 on: 
   pull_request:
-    branches: [ develop, master]
+    branches: [ develop, master ]
   push:
     branches:
       - new_default

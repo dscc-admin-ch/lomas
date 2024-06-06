@@ -2,7 +2,7 @@ name: Server Testing
 
 on: 
   pull_request:
-    branches: [ develop, master]
+    branches: [ develop, master, new_default ]
   workflow_dispatch:
   
 jobs:

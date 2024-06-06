@@ -1,18 +1,28 @@
 import requests
 import streamlit as st
 
+from config import get_config
 from constants import AdminDBType, DatasetStoreType
-from utils.config import get_config
+from utils.config import get_config as get_server_config
 from utils.error_handler import InternalServerException
 
 ###############################################################################
 # BACKEND
 ###############################################################################
-FASTAPI_URL = "http://lomas_server"
 
-if "config" not in st.session_state:
-    # Store config
-    st.session_state["config"] = get_config()
+try:
+    if "config" not in st.session_state:
+        # Store config
+        st.session_state["config"] = get_server_config()
+    if "dashboard_config" not in st.session_state:
+        # Store dashboard config
+        st.session_state["dashboard_config"] = get_config()
+        FASTAPI_URL = st.session_state.dashboard_config.server_url
+        FASTAPI_ADDRESS = st.session_state.dashboard_config.server_service
+except Exception as e:
+    st.error(
+        f"Failed to load server or dashboard config. Initial exception: {e}"
+    )
 
 ###############################################################################
 # GUI and user interactions
@@ -27,7 +37,7 @@ st.write(
     f"The server is available for requests at the address: {FASTAPI_URL}/"
 )
 
-response = requests.get(f"{FASTAPI_URL}/state", timeout=50)
+response = requests.get(f"{FASTAPI_ADDRESS}/state", timeout=50)
 if response.status_code == 200:
     response_data = response.json()
     if response_data["state"]["LIVE"]:
@@ -99,7 +109,7 @@ with tab_3:
             st.session_state.config.dataset_store.max_memory_usage,
         )
         memory_usage_response = requests.get(
-            f"{FASTAPI_URL}/get_memory_usage", timeout=50
+            f"{FASTAPI_ADDRESS}/get_memory_usage", timeout=50
         )
         if memory_usage_response.status_code == 200:
             memory = memory_usage_response.json()

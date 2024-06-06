@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pymongo.database import Database
 
 from admin_database.utils import get_mongodb
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
@@ -226,9 +226,9 @@ class TestRootAPIEndpoint(unittest.TestCase):
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise[
-                "query_str"
-            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
+            input_smartnoise["query_str"] = (
+                "SELECT AVG(bill) FROM df"  # no 'bill' column
+            )
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,

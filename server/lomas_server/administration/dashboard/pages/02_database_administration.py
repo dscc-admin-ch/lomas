@@ -3,7 +3,7 @@ import streamlit as st
 import yaml
 
 from admin_database.utils import get_mongodb
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,

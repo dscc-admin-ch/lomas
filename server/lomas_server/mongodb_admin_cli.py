@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 from admin_database.utils import get_mongodb_url
-from administration import (
+from mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
@@ -413,11 +413,11 @@ if __name__ == "__main__":
         "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.yaml_file, args.clean, args.overwrite
         ),
-        "show_archives": lambda args: show_archives_of_user(
+        "show_archives_of_user": lambda args: show_archives_of_user(
             mongo_db, args.user
         ),
-        "get_users": lambda args: get_list_of_users(mongo_db),
-        "get_user_datasets": lambda args: get_list_of_datasets_from_user(
+        "get_list_of_users": lambda args: get_list_of_users(mongo_db),
+        "get_list_of_datasets_from_user": lambda args: get_list_of_datasets_from_user(
             mongo_db, args.user
         ),
         "add_dataset": lambda args: add_dataset(
@@ -447,10 +447,10 @@ if __name__ == "__main__":
         ),
         "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
         "show_dataset": lambda args: show_dataset(mongo_db, args.dataset),
-        "show_metadata": lambda args: show_metadata_of_dataset(
+        "show_metadata_of_dataset": lambda args: show_metadata_of_dataset(
             mongo_db, args.dataset
         ),
-        "get_datasets": lambda args: get_list_of_datasets(mongo_db),
+        "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
         "drop_collection": lambda args: drop_collection(
             mongo_db, args.collection
         ),
@@ -458,4 +458,4 @@ if __name__ == "__main__":
             mongo_db, args.collection
         ),
     }
-    function_map[args.func](args)
+    function_map[args.func.__name__](args)

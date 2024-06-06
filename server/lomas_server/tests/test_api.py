@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pymongo.database import Database
 
 from admin_database.utils import get_mongodb
-from administration.mongodb_admin import (
+from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,

@@ -51,7 +51,12 @@ def run_cli_command(command: str, args: List[str]) -> None:
         cli_command, capture_output=True, text=True, check=True
     )
     if result.returncode != 0:
-        raise ValueError(result.stderr.strip())
+        error_message = (
+            f"Command: {cli_command}\n"
+            + f"Return Code: {result.returncode}\n"
+            + f"Error: {result.stderr.strip()}"
+        )
+        raise ValueError(error_message)
 
 
 @unittest.skipIf(

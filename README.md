@@ -28,7 +28,6 @@
 | dp\_queries/dp\_querier.py                   |       10 |        0 |    100% |           |
 | dp\_queries/dummy\_dataset.py                |       50 |        5 |     90% |58-64, 106-109 |
 | mongodb\_admin.py                            |      280 |       35 |     88% |133, 142, 147, 572, 582-589, 600-624, 718-734, 745-749 |
-| mongodb\_admin\_cli.py                       |      107 |      107 |      0% |     1-461 |
 | private\_dataset/\_\_init\_\_.py             |        0 |        0 |    100% |           |
 | private\_dataset/in\_memory\_dataset.py      |        9 |        0 |    100% |           |
 | private\_dataset/path\_dataset.py            |       19 |        2 |     89% |     45-51 |
@@ -51,7 +50,7 @@
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       28 |        8 |     71% |     71-92 |
 | uvicorn\_serve.py                            |       10 |       10 |      0% |      1-20 |
-|                                    **TOTAL** | **2473** |  **268** | **89%** |           |
+|                                    **TOTAL** | **2366** |  **161** | **93%** |           |
 
 
 ## Setup coverage badge

@@ -8,3 +8,4 @@ exclude_lines =
     ^\s*except\s+InternalServerException
     ^\s*raise\s+InternalServerException
     ^\s*except\s+CUSTOM_EXCEPTIONS
+    ^\s*case _:

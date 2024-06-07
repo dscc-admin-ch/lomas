@@ -118,6 +118,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command("add_user", ["-u", user])
 
+        # Not giving required argument
+        with self.assertRaises(ValueError):
+            self.run_cli_command("add_user", ["--nope", "will fail"])
+
     def test_add_user_wb_cli(self) -> None:
         """Test adding a user with a dataset via cli"""
         user = "Tintin"

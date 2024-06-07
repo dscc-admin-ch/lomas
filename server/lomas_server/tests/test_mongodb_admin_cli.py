@@ -122,26 +122,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test adding a user with a dataset via cli"""
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
-        wrong_epsilon = 10
+        epsilon = 10.0
         delta = 0.02
 
-        # Epsilon must be float
-        with self.assertRaises(TypeError):
-            self.run_cli_command(
-                "add_user_with_budget",
-                [
-                    "--user",
-                    user,
-                    "--dataset",
-                    dataset,
-                    "--epsilon",
-                    wrong_epsilon,
-                    "--delta",
-                    delta,
-                ],
-            )
-
-        epsilon = 10.0
         self.run_cli_command(
             "add_user_with_budget",
             [
@@ -358,12 +341,11 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         # Set may query
-        value = "false"
-        self.run_cli_command("set_may_query", ["-u", user, "-v", value])
+        self.run_cli_command("set_may_query", ["-u", user, "-v", "False"])
 
         expected_user = {
             "user_name": user,
-            "may_query": value,
+            "may_query": False,
             "datasets_list": [
                 {
                     "dataset_name": dataset,
@@ -382,7 +364,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Raises error when user does not exist
         user = "Milou"
         with self.assertRaises(ValueError):
-            self.run_cli_command("set_may_query", ["-u", user, "-v", value])
+            self.run_cli_command("set_may_query", ["-u", user, "-v", "False"])
 
     def test_show_user_cli(self) -> None:
         """Test show user via CLI
@@ -396,11 +378,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test create user collection via YAML file via cli"""
         # Adding two users
         path = "./tests/test_data/test_user_collection.yaml"
-        clean = "false"
-        overwrite = "false"
-        self.run_cli_command(
-            "add_users_via_yaml", ["-c", clean, "-o", overwrite, "-yf", path]
-        )
+        self.run_cli_command("add_users_via_yaml", ["-yf", path])
 
         tintin = {
             "user_name": "Tintin",
@@ -541,24 +519,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.assertEqual(metadata_found, penguin_metadata)
 
         path = "./tests/test_data/test_datasets.yaml"
-        clean = "false"
-        overwrite_datasets = "false"
-        overwrite_metadata = "false"
 
-        self.run_cli_command(
-            "add_datasets_via_yaml",
-            [
-                "--yaml_file",
-                path,
-                "--clean",
-                clean,
-                "--overwrite_datasets",
-                overwrite_datasets,
-                "--overwrite_metadata",
-                overwrite_metadata,
-            ],
-        )
-
+        self.run_cli_command("add_datasets_via_yaml", ["--yaml_file", path])
         verify_datasets()
 
     def test_del_dataset_cli(self) -> None:
@@ -660,16 +622,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_list_of_datasets", [])
         self.run_cli_command(
             "add_datasets_via_yaml",
-            [
-                "--yaml_file",
-                "./tests/test_data/test_datasets.yaml",
-                "--clean",
-                "false",
-                "--overwrite_datasets",
-                "false",
-                "--overwrite_metadata",
-                "false",
-            ],
+            ["--yaml_file", "./tests/test_data/test_datasets.yaml"],
         )
         self.run_cli_command("get_list_of_datasets", [])
 
@@ -710,15 +663,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("show_collection", ["-c", "datasets"])
         self.run_cli_command(
             "add_datasets_via_yaml",
-            [
-                "--yaml_file",
-                "./tests/test_data/test_datasets.yaml",
-                "--clean",
-                "false",
-                "--overwrite_datasets",
-                "false",
-                "--overwrite_metadata",
-                "false",
-            ],
+            ["--yaml_file", "./tests/test_data/test_datasets.yaml"],
         )
         self.run_cli_command("show_collection", ["-c", "datasets"])

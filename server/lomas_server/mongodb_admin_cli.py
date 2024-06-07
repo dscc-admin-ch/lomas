@@ -148,7 +148,7 @@ if __name__ == "__main__":
     )
     set_may_query_parser.add_argument("-u", "--user", required=True, type=str)
     set_may_query_parser.add_argument(
-        "-v", "--value", required=True, action="store_true"
+        "-v", "--value", required=True, choices=["False", "True"]
     )
     set_may_query_parser.set_defaults(func=set_may_query)
 

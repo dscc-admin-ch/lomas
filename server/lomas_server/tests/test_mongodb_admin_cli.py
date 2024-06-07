@@ -179,7 +179,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command(
                 "add_user_with_budget",
-                ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+                ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
             )
 
     def test_del_user_cli(self) -> None:
@@ -209,7 +209,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("add_user", ["--user", user])
         self.run_cli_command(
             "add_dataset_to_user",
-            ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+            ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
         )
         expected_user = {
             "user_name": user,
@@ -236,7 +236,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command(
                 "add_dataset_to_user",
-                ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+                ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
             )
 
         # Adding dataset to non-existing user should raise an error
@@ -244,7 +244,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command(
                 "add_dataset_to_user",
-                ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+                ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
             )
 
     def test_del_dataset_to_user_cli(self) -> None:
@@ -257,7 +257,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         self.run_cli_command(
             "add_user_with_budget",
-            ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+            ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
         )
 
         # Test dataset deletion
@@ -298,7 +298,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         self.run_cli_command(
             "add_user_with_budget",
-            ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+            ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
         )
 
         # Updating budget should work
@@ -355,7 +355,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         self.run_cli_command(
             "add_user_with_budget",
-            ["-u", user, "-d", dataset, "-e", epsilon, "-d", delta],
+            ["-u", user, "-d", dataset, "-e", epsilon, "-del", delta],
         )
 
         # Set may query
@@ -450,7 +450,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         self.run_cli_command(
             "add_dataset_to_user",
-            ["-u", user, "-d", "os", "-e", 0.1, "-d", 0.001],
+            ["-u", user, "-d", "os", "-e", 0.1, "-del", 0.001],
         )
         self.run_cli_command("get_list_of_datasets_from_users", ["-u", user])
 

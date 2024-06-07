@@ -3,4 +3,4 @@ relative_files = true
 
 [report]
 exclude_lines =
-    raise ValueError
+    ^\s*except\s+InternalServerException:

@@ -53,7 +53,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             "--address",
             admin_config.address,
             "--port",
-            admin_config.port,
+            str(admin_config.port),
             "--db_name",
             admin_config.db_name,
         ]
@@ -84,6 +84,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             + self.db_connection_cli
             + str_args
         )
+        print(cli_command)
         try:
             subprocess.run(
                 cli_command, capture_output=True, text=True, check=True

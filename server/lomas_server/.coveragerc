@@ -1,5 +1,7 @@
 [run]
 relative_files = true
+omit =
+    mongodb_admin_cli.py
 
 [report]
 exclude_lines =

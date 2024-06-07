@@ -67,7 +67,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             "drop_collection", ["--collection", "queries_archives"]
         )
 
-    def run_cli_command(self, command: str, args: List[str]) -> None:
+    def run_cli_command(self, command: str, args: List) -> None:
         """Run a MongoDB administration CLI command.
 
         Args:
@@ -77,10 +77,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         Raises:
             ValueError: If the command returns a non-zero exit status.
         """
+        str_args = [str(arg) for arg in args]
+
         cli_command = (
             ["python", "mongodb_admin_cli.py", command]
             + self.db_connection_cli
-            + args
+            + str_args
         )
         try:
             subprocess.run(

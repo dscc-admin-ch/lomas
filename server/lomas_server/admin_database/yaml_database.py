@@ -163,14 +163,12 @@ class AdminYamlDatabase(AdminDatabase):
         Returns:
             float: The requested budget value.
         """
-        dataset = None
         for user in self.database["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
-                        parameter = dataset[parameter]
-        assert dataset is not None, "user must have dataset"
-        return dataset[parameter]
+                        return dataset[parameter]
+        return False
 
     def update_epsilon_or_delta(
         self,

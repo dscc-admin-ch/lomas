@@ -163,6 +163,7 @@ class AdminYamlDatabase(AdminDatabase):
         Returns:
             float: The requested budget value.
         """
+        dataset = None
         for user in self.database["users"]:
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:

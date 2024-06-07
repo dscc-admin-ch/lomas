@@ -1,6 +1,6 @@
 runtime_args:
   settings:
-    develop_mode: False
+    develop_mode: True
     submit_limit: 300
     server:
       host_ip: "0.0.0.0"
@@ -15,5 +15,4 @@ runtime_args:
       db_type: "yaml"
       db_file: "tests/test_data/local_db_file.yaml"
     dataset_store:
-      ds_store_type: "LRU_cache"
-      max_memory_usage: 512
+      ds_store_type: "basic"

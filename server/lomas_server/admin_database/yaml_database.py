@@ -167,8 +167,9 @@ class AdminYamlDatabase(AdminDatabase):
             if user["user_name"] == user_name:
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
-                        return dataset[parameter]
-        return False
+                        parameter = dataset[parameter]
+        assert dataset is not None, "user must have dataset"
+        return dataset[parameter]
 
     def update_epsilon_or_delta(
         self,

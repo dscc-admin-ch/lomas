@@ -1,8 +1,7 @@
 import os
-import subprocess
 import unittest
 from types import SimpleNamespace
-from typing import Dict, List
+from typing import Dict
 
 import yaml
 from pymongo import MongoClient

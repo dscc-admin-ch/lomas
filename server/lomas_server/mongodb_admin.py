@@ -512,15 +512,11 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
         user_datasets (list): list of names of all users
     """
     user_data = db.users.find_one({"user_name": user})
-    if user_data:
-        LOG.info(
-            [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
-        )
-        return [
-            dataset["dataset_name"] for dataset in user_data["datasets_list"]
-        ]
-    LOG.info([])
-    return []
+    assert user_data is not None, "User must exist"
+    LOG.info(
+        [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
+    )
+    return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
@@ -810,14 +806,12 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """
     # Retrieve the document containing metadata for the specified dataset
     metadata_document = db.metadata.find_one({dataset: {"$exists": True}})
+    assert metadata_document is not None, "Metadata must exist"
 
-    if metadata_document:
-        # Extract metadata for the specified dataset
-        metadata_info = metadata_document[dataset]
-        LOG.info(metadata_info)
-        return metadata_info
-
-    raise ValueError(f"No metadata found for dataset: {dataset}")
+    # Extract metadata for the specified dataset
+    metadata_info = metadata_document[dataset]
+    LOG.info(metadata_info)
+    return metadata_info
 
 
 def get_list_of_datasets(db: Database) -> list:
@@ -862,9 +856,6 @@ def show_collection(db: Database, collection: str) -> list:
         None
     """
     collection_query = db[collection].find({})
-    if not collection_query:
-        return []
-
     collections = []
     for document in collection_query:
         document.pop("_id", None)

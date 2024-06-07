@@ -6,51 +6,52 @@
 |--------------------------------------------- | -------: | -------: | ------: | --------: |
 | \_\_init\_\_.py                              |        0 |        0 |    100% |           |
 | admin\_database/\_\_init\_\_.py              |        0 |        0 |    100% |           |
-| admin\_database/admin\_database.py           |       96 |        3 |     97% |38, 473-474 |
-| admin\_database/mongodb\_database.py         |       58 |        3 |     95% |90-91, 291 |
-| admin\_database/utils.py                     |       33 |        2 |     94% |     40-41 |
-| admin\_database/yaml\_database.py            |       96 |        7 |     93% |43, 94-98, 190, 234 |
+| admin\_database/admin\_database.py           |       92 |        1 |     99% |       457 |
+| admin\_database/mongodb\_database.py         |       54 |        1 |     98% |       275 |
+| admin\_database/utils.py                     |       32 |        1 |     97% |        40 |
+| admin\_database/yaml\_database.py            |       89 |        1 |     99% |       171 |
 | administration/\_\_init\_\_.py               |        0 |        0 |    100% |           |
-| app.py                                       |      204 |       63 |     69% |92-99, 103-107, 115-122, 141-147, 220, 262-263, 309-310, 374-375, 438-441, 489-492, 549-550, 611-614, 656-659, 707-710, 763-766, 816-819, 870-873 |
+| app.py                                       |      157 |       21 |     87% |106-110, 144-150, 223, 265, 312, 377, 443, 494, 552, 616, 661, 712, 768, 821, 875 |
 | constants.py                                 |       62 |        3 |     95% |   7-8, 13 |
 | dataset\_store/\_\_init\_\_.py               |        0 |        0 |    100% |           |
 | dataset\_store/basic\_dataset\_store.py      |       24 |        0 |    100% |           |
 | dataset\_store/dataset\_store.py             |       11 |        0 |    100% |           |
-| dataset\_store/lru\_dataset\_store.py        |       46 |        7 |     85% |66, 75-79, 96-100 |
+| dataset\_store/lru\_dataset\_store.py        |       45 |        6 |     87% |75-79, 96-100 |
 | dataset\_store/private\_dataset\_observer.py |        4 |        0 |    100% |           |
-| dataset\_store/utils.py                      |       16 |        2 |     88% |     34-35 |
+| dataset\_store/utils.py                      |       15 |        1 |     93% |        34 |
 | dp\_queries/\_\_init\_\_.py                  |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/\_\_init\_\_.py    |        0 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/opendp.py          |       73 |       28 |     62% |49-50, 55-66, 75, 78-86, 114-116, 183, 186-193 |
+| dp\_queries/dp\_libraries/opendp.py          |       71 |       26 |     63% |49-50, 55-66, 75, 78-85, 114-116, 183, 186-191 |
 | dp\_queries/dp\_libraries/smartnoise\_sql.py |       50 |        7 |     86% |98-99, 110, 121-125 |
-| dp\_queries/dp\_libraries/utils.py           |       15 |        2 |     87% |     30-31 |
-| dp\_queries/dp\_logic.py                     |       53 |        8 |     85% |65, 76-77, 145, 177-180 |
+| dp\_queries/dp\_libraries/utils.py           |       14 |        1 |     93% |        30 |
+| dp\_queries/dp\_logic.py                     |       48 |        3 |     94% |76, 145, 179 |
 | dp\_queries/dp\_querier.py                   |       10 |        0 |    100% |           |
-| dp\_queries/dummy\_dataset.py                |       51 |        6 |     88% |58-64, 106-110 |
-| mongodb\_admin.py                            |      286 |       40 |     86% |133, 142, 147, 522-523, 576, 586-593, 604-628, 722-739, 749-753, 820, 866 |
+| dp\_queries/dummy\_dataset.py                |       50 |        5 |     90% |58-64, 106-109 |
+| mongodb\_admin.py                            |      280 |       35 |     88% |133, 142, 147, 572, 582-589, 600-624, 718-734, 745-749 |
 | mongodb\_admin\_cli.py                       |      107 |      107 |      0% |     1-461 |
 | private\_dataset/\_\_init\_\_.py             |        0 |        0 |    100% |           |
 | private\_dataset/in\_memory\_dataset.py      |        9 |        0 |    100% |           |
-| private\_dataset/path\_dataset.py            |       20 |        3 |     85% |     45-51 |
+| private\_dataset/path\_dataset.py            |       19 |        2 |     89% |     45-51 |
 | private\_dataset/private\_dataset.py         |       25 |        0 |    100% |           |
-| private\_dataset/s3\_dataset.py              |       22 |       14 |     36% |26-36, 47-63 |
-| private\_dataset/utils.py                    |       24 |       10 |     58% |     38-61 |
+| private\_dataset/s3\_dataset.py              |       21 |       13 |     38% |26-36, 47-63 |
+| private\_dataset/utils.py                    |       23 |        9 |     61% |     38-60 |
 | tests/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | tests/constants.py                           |        1 |        0 |    100% |           |
-| tests/test\_api.py                           |      238 |        0 |    100% |           |
+| tests/test\_api.py                           |      243 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py             |       52 |        0 |    100% |           |
 | tests/test\_mongodb\_admin.py                |      346 |        0 |    100% |           |
+| tests/test\_mongodb\_admin\_cli.py           |      242 |        0 |    100% |           |
 | utils/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
-| utils/anti\_timing\_att.py                   |       20 |        4 |     80% |37-38, 47-48 |
+| utils/anti\_timing\_att.py                   |       19 |        1 |     95% |        47 |
 | utils/collections\_models.py                 |       43 |        0 |    100% |           |
-| utils/config.py                              |       84 |        6 |     93% |165-166, 209, 234, 245, 255 |
+| utils/config.py                              |       81 |        3 |     96% |165, 245, 255 |
 | utils/error\_handler.py                      |       35 |        3 |     91% |62, 118-119 |
 | utils/example\_inputs.py                     |       15 |        0 |    100% |           |
 | utils/input\_models.py                       |       41 |        0 |    100% |           |
 | utils/loggr.py                               |        5 |        0 |    100% |           |
-| utils/utils.py                               |       29 |        9 |     69% | 33, 71-92 |
+| utils/utils.py                               |       28 |        8 |     71% |     71-92 |
 | uvicorn\_serve.py                            |       10 |       10 |      0% |      1-20 |
-|                                    **TOTAL** | **2314** |  **347** | **85%** |           |
+|                                    **TOTAL** | **2473** |  **268** | **89%** |           |
 
 
 ## Setup coverage badge

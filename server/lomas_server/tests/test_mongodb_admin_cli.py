@@ -359,7 +359,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         # Set may query
-        value = False
+        value = "false"
         self.run_cli_command("set_may_query", ["-u", user, "-v", value])
 
         expected_user = {
@@ -397,8 +397,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test create user collection via YAML file via cli"""
         # Adding two users
         path = "./tests/test_data/test_user_collection.yaml"
-        clean = False
-        overwrite = False
+        clean = "false"
+        overwrite = "false"
         self.run_cli_command(
             "add_users_via_yaml", ["-c", clean, "-o", overwrite, "-yf", path]
         )
@@ -542,9 +542,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.assertEqual(metadata_found, penguin_metadata)
 
         path = "./tests/test_data/test_datasets.yaml"
-        clean = False
-        overwrite_datasets = False
-        overwrite_metadata = False
+        clean = "false"
+        overwrite_datasets = "false"
+        overwrite_metadata = "false"
 
         self.run_cli_command(
             "add_datasets_via_yaml",
@@ -665,11 +665,11 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "--yaml_file",
                 "./tests/test_data/test_datasets.yaml",
                 "--clean",
-                False,
+                "false",
                 "--overwrite_datasets",
-                False,
+                "false",
                 "--overwrite_metadata",
-                False,
+                "false",
             ],
         )
         self.run_cli_command("get_list_of_datasets", [])
@@ -715,11 +715,11 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "--yaml_file",
                 "./tests/test_data/test_datasets.yaml",
                 "--clean",
-                False,
+                "false",
                 "--overwrite_datasets",
-                False,
+                "false",
                 "--overwrite_metadata",
-                False,
+                "false",
             ],
         )
         self.run_cli_command("show_collection", ["-c", "datasets"])

@@ -75,7 +75,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             args (List[str]): A list of arguments for the subcommand.
 
         Raises:
-            ValueError: If the command returns a non-zero exit status, indicating an error.
+            ValueError: If the command returns a non-zero exit status.
         """
         cli_command = (
             ["python", "mongodb_admin_cli.py", command]
@@ -120,9 +120,26 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test adding a user with a dataset via cli"""
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
-        epsilon = 10
+        wrong_epsilon = 10
         delta = 0.02
 
+        # Epsilon must be float
+        with self.assertRaises(TypeError):
+            self.run_cli_command(
+                "add_user_with_budget",
+                [
+                    "--user",
+                    user,
+                    "--dataset",
+                    dataset,
+                    "--epsilon",
+                    wrong_epsilon,
+                    "--delta",
+                    delta,
+                ],
+            )
+
+        epsilon = 10.0
         self.run_cli_command(
             "add_user_with_budget",
             [
@@ -136,6 +153,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 delta,
             ],
         )
+
         expected_user = {  # pylint: disable=duplicate-code
             "user_name": user,
             "may_query": True,
@@ -182,7 +200,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test add dataset to a user via cli"""
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
-        epsilon = 10
+        epsilon = 10.0
         delta = 0.02
 
         self.run_cli_command("add_user", ["--user", user])
@@ -211,7 +229,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         # Adding dataset to existing user with existing dataset should
         # raise and error
-        epsilon = 20
+        epsilon = 20.0
         with self.assertRaises(ValueError):
             self.run_cli_command(
                 "add_dataset_to_user",
@@ -231,7 +249,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Setup: add user with dataset
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
-        epsilon = 10
+        epsilon = 10.0
         delta = 0.02
 
         self.run_cli_command(
@@ -272,7 +290,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Setup: add user with budget
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
-        epsilon = 10
+        epsilon = 10.0
         delta = 0.02
 
         self.run_cli_command(
@@ -329,7 +347,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Setup: add user with budget
         user = "Tintin"
         dataset = "PENGUIN"
-        epsilon = 10
+        epsilon = 10.0
         delta = 0.02
 
         self.run_cli_command(
@@ -364,6 +382,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command("set_may_query", ["-u", user, "-v", value])
 
+    def test_show_user_cli(self) -> None:
+        """Test show user via CLI
+        Does not verify output for not
+        """
+        user = "Milou"
+        self.run_cli_command("add_user", ["-u", user])
+        self.run_cli_command("show_user", ["-u", user])
+
     def test_add_users_via_yaml_cli(self) -> None:
         """Test create user collection via YAML file via cli"""
         # Adding two users
@@ -392,6 +418,38 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         del user_found["_id"]
 
         self.assertEqual(user_found, tintin)
+
+    def test_show_archives_of_user_cli(self) -> None:
+        """Test show archives of user via CLI
+        Does not verify output for not
+        """
+        user = "Milou"
+        self.run_cli_command("add_user", ["-u", user])
+        self.run_cli_command("show_archives_of_user", ["-u", user])
+
+    def test_get_list_of_users_cli(self) -> None:
+        """Test get list of users via CLI
+        Does not verify output for not
+        """
+        self.run_cli_command("get_list_of_users", [])
+
+        self.run_cli_command("add_user", ["-u", "Milou"])
+        self.run_cli_command("add_user", ["-u", "Tintin"])
+        self.run_cli_command("get_list_of_users", [])
+
+    def test_get_list_of_datasets_from_users_cli(self) -> None:
+        """Test get list of users via CLI
+        Does not verify output for not
+        """
+        user = "Milou"
+        self.run_cli_command("add_user", ["-u", user])
+        self.run_cli_command("get_list_of_datasets_from_users", ["-u", user])
+
+        self.run_cli_command(
+            "add_dataset_to_user",
+            ["-u", user, "-d", "os", "-e", 0.1, "-d", 0.001],
+        )
+        self.run_cli_command("get_list_of_datasets_from_users", ["-u", user])
 
     def test_add_local_dataset_cli(self) -> None:
         """Test adding a local dataset via cli"""
@@ -539,6 +597,80 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command("del_dataset", ["--dataset", dataset])
 
+    def test_show_dataset_cli(self) -> None:
+        """Test show dataset
+        Does not verify output for not
+        """
+        dataset = "PENGUIN"
+        with self.assertRaises(ValueError):
+            self.run_cli_command("show_dataset", ["--dataset", dataset])
+
+        self.run_cli_command(
+            "add_dataset",
+            [
+                "--dataset_name",
+                dataset,
+                "--database_type",
+                PrivateDatabaseType.PATH,
+                "--dataset_path",
+                "some_path",
+                "--metadata_database_type",
+                PrivateDatabaseType.PATH,
+                "--metadata_path",
+                "./tests/test_data/metadata/penguin_metadata.yaml",
+            ],
+        )
+        self.run_cli_command("show_dataset", ["--dataset", dataset])
+
+    def test_show_metadata_of_dataset_cli(self) -> None:
+        """Test show metadata_of dataset
+        Does not verify output for not
+        """
+        dataset = "PENGUIN"
+        with self.assertRaises(ValueError):
+            self.run_cli_command(
+                "show_metadata_of_dataset", ["--dataset", dataset]
+            )
+
+        self.run_cli_command(
+            "add_dataset",
+            [
+                "--dataset_name",
+                dataset,
+                "--database_type",
+                PrivateDatabaseType.PATH,
+                "--dataset_path",
+                "some_path",
+                "--metadata_database_type",
+                PrivateDatabaseType.PATH,
+                "--metadata_path",
+                "./tests/test_data/metadata/penguin_metadata.yaml",
+            ],
+        )
+        self.run_cli_command(
+            "show_metadata_of_dataset", ["--dataset", dataset]
+        )
+
+    def test_get_list_of_datasets_cli(self) -> None:
+        """Test get list of datasets via CLI
+        Does not verify output for not
+        """
+        self.run_cli_command("get_list_of_datasets", [])
+        self.run_cli_command(
+            "add_datasets_via_yaml",
+            [
+                "--yaml_file",
+                "./tests/test_data/test_datasets.yaml",
+                "--clean",
+                False,
+                "--overwrite_datasets",
+                False,
+                "--overwrite_metadata",
+                False,
+            ],
+        )
+        self.run_cli_command("get_list_of_datasets", [])
+
     def test_drop_collection_cli(self) -> None:
         """Test drop collection from db via cli"""
         # Setup: add one dataset
@@ -570,3 +702,21 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
+
+    def test_show_collection_cli(self) -> None:
+        """Test show collection from db via CLI"""
+        self.run_cli_command("show_collection", ["-c", "datasets"])
+        self.run_cli_command(
+            "add_datasets_via_yaml",
+            [
+                "--yaml_file",
+                "./tests/test_data/test_datasets.yaml",
+                "--clean",
+                False,
+                "--overwrite_datasets",
+                False,
+                "--overwrite_metadata",
+                False,
+            ],
+        )
+        self.run_cli_command("show_collection", ["-c", "datasets"])

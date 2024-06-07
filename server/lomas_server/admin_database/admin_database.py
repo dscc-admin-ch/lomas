@@ -171,22 +171,6 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def may_user_query(self, user_name: str) -> bool:
-        """
-        Checks if a user may query the server.
-        Cannot query if already querying.
-
-        Wrapped by :py:func:`user_must_exist`.
-
-        Args:
-            user_name (str): name of the user
-
-        Returns:
-            bool: True if the user exists, False otherwise.
-        """
-
-    @abstractmethod
-    @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Sets if a user may query the server..

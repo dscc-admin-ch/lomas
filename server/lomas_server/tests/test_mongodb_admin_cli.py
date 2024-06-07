@@ -440,19 +440,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("add_user", ["-u", "Tintin"])
         self.run_cli_command("get_list_of_users", [])
 
-    def test_get_list_of_datasets_from_users_cli(self) -> None:
+    def test_get_list_of_datasets_from_user_cli(self) -> None:
         """Test get list of users via CLI
         Does not verify output for not
         """
         user = "Milou"
         self.run_cli_command("add_user", ["-u", user])
-        self.run_cli_command("get_list_of_datasets_from_users", ["-u", user])
+        self.run_cli_command("get_list_of_datasets_from_user", ["-u", user])
 
         self.run_cli_command(
             "add_dataset_to_user",
             ["-u", user, "-d", "os", "-e", 0.1, "-del", 0.001],
         )
-        self.run_cli_command("get_list_of_datasets_from_users", ["-u", user])
+        self.run_cli_command("get_list_of_datasets_from_user", ["-u", user])
 
     def test_add_local_dataset_cli(self) -> None:
         """Test adding a local dataset via cli"""

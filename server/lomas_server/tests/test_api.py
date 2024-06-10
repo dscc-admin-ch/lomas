@@ -8,7 +8,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from pymongo.database import Database
 
-from admin_database.utils import get_mongodb
+from admin_database.utils import get_mongodb, database_factory
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -18,6 +18,7 @@ from app import app
 from constants import EPSILON_LIMIT, DPLibraries
 from tests.constants import ENV_MONGO_INTEGRATION
 from utils.config import CONFIG_LOADER
+from utils.error_handler import InternalServerException
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -100,8 +101,23 @@ class TestRootAPIEndpoint(unittest.TestCase):
             drop_collection(self.db, "users")
             drop_collection(self.db, "queries_archives")
 
+    def test_config_and_internal_server_exception(self) -> None:
+        """Test set wrong configuration"""
+        config = CONFIG_LOADER.get_config()
+
+        # Put unknown admin database
+        previous_admin_db = config.admin_database.db_type
+        config.admin_database.db_type = "wrong_db"
+        with self.assertRaises(InternalServerException) as context:
+            database_factory(config.admin_database)
+        self.assertEqual(
+            str(context.exception), "Database type wrong_db not supported."
+        )
+        # Put original state back
+        config.admin_database.db_type = previous_admin_db
+
     def test_state(self) -> None:
-        """_summary_"""
+        """Test state endpoint"""
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK

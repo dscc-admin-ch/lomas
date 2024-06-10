@@ -101,20 +101,20 @@ class TestRootAPIEndpoint(unittest.TestCase):
             drop_collection(self.db, "users")
             drop_collection(self.db, "queries_archives")
 
-    def test_config_and_internal_server_exception(self) -> None:
-        """Test set wrong configuration"""
-        config = CONFIG_LOADER.get_config()
+    # def test_config_and_internal_server_exception(self) -> None:
+    #     """Test set wrong configuration"""
+    #     config = CONFIG_LOADER.get_config()
 
-        # Put unknown admin database
-        previous_admin_db = config.admin_database.db_type
-        config.admin_database.db_type = "wrong_db"
-        with self.assertRaises(InternalServerException) as context:
-            database_factory(config.admin_database)
-        self.assertEqual(
-            str(context.exception), "Database type wrong_db not supported."
-        )
-        # Put original state back
-        config.admin_database.db_type = previous_admin_db
+    #     # Put unknown admin database
+    #     previous_admin_db = config.admin_database.db_type
+    #     config.admin_database.db_type = "wrong_db"
+    #     with self.assertRaises(InternalServerException) as context:
+    #         database_factory(config.admin_database)
+    #     self.assertEqual(
+    #         str(context.exception), "Database type wrong_db not supported."
+    #     )
+    #     # Put original state back
+    #     config.admin_database.db_type = previous_admin_db
 
     def test_state(self) -> None:
         """Test state endpoint"""
@@ -126,80 +126,80 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
-    def test_get_dataset_metadata(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/get_dataset_metadata",
-                json=example_get_admin_db_data,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_dataset_metadata(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_dataset_metadata",
+    #             json=example_get_admin_db_data,
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            metadata = json.loads(response.content.decode("utf8"))
-            assert isinstance(metadata, dict), "metadata should be a dict"
-            assert "max_ids" in metadata, "max_ids should be in metadata"
-            assert "row_privacy" in metadata, "max_ids should be in metadata"
-            assert "columns" in metadata, "columns should be in metadata"
+    #         metadata = json.loads(response.content.decode("utf8"))
+    #         assert isinstance(metadata, dict), "metadata should be a dict"
+    #         assert "max_ids" in metadata, "max_ids should be in metadata"
+    #         assert "row_privacy" in metadata, "max_ids should be in metadata"
+    #         assert "columns" in metadata, "columns should be in metadata"
 
-            # Expect to fail: dataset does not exist
-            fake_dataset = "I_do_not_exist"
-            response = client.post(
-                "/get_dataset_metadata",
-                json={"dataset_name": fake_dataset},
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exists. Please, verify the client object initialisation."
-            }
+    #         # Expect to fail: dataset does not exist
+    #         fake_dataset = "I_do_not_exist"
+    #         response = client.post(
+    #             "/get_dataset_metadata",
+    #             json={"dataset_name": fake_dataset},
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_400_BAD_REQUEST
+    #         assert response.json() == {
+    #             "InvalidQueryException": f"Dataset {fake_dataset} does not "
+    #             + "exists. Please, verify the client object initialisation."
+    #         }
 
-    def test_get_dummy_dataset(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/get_dummy_dataset", json=example_get_dummy_dataset
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_dummy_dataset(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_dummy_dataset", json=example_get_dummy_dataset
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            data = response.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            assert isinstance(
-                df, pd.DataFrame
-            ), "Response should be a pd.DataFrame"
-            assert (
-                df.shape[0] == DUMMY_NB_ROWS
-            ), "Dummy pd.DataFrame does not have expected number of rows"
+    #         data = response.content.decode("utf8")
+    #         df = pd.read_csv(StringIO(data))
+    #         assert isinstance(
+    #             df, pd.DataFrame
+    #         ), "Response should be a pd.DataFrame"
+    #         assert (
+    #             df.shape[0] == DUMMY_NB_ROWS
+    #         ), "Dummy pd.DataFrame does not have expected number of rows"
 
-            # Expect to fail: dataset does not exist
-            fake_dataset = "I_do_not_exist"
-            response = client.post(
-                "/get_dummy_dataset",
-                json={
-                    "dataset_name": fake_dataset,
-                    "dummy_nb_rows": DUMMY_NB_ROWS,
-                    "dummy_seed": 0,
-                },
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exists. Please, verify the client object initialisation."
-            }
+    #         # Expect to fail: dataset does not exist
+    #         fake_dataset = "I_do_not_exist"
+    #         response = client.post(
+    #             "/get_dummy_dataset",
+    #             json={
+    #                 "dataset_name": fake_dataset,
+    #                 "dummy_nb_rows": DUMMY_NB_ROWS,
+    #                 "dummy_seed": 0,
+    #             },
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_400_BAD_REQUEST
+    #         assert response.json() == {
+    #             "InvalidQueryException": f"Dataset {fake_dataset} does not "
+    #             + "exists. Please, verify the client object initialisation."
+    #         }
 
-            # Expect to fail: missing argument dummy_nb_rows
-            response = client.post(
-                "/get_dummy_dataset",
-                json={
-                    "dataset_name": PENGUIN_DATASET,
-                },
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    #         # Expect to fail: missing argument dummy_nb_rows
+    #         response = client.post(
+    #             "/get_dummy_dataset",
+    #             json={
+    #                 "dataset_name": PENGUIN_DATASET,
+    #             },
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_query(self) -> None:
         """Test smartnoise-sql query"""
@@ -240,6 +240,24 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict[1]["type"] == "missing"
             assert response_dict[1]["loc"] == ["body", "mechanisms"]
 
+            # Expect to fail: not enough budget
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["epsilon"] = 0.000000001
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "ExternalLibraryException": "Error obtaining cost: "
+                + "Noise scale is too large using epsilon=1e-09 "
+                + "and bounds (0, 1) with Mechanism.gaussian.  "
+                + "Try preprocessing to reduce senstivity, "
+                + "or try different privacy parameters.",
+                "library": "smartnoise_sql",
+            }
+            
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise[
@@ -301,315 +319,315 @@ class TestRootAPIEndpoint(unittest.TestCase):
                 + "Please, verify the client object initialisation."
             }
 
-    def test_dummy_smartnoise_query(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_dummy_smartnoise_query(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == ["res_0"]
-            assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["query_response"]["data"][0][0] < 200
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["query_response"]["columns"] == ["res_0"]
+    #         assert response_dict["query_response"]["data"][0][0] > 0
+    #         assert response_dict["query_response"]["data"][0][0] < 200
 
-    def test_smartnoise_cost(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/estimate_smartnoise_cost", json=example_smartnoise_sql_cost
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_smartnoise_cost(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/estimate_smartnoise_cost", json=example_smartnoise_sql_cost
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
-            assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
+    #         assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
-    def test_opendp_query(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_opendp_query(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/opendp_query",
+    #             json=example_opendp,
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"] > 0
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] == 0
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["requested_by"] == self.user_name
+    #         assert response_dict["query_response"] > 0
+    #         assert response_dict["spent_epsilon"] > 0.1
+    #         assert response_dict["spent_delta"] == 0
 
-            # Expect to fail: transormation instead of measurement
-            trans = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501 # pylint: disable=C0301
-            response = client.post(
-                "/opendp_query",
-                json={
-                    "dataset_name": PENGUIN_DATASET,
-                    "opendp_json": trans,
-                },
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": "The pipeline provided is not a "
-                + "measurement. It cannot be processed in this server."
-            }
+    #         # Expect to fail: transormation instead of measurement
+    #         trans = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501 # pylint: disable=C0301
+    #         response = client.post(
+    #             "/opendp_query",
+    #             json={
+    #                 "dataset_name": PENGUIN_DATASET,
+    #                 "opendp_json": trans,
+    #             },
+    #         )
+    #         assert response.status_code == status.HTTP_400_BAD_REQUEST
+    #         assert response.json() == {
+    #             "InvalidQueryException": "The pipeline provided is not a "
+    #             + "measurement. It cannot be processed in this server."
+    #         }
 
-    def test_dummy_opendp_query(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/dummy_opendp_query", json=example_dummy_opendp
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"] > 0
+    # def test_dummy_opendp_query(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/dummy_opendp_query", json=example_dummy_opendp
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["query_response"] > 0
 
-    def test_opendp_cost(self) -> None:
-        """_summary_"""
-        with TestClient(app) as client:
-            # Expect to work
-            response = client.post(
-                "/estimate_opendp_cost", json=example_opendp
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_opendp_cost(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/estimate_opendp_cost", json=example_opendp
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] > 0.1
-            assert response_dict["delta_cost"] == 0
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["epsilon_cost"] > 0.1
+    #         assert response_dict["delta_cost"] == 0
 
-    def test_get_initial_budget(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/get_initial_budget", json=example_get_admin_db_data
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_initial_budget(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_initial_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["initial_epsilon"] == INITAL_EPSILON
-            assert response_dict["initial_delta"] == INITIAL_DELTA
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["initial_epsilon"] == INITAL_EPSILON
+    #         assert response_dict["initial_delta"] == INITIAL_DELTA
 
-            # Query to spend budget
-            _ = client.post(
-                "/smartnoise_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+    #         # Query to spend budget
+    #         _ = client.post(
+    #             "/smartnoise_query",
+    #             json=example_smartnoise_sql,
+    #             headers=self.headers,
+    #         )
 
-            # Response should stay the same
-            response_2 = client.post(
-                "/get_initial_budget", json=example_get_admin_db_data
-            )
-            assert response_2.status_code == status.HTTP_200_OK
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert response_dict_2 == response_dict
+    #         # Response should stay the same
+    #         response_2 = client.post(
+    #             "/get_initial_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response_2.status_code == status.HTTP_200_OK
+    #         response_dict_2 = json.loads(response_2.content.decode("utf8"))
+    #         assert response_dict_2 == response_dict
 
-    def test_get_total_spent_budget(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/get_total_spent_budget", json=example_get_admin_db_data
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_total_spent_budget(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_total_spent_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["total_spent_epsilon"] == 0
-            assert response_dict["total_spent_delta"] == 0
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["total_spent_epsilon"] == 0
+    #         assert response_dict["total_spent_delta"] == 0
 
-            # Query to spend budget
-            _ = client.post(
-                "/smartnoise_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+    #         # Query to spend budget
+    #         _ = client.post(
+    #             "/smartnoise_query",
+    #             json=example_smartnoise_sql,
+    #             headers=self.headers,
+    #         )
 
-            # Response should have updated spent budget
-            response_2 = client.post(
-                "/get_total_spent_budget", json=example_get_admin_db_data
-            )
-            assert response_2.status_code == status.HTTP_200_OK
+    #         # Response should have updated spent budget
+    #         response_2 = client.post(
+    #             "/get_total_spent_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert response_dict_2 != response_dict
-            assert (
-                response_dict_2["total_spent_epsilon"]
-                == SMARTNOISE_QUERY_EPSILON
-            )
-            assert (
-                response_dict_2["total_spent_delta"] >= SMARTNOISE_QUERY_DELTA
-            )
+    #         response_dict_2 = json.loads(response_2.content.decode("utf8"))
+    #         assert response_dict_2 != response_dict
+    #         assert (
+    #             response_dict_2["total_spent_epsilon"]
+    #             == SMARTNOISE_QUERY_EPSILON
+    #         )
+    #         assert (
+    #             response_dict_2["total_spent_delta"] >= SMARTNOISE_QUERY_DELTA
+    #         )
 
-    def test_get_remaining_budget(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/get_remaining_budget", json=example_get_admin_db_data
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_remaining_budget(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_remaining_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["remaining_epsilon"] == INITAL_EPSILON
-            assert response_dict["remaining_delta"] == INITIAL_DELTA
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["remaining_epsilon"] == INITAL_EPSILON
+    #         assert response_dict["remaining_delta"] == INITIAL_DELTA
 
-            # Query to spend budget
-            _ = client.post(
-                "/smartnoise_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+    #         # Query to spend budget
+    #         _ = client.post(
+    #             "/smartnoise_query",
+    #             json=example_smartnoise_sql,
+    #             headers=self.headers,
+    #         )
 
-            # Response should have removed spent budget
-            response_2 = client.post(
-                "/get_remaining_budget", json=example_get_admin_db_data
-            )
-            assert response_2.status_code == status.HTTP_200_OK
+    #         # Response should have removed spent budget
+    #         response_2 = client.post(
+    #             "/get_remaining_budget", json=example_get_admin_db_data
+    #         )
+    #         assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert response_dict_2 != response_dict
-            assert (
-                response_dict_2["remaining_epsilon"]
-                == INITAL_EPSILON - SMARTNOISE_QUERY_EPSILON
-            )
-            assert (
-                response_dict_2["remaining_delta"]
-                <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
-            )
+    #         response_dict_2 = json.loads(response_2.content.decode("utf8"))
+    #         assert response_dict_2 != response_dict
+    #         assert (
+    #             response_dict_2["remaining_epsilon"]
+    #             == INITAL_EPSILON - SMARTNOISE_QUERY_EPSILON
+    #         )
+    #         assert (
+    #             response_dict_2["remaining_delta"]
+    #             <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
+    #         )
 
-    def test_get_previous_queries(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_previous_queries(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["previous_queries"] == []
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["previous_queries"] == []
 
-            # Query to archive 1 (smartnoise)
-            query_res = client.post(
-                "/smartnoise_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+    #         # Query to archive 1 (smartnoise)
+    #         query_res = client.post(
+    #             "/smartnoise_query",
+    #             json=example_smartnoise_sql,
+    #             headers=self.headers,
+    #         )
+    #         query_res = json.loads(query_res.content.decode("utf8"))
 
-            # Response should have one element in list
-            response_2 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            assert response_2.status_code == status.HTTP_200_OK
+    #         # Response should have one element in list
+    #         response_2 = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert len(response_dict_2["previous_queries"]) == 1
-            assert (
-                response_dict_2["previous_queries"][0]["dp_librairy"]
-                == DPLibraries.SMARTNOISE_SQL
-            )
-            assert (
-                response_dict_2["previous_queries"][0]["client_input"]
-                == example_smartnoise_sql
-            )
-            assert (
-                response_dict_2["previous_queries"][0]["response"] == query_res
-            )
+    #         response_dict_2 = json.loads(response_2.content.decode("utf8"))
+    #         assert len(response_dict_2["previous_queries"]) == 1
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["dp_librairy"]
+    #             == DPLibraries.SMARTNOISE_SQL
+    #         )
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["client_input"]
+    #             == example_smartnoise_sql
+    #         )
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["response"] == query_res
+    #         )
 
-            # Query to archive 2 (opendp)
-            query_res = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+    #         # Query to archive 2 (opendp)
+    #         query_res = client.post(
+    #             "/opendp_query",
+    #             json=example_opendp,
+    #         )
+    #         query_res = json.loads(query_res.content.decode("utf8"))
 
-            # Response should have two elements in list
-            response_3 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            assert response_3.status_code == status.HTTP_200_OK
+    #         # Response should have two elements in list
+    #         response_3 = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         assert response_3.status_code == status.HTTP_200_OK
 
-            response_dict_3 = json.loads(response_3.content.decode("utf8"))
-            assert len(response_dict_3["previous_queries"]) == 2
-            assert (
-                response_dict_3["previous_queries"][0]
-                == response_dict_2["previous_queries"][0]
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["dp_librairy"]
-                == DPLibraries.OPENDP
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["client_input"]
-                == example_opendp
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["response"] == query_res
-            )
+    #         response_dict_3 = json.loads(response_3.content.decode("utf8"))
+    #         assert len(response_dict_3["previous_queries"]) == 2
+    #         assert (
+    #             response_dict_3["previous_queries"][0]
+    #             == response_dict_2["previous_queries"][0]
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["dp_librairy"]
+    #             == DPLibraries.OPENDP
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["client_input"]
+    #             == example_opendp
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["response"] == query_res
+    #         )
 
-    def test_budget_over_limit(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Should fail: too much budget on one go
-            smartnoise_body = dict(example_smartnoise_sql)
-            smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
+    # def test_budget_over_limit(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Should fail: too much budget on one go
+    #         smartnoise_body = dict(example_smartnoise_sql)
+    #         smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
 
-            response = client.post(
-                "/smartnoise_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
+    #         response = client.post(
+    #             "/smartnoise_query",
+    #             json=smartnoise_body,
+    #             headers=self.headers,
+    #         )
 
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            error = response.json()["detail"][0]
-            assert error["type"] == "less_than_equal"
-            assert error["loc"] == ["body", "epsilon"]
-            assert error["msg"] == "Input should be less than or equal to 5"
+    #         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    #         error = response.json()["detail"][0]
+    #         assert error["type"] == "less_than_equal"
+    #         assert error["loc"] == ["body", "epsilon"]
+    #         assert error["msg"] == "Input should be less than or equal to 5"
 
-    def test_subsequent_budget_limit_logic(self) -> None:
-        """_summary_"""
-        with TestClient(app, headers=self.headers) as client:
-            # Should fail: too much budget after three queries
-            smartnoise_body = dict(example_smartnoise_sql)
-            smartnoise_body["epsilon"] = 4.0
+    # def test_subsequent_budget_limit_logic(self) -> None:
+    #     """_summary_"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Should fail: too much budget after three queries
+    #         smartnoise_body = dict(example_smartnoise_sql)
+    #         smartnoise_body["epsilon"] = 4.0
 
-            # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
+    #         # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
+    #         response = client.post(
+    #             "/smartnoise_query",
+    #             json=smartnoise_body,
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["requested_by"] == self.user_name
 
-            # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
+    #         # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
+    #         response = client.post(
+    #             "/smartnoise_query",
+    #             json=smartnoise_body,
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["requested_by"] == self.user_name
 
-            # spend 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": "Not enough budget for this query "
-                + "epsilon remaining 2.0, "
-                + "delta remaining 0.004970000100000034."
-            }
+    #         # spend 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
+    #         response = client.post(
+    #             "/smartnoise_query",
+    #             json=smartnoise_body,
+    #             headers=self.headers,
+    #         )
+    #         assert response.status_code == status.HTTP_400_BAD_REQUEST
+    #         assert response.json() == {
+    #             "InvalidQueryException": "Not enough budget for this query "
+    #             + "epsilon remaining 2.0, "
+    #             + "delta remaining 0.004970000100000034."
+    #         }

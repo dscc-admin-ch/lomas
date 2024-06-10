@@ -9,7 +9,7 @@ runtime_args:
       reload: True
       workers: 1 # Will be overwritten to one anyway for now.
       time_attack:
-        method: "jitter" # or "stall"
+        method: "stall"
         magnitude: 1
     admin_database:
       db_type: "yaml"

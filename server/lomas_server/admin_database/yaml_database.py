@@ -79,25 +79,6 @@ class AdminYamlDatabase(AdminDatabase):
         return metadata
 
     @user_must_exist
-    def may_user_query(self, user_name: str) -> bool:
-        """Checks if a user may query the server.
-        Cannot query if already querying.
-
-        Wrapped by :py:func:`user_must_exist`.
-
-        Args:
-            user_name (str): name of the user
-
-        Returns:
-            bool: True if the user exists, False otherwise.
-        """
-        for user in self.database["users"]:
-            if user["user_name"] == user_name:
-                return user["may_query"]
-        # if user not found, return false
-        return False
-
-    @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """Sets if a user may query the server.
 

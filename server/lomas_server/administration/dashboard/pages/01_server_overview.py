@@ -107,6 +107,7 @@ with tab_3:
         st.write(
             "The maximum memory usage is: ",
             st.session_state.config.dataset_store.max_memory_usage,
+            "MB.",
         )
         memory_usage_response = requests.get(
             f"{FASTAPI_ADDRESS}/get_memory_usage", timeout=50
@@ -116,4 +117,5 @@ with tab_3:
             st.write(
                 "Current memory usage with loaded datasets: ",
                 memory["memory_usage"],
+                "MB.",
             )

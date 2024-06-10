@@ -444,7 +444,7 @@ def add_users_via_yaml(
         if overwrite:
             for user in existing_users:
                 user_filter = {"user_name": user.user_name}
-                update_operation = {"$set": user.dict()}
+                update_operation = {"$set": user.model_dump()}
                 res: _WriteResult = db.users.update_many(
                     user_filter, update_operation
                 )
@@ -458,7 +458,7 @@ def add_users_via_yaml(
 
     if new_users:
         # Insert new users
-        new_users_dicts = [user.dict() for user in new_users]
+        new_users_dicts = [user.model_dump() for user in new_users]
         res = db.users.insert_many(new_users_dicts)
         check_result_acknowledged(res)
         LOG.info("Added user data from yaml.")
@@ -512,15 +512,11 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
         user_datasets (list): list of names of all users
     """
     user_data = db.users.find_one({"user_name": user})
-    if user_data:
-        LOG.info(
-            [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
-        )
-        return [
-            dataset["dataset_name"] for dataset in user_data["datasets_list"]
-        ]
-    LOG.info([])
-    return []
+    assert user_data is not None, "User must exist"
+    LOG.info(
+        [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
+    )
+    return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
@@ -690,7 +686,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         if overwrite_datasets:
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d.dataset_name}
-                update_operation = {"$set": d.dict()}
+                update_operation = {"$set": d.model_dump()}
                 res: _WriteResult = db.datasets.update_many(
                     dataset_filter, update_operation
                 )
@@ -704,7 +700,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
     # Add dataset collection
     if new_datasets:
-        new_datasets_dicts = [d.dict() for d in new_datasets]
+        new_datasets_dicts = [d.model_dump() for d in new_datasets]
         res = db.datasets.insert_many(new_datasets_dicts)
         check_result_acknowledged(res)
         LOG.info("Added datasets collection from yaml.")
@@ -810,14 +806,12 @@ def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """
     # Retrieve the document containing metadata for the specified dataset
     metadata_document = db.metadata.find_one({dataset: {"$exists": True}})
+    assert metadata_document is not None, "Metadata must exist"
 
-    if metadata_document:
-        # Extract metadata for the specified dataset
-        metadata_info = metadata_document[dataset]
-        LOG.info(metadata_info)
-        return metadata_info
-
-    raise ValueError(f"No metadata found for dataset: {dataset}")
+    # Extract metadata for the specified dataset
+    metadata_info = metadata_document[dataset]
+    LOG.info(metadata_info)
+    return metadata_info
 
 
 def get_list_of_datasets(db: Database) -> list:
@@ -862,9 +856,6 @@ def show_collection(db: Database, collection: str) -> list:
         None
     """
     collection_query = db[collection].find({})
-    if not collection_query:
-        return []
-
     collections = []
     for document in collection_query:
         document.pop("_id", None)

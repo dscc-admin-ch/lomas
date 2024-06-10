@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     # Function: Show Archives of User
     show_archives_parser = subparsers.add_parser(
-        "show_archives",
+        "show_archives_of_user",
         help="show all previous queries from a user",
         parents=[connection_parser],
     )
@@ -205,7 +205,7 @@ if __name__ == "__main__":
 
     # Function: Get List of Users
     get_users_parser = subparsers.add_parser(
-        "get_users",
+        "get_list_of_users",
         help="get the list of all users in 'users' collection",
         parents=[connection_parser],
     )
@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     # Function: Get List of Datasets from User
     get_user_datasets_parser = subparsers.add_parser(
-        "get_user_datasets",
+        "get_list_of_datasets_from_user",
         help="get the list of all datasets from a user",
         parents=[connection_parser],
     )
@@ -334,7 +334,7 @@ if __name__ == "__main__":
 
     # Function: Show Metadata of Dataset
     show_metadata_parser = subparsers.add_parser(
-        "show_metadata",
+        "show_metadata_of_dataset",
         help="show metadata from the metadata collection",
         parents=[connection_parser],
     )
@@ -349,7 +349,7 @@ if __name__ == "__main__":
 
     # Function: Get List of Datasets
     get_datasets_parser = subparsers.add_parser(
-        "get_datasets",
+        "get_list_of_datasets",
         help="get the list of all datasets in 'datasets' collection",
         parents=[connection_parser],
     )

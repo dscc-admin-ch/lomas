@@ -2,10 +2,9 @@ name: Server Integration Testing
 
 on: 
   pull_request:
-    branches: [ develop, master ]
   push:
     branches:
-      - develop
+      - master
   workflow_dispatch:
   
 jobs:

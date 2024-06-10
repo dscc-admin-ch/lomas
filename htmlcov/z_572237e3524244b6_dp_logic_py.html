@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for dp_queries/dp_logic.py: 94%</title>
+    <title>Coverage for dp_queries/dp_logic.py: 98%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>dp_queries/dp_logic.py</b>:
-            <span class="pc_cov">94%</span>
+            <span class="pc_cov">98%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,10 +54,10 @@
             </div>
         </aside>
         <h2>
-            <span class="text">48 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">45<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">3<span class="text"> missing</span></button>
-            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">5<span class="text"> excluded</span></button>
+            <span class="text">43 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">42<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">1<span class="text"> missing</span></button>
+            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">10<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_6c32e44bb3022807_utils_py.html">&#xab; prev</a> &nbsp; &nbsp;
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_572237e3524244b6_dp_querier_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.5.3">coverage.py v7.5.3</a>,
-            created at 2024-06-07 12:11 +0000
+            created at 2024-06-10 08:46 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -155,7 +155,7 @@
     <p class="pln"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">        <span class="key">except</span> <span class="nam">InvalidQueryException</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">            <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t">            <span class="key">raise</span> <span class="nam">InternalServerException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t">                <span class="str">"Failed to get querier for dataset "</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t">                <span class="op">+</span> <span class="fst">f"</span><span class="op">{</span><span class="nam">query_json</span><span class="op">.</span><span class="nam">dataset_name</span><span class="op">}</span><span class="fst">: </span><span class="op">{</span><span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">}</span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
@@ -258,7 +258,7 @@
     <p class="run"><span class="n"><a id="t176" href="#t176">176</a></span><span class="t">                <span class="nam">query_response</span> <span class="op">=</span> <span class="nam">dp_querier</span><span class="op">.</span><span class="nam">query</span><span class="op">(</span><span class="nam">query_json</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t177" href="#t177">177</a></span><span class="t">            <span class="key">except</span> <span class="nam">CUSTOM_EXCEPTIONS</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t178" href="#t178">178</a></span><span class="t">                <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t179" href="#t179">179</a></span><span class="t">            <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t179" href="#t179">179</a></span><span class="t">            <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t180" href="#t180">180</a></span><span class="t">                <span class="key">raise</span> <span class="nam">InternalServerException</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span> <span class="key">from</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t181" href="#t181">181</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t182" href="#t182">182</a></span><span class="t">            <span class="com"># Deduce budget from user</span>&nbsp;</span><span class="r"></span></p>
@@ -275,9 +275,9 @@
     <p class="pln"><span class="n"><a id="t193" href="#t193">193</a></span><span class="t">            <span class="com"># Add query to db (for archive)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t194" href="#t194">194</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">admin_database</span><span class="op">.</span><span class="nam">save_query</span><span class="op">(</span><span class="nam">user_name</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">,</span> <span class="nam">response</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t195" href="#t195">195</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t196" href="#t196">196</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t197" href="#t197">197</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">admin_database</span><span class="op">.</span><span class="nam">set_may_user_query</span><span class="op">(</span><span class="nam">user_name</span><span class="op">,</span> <span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">            <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t196" href="#t196">196</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t197" href="#t197">197</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">admin_database</span><span class="op">.</span><span class="nam">set_may_user_query</span><span class="op">(</span><span class="nam">user_name</span><span class="op">,</span> <span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">            <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t199" href="#t199">199</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">        <span class="com"># Re-enable user to query</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">admin_database</span><span class="op">.</span><span class="nam">set_may_user_query</span><span class="op">(</span><span class="nam">user_name</span><span class="op">,</span> <span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -293,7 +293,7 @@
             <a class="nav" href="z_572237e3524244b6_dp_querier_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.5.3">coverage.py v7.5.3</a>,
-            created at 2024-06-07 12:11 +0000
+            created at 2024-06-10 08:46 +0000
         </p>
     </div>
 </footer>

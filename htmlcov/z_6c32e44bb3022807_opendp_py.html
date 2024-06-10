@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for dp_queries/dp_libraries/opendp.py: 64%</title>
+    <title>Coverage for dp_queries/dp_libraries/opendp.py: 74%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>dp_queries/dp_libraries/opendp.py</b>:
-            <span class="pc_cov">64%</span>
+            <span class="pc_cov">74%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,10 +54,10 @@
             </div>
         </aside>
         <h2>
-            <span class="text">70 statements &nbsp;</span>
+            <span class="text">61 statements &nbsp;</span>
             <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">45<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">25<span class="text"> missing</span></button>
-            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">3<span class="text"> excluded</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">16<span class="text"> missing</span></button>
+            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">12<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_c5f248a6a7f10a78_utils_py.html">&#xab; prev</a> &nbsp; &nbsp;
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_6c32e44bb3022807_smartnoise_sql_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.5.3">coverage.py v7.5.3</a>,
-            created at 2024-06-07 12:11 +0000
+            created at 2024-06-10 08:46 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -137,15 +137,15 @@
     <p class="mis show_mis"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">        <span class="key">except</span> <span class="nam">TypeError</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">            <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">                <span class="nam">cost</span> <span class="op">=</span> <span class="nam">opendp_pipe</span><span class="op">.</span><span class="nam">map</span><span class="op">(</span><span class="nam">d_in</span><span class="op">=</span><span class="nam">float</span><span class="op">(</span><span class="nam">max_ids</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">            <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">                <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t">                <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">            <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">                <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t">                <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">                    <span class="nam">DPLibraries</span><span class="op">.</span><span class="nam">OPENDP</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">                    <span class="str">"Error obtaining cost:"</span> <span class="op">+</span> <span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">                <span class="op">)</span> <span class="key">from</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">            <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">            <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">                <span class="nam">DPLibraries</span><span class="op">.</span><span class="nam">OPENDP</span><span class="op">,</span> <span class="str">"Error obtaining cost:"</span> <span class="op">+</span> <span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">            <span class="op">)</span> <span class="key">from</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -193,9 +193,9 @@
     <p class="pln"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">        <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">            <span class="nam">release_data</span> <span class="op">=</span> <span class="nam">opendp_pipe</span><span class="op">(</span><span class="nam">input_data</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">            <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t116" href="#t116">116</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">        <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">            <span class="nam">LOG</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t116" href="#t116">116</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ExternalLibraryException</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t117" href="#t117">117</a></span><span class="t">                <span class="nam">DPLibraries</span><span class="op">.</span><span class="nam">OPENDP</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t118" href="#t118">118</a></span><span class="t">                <span class="str">"Error executing query:"</span> <span class="op">+</span> <span class="nam">str</span><span class="op">(</span><span class="nam">e</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t119" href="#t119">119</a></span><span class="t">            <span class="op">)</span> <span class="key">from</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
@@ -285,7 +285,7 @@
             <a class="nav" href="z_6c32e44bb3022807_smartnoise_sql_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.5.3">coverage.py v7.5.3</a>,
-            created at 2024-06-07 12:11 +0000
+            created at 2024-06-10 08:46 +0000
         </p>
     </div>
 </footer>

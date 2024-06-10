@@ -168,7 +168,7 @@ class AdminYamlDatabase(AdminDatabase):
                 for dataset in user["datasets_list"]:
                     if dataset["dataset_name"] == dataset_name:
                         return dataset[parameter]
-        return False  # pragma: no cover
+        return False
 
     def update_epsilon_or_delta(
         self,

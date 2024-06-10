@@ -1,4 +1,6 @@
-poc_server/*
+server/lomas_server/tests/test_data/local_db_file_*
+server/lomas_server/.streamlit/*
+client/notebooks/personal_notebooks/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

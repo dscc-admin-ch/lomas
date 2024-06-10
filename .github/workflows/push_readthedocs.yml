@@ -1,0 +1,62 @@
+name: Generate docs and push to dedicated repo for publishing
+
+on: 
+  push: 
+    branches: [ develop, master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up Python 11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        cd client
+        pip install -r requirements.txt
+        cd ../server
+        pip install -r requirements.txt
+        cd ../
+
+    - name: Build with sphinx
+      run: |
+        if [ ! -d "docs/source/_static" ]; then
+          mkdir docs/source/_static
+        fi
+        sudo apt-get install pandoc
+        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser        
+        cd docs
+        python3.11 build_docs.py
+        cd ../pages/
+        ls
+    - name: Pushes to another repository (develop)
+      if: github.ref == 'refs/heads/develop'
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+      with:
+        source-directory: pages/develop
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'lomas-docs'
+        target-branch: main
+        target-directory: html/develop
+
+    - name: Pushes to another repository (master)
+      if: github.ref == 'refs/heads/master'
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+      with:
+        source-directory: pages
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'lomas-docs'
+        target-branch: main
+        target-directory: html
+
+    

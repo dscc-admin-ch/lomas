@@ -17,8 +17,12 @@ try:
     if "dashboard_config" not in st.session_state:
         # Store dashboard config
         st.session_state["dashboard_config"] = get_config()
-        FASTAPI_URL = st.session_state.dashboard_config.server_url
-        FASTAPI_ADDRESS = st.session_state.dashboard_config.server_service
+        st.session_state["fastapi_url"] = (
+            st.session_state.dashboard_config.server_url
+        )
+        st.session_state["fastapi_address"] = (
+            st.session_state.dashboard_config.server_service
+        )
 except Exception as e:
     st.error(
         f"Failed to load server or dashboard config. Initial exception: {e}"
@@ -34,10 +38,12 @@ st.set_page_config(layout="wide")
 st.title("Lomas configurations")
 
 st.write(
-    f"The server is available for requests at the address: {FASTAPI_URL}/"
+    f"The server is available for requests at the address: {st.session_state.fastapi_url}/"
 )
 
-response = requests.get(f"{FASTAPI_ADDRESS}/state", timeout=50)
+response = requests.get(
+    f"{st.session_state.fastapi_address}/state", timeout=50
+)
 if response.status_code == 200:
     response_data = response.json()
     if response_data["state"]["LIVE"]:
@@ -110,7 +116,7 @@ with tab_3:
             "MB.",
         )
         memory_usage_response = requests.get(
-            f"{FASTAPI_ADDRESS}/get_memory_usage", timeout=50
+            f"{st.session_state.fastapi_address}/get_memory_usage", timeout=50
         )
         if memory_usage_response.status_code == 200:
             memory = memory_usage_response.json()

@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - wip_235_fix-dashboard
   workflow_dispatch:
   
 jobs:

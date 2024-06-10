@@ -2,7 +2,7 @@ name: Generate docs and push to dedicated repo for publishing
 
 on: 
   push: 
-    branches: [ develop ]
+    branches: [ develop, master ]
 
 jobs:
   build:
@@ -29,25 +29,34 @@ jobs:
         if [ ! -d "docs/source/_static" ]; then
           mkdir docs/source/_static
         fi
-        cp images/lomas_logo_txt.png docs/source/_static/logo.png
         sudo apt-get install pandoc
-        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon
-        sphinx-apidoc -o docs/source ./client/lomas_client/ --tocfile client_modules
-        sphinx-apidoc -o docs/source ./server/lomas_server/ --tocfile server_modules
-        mkdir docs/source/notebooks
-        cp -r client/notebooks/* docs/source/notebooks
-        cp -r server/notebooks/* docs/source/notebooks
+        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser        
         cd docs
-        make html
-        cd build/html/
+        python3.11 build_docs.py
+        cd ../pages/
         ls
-    - name: Pushes to another repository
+    - name: Pushes to another repository (develop)
+      if: github.ref == 'refs/heads/develop'
       uses: cpina/github-action-push-to-another-repository@main
       env:
         SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
       with:
-        source-directory: docs/build/html/
+        source-directory: pages/develop
         destination-github-username: 'dscc-admin-ch'
         destination-repository-name: 'lomas-docs'
         target-branch: main
-        target-directory: html/
+        target-directory: html/develop
+
+    - name: Pushes to another repository (master)
+      if: github.ref == 'refs/heads/master'
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+      with:
+        source-directory: pages
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'lomas-docs'
+        target-branch: main
+        target-directory: html
+
+    

@@ -2,6 +2,9 @@
 <img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
 </h1><br>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
+[![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas-docs/index.html)
 
 [![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/dscc-admin-ch/lomas/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
@@ -11,14 +14,18 @@
 # Lomas Platform
 
 The lomas platform follows a classic server/client model.
-On the client side, the researcher prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The researcher never has direct access to the sensitive data.
+On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
 On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
-The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.# Lomas Platform
+The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
 
-The lomas platform follows a classic server/client model.
+
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
-See our white paper (TODO link) for detailed explanation of the platform.
 
+<!-- See our white paper (TODO link) for detailed explanation of the platform. -->
+## Useful links
+
+* **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+* **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
 
 ## Client package `lomas_client`
 
@@ -32,7 +39,7 @@ For additional informations about the client, please see the [README.md](https:/
 ## Server
 
 The server side, implemented in a micro-service architecture, is composed of two main services:
-- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (researcher) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
+- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
 - A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
 
 The server connects to external databases, typically deployed by a data owner, to download the sensitive datasets for query execution. Currently, the server can manage adapters to S3, http file download and local files.

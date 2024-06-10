@@ -13,7 +13,7 @@ pip install lomas_client
 ### Simple introduction to clien use
 
 #### Creat Client object:
-Once the library is installed, a Client object must be created. To create the client, the researcher needs to give it a few parameters:
+Once the library is installed, a Client object must be created. To create the client, the user needs to give it a few parameters:
 - a url: the root application endpoint to the remote secure server.
 - a user_name: her name as registered in the database (Emilie)
 - a dataset_name: the name of the dataset that she wants to query (PENGUIN)
@@ -43,24 +43,27 @@ df_dummy = client.get_dummy_dataset(nb_rows = 200, seed = 1)
 She can query on the sensitive dataset using smartnoise-sql library in the back-end with the following method:
 ```python
 response = client.smartnoise_query(
-    query = ""SELECT COUNT(*) AS nb_penguins FROM Schema.Table"",  
+    query = ""SELECT COUNT(*) AS nb_penguins FROM df"",  
     epsilon = 0.1, 
     delta = 0.00001,
     dummy = False # Optionnal
 )
 ```
-To query on a dummy dataset for testing purposes she can set the summy flag to True (see notebooks or white paper for further explanations).
+To query on a dummy dataset for testing purposes she can set the dummy flag to True (see notebooks or white paper for further explanations).
+NOTE: the 'FROM' of the SQL query must be followed by 'df' for the command to work.
 
 ####  Get smartnoise-sql query cost
 In SmartnoiseSQL, the budget that will by used by a query might be different than what is asked by the user. The estimate cost function returns the estimated real cost of any query.
 ```python
 real_cost_epsilon, real_cost_delta = client.estimate_smartnoise_cost(
-    query = "SELECT COUNT(*) AS nb_penguins FROM Schema.Table", 
+    query = "SELECT COUNT(*) AS nb_penguins FROM df", 
     epsilon = 0.1, 
     delta = 0.000001
 )
 ```
 Usually real_cost_epsilon > input_epsilon and real_cost_delta > delta.
+NOTE: the 'FROM' of the SQL query must be followed by 'df' for the command to work.
+
 
 #### Query opendp
 She can query on the sensitive dataset using opendp library in the back-end with the following method:
@@ -93,7 +96,7 @@ real_cost_epsilon, real_cost_delta = client.estimate_opendp_cost(opendp_pipeline
 
 
 #### Get budget information
-There are various for the researcher to track her budget:
+There are various functions for the user to track her budget:
 - get\_initial\_budget() retrieves the initial budget that was allocated to her by the platform administrator.
 - get\_total\_spent\_budget() provides the total amount spent from the budget (accumulated from all previous queries).
 - get\_remaining\_budget() returns the remaining budget available for future queries. It is the difference between the initial budget and the total spent budget.
@@ -115,12 +118,8 @@ previous_queries = client.get_previous_queries()
 
 
 ### Examples
-To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin/lomas/blob/develop/client) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin/lomas/blob/develop/client/notebooks/Demo_Client_Notebook.ipynb).
+To see detailed examples of the library, many notebooks are available  in the [client](https://github.com/dscc-admin-ch/lomas/tree/master/client/notebooks) folder. For instance, refer to [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/client/notebooks/Demo_Client_Notebook.ipynb).
 
 
 ### More detailed documentation
-To see a more detailed documentation, clone the repo go to `lomas_client/client/docs/html` and run:
-```
-start .\index.html
-```
-(in windows) and the doc page will open!
+More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-client-docs/). 

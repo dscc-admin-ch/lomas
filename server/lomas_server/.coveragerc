@@ -1,0 +1,12 @@
+[run]
+relative_files = true
+omit =
+    mongodb_admin_cli.py
+
+[report]
+exclude_lines =
+    ^\s*except\s+InternalServerException
+    ^\s*raise\s+InternalServerException
+    ^\s*except\s+CUSTOM_EXCEPTIONS
+    ^\s*except\s+Exception
+    ^\s*case _:

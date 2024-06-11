@@ -22,7 +22,7 @@ def build_doc(version,
     subprocess.run("mkdir ./source/notebooks", shell=True)
     subprocess.run("cp -r ../client/notebooks/* ./source/notebooks", shell=True)
     subprocess.run("cp -r ../server/notebooks/* ./source/notebooks", shell=True)
-    os.environ['SPHINXOPTS'] = "-D language='{}'".format(language)
+    # os.environ['SPHINXOPTS'] = "-D language='{}'".format(language)
     subprocess.run("make html", shell=True)    
 
 # a move dir method because we run multiple builds and bring the html folders to a 

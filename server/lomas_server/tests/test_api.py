@@ -8,16 +8,17 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from pymongo.database import Database
 
-from admin_database.utils import get_mongodb
+from admin_database.utils import get_mongodb, database_factory
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
 from app import app
-from constants import EPSILON_LIMIT, DPLibraries
+from constants import DatasetStoreType, EPSILON_LIMIT, DPLibraries
 from tests.constants import ENV_MONGO_INTEGRATION
 from utils.config import CONFIG_LOADER
+from utils.error_handler import InternalServerException
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -36,7 +37,7 @@ INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
 
 
-class TestRootAPIEndpoint(unittest.TestCase):
+class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     """
     End-to-end tests of the api endpoints.
 
@@ -100,8 +101,23 @@ class TestRootAPIEndpoint(unittest.TestCase):
             drop_collection(self.db, "users")
             drop_collection(self.db, "queries_archives")
 
+    def test_config_and_internal_server_exception(self) -> None:
+        """Test set wrong configuration"""
+        config = CONFIG_LOADER.get_config()
+
+        # Put unknown admin database
+        previous_admin_db = config.admin_database.db_type
+        config.admin_database.db_type = "wrong_db"
+        with self.assertRaises(InternalServerException) as context:
+            database_factory(config.admin_database)
+        self.assertEqual(
+            str(context.exception), "Database type wrong_db not supported."
+        )
+        # Put original state back
+        config.admin_database.db_type = previous_admin_db
+
     def test_state(self) -> None:
-        """_summary_"""
+        """Test state endpoint"""
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK
@@ -109,6 +125,36 @@ class TestRootAPIEndpoint(unittest.TestCase):
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
+
+    def test_memory_usage(self) -> None:
+        """Test memory usage endpoint"""
+        with TestClient(app, headers=self.headers) as client:
+            config = CONFIG_LOADER.get_config()
+            if config.dataset_store.ds_store_type == DatasetStoreType.LRU:
+                # Test before adding data
+                response = client.get(
+                    "/get_memory_usage", headers=self.headers
+                )
+                assert response.status_code == status.HTTP_200_OK
+
+                response_dict = json.loads(response.content.decode("utf8"))
+                assert response_dict["memory_usage"] == 0
+
+                # Test after adding data
+                response = client.post(
+                    "/smartnoise_query",
+                    json=example_smartnoise_sql,
+                    headers=self.headers,
+                )
+                assert response.status_code == status.HTTP_200_OK
+
+                response = client.get(
+                    "/get_memory_usage", headers=self.headers
+                )
+                assert response.status_code == status.HTTP_200_OK
+
+                response_dict = json.loads(response.content.decode("utf8"))
+                assert response_dict["memory_usage"] > 0
 
     def test_get_dataset_metadata(self) -> None:
         """_summary_"""
@@ -223,6 +269,24 @@ class TestRootAPIEndpoint(unittest.TestCase):
             assert response_dict[0]["loc"] == ["body", "delta"]
             assert response_dict[1]["type"] == "missing"
             assert response_dict[1]["loc"] == ["body", "mechanisms"]
+
+            # Expect to fail: not enough budget
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["epsilon"] = 0.000000001
+            response = client.post(
+                "/smartnoise_query",
+                json=input_smartnoise,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "ExternalLibraryException": "Error obtaining cost: "
+                + "Noise scale is too large using epsilon=1e-09 "
+                + "and bounds (0, 1) with Mechanism.gaussian.  "
+                + "Try preprocessing to reduce senstivity, "
+                + "or try different privacy parameters.",
+                "library": "smartnoise_sql",
+            }
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)

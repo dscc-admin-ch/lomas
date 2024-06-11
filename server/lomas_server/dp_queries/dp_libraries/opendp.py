@@ -1,3 +1,5 @@
+from typing import List, Union
+
 import opendp as dp
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
@@ -89,7 +91,7 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPInp) -> str:
+    def query(self, query_json: OpenDPInp) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:
@@ -100,8 +102,7 @@ class OpenDPQuerier(DPQuerier):
                 external to this package.
 
         Returns:
-            TODO Check this, probably float or int.
-            str: The JSON encoded string representation of the query result.
+            (Union[List, int, float]) query result
         """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
@@ -117,10 +118,6 @@ class OpenDPQuerier(DPQuerier):
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
             ) from e
-
-        # Note: leaving this here, support for opendp_polars
-        # if isinstance(release_data, polars.dataframe.frame.DataFrame):
-        #     release_data = release_data.write_json(file=None)
 
         return release_data
 

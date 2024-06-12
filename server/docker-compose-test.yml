@@ -36,7 +36,7 @@ services:
     depends_on:
       - minio
     entrypoint: /bin/sh -c "
-      sleep 5 && 
+      sleep 15 && 
       mc alias set myminio http://minio:9000 admin admin123 && 
       mc mb myminio/example || true && 
       mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv

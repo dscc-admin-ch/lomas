@@ -1,8 +1,8 @@
-"master":
-  tag: 'master'
-  languages: 
-    - "en"
 "develop":
   tag: 'develop' 
   languages: 
     - "en"
+# "0.1.0":
+#   tag: "0.1.0"
+#   languages:
+#   - "en"

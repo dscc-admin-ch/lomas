@@ -32,8 +32,8 @@
 | private\_dataset/in\_memory\_dataset.py      |        9 |        0 |    100% |           |
 | private\_dataset/path\_dataset.py            |       18 |        1 |     94% |        51 |
 | private\_dataset/private\_dataset.py         |       25 |        0 |    100% |           |
-| private\_dataset/s3\_dataset.py              |       20 |       12 |     40% |26-36, 47-63 |
-| private\_dataset/utils.py                    |       22 |        8 |     64% |     38-59 |
+| private\_dataset/s3\_dataset.py              |       20 |        0 |    100% |           |
+| private\_dataset/utils.py                    |       22 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | tests/constants.py                           |        4 |        0 |    100% |           |
 | tests/test\_api.py                           |      287 |        1 |     99% |        96 |
@@ -49,7 +49,7 @@
 | utils/input\_models.py                       |       41 |        0 |    100% |           |
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       28 |        0 |    100% |           |
-|                                    **TOTAL** | **2435** |   **67** | **97%** |           |
+|                                    **TOTAL** | **2435** |   **47** | **98%** |           |
 
 
 ## Setup coverage badge

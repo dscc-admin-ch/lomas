@@ -19,6 +19,8 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+    networks:
+      - test-network
   minio:
     container_name: minio
     image: minio/minio
@@ -31,6 +33,8 @@ services:
       - "9000:9000"
     volumes:
       - minio-data:/data
+    networks:
+      - test-network
   minio-client:
     image: minio/mc
     depends_on:
@@ -43,5 +47,11 @@ services:
       mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml"
     volumes:
       - ./lomas_server/tests/test_data/:/data
+    networks:
+      - test-network
+networks:
+  test-network:
+    driver: bridge
+
 volumes:
   minio-data:

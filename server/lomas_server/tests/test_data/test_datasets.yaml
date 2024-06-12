@@ -11,3 +11,17 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
+- dataset_name: "TITANIC"
+  database_type: "S3_DB"
+  s3_bucket: "example"
+  s3_key: "data/titanic.csv"
+  endpoint_url: "https://api-lomas-minio.lab.sspcloud.fr"
+  aws_access_key_id: "admin"
+  aws_secret_access_key: "admin123"
+  metadata:
+    database_type: "S3_DB"
+    s3_bucket: "example"
+    s3_key: "metadata/titanic_metadata.yaml"
+    endpoint_url: "https://api-lomas-minio.lab.sspcloud.fr"
+    aws_access_key_id: "admin"
+    aws_secret_access_key: "admin123"

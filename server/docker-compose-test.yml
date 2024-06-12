@@ -6,7 +6,6 @@ services:
     # The reason has to do with permissions (see https://stackoverflow.com/questions/29245216/write-in-shared-volumes-docker/29251160#29251160)
     # Still unclear why just setting chmod 777 ./data does not solve the issue.
     #user: 1000:1000
-    network_mode: "host"
     ports:
       - 127.0.0.1:27017:27017
     volumes:
@@ -26,8 +25,8 @@ services:
     image: minio/minio
     command: server /data
     environment:
-      - MINIO_ACCESS_KEY=admin
-      - MINIO_SECRET_KEY=admin123
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin123
       - ENDPOINT_URL=http://minio:9000
     ports:
       - "9000:9000"
@@ -36,6 +35,7 @@ services:
     networks:
       - test-network
   minio-client:
+    container_name: minio-client
     image: minio/mc
     depends_on:
       - minio
@@ -43,8 +43,9 @@ services:
       sleep 15 && 
       mc alias set myminio http://minio:9000 admin admin123 && 
       mc mb myminio/example || true && 
-      mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv
-      mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml"
+      mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv &&
+      mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml &&
+      mc ls --recursive --versions myminio/example"
     volumes:
       - ./lomas_server/tests/test_data/:/data
     networks:

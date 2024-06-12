@@ -2,8 +2,6 @@
 
 docker compose -f docker-compose-test.yml up --detach
 
-docker run --network="host" --rm minio/mc ls myminio/example
-
 sleep 15
 
 cd ./lomas_server

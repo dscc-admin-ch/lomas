@@ -42,6 +42,6 @@ services:
       mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv
       mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml"
     volumes:
-      - lomas_server/tests/test_data/:/data
+      - ./lomas_server/tests/test_data/:/data
 volumes:
   minio-data:

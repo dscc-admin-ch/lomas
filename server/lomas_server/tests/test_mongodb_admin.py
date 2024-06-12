@@ -593,15 +593,15 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
         """Test adding a dataset stored on S3"""
 
-        dataset = "TITANIC"
+        dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
         s3_bucket = "example"
-        endpoint_url = "https://api-lomas-minio.lab.sspcloud.fr"
+        endpoint_url = "http://minio:9000"
         aws_access_key_id = "admin"
         aws_secret_access_key = "admin123"
-        s3_key_file = "data/titanic.csv"
-        s3_key_metadata = "data/titanic.csv"
+        s3_key_file = "data/test_penguin.csv"
+        s3_key_metadata = "metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.db,
@@ -764,13 +764,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            penguin = datasets["datasets"][0]
+            tintin = datasets["datasets"][2]
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
             encoding="utf-8",
         ) as f:
-            penguin_metadata = yaml.safe_load(f)
+            tintin_metadata = yaml.safe_load(f)
 
         clean = False
         overwrite_datasets = False
@@ -784,14 +784,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             overwrite_metadata,
         )
 
-        penguin_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
-        del penguin_found["_id"]
-        self.assertEqual(penguin_found, penguin)
+        tintin_found = self.db.datasets.find_one(
+            {"dataset_name": "TINTIN_S3_TEST"}
+        )
+        del tintin_found["_id"]
+        self.assertEqual(tintin_found, tintin)
 
         metadata_found = self.db.metadata.find_one(
-            {"PENGUIN": {"$exists": True}}
-        )["PENGUIN"]
-        self.assertEqual(metadata_found, penguin_metadata)
+            {"TINTIN_S3_TEST": {"$exists": True}}
+        )["TINTIN_S3_TEST"]
+        self.assertEqual(metadata_found, tintin_metadata)
 
     def test_del_dataset(self) -> None:
         """Test dataset deletion"""

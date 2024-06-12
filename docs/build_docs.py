@@ -3,7 +3,7 @@ import subprocess
 import yaml
 
 # https://www.codingwiththomas.com/blog/my-sphinx-best-practice-for-a-multiversion-documentation-in-different-languages
-# a single build step, which keeps conf.py and versions.yaml at the master branch
+# a single build step, which keeps conf.py and versions.yaml at the develop branch
 # in generall we use environment variables to pass values to conf.py, see below
 # and runs the build as we did locally
 def build_doc(version, 

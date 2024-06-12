@@ -31,17 +31,15 @@ services:
       - "9000:9000"
     volumes:
       - minio-data:/data
-  
   minio-client:
     image: minio/mc
     depends_on:
       - minio
     entrypoint: /bin/sh -c "
       sleep 5 && 
-      cd . > penguin.csv
       mc alias set myminio http://minio:9000 admin admin123 && 
       mc mb myminio/example || true && 
-      mc cp penguin.csv myminio/example/data/penguin.csv
-      mc cp /lomas_server/tests/test_data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml"
+      mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv
+      mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml"
     volumes:
-      - ./test-data:/data
+      - lomas_server/tests/test_data/:/data

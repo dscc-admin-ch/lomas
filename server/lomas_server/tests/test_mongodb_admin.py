@@ -590,7 +590,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
             environment variable not set to True.""",
     )
-    def test_add_s3_dataset(self) -> None:
+    def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
         """Test adding a dataset stored on S3"""
 
         dataset = "TITANIC"

@@ -2,7 +2,7 @@ datasets:
 - dataset_name: "PENGUIN"
   database_type: "S3_DB"
   s3_bucket: "example"
-  s3_key: "data/penguin.csv"
+  s3_key: "data/test_penguin.csv"
   endpoint_url: "http://minio:9000"
   aws_access_key_id: "admin"
   aws_secret_access_key: "admin123"

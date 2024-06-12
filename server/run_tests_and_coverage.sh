@@ -4,6 +4,15 @@ docker compose -f docker-compose-test.yml up --detach
 
 sleep 15
 
+echo "Docker inspect minio"
+docker inspect minio
+echo "exitCode: $?"
+
+
+echo "Run a curl-based health command"
+curl http://minio:9000/minio/health/live
+echo "exitCode: $?"
+
 cd ./lomas_server
 
 

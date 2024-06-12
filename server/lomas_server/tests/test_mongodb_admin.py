@@ -598,7 +598,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     )
     def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
         """Test adding a dataset stored on S3"""
-
         dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3

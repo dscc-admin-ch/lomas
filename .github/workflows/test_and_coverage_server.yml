@@ -33,12 +33,11 @@ jobs:
         cd server
         chmod +x run_tests_and_coverage.sh
         ./run_tests_and_coverage.sh
-    - name: Check MinIO Logs
-      run: docker logs minio
-    - name: Verify Endpoint URL
-      run: echo "MinIO Endpoint URL: http://minio:9000"
-    - name: Test Connectivity
-      run: curl http://minio:9000/minio/health/live
+    - name: Check minio
+      run: |
+        echo "Run a curl-based health command"
+        curl -LI http://localhost:9000/minio/health/live
+        echo "exitCode: $?"
     - name: Coverage comment
       uses: py-cov-action/python-coverage-comment-action@v3
       with:

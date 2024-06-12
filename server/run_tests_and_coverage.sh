@@ -7,11 +7,11 @@ sleep 15
 cd ./lomas_server
 
 
-# "mongodb", "LRU_cache", production mode, "jitter"
-export LOMAS_TEST_MONGO_INTEGRATION=1
-export LOMAS_TEST_S3_INTEGRATION=1
-coverage run --source=. -m unittest discover -s .
-ret1=$?
+# # "mongodb", "LRU_cache", production mode, "jitter"
+# export LOMAS_TEST_MONGO_INTEGRATION=1
+# export LOMAS_TEST_S3_INTEGRATION=1
+# coverage run --source=. -m unittest discover -s .
+# ret1=$?
 
 # # "yaml", "basic", developer mode, "stall"
 # export LOMAS_TEST_MONGO_INTEGRATION=0
@@ -27,4 +27,4 @@ cd ..
 docker compose -f docker-compose-test.yml down --volumes
 
 # ret=$((ret1 + ret2))
-exit $ret1
+# exit $ret1

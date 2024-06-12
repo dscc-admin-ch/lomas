@@ -33,6 +33,10 @@ jobs:
         cd server
         chmod +x run_tests_and_coverage.sh
         ./run_tests_and_coverage.sh
+    - name: Get the host ip
+      run: |
+        docker inspect minio
+        echo "exitCode: $?"
     - name: Check minio
       run: |
         echo "Run a curl-based health command"

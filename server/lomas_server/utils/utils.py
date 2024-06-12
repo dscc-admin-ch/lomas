@@ -61,12 +61,17 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     return response
 
 
-def add_demo_data_to_admindb() -> None:
+def add_demo_data_to_admindb(
+    user_yaml: str = "/data/collections/user_collection.yaml",
+    dataset_yaml: str = "/data/collections/dataset_collection.yaml",
+) -> None:
     """
     Adds the demo data to the mongodb admindb.
-
-    Uses hardcoded paths to user and dataset collections.
     Meant to be used in the develop mode of the service.
+
+    Args:
+        user_yaml (str): path to user collection yaml file
+        dataset_yaml (str): path to dataset collection yaml file
     """
     LOG.info("Creating example user collection")
     mongo_db: Database = get_mongodb()
@@ -76,7 +81,7 @@ def add_demo_data_to_admindb() -> None:
         mongo_db,
         clean=True,
         overwrite=True,
-        yaml_file="/data/collections/user_collection.yaml",
+        yaml_file=user_yaml,
     )
 
     LOG.info("Creating datasets and metadata collection")
@@ -85,7 +90,7 @@ def add_demo_data_to_admindb() -> None:
         clean=True,
         overwrite_datasets=True,
         overwrite_metadata=True,
-        yaml_file="/data/collections/dataset_collection.yaml",
+        yaml_file=dataset_yaml,
     )
 
     LOG.info("Empty archives")

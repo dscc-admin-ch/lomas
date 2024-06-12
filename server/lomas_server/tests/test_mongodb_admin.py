@@ -3,7 +3,6 @@ import unittest
 from types import SimpleNamespace
 from typing import Dict
 
-import boto3
 import yaml
 from pymongo import MongoClient
 
@@ -796,49 +795,49 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     #     )["TINTIN_S3_TEST"]
     #     self.assertEqual(metadata_found, tintin_metadata)
 
-    # def test_del_dataset(self) -> None:
-    #     """Test dataset deletion"""
-    #     # Setup: add one dataset
-    #     dataset = "PENGUIN"
-    #     database_type = PrivateDatabaseType.PATH
-    #     dataset_path = "some_path"
-    #     metadata_database_type = PrivateDatabaseType.PATH
-    #     metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+    def test_del_dataset(self) -> None:
+        """Test dataset deletion"""
+        # Setup: add one dataset
+        dataset = "PENGUIN"
+        database_type = PrivateDatabaseType.PATH
+        dataset_path = "some_path"
+        metadata_database_type = PrivateDatabaseType.PATH
+        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
-    #     add_dataset(
-    #         self.db,
-    #         dataset,
-    #         database_type,
-    #         metadata_database_type,
-    #         dataset_path=dataset_path,
-    #         metadata_path=metadata_path,
-    #     )
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
 
-    #     # Verify delete works
-    #     del_dataset(self.db, dataset)
+        # Verify delete works
+        del_dataset(self.db, dataset)
 
-    #     dataset_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
-    #     self.assertEqual(dataset_found, None)
+        dataset_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
+        self.assertEqual(dataset_found, None)
 
-    #     nb_metadata = self.db.metadata.count_documents({})
-    #     self.assertEqual(nb_metadata, 0)
+        nb_metadata = self.db.metadata.count_documents({})
+        self.assertEqual(nb_metadata, 0)
 
-    #     # Delete non-existing dataset should trigger decorator error
-    #     with self.assertRaises(ValueError):
-    #         del_dataset(self.db, dataset)
+        # Delete non-existing dataset should trigger decorator error
+        with self.assertRaises(ValueError):
+            del_dataset(self.db, dataset)
 
-    #     # Delete dataset with non-existing metadata should trigger decorator error
-    #     add_dataset(
-    #         self.db,
-    #         dataset,
-    #         database_type,
-    #         metadata_database_type,
-    #         dataset_path=dataset_path,
-    #         metadata_path=metadata_path,
-    #     )
-    #     self.db.metadata.delete_many({dataset: {"$exists": True}})
-    #     with self.assertRaises(ValueError):
-    #         del_dataset(self.db, dataset)
+        # Delete dataset with non-existing metadata should trigger decorator error
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        self.db.metadata.delete_many({dataset: {"$exists": True}})
+        with self.assertRaises(ValueError):
+            del_dataset(self.db, dataset)
 
     def test_show_dataset(self) -> None:
         """Test show dataset"""
@@ -957,7 +956,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def test_add_demo_data_to_admindb(self) -> None:
         """Test add demo data to admin db"""
-        add_demo_data_to_admindb()
+
+        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("true", "1", "t"):
+            dataset_yaml = "tests/test_data/test_datasets_with_s3.yaml"
+        else:
+            dataset_yaml = "tests/test_data/test_datasets.yaml"
+
+        add_demo_data_to_admindb(
+            user_yaml="./tests/test_data/test_user_collection.yaml",
+            dataset_yaml=dataset_yaml,
+        )
 
         users_list = get_list_of_users(self.db)
         self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou"])

@@ -19,6 +19,7 @@ from constants import DatasetStoreType, EPSILON_LIMIT, DPLibraries
 from tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
+    FALSE_VALUES,
     TRUE_VALUES,
 )
 from utils.config import CONFIG_LOADER
@@ -361,7 +362,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     @unittest.skipIf(
         ENV_S3_INTEGRATION not in os.environ
-        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
         f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
             environment variable not set to True.""",
     )
@@ -373,7 +374,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
             response = client.post(
                 "/smartnoise_query",
-                json=example_smartnoise_sql,
+                json=input_smartnoise,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK

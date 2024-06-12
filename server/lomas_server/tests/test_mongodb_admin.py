@@ -3,6 +3,7 @@ import unittest
 from types import SimpleNamespace
 from typing import Dict
 
+import boto3
 import yaml
 from pymongo import MongoClient
 
@@ -589,79 +590,79 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 metadata_path=metadata_path,
             )
 
-    # @unittest.skipIf(
-    #     ENV_S3_INTEGRATION not in os.environ
-    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
-    #     f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-    #         environment variable not set to True.""",
-    # )
-    # def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
-    #     """Test adding a dataset stored on S3"""
+    @unittest.skipIf(
+        ENV_S3_INTEGRATION not in os.environ
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
+        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
+            environment variable not set to True.""",
+    )
+    def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
+        """Test adding a dataset stored on S3"""
 
-    #     dataset = "TINTIN_S3_TEST"
-    #     database_type = PrivateDatabaseType.S3
-    #     metadata_database_type = PrivateDatabaseType.S3
-    #     s3_bucket = "example"
-    #     endpoint_url = "http://minio:9000"
-    #     aws_access_key_id = "admin"
-    #     aws_secret_access_key = "admin123"
-    #     s3_key_file = "data/test_penguin.csv"
-    #     s3_key_metadata = "metadata/penguin_metadata.yaml"
+        dataset = "TINTIN_S3_TEST"
+        database_type = PrivateDatabaseType.S3
+        metadata_database_type = PrivateDatabaseType.S3
+        s3_bucket = "example"
+        endpoint_url = "http://minio:9000"
+        aws_access_key_id = "admin"
+        aws_secret_access_key = "admin123"
+        s3_key_file = "data/test_penguin.csv"
+        s3_key_metadata = "metadata/penguin_metadata.yaml"
 
-    #     add_dataset(
-    #         self.db,
-    #         dataset,
-    #         database_type,
-    #         metadata_database_type,
-    #         s3_bucket=s3_bucket,
-    #         s3_key=s3_key_file,
-    #         endpoint_url=endpoint_url,
-    #         aws_access_key_id=aws_access_key_id,
-    #         aws_secret_access_key=aws_secret_access_key,
-    #         metadata_s3_bucket=s3_bucket,
-    #         metadata_s3_key=s3_key_metadata,
-    #         metadata_endpoint_url=endpoint_url,
-    #         metadata_aws_access_key_id=aws_access_key_id,
-    #         metadata_aws_secret_access_key=aws_secret_access_key,
-    #     )
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            s3_bucket=s3_bucket,
+            s3_key=s3_key_file,
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            metadata_s3_bucket=s3_bucket,
+            metadata_s3_key=s3_key_metadata,
+            metadata_endpoint_url=endpoint_url,
+            metadata_aws_access_key_id=aws_access_key_id,
+            metadata_aws_secret_access_key=aws_secret_access_key,
+        )
 
-    #     # Check dataset collection
-    #     expected_dataset = {
-    #         "dataset_name": dataset,
-    #         "database_type": database_type,
-    #         "s3_bucket": s3_bucket,
-    #         "s3_key": s3_key_file,
-    #         "endpoint_url": endpoint_url,
-    #         "aws_access_key_id": aws_access_key_id,
-    #         "aws_secret_access_key": aws_secret_access_key,
-    #         "metadata": {
-    #             "database_type": metadata_database_type,
-    #             "s3_bucket": s3_bucket,
-    #             "s3_key": s3_key_metadata,
-    #             "endpoint_url": endpoint_url,
-    #             "aws_access_key_id": aws_access_key_id,
-    #             "aws_secret_access_key": aws_secret_access_key,
-    #         },
-    #     }
+        # Check dataset collection
+        expected_dataset = {
+            "dataset_name": dataset,
+            "database_type": database_type,
+            "s3_bucket": s3_bucket,
+            "s3_key": s3_key_file,
+            "endpoint_url": endpoint_url,
+            "aws_access_key_id": aws_access_key_id,
+            "aws_secret_access_key": aws_secret_access_key,
+            "metadata": {
+                "database_type": metadata_database_type,
+                "s3_bucket": s3_bucket,
+                "s3_key": s3_key_metadata,
+                "endpoint_url": endpoint_url,
+                "aws_access_key_id": aws_access_key_id,
+                "aws_secret_access_key": aws_secret_access_key,
+            },
+        }
 
-    #     dataset_found = self.db.datasets.find_one({"dataset_name": "TITANIC"})
-    #     del dataset_found["_id"]
-    #     self.assertEqual(dataset_found, expected_dataset)
+        dataset_found = self.db.datasets.find_one({"dataset_name": "TITANIC"})
+        del dataset_found["_id"]
+        self.assertEqual(dataset_found, expected_dataset)
 
-    #     # Check metadata collection
-    #     s3_client = boto3.client(
-    #         "s3",
-    #         endpoint_url=endpoint_url,
-    #         aws_access_key_id=aws_access_key_id,
-    #         aws_secret_access_key=aws_secret_access_key,
-    #     )
-    #     response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key_metadata)
-    #     expected_metadata = yaml.safe_load(response["Body"])
+        # Check metadata collection
+        s3_client = boto3.client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key_metadata)
+        expected_metadata = yaml.safe_load(response["Body"])
 
-    #     metadata_found = self.db.metadata.find_one(
-    #         {dataset: {"$exists": True}}
-    #     )[dataset]
-    #     self.assertEqual(metadata_found, expected_metadata)
+        metadata_found = self.db.metadata.find_one(
+            {dataset: {"$exists": True}}
+        )[dataset]
+        self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file"""
@@ -754,51 +755,51 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         verify_datasets()
 
-    # @unittest.skipIf(
-    #     ENV_S3_INTEGRATION not in os.environ
-    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
-    #     f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-    #         environment variable not set to True.""",
-    # )
-    # def test_add_s3_datasets_via_yaml(self) -> None:
-    #     """Test add datasets via a YAML file"""
-    #     # Load reference data
-    #     dataset_path = "./tests/test_data/test_datasets_with_s3.yaml"
-    #     with open(
-    #         dataset_path,
-    #         encoding="utf-8",
-    #     ) as f:
-    #         datasets = yaml.safe_load(f)
-    #         tintin = datasets["datasets"][2]
+    @unittest.skipIf(
+        ENV_S3_INTEGRATION not in os.environ
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
+        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
+            environment variable not set to True.""",
+    )
+    def test_add_s3_datasets_via_yaml(self) -> None:
+        """Test add datasets via a YAML file"""
+        # Load reference data
+        dataset_path = "./tests/test_data/test_datasets_with_s3.yaml"
+        with open(
+            dataset_path,
+            encoding="utf-8",
+        ) as f:
+            datasets = yaml.safe_load(f)
+            tintin = datasets["datasets"][2]
 
-    #     with open(
-    #         "./tests/test_data/metadata/penguin_metadata.yaml",
-    #         encoding="utf-8",
-    #     ) as f:
-    #         tintin_metadata = yaml.safe_load(f)
+        with open(
+            "./tests/test_data/metadata/penguin_metadata.yaml",
+            encoding="utf-8",
+        ) as f:
+            tintin_metadata = yaml.safe_load(f)
 
-    #     clean = False
-    #     overwrite_datasets = False
-    #     overwrite_metadata = False
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
 
-    #     add_datasets_via_yaml(
-    #         self.db,
-    #         dataset_path,
-    #         clean,
-    #         overwrite_datasets,
-    #         overwrite_metadata,
-    #     )
+        add_datasets_via_yaml(
+            self.db,
+            dataset_path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+        )
 
-    #     tintin_found = self.db.datasets.find_one(
-    #         {"dataset_name": "TINTIN_S3_TEST"}
-    #     )
-    #     del tintin_found["_id"]
-    #     self.assertEqual(tintin_found, tintin)
+        tintin_found = self.db.datasets.find_one(
+            {"dataset_name": "TINTIN_S3_TEST"}
+        )
+        del tintin_found["_id"]
+        self.assertEqual(tintin_found, tintin)
 
-    #     metadata_found = self.db.metadata.find_one(
-    #         {"TINTIN_S3_TEST": {"$exists": True}}
-    #     )["TINTIN_S3_TEST"]
-    #     self.assertEqual(metadata_found, tintin_metadata)
+        metadata_found = self.db.metadata.find_one(
+            {"TINTIN_S3_TEST": {"$exists": True}}
+        )["TINTIN_S3_TEST"]
+        self.assertEqual(metadata_found, tintin_metadata)
 
     def test_del_dataset(self) -> None:
         """Test dataset deletion"""
@@ -976,4 +977,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou"])
 
         list_datasets = get_list_of_datasets(self.db)
-        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+
+        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
+            self.assertEqual(
+                list_datasets, ["PENGUIN", "IRIS", "TINTIN_S3_TEST"]
+            )
+        else:
+            self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])

@@ -645,7 +645,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             },
         }
 
-        dataset_found = self.db.datasets.find_one({"dataset_name": "TITANIC"})
+        dataset_found = self.db.datasets.find_one({"dataset_name": dataset})
         del dataset_found["_id"]
         self.assertEqual(dataset_found, expected_dataset)
 

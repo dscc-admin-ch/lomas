@@ -19,5 +19,18 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+  minio:
+    container_name: minio
+    image: minio/minio
+    command: server /data
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=admin123
+      - ENDPOINT_URL=http://minio:9000
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
 
-
+  volumes:
+    minio-data:

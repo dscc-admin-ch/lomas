@@ -31,7 +31,7 @@ from mongodb_admin import (
     show_user,
 )
 from constants import PrivateDatabaseType
-from tests.constants import ENV_MONGO_INTEGRATION
+from tests.constants import ENV_MONGO_INTEGRATION, ENV_S3_INTEGRATION
 from utils.config import CONFIG_LOADER, get_config
 
 
@@ -584,6 +584,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 metadata_path=metadata_path,
             )
 
+    @unittest.skipIf(
+        ENV_S3_INTEGRATION not in os.environ
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
+            environment variable not set to True.""",
+    )
     def test_add_s3_dataset(self) -> None:
         """Test adding a dataset stored on S3"""
 
@@ -742,6 +748,46 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             overwrite_metadata=True,
         )
         verify_datasets()
+    
+    @unittest.skipIf(
+        ENV_S3_INTEGRATION not in os.environ
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
+            environment variable not set to True.""",
+    )
+    def test_add_s3_datasets_via_yaml(self) -> None:
+        """Test add datasets via a YAML file"""
+        # Load reference data
+        dataset_path = "./tests/test_data/test_datasets_with_s3.yaml"
+        with open(dataset_path, encoding="utf-8",) as f:
+            datasets = yaml.safe_load(f)
+            penguin = datasets["datasets"][0]
+
+        with open(
+            "./tests/test_data/metadata/penguin_metadata.yaml",
+            encoding="utf-8",
+        ) as f:
+            penguin_metadata = yaml.safe_load(f)
+
+        clean = False
+        overwrite_datasets = False
+        overwrite_metadata = False
+
+        add_datasets_via_yaml(
+            self.db, dataset_path, clean, overwrite_datasets, overwrite_metadata
+        )
+
+        penguin_found = self.db.datasets.find_one(
+            {"dataset_name": "PENGUIN"}
+        )
+        del penguin_found["_id"]
+        self.assertEqual(penguin_found, penguin)
+
+        metadata_found = self.db.metadata.find_one(
+            {"PENGUIN": {"$exists": True}}
+        )["PENGUIN"]
+        self.assertEqual(metadata_found, penguin_metadata)
+
 
     def test_del_dataset(self) -> None:
         """Test dataset deletion"""

@@ -545,7 +545,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 dataset_path=dataset_path,
                 metadata_path=metadata_path,
             )
-        
+
         # Add not already present dataset but present metadata
         drop_collection(self.db, "datasets")
         with self.assertRaises(ValueError):
@@ -561,7 +561,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Restart clean
         drop_collection(self.db, "metadata")
         drop_collection(self.db, "datasets")
-        
+
         # Unknown database type for dataset
         with self.assertRaises(ValueError):
             add_dataset(
@@ -748,7 +748,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             overwrite_metadata=True,
         )
         verify_datasets()
-    
+
     @unittest.skipIf(
         ENV_S3_INTEGRATION not in os.environ
         and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
@@ -759,7 +759,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test add datasets via a YAML file"""
         # Load reference data
         dataset_path = "./tests/test_data/test_datasets_with_s3.yaml"
-        with open(dataset_path, encoding="utf-8",) as f:
+        with open(
+            dataset_path,
+            encoding="utf-8",
+        ) as f:
             datasets = yaml.safe_load(f)
             penguin = datasets["datasets"][0]
 
@@ -774,12 +777,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_metadata = False
 
         add_datasets_via_yaml(
-            self.db, dataset_path, clean, overwrite_datasets, overwrite_metadata
+            self.db,
+            dataset_path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
         )
 
-        penguin_found = self.db.datasets.find_one(
-            {"dataset_name": "PENGUIN"}
-        )
+        penguin_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
         del penguin_found["_id"]
         self.assertEqual(penguin_found, penguin)
 
@@ -787,7 +792,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             {"PENGUIN": {"$exists": True}}
         )["PENGUIN"]
         self.assertEqual(metadata_found, penguin_metadata)
-
 
     def test_del_dataset(self) -> None:
         """Test dataset deletion"""

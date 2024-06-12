@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - wip_233_s3-mongodb-tests
+      - master
   workflow_dispatch:
   
 jobs:

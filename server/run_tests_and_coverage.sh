@@ -4,20 +4,12 @@ docker compose -f docker-compose-test.yml up --detach
 
 sleep 15
 
-echo "Verify minio is up and running"
-docker inspect minio
-echo "exitCode: $?"
-
-echo "Run a curl-based health command"
-curl http://localhost:9000/minio/health/live
-echo "exitCode: $?"
-
 cd ./lomas_server
 
 
 # "mongodb", "LRU_cache", production mode, "jitter"
-export LOMAS_TEST_MONGO_INTEGRATION=1
-export LOMAS_TEST_S3_INTEGRATION=1
+export LOMAS_TEST_MONGO_INTEGRATION=1 # tests with mongodb available
+export LOMAS_TEST_S3_INTEGRATION=1 # tests with s3 minio available
 coverage run --source=. -m unittest discover -s .
 ret1=$?
 

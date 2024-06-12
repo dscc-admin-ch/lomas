@@ -685,7 +685,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
 
-            # spend 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
+            # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             response = client.post(
                 "/smartnoise_query",
                 json=smartnoise_body,

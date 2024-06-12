@@ -697,7 +697,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 {"IRIS": {"$exists": True}}
             )["IRIS"]
             self.assertEqual(metadata_found, penguin_metadata)
-        
+
         path = "./tests/test_data/test_datasets.yaml"
         clean = False
         overwrite_datasets = False

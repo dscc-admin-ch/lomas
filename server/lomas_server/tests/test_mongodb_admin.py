@@ -30,14 +30,19 @@ from mongodb_admin import (
     show_user,
 )
 from constants import PrivateDatabaseType
-from tests.constants import ENV_MONGO_INTEGRATION, ENV_S3_INTEGRATION
+from tests.constants import (
+    ENV_MONGO_INTEGRATION,
+    ENV_S3_INTEGRATION,
+    TRUE_VALUES,
+    FALSE_VALUES,
+)
 from utils.config import CONFIG_LOADER, get_config
 from utils.utils import add_demo_data_to_admindb
 
 
 @unittest.skipIf(
     ENV_MONGO_INTEGRATION not in os.environ
-    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("false", "0", "f"),
+    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in FALSE_VALUES,
     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
         environment variable not set to True.""",
 )
@@ -586,7 +591,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     # @unittest.skipIf(
     #     ENV_S3_INTEGRATION not in os.environ
-    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
     #     f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
     #         environment variable not set to True.""",
     # )
@@ -751,7 +756,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     # @unittest.skipIf(
     #     ENV_S3_INTEGRATION not in os.environ
-    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+    #     and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
     #     f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
     #         environment variable not set to True.""",
     # )
@@ -957,7 +962,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_add_demo_data_to_admindb(self) -> None:
         """Test add demo data to admin db"""
 
-        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("true", "1", "t"):
+        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             dataset_yaml = "tests/test_data/test_datasets_with_s3.yaml"
         else:
             dataset_yaml = "tests/test_data/test_datasets.yaml"

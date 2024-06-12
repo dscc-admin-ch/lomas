@@ -3,6 +3,7 @@ import unittest
 from types import SimpleNamespace
 from typing import Dict
 
+import boto3
 import yaml
 from pymongo import MongoClient
 
@@ -534,6 +535,123 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
+        # Add already present dataset
+        with self.assertRaises(ValueError):
+            add_dataset(
+                self.db,
+                dataset,
+                database_type=database_type,
+                metadata_database_type=metadata_database_type,
+                dataset_path=dataset_path,
+                metadata_path=metadata_path,
+            )
+        
+        # Add not already present dataset but present metadata
+        drop_collection(self.db, "datasets")
+        with self.assertRaises(ValueError):
+            add_dataset(
+                self.db,
+                dataset,
+                database_type=database_type,
+                metadata_database_type=metadata_database_type,
+                dataset_path=dataset_path,
+                metadata_path=metadata_path,
+            )
+
+        # Restart clean
+        drop_collection(self.db, "metadata")
+        drop_collection(self.db, "datasets")
+        
+        # Unknown database type for dataset
+        with self.assertRaises(ValueError):
+            add_dataset(
+                self.db,
+                dataset,
+                database_type="type_that_does_not_exist",
+                metadata_database_type=metadata_database_type,
+                dataset_path=dataset_path,
+                metadata_path=metadata_path,
+            )
+
+        # Unknown database type for metadata
+        with self.assertRaises(ValueError):
+            add_dataset(
+                self.db,
+                dataset,
+                database_type=database_type,
+                metadata_database_type="type_that_does_not_exist",
+                dataset_path=dataset_path,
+                metadata_path=metadata_path,
+            )
+
+    def test_add_s3_dataset(self) -> None:
+        """Test adding a dataset stored on S3"""
+
+        dataset = "TITANIC"
+        database_type = PrivateDatabaseType.S3
+        metadata_database_type = PrivateDatabaseType.S3
+        s3_bucket = "example"
+        endpoint_url = "https://api-lomas-minio.lab.sspcloud.fr"
+        aws_access_key_id = "admin"
+        aws_secret_access_key = "admin123"
+        s3_key_file = "data/titanic.csv"
+        s3_key_metadata = "data/titanic.csv"
+
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            s3_bucket=s3_bucket,
+            s3_key=s3_key_file,
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            metadata_s3_bucket=s3_bucket,
+            metadata_s3_key=s3_key_metadata,
+            metadata_endpoint_url=endpoint_url,
+            metadata_aws_access_key_id=aws_access_key_id,
+            metadata_aws_secret_access_key=aws_secret_access_key,
+        )
+
+        # Check dataset collection
+        expected_dataset = {
+            "dataset_name": dataset,
+            "database_type": database_type,
+            "s3_bucket": s3_bucket,
+            "s3_key": s3_key_file,
+            "endpoint_url": endpoint_url,
+            "aws_access_key_id": aws_access_key_id,
+            "aws_secret_access_key": aws_secret_access_key,
+            "metadata": {
+                "database_type": metadata_database_type,
+                "s3_bucket": s3_bucket,
+                "s3_key": s3_key_metadata,
+                "endpoint_url": endpoint_url,
+                "aws_access_key_id": aws_access_key_id,
+                "aws_secret_access_key": aws_secret_access_key,
+            },
+        }
+
+        dataset_found = self.db.datasets.find_one({"dataset_name": "TITANIC"})
+        del dataset_found["_id"]
+        self.assertEqual(dataset_found, expected_dataset)
+
+        # Check metadata collection
+        s3_client = boto3.client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
+        response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key_metadata)
+        expected_metadata = yaml.safe_load(response["Body"])
+
+        metadata_found = self.db.metadata.find_one(
+            {dataset: {"$exists": True}}
+        )[dataset]
+        self.assertEqual(metadata_found, expected_metadata)
+
     def test_add_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file"""
         # Load reference data
@@ -615,6 +733,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         verify_datasets()
 
+        # Check no clean and overwrite metadata
+        add_datasets_via_yaml(
+            self.db,
+            path,
+            clean=False,
+            overwrite_datasets=True,
+            overwrite_metadata=True,
+        )
+        verify_datasets()
+
     def test_del_dataset(self) -> None:
         """Test dataset deletion"""
         # Setup: add one dataset
@@ -642,7 +770,20 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         nb_metadata = self.db.metadata.count_documents({})
         self.assertEqual(nb_metadata, 0)
 
-        # Delete non-existing dataset should trigger error
+        # Delete non-existing dataset should trigger decorator error
+        with self.assertRaises(ValueError):
+            del_dataset(self.db, dataset)
+
+        # Delete dataset with non-existing metadata should trigger decorator error
+        add_dataset(
+            self.db,
+            dataset,
+            database_type,
+            metadata_database_type,
+            dataset_path=dataset_path,
+            metadata_path=metadata_path,
+        )
+        self.db.metadata.delete_many({dataset: {"$exists": True}})
         with self.assertRaises(ValueError):
             del_dataset(self.db, dataset)
 

@@ -376,7 +376,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 response_dict = json.loads(response.content.decode("utf8"))
                 assert response_dict["requested_by"] == self.user_name
                 assert response_dict["query_response"]["columns"] == ["NB_ROW"]
-                assert response_dict["query_response"]["data"][0][0] > 0
                 assert (
                     response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
                 )

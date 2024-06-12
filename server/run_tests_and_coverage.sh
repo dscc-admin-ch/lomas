@@ -10,7 +10,7 @@ echo "exitCode: $?"
 
 
 echo "Run a curl-based health command"
-curl http://minio:9000/minio/health/live
+curl http://localhost:9000/minio/health/live
 echo "exitCode: $?"
 
 cd ./lomas_server

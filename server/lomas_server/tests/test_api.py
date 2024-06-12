@@ -16,7 +16,7 @@ from mongodb_admin import (
 )
 from app import app
 from constants import DatasetStoreType, EPSILON_LIMIT, DPLibraries
-from tests.constants import ENV_MONGO_INTEGRATION
+from tests.constants import ENV_MONGO_INTEGRATION, ENV_S3_INTEGRATION
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
 from utils.example_inputs import (
@@ -85,9 +85,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 clean=True,
                 overwrite=True,
             )
+
+            if os.getenv(ENV_S3_INTEGRATION, "0").lower() in (
+                "true",
+                "1",
+                "t",
+            ):
+                yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
+            else:
+                yaml_file = "tests/test_data/test_datasets.yaml"
+
             add_datasets_via_yaml(
                 self.db,
-                yaml_file="tests/test_data/test_datasets.yaml",
+                yaml_file=yaml_file,
                 clean=True,
                 overwrite_datasets=True,
                 overwrite_metadata=True,
@@ -348,6 +358,32 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             }
+
+    @unittest.skipIf(
+        ENV_S3_INTEGRATION not in os.environ
+        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in ("false", "0", "f"),
+        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
+            environment variable not set to True.""",
+    )
+    def test_smartnoise_query_on_s3_dataset(self) -> None:
+        """Test smartnoise-sql  on s3 dataset"""
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
+            response = client.post(
+                "/smartnoise_query",
+                json=example_smartnoise_sql,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
+            assert response_dict["query_response"]["data"][0][0] > 0
+            assert response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
 
     def test_dummy_smartnoise_query(self) -> None:
         """_summary_"""

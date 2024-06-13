@@ -3,9 +3,15 @@ import os
 import unittest
 from io import StringIO
 
-import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
+import opendp.combinators as comb
+import opendp.measurements as meas
+from opendp.mod import enable_features
+import opendp.prelude as dp_p
+import opendp.transformations as trans
+from opendp_logger import enable_logging
+import pandas as pd
 from pymongo.database import Database
 
 from admin_database.utils import get_mongodb, database_factory
@@ -35,6 +41,9 @@ from utils.example_inputs import (
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
+
+enable_features("floating-point")
+enable_logging()
 
 
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
@@ -376,10 +385,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
-    def test_opendp_query(self) -> None:
+    def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """_summary_"""
         with TestClient(app, headers=self.headers) as client:
-            # Expect to work
+            # Basic test based on example with max divergence (Pure DP)
             response = client.post(
                 "/opendp_query",
                 json=example_opendp,
@@ -392,13 +401,31 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_epsilon"] > 0.1
             assert response_dict["spent_delta"] == 0
 
+            # Tests on different pipeline
+            colnames = [
+                "species",
+                "island",
+                "bill_length_mm",
+                "bill_depth_mm",
+                "flipper_length_mm",
+                "body_mass_g",
+                "sex",
+            ]
+            transformation_pipeline = (
+                trans.make_split_dataframe(separator=",", col_names=colnames)
+                >> trans.make_select_column(key="bill_length_mm", TOA=str)
+                >> trans.then_cast_default(TOA=float)
+                >> trans.then_clamp(bounds=(30.0, 65.0))
+                >> trans.then_resize(size=346, constant=43.61)
+                >> trans.then_variance()
+            )
+
             # Expect to fail: transormation instead of measurement
-            trans = '{"version": "0.8.0", "ast": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "partial_chain", "lhs": {"_type": "constructor", "func": "make_chain_tt", "module": "combinators", "args": [{"_type": "constructor", "func": "make_select_column", "module": "transformations", "kwargs": {"key": "bill_length_mm", "TOA": "String"}}, {"_type": "constructor", "func": "make_split_dataframe", "module": "transformations", "kwargs": {"separator": ",", "col_names": {"_type": "list", "_items": ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g", "sex"]}}}]}, "rhs": {"_type": "constructor", "func": "then_cast_default", "module": "transformations", "kwargs": {"TOA": "f64"}}}, "rhs": {"_type": "constructor", "func": "then_clamp", "module": "transformations", "kwargs": {"bounds": [30.0, 65.0]}}}, "rhs": {"_type": "constructor", "func": "then_resize", "module": "transformations", "kwargs": {"size": 346, "constant": 43.61}}}, "rhs": {"_type": "constructor", "func": "then_variance", "module": "transformations"}}}'  # noqa: E501 # pylint: disable=C0301
             response = client.post(
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
-                    "opendp_json": trans,
+                    "opendp_json": transformation_pipeline.to_json(),
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -406,6 +433,97 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "InvalidQueryException": "The pipeline provided is not a "
                 + "measurement. It cannot be processed in this server."
             }
+
+            # Test MAX_DIVERGENCE (pure DP)
+            md_pipeline = transformation_pipeline >> meas.then_laplace(
+                scale=5.0
+            )
+            response = client.post(
+                "/opendp_query",
+                json={
+                    "dataset_name": PENGUIN_DATASET,
+                    "opendp_json": md_pipeline.to_json(),
+                },
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"] > 0
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] == 0
+
+            # Test ZERO_CONCENTRATED_DIVERGENCE
+            zcd_pipeline = transformation_pipeline >> meas.then_gaussian(
+                scale=5.0
+            )
+            json_obj = {
+                "dataset_name": PENGUIN_DATASET,
+                "opendp_json": zcd_pipeline.to_json(),
+            }
+            # Should error because missing fixed_delta
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": ""
+                + "fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
+            }
+            # Should work because fixed_delta is set
+            json_obj["fixed_delta"] = 1e-6
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"] > 0
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] == 1e-6
+
+            # Test SMOOTHED_MAX_DIVERGENCE (approx DP)
+            sm_pipeline = comb.make_zCDP_to_approxDP(zcd_pipeline)
+            json_obj = {
+                "dataset_name": PENGUIN_DATASET,
+                "opendp_json": sm_pipeline.to_json(),
+            }
+            # Should error because missing fixed_delta
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json() == {
+                "InvalidQueryException": ""
+                + "fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
+            }
+
+            # Should work because fixed_delta is set
+            json_obj["fixed_delta"] = 1e-6
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert response_dict["query_response"] > 0
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] == 1e-6
+
+            # Test FIXED_SMOOTHED_MAX_DIVERGENCE
+            fms_pipeline = (
+                trans.make_split_dataframe(separator=",", col_names=colnames)
+                >> trans.make_select_column(key="island", TOA=str)
+                >> trans.then_count_by(MO=dp_p.L1Distance[float], TV=float)
+                >> meas.then_base_laplace_threshold(scale=2.0, threshold=28.0)
+            )
+            json_obj = {
+                "dataset_name": PENGUIN_DATASET,
+                "opendp_json": fms_pipeline.to_json(),
+            }
+            # Should error because missing fixed_delta
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert isinstance(response_dict["query_response"], dict)
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] > 0
 
     def test_dummy_opendp_query(self) -> None:
         """_summary_"""

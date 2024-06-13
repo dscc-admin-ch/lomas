@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Callable
 
 from fastapi import Body, Depends, FastAPI, Header, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, RedirectResponse
 
 from admin_database.utils import database_factory
 from constants import (
@@ -184,6 +184,15 @@ add_exception_handlers(app)
 
 # API Endpoints
 # -----------------------------------------------------------------------------
+
+
+@app.get("/")
+async def root():
+    """Redirect root endpoint to the state endpoint
+    Returns:
+        JSONResponse: The state of the server instance.
+    """
+    return RedirectResponse(url="/state")
 
 
 # Get server state

@@ -1,3 +1,5 @@
+from typing import List, Union
+
 import opendp as dp
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
@@ -78,7 +80,8 @@ class OpenDPQuerier(DPQuerier):
             case OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE:  # Approximate DP
                 if query_json.fixed_delta is None:
                     raise InvalidQueryException(
-                        "fixed_delta must be set for smooth max divergence."
+                        "fixed_delta must be set for smooth max divergence"
+                        + " and zero concentrated divergence."
                     )
                 epsilon = cost.epsilon(delta=query_json.fixed_delta)
                 delta = query_json.fixed_delta
@@ -89,7 +92,7 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPInp) -> str:
+    def query(self, query_json: OpenDPInp) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:
@@ -100,8 +103,7 @@ class OpenDPQuerier(DPQuerier):
                 external to this package.
 
         Returns:
-            TODO Check this, probably float or int.
-            str: The JSON encoded string representation of the query result.
+            (Union[List, int, float]) query result
         """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
@@ -117,10 +119,6 @@ class OpenDPQuerier(DPQuerier):
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
             ) from e
-
-        # Note: leaving this here, support for opendp_polars
-        # if isinstance(release_data, polars.dataframe.frame.DataFrame):
-        #     release_data = release_data.write_json(file=None)
 
         return release_data
 
@@ -176,6 +174,15 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     """
     output_type = opendp_pipe.output_distance_type
     output_measure = opendp_pipe.output_measure
+
+    if not isinstance(output_type, str):
+        if output_type.origin in ["SMDCurve", "Tuple"]:
+            output_type = output_type.args[0]
+        else:
+            raise InternalServerException(
+                f"Cannot process output measure: {output_measure}"
+                + f"with output type {output_type}."
+            )
 
     if output_measure == dp.measures.fixed_smoothed_max_divergence(
         T=output_type

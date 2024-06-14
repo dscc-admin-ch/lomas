@@ -274,4 +274,5 @@ def check_result_acknowledged(res: _WriteResult) -> None:
     if not res.acknowledged:
         raise WriteConcernError(
             "Write request not acknowledged by MongoDB database."
+            + " Please contact the administrator of the server."
         )

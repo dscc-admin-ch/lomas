@@ -68,7 +68,9 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
-        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name})
+        res = self._exec(
+            "get_dataset_metadata", {"dataset_name": self.dataset_name}
+        )
         if res.status_code == 200:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -383,7 +385,9 @@ class Client:
         res = self._exec("get_previous_queries", body_json)
 
         if res.status_code == 200:
-            queries = json.loads(res.content.decode("utf8"))["previous_queries"]
+            queries = json.loads(res.content.decode("utf8"))[
+                "previous_queries"
+            ]
 
             if not queries:
                 return queries

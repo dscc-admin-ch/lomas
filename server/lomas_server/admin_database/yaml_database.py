@@ -195,7 +195,9 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:  # type: ignore
+    def get_dataset_field(
+        self, dataset_name: str, key: str
+    ) -> str:  # type: ignore
         """Get dataset field type based on dataset name and key
 
         Wrapped by :py:func:`dataset_must_exist`.

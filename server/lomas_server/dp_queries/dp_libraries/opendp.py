@@ -53,15 +53,6 @@ class OpenDPQuerier(DPQuerier):
         max_ids = self.private_dataset.get_metadata()["max_ids"]
         try:
             cost = opendp_pipe.map(d_in=int(max_ids))
-        except TypeError:
-            try:
-                cost = opendp_pipe.map(d_in=float(max_ids))
-            except Exception as e:
-                LOG.exception(e)
-                raise ExternalLibraryException(
-                    DPLibraries.OPENDP,
-                    "Error obtaining cost:" + str(e),
-                ) from e
         except Exception as e:
             LOG.exception(e)
             raise ExternalLibraryException(

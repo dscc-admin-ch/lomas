@@ -15,6 +15,7 @@ from constants import (
     DPLibraries,
 )
 from dataset_store.utils import dataset_store_factory
+from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from dp_queries.dp_libraries.utils import querier_factory
 from dp_queries.dp_logic import QueryHandler
 from dp_queries.dummy_dataset import (
@@ -148,6 +149,9 @@ async def lifespan(
             )
             app.state.server_state["LIVE"] = False
             status_ok = False
+
+    # Set DP Libraries config
+    set_opendp_features_config(config.dp_libraries.opendp)
 
     if status_ok:
         LOG.info("Server start condition OK")

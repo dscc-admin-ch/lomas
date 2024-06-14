@@ -126,6 +126,16 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # Put original state back
         config.admin_database.db_type = previous_admin_db
 
+    def test_root(self) -> None:
+        """Test root endpoint redirection to state endpoint"""
+        with TestClient(app, headers=self.headers) as client:
+            response_root = client.get("/", headers=self.headers)
+            response_state = client.get("/state", headers=self.headers)
+            assert response_root.status_code == response_state.status_code
+            assert json.loads(
+                response_root.content.decode("utf8")
+            ) == json.loads(response_state.content.decode("utf8"))
+
     def test_state(self) -> None:
         """Test state endpoint"""
         with TestClient(app, headers=self.headers) as client:

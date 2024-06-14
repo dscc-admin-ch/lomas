@@ -20,9 +20,10 @@ def build_doc(version,
     subprocess.run("sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True)
     subprocess.run("mkdir ./source/notebooks", shell=True)
-    subprocess.run("cp -r ../client/notebooks/* ./source/notebooks", shell=True)
-    subprocess.run("cp -r ../server/notebooks/* ./source/notebooks", shell=True)
-    os.environ['SPHINXOPTS'] = "-D language='{}'".format(language)
+    subprocess.run("cp -r ../client/notebooks/Demo_Client_Notebook.ipynb ./source/notebooks/Demo_Client_Notebook.ipynb", shell=True)
+    subprocess.run("cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb", shell=True)
+    subprocess.run("cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb", shell=True)
+    # os.environ['SPHINXOPTS'] = "-D language='{}'".format(language)
     subprocess.run("make html", shell=True)    
 
 # a move dir method because we run multiple builds and bring the html folders to a 

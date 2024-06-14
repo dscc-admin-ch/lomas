@@ -73,13 +73,6 @@ html_static_path = ["_static"]
 # to place at the top of the sidebar.
 html_logo = "_static/logo.png"
 
-html_context = {
-  'current_version' : "master",
-  'versions' : [["master", "link to master"], ["develop", "link to develop"]],
-  'current_language': 'en',
-  'languages': [["en", "link to en"]]
-}
-
 # get the environment variable build_all_docs and pages_root
 build_all_docs = os.environ.get("build_all_docs")
 pages_root = os.environ.get("pages_root", "")

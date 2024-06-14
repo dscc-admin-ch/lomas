@@ -568,8 +568,6 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     Returns:
         None
     """
-    if db.datasets.count_documents({"dataset_name": dataset_name}) > 0:
-        raise ValueError("Cannot add database because already set. ")
 
     # Step 1: Build dataset
     dataset: Dict = {

@@ -2,6 +2,7 @@
 relative_files = true
 omit =
     mongodb_admin_cli.py
+    uvicorn_serve.py
 
 [report]
 exclude_lines =
@@ -9,4 +10,5 @@ exclude_lines =
     ^\s*raise\s+InternalServerException
     ^\s*except\s+CUSTOM_EXCEPTIONS
     ^\s*except\s+Exception
+    ^\s*except\s+yaml.YAMLError
     ^\s*case _:

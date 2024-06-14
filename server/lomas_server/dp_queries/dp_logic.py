@@ -5,7 +5,7 @@ from constants import DPLibraries
 from dataset_store.dataset_store import DatasetStore
 from dp_queries.dp_querier import DPQuerier
 from utils.error_handler import (
-    CUSTOM_EXCEPTIONS,
+    KNOWN_EXCEPTIONS,
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
@@ -174,7 +174,7 @@ class QueryHandler:
             # Query
             try:
                 query_response = dp_querier.query(query_json)
-            except CUSTOM_EXCEPTIONS as e:
+            except KNOWN_EXCEPTIONS as e:
                 raise e
             except Exception as e:
                 raise InternalServerException(e) from e

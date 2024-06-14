@@ -8,7 +8,7 @@ omit =
 exclude_lines =
     ^\s*except\s+InternalServerException
     ^\s*raise\s+InternalServerException
-    ^\s*except\s+CUSTOM_EXCEPTIONS
+    ^\s*except\s+KNOWN_EXCEPTIONS
     ^\s*except\s+Exception
     ^\s*except\s+yaml.YAMLError
     ^\s*case _:

@@ -46,9 +46,6 @@ from utils.example_inputs import (
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
 
-enable_features("floating-point")
-enable_logging()
-
 
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     """
@@ -429,6 +426,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """test_opendp_query"""
+        enable_features("floating-point")
+        enable_logging()
+
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)
             response = client.post(

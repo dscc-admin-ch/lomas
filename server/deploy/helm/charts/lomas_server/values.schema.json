@@ -343,6 +343,30 @@
                                 },
                                 "submit_limit": {
                                     "type": "integer"
+                                },
+                                "dp_libraries": {
+                                    "description": "Settings for DP libraries",
+                                    "type": "object",
+                                    "properties": {
+                                        "opendp": {
+                                            "description": "Settings for opendp library",
+                                            "type": "object",
+                                            "properties": {
+                                                "contrib": {
+                                                    "description": "Enable contrib feature",
+                                                    "type": "boolean"
+                                                },
+                                                "floating_point": {
+                                                    "description": "Enable floating-point feature",
+                                                    "type": "boolean"
+                                                },
+                                                "honest_but_curious": {
+                                                    "description": "Enable honest-but-curious feature",
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

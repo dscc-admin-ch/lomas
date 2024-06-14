@@ -6,6 +6,7 @@ from opendp_logger import make_load_json
 
 from constants import DPLibraries, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
+from utils.config import OpenDPConfig
 from utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
@@ -13,8 +14,6 @@ from utils.error_handler import (
 )
 from utils.input_models import OpenDPInp
 from utils.loggr import LOG
-
-enable_features("contrib")
 
 PT_TYPE = "^py_type:*"
 
@@ -201,3 +200,20 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
             f"Unknown type of output measure divergence: {output_measure}"
         )
     return measurement
+
+
+def set_opendp_features_config(opendp_config: OpenDPConfig):
+    """Enable opendp features based on config
+    See https://github.com/opendp/opendp/discussions/304
+
+    Args:
+        opendp_config (OpenDPConfig): OpenDP configurations
+    """
+    if opendp_config.contrib:
+        enable_features("contrib")
+
+    if opendp_config.floating_point:
+        enable_features("floating-point")
+
+    if opendp_config.honest_but_curious:
+        enable_features("honest-but-curious")

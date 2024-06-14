@@ -16,3 +16,8 @@ runtime_args:
       db_file: "tests/test_data/local_db_file.yaml"
     dataset_store:
       ds_store_type: "basic"
+    dp_libraries:
+      opendp:
+        contrib: True
+        floating_point: True
+        honest_but_curious: False

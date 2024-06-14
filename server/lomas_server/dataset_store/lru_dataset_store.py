@@ -68,20 +68,11 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
                 "to fit in dataset manager memory."
             )
 
-        while (
-            self.memory_usage + private_dataset_mem_usage
-            > self.max_memory_usage
-        ):
-            evicted_ds_name, evicted_ds = self.dataset_cache.popitem(
-                last=False
-            )
-            self.memory_usage -= evicted_ds.get_memory_usage()
-            LOG.info(f"Dataset {evicted_ds_name} was evicted from cache.")
-
         self.dataset_cache[dataset_name] = private_dataset
         self.memory_usage += private_dataset_mem_usage
 
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
+        self.update_memory_usage()
 
     def update_memory_usage(self) -> None:
         """Remove least recently used datasets until the cache

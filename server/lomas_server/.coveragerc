@@ -10,4 +10,5 @@ exclude_lines =
     ^\s*raise\s+InternalServerException
     ^\s*except\s+CUSTOM_EXCEPTIONS
     ^\s*except\s+Exception
+    ^\s*except\s+yaml.YAMLError
     ^\s*case _:

@@ -22,3 +22,8 @@ data:
         dataset_store:
           ds_store_type: {{ .Values.server.runtime_args.settings.dataset_store.ds_store_type }}
           max_memory_usage : {{ .Values.server.runtime_args.settings.dataset_store.max_memory_usage }}
+        dp_libraries:
+          opendp:
+            contrib: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.contrib }}
+            floating_point: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.floating_point }}
+            honest_but_curious: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.honest_but_curious }}

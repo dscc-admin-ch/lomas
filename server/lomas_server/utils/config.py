@@ -66,6 +66,20 @@ class MongoDBConfig(DBConfig):
     db_name: str
 
 
+class OpenDPConfig(BaseModel):
+    """BaseModel for openDP librairy config"""
+
+    contrib: bool
+    floating_point: bool
+    honest_but_curious: bool
+
+
+class DPLibraryConfig(BaseModel):
+    """BaseModel for DP librairies config"""
+
+    opendp: OpenDPConfig
+
+
 class Config(BaseModel):
     """
     Server runtime config.
@@ -83,6 +97,8 @@ class Config(BaseModel):
     admin_database: DBConfig
 
     dataset_store: DatasetStoreConfig
+
+    dp_libraries: DPLibraryConfig
 
 
 class ConfigLoader:
@@ -154,12 +170,18 @@ class ConfigLoader:
                 ds_store_type, config_data[ConfigKeys.DATASET_STORE]
             )
 
+            # DP Librairies configs
+            dp_library_config = DPLibraryConfig.model_validate(
+                config_data[ConfigKeys.DP_LIBRARY]
+            )
+
             self._config = Config(
                 develop_mode=config_data[ConfigKeys.DEVELOP_MODE],
                 server=server_config,
                 submit_limit=config_data[ConfigKeys.SUBMIT_LIMIT],
                 admin_database=admin_database_config,
                 dataset_store=ds_store_config,
+                dp_libraries=dp_library_config,
             )
 
         except Exception as e:

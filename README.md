@@ -11,17 +11,17 @@
 | admin\_database/utils.py                     |       31 |        0 |    100% |           |
 | admin\_database/yaml\_database.py            |       89 |        1 |     99% |       171 |
 | administration/\_\_init\_\_.py               |        0 |        0 |    100% |           |
-| app.py                                       |      145 |        8 |     94% |106-110, 144-150 |
+| app.py                                       |      148 |        8 |     95% |106-110, 144-150 |
 | constants.py                                 |       62 |        3 |     95% |   7-8, 13 |
 | dataset\_store/\_\_init\_\_.py               |        0 |        0 |    100% |           |
 | dataset\_store/basic\_dataset\_store.py      |       24 |        0 |    100% |           |
 | dataset\_store/dataset\_store.py             |       11 |        0 |    100% |           |
-| dataset\_store/lru\_dataset\_store.py        |       45 |        6 |     87% |75-79, 96-100 |
+| dataset\_store/lru\_dataset\_store.py        |       42 |        3 |     93% |     87-91 |
 | dataset\_store/private\_dataset\_observer.py |        4 |        0 |    100% |           |
 | dataset\_store/utils.py                      |       14 |        0 |    100% |           |
 | dp\_queries/\_\_init\_\_.py                  |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/\_\_init\_\_.py    |        0 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/opendp.py          |       62 |       16 |     74% |51-52, 57-59, 77, 80-86, 180, 183-188 |
+| dp\_queries/dp\_libraries/opendp.py          |       65 |        3 |     95% |     57-59 |
 | dp\_queries/dp\_libraries/smartnoise\_sql.py |       46 |        5 |     89% |110, 121-125 |
 | dp\_queries/dp\_libraries/utils.py           |       13 |        0 |    100% |           |
 | dp\_queries/dp\_logic.py                     |       43 |        1 |     98% |       145 |
@@ -36,7 +36,7 @@
 | private\_dataset/utils.py                    |       22 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
 | tests/constants.py                           |        4 |        0 |    100% |           |
-| tests/test\_api.py                           |      287 |        1 |     99% |        96 |
+| tests/test\_api.py                           |      344 |        1 |     99% |       105 |
 | tests/test\_dummy\_generation.py             |       63 |        0 |    100% |           |
 | tests/test\_mongodb\_admin.py                |      414 |        0 |    100% |           |
 | tests/test\_mongodb\_admin\_cli.py           |      242 |        0 |    100% |           |
@@ -49,7 +49,7 @@
 | utils/input\_models.py                       |       41 |        0 |    100% |           |
 | utils/loggr.py                               |        5 |        0 |    100% |           |
 | utils/utils.py                               |       28 |        0 |    100% |           |
-|                                    **TOTAL** | **2435** |   **47** | **98%** |           |
+|                                    **TOTAL** | **2495** |   **31** | **99%** |           |
 
 
 ## Setup coverage badge

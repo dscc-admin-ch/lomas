@@ -22,7 +22,11 @@ from mongodb_admin import (
 )
 from app import app
 from constants import DatasetStoreType, EPSILON_LIMIT, DPLibraries
-from tests.constants import ENV_MONGO_INTEGRATION
+from tests.constants import (
+    ENV_MONGO_INTEGRATION,
+    ENV_S3_INTEGRATION,
+    TRUE_VALUES,
+)
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
 from utils.example_inputs import (
@@ -59,7 +63,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     @classmethod
     def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
                 secrets_path="tests/test_configs/test_secrets.yaml",
@@ -85,7 +89,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         self.headers["user-name"] = self.user_name
 
         # Fill up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.db: Database = get_mongodb()
 
             add_users_via_yaml(
@@ -94,9 +98,15 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 clean=True,
                 overwrite=True,
             )
+
+            if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
+                yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
+            else:
+                yaml_file = "tests/test_data/test_datasets.yaml"
+
             add_datasets_via_yaml(
                 self.db,
-                yaml_file="tests/test_data/test_datasets.yaml",
+                yaml_file=yaml_file,
                 clean=True,
                 overwrite_datasets=True,
                 overwrite_metadata=True,
@@ -104,7 +114,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("true", "1", "t"):
+        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
             drop_collection(self.db, "metadata")
             drop_collection(self.db, "datasets")
             drop_collection(self.db, "users")
@@ -124,6 +134,16 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         )
         # Put original state back
         config.admin_database.db_type = previous_admin_db
+
+    def test_root(self) -> None:
+        """Test root endpoint redirection to state endpoint"""
+        with TestClient(app, headers=self.headers) as client:
+            response_root = client.get("/", headers=self.headers)
+            response_state = client.get("/state", headers=self.headers)
+            assert response_root.status_code == response_state.status_code
+            assert json.loads(
+                response_root.content.decode("utf8")
+            ) == json.loads(response_state.content.decode("utf8"))
 
     def test_state(self) -> None:
         """Test state endpoint"""
@@ -166,7 +186,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 assert response_dict["memory_usage"] > 0
 
     def test_get_dataset_metadata(self) -> None:
-        """_summary_"""
+        """test_get_dataset_metadata"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -358,8 +378,30 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "Please, verify the client object initialisation."
             }
 
+    def test_smartnoise_query_on_s3_dataset(self) -> None:
+        """Test smartnoise-sql on s3 dataset"""
+        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
+            with TestClient(app, headers=self.headers) as client:
+                # Expect to work
+                input_smartnoise = dict(example_smartnoise_sql)
+                input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
+                response = client.post(
+                    "/smartnoise_query",
+                    json=input_smartnoise,
+                    headers=self.headers,
+                )
+                assert response.status_code == status.HTTP_200_OK
+
+                response_dict = json.loads(response.content.decode("utf8"))
+                assert response_dict["requested_by"] == self.user_name
+                assert response_dict["query_response"]["columns"] == ["NB_ROW"]
+                assert (
+                    response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
+                )
+                assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
+
     def test_dummy_smartnoise_query(self) -> None:
-        """_summary_"""
+        """test_dummy_smartnoise_query"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -373,7 +415,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["query_response"]["data"][0][0] < 200
 
     def test_smartnoise_cost(self) -> None:
-        """_summary_"""
+        """test_smartnoise_cost"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -386,7 +428,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
-        """_summary_"""
+        """test_opendp_query"""
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)
             response = client.post(
@@ -526,7 +568,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_delta"] > 0
 
     def test_dummy_opendp_query(self) -> None:
-        """_summary_"""
+        """test_dummy_opendp_query"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -537,7 +579,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["query_response"] > 0
 
     def test_opendp_cost(self) -> None:
-        """_summary_"""
+        """test_opendp_cost"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -550,7 +592,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["delta_cost"] == 0
 
     def test_get_initial_budget(self) -> None:
-        """_summary_"""
+        """test_get_initial_budget"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -578,7 +620,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_2 == response_dict
 
     def test_get_total_spent_budget(self) -> None:
-        """_summary_"""
+        """test_get_total_spent_budget"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -614,7 +656,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_get_remaining_budget(self) -> None:
-        """_summary_"""
+        """test_get_remaining_budget"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -651,7 +693,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_get_previous_queries(self) -> None:
-        """_summary_"""
+        """test_get_previous_queries"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -722,7 +764,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_budget_over_limit(self) -> None:
-        """_summary_"""
+        """test_budget_over_limit"""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget on one go
             smartnoise_body = dict(example_smartnoise_sql)
@@ -741,7 +783,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert error["msg"] == "Input should be less than or equal to 5"
 
     def test_subsequent_budget_limit_logic(self) -> None:
-        """_summary_"""
+        """test_subsequent_budget_limit_logic"""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(example_smartnoise_sql)
@@ -767,7 +809,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
 
-            # spend 3*4.0 (total_spent = 12.0 > INTIAL_BUDGET = 10.0)
+            # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             response = client.post(
                 "/smartnoise_query",
                 json=smartnoise_body,

@@ -6,7 +6,8 @@ on:
       - develop
       - release/**
   release:
-    types: [published]
+    types: 
+      - published
 
 jobs:
   docker:

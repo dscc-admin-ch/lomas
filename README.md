@@ -62,7 +62,3 @@ It is important to note that the service is not responsible for storing and mana
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).
-
-## Test coverage
-
-For full test coverage information, see [here](lhttps://htmlpreview.github.io/?https://github.com/dscc-admin-ch/lomas/blob/python-coverage-comment-action-data/htmlcov/index.htm).

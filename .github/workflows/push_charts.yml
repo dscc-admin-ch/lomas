@@ -2,7 +2,8 @@ name: Push Charts to Another Repo
 
 on: 
   push: 
-    branches: [ develop ]
+    branches:
+    - release/**
 
 jobs:
   build:

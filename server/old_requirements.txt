@@ -1,0 +1,16 @@
+boto3
+coverage==7.5.3
+# diffprivlib==0.5.2
+fastapi
+httpx
+numpy
+opendp==0.8.0
+opendp-logger==0.3.0
+pandas
+pydantic
+pymongo
+#python-multipart
+requests
+setuptools
+smartnoise-sql==1.0.3
+uvicorn

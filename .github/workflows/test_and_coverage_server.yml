@@ -28,6 +28,7 @@ jobs:
       run: |
         cd server
         pip install -r requirements.txt
+        pip install coverage==7.5.3
     - name: Run test script
       run: |
         cd server

@@ -48,7 +48,6 @@ The server side, implemented in a micro-service architecture, is composed of two
 Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different 
 queries (SmartnoiseSQL, OpenDP, etc.).
 
-
 - A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
 
 
@@ -82,7 +81,6 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    client_quickstart
    client_examples
    client_errors
-   client_contributing
 
 .. toctree::
    :maxdepth: 2
@@ -91,7 +89,6 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
    server_deployment
    server_administration
-   server_contributing
 
 .. toctree::
    :maxdepth: 2

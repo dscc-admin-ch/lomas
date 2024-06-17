@@ -4,6 +4,7 @@ on:
   push: 
     branches:
       - develop
+      - release/**
   release:
     types: 
       - published
@@ -25,7 +26,7 @@ jobs:
         cd client
         pip install -r requirements.txt
         cd ../server
-        pip install -r requirements.txt
+        pip install -r admin_requirements.txt
         cd ../
 
     - name: Build with sphinx
@@ -44,7 +45,7 @@ jobs:
       env:
         SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
       with:
-        source-directory: build/html
+        source-directory: pages/
         destination-github-username: 'dscc-admin-ch'
         destination-repository-name: 'lomas-docs'
         target-branch: main

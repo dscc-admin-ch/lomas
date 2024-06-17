@@ -106,6 +106,7 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    CONTRIBUTING.md
+   github_workflow
 
 Indices and tables
 ==================

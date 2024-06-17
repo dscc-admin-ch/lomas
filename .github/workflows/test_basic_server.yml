@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd server
-        pip install -r admin_requirements.txt
+        pip install -r requirements.txt
     - name: Run test script
       run: |
         cd server

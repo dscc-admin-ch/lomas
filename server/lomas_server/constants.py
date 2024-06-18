@@ -112,7 +112,8 @@ class OpenDPDatasetInputMetric(StrEnum):
     CHANGE_ONE_DISTANCE = "ChangeOneDistance"
     HAMMING_DISTANCE = "HammingDistance"
 
-    INT_DISTANCE = 'u32' # opendp type for distance between datasets
+    INT_DISTANCE = "u32"  # opendp type for distance between datasets
+
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import opendp as dp
+from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
@@ -14,8 +15,6 @@ from utils.error_handler import (
 )
 from utils.input_models import OpenDPInp
 from utils.loggr import LOG
-
-PT_TYPE = "^py_type:*"
 
 
 class OpenDPQuerier(DPQuerier):
@@ -114,16 +113,22 @@ class OpenDPQuerier(DPQuerier):
         return release_data
 
 
-def is_measurement(pipeline: dp.Measurement) -> bool:
+def is_measurement(pipeline: dp.Measurement) -> None:
     """Check if the pipeline is a measurement.
 
     Args:
         pipeline (dp.Measurement): The measurement to check.
 
-    Returns:
-        bool: True if the pipeline is a measurement, False otherwise.
+    Raises:
+        InvalidQueryException: If the pipeline is not a measurement.
     """
-    return isinstance(pipeline, dp.Measurement)
+    if not isinstance(pipeline, dp.Measurement):
+        e = (
+            "The pipeline provided is not a measurement. "
+            + "It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
 
 
 def has_dataset_input_metric(pipeline: dp.Measurement) -> bool:
@@ -132,11 +137,28 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> bool:
     Args:
         pipeline (dp.Measurement): The pipeline to check.
 
-    Returns:
-        bool: True if the pipeline has a dataset input metric, False otherwise.
+    Raises:
+        InvalidQueryException: If the pipeline input metric is not a dataset input metric.
     """
-    input_metric = pipeline.input_metric
-    return isinstance(input_metric, OpenDPDatasetInputMetric)
+    distance_type = metric_distance_type(pipeline.input_metric)
+    if not distance_type == OpenDPDatasetInputMetric.INT_DISTANCE:
+        e = (
+            f"The input distance type is not {OpenDPDatasetInputMetric.INT_DISTANCE}"
+            + f" but {distance_type} which is not a valid distance type for datasets."
+            + " It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
+
+    dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
+    if not metric_type(pipeline.input_metric) in dataset_input_metric:
+        e = (
+            f"The input distance metric {pipeline.input_metric} "
+            + "is not a dataset input metric."
+            + " It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
 
 
 def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
@@ -151,24 +173,13 @@ def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
     Returns:
         dp.Measurement: The reconstructed pipeline.
     """
+    # Reconstruct pipeline
     opendp_pipe = make_load_json(pipeline)
 
-    if not is_measurement(opendp_pipe):
-        e = (
-            "The pipeline provided is not a measurement. "
-            + "It cannot be processed in this server."
-        )
-        LOG.exception(e)
-        raise InvalidQueryException(e)
-
-    if not has_dataset_input_metric(opendp_pipe):
-        e = (
-            "The input metric for the pipeline provided is not a dataset"
-            + " input metric. It cannot be processed in this server."
-        )
-        LOG.exception(e)
-        raise InvalidQueryException(e)
-
+    # Verify that the pipeline is safe and valid
+    is_measurement(opendp_pipe)
+    has_dataset_input_metric(opendp_pipe)
+    
     return opendp_pipe
 
 

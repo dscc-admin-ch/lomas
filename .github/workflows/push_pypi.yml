@@ -19,7 +19,7 @@ jobs:
       - name: create dist
         run: |
           cd client
-          python -m build
+          python setup.py sdist
       - name: Publish package
         run: |
           twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}

@@ -1,10 +1,8 @@
-#diffprivlib == 0.6.0
-numpy
-opendp == 0.8.0
+#diffprivlib==0.6.0
+jupyter==1.0.0
+numpy==1.26.4
+opendp==0.8.0
 opendp_logger==0.3.0
-pandas
-requests
-#scikit-learn >= 1.1.2
-matplotlib
-seaborn
-jupyter
+pandas==2.2.2
+requests==2.31.0
+#scikit-learn>=1.1.2

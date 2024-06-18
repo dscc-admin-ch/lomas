@@ -120,6 +120,8 @@ if __name__ == "__main__":
   # to separate a single local build from all builds we have a flag, see conf.py
   os.environ["build_all_docs"] = str(True)
   os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
+  os.environ["pages_root"] = "file:///home/azureuser/work/sdd-poc-server/pages"
+
 
   # manually build the develop branch
   build_doc("develop", "en", "develop")

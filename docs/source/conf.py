@@ -95,11 +95,11 @@ if build_all_docs is not None:
 
   # and we append all versions and languages accordingly 
   # we treat the master branch as stable 
-  if (current_version == 'stable'):
+  if (current_version == 'develop'):
     html_context['languages'].append(['en', pages_root])
 
   if (current_language == 'en'):
-    html_context['versions'].append(['stable', pages_root])
+    html_context['versions'].append(['develop', pages_root])
 
   # and loop over all other versions from our yaml file
   # to set versions and languages

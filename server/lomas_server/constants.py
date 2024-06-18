@@ -97,6 +97,12 @@ class OpenDPMeasurement(StrEnum):
     SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"
     ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
 
+# OpenDP Dataset Input Metric Type
+class OpenDPDatasetInputMetric(StrEnum):
+    """Type of opendp input metric for datasets"""
+
+    SYMMETRIC_DISTANCE = "SymmetricDistance"
+
 
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100

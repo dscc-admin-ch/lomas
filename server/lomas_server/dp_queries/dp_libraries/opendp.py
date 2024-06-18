@@ -4,7 +4,7 @@ import opendp as dp
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from constants import DPLibraries, OpenDPMeasurement
+from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
 from utils.config import OpenDPConfig
 from utils.error_handler import (
@@ -52,16 +52,8 @@ class OpenDPQuerier(DPQuerier):
 
         max_ids = self.private_dataset.get_metadata()["max_ids"]
         try:
+            # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
-        except TypeError:
-            try:
-                cost = opendp_pipe.map(d_in=float(max_ids))
-            except Exception as e:
-                LOG.exception(e)
-                raise ExternalLibraryException(
-                    DPLibraries.OPENDP,
-                    "Error obtaining cost:" + str(e),
-                ) from e
         except Exception as e:
             LOG.exception(e)
             raise ExternalLibraryException(
@@ -122,16 +114,29 @@ class OpenDPQuerier(DPQuerier):
         return release_data
 
 
-def is_measurement(value: dp.Measurement) -> bool:
-    """Check if the value is a measurement.
+def is_measurement(pipeline: dp.Measurement) -> bool:
+    """Check if the pipeline is a measurement.
 
     Args:
-        value (dp.Measurement): The measurement to check.
+        pipeline (dp.Measurement): The measurement to check.
 
     Returns:
-        bool: True if the value is a measurement, False otherwise.
+        bool: True if the pipeline is a measurement, False otherwise.
     """
-    return isinstance(value, dp.Measurement)
+    return isinstance(pipeline, dp.Measurement)
+
+
+def has_dataset_input_metric(pipeline: dp.Measurement) -> bool:
+    """Check that the input metric of the pipeline is a dataset metric
+
+    Args:
+        pipeline (dp.Measurement): The pipeline to check.
+
+    Returns:
+        bool: True if the pipeline has a dataset input metric, False otherwise.
+    """
+    input_metric = pipeline.input_metric
+    return isinstance(input_metric, OpenDPDatasetInputMetric)
 
 
 def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
@@ -152,6 +157,14 @@ def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
         e = (
             "The pipeline provided is not a measurement. "
             + "It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
+
+    if not has_dataset_input_metric(opendp_pipe):
+        e = (
+            "The input metric for the pipeline provided is not a dataset"
+            + " input metric. It cannot be processed in this server."
         )
         LOG.exception(e)
         raise InvalidQueryException(e)

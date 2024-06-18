@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - v**
 
 jobs:
   docker:
@@ -27,7 +29,8 @@ jobs:
             ${{ matrix.image }} 
           tags: |
             type=sha
-            latest        
+            type=semver, pattern={{version}}
+            latest, enable={{ github.ref_type == "release" }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3

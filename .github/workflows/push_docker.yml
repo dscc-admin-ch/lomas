@@ -30,7 +30,7 @@ jobs:
           tags: |
             type=sha
             type=semver, pattern={{version}}
-            latest, enable={{ github.ref_type == "release" }}
+            latest, enable=${{ github.ref_type == "release" }}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3

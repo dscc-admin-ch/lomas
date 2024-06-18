@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from pymongo.errors import WriteConcernError
 
 from constants import INTERNAL_SERVER_ERROR
 from utils.loggr import LOG
@@ -62,11 +63,12 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-CUSTOM_EXCEPTIONS: tuple[type, ...] = (
+KNOWN_EXCEPTIONS: tuple[type, ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
+    WriteConcernError,
 )
 
 

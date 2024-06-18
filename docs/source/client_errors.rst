@@ -7,6 +7,8 @@ They are 4 custom errors describing the reasons why the queries fail and what to
     3. UnauthorizedAccessException
     4. InternalServerException
 
+Additionally, when utilizing a MongoDB administration database, a WriteConcernError (from pymongo.errors) may be triggered if a write operation is not acknowledged. In such instances, the error should be escalated to the server administrator as an InternalServerException.
+
 =======================
 
 .. _InvalidQueryException:

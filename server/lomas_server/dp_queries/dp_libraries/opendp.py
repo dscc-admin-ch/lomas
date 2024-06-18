@@ -138,7 +138,8 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> bool:
         pipeline (dp.Measurement): The pipeline to check.
 
     Raises:
-        InvalidQueryException: If the pipeline input metric is not a dataset input metric.
+        InvalidQueryException: If the pipeline input metric is not
+                                a dataset input metric.
     """
     distance_type = metric_distance_type(pipeline.input_metric)
     if not distance_type == OpenDPDatasetInputMetric.INT_DISTANCE:
@@ -179,7 +180,7 @@ def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
     # Verify that the pipeline is safe and valid
     is_measurement(opendp_pipe)
     has_dataset_input_metric(opendp_pipe)
-    
+
     return opendp_pipe
 
 

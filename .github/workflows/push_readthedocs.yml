@@ -31,9 +31,6 @@ jobs:
 
     - name: Build with sphinx
       run: |
-        if [ ! -d "docs/source/_static" ]; then
-          mkdir docs/source/_static
-        fi
         sudo apt-get install pandoc
         pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser        
         cd docs

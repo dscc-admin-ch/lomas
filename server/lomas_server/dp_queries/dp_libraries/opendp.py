@@ -131,7 +131,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
         raise InvalidQueryException(e)
 
 
-def has_dataset_input_metric(pipeline: dp.Measurement) -> bool:
+def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
     """Check that the input metric of the pipeline is a dataset metric
 
     Args:

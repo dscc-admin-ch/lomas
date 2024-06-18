@@ -1,0 +1,26 @@
+name: Check PR to master
+
+on: 
+  pull_request: 
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up Python 11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Get current branch name
+      run: |
+        echo ${{ github.head_ref }}
+        if [[ ! ${{ github.head_ref }} =~ release/* ]]; then
+          echo "PR to maaster must come from a release branch"
+          exit 1
+        fi

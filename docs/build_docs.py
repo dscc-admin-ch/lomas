@@ -128,8 +128,8 @@ if __name__ == "__main__":
   os.environ["build_all_docs"] = str(True)
   os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
-  # manually build the develop branch
-  build_doc("develop", "en", "develop")
+  # manually build the master branch
+  build_doc("stable", "en", "master")
   move_dir("./build/html/", "../pages/")
   r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
   print(r.stdout)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
   # and looping over all values to call our build with version, language and its tag
   for version, details in docs.items():
-    if version == "develop":
+    if version == "stable":
       continue
     tag = details.get('tag', '')
     for language in details.get('languages', []): 

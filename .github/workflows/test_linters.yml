@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          pip install mypy
+          pip install mypy==1.10.0
           pip install pylint==3.1.0
       - name: flake8 server
         uses: py-actions/flake8@v2

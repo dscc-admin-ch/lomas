@@ -1,10 +1,11 @@
 from typing import List, Union
 
 import opendp as dp
+from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from constants import DPLibraries, OpenDPMeasurement
+from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
 from utils.config import OpenDPConfig
 from utils.error_handler import (
@@ -14,8 +15,6 @@ from utils.error_handler import (
 )
 from utils.input_models import OpenDPInp
 from utils.loggr import LOG
-
-PT_TYPE = "^py_type:*"
 
 
 class OpenDPQuerier(DPQuerier):
@@ -52,16 +51,8 @@ class OpenDPQuerier(DPQuerier):
 
         max_ids = self.private_dataset.get_metadata()["max_ids"]
         try:
+            # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
-        except TypeError:
-            try:
-                cost = opendp_pipe.map(d_in=float(max_ids))
-            except Exception as e:
-                LOG.exception(e)
-                raise ExternalLibraryException(
-                    DPLibraries.OPENDP,
-                    "Error obtaining cost:" + str(e),
-                ) from e
         except Exception as e:
             LOG.exception(e)
             raise ExternalLibraryException(
@@ -122,16 +113,52 @@ class OpenDPQuerier(DPQuerier):
         return release_data
 
 
-def is_measurement(value: dp.Measurement) -> bool:
-    """Check if the value is a measurement.
+def is_measurement(pipeline: dp.Measurement) -> None:
+    """Check if the pipeline is a measurement.
 
     Args:
-        value (dp.Measurement): The measurement to check.
+        pipeline (dp.Measurement): The measurement to check.
 
-    Returns:
-        bool: True if the value is a measurement, False otherwise.
+    Raises:
+        InvalidQueryException: If the pipeline is not a measurement.
     """
-    return isinstance(value, dp.Measurement)
+    if not isinstance(pipeline, dp.Measurement):
+        e = (
+            "The pipeline provided is not a measurement. "
+            + "It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
+
+
+def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
+    """Check that the input metric of the pipeline is a dataset metric
+
+    Args:
+        pipeline (dp.Measurement): The pipeline to check.
+
+    Raises:
+        InvalidQueryException: If the pipeline input metric is not
+                                a dataset input metric.
+    """
+    distance_type = metric_distance_type(pipeline.input_metric)
+    if not distance_type == OpenDPDatasetInputMetric.INT_DISTANCE:
+        e = (
+            f"The input distance type is not {OpenDPDatasetInputMetric.INT_DISTANCE}"
+            + f" but {distance_type} which is not a valid distance type for datasets."
+            + " It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
+
+    dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
+    if not metric_type(pipeline.input_metric) in dataset_input_metric:
+        e = (
+            f"The input distance metric {pipeline.input_metric} is not a dataset"
+            + " input metric. It cannot be processed in this server."
+        )
+        LOG.exception(e)
+        raise InvalidQueryException(e)
 
 
 def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
@@ -146,15 +173,12 @@ def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
     Returns:
         dp.Measurement: The reconstructed pipeline.
     """
+    # Reconstruct pipeline
     opendp_pipe = make_load_json(pipeline)
 
-    if not is_measurement(opendp_pipe):
-        e = (
-            "The pipeline provided is not a measurement. "
-            + "It cannot be processed in this server."
-        )
-        LOG.exception(e)
-        raise InvalidQueryException(e)
+    # Verify that the pipeline is safe and valid
+    is_measurement(opendp_pipe)
+    has_dataset_input_metric(opendp_pipe)
 
     return opendp_pipe
 

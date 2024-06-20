@@ -1,8 +1,12 @@
+"stable":
+  tag: "master"
+  languages:
+    - "en"
 "develop":
   tag: 'develop' 
   languages: 
     - "en"
-"v0.0.2":
-   tag: "v0.0.2"
+"v0.0.4":
+   tag: "v0.0.4"
    languages:
     - "en"

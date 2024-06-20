@@ -4,8 +4,9 @@ on:
   push:
     branches:
       - develop
-    tags:
-      - v**
+  release:
+    types:
+      - published
 
 jobs:
   docker:
@@ -30,9 +31,8 @@ jobs:
           tags: |
             type=sha
             type=semver, pattern={{version}}
-            latest, enable=${{ github.ref_type == "release" }}
-      -
-        name: Set up QEMU
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       -
         name: Set up Docker Buildx

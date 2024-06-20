@@ -46,7 +46,7 @@ The table below gives an overview of which workflows are triggered by what event
 | Client library push    | No            | No           | No              | No                 | No             | Yes (must manually adjust version) |
 | Helm charts push       | No            | No           | No              | Yes (must manually adjust version) | No             | No             |
 | Documentation push     | No            | No           | Yes (for latest)| No                 | No             | Yes (must manually add version) |
-| Security with CodeQL*   | Yes           | Yes          | No              | No                 | No             | No             |
+| Security with CodeQL*  | Yes           | Yes          | No              | No                 | No             | No             |
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 

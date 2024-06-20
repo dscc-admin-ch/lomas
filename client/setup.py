@@ -31,7 +31,7 @@ setup(
         "opendp==0.8.0",
         "opendp_logger==0.3.0",
         "numpy==1.26.4",
-        "requests==2.31.0",
+        "requests==2.32.0",
         "pandas==2.2.2",
     ],
 )

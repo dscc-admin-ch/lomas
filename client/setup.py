@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas_client",
     packages=find_packages(),
-    version="0.0.2",
+    version="0.0.4",
     description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -28,10 +28,10 @@ setup(
     keywords=["opendp", "smartnoise-sql", "logger", "ast"],
     python_requires=">=3.8, <4",
     install_requires=[
-        "opendp == 0.8.0",
-        "numpy == 1.23.2",
-        "requests == 2.31.0",
-        "pandas==2.0.1",
-        "pyyaml",
+        "opendp==0.8.0",
+        "opendp_logger==0.3.0",
+        "numpy==1.26.4",
+        "requests==2.32.0",
+        "pandas==2.2.2",
     ],
 )

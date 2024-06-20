@@ -5,11 +5,8 @@ from io import StringIO
 
 from fastapi import status
 from fastapi.testclient import TestClient
-import opendp.combinators as comb
-import opendp.measurements as meas
 from opendp.mod import enable_features
 import opendp.prelude as dp_p
-import opendp.transformations as trans
 from opendp_logger import enable_logging
 import pandas as pd
 from pymongo.database import Database
@@ -45,6 +42,8 @@ from utils.example_inputs import (
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
+
+enable_features("floating-point")
 
 
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
@@ -213,7 +212,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_get_dummy_dataset(self) -> None:
-        """_summary_"""
+        """test_get_dummy_dataset"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -316,9 +315,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise[
-                "query_str"
-            ] = "SELECT AVG(bill) FROM df"  # no 'bill' column
+            input_smartnoise["query_str"] = (
+                "SELECT AVG(bill) FROM df"  # no 'bill' column
+            )
             response = client.post(
                 "/smartnoise_query",
                 json=input_smartnoise,
@@ -426,7 +425,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """test_opendp_query"""
-        enable_features("floating-point")
         enable_logging()
 
         with TestClient(app, headers=self.headers) as client:
@@ -454,12 +452,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "sex",
             ]
             transformation_pipeline = (
-                trans.make_split_dataframe(separator=",", col_names=colnames)
-                >> trans.make_select_column(key="bill_length_mm", TOA=str)
-                >> trans.then_cast_default(TOA=float)
-                >> trans.then_clamp(bounds=(30.0, 65.0))
-                >> trans.then_resize(size=346, constant=43.61)
-                >> trans.then_variance()
+                dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
+                >> dp_p.t.make_select_column(key="bill_length_mm", TOA=str)
+                >> dp_p.t.then_cast_default(TOA=float)
+                >> dp_p.t.then_clamp(bounds=(30.0, 65.0))
+                >> dp_p.t.then_resize(size=346, constant=43.61)
+                >> dp_p.t.then_variance()
             )
 
             # Expect to fail: transormation instead of measurement
@@ -477,7 +475,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
             # Test MAX_DIVERGENCE (pure DP)
-            md_pipeline = transformation_pipeline >> meas.then_laplace(
+            md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(
                 scale=5.0
             )
             response = client.post(
@@ -496,7 +494,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_delta"] == 0
 
             # Test ZERO_CONCENTRATED_DIVERGENCE
-            zcd_pipeline = transformation_pipeline >> meas.then_gaussian(
+            zcd_pipeline = transformation_pipeline >> dp_p.m.then_gaussian(
                 scale=5.0
             )
             json_obj = {
@@ -523,7 +521,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_delta"] == 1e-6
 
             # Test SMOOTHED_MAX_DIVERGENCE (approx DP)
-            sm_pipeline = comb.make_zCDP_to_approxDP(zcd_pipeline)
+            sm_pipeline = dp_p.c.make_zCDP_to_approxDP(zcd_pipeline)
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
@@ -549,10 +547,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Test FIXED_SMOOTHED_MAX_DIVERGENCE
             fms_pipeline = (
-                trans.make_split_dataframe(separator=",", col_names=colnames)
-                >> trans.make_select_column(key="island", TOA=str)
-                >> trans.then_count_by(MO=dp_p.L1Distance[float], TV=float)
-                >> meas.then_base_laplace_threshold(scale=2.0, threshold=28.0)
+                dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
+                >> dp_p.t.make_select_column(key="island", TOA=str)
+                >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
+                >> dp_p.m.then_base_laplace_threshold(
+                    scale=2.0, threshold=28.0
+                )
             )
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,

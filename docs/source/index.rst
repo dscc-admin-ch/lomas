@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Lomas documentation
+Welcome to Lomas!
 ========================================
 The lomas platform follows a classic server/client model. On the client side, the 
 user prepares queries for statistical analyses which are sent to the 
@@ -103,7 +103,8 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    CONTRIBUTING.md
-   github_workflow
+   CONTRIBUTING_CLIENT.md
+   CONTRIBUTING_CLIENT.md
 
 Indices and tables
 ==================

@@ -84,7 +84,9 @@ def build_doc(version: str,
     # Copy relevant sources and generate code docs rsts.
     subprocess.run("mkdir -p ./source/_static", shell=True)
     subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-    subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+    subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+    subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
+    subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True)
     subprocess.run("mkdir -p ./source/notebooks", shell=True)
@@ -128,8 +130,8 @@ if __name__ == "__main__":
   os.environ["build_all_docs"] = str(True)
   os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
-  # manually build the develop branch
-  build_doc("develop", "en", "develop")
+  # manually build the master branch
+  build_doc("stable", "en", "master")
   move_dir("./build/html/", "../pages/")
   r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
   print(r.stdout)
@@ -140,7 +142,7 @@ if __name__ == "__main__":
 
   # and looping over all values to call our build with version, language and its tag
   for version, details in docs.items():
-    if version == "develop":
+    if version == "stable":
       continue
     tag = details.get('tag', '')
     for language in details.get('languages', []): 

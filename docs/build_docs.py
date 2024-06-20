@@ -84,7 +84,9 @@ def build_doc(version: str,
     # Copy relevant sources and generate code docs rsts.
     subprocess.run("mkdir -p ./source/_static", shell=True)
     subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-    subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+    subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+    subprocess.run("cp ../client/CONTRIBUTING.md ./source/CLIENT_CONTRIBUTING.md", shell=True)
+    subprocess.run("cp ../server/CONTRIBUTING.md ./source/SERVER_CONTRIBUTING.md", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True)
     subprocess.run("mkdir -p ./source/notebooks", shell=True)

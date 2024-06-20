@@ -103,7 +103,8 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    CONTRIBUTING.md
-   github_workflow
+   CLIENT_CONTRIBUTING.md
+   SERVER_CONTRIBUTING.md
 
 Indices and tables
 ==================

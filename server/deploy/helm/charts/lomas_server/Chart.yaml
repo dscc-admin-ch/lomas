@@ -6,7 +6,7 @@ type: application
 
 version: 0.0.6
 
-appVersion: "0.0.2"
+appVersion: "0.0.4"
 
 dependencies:
   - name: mongodb

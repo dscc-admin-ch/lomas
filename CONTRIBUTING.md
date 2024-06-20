@@ -46,12 +46,15 @@ The table below gives an overview of which workflows are triggered by what event
 | Client library push    | No            | No           | No              | No                 | No             | Yes (must manually adjust version) |
 | Helm charts push       | No            | No           | No              | Yes (must manually adjust version) | No             | No             |
 | Documentation push     | No            | No           | Yes (for latest)| No                 | No             | Yes (must manually add version) |
+| Security with CodeQL*  | Yes           | Yes          | No              | No                 | No             | No             |
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
 * **Client library push**: The version must be set in `client/setup.py`
 * **Helm chart push**: The app version and chart version must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the genration of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
+
+*The Security with CodeQL workflow is also triggered every Monday at 9am.
 
 
 ## Release Workflow

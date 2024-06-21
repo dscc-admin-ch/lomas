@@ -6,7 +6,7 @@
   tag: 'develop' 
   languages: 
     - "en"
-"v0.0.4":
-   tag: "v0.0.4"
+"v0.1.0":
+   tag: "v0.1.0"
    languages:
     - "en"

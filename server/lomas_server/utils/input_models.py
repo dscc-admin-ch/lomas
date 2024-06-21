@@ -78,7 +78,10 @@ class DummyOpenDPInp(BaseModel):
     dummy_seed: int
     fixed_delta: Optional[float] = None
 
-class DiffPrivLibInp(BasicModel):
+
+class DiffPrivLibInp(BaseModel):
+    """Model input for a diffprivlib query"""
+
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list
@@ -88,7 +91,9 @@ class DiffPrivLibInp(BasicModel):
     imputer_strategy: str
 
 
-class DummyDiffPrivLibInp(BasicModel):
+class DummyDiffPrivLibInp(BaseModel):
+    """Model input for a dummy diffprivlib query"""
+
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list

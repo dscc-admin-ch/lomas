@@ -27,7 +27,7 @@ def querier_factory(lib: str, private_dataset: PrivateDataset) -> DPQuerier:
 
         case DPLibraries.OPENDP:
             querier = OpenDPQuerier(private_dataset)
-            
+
         case DPLibraries.DIFFPRIVLIB:
             querier = DiffPrivLibQuerier(private_dataset)
 

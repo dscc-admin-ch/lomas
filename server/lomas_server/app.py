@@ -1,9 +1,10 @@
+import json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Callable
 
 from fastapi import Body, Depends, FastAPI, Header, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from admin_database.utils import database_factory
 from constants import (
@@ -424,8 +425,6 @@ def dummy_smartnoise_sql_handler(
               results (default: True).
               See Smartnoise-SQL postprocessing documentation
               https://docs.smartnoise.org/sql/advanced.html#postprocess.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows in the dummy dataset
               (default: 100).
             - seed (int, optional): The random seed for generating
@@ -595,8 +594,6 @@ def dummy_opendp_query_handler(
               "make_zCDP_to_approxDP" (see opendp measurements documentation at
               https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
               In that case a "fixed_delta" must be provided by the user.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows
               in the dummy dataset (default: 100).
             - seed (int, optional): The random seed for generating
@@ -652,7 +649,7 @@ def estimate_opendp_cost(
         request (Request): Raw request object
         query_json (OpenDPInp, optional):
             A JSON object containing the following:
-            - "opendp_pipeline": The OpenDP pipeline for the query.
+            - opendp_pipeline: The OpenDP pipeline for the query.
 
             Defaults to Body(example_opendp).
 
@@ -680,6 +677,7 @@ def estimate_opendp_cost(
 
     return JSONResponse(content=response)
 
+
 @app.post(
     "/diffprivlib_query",
     dependencies=[Depends(server_live)],
@@ -689,16 +687,51 @@ def diffprivlib_query_handler(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
+    """
+    Handles queries for the DiffPrivLib Library.
+
+    Args:
+        request (Request): Raw request object.
+        query_json (OpenDPInp, optional): A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+
+            Defaults to Body(example_diffprivlib).
+
+        user_name (str, optional): The user name.
+            Defaults to Header(None).
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: The pipeline does not contain a "measurement",
+            there is not enough budget or the dataset does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
     try:
-        response = QUERY_HANDLER.handle_query(
-            LIB_DIFFPRIVLIB, query_json, user_name
+        response = app.state.query_handler.handle_query(
+            DPLibraries.DIFFPRIVLIB, query_json, user_name
         )
-    except HTTPException as he:
-        LOG.exception(he)
-        raise he
+    except KNOWN_EXCEPTIONS as e:
+        raise e
     except Exception as e:
-        LOG.exception(e)
-        raise HTTPException(500, str(e))
+        raise InternalServerException(e) from e
 
     return response
 
@@ -711,20 +744,50 @@ def diffprivlib_query_handler(
 def dummy_diffprivlib_query_handler(
     query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
 ):
+    """
+    Handles queries on dummy datasets for the DiffPrivLib library.
+
+    Args:
+        request (Request): Raw request object.
+        query_json (DiffPrivLibInp, optional): A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+              (default: 100).
+            - seed (int, optional): The random seed for generating
+              the dummy dataset (default: 42).
+              Defaults to Body(example_dummy_diffprivlib)
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+
+    Returns:
+        JSONResponse: A JSON object containing:
+            - query_response (pd.DataFrame): a DataFrame containing
+              the query response.
+    """
     ds_private_dataset = get_dummy_dataset_for_query(
-        ADMIN_DATABASE, query_json
+        app.state.admin_database, query_json
     )
     dummy_querier = querier_factory(
-        LIB_DIFFPRIVLIB, private_dataset=ds_private_dataset
+        DPLibraries.DIFFPRIVLIB, private_dataset=ds_private_dataset
     )
 
     try:
+        _ = dummy_querier.cost(query_json)  # verify cost works
         response = dummy_querier.query(query_json)
-    except HTTPException as e:
+    except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise InternalServerException(e) from e
 
     return json.dumps(response).encode("utf-8")
 
@@ -737,18 +800,46 @@ def dummy_diffprivlib_query_handler(
 def estimate_diffprivlib_cost(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
 ):
+    """
+    Estimates the privacy loss budget cost of an DiffPrivLib query.
+
+    Args:
+        request (Request): Raw request object
+        query_json (DiffPrivLibInp, optional):
+        A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+
+            Defaults to Body(example_dummy_diffprivlib).
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: The dataset does not exist or the
+            pipeline does not contain a measurement.
+
+    Returns:
+        JSONResponse: A JSON object containing:
+            - epsilon_cost (float): The estimated epsilon cost.
+            - delta_cost (float): The estimated delta cost.
+    """
     try:
-        response = QUERY_HANDLER.estimate_cost(
-            LIB_DIFFPRIVLIB,
+        response = app.state.query_handler.estimate_cost(
+            DPLibraries.DIFFPRIVLIB,
             query_json,
         )
-    except HTTPException as e:
+    except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        LOG.info(f"Exception raised: {e}")
-        raise HTTPException(status_code=500, detail=INTERNAL_SERVER_ERROR)
+        raise InternalServerException(e) from e
 
     return response
+
 
 # MongoDB get initial budget
 @app.post(

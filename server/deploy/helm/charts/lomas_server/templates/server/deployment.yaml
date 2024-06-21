@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.server.fullname" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.server.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.server.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.server.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+            {{- toYaml .Values.server.securityContext | nindent 12 }}
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.server.service.port }}
+            protocol: TCP
+        volumeMounts:
+          - name: config-and-secrets
+            readOnly: True
+            mountPath: "/usr/lomas_server/"
+        resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+      volumes:
+        - name: config-and-secrets
+          projected:
+            sources:
+            - secret:
+                name: {{ include "lomas.server.fullname" . }}
+            - configMap:
+                name: {{ include "lomas.server.fullname" . }}
+      {{- with .Values.server.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

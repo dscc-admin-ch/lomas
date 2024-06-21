@@ -1,12 +1,12 @@
 import opendp.transformations as trans
-from opendp_logger import enable_logging, make_load_json
 from opendp.mod import enable_features
+from opendp_logger import enable_logging, make_load_json
 
 enable_logging()
 enable_features("contrib")
 
 
-def test_serialize():
+def test_serialize() -> None:
     # Random pipeline of transformation
     pipeline = (
         # Convert data into a dataframe where columns are of type Vec<str>
@@ -50,7 +50,7 @@ def test_serialize():
     assert json_obj == expected_json
 
 
-def test_deserialize():
+def test_deserialize() -> None:
     pipeline_json = (
         '{"version": "0.8.0", '
         '"ast": {'

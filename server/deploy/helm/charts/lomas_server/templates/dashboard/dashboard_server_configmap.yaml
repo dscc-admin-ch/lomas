@@ -1,0 +1,14 @@
+{{- if .Values.dashboard.create -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+{{- $fullname := include "lomas.dashboard.fullname" . }}
+  name: {{ printf "%s-server-config" $fullname }}
+  labels:
+    {{- include "lomas.dashboard.labels" . | nindent 4 }}
+data:
+  config.toml: |
+    [server]
+    address="{{ .Values.dashboard.serverConfig.address }}"
+    port="{{ .Values.dashboard.serverConfig.port }}"
+{{- end }}

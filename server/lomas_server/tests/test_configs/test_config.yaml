@@ -1,0 +1,23 @@
+runtime_args:
+  settings:
+    develop_mode: True
+    submit_limit: 300
+    server:
+      host_ip: "0.0.0.0"
+      host_port: "80"
+      log_level: "info"
+      reload: True
+      workers: 1 # Will be overwritten to one anyway for now.
+      time_attack:
+        method: "stall"
+        magnitude: 1
+    admin_database:
+      db_type: "yaml"
+      db_file: "tests/test_data/local_db_file.yaml"
+    dataset_store:
+      ds_store_type: "basic"
+    dp_libraries:
+      opendp:
+        contrib: True
+        floating_point: True
+        honest_but_curious: False

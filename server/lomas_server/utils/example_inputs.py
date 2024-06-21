@@ -174,23 +174,23 @@ diffprivlib_json = {
 }
 
 example_diffprivlib = {
-    "dataset_name": IRIS_DATASET,
+    "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "feature_columns": ["sepal_width", "petal_length"],
-    "target_columns": ["sepal_length"],
+    "feature_columns": ["species", "bill_depth_mm"],
+    "target_columns": ["bill_length_mm"],
     "test_size": 0.2,
     "test_train_split_seed": 1,
     "imputer_strategy": "mean",
 }
 
 example_dummy_diffprivlib = {
-    "dataset_name": IRIS_DATASET,
+    "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": diffprivlib_json,
-    "feature_columns": ["sepal_width", "petal_length"],
-    "target_columns": ["sepal_length"],
+    "feature_columns": ["species", "bill_depth_mm"],
+    "target_columns": ["bill_length_mm"],
     "test_train_split_seed": 1,
     "test_size": 0.2,
     "imputer_strategy": "mean",
     "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED
+    "dummy_seed": DUMMY_SEED,
 }

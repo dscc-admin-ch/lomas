@@ -1,23 +1,24 @@
-from typing import List
 import base64
-import pickle
 import json
-import pandas as pd
+import pickle
 import warnings
-from fastapi import HTTPException
-import diffprivlib
-from diffprivlib.utils import (
-    PrivacyLeakWarning,
-    DiffprivlibCompatibilityWarning,
-)
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
-from sklearn.impute import SimpleImputer
+from typing import Dict
 
+import diffprivlib
+import pandas as pd
+from diffprivlib.utils import (
+    DiffprivlibCompatibilityWarning,
+    PrivacyLeakWarning,
+)
+from fastapi import HTTPException
+from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+
+from constants import NUMERICAL_DTYPES
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
 from utils.loggr import LOG
-from constants import NUMERICAL_DTYPES
 
 # DiffPrivLib warnings will trigger error
 warnings.simplefilter("error", PrivacyLeakWarning)
@@ -48,38 +49,41 @@ class DiffPrivLibQuerier(DPQuerier):
         if imputer_strategy == "drop":
             data = data.dropna()
         elif imputer_strategy in ["mean", "median"]:
-            numerical_cols = (
-                data.select_dtypes(include=NUMERICAL_DTYPES)
-                .columns.tolist()
-            )
-            categorical_cols = [col for col in data.columns 
-                                if col not in numerical_cols]
-            
+            numerical_cols = data.select_dtypes(
+                include=NUMERICAL_DTYPES
+            ).columns.tolist()
+            categorical_cols = [
+                col for col in data.columns if col not in numerical_cols
+            ]
+
             # Impute numerical features using given strategy
             imp_mean = SimpleImputer(strategy=imputer_strategy)
             df_num_imputed = imp_mean.fit_transform(data[numerical_cols])
-            
+
             # Impute categorical features with most frequent value
             imp_most_frequent = SimpleImputer(strategy="most_frequent")
             df_cat_imputed = imp_most_frequent.fit_transform(
-                data[categorical_cols])
+                data[categorical_cols]
+            )
 
             # Combine imputed dataframes
-            data = pd.concat([
-                pd.DataFrame(df_num_imputed, columns=numerical_cols),
-                pd.DataFrame(df_cat_imputed, columns=categorical_cols)],
-                axis=1)
+            data = pd.concat(
+                [
+                    pd.DataFrame(df_num_imputed, columns=numerical_cols),
+                    pd.DataFrame(df_cat_imputed, columns=categorical_cols),
+                ],
+                axis=1,
+            )
         elif imputer_strategy == "most_frequent":
             # Impute all features with most frequent value
             imp_most_frequent = SimpleImputer(strategy=imputer_strategy)
             data = pd.DataFrame(
-                imp_most_frequent.fit_transform(data),
-                columns=data.columns)
+                imp_most_frequent.fit_transform(data), columns=data.columns
+            )
         else:
             raise HTTPException(
-                500, 
-                f"Imputation strategy {imputer_strategy} not supported"
-                )
+                500, f"Imputation strategy {imputer_strategy} not supported"
+            )
 
         feature_data = data[query_json.feature_columns]
 
@@ -108,20 +112,20 @@ class DiffPrivLibQuerier(DPQuerier):
             raise HTTPException(500, f"Cannot train model error: {str(e)}")
         return pipeline
 
-    def cost(self, query_json: dict) -> List[float]:
+    def cost(self, query_json: dict) -> tuple[float, float]:
         dpl_pipeline = self.deserialise_pipeline(query_json.diffprivlib_json)
         x_train, _, y_train, _ = self.prepare_data(query_json)
         fitted_dpl_pipeline = self.fit_pipeline(dpl_pipeline, x_train, y_train)
 
         # Compute budget
-        spent_epsilon = 0
-        spent_delta = 0
+        spent_epsilon = 0.0
+        spent_delta = 0.0
         for step in fitted_dpl_pipeline.steps:
             spent_epsilon += step[1].accountant.spent_budget[0][0]
             spent_delta += step[1].accountant.spent_budget[0][1]
         return spent_epsilon, spent_delta
 
-    def query(self, query_json: dict) -> str:
+    def query(self, query_json: dict) -> Dict:
         dpl_pipeline = self.deserialise_pipeline(query_json.diffprivlib_json)
         x_train, x_test, y_train, y_test = self.prepare_data(query_json)
         fitted_dpl_pipeline = self.fit_pipeline(dpl_pipeline, x_train, y_train)

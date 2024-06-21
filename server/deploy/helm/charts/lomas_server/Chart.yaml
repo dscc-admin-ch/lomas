@@ -4,9 +4,9 @@ description: Lomas deployment chart
 
 type: application
 
-version: 0.0.6
+version: 0.1.0
 
-appVersion: "0.0.4"
+appVersion: "0.1.0"
 
 dependencies:
   - name: mongodb

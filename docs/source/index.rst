@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Lomas!
+Lomas: The Data Oases Hidden Behind the Mist.
 ========================================
+Lomas is a platform for remote data science, enabling sensitive data to be querried remotely 
+while staying protected by a layer of differential privacy.
+
 The lomas platform follows a classic server/client model. On the client side, the 
 user prepares queries for statistical analyses which are sent to the 
 service's REST API via HTTP. The user never has direct access to the sensitive 
@@ -104,7 +107,7 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
    CONTRIBUTING.md
    CONTRIBUTING_CLIENT.md
-   CONTRIBUTING_CLIENT.md
+   CONTRIBUTING_SERVER.md
 
 Indices and tables
 ==================

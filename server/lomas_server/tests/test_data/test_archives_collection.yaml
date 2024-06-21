@@ -1,0 +1,54 @@
+- user_name: Dr. Antartica
+  dataset_name: PENGUIN
+  client_input:
+    query_str: "SELECT COUNT(*) AS nb_penguins,         AVG(bill_length_mm) AS avg_bill_length_mm         FROM df"
+    dataset_name: PENGUIN
+    epsilon: 0.5
+    delta: 0.0001
+    mechanisms: {}
+    postprocess: true
+  response:
+    requested_by: Dr. Antartica
+    query_response:
+      index:
+        - 0
+      columns:
+        - nb_penguins
+        - avg_bill_length_mm
+      data:
+        - - 345
+          - 44.3770231104922
+      index_names:
+        - null
+      column_names:
+        - null
+    spent_epsilon: 1.5
+    spent_delta: 0.00014999500000001387
+  timestamp: 1717575211.9354818
+  dp_librairy: smartnoise_sql
+- user_name: Tintin
+  dataset_name: PENGUIN
+  client_input:
+    query_str: "SELECT COUNT(*) AS nb_penguins FROM df"
+    dataset_name: PENGUIN
+    epsilon: 0.5
+    delta: 0.0001
+    mechanisms: {}
+    postprocess: true
+  response:
+    requested_by: Tintin
+    query_response:
+      index:
+        - 0
+      columns:
+        - nb_penguins
+      data:
+        - - 341
+      index_names:
+        - null
+      column_names:
+        - null
+    spent_epsilon: 0.5
+    spent_delta: 0.00014999500000001387
+  timestamp: 1717575450.2644176
+  dp_librairy: smartnoise_sql

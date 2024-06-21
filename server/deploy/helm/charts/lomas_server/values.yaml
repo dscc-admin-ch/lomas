@@ -1,0 +1,177 @@
+# Default values for lomas_server.
+
+# General stuff
+nameOverride: ""
+fullnameOverride: "lomas"
+
+# MongoDB 
+##########################################################################
+mongodb:
+  resources: {}
+  fullnameOverride: "lomas-mongodb"
+  architecture: standalone
+  image:
+    tag: "6.0.9-debian-11-r5"
+  auth:
+    enabled: true
+    rootUser: root
+    rootPassword: root_pwd # changeme
+    usernames: [user] 
+    passwords: [user_pwd] # changeme
+    databases: [defaultdb]
+  replicaCount: 1
+  discoverable:
+    allow: true
+  security:
+    networkPolicy: 
+      enabled: true
+  persistence:
+    # Set this to "keep" to disable data pvc deletion when uninstalling the chart.
+    # Subsequent installs will use the same pvc, restoring the state of the server.
+    # Note: if the runtime_args.settings.develop_mode is set to True, the server
+    # state will be reset (default datasets and budgets).
+    resourcePolicy: ""
+
+
+# Dashboard Fast-API server
+##########################################################################
+
+server:  
+  image:
+    repository: dsccadminch/lomas_server
+    pullPolicy: Always
+    tag: latest
+  imagePullSecrets: []
+
+  # Runtime args for server
+  runtime_args:
+    settings:
+      develop_mode: True # !! Set this to false in production mode !!
+      submit_limit: 300
+      server:
+        host_ip: "0.0.0.0"
+        host_port: "80"
+        log_level: "info"
+        reload: True
+        workers: 1 # Will be overwritten to one anyway for now.
+        time_attack:
+          method: "jitter" # or "stall"
+          magnitude: 1
+      dataset_store:
+        ds_store_type: "LRU_cache"
+        max_memory_usage : 512
+      dp_libraries:
+        opendp:
+          contrib: True
+          floating_point: True
+          honest_but_curious: True
+
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations: 
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    hostname: "lomas-server.example.com"
+  # Lomas server not meant to be replicated for now
+  replicaCount: 1
+  # Lomas server not intended to be autoscaled for now
+  # autoscaling:
+  #  enabled: false
+  #  minReplicas: 1
+  #  maxReplicas: 100
+  #  targetCPUUtilizationPercentage: 80
+  #  # targetMemoryUtilizationPercentage: 80
+
+  # We leave unset stuff here
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Lomas Administration Dashboard
+##########################################################################
+
+dashboard:
+  create: true
+
+  image:
+    repository: dsccadminch/lomas_admin_dashboard
+    pullPolicy: Always
+    tag: latest
+  imagePullSecrets: []
+
+  # Runtime args for server
+  serverConfig:
+    address: "0.0.0.0"
+    port: "8501"
+
+  service:
+    type: ClusterIP
+    port: 80
+ 
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations: 
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    hostname: "lomas-admin-dashboard.example.com"
+  # Lomas dashboard not meant to be replicated for now
+  replicaCount: 1
+  # Lomas dashboard not intended to be autoscaled for now
+  # autoscaling:
+  #  enabled: false
+  #  minReplicas: 1
+  #  maxReplicas: 100
+  #  targetCPUUtilizationPercentage: 80
+  #  # targetMemoryUtilizationPercentage: 80
+  
+  # We leave unset stuff here
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

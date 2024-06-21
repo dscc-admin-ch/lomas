@@ -1,0 +1,26 @@
+runtime_args:
+  settings:
+    develop_mode: False
+    submit_limit: 300
+    server:
+      host_ip: "0.0.0.0"
+      host_port: "80"
+      log_level: "info"
+      reload: True
+      workers: 1 # Will be overwritten to one anyway for now.
+      time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
+    admin_database:
+      db_type: "mongodb"
+      address: "127.0.0.1"
+      port: 27017
+      db_name: "defaultdb"
+    dataset_store:
+      ds_store_type: "LRU_cache"
+      max_memory_usage: 512
+    dp_libraries:
+      opendp:
+        contrib: True
+        floating_point: True
+        honest_but_curious: True

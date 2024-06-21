@@ -1,0 +1,14 @@
+apiVersion: v2
+name: lomas-server
+description: Lomas deployment chart
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.1.0"
+
+dependencies:
+  - name: mongodb
+    version: "13.18.1"
+    repository: https://charts.bitnami.com/bitnami

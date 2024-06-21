@@ -1,75 +1,66 @@
-# DP Serializers Client
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+<h1 align="center">
+<img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
+</h1><br>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
+[![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas-docs/index.html)
+[![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
 
 
-# Client package for DP Serializer
-
-The dp-seriel-client enables serialization of popular Differential Privacy frameworks.
-The client in dp-serializers-client makes it possible to serialize and query data with a corresponding server running.
 
 
-## Creating Client:
-```python
-from dp_serial.client.client import Client
-dp_client = Client("http://localhost:3031")
-```
-Once `dp_client` is initialized it can be used to send requests to respective DP frameworks.
+# Lomas: The Data Oases Hidden Behind the Mist. 
 
-## Querying OpenDP
-```python
-import dp_serial.opendp_logger.trans as trans
-import dp_serial.opendp_logger.meas as meas
-import dp_serial.opendp_logger.comb as comb
+Lomas is a platform for remote data science, enabling sensitive data to be querried remotely while staying protected by a layer of differential privacy.
 
-pipeline = comb.make_pureDP_to_fixed_approxDP(
-    trans.make_split_dataframe(separator=",", col_names=["col_1", "col_2", "col_3"]) >>
-    trans.make_select_column(key="key_name", TOA=str) >>
-    trans.make_cast(TIA=str, TOA=int) >>
-    trans.make_impute_constant(0) >> 
-    trans.make_clamp(bounds=(0, 1)) >>
-    trans.make_bounded_sum((0, 1)) >>
-    meas.make_base_discrete_laplace(scale=1.)
-)
+The lomas platform follows a classic server/client model.
+On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
+On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
+The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
 
-opendp_result = dp_client.opendp(pipeline)
 
-#Data from API server with DP applied
-print(opendp_result)
-```
+The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-## Querying Diffprivlib
-```python
-from sklearn.pipeline import Pipeline
-from diffprivlib import models
+<!-- See our white paper (TODO link) for detailed explanation of the platform. -->
+## Useful links
 
-#Diffprivlib LR Pipeline 
-lr_pipe = Pipeline([
-    ('lr', models.LogisticRegression(data_norm=5))
-])
-#Trained model from API Server with DP applied
-trained_model = dp_client.diffprivlib(splr_pipe, y_column="y_return") 
-```
+* **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+* **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
 
-## Querying Smartnoise-Synth
-```python
-cols_to_select = ["col_1", "col_2", "col_3"]
-mat = numpy.array([[0.001,0.1,0.001], [0.01,0.1,0.02], [0.41,0.1,0.3]])
+## Client package `lomas_client`
 
-mwem_synthetic_data = dp_client.synth("MWEM", 1, 0.0001, select_cols=cols_to_select, mul_matrix=mat)
+The `lomas_client` library is a client to interact with the Lomas server. It is available on Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will only interact with the client and never with the server.
 
-#Synthetic Data from API server
-print(mwem_synthetic_data)
-```
+Utilizing this client library is strongly advised for querying and interacting with the server, as it takes care of all the necessary tasks such as serialization, deserialization, REST API calls, and ensures the correct installation of other required libraries. In short, it enables a seamless interaction with the server.
 
-## Querying Smartnoise-SQL
+For additional informations about the client, please see the [README.md](https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md) of the client and for addictional examples please see the [Demo_Client_Notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/client/notebooks/Demo_Client_Notebook.ipynb).
 
-```python
-query_result = dp_client.sql(
-    "SELECT col_1, COUNT(col_2) as ret_col_2 FROM comp.comp GROUP BY col_3", 1,0.0001
-)
 
-#Resulting data from APIs with DP applied
-print(query_result)
-```
+## Server
+
+The server side, implemented in a micro-service architecture, is composed of two main services:
+- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
+- A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
+
+The server connects to external databases, typically deployed by a data owner, to download the sensitive datasets for query execution. Currently, the server can manage adapters to S3, http file download and local files.
+
+For extensive informations about how to administrate the MongoDB database, please refer to:
+- [local_admin_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/local_admin_notebook.ipynb) for local administration of a database
+- [kubernetes_admin_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/kubernetes_admin_notebook.ipynb) for administration of a database on kubernetes
+
+## Deployment
+We aim to facilitate the platform configuration, deployment and testing on commonly available IT infrastructure for NSOs and other potential users.
+In this regard, we provide two Helm charts for deploying the server components (server and MongoDB database) and a client development environment in a Kubernetes cluster.
+
+For extensive informations about how to deploy, please refer to:
+- [local_deployment_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/local_deployment_notebook.ipynb) for local deployments
+- [kubernetes_deployment_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/kubernetes_deployment_notebook.ipynb) for deployments on kubernetes
+
+
+Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
+It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
+
+
+## History
+The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

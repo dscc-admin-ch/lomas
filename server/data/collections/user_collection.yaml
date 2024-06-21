@@ -3,12 +3,12 @@ users:
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
-    initial_epsilon: 10
+    initial_epsilon: 10.0
     initial_delta: 0.0001
-    total_spent_epsilon: 1
+    total_spent_epsilon: 1.0
     total_spent_delta: 0.000001
   - dataset_name: "PENGUIN"
-    initial_epsilon: 5
+    initial_epsilon: 5.0
     initial_delta: 0.0005
     total_spent_epsilon: 0.2
     total_spent_delta: 0.0000001
@@ -16,31 +16,31 @@ users:
   may_query: True
   datasets_list:
   - dataset_name: "PENGUIN"
-    initial_epsilon: 45
+    initial_epsilon: 10.0
     initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0
 - user_name: Dr. FSO
   may_query: True
   datasets_list:
   - dataset_name: "FSO_INCOME_SYNTHETIC"
-    initial_epsilon: 45
+    initial_epsilon: 45.0
     initial_delta: 0.005
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0
 - user_name: Bob
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
-    initial_epsilon: 10
+    initial_epsilon: 10.0
     initial_delta: 0.0001
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0
 - user_name: Jack
   may_query: True
   datasets_list:
   - dataset_name: "TITANIC"
-    initial_epsilon: 45
+    initial_epsilon: 45.0
     initial_delta: 0.2
-    total_spent_epsilon: 0
-    total_spent_delta: 0
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0

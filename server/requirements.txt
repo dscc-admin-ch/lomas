@@ -1,15 +1,12 @@
-boto3
+boto3==1.34.115
 diffprivlib==0.6.0
-fastapi
-numpy
+fastapi==0.109.1
+httpx==0.27.0
+numpy==1.26.4
 opendp==0.8.0
 opendp-logger==0.3.0
-pandas
-pydantic
-pymongo
-#python-multipart
-requests
-setuptools
-scikit-learn >= 1.1.2
+pandas==2.2.2
+pyaml==23.9.5
+pymongo==4.6.3
 smartnoise-sql==1.0.3
-uvicorn
+uvicorn==0.29.0

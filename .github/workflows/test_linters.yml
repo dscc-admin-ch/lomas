@@ -1,0 +1,44 @@
+name: Linter checks
+
+on: 
+  pull_request:
+    branches: [ develop, master]
+  workflow_dispatch:
+  
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install mypy==1.10.0
+          pip install pylint==3.1.0
+      - name: flake8 server
+        uses: py-actions/flake8@v2
+        with:
+          path: server/
+          max-line-length: "88"
+      - name: flake8 client
+        uses: py-actions/flake8@v2
+        with:
+          path: client
+          max-line-length: "88"
+      - name: mypy
+        run: |
+          cd client
+          mypy .
+          cd ../server
+          mypy .
+      - name: pylint
+        run: |
+          cd client/lomas_client
+          pylint --disable=E0401 --disable=C0114 --disable=W0102 --disable=R0913 .
+          cd ../../server/lomas_server
+          pylint --disable=E0401 --disable=C0114 --disable=R0903 --disable=E0611 --disable=W0511 --disable=duplicate-code tests/ .

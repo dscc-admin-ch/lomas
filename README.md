@@ -10,9 +10,11 @@
 
 
 
-# Lomas: The data oases hidden behind the mist. 
+# Lomas: The Data Oases Hidden Behind the Mist. 
 
-The lomas platform follows a classic server/client model for confidential analysis of private data.
+Lomas is a platform for remote data science, enabling sensitive data to be querried remotely while staying protected by a layer of differential privacy.
+
+The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
 On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
 The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.

@@ -115,7 +115,9 @@ class DiffPrivLibDecoder(json.JSONDecoder):
             self, object_hook=self.object_hook, *args, **kwargs
         )
 
-    def object_hook(self, dct: dict) -> Union[tuple, dict]:  # pylint: disable=method-hidden
+    def object_hook(  # pylint: disable=E0202
+        self, dct: dict
+    ) -> Union[tuple, dict]:
         """Hook for custom deserialisation of a DiffPrivLib pipeline
         For every element, get the associated DiffPrivLib attribute.
 
@@ -158,9 +160,13 @@ def deserialise_diffprivlib_pipeline(diffprivlib_json: str) -> Pipeline:
     dct = json.loads(diffprivlib_json, cls=DiffPrivLibDecoder)
     if "module" in dct.keys():
         if dct["module"] != "diffprivlib":
-            raise InternalServerException("JSON 'module' not equal to 'diffprivlib'")
+            raise InternalServerException(
+                "JSON 'module' not equal to 'diffprivlib'"
+            )
     else:
-        raise InternalServerException("Key 'module' not in submitted json request.")
+        raise InternalServerException(
+            "Key 'module' not in submitted json request."
+        )
 
     if "version" in dct.keys():
         if dct["version"] != diffprivlib.__version__:
@@ -169,7 +175,9 @@ def deserialise_diffprivlib_pipeline(diffprivlib_json: str) -> Pipeline:
                 f" {diffprivlib.__version__}."
             )
     else:
-        raise InternalServerException("Key 'version' not in submitted json request.")
+        raise InternalServerException(
+            "Key 'version' not in submitted json request."
+        )
 
     return Pipeline(
         [

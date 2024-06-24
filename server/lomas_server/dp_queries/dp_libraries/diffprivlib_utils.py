@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 import diffprivlib
 import pandas as pd
@@ -8,11 +9,25 @@ from sklearn.pipeline import Pipeline
 
 from constants import NUMERICAL_DTYPES
 from utils.error_handler import InternalServerException
+from utils.input_models import DiffPrivLibInp
 from utils.loggr import LOG
 
 
-def impute_missing_data(data, imputer_strategy: str) -> pd.DataFrame:
+def impute_missing_data(
+    data: pd.DataFrame, imputer_strategy: str
+) -> pd.DataFrame:
+    """Impute missing data based on given imputation strategy for NaNs
+    Args:
+        data (pd.DataFrame): dataframe with the data
+        imputer_strategy (str): string to indicate imputatation for NaNs
+            "drop": will drop all rows with missing values
+            "mean": will replace values by the mean of the column values
+            "median": will replace values by the median of the column values
+            "most_frequent": : will replace values by the most frequent values
 
+    Returns:
+        data (pd.DataFrame): dataframe with the imputed data
+    """
     if imputer_strategy == "drop":
         data = data.dropna()
     elif imputer_strategy in ["mean", "median"]:
@@ -54,7 +69,24 @@ def impute_missing_data(data, imputer_strategy: str) -> pd.DataFrame:
     return data
 
 
-def split_train_test_data(data, query_json):
+def split_train_test_data(
+    data: pd.DataFrame, query_json: DiffPrivLibInp
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Split the data between train and test set
+    Args:
+        data (pd.DataFrame): dataframe with the data
+        query_json (DiffPrivLibInp): user input query indication
+            feature_columns (list[str]): columns from data to use as features
+            target_columns (list[str]): columns from data to use as target (to predict)
+            test_size (float): proportion of data in the test set
+            test_train_split_seed (int): seed for the random train-test split
+
+    Returns:
+        x_train (pd.DataFrame): training data features
+        x_test (pd.DataFrame): testing data features
+        y_train (pd.DataFrame): training data target
+        y_test (pd.DataFrame): testing data target
+    """
     feature_data = data[query_json.feature_columns]
 
     if query_json.target_columns is None:
@@ -83,7 +115,16 @@ class DiffPrivLibDecoder(json.JSONDecoder):
             self, object_hook=self.object_hook, *args, **kwargs
         )
 
-    def object_hook(self, dct):
+    def object_hook(self, dct: dict) -> Union[tuple, dict]:  # pylint: disable=method-hidden
+        """Hook for custom deserialisation of a DiffPrivLib pipeline
+        For every element, get the associated DiffPrivLib attribute.
+
+        Args:
+            dct (dict): decoded JSON object
+
+        Returns:
+            dct (dict): value to used in place of the decoded JSON object (dct)
+        """
         if "_tuple" in dct.keys():
             return tuple(dct["_items"])
 
@@ -106,22 +147,29 @@ class DiffPrivLibDecoder(json.JSONDecoder):
         return dct
 
 
-def deserialise_diffprivlib_pipeline(diffprivlib_json):
+def deserialise_diffprivlib_pipeline(diffprivlib_json: str) -> Pipeline:
+    """Deserialise a DiffPriLip pipeline from string to DiffPrivLib model
+    Args:
+        diffprivlib_json (str): serialised DiffPrivLib pipeline
+
+    Returns:
+        Pipeline: DiffPrivLib pipeline
+    """
     dct = json.loads(diffprivlib_json, cls=DiffPrivLibDecoder)
     if "module" in dct.keys():
         if dct["module"] != "diffprivlib":
-            raise ValueError("JSON 'module' not equal to 'diffprivlib'")
+            raise InternalServerException("JSON 'module' not equal to 'diffprivlib'")
     else:
-        raise ValueError("Key 'module' not in submitted json request.")
+        raise InternalServerException("Key 'module' not in submitted json request.")
 
     if "version" in dct.keys():
         if dct["version"] != diffprivlib.__version__:
-            raise ValueError(
+            raise InternalServerException(
                 f"Requested version does not match available version:"
                 f" {diffprivlib.__version__}."
             )
     else:
-        raise ValueError("Key 'version' not in submitted json request.")
+        raise InternalServerException("Key 'version' not in submitted json request.")
 
     return Pipeline(
         [

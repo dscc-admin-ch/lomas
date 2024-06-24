@@ -3,12 +3,12 @@ import pickle
 import warnings
 from typing import Dict
 
-from diffprivlib import models
 from diffprivlib.utils import (
     DiffprivlibCompatibilityWarning,
     PrivacyLeakWarning,
 )
 import pandas as pd
+from sklearn.pipeline import Pipeline
 
 from constants import DPLibraries
 from dp_queries.dp_querier import DPQuerier
@@ -32,7 +32,7 @@ class DiffPrivLibQuerier(DPQuerier):
 
     def fit_model_on_data(
         self, query_json: DiffPrivLibInp
-    ) -> tuple[models, pd.DataFrame, pd.DataFrame]:
+    ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
         """Perform necessary steps to fit the model on the data
 
         Args:

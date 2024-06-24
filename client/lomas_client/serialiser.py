@@ -1,7 +1,8 @@
-import diffprivlib
-from sklearn.pipeline import Pipeline
 import inspect
 import json
+
+import diffprivlib
+from sklearn.pipeline import Pipeline
 
 
 class DiffprivlibEncoder(json.JSONEncoder):

@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from constants import NUMERICAL_DTYPES
-from utils.error_handler import InternalServerException
+from utils.error_handler import InternalServerException, InvalidQueryException
 from utils.input_models import DiffPrivLibInp
 from utils.loggr import LOG
 
@@ -25,6 +25,9 @@ def impute_missing_data(
             "median": will replace values by the median of the column values
             "most_frequent": : will replace values by the most frequent values
 
+    Raises:
+        InvalidQueryException: If the "imputer_strategy" does not exist
+        
     Returns:
         data (pd.DataFrame): dataframe with the imputed data
     """
@@ -63,7 +66,7 @@ def impute_missing_data(
             imp_most_frequent.fit_transform(data), columns=data.columns
         )
     else:
-        raise InternalServerException(
+        raise InvalidQueryException(
             f"Imputation strategy {imputer_strategy} not supported."
         )
     return data
@@ -123,6 +126,10 @@ class DiffPrivLibDecoder(json.JSONDecoder):
 
         Args:
             dct (dict): decoded JSON object
+        
+        Raises:
+            InternalServerException: If the serialised object is not compliant with
+                                     the expected format.
 
         Returns:
             dct (dict): value to used in place of the decoded JSON object (dct)
@@ -153,6 +160,10 @@ def deserialise_diffprivlib_pipeline(diffprivlib_json: str) -> Pipeline:
     """Deserialise a DiffPriLip pipeline from string to DiffPrivLib model
     Args:
         diffprivlib_json (str): serialised DiffPrivLib pipeline
+        
+    Raises:
+        InternalServerException: If the serialised object is not compliant with
+                                    the expected format.
 
     Returns:
         Pipeline: DiffPrivLib pipeline

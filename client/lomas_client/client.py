@@ -10,7 +10,9 @@ import pandas as pd
 import requests
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
+from sklearn.pipeline import Pipeline
 
+from serialiser import serialize_diffprivlib
 
 # Opendp_logger
 enable_logging()
@@ -270,17 +272,6 @@ class Client:
         if res.status_code == 200:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
-
-            # Opendp outputs can be single numbers or dataframes,
-            # we handle the latter here.
-            # This is a hack for now, maybe use parquet to send results over.
-            # if isinstance(response_dict["query_response"], str):
-            #     raise Exception("Not implemented: should not return dataframes")
-            # Note: leaving this here. Support for opendp_polars
-            # response_dict["query_response"] = polars.read_json(
-            #    StringIO(response_dict["query_response"])
-            # )
-
             return response_dict
 
         print(error_message(res))
@@ -320,10 +311,10 @@ class Client:
 
         print(error_message(res))
         return None
-    
+
     def diffprivlib_query(
         self,
-        pipeline,
+        pipeline: Pipeline,
         feature_columns: List[str],
         target_columns: Optional[List[str]] = None,
         test_size: float = 0.2,
@@ -333,7 +324,35 @@ class Client:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ):
+    ) -> Pipeline:
+        """This function trains a DiffPrivLib pipeline on the sensitive data
+        and return a trained Pipeline.
+
+        Args:
+            pipeline (sklearn.pipeline): the DiffPrivLib pipeline
+            feature_columns (list[str]): the list of feature column to train
+            target_columns (list[str], optional): the list of target column to predict \
+                May be None for certain models.
+            test_size (float, optional): proportion of the test set \
+                Defaults to 0.2.
+            test_train_split_seed (int, optional): seed for random train test split \
+                Defaults to 1.
+            imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
+                "drop": will drop all rows with missing values
+                "mean": will replace values by the mean of the column values
+                "median": will replace values by the median of the column values
+                "most_frequent": : will replace values by the most frequent values
+            score (boolean, optional): True to also get the score of the Pipeline on \
+                the test data. Defaults to TRUE.
+            dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
+            nb_rows (int, optional): The number of rows in the dummy dataset.\
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.\
+                Defaults to DUMMY_SEED.
+
+        Returns:
+            Optional[Pipeline]: A trained DiffPrivLip pipeline
+        """
         dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
@@ -359,27 +378,47 @@ class Client:
                 model = base64.b64decode(response["model"])
                 response["model"] = pickle.loads(model)
                 return response
-            else:
-                response = res.json()
-                model = base64.b64decode(response["query_response"]["model"])
-                response["query_response"]["model"] = pickle.loads(model)
-                return response
-        else:
-            print(
-                f"Error while processing DiffPrivLib request in server \
-                    status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+
+            # Response on real data
+            response = res.json()
+            model = base64.b64decode(response["query_response"]["model"])
+            response["query_response"]["model"] = pickle.loads(model)
+            return response
+        print(
+            f"Error while processing DiffPrivLib request in server \
+                status code: {res.status_code} message: {res.text}"
+        )
+        return res.text
 
     def estimate_diffprivlib_cost(
         self,
-        pipeline,
+        pipeline: Pipeline,
         feature_columns: List[str] = [""],
         target_columns: List[str] = [""],
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
     ) -> dict:
+        """This function estimates the cost of executing a DiffPrivLib query.
+
+        Args:
+            pipeline (sklearn.pipeline): the DiffPrivLib pipeline
+            feature_columns (list[str]): the list of feature column to train
+            target_columns (list[str], optional): the list of target column to predict \
+                May be None for certain models.
+            test_size (float, optional): proportion of the test set \
+                Defaults to 0.2.
+            test_train_split_seed (int, optional): seed for random train test split \
+                Defaults to 1.
+            imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
+                "drop": will drop all rows with missing values
+                "mean": will replace values by the mean of the column values
+                "median": will replace values by the median of the column values
+                "most_frequent": : will replace values by the most frequent values
+
+        Returns:
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+        """
         dpl_json = serialize_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
@@ -394,12 +433,11 @@ class Client:
 
         if res.status_code == 200:
             return json.loads(res.content.decode("utf8"))
-        else:
-            print(
-                f"Error while executing provided query in server:\n"
-                f"status code: {res.status_code} message: {res.text}"
-            )
-            return res.text
+        print(
+            f"Error while executing provided query in server:\n"
+            f"status code: {res.status_code} message: {res.text}"
+        )
+        return res.text
 
     def get_initial_budget(self) -> Optional[dict[str, float]]:
         """This function retrieves the initial budget.
@@ -489,9 +527,9 @@ class Client:
                         model = base64.b64decode(
                             query["response"]["query_response"]["model"]
                         )
-                        query["response"]["query_response"][
-                            "model"
-                        ] = pickle.loads(model)
+                        query["response"]["query_response"]["model"] = (
+                            pickle.loads(model)
+                        )
                     case _:
                         raise ValueError(
                             "Cannot deserialise unknown query type:"

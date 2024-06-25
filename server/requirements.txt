@@ -4,7 +4,7 @@ diffprivlib_logger==0.0.3
 fastapi==0.109.1
 httpx==0.27.0
 numpy==1.23.2
-opendp==0.8.0
+opendp==0.10.0
 opendp-logger==0.3.0
 pandas==2.2.2
 pyaml==23.9.5

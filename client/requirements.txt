@@ -1,8 +1,8 @@
 diffprivlib==0.6.0
 jupyter==1.0.0
-numpy==1.26.4
+numpy==2.0.0
 opendp==0.8.0
 opendp_logger==0.3.0
 pandas==2.2.2
 requests==2.32.0
-#scikit-learn>=1.1.2
+scikit-learn==1.5.0

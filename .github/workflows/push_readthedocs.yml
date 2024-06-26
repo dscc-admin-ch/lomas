@@ -47,4 +47,13 @@ jobs:
         destination-repository-name: 'lomas-docs'
         target-branch: main
         target-directory: html
-   
+    - name: Pushes to another repository (fix for current wrong client link)
+      uses: cpina/github-action-push-to-another-repository@main
+      env:
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+      with:
+        source-directory: pages/
+        destination-github-username: 'dscc-admin-ch'
+        destination-repository-name: 'lomas-client-docs'
+        target-branch: main
+        target-directory: html

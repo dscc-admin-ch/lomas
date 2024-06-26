@@ -1,7 +1,7 @@
 #diffprivlib==0.6.0
 jupyter==1.0.0
 numpy==1.26.4
-opendp==0.8.0
+opendp==0.10.0
 opendp_logger==0.3.0
 pandas==2.2.2
 requests==2.32.0

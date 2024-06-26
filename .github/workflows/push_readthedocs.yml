@@ -1,6 +1,9 @@
 name: Generate docs and push to dedicated repo for publishing
 
-on: 
+on:
+  pull_request:
+    branches:
+      - develop
   push: 
     branches:
       - develop

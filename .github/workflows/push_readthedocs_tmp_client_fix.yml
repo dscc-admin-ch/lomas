@@ -1,6 +1,9 @@
 name: Generate docs and push to dedicated repo for publishing
 
 on:
+  pull_request:
+    branches:
+      - develop
   push: 
     branches:
       - develop
@@ -37,13 +40,13 @@ jobs:
         python3.11 build_docs.py
         cd ../pages/
         ls
-    - name: Pushes to another repository
+    - name: Pushes to another repository (fix for current wrong client link)
       uses: cpina/github-action-push-to-another-repository@main
       env:
-        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS_CLIENT_FIX }}
       with:
         source-directory: pages/
         destination-github-username: 'dscc-admin-ch'
-        destination-repository-name: 'lomas-docs'
+        destination-repository-name: 'lomas-client-docs'
         target-branch: main
         target-directory: html

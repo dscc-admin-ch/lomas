@@ -821,3 +821,69 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "epsilon remaining 2.0, "
                 + "delta remaining 0.004970000100000034."
             }
+
+    def test_diffprivlib_query(self) -> None:
+        """Test diffprivlib query"""
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            response = client.post(
+                "/diffprivlib_query",
+                json=example_diffprivlib,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            # response_dict = json.loads(response.content.decode("utf8"))
+            # assert response_dict["requested_by"] == self.user_name
+            # assert response_dict["query_response"]["columns"] == ["NB_ROW"]
+            # assert response_dict["query_response"]["data"][0][0] > 0
+            # assert response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
+            # assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
+
+            # Expect to fail: missing parameters: delta and mechanisms
+            response = client.post(
+                "/diffprivlib_query",
+                json={
+                    "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
+                    "dataset_name": PENGUIN_DATASET,
+                    "epsilon": SMARTNOISE_QUERY_EPSILON,
+                    "postprocess": True,
+                },
+                headers=self.headers,
+            )
+            # assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+            # response_dict = json.loads(response.content.decode("utf8"))[
+            #     "detail"
+            # ]
+            # assert response_dict[0]["type"] == "missing"
+            # assert response_dict[0]["loc"] == ["body", "delta"]
+            # assert response_dict[1]["type"] == "missing"
+            # assert response_dict[1]["loc"] == ["body", "mechanisms"]
+
+    def test_dummy_diffprivlib_query(self) -> None:
+        """test_dummy_diffprivlib_query"""
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/dummy_diffprivlib_query", json=example_dummy_diffprivlib
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            # response_dict = json.loads(response.content.decode("utf8"))
+            # assert response_dict["query_response"]["columns"] == ["res_0"]
+            # assert response_dict["query_response"]["data"][0][0] > 0
+            # assert response_dict["query_response"]["data"][0][0] < 200
+
+    def test_diffprivlib_cost(self) -> None:
+        """test_diffprivlib_cost"""
+        with TestClient(app) as client:
+            # Expect to work
+            response = client.post(
+                "/estimate_diffprivlib_cost", json=example_diffprivlib_sql_cost
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
+            assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA

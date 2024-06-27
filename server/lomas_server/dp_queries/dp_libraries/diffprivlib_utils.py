@@ -27,7 +27,7 @@ def impute_missing_data(
 
     Raises:
         InvalidQueryException: If the "imputer_strategy" does not exist
-        
+
     Returns:
         data (pd.DataFrame): dataframe with the imputed data
     """
@@ -126,7 +126,7 @@ class DiffPrivLibDecoder(json.JSONDecoder):
 
         Args:
             dct (dict): decoded JSON object
-        
+
         Raises:
             InternalServerException: If the serialised object is not compliant with
                                      the expected format.
@@ -160,7 +160,7 @@ def deserialise_diffprivlib_pipeline(diffprivlib_json: str) -> Pipeline:
     """Deserialise a DiffPriLip pipeline from string to DiffPrivLib model
     Args:
         diffprivlib_json (str): serialised DiffPrivLib pipeline
-        
+
     Raises:
         InternalServerException: If the serialised object is not compliant with
                                     the expected format.

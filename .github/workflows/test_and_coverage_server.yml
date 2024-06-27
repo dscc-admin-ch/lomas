@@ -2,7 +2,7 @@ name: Server Integration Testing
 
 on: 
   pull_request:
-    branch-ignore:
+    branches-ignore:
       - feature/opendp_polars # TODO: remove later
   push:
     branches:

@@ -12,7 +12,7 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 
-from serialiser import serialize_diffprivlib
+from lomas_client.serialiser import serialize_diffprivlib
 
 # Opendp_logger
 enable_logging()

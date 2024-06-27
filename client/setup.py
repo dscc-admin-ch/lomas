@@ -34,6 +34,6 @@ setup(
         "opendp_logger==0.3.0",
         "pandas>=2.2.2",
         "requests>=2.32.0",
-        "scikit-learn>=1.23.2",
+        "scikit-learn==1.5.0",
     ],
 )

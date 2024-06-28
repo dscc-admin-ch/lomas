@@ -53,7 +53,7 @@ class DiffPrivLibQuerier(DPQuerier):
 
         # Prepare DiffPrivLib pipeline
         dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
-        
+
         # LOG.error("*********************************************")
         # LOG.error("query_json")
         # LOG.error(query_json)

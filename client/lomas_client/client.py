@@ -373,13 +373,6 @@ class Client:
 
         res = self._exec(endpoint, body_json)
         if res.status_code == 200:
-            if dummy:
-                response = json.loads(res.json())
-                model = base64.b64decode(response["model"])
-                response["model"] = pickle.loads(model)
-                return response
-
-            # Response on real data
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
             response["query_response"]["model"] = pickle.loads(model)

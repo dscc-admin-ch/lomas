@@ -789,7 +789,7 @@ def dummy_diffprivlib_query_handler(
     except Exception as e:
         raise InternalServerException(e) from e
 
-    return json.dumps(response).encode("utf-8")
+    return JSONResponse(content={"query_response": response})
 
 
 @app.post(

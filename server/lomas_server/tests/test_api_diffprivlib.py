@@ -18,6 +18,7 @@ from utils.example_inputs import (
     example_diffprivlib,
     example_dummy_diffprivlib,
 )
+
 # from utils.loggr import LOG
 
 
@@ -74,7 +75,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
 
             # Should not work: Privacy Leak Warning
             warnings.simplefilter("error", PrivacyLeakWarning)
-            warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
             diffprivlib_body = dict(example_diffprivlib)
             dpl_pipeline = Pipeline(
                 [
@@ -102,6 +102,21 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "PrivacyLeakWarning is a blocker.",
                 "library": DPLibraries.DIFFPRIVLIB,
             }
+
+            # Should not work: Compatibility Warning
+            warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
+            with self.assertRaises(DiffprivlibCompatibilityWarning):
+                Pipeline(
+                    [
+                        ("scaler", models.StandardScaler(epsilon=0.5)),
+                        (
+                            "classifier",
+                            models.LogisticRegression(
+                                epsilon=1.0, svd_solver="full"
+                            ),
+                        ),
+                    ]
+                )
 
     def test_diffprivlib_models(self) -> None:
         """Test diffprivlib query"""

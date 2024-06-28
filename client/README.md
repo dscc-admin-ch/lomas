@@ -122,4 +122,4 @@ To see detailed examples of the library, many notebooks are available  in the [c
 
 
 ### More detailed documentation
-More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-client-docs/). 
+More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-docs/). 

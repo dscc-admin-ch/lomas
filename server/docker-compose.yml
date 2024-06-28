@@ -1,4 +1,3 @@
-version: '3.4'
 services:
   lomas_server:
     image: dsccadminch/lomas_server_dev
@@ -13,9 +12,16 @@ services:
       - ./lomas_server:/code/
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
-      - ./data/:/data/
+      - ./data/collections/metadata:/data/collections/metadata/
+      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
+      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
     depends_on:
-      - mongodb
+      minio-client:
+        condition: service_completed_successfully
+        restart: true
+      mongodb:
+        condition: service_started
+        restart: true
     networks:
       - lomas-network
   mongodb:
@@ -40,6 +46,37 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+  minio:
+    container_name: minio
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    command: server /data
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin123
+      - MINIO_CONSOLE_ADDRESS=:9001
+    volumes:
+      - minio-data:/data
+    networks:
+      - lomas-network
+  minio-client:
+    container_name: minio-client
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: /bin/sh -c "
+      sleep 15 && 
+      mc alias set myminio http://minio:9000 admin admin123 && 
+      mc mb myminio/example || true && 
+      mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
+      mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&
+      mc ls --recursive --versions myminio/example"
+    volumes:
+      - ./data/:/data
+    networks:
+      - lomas-network
   lomas_admin_dashboard:
     image: dsccadminch/lomas_admin_dashboard_dev
     build:
@@ -82,11 +119,11 @@ networks:
     driver: bridge
 
 volumes:
-  # This volume needs to be setup only once with "docker volume create mongodata"
-  # It will be stored in /var/lib/docker/volumes and managed by docker.
+  # These volumes needs to be setup only once with "docker volume create <volume_name>"
+  # They will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
     external: true
-  #mongoconfig:
-  #  external: true
+  minio-data:
+    external: true
 
 

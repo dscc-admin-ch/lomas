@@ -120,11 +120,11 @@ example_dummy_opendp = {
     "dummy_seed": DUMMY_SEED,
 }
 
-DIFFPRIVLIB_JSON =  (
+DIFFPRIVLIB_JSON = (
     '{"module": "diffprivlib", '
     '"version": "0.6.0", '
     '"pipeline": ['
-    '{'
+    "{"
     '"type": "_dpl_type:StandardScaler", '
     '"name": "scaler", '
     '"params": {'
@@ -135,12 +135,12 @@ DIFFPRIVLIB_JSON =  (
     '"bounds": {'
     '"_tuple": true, '
     '"_items": [[30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0]]'
-    '}, '
+    "}, "
     '"random_state": null, '
     '"accountant": "_dpl_instance:BudgetAccountant"'
-    '}'
-    '}, '
-    '{'
+    "}"
+    "}, "
+    "{"
     '"type": "_dpl_type:LogisticRegression", '
     '"name": "classifier", '
     '"params": {'
@@ -155,15 +155,20 @@ DIFFPRIVLIB_JSON =  (
     '"epsilon": 1.0, '
     '"data_norm": 83.69469642643347, '
     '"accountant": "_dpl_instance:BudgetAccountant"'
-    '}'
-    '}'
-    ']'
-    '}'
+    "}"
+    "}"
+    "]"
+    "}"
 )
 example_diffprivlib = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_JSON,
-    "feature_columns":  ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'],
+    "feature_columns": [
+        "bill_length_mm",
+        "bill_depth_mm",
+        "flipper_length_mm",
+        "body_mass_g",
+    ],
     "target_columns": ["species"],
     "test_size": 0.2,
     "test_train_split_seed": 1,
@@ -173,7 +178,12 @@ example_diffprivlib = {
 example_dummy_diffprivlib = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_JSON,
-    "feature_columns":  ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'],
+    "feature_columns": [
+        "bill_length_mm",
+        "bill_depth_mm",
+        "flipper_length_mm",
+        "body_mass_g",
+    ],
     "target_columns": ["species"],
     "test_train_split_seed": 1,
     "test_size": 0.2,

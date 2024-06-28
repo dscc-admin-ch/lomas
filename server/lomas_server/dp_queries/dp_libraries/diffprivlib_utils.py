@@ -13,7 +13,7 @@ from utils.input_models import DiffPrivLibInp
 from utils.loggr import LOG
 
 
-def impute_missing_data(
+def handle_missing_data(
     data: pd.DataFrame, imputer_strategy: str
 ) -> pd.DataFrame:
     """Impute missing data based on given imputation strategy for NaNs

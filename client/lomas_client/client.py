@@ -12,7 +12,7 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 
-from lomas_client.serialiser import serialize_diffprivlib
+from diffprivlib_logger import serialise_diffprivlib
 
 # Opendp_logger
 enable_logging()
@@ -353,7 +353,7 @@ class Client:
         Returns:
             Optional[Pipeline]: A trained DiffPrivLip pipeline
         """
-        dpl_json = serialize_diffprivlib(pipeline)
+        dpl_json = serialise_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
             "diffprivlib_json": dpl_json,
@@ -419,7 +419,7 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        dpl_json = serialize_diffprivlib(pipeline)
+        dpl_json = serialise_diffprivlib(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
             "diffprivlib_json": dpl_json,

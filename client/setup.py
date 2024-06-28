@@ -29,6 +29,7 @@ setup(
     python_requires=">=3.10, <4",
     install_requires=[
         "diffprivlib>=0.6.0",
+        "diffprivlib_logger>=0.0.1",
         "numpy>=1.23.2",
         "opendp==0.8.0",
         "opendp_logger==0.3.0",

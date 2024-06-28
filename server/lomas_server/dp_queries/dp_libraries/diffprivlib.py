@@ -7,6 +7,7 @@ from diffprivlib.utils import (
     DiffprivlibCompatibilityWarning,
     PrivacyLeakWarning,
 )
+from diffprivlib_logger import deserialise_pipeline
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
@@ -15,7 +16,6 @@ from dp_queries.dp_querier import DPQuerier
 from dp_queries.dp_libraries.diffprivlib_utils import (
     handle_missing_data,
     split_train_test_data,
-    deserialise_diffprivlib_pipeline,
 )
 from utils.error_handler import ExternalLibraryException
 from utils.input_models import DiffPrivLibInp
@@ -56,7 +56,7 @@ class DiffPrivLibQuerier(DPQuerier):
         )
 
         # Prepare DiffPrivLib pipeline
-        dpl_pipeline = deserialise_diffprivlib_pipeline(
+        dpl_pipeline = deserialise_pipeline(
             query_json.diffprivlib_json
         )
         LOG.error("*********************************************")

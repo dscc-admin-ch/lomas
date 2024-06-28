@@ -126,8 +126,8 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             def test_pipeline(
                 diffprivlib_body,
                 pipeline,
-                feature_columns=[],
-                target_columns=[],
+                feature_columns=None,
+                target_columns=None,
             ):
                 diffprivlib_body = dict(diffprivlib_body)
                 if feature_columns:
@@ -135,9 +135,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
 
                 if target_columns:
                     diffprivlib_body["target_columns"] = target_columns
-
-                if target_columns is None:
-                    diffprivlib_body["target_columns"] = None
 
                 diffprivlib_body["diffprivlib_json"] = serialise_pipeline(
                     pipeline
@@ -259,8 +256,14 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             response = test_pipeline(example_diffprivlib, pipeline)
             validate_pipeline(response)
 
-            response = test_pipeline(
-                example_diffprivlib, pipeline, target_columns=None
+            # Also with target column None
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            diffprivlib_body["target_columns"] = None
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
             )
             validate_pipeline(response)
 

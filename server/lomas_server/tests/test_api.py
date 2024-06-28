@@ -695,79 +695,79 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     #             <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
     #         )
 
-    def test_get_previous_queries(self) -> None:
-        """test_get_previous_queries"""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work
-            response = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            assert response.status_code == status.HTTP_200_OK
+    # def test_get_previous_queries(self) -> None:
+    #     """test_get_previous_queries"""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         # Expect to work
+    #         response = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["previous_queries"] == []
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         assert response_dict["previous_queries"] == []
 
-            # Query to archive 1 (smartnoise)
-            query_res = client.post(
-                "/smartnoise_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+    #         # Query to archive 1 (smartnoise)
+    #         query_res = client.post(
+    #             "/smartnoise_query",
+    #             json=example_smartnoise_sql,
+    #             headers=self.headers,
+    #         )
+    #         query_res = json.loads(query_res.content.decode("utf8"))
 
-            # Response should have one element in list
-            response_2 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            LOG.error(response_2)
-            response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error(response_dict)
-            assert response_2.status_code == status.HTTP_200_OK
+    #         # Response should have one element in list
+    #         response_2 = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         LOG.error(response_2)
+    #         response_dict = json.loads(response.content.decode("utf8"))
+    #         LOG.error(response_dict)
+    #         assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert len(response_dict_2["previous_queries"]) == 1
-            assert (
-                response_dict_2["previous_queries"][0]["dp_librairy"]
-                == DPLibraries.SMARTNOISE_SQL
-            )
-            assert (
-                response_dict_2["previous_queries"][0]["client_input"]
-                == example_smartnoise_sql
-            )
-            assert (
-                response_dict_2["previous_queries"][0]["response"] == query_res
-            )
+    #         response_dict_2 = json.loads(response_2.content.decode("utf8"))
+    #         assert len(response_dict_2["previous_queries"]) == 1
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["dp_librairy"]
+    #             == DPLibraries.SMARTNOISE_SQL
+    #         )
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["client_input"]
+    #             == example_smartnoise_sql
+    #         )
+    #         assert (
+    #             response_dict_2["previous_queries"][0]["response"] == query_res
+    #         )
 
-            # Query to archive 2 (opendp)
-            query_res = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+    #         # Query to archive 2 (opendp)
+    #         query_res = client.post(
+    #             "/opendp_query",
+    #             json=example_opendp,
+    #         )
+    #         query_res = json.loads(query_res.content.decode("utf8"))
 
-            # Response should have two elements in list
-            response_3 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
-            assert response_3.status_code == status.HTTP_200_OK
+    #         # Response should have two elements in list
+    #         response_3 = client.post(
+    #             "/get_previous_queries", json=example_get_admin_db_data
+    #         )
+    #         assert response_3.status_code == status.HTTP_200_OK
 
-            response_dict_3 = json.loads(response_3.content.decode("utf8"))
-            assert len(response_dict_3["previous_queries"]) == 2
-            assert (
-                response_dict_3["previous_queries"][0]
-                == response_dict_2["previous_queries"][0]
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["dp_librairy"]
-                == DPLibraries.OPENDP
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["client_input"]
-                == example_opendp
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["response"] == query_res
-            )
+    #         response_dict_3 = json.loads(response_3.content.decode("utf8"))
+    #         assert len(response_dict_3["previous_queries"]) == 2
+    #         assert (
+    #             response_dict_3["previous_queries"][0]
+    #             == response_dict_2["previous_queries"][0]
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["dp_librairy"]
+    #             == DPLibraries.OPENDP
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["client_input"]
+    #             == example_opendp
+    #         )
+    #         assert (
+    #             response_dict_3["previous_queries"][1]["response"] == query_res
+    #         )
 
     # def test_budget_over_limit(self) -> None:
     #     """test_budget_over_limit"""

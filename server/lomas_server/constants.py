@@ -80,12 +80,14 @@ class DPLibraries(StrEnum):
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
 
+
 # Query model input to DP librairy
 MODEL_INPUT_TO_LIB = {
     "SNSQLInp": DPLibraries.SMARTNOISE_SQL,
     "OpenDPInp": DPLibraries.OPENDP,
     "DiffPrivLibInp": DPLibraries.DIFFPRIVLIB,
 }
+
 
 # Private Databases
 class PrivateDatabaseType(StrEnum):

@@ -441,16 +441,15 @@ class AdminDatabase(ABC):
         Returns:
             dict: The query archive dictionary.
         """
+        model_input = query_json.__class__.__name__
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
+            "dp_librairy": MODEL_INPUT_TO_LIB[model_input],
             "client_input": query_json.model_dump(),
             "response": response,
             "timestamp": time.time(),
         }
-        
-        model_input = query_json.__class__.__name__
-        to_archive["dp_librairy"] = MODEL_INPUT_TO_LIB[model_input]
 
         return to_archive
 

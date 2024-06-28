@@ -20,6 +20,7 @@ from dp_queries.dp_libraries.diffprivlib_utils import (
 from utils.error_handler import ExternalLibraryException
 from utils.input_models import DiffPrivLibInp
 from utils.loggr import LOG
+
 # DiffPrivLib warnings will trigger error
 warnings.simplefilter("error", PrivacyLeakWarning)
 warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
@@ -74,15 +75,15 @@ class DiffPrivLibQuerier(DPQuerier):
             fitted_dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
-                DPLibraries.DIFFPRIVLIB, 
+                DPLibraries.DIFFPRIVLIB,
                 f"PrivacyLeakWarning: {e}. "
-                + "Lomas server cannot fit pipeline on data, warning is a blocker."
+                + "Lomas server cannot fit pipeline on data, warning is a blocker.",
             ) from e
         except DiffprivlibCompatibilityWarning as e:
             raise ExternalLibraryException(
-                DPLibraries.DIFFPRIVLIB, 
+                DPLibraries.DIFFPRIVLIB,
                 f"DiffprivlibCompatibilityWarning: {e}. "
-                + "Lomas server cannot fit pipeline on data, warning is a blocker."
+                + "Lomas server cannot fit pipeline on data, warning is a blocker.",
             ) from e
         except Exception as e:
             raise ExternalLibraryException(

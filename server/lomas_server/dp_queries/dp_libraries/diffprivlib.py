@@ -3,10 +3,7 @@ import pickle
 import warnings
 from typing import Dict
 
-from diffprivlib.utils import (
-    DiffprivlibCompatibilityWarning,
-    PrivacyLeakWarning,
-)
+from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
 import pandas as pd
 from sklearn.pipeline import Pipeline
@@ -55,7 +52,6 @@ class DiffPrivLibQuerier(DPQuerier):
 
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
-        warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
         try:
             fitted_dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
@@ -64,13 +60,6 @@ class DiffPrivLibQuerier(DPQuerier):
                 f"PrivacyLeakWarning: {e}. "
                 + "Lomas server cannot fit pipeline on data, "
                 + "PrivacyLeakWarning is a blocker.",
-            ) from e
-        except DiffprivlibCompatibilityWarning as e:
-            raise ExternalLibraryException(
-                DPLibraries.DIFFPRIVLIB,
-                f"DiffprivlibCompatibilityWarning: {e}. "
-                + "Lomas server cannot fit pipeline on data, "
-                + "DiffprivlibCompatibilityWarning is a blocker.",
             ) from e
         except Exception as e:
             raise ExternalLibraryException(

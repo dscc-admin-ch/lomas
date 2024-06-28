@@ -19,7 +19,6 @@ from dp_queries.dp_libraries.diffprivlib_utils import (
 )
 from utils.error_handler import ExternalLibraryException
 from utils.input_models import DiffPrivLibInp
-from utils.loggr import LOG
 
 
 class DiffPrivLibQuerier(DPQuerier):
@@ -54,17 +53,6 @@ class DiffPrivLibQuerier(DPQuerier):
         # Prepare DiffPrivLib pipeline
         dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
 
-        # LOG.error("*********************************************")
-        # LOG.error("query_json")
-        # LOG.error(query_json)
-        # LOG.error("*********************************************")
-        # LOG.error("dp pipeline")
-        # LOG.error(dpl_pipeline)
-        # LOG.error("x_train")
-        # LOG.error(x_train)
-        # LOG.error("y_train")
-        # LOG.error(y_train)
-
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
         warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
@@ -86,7 +74,8 @@ class DiffPrivLibQuerier(DPQuerier):
             ) from e
         except Exception as e:
             raise ExternalLibraryException(
-                DPLibraries.DIFFPRIVLIB, "Cannot fit pipeline on data"
+                DPLibraries.DIFFPRIVLIB,
+                f"Cannot fit pipeline on data because {e}",
             ) from e
 
         return fitted_dpl_pipeline, x_test, y_test

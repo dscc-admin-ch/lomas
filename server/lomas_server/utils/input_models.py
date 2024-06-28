@@ -66,7 +66,10 @@ class OpenDPInp(BaseModel):
 
     dataset_name: str
     opendp_json: str
-    fixed_delta: Optional[float] = None
+    pipeline_type: str
+    delta: Optional[float] = None
+    mechanism: Optional[str] = None
+
 
 
 class DummyOpenDPInp(BaseModel):

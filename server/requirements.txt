@@ -7,8 +7,10 @@ numpy==1.23.2
 opendp==0.10.0
 opendp-logger==0.3.0
 pandas==2.2.2
+polars==0.20.16
 pyaml==23.9.5
 pymongo==4.6.3
+pyarrow==16.1.0
 scikit-learn==1.4.0
-smartnoise-sql==1.0.3
+smartnoise-sql==1.0.4
 uvicorn==0.29.0

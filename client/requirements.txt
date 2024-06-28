@@ -5,6 +5,7 @@ numpy==1.23.2
 opendp==0.10.0
 opendp_logger==0.3.0
 pandas==2.2.2
-polars==0.20.31
+polars==0.20.16
+pyarrow==16.1.0
 requests==2.32.0
 scikit-learn==1.4.0

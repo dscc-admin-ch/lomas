@@ -23,12 +23,16 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
+<<<<<<< HEAD
         "Natural Language :: English",
         "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
+=======
+        "Programming Language :: Python :: 3.11",
+>>>>>>> 845c2cc (backup)
     ],
     keywords=[
         "differential privacy",
@@ -44,10 +48,11 @@ setup(
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",
         "numpy>=1.23.2",
-        "opendp==0.8.0",
+        "opendp==0.10.0",
         "opendp_logger==0.3.0",
         "pandas>=2.2.2",
         "requests>=2.32.0",
         "scikit-learn==1.4.0",
+        "polars==0.20.16"
     ],
 )

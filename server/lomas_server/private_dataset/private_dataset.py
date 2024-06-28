@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 import pandas as pd
+import polars as pl
 
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
 
@@ -24,15 +25,26 @@ class PrivateDataset(ABC):
         self.dtypes: dict = _get_dtypes(metadata)
 
     @abstractmethod
-    def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
+    def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format
-
-        Args:
-            dataset_name (str): name of the private dataset
 
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
+
+    def get_polars_lf(self, ) -> pl.LazyFrame:
+        """TODO: Very inefficient way of doing things. Options are:
+            1. always return a lazyframe (scan_csv, not possible with s3)
+            2. as is implemented now
+            3. cache a dataframe and return a .lazy() version, a bit more efficient
+               in speed than 1. but potentially uses double the memory if mixed with
+               pandas df.
+            4. ??
+
+        Returns:
+            pl.LazyFrame: _description_
+        """
+        return pl.from_pandas(self.get_pandas_df()).lazy()
 
     def get_metadata(self) -> dict:
         """Get the metadata for this dataset
@@ -78,5 +90,9 @@ def _get_dtypes(metadata: dict) -> dict:
     """
     dtypes = {}
     for col_name, data in metadata["columns"].items():
-        dtypes[col_name] = data["type"]
+        if data["type"] in ["int", "float"]:
+            dtypes[col_name] = f"{data['type']}{data['precision']}"
+        else:
+            dtypes[col_name] = data["type"]
+    
     return dtypes

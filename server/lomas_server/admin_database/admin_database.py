@@ -4,6 +4,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
 
+from constants import MODEL_INPUT_TO_LIB
 from utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
@@ -447,7 +448,9 @@ class AdminDatabase(ABC):
             "response": response,
             "timestamp": time.time(),
         }
-        to_archive["dp_librairy"] = query_json.__class__.__name__
+        
+        model_input = query_json.__class__.__name__
+        to_archive["dp_librairy"] = MODEL_INPUT_TO_LIB[model_input]
 
         return to_archive
 

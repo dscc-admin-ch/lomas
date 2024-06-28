@@ -13,13 +13,13 @@ from sklearn.pipeline import Pipeline
 from constants import DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from dp_queries.dp_libraries.diffprivlib_utils import (
-    impute_missing_data,
+    handle_missing_data,
     split_train_test_data,
     deserialise_diffprivlib_pipeline,
 )
 from utils.error_handler import ExternalLibraryException
 from utils.input_models import DiffPrivLibInp
-
+from utils.loggr import LOG
 # DiffPrivLib warnings will trigger error
 warnings.simplefilter("error", PrivacyLeakWarning)
 warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
@@ -49,7 +49,7 @@ class DiffPrivLibQuerier(DPQuerier):
         """
         # Prepare data
         raw_data = self.private_dataset.get_pandas_df()
-        data = impute_missing_data(raw_data, query_json.imputer_strategy)
+        data = handle_missing_data(raw_data, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(
             data, query_json
         )
@@ -58,10 +58,32 @@ class DiffPrivLibQuerier(DPQuerier):
         dpl_pipeline = deserialise_diffprivlib_pipeline(
             query_json.diffprivlib_json
         )
+        LOG.error("*********************************************")
+        LOG.error("query_json")
+        LOG.error(query_json)
+        LOG.error("*********************************************")
+        LOG.error("dp pipeline")
+        LOG.error(dpl_pipeline)
+        LOG.error("x_train")
+        LOG.error(x_train)
+        LOG.error("y_train")
+        LOG.error(y_train)
 
         # Fit the pipeline on the training set
         try:
             fitted_dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
+        except PrivacyLeakWarning as e:
+            raise ExternalLibraryException(
+                DPLibraries.DIFFPRIVLIB, 
+                f"PrivacyLeakWarning: {e}. "
+                + "Lomas server cannot fit pipeline on data, warning is a blocker."
+            ) from e
+        except DiffprivlibCompatibilityWarning as e:
+            raise ExternalLibraryException(
+                DPLibraries.DIFFPRIVLIB, 
+                f"DiffprivlibCompatibilityWarning: {e}. "
+                + "Lomas server cannot fit pipeline on data, warning is a blocker."
+            ) from e
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB, "Cannot fit pipeline on data"

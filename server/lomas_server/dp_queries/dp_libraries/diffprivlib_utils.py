@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
@@ -8,11 +9,11 @@ from utils.input_models import DiffPrivLibInp
 
 
 def handle_missing_data(
-    data: pd.DataFrame, imputer_strategy: str
+    df: pd.DataFrame, imputer_strategy: str
 ) -> pd.DataFrame:
     """Impute missing data based on given imputation strategy for NaNs
     Args:
-        data (pd.DataFrame): dataframe with the data
+        df (pd.DataFrame): dataframe with the data
         imputer_strategy (str): string to indicate imputatation for NaNs
             "drop": will drop all rows with missing values
             "mean": will replace values by the mean of the column values
@@ -23,30 +24,32 @@ def handle_missing_data(
         InvalidQueryException: If the "imputer_strategy" does not exist
 
     Returns:
-        data (pd.DataFrame): dataframe with the imputed data
+        df (pd.DataFrame): dataframe with the imputed data
     """
+    dtypes = df.dtypes
+
     if imputer_strategy == "drop":
-        data = data.dropna()
+        df = df.dropna()
     elif imputer_strategy in ["mean", "median"]:
-        numerical_cols = data.select_dtypes(
+        numerical_cols = df.select_dtypes(
             include=NUMERICAL_DTYPES
         ).columns.tolist()
         categorical_cols = [
-            col for col in data.columns if col not in numerical_cols
+            col for col in df.columns if col not in numerical_cols
         ]
 
         # Impute numerical features using given strategy
         imp_mean = SimpleImputer(strategy=imputer_strategy)
-        df_num_imputed = imp_mean.fit_transform(data[numerical_cols])
+        df_num_imputed = imp_mean.fit_transform(df[numerical_cols])
 
         # Impute categorical features with most frequent value
         imp_most_frequent = SimpleImputer(strategy="most_frequent")
-        df_cat_imputed = imp_most_frequent.fit_transform(
-            data[categorical_cols]
-        )
+        df[categorical_cols] = df[categorical_cols].astype("object")
+        df[categorical_cols] = df[categorical_cols].replace({pd.NA: np.nan})
+        df_cat_imputed = imp_most_frequent.fit_transform(df[categorical_cols])
 
         # Combine imputed dataframes
-        data = pd.concat(
+        df = pd.concat(
             [
                 pd.DataFrame(df_num_imputed, columns=numerical_cols),
                 pd.DataFrame(df_cat_imputed, columns=categorical_cols),
@@ -56,22 +59,26 @@ def handle_missing_data(
     elif imputer_strategy == "most_frequent":
         # Impute all features with most frequent value
         imp_most_frequent = SimpleImputer(strategy=imputer_strategy)
-        data = pd.DataFrame(
-            imp_most_frequent.fit_transform(data), columns=data.columns
+        df[df.columns] = df[df.columns].astype("object")
+        df[df.columns] = df[df.columns].replace({pd.NA: np.nan})
+        df = pd.DataFrame(
+            imp_most_frequent.fit_transform(df), columns=df.columns
         )
     else:
         raise InvalidQueryException(
             f"Imputation strategy {imputer_strategy} not supported."
         )
-    return data
+
+    df = df.astype(dtype=dtypes)
+    return df
 
 
 def split_train_test_data(
-    data: pd.DataFrame, query_json: DiffPrivLibInp
+    df: pd.DataFrame, query_json: DiffPrivLibInp
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split the data between train and test set
     Args:
-        data (pd.DataFrame): dataframe with the data
+        df (pd.DataFrame): dataframe with the data
         query_json (DiffPrivLibInp): user input query indication
             feature_columns (list[str]): columns from data to use as features
             target_columns (list[str]): columns from data to use as target (to predict)
@@ -84,7 +91,7 @@ def split_train_test_data(
         y_train (pd.DataFrame): training data target
         y_test (pd.DataFrame): testing data target
     """
-    feature_data = data[query_json.feature_columns]
+    feature_data = df[query_json.feature_columns]
 
     if query_json.target_columns is None:
         x_train, x_test = train_test_split(
@@ -94,7 +101,7 @@ def split_train_test_data(
         )
         y_train, y_test = None, None
     else:
-        label_data = data[query_json.target_columns]
+        label_data = df[query_json.target_columns]
         x_train, x_test, y_train, y_test = train_test_split(
             feature_data,
             label_data,

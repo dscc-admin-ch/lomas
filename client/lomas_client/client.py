@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union
 
 import opendp as dp
 import pandas as pd
+import polars as pl
 import requests
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
@@ -218,19 +219,19 @@ class Client:
             return json.loads(res.content.decode("utf8"))
         print(error_message(res))
         return None
-
-    def opendp_query(
+    
+    def _get_opendp_request_body(
         self,
-        opendp_pipeline: dp.Measurement,
+        opendp_pipeline: dp.Measurement | dp.polars.lazyFrame.frame.Lazyframe,
         fixed_delta: Optional[float] = None,
-        dummy: bool = False,
-        nb_rows: int = DUMMY_NB_ROWS,
-        seed: int = DUMMY_SEED,
-    ) -> Optional[dict]:
+        distribution: Optional[str] = "Laplace", # TODO create constants.
+    ):
         """This function executes an OpenDP query.
 
         Args:
-            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
+                Can be a dp.Measurement or a polars Lazyframe (plan) for opendp.polars\
+                pipelines.
             fixed_delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -238,6 +239,58 @@ class Client:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
                 In that case a fixed_delta must be provided by the user.
                 Defaults to None.
+            distribution: (str, optional): Type of distribution to use for the noïse\
+                addition mechanism in polars pipelines. "Laplace" or "Gaussian".
+        
+        Raises:
+            Exception: If the opendp_pipeline type is not supported.
+
+        Returns:
+            dict: A dictionnary for the request body.
+        """
+        body_json = {
+            "dataset_name": self.dataset_name
+        }
+
+        if isinstance(opendp_pipeline, dp.Measurement):
+            body_json["opendp_json"] = opendp_pipeline.to_json()
+            body_json["pipeline_type"] = "legacy"
+            body_json["fixed_delta"] = fixed_delta
+        elif isinstance(opendp_pipeline, pl.lazyframe.frame.Lazyframe):
+            body_json["opendp_json"] = opendp_pipeline.serialize()
+            body_json["pipeline_type"] = "polars"
+        else:
+            raise Exception(
+                f"Opendp_pipeline must either of type Measurement"
+                f" or Lazyframe, found {type(opendp_pipeline)}"
+            )
+
+        return body_json
+
+    def opendp_query(
+        self,
+        opendp_pipeline: dp.Measurement | dp.polars.lazyFrame.frame.Lazyframe,
+        fixed_delta: Optional[float] = None,
+        distribution: Optional[str] = "Laplace", # TODO create constants.
+        dummy: bool = False,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ) -> Optional[dict]:
+        """This function executes an OpenDP query.
+
+        Args:
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
+                Can be a dp.Measurement or a polars Lazyframe (plan) for opendp.polars\
+                pipelines.
+            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
+                (`See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
+                In that case a fixed_delta must be provided by the user.
+                Defaults to None.
+            distribution: (str, optional): Type of distribution to use for the noïse\
+                addition mechanism in polars pipelines. "Laplace" or "Gaussian".
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -245,17 +298,17 @@ class Client:
             Defaults to DUMMY_SEED.
 
         Raises:
-            Exception: If the server returns dataframes
+            Exception: If the opendp_pipeline type is not suppported.
 
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            Optional[dict]: A dictionary of the response body\
+                containing the deserialized pipeline result.
         """
-        opendp_json = opendp_pipeline.to_json()
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "opendp_json": opendp_json,
-            "fixed_delta": fixed_delta,
-        }
+        body_json = self._get_opendp_request_body(
+            opendp_pipeline,
+            fixed_delta
+        )
+
         if dummy:
             endpoint = "dummy_opendp_query"
             body_json["dummy_nb_rows"] = nb_rows
@@ -271,13 +324,10 @@ class Client:
             # Opendp outputs can be single numbers or dataframes,
             # we handle the latter here.
             # This is a hack for now, maybe use parquet to send results over.
-            # if isinstance(response_dict["query_response"], str):
-            #     raise Exception("Not implemented: should not return dataframes")
-            # Note: leaving this here. Support for opendp_polars
-            # response_dict["query_response"] = polars.read_json(
-            #    StringIO(response_dict["query_response"])
-            # )
-
+            response_dict["query_response"] = pl.read_json(
+                StringIO(response_dict["query_response"])
+            )
+            
             return response_dict
 
         print(error_message(res))
@@ -286,6 +336,7 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline: dp.Measurement,
+        distribution: Optional[str] = "Laplace", # TODO create constants.
         fixed_delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing an OpenDP query.
@@ -299,17 +350,19 @@ class Client:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a fixed_delta must be provided by the user.\
                 Defaults to None.
+            distribution: (str, optional): Type of distribution to use for the noïse\
+                addition mechanism in polars pipelines. "Laplace" or "Gaussian".
 
+        Raises:
+            Exception: If the opendp_pipeline type is not supported.
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        opendp_json = opendp_pipeline.to_json()
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "opendp_json": opendp_json,
-            "fixed_delta": fixed_delta,
-        }
+        body_json = self._get_opendp_request_body(
+            opendp_pipeline,
+            fixed_delta
+        )
         res = self._exec("estimate_opendp_cost", body_json)
 
         if res.status_code == 200:

@@ -122,7 +122,7 @@ example_dummy_opendp = {
 
 DIFFPRIVLIB_JSON = (
     '{"module": "diffprivlib", '
-    '"version": "0.6.0", '
+    '"version": "0.6.4", '
     '"pipeline": ['
     "{"
     '"type": "_dpl_type:StandardScaler", '

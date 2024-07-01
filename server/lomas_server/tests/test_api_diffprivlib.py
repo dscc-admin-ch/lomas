@@ -19,7 +19,7 @@ from utils.example_inputs import (
     example_dummy_diffprivlib,
 )
 
-# from utils.loggr import LOG
+from utils.loggr import LOG
 
 
 class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
@@ -188,21 +188,29 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             response = test_pipeline(example_diffprivlib, pipeline)
             validate_pipeline(response)
 
-            # # Test Random Forest TODO: fix bug in diffprivlib ?
-            # pipeline = Pipeline(
-            #     [
-            #         (
-            #             "rf",
-            #             models.RandomForestClassifier(
-            #                 n_estimators=10,
-            #                 epsilon=2.0,
-            #                 bounds=bounds,
-            #                 classes=["Adelie", "Chinstrap", "Gentoo"],
-            #             ),
-            #         ),
-            #     ]
-            # )
-            # response = test_pipeline(example_diffprivlib, pipeline)
+            # Test Random Forest TODO: fix bug in diffprivlib ?
+            pipeline = Pipeline(
+                [
+                    (
+                        "rf",
+                        models.RandomForestClassifier(
+                            n_estimators=10,
+                            epsilon=2.0,
+                            bounds=bounds,
+                            classes=["Adelie", "Chinstrap", "Gentoo"],
+                        ),
+                    ),
+                ]
+            )
+            response = test_pipeline(example_diffprivlib, pipeline)
+            response_dict = json.loads(response.content.decode("utf8"))
+            LOG.error("HAHDHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
+            LOG.error(response)
+            LOG.error(response_dict)
+            import diffprivlib
+            print(diffprivlib.__version__)
+            assert response.status_code == status.HTTP_200_OK
+            
             # validate_pipeline(response)
 
             # # Test Decision Tree Classifier  TODO: fix bug in diffprivlib ?

@@ -2,6 +2,7 @@ max_ids: 1
 columns:
   region:
     type: int
+    max_num_partitions: 7 # Added by Lomas
   eco_branch:
     type: int
   profession:
@@ -12,7 +13,9 @@ columns:
     type: int
   sex:
     type: int
+    max_num_partitions: 2 # Added by Lomas
   income:
     type: float
-    lower: 1000
-    upper: 100000
+    lower: 1000.0
+    upper: 100000.0
+rows: 2_032_543 # Added by Lomas, note present in examples from SmartNoiseSQL although not documented.

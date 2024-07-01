@@ -19,8 +19,6 @@ from utils.example_inputs import (
     example_dummy_diffprivlib,
 )
 
-# from utils.loggr import LOG
-
 
 class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
     """
@@ -56,14 +54,15 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 )
                 return response
 
-            # response = test_imputation(example_diffprivlib, "mean")
-            # assert response.status_code == status.HTTP_200_OK
+            response = test_imputation(example_diffprivlib, "mean")
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response.status_code == status.HTTP_200_OK
 
-            # response = test_imputation(example_diffprivlib, "median")
-            # assert response.status_code == status.HTTP_200_OK
+            response = test_imputation(example_diffprivlib, "median")
+            assert response.status_code == status.HTTP_200_OK
 
-            # response = test_imputation(example_diffprivlib, "most_frequent")
-            # assert response.status_code == status.HTTP_200_OK
+            response = test_imputation(example_diffprivlib, "most_frequent")
+            assert response.status_code == status.HTTP_200_OK
 
             # Should not work unknow imputation strategy
             response = test_imputation(example_diffprivlib, "i_do_not_exist")
@@ -302,8 +301,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             response = client.post(
                 "/dummy_diffprivlib_query", json=example_dummy_diffprivlib
             )
-            # response_dict = json.loads(response.content.decode("utf8"))
-            # LOG.error(response_dict)
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))

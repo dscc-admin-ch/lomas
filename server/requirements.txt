@@ -1,5 +1,5 @@
 boto3==1.34.115
-diffprivlib==0.6.0
+diffprivlib==0.6.4
 diffprivlib_logger==0.0.1
 fastapi==0.109.1
 httpx==0.27.0

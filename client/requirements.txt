@@ -1,4 +1,4 @@
-diffprivlib==0.6.0
+diffprivlib==0.6.4
 diffprivlib_logger==0.0.1
 jupyter==1.0.0
 numpy==2.0.0

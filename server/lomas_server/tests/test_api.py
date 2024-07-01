@@ -3,22 +3,22 @@ import os
 import unittest
 from io import StringIO
 
+import opendp.prelude as dp_p
+import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
-import opendp.prelude as dp_p
 from opendp_logger import enable_logging
-import pandas as pd
 from pymongo.database import Database
 
-from admin_database.utils import get_mongodb, database_factory
+from admin_database.utils import database_factory, get_mongodb
+from app import app
+from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from app import app
-from constants import DatasetStoreType, EPSILON_LIMIT, DPLibraries
 from tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
@@ -39,6 +39,7 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
+from utils.loggr import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -716,6 +717,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_2 = client.post(
                 "/get_previous_queries", json=example_get_admin_db_data
             )
+            LOG.error(response_2)
+            response_dict = json.loads(response.content.decode("utf8"))
+            LOG.error(response_dict)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))

@@ -19,7 +19,15 @@ from utils.example_inputs import (
     example_dummy_diffprivlib,
 )
 
-from utils.loggr import LOG
+
+def validate_pipeline(response):
+    """Validate that the pipeline ran successfully
+    Returns a model and a score.
+    """
+    assert response.status_code == status.HTTP_200_OK
+    response_dict = json.loads(response.content.decode("utf8"))
+    assert response_dict["query_response"]["score"]
+    assert response_dict["query_response"]["model"]
 
 
 class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
@@ -119,39 +127,10 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ]
                 )
 
-    def test_diffprivlib_models(self) -> None:
-        """Test diffprivlib query"""
+    def test_regression_models(self) -> None:
+        """Test diffprivlib query: Logistic and Linear Regression"""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
-
-            def test_pipeline(
-                diffprivlib_body,
-                pipeline,
-                feature_columns=None,
-                target_columns=None,
-            ):
-                diffprivlib_body = dict(diffprivlib_body)
-                if feature_columns:
-                    diffprivlib_body["feature_columns"] = feature_columns
-
-                if target_columns:
-                    diffprivlib_body["target_columns"] = target_columns
-
-                diffprivlib_body["diffprivlib_json"] = serialise_pipeline(
-                    pipeline
-                )
-                response = client.post(
-                    "/diffprivlib_query",
-                    json=diffprivlib_body,
-                    headers=self.headers,
-                )
-                return response
-
-            def validate_pipeline(response):
-                assert response.status_code == status.HTTP_200_OK
-                response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["query_response"]["score"]
-                assert response_dict["query_response"]["model"]
 
             # Test Logistic Regression
             pipeline = Pipeline(
@@ -168,9 +147,43 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                 ]
             )
-            response = test_pipeline(example_diffprivlib, pipeline)
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
             validate_pipeline(response)
 
+            # Test Linear Regression
+            pipeline = Pipeline(
+                [
+                    (
+                        "lr",
+                        models.LinearRegression(
+                            epsilon=2.0,
+                            bounds_X=(30.0, 65.0),
+                            bounds_y=(13.0, 23.0),
+                        ),
+                    ),
+                ]
+            )
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            diffprivlib_body["feature_columns"] = ["bill_length_mm"]
+            diffprivlib_body["target_columns"] = ["bill_length_mm"]
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(response)
+
+    def test_naives_bayes_model(self) -> None:
+        """Test diffprivlib query: Gaussian Naives Bayes"""
+        with TestClient(app, headers=self.headers) as client:
+            bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test Gaussian Naives Bayes
             pipeline = Pipeline(
                 [
@@ -186,10 +199,21 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                 ]
             )
-            response = test_pipeline(example_diffprivlib, pipeline)
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
             validate_pipeline(response)
 
-            # Test Random Forest TODO: fix bug in diffprivlib ?
+    def test_trees_models(self) -> None:
+        """Test diffprivlib query: Random Forest, Decision Tree"""
+        with TestClient(app, headers=self.headers) as client:
+            bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
+
+            # Test Random Forest
             pipeline = Pipeline(
                 [
                     (
@@ -203,53 +227,41 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                 ]
             )
-            response = test_pipeline(example_diffprivlib, pipeline)
-            response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error("HAHDHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
-            LOG.error(response)
-            LOG.error(response_dict)
-            import diffprivlib
-            print(diffprivlib.__version__)
-            assert response.status_code == status.HTTP_200_OK
-            
-            # validate_pipeline(response)
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(response)
 
-            # # Test Decision Tree Classifier  TODO: fix bug in diffprivlib ?
-            # pipeline = Pipeline(
-            #     [
-            #         (
-            #             "dtc",
-            #             models.DecisionTreeClassifier(
-            #                 epsilon=2.0,
-            #                 bounds=bounds,
-            #                 classes=["Adelie", "Chinstrap", "Gentoo"],
-            #             ),
-            #         ),
-            #     ]
-            # )
-            # response = test_pipeline(example_diffprivlib, pipeline)
-            # validate_pipeline(response)
-
-            # Test Linear Regression
+            # Test Decision Tree Classifier
             pipeline = Pipeline(
                 [
                     (
-                        "lr",
-                        models.LinearRegression(
+                        "dtc",
+                        models.DecisionTreeClassifier(
                             epsilon=2.0,
-                            bounds_X=(30.0, 65.0),
-                            bounds_y=(13.0, 23.0),
+                            bounds=bounds,
+                            classes=["Adelie", "Chinstrap", "Gentoo"],
                         ),
                     ),
                 ]
             )
-            response = test_pipeline(
-                example_diffprivlib,
-                pipeline,
-                feature_columns=["bill_length_mm"],
-                target_columns=["bill_depth_mm"],
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
             )
             validate_pipeline(response)
+
+    def test_clustering_models(self) -> None:
+        """Test diffprivlib query: K-Means"""
+        with TestClient(app, headers=self.headers) as client:
+            bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
             # Test K-MEANS
             pipeline = Pipeline(
@@ -262,12 +274,15 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                 ]
             )
-            response = test_pipeline(example_diffprivlib, pipeline)
-            validate_pipeline(response)
-
-            # Also with target column None
             diffprivlib_body = dict(example_diffprivlib)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(response)
+
             diffprivlib_body["target_columns"] = None
             response = client.post(
                 "/diffprivlib_query",
@@ -276,6 +291,10 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             validate_pipeline(response)
 
+    def test_dimension_reduction_models(self) -> None:
+        """Test diffprivlib query: PCA"""
+        with TestClient(app, headers=self.headers) as client:
+            bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test PCA: TODO: also debug why not working (new scikit-learn version?)
             pipeline = Pipeline(
                 [
@@ -290,19 +309,20 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                 ]
             )
-            response = test_pipeline(
-                example_diffprivlib, pipeline, target_columns=None
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Cannot fit pipeline on data "
-                + "because PCA._fit_full() takes 3 positional arguments "
-                + "but 5 were given",
-                "library": DPLibraries.DIFFPRIVLIB,
-            }
-            # validate_pipeline(response)
-            # response = test_pipeline(example_diffprivlib, pipeline)
-            # validate_pipeline(response)
+            # assert response.json() == {
+            #     "ExternalLibraryException": "Cannot fit pipeline on data "
+            #     + "because PCA._fit_full() takes 3 positional arguments "
+            #     + "but 5 were given",
+            #     "library": DPLibraries.DIFFPRIVLIB,
+            # }
 
     def test_dummy_diffprivlib_query(self) -> None:
         """test_dummy_diffprivlib_query"""

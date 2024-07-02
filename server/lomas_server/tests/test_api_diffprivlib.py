@@ -295,7 +295,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test diffprivlib query: PCA"""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
-            # Test PCA: TODO: also debug why not working (new scikit-learn version?)
+            # Test PCA
             pipeline = Pipeline(
                 [
                     (
@@ -316,13 +316,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            # assert response.json() == {
-            #     "ExternalLibraryException": "Cannot fit pipeline on data "
-            #     + "because PCA._fit_full() takes 3 positional arguments "
-            #     + "but 5 were given",
-            #     "library": DPLibraries.DIFFPRIVLIB,
-            # }
+            validate_pipeline(response)
 
     def test_dummy_diffprivlib_query(self) -> None:
         """test_dummy_diffprivlib_query"""

@@ -127,8 +127,8 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ]
                 )
 
-    def test_regression_models(self) -> None:
-        """Test diffprivlib query: Logistic and Linear Regression"""
+    def test_logitic_regression_models(self) -> None:
+        """Test diffprivlib query: Logistic Regression"""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
@@ -155,6 +155,10 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             validate_pipeline(response)
+
+    def test_linear_regression_models(self) -> None:
+        """Test diffprivlib query: Linear Regression"""
+        with TestClient(app, headers=self.headers) as client:
 
             # Test Linear Regression
             pipeline = Pipeline(

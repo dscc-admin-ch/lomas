@@ -16,7 +16,7 @@ datasets:
   dataset_path: "../data/datasets/titanic.csv"
   metadata:
     database_type: "PATH_DB"
-    dataset_path: "../data/collections/metadata/titanic_metadata.yaml"
+    metadata_path: "../data/collections/metadata/titanic_metadata.yaml"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   database_type: "PATH_DB"
   dataset_path: "../data/datasets/income_synthetic_data.csv"

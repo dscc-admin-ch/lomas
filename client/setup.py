@@ -28,13 +28,13 @@ setup(
     keywords=["opendp", "smartnoise-sql", "logger", "ast"],
     python_requires=">=3.10, <4",
     install_requires=[
-        "diffprivlib>=0.6.0",
-        "diffprivlib_logger>=0.0.1",
+        "diffprivlib>=0.6.4",
+        "diffprivlib_logger>=0.0.3",
         "numpy>=1.23.2",
         "opendp==0.8.0",
         "opendp_logger==0.3.0",
         "pandas>=2.2.2",
         "requests>=2.32.0",
-        "scikit-learn==1.5.0",
+        "scikit-learn==1.4.0",
     ],
 )

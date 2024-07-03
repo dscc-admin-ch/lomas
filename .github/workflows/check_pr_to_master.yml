@@ -20,7 +20,7 @@ jobs:
     - name: Get current branch name
       run: |
         echo ${{ github.head_ref }}
-        if [[ ! ${{ github.head_ref }} =~ release/* ]]; then
-          echo "PR to maaster must come from a release branch"
+        if [[ ! ${{ github.head_ref }} =~ ^(release|hotfix)/ ]]; then
+          echo "PR to master must come from a release or hotfix branch"
           exit 1
         fi

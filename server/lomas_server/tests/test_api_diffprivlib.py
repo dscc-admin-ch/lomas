@@ -127,7 +127,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ]
                 )
 
-    def test_logitic_regression_models(self) -> None:
+    def test_logistic_regression_models(self) -> None:
         """Test diffprivlib query: Logistic Regression"""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])

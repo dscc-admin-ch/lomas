@@ -16,23 +16,43 @@ part of the project, refer to:
 * **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.
 
-## Linting and other checks
+## Linting and Other Checks
 
-Here is a list of the checks that should be performed:
+To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:
 
-    - Use black to automatically format the code: `black .`
-    - Use flake to verify formating and performing a static code analysis: `flake8 .`
-    - Use mypy for static type checking: `mypy .`
-    - Use pylint for further static analysis: `pylint --disable=E0401 --disable=C0114 --disable=R0903 --disable=E0611 --disable=W0511 --disable=duplicate-code tests/ .`
-    
-        - `--disable=E0401` to ignore import-error
-        - `--disable=C0114` to ignore missing-module-docstring
-        - `--disable=R0903` to ignore too-few-public-methods
-        - `--disable=E0611` to ignore no-name-in-module
-        - `--disable=W0511` to ignore fixme (TODOs)
-        - `--disable=duplicate-code tests/` to ignore duplicate-code statements related to the tests
-        
-As detailed below, we rely on GitHub workflows to automatically run the checks on pull requests.
+- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+  ```bash
+  black .
+  ```
+
+- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+ ```bash
+  flake8 .
+  ```
+
+- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server` and `lomas/client`:
+ ```bash
+  mypy .
+  ```
+
+- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+ ```bash
+  pylint .
+  ```
+
+To streamline the process, you can use the `run_linter.sh` script in ``lomas`. The first time you run this script, use the following command to install dependencies:
+```bash
+chmod +x run_linter.sh
+./run_linter.sh  --install-deps
+```
+For subsequent runs, simply execute:
+```bash
+./run_linter.sh
+```
+
+In `run_linter.sh` you can ignore the 'Fixing ...' of isert followed by 'reformatted ...'.
+
+As detailed below, we rely on GitHub workflows to automatically run these checks on pull requests, ensuring consistency and quality across all contributions.
 
 ## GitHub Workflows
 

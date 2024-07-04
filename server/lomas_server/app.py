@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Callable
 
 from fastapi import Body, Depends, FastAPI, Header, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from admin_database.utils import database_factory
 from constants import (

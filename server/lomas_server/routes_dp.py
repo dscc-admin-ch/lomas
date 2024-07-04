@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Request, Body, Depends, Header
+from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
 
-from app import app
 from constants import DPLibraries
 from dp_queries.dp_libraries.utils import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
@@ -22,11 +21,10 @@ from utils.input_models import (
 )
 from utils.utils import server_live
 
-
 router = APIRouter()
 
 
-@app.post(
+@router.post(
     "/smartnoise_query",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
@@ -78,6 +76,7 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
+    from main import app
     try:
         response = app.state.query_handler.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name
@@ -91,7 +90,7 @@ def smartnoise_sql_handler(
 
 
 # Smartnoise SQL Dummy query
-@app.post(
+@router.post(
     "/dummy_smartnoise_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
@@ -138,6 +137,7 @@ def dummy_smartnoise_sql_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
+    from main import app
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -156,7 +156,7 @@ def dummy_smartnoise_sql_handler(
     return response
 
 
-@app.post(
+@router.post(
     "/estimate_smartnoise_cost",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
@@ -194,6 +194,7 @@ def estimate_smartnoise_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
+    from main import app
     try:
         response = app.state.query_handler.estimate_cost(
             DPLibraries.SMARTNOISE_SQL,
@@ -207,7 +208,7 @@ def estimate_smartnoise_cost(
     return JSONResponse(content=response)
 
 
-@app.post(
+@router.post(
     "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
 )
 def opendp_query_handler(
@@ -253,6 +254,7 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
+    from main import app
     try:
         response = app.state.query_handler.handle_query(
             DPLibraries.OPENDP, query_json, user_name
@@ -265,7 +267,7 @@ def opendp_query_handler(
     return JSONResponse(content=response)
 
 
-@app.post(
+@router.post(
     "/dummy_opendp_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
@@ -309,6 +311,7 @@ def dummy_opendp_query_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
+    from main import app
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -329,7 +332,7 @@ def dummy_opendp_query_handler(
     return JSONResponse(content=response)
 
 
-@app.post(
+@router.post(
     "/estimate_opendp_cost",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
@@ -361,6 +364,7 @@ def estimate_opendp_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
+    from main import app
     try:
         response = app.state.query_handler.estimate_cost(
             DPLibraries.OPENDP,

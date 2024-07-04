@@ -12,7 +12,7 @@ from opendp_logger import enable_logging
 from pymongo.database import Database
 
 from admin_database.utils import database_factory, get_mongodb
-from main import app
+from app import app
 from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
 from mongodb_admin import (
     add_datasets_via_yaml,

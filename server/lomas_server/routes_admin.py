@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Request, Body, Depends, Header
+from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
-from app import app
 from dp_queries.dummy_dataset import make_dummy_dataset
 from utils.error_handler import KNOWN_EXCEPTIONS, InternalServerException
 from utils.example_inputs import (
@@ -11,21 +10,21 @@ from utils.example_inputs import (
 from utils.input_models import GetDbData, GetDummyDataset
 from utils.utils import server_live, stream_dataframe
 
-
 router = APIRouter()
 
 
-@app.get("/")
+@router.get("/")
 async def root():
     """Redirect root endpoint to the state endpoint
     Returns:
         JSONResponse: The state of the server instance.
     """
+    from main import app
     return RedirectResponse(url="/state")
 
 
 # Get server state
-@app.get("/state", tags=["ADMIN_USER"])
+@router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -37,6 +36,7 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
+    from main import app
     return JSONResponse(
         content={
             "requested_by": user_name,
@@ -45,7 +45,7 @@ async def get_state(
     )
 
 
-@app.get(
+@router.get(
     "/get_memory_usage",
     dependencies=[Depends(server_live)],
     tags=["ADMIN_USER"],
@@ -58,6 +58,7 @@ async def get_memory_usage() -> JSONResponse:
     Returns:
         JSONResponse: with DatasetStore object memory usage
     """
+    from main import app
     return JSONResponse(
         content={
             "memory_usage": app.state.dataset_store.memory_usage,
@@ -66,7 +67,7 @@ async def get_memory_usage() -> JSONResponse:
 
 
 # Metadata query
-@app.post(
+@router.post(
     "/get_dataset_metadata",
     dependencies=[Depends(server_live)],
     tags=["USER_METADATA"],
@@ -93,6 +94,7 @@ def get_dataset_metadata(
         JSONResponse: The metadata dictionary for the specified
             dataset_name.
     """
+    from main import app
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
@@ -107,7 +109,7 @@ def get_dataset_metadata(
 
 
 # Dummy dataset query
-@app.post(
+@router.post(
     "/get_dummy_dataset",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
@@ -137,6 +139,7 @@ def get_dummy_dataset(
     Returns:
         StreamingResponse: a pd.DataFrame representing the dummy dataset.
     """
+    from main import app
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
@@ -154,7 +157,7 @@ def get_dummy_dataset(
 
 
 # MongoDB get initial budget
-@app.post(
+@router.post(
     "/get_initial_budget",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
@@ -189,6 +192,7 @@ def get_initial_budget(
             - initial_epsilon (float): initial epsilon budget.
             - initial_delta (float): initial delta budget.
     """
+    from main import app
     try:
         (
             initial_epsilon,
@@ -210,7 +214,7 @@ def get_initial_budget(
 
 
 # MongoDB get total spent budget
-@app.post(
+@router.post(
     "/get_total_spent_budget",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
@@ -245,6 +249,7 @@ def get_total_spent_budget(
             - total_spent_epsilon (float): total spent epsilon budget.
             - total_spent_delta (float): total spent delta budget.
     """
+    from main import app
     try:
         (
             total_spent_epsilon,
@@ -266,7 +271,7 @@ def get_total_spent_budget(
 
 
 # MongoDB get remaining budget
-@app.post(
+@router.post(
     "/get_remaining_budget",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
@@ -301,6 +306,7 @@ def get_remaining_budget(
             - remaining_epsilon (float): remaining epsilon budget.
             - remaining_delta (float): remaining delta budget.
     """
+    from main import app
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
             user_name, query_json.dataset_name
@@ -319,7 +325,7 @@ def get_remaining_budget(
 
 
 # MongoDB get archives
-@app.post(
+@router.post(
     "/get_previous_queries",
     dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
@@ -355,6 +361,7 @@ def get_user_previous_queries(
             - previous_queries (list[dict]): a list of dictionaries
               containing the previous queries.
     """
+    from main import app
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
             user_name, query_json.dataset_name

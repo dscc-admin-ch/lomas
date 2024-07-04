@@ -10,14 +10,3 @@ The `run_tests_and_converage.sh` script runs the integration tests. Again, make 
 Local tests can also (except for those using the mongodb_admin) can be run with a simple `python -m unittest discover -s . ` from the `lomas_server` directory. The tests will be based on the config in `lomas/server/lomas_server/tests/test_configs/test_config.yaml` and be executed with the AdminYamlDatabase. 
 
 Tests are also automatically run in GitHub workflows during different events (pull requests, pushes, etc.). Please refer to the general notes for contributors for more informations.
-
-## Linter
-Before opening a PR, style and check the code with isort, black, flake8, mypy and pylint. To do this automatically, in `lomas/server`, the first time, run: 
-```bash
-chmod +x run_linter.sh
-./run_linter.sh  --install-deps
-```
-the next times, just run
-```bash
-./run_linter.sh
-```

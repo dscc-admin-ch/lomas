@@ -23,7 +23,16 @@ if [ "$INSTALL_DEPS" == true ]; then
 fi
 
 
-cd ./lomas_server
+cd server/lomas_server
+isort .
+black .
+flake8 .
+pylint .
+
+cd ..
+mypy .
+
+cd ../client/lomas_client
 isort .
 black .
 flake8 .

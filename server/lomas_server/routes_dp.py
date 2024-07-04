@@ -76,7 +76,8 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         response = app.state.query_handler.handle_query(
             DPLibraries.SMARTNOISE_SQL, query_json, user_name
@@ -137,7 +138,8 @@ def dummy_smartnoise_sql_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -194,7 +196,8 @@ def estimate_smartnoise_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         response = app.state.query_handler.estimate_cost(
             DPLibraries.SMARTNOISE_SQL,
@@ -254,7 +257,8 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         response = app.state.query_handler.handle_query(
             DPLibraries.OPENDP, query_json, user_name
@@ -311,7 +315,8 @@ def dummy_opendp_query_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -364,7 +369,8 @@ def estimate_opendp_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         response = app.state.query_handler.estimate_cost(
             DPLibraries.OPENDP,

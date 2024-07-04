@@ -18,7 +18,7 @@ if __name__ == "__main__":
         )
 
     uvicorn.run(
-        "main:app",
+        "app:app",
         host=config.server.host_ip,
         port=config.server.host_port,
         log_level=config.server.log_level,

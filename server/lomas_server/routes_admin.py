@@ -19,7 +19,6 @@ async def root():
     Returns:
         JSONResponse: The state of the server instance.
     """
-    from main import app
     return RedirectResponse(url="/state")
 
 
@@ -36,7 +35,8 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     return JSONResponse(
         content={
             "requested_by": user_name,
@@ -58,7 +58,8 @@ async def get_memory_usage() -> JSONResponse:
     Returns:
         JSONResponse: with DatasetStore object memory usage
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     return JSONResponse(
         content={
             "memory_usage": app.state.dataset_store.memory_usage,
@@ -94,7 +95,8 @@ def get_dataset_metadata(
         JSONResponse: The metadata dictionary for the specified
             dataset_name.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
@@ -139,7 +141,8 @@ def get_dummy_dataset(
     Returns:
         StreamingResponse: a pd.DataFrame representing the dummy dataset.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
@@ -192,7 +195,8 @@ def get_initial_budget(
             - initial_epsilon (float): initial epsilon budget.
             - initial_delta (float): initial delta budget.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         (
             initial_epsilon,
@@ -249,7 +253,8 @@ def get_total_spent_budget(
             - total_spent_epsilon (float): total spent epsilon budget.
             - total_spent_delta (float): total spent delta budget.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         (
             total_spent_epsilon,
@@ -306,7 +311,8 @@ def get_remaining_budget(
             - remaining_epsilon (float): remaining epsilon budget.
             - remaining_delta (float): remaining delta budget.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
             user_name, query_json.dataset_name
@@ -361,7 +367,8 @@ def get_user_previous_queries(
             - previous_queries (list[dict]): a list of dictionaries
               containing the previous queries.
     """
-    from main import app
+    from app import app  # pylint: disable=C0415
+
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
             user_name, query_json.dataset_name

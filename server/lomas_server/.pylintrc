@@ -1,0 +1,12 @@
+[MASTER]
+ignore-patterns=test_*.py
+
+[MESSAGES CONTROL]
+disable=
+    E0401,  # import-error
+    C0114,  # missing-module-docstring
+    R0903,  # too-few-public-methods
+    E0611,  # no-name-in-module
+    W0511,  # fixme
+    C0302,  # too-many-lines
+    duplicate-code  # duplicate-code

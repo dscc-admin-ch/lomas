@@ -1,13 +1,12 @@
 import yaml
 from pydantic import BaseModel
-
 from typing_extensions import Dict
 
 from constants import (
-    ConfigKeys,
     CONFIG_PATH,
     SECRETS_PATH,
     AdminDBType,
+    ConfigKeys,
     DatasetStoreType,
     TimeAttackMethod,
 )

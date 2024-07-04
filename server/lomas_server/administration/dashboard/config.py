@@ -1,6 +1,7 @@
 import os
-from pydantic import BaseModel
+
 import yaml
+from pydantic import BaseModel
 
 from utils.error_handler import InternalServerException
 

@@ -75,7 +75,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         pass
 
     def setUp(self) -> None:
-        """_summary_"""
+        """Set Up Header and DB for test"""
         self.user_name = "Dr. Antartica"
         self.dataset = PENGUIN_DATASET
         self.headers = {

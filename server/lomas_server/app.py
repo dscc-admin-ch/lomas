@@ -15,12 +15,13 @@ from constants import (
 from dataset_store.utils import dataset_store_factory
 from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from dp_queries.dp_logic import QueryHandler
+import routes_dp
+import routes_admin
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.error_handler import InternalServerException, add_exception_handlers
 from utils.utils import add_demo_data_to_admindb
 from utils.loggr import LOG
-
 
 @asynccontextmanager
 async def lifespan(
@@ -156,3 +157,7 @@ async def middleware(
 
 # Add custom exception handlers
 add_exception_handlers(app)
+
+# Add endpoints
+app.include_router(routes_dp.router)
+app.include_router(routes_admin.router)

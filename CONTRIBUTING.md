@@ -16,8 +16,6 @@ part of the project, refer to:
 * **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.
 
-## Linting and other checks
-
 ## Linting and Other Checks
 
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:

@@ -10,14 +10,11 @@ from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
-from tests.test_api import TestRootAPIEndpoint
 
 from app import app
 from constants import DPLibraries
-from utils.example_inputs import (
-    example_diffprivlib,
-    example_dummy_diffprivlib,
-)
+from tests.test_api import TestRootAPIEndpoint
+from utils.example_inputs import example_diffprivlib, example_dummy_diffprivlib
 
 
 def validate_pipeline(response):

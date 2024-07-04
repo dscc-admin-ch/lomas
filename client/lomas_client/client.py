@@ -8,11 +8,10 @@ from typing import Dict, List, Optional, Union
 import opendp as dp
 import pandas as pd
 import requests
+from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
-
-from diffprivlib_logger import serialise_pipeline
 
 # Opendp_logger
 enable_logging()

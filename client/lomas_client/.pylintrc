@@ -1,0 +1,10 @@
+[MASTER]
+ignore-patterns=
+
+[MESSAGES CONTROL]
+disable=
+    E0401,  # import-error
+    C0114,  # missing-module-docstring
+    W0102,  # dangerous-default-value
+    R0913,  # too-many-arguments
+    R0914,  # too-many-locals

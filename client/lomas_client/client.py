@@ -319,7 +319,6 @@ class Client:
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
-        score: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -341,8 +340,6 @@ class Client:
                 "mean": will replace values by the mean of the column values
                 "median": will replace values by the median of the column values
                 "most_frequent": : will replace values by the most frequent values
-            score (boolean, optional): True to also get the score of the Pipeline on \
-                the test data. Defaults to TRUE.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -361,7 +358,6 @@ class Client:
             "test_size": test_size,
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
-            "score": score,
         }
         if dummy:
             endpoint = "dummy_diffprivlib_query"

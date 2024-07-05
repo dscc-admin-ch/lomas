@@ -388,7 +388,7 @@ def estimate_opendp_cost(
     return JSONResponse(content=response)
 
 
-@app.post(
+@router.post(
     "/diffprivlib_query",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
@@ -448,7 +448,7 @@ def diffprivlib_query_handler(
     return response
 
 
-@app.post(
+@router.post(
     "/dummy_diffprivlib_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
@@ -506,7 +506,7 @@ def dummy_diffprivlib_query_handler(
     return JSONResponse(content={"query_response": response})
 
 
-@app.post(
+@router.post(
     "/estimate_diffprivlib_cost",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],

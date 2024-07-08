@@ -19,6 +19,7 @@ enable_features("contrib")
 # Client constants: may be modified
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
+HTTP_200_OK = 200
 
 
 class DPLibraries(StrEnum):
@@ -74,7 +75,7 @@ class Client:
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
         )
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
             return metadata
@@ -110,7 +111,7 @@ class Client:
             },
         )
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             df = pd.read_csv(StringIO(data))
             return df
@@ -175,7 +176,7 @@ class Client:
 
         res = self._exec(endpoint, body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
             response_dict["query_response"] = pd.DataFrame.from_dict(
@@ -217,7 +218,7 @@ class Client:
         }
         res = self._exec("estimate_smartnoise_cost", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
         print(error_message(res))
         return None
@@ -267,7 +268,7 @@ class Client:
             endpoint = "opendp_query"
 
         res = self._exec(endpoint, body_json)
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
             return response_dict
@@ -304,7 +305,7 @@ class Client:
         }
         res = self._exec("estimate_opendp_cost", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
         print(error_message(res))
@@ -366,7 +367,7 @@ class Client:
             endpoint = "diffprivlib_query"
 
         res = self._exec(endpoint, body_json)
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
             response["query_response"]["model"] = json.loads(model)
@@ -418,7 +419,7 @@ class Client:
         }
         res = self._exec("estimate_diffprivlib_cost", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
         print(
             f"Error while executing provided query in server:\n"
@@ -437,7 +438,7 @@ class Client:
         }
         res = self._exec("get_initial_budget", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
         print(error_message(res))
@@ -454,7 +455,7 @@ class Client:
         }
         res = self._exec("get_total_spent_budget", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
         print(error_message(res))
@@ -471,7 +472,7 @@ class Client:
         }
         res = self._exec("get_remaining_budget", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
         print(error_message(res))
@@ -492,7 +493,7 @@ class Client:
         }
         res = self._exec("get_previous_queries", body_json)
 
-        if res.status_code == 200:
+        if res.status_code == HTTP_200_OK:
             queries = json.loads(res.content.decode("utf8"))[
                 "previous_queries"
             ]

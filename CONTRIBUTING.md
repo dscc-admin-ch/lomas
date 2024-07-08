@@ -50,7 +50,7 @@ For subsequent runs, simply execute:
 ./run_linter.sh
 ```
 
-There should be no error or warning, otherwise the linting github action will fail.
+There should be no error or warning, otherwise the linting github action will fail. All configurations are in `lomas/server/pyproject.toml` and `lomas/client/pyproject.toml`.
 
 As detailed below, we rely on GitHub workflows to automatically run these checks on pull requests, ensuring consistency and quality across all contributions.
 

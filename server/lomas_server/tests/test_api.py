@@ -208,7 +208,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exists. Please, verify the client object initialisation."
+                + "exist. Please, verify the client object initialisation."
             }
 
     def test_get_dummy_dataset(self) -> None:
@@ -216,7 +216,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/get_dummy_dataset", json=example_get_dummy_dataset
+                "/get_dummy_dataset",
+                json=example_get_dummy_dataset,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -243,7 +245,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exists. Please, verify the client object initialisation."
+                + "exist. Please, verify the client object initialisation."
             }
 
             # Expect to fail: missing argument dummy_nb_rows
@@ -255,6 +257,21 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+            # Expect to fail: user does not exist
+            fake_user = "fake_user"
+            new_headers = self.headers
+            new_headers["user-name"] = fake_user
+            response = client.post(
+                "/get_dummy_dataset",
+                json=example_get_dummy_dataset,
+                headers=new_headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": f"User {fake_user} does not "
+                + "exist. Please, verify the client object initialisation."
+            }
 
     def test_smartnoise_query(self) -> None:
         """Test smartnoise-sql query"""
@@ -355,7 +372,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": ""
-                + "Dataset I_do_not_exist does not exists. "
+                + "Dataset I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             }
 
@@ -401,7 +418,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
+                "/dummy_smartnoise_query",
+                json=example_dummy_smartnoise_sql,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -410,12 +429,24 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["query_response"]["data"][0][0] > 0
             assert response_dict["query_response"]["data"][0][0] < 200
 
+            # Should fail: no header
+            response = client.post(
+                "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": "User None does not exist."
+                + " Please, verify the client object initialisation."
+            }
+
     def test_smartnoise_cost(self) -> None:
         """test_smartnoise_cost"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/estimate_smartnoise_cost", json=example_smartnoise_sql_cost
+                "/estimate_smartnoise_cost",
+                json=example_smartnoise_sql_cost,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -572,7 +603,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/dummy_opendp_query", json=example_dummy_opendp
+                "/dummy_opendp_query",
+                json=example_dummy_opendp,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
@@ -583,7 +616,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/estimate_opendp_cost", json=example_opendp
+                "/estimate_opendp_cost",
+                json=example_opendp,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 

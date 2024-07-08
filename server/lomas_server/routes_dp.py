@@ -4,7 +4,11 @@ from fastapi.responses import JSONResponse
 from constants import DPLibraries
 from dp_queries.dp_libraries.utils import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from utils.error_handler import KNOWN_EXCEPTIONS, InternalServerException
+from utils.error_handler import (
+    KNOWN_EXCEPTIONS,
+    InternalServerException,
+    UnauthorizedAccessException,
+)
 from utils.example_inputs import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
@@ -99,6 +103,7 @@ def smartnoise_sql_handler(
 def dummy_smartnoise_sql_handler(
     _request: Request,
     query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Handles queries on dummy datasets for the SmartNoiseSQL library.
@@ -140,6 +145,14 @@ def dummy_smartnoise_sql_handler(
     """
     from app import app  # pylint: disable=C0415
 
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
+
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -166,6 +179,7 @@ def dummy_smartnoise_sql_handler(
 def estimate_smartnoise_cost(
     _request: Request,
     query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
@@ -197,6 +211,14 @@ def estimate_smartnoise_cost(
             - delta_cost (float): The estimated delta cost.
     """
     from app import app  # pylint: disable=C0415
+
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         response = app.state.query_handler.estimate_cost(
@@ -279,6 +301,7 @@ def opendp_query_handler(
 def dummy_opendp_query_handler(
     _request: Request,
     query_json: DummyOpenDPInp = Body(example_dummy_opendp),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Handles queries on dummy datasets for the OpenDP library.
@@ -317,6 +340,14 @@ def dummy_opendp_query_handler(
     """
     from app import app  # pylint: disable=C0415
 
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
+
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -345,6 +376,7 @@ def dummy_opendp_query_handler(
 def estimate_opendp_cost(
     _request: Request,
     query_json: OpenDPInp = Body(example_opendp),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
@@ -370,6 +402,14 @@ def estimate_opendp_cost(
             - delta_cost (float): The estimated delta cost.
     """
     from app import app  # pylint: disable=C0415
+
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         response = app.state.query_handler.estimate_cost(

@@ -2,7 +2,11 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from dp_queries.dummy_dataset import make_dummy_dataset
-from utils.error_handler import KNOWN_EXCEPTIONS, InternalServerException
+from utils.error_handler import (
+    KNOWN_EXCEPTIONS,
+    InternalServerException,
+    UnauthorizedAccessException,
+)
 from utils.example_inputs import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
@@ -76,6 +80,7 @@ async def get_memory_usage() -> JSONResponse:
 def get_dataset_metadata(
     _request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Retrieves metadata for a given dataset.
@@ -97,9 +102,17 @@ def get_dataset_metadata(
     """
     from app import app  # pylint: disable=C0415
 
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
+
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
-            query_json.dataset_name
+            dataset_name
         )
 
     except KNOWN_EXCEPTIONS as e:
@@ -119,6 +132,7 @@ def get_dataset_metadata(
 def get_dummy_dataset(
     _request: Request,
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
+    user_name: str = Header(None),
 ) -> StreamingResponse:
     """
     Generates and returns a dummy dataset.
@@ -142,6 +156,14 @@ def get_dummy_dataset(
         StreamingResponse: a pd.DataFrame representing the dummy dataset.
     """
     from app import app  # pylint: disable=C0415
+
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(

@@ -211,6 +211,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "exist. Please, verify the client object initialisation."
             }
 
+            # Expect to fail: user does have access to dataset
+            other_dataset = "IRIS"
+            response = client.post(
+                "/get_dataset_metadata",
+                json={"dataset_name": other_dataset},
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to {other_dataset}."
+            }
+
     def test_get_dummy_dataset(self) -> None:
         """test_get_dummy_dataset"""
         with TestClient(app) as client:
@@ -257,6 +270,23 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+            # Expect to fail: user does have access to dataset
+            other_dataset = "IRIS"
+            response = client.post(
+                "/get_dummy_dataset",
+                json={
+                    "dataset_name": other_dataset,
+                    "dummy_nb_rows": DUMMY_NB_ROWS,
+                    "dummy_seed": 0,
+                },
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to {other_dataset}."
+            }
 
             # Expect to fail: user does not exist
             fake_user = "fake_user"
@@ -439,6 +469,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + " Please, verify the client object initialisation."
             }
 
+            # Should fail: user does not have access to dataset
+            body = dict(example_dummy_smartnoise_sql)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/dummy_smartnoise_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }
+
     def test_smartnoise_cost(self) -> None:
         """test_smartnoise_cost"""
         with TestClient(app) as client:
@@ -453,6 +497,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
             assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
+
+            # Should fail: user does not have access to dataset
+            body = dict(example_smartnoise_sql_cost)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/estimate_smartnoise_cost",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """test_opendp_query"""
@@ -611,6 +669,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["query_response"] > 0
 
+            # Should fail: user does not have access to dataset
+            body = dict(example_dummy_opendp)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/dummy_opendp_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }
+
     def test_opendp_cost(self) -> None:
         """test_opendp_cost"""
         with TestClient(app) as client:
@@ -625,6 +697,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["epsilon_cost"] > 0.1
             assert response_dict["delta_cost"] == 0
+
+            # Should fail: user does not have access to dataset
+            body = dict(example_opendp)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/estimate_opendp_cost",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }
 
     def test_get_initial_budget(self) -> None:
         """test_get_initial_budget"""

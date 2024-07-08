@@ -103,16 +103,6 @@ def user_must_have_access_to_dataset(
     ) -> None:
         user_name = args[0]
         dataset_name = args[1]
-        if not self.does_user_exist(user_name):
-            raise UnauthorizedAccessException(
-                f"User {user_name} does not exist. "
-                + "Please, verify the client object initialisation.",
-            )
-        if not self.does_dataset_exist(dataset_name):
-            raise InvalidQueryException(
-                f"Dataset {dataset_name} does not exist. "
-                + "Please, verify the client object initialisation.",
-            )
         if not self.has_user_access_to_dataset(user_name, dataset_name):
             raise UnauthorizedAccessException(
                 f"{user_name} does not have access to {dataset_name}.",

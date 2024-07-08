@@ -1,6 +1,5 @@
 import base64
 import json
-import pickle
 from enum import StrEnum
 from io import StringIO
 from typing import Dict, List, Optional, Union
@@ -370,7 +369,7 @@ class Client:
         if res.status_code == 200:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
-            response["query_response"]["model"] = pickle.loads(model)
+            response["query_response"]["model"] = json.loads(model)
             return response
         print(
             f"Error while processing DiffPrivLib request in server \
@@ -516,7 +515,7 @@ class Client:
                             query["response"]["query_response"]["model"]
                         )
                         query["response"]["query_response"]["model"] = (
-                            pickle.loads(model)
+                            json.loads(model)
                         )
                     case _:
                         raise ValueError(

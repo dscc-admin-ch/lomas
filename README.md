@@ -22,9 +22,10 @@ The server is responsible for processing the client requests and updating its ow
 
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-<!-- See our white paper (TODO link) for detailed explanation of the platform. -->
 ## Useful links
 
+* **White Paper**: https://arxiv.org/abs/2406.17087
+* **Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
 * **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
 * **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
 
@@ -61,6 +62,8 @@ For extensive informations about how to deploy, please refer to:
 Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
+## Disclaimer on Security
+Lomas is a Proof of Concept and many security aspect are not done yet. The 'logical' aspects within the server are verified but overall infrastructure security is not the current priority. For instance, there is no user authentification. However, Lomas could be integrated within other safe infrastructures to ensure security.
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

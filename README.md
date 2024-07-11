@@ -14,20 +14,21 @@
 
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
-The lomas platform follows a classic server/client model.
-On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
-On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
-The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
-
-
-The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
-
 ## Useful links
 
 * **White Paper**: https://arxiv.org/abs/2406.17087
 * **Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
 * **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
 * **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
+
+
+The lomas platform follows a classic server/client model.
+On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
+On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
+The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
+
+The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
+
 
 ## Client package `lomas_client`
 
@@ -63,7 +64,9 @@ Finally, the service provider is responsible for deploying the service and manag
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
 ## Disclaimer on Security
-Lomas is a Proof of Concept and many security aspect are not done yet. The 'logical' aspects within the server are verified but overall infrastructure security is not the current priority. For instance, there is no user authentification. However, Lomas could be integrated within other safe infrastructures to ensure security.
+Lomas is a Proof of Concept, and several security aspects are still under development. While the 'logical' aspects within the server are verified, the overall infrastructure security is not our current priority. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures to ensure safety.
+
+We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas.
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

@@ -12,15 +12,10 @@
 
 # Lomas: The Data Oases Hidden Behind the Mist. 
 
+
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
-## Useful links
-
-* **White Paper**: https://arxiv.org/abs/2406.17087
-* **Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
-* **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
-* **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
-
+#### Technical Overview:
 
 The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
@@ -28,6 +23,14 @@ On the server side, the service is implemented in a micro-service architecture a
 The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
 
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
+
+#### Detailed description:
+
+For a detailed description, please see the links below.
+
+* **Project's White Paper**: https://arxiv.org/abs/2406.17087
+* **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
+* **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
 
 
 ## Client package `lomas_client`

@@ -28,7 +28,7 @@ The service is not responsible for storing and managing private datasets, these 
 
 For a detailed description, please see the links below.
 
-* **Project's White Paper**: https://arxiv.org/abs/2406.17087
+* **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
 * **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
 * **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
 
@@ -66,10 +66,10 @@ For extensive informations about how to deploy, please refer to:
 Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-## Disclaimer on Security
+## Disclaimer
 Lomas is a Proof of Concept, and several security aspects are still under development. While the 'logical' aspects within the server are verified, the overall infrastructure security is not our current priority. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures to ensure safety.
 
-We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas.
+We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open.
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

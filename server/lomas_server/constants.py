@@ -78,6 +78,15 @@ class DPLibraries(StrEnum):
 
     SMARTNOISE_SQL = "smartnoise_sql"
     OPENDP = "opendp"
+    DIFFPRIVLIB = "diffprivlib"
+
+
+# Query model input to DP librairy
+MODEL_INPUT_TO_LIB = {
+    "SNSQLInp": DPLibraries.SMARTNOISE_SQL,
+    "OpenDPInp": DPLibraries.OPENDP,
+    "DiffPrivLibInp": DPLibraries.DIFFPRIVLIB,
+}
 
 
 # Private Databases
@@ -130,3 +139,7 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 # Smartnoise sql
 STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 MAX_NAN_ITERATION = 5
+
+
+# Data preprocessing
+NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]

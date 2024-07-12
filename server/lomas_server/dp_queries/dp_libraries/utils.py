@@ -1,4 +1,5 @@
 from constants import DPLibraries
+from dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from dp_queries.dp_libraries.opendp import OpenDPQuerier
 from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from dp_queries.dp_querier import DPQuerier
@@ -26,6 +27,9 @@ def querier_factory(lib: str, private_dataset: PrivateDataset) -> DPQuerier:
 
         case DPLibraries.OPENDP:
             querier = OpenDPQuerier(private_dataset)
+
+        case DPLibraries.DIFFPRIVLIB:
+            querier = DiffPrivLibQuerier(private_dataset)
 
         case _:
             raise InternalServerException(f"Unknown library: {lib}")

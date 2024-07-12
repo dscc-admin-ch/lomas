@@ -5,26 +5,25 @@
 
 Lomas: The Data Oases Hidden Behind the Mist.
 ========================================
-Lomas is a platform for remote data science, enabling sensitive data to be queried remotely 
-while staying protected by a layer of differential privacy.
+Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
-The lomas platform follows a classic server/client model. On the client side, the 
-user prepares queries for statistical analyses which are sent to the 
-service's REST API via HTTP. The user never has direct access to the sensitive 
-data. On the server side, the service is implemented in a micro-service architecture and is 
-thus split into two parts: the administration database and the client-facing HTTP server 
-(which we call server for brevity) that implements the service logic. The server 
-is responsible for processing the client requests and updating its own state as 
-well as administrative data (users data, budgets, query archives, etc.) in 
-the administration database.
+#### Technical Overview:
 
-The service is not responsible for storing and managing private datasets, 
-these are usually already stored on the provider's infrastructure. 
+The lomas platform follows a classic server/client model.
+On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
+On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
+The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
 
-.. See our white paper (TODO link) for detailed explanation of the platform.
+The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-You can find our `GitHub repository <https://github.com/dscc-admin-ch/lomas/tree/master/>`_
-following this link.
+#### Detailed description:
+
+For a detailed description, please see the links below.
+
+* **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
+* **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
+* **GitHub repository**: https://github.com/dscc-admin-ch/lomas/tree/master/
+
 
 Client
 ========
@@ -69,6 +68,13 @@ MongoDB database) and a client development environment in a Kubernetes cluster.
 
 For extensive informations about how to deploy, please refer to :doc:`Deployment <server_deployment>`
 documentation.
+
+## Disclaimer
+Lomas is a Proof of Concept that is still under development. 
+
+The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
+
+We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open.
 
 History
 ========

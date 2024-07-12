@@ -4,9 +4,8 @@ import time
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List
 
-from constants import DPLibraries
+from constants import MODEL_INPUT_TO_LIB
 from utils.error_handler import (
-    InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
 )
@@ -442,22 +441,16 @@ class AdminDatabase(ABC):
         Returns:
             dict: The query archive dictionary.
         """
+        model_input = query_json.__class__.__name__
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
+            "dp_librairy": MODEL_INPUT_TO_LIB[model_input],
             "client_input": query_json.model_dump(),
             "response": response,
             "timestamp": time.time(),
         }
-        match query_json.__class__.__name__:
-            case "SNSQLInp":
-                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
-            case "OpenDPInp":
-                to_archive["dp_librairy"] = DPLibraries.OPENDP
-            case _:
-                raise InternalServerException(
-                    f"Unknown query input: {query_json.__class__.__name__}"
-                )
+
         return to_archive
 
     @abstractmethod

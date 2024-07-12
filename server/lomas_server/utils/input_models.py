@@ -77,3 +77,29 @@ class DummyOpenDPInp(BaseModel):
     dummy_nb_rows: int
     dummy_seed: int
     fixed_delta: Optional[float] = None
+
+
+class DiffPrivLibInp(BaseModel):
+    """Model input for a diffprivlib query"""
+
+    dataset_name: str
+    diffprivlib_json: str
+    feature_columns: list
+    target_columns: Optional[list]
+    test_size: float
+    test_train_split_seed: int
+    imputer_strategy: str
+
+
+class DummyDiffPrivLibInp(BaseModel):
+    """Model input for a dummy diffprivlib query"""
+
+    dataset_name: str
+    diffprivlib_json: str
+    feature_columns: list
+    target_columns: Optional[list]
+    test_size: float
+    test_train_split_seed: int
+    imputer_strategy: str
+    dummy_nb_rows: int
+    dummy_seed: int

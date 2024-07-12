@@ -1,4 +1,4 @@
-name: Server Integration Testing
+name: Server Tests
 
 on: 
   pull_request:
@@ -39,3 +39,5 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}
         COVERAGE_PATH: server/lomas_server/
+        MINIMUM_GREEN: 95
+        MINIMUM_ORANGE: 75

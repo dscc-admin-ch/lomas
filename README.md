@@ -15,7 +15,6 @@
 
 # Lomas: The Data Oases Hidden Behind the Mist. 
 
-
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
 #### Technical Overview:

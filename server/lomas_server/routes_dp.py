@@ -495,6 +495,7 @@ def diffprivlib_query_handler(
 )
 def dummy_diffprivlib_query_handler(
     query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+    user_name: str = Header(None),
 ):
     """
     Handles queries on dummy datasets for the DiffPrivLib library.
@@ -528,6 +529,14 @@ def dummy_diffprivlib_query_handler(
     """
     from app import app  # pylint: disable=C0415
 
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
+        
     ds_private_dataset = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
@@ -553,6 +562,7 @@ def dummy_diffprivlib_query_handler(
 )
 def estimate_diffprivlib_cost(
     query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    user_name: str = Header(None),
 ):
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.
@@ -583,6 +593,14 @@ def estimate_diffprivlib_cost(
             - delta_cost (float): The estimated delta cost.
     """
     from app import app  # pylint: disable=C0415
+    
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         response = app.state.query_handler.estimate_cost(

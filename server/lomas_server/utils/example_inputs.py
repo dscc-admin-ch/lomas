@@ -119,3 +119,75 @@ example_dummy_opendp = {
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }
+
+DIFFPRIVLIB_JSON = (
+    '{"module": "diffprivlib", '
+    '"version": "0.6.4", '
+    '"pipeline": ['
+    "{"
+    '"type": "_dpl_type:StandardScaler", '
+    '"name": "scaler", '
+    '"params": {'
+    '"with_mean": true, '
+    '"with_std": true, '
+    '"copy": true, '
+    '"epsilon": 0.5, '
+    '"bounds": {'
+    '"_tuple": true, '
+    '"_items": [[30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0]]'
+    "}, "
+    '"random_state": null, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}, "
+    "{"
+    '"type": "_dpl_type:LogisticRegression", '
+    '"name": "classifier", '
+    '"params": {'
+    '"tol": 0.0001, '
+    '"C": 1.0, '
+    '"fit_intercept": true, '
+    '"random_state": null, '
+    '"max_iter": 100, '
+    '"verbose": 0, '
+    '"warm_start": false, '
+    '"n_jobs": null, '
+    '"epsilon": 1.0, '
+    '"data_norm": 83.69469642643347, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}"
+    "]"
+    "}"
+)
+example_diffprivlib = {
+    "dataset_name": PENGUIN_DATASET,
+    "diffprivlib_json": DIFFPRIVLIB_JSON,
+    "feature_columns": [
+        "bill_length_mm",
+        "bill_depth_mm",
+        "flipper_length_mm",
+        "body_mass_g",
+    ],
+    "target_columns": ["species"],
+    "test_size": 0.2,
+    "test_train_split_seed": 1,
+    "imputer_strategy": "drop",
+}
+
+example_dummy_diffprivlib = {
+    "dataset_name": PENGUIN_DATASET,
+    "diffprivlib_json": DIFFPRIVLIB_JSON,
+    "feature_columns": [
+        "bill_length_mm",
+        "bill_depth_mm",
+        "flipper_length_mm",
+        "body_mass_g",
+    ],
+    "target_columns": ["species"],
+    "test_train_split_seed": 1,
+    "test_size": 0.2,
+    "imputer_strategy": "drop",
+    "dummy_nb_rows": DUMMY_NB_ROWS,
+    "dummy_seed": DUMMY_SEED,
+}

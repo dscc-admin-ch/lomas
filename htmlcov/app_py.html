@@ -57,15 +57,15 @@
             <span class="text">150 statements &nbsp;</span>
             <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">142<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">8<span class="text"> missing</span></button>
-            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">60<span class="text"> excluded</span></button>
+            <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">62<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
             <a id="prevFileLink" class="nav" href="z_369b04854fd139c7_yaml_database_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a id="nextFileLink" class="nav" href="constants_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.5.4">coverage.py v7.5.4</a>,
-            created at 2024-07-02 11:44 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.0">coverage.py v7.6.0</a>,
+            created at 2024-07-12 12:54 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -354,7 +354,7 @@
     <p class="run"><span class="n"><a id="t272" href="#t272">272</a></span><span class="t">        <span class="nam">ds_metadata</span> <span class="op">=</span> <span class="nam">app</span><span class="op">.</span><span class="nam">state</span><span class="op">.</span><span class="nam">admin_database</span><span class="op">.</span><span class="nam">get_dataset_metadata</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t273" href="#t273">273</a></span><span class="t">            <span class="nam">query_json</span><span class="op">.</span><span class="nam">dataset_name</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t274" href="#t274">274</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t276" href="#t276">276</a></span><span class="t">    <span class="key">except</span> <span class="nam">KNOWN_EXCEPTIONS</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">        <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -705,7 +705,7 @@
     <p class="run"><span class="n"><a id="t623" href="#t623">623</a></span><span class="t">        <span class="nam">_</span> <span class="op">=</span> <span class="nam">dummy_querier</span><span class="op">.</span><span class="nam">cost</span><span class="op">(</span><span class="nam">query_json</span><span class="op">)</span>  <span class="com"># verify cost works</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t624" href="#t624">624</a></span><span class="t">        <span class="nam">response_df</span> <span class="op">=</span> <span class="nam">dummy_querier</span><span class="op">.</span><span class="nam">query</span><span class="op">(</span><span class="nam">query_json</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t625" href="#t625">625</a></span><span class="t">        <span class="nam">response</span> <span class="op">=</span> <span class="op">{</span><span class="str">"query_response"</span><span class="op">:</span> <span class="nam">response_df</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t626" href="#t626">626</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="exc show_exc"><span class="n"><a id="t626" href="#t626">626</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t627" href="#t627">627</a></span><span class="t">    <span class="key">except</span> <span class="nam">KNOWN_EXCEPTIONS</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t628" href="#t628">628</a></span><span class="t">        <span class="key">raise</span> <span class="nam">e</span>&nbsp;</span><span class="r"></span></p>
     <p class="exc show_exc"><span class="n"><a id="t629" href="#t629">629</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -979,8 +979,8 @@
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a class="nav" href="constants_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.5.4">coverage.py v7.5.4</a>,
-            created at 2024-07-02 11:44 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.0">coverage.py v7.6.0</a>,
+            created at 2024-07-12 12:54 +0000
         </p>
     </div>
 </footer>

@@ -5,7 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
 [![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas-docs/index.html)
+[![Tests](https://github.com/dscc-admin-ch/lomas/actions/workflows/test_and_coverage_server.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/test_and_coverage_server.yml)
 [![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
+[![CodeQL](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml)
+[![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
 
 
 
@@ -14,19 +17,23 @@
 
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
+#### Technical Overview:
+
 The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
 On the server side, the service is implemented in a micro-service architecture and is thus split into two parts: the administration database and the client-facing HTTP server (which we call server for brevity) that implements the service logic.
 The server is responsible for processing the client requests and updating its own state as well as administrative data (users data, budgets, query archives, etc.) in the administration database.
 
-
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-<!-- See our white paper (TODO link) for detailed explanation of the platform. -->
-## Useful links
+#### Detailed description:
 
-* **Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
-* **Bug report**: https://github.com/dscc-admin-ch/lomas/issues
+For a detailed description, please see the links below.
+
+* **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
+* **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
+* **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+
 
 ## Client package `lomas_client`
 
@@ -61,6 +68,12 @@ For extensive informations about how to deploy, please refer to:
 Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
+## Disclaimer
+Lomas is a Proof of Concept that is still under development. 
+
+The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
+
+We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open.
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

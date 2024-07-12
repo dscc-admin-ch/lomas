@@ -6,6 +6,8 @@ from dp_queries.dp_libraries.utils import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from utils.error_handler import KNOWN_EXCEPTIONS, InternalServerException
 from utils.example_inputs import (
+    example_diffprivlib,
+    example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_opendp,
@@ -13,6 +15,8 @@ from utils.example_inputs import (
     example_smartnoise_sql_cost,
 )
 from utils.input_models import (
+    DiffPrivLibInp,
+    DummyDiffPrivLibInp,
     DummyOpenDPInp,
     DummySNSQLInp,
     OpenDPInp,
@@ -382,3 +386,172 @@ def estimate_opendp_cost(
         raise InternalServerException(e) from e
 
     return JSONResponse(content=response)
+
+
+@router.post(
+    "/diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def diffprivlib_query_handler(
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    user_name: str = Header(None),
+):
+    """
+    Handles queries for the DiffPrivLib Library.
+
+    Args:
+        request (Request): Raw request object.
+        query_json (OpenDPInp, optional): A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+
+            Defaults to Body(example_diffprivlib).
+
+        user_name (str, optional): The user name.
+            Defaults to Header(None).
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: The pipeline does not contain a "measurement",
+            there is not enough budget or the dataset does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    from app import app  # pylint: disable=C0415
+
+    try:
+        response = app.state.query_handler.handle_query(
+            DPLibraries.DIFFPRIVLIB, query_json, user_name
+        )
+    except KNOWN_EXCEPTIONS as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e) from e
+
+    return response
+
+
+@router.post(
+    "/dummy_diffprivlib_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_DUMMY"],
+)
+def dummy_diffprivlib_query_handler(
+    query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+):
+    """
+    Handles queries on dummy datasets for the DiffPrivLib library.
+
+    Args:
+        request (Request): Raw request object.
+        query_json (DiffPrivLibInp, optional): A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+              (default: 100).
+            - seed (int, optional): The random seed for generating
+              the dummy dataset (default: 42).
+              Defaults to Body(example_dummy_diffprivlib)
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+
+    Returns:
+        JSONResponse: A JSON object containing:
+            - query_response (pd.DataFrame): a DataFrame containing
+              the query response.
+    """
+    from app import app  # pylint: disable=C0415
+
+    ds_private_dataset = get_dummy_dataset_for_query(
+        app.state.admin_database, query_json
+    )
+    dummy_querier = querier_factory(
+        DPLibraries.DIFFPRIVLIB, private_dataset=ds_private_dataset
+    )
+
+    try:
+        _ = dummy_querier.cost(query_json)  # verify cost works
+        response = dummy_querier.query(query_json)
+    except KNOWN_EXCEPTIONS as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e) from e
+
+    return JSONResponse(content={"query_response": response})
+
+
+@router.post(
+    "/estimate_diffprivlib_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_diffprivlib_cost(
+    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+):
+    """
+    Estimates the privacy loss budget cost of an DiffPrivLib query.
+
+    Args:
+        request (Request): Raw request object
+        query_json (DiffPrivLibInp, optional):
+        A JSON object containing the following:
+            - pipeline: The DiffPrivLib pipeline for the query.
+            - feature_columns: the list of feature column to train
+            - target_columns: the list of target column to predict
+            - test_size: proportion of the test set
+            - test_train_split_seed: seed for the random train test split,
+            - imputer_strategy: imputation strategy
+
+            Defaults to Body(example_dummy_diffprivlib).
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: The dataset does not exist or the
+            pipeline does not contain a measurement.
+
+    Returns:
+        JSONResponse: A JSON object containing:
+            - epsilon_cost (float): The estimated epsilon cost.
+            - delta_cost (float): The estimated delta cost.
+    """
+    from app import app  # pylint: disable=C0415
+
+    try:
+        response = app.state.query_handler.estimate_cost(
+            DPLibraries.DIFFPRIVLIB,
+            query_json,
+        )
+    except KNOWN_EXCEPTIONS as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e) from e
+
+    return response

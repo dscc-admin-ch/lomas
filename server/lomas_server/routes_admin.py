@@ -2,7 +2,11 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from dp_queries.dummy_dataset import make_dummy_dataset
-from utils.error_handler import KNOWN_EXCEPTIONS, InternalServerException
+from utils.error_handler import (
+    KNOWN_EXCEPTIONS,
+    InternalServerException,
+    UnauthorizedAccessException,
+)
 from utils.example_inputs import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
@@ -25,17 +29,19 @@ async def root():
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
+    request: Request,
     user_name: str = Header(None),
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
 
     Args:
+        request (Request): Raw request object
         user_name (str, optional): The user name. Defaults to Header(None).
 
     Returns:
         JSONResponse: The state of the server instance.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     return JSONResponse(
         content={
@@ -50,15 +56,16 @@ async def get_state(
     dependencies=[Depends(server_live)],
     tags=["ADMIN_USER"],
 )
-async def get_memory_usage() -> JSONResponse:
+async def get_memory_usage(request: Request) -> JSONResponse:
     """Return the dataset store object memory usage
     Args:
+        request (Request): Raw request object
         user_name (str, optional): The user name. Defaults to Header(None).
 
     Returns:
         JSONResponse: with DatasetStore object memory usage
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     return JSONResponse(
         content={
@@ -74,8 +81,9 @@ async def get_memory_usage() -> JSONResponse:
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
-    _request: Request,
+    request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
+    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Retrieves metadata for a given dataset.
@@ -95,11 +103,19 @@ def get_dataset_metadata(
         JSONResponse: The metadata dictionary for the specified
             dataset_name.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
+
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
-            query_json.dataset_name
+            dataset_name
         )
 
     except KNOWN_EXCEPTIONS as e:
@@ -117,8 +133,9 @@ def get_dataset_metadata(
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
-    _request: Request,
+    request: Request,
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
+    user_name: str = Header(None),
 ) -> StreamingResponse:
     """
     Generates and returns a dummy dataset.
@@ -141,7 +158,15 @@ def get_dummy_dataset(
     Returns:
         StreamingResponse: a pd.DataFrame representing the dummy dataset.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
+
+    dataset_name = query_json.dataset_name
+    if not app.state.admin_database.has_user_access_to_dataset(
+        user_name, dataset_name
+    ):
+        raise UnauthorizedAccessException(
+            f"{user_name} does not have access to {dataset_name}.",
+        )
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(
@@ -166,7 +191,7 @@ def get_dummy_dataset(
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
-    _request: Request,
+    request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -195,7 +220,7 @@ def get_initial_budget(
             - initial_epsilon (float): initial epsilon budget.
             - initial_delta (float): initial delta budget.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     try:
         (
@@ -224,7 +249,7 @@ def get_initial_budget(
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
-    _request: Request,
+    request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -253,7 +278,7 @@ def get_total_spent_budget(
             - total_spent_epsilon (float): total spent epsilon budget.
             - total_spent_delta (float): total spent delta budget.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     try:
         (
@@ -282,7 +307,7 @@ def get_total_spent_budget(
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
-    _request: Request,
+    request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -311,7 +336,7 @@ def get_remaining_budget(
             - remaining_epsilon (float): remaining epsilon budget.
             - remaining_delta (float): remaining delta budget.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
@@ -337,7 +362,7 @@ def get_remaining_budget(
     tags=["USER_BUDGET"],
 )
 def get_user_previous_queries(
-    _request: Request,
+    request: Request,
     query_json: GetDbData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -367,7 +392,7 @@ def get_user_previous_queries(
             - previous_queries (list[dict]): a list of dictionaries
               containing the previous queries.
     """
-    from app import app  # pylint: disable=C0415
+    app = request.app
 
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(

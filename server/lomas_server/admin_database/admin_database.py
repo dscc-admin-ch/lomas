@@ -1,7 +1,7 @@
 import argparse
-import functools
 import time
 from abc import ABC, abstractmethod
+from functools import wraps
 from typing import Callable, Dict, List
 
 from constants import MODEL_INPUT_TO_LIB
@@ -28,7 +28,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
             before calling func.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:
@@ -60,14 +60,14 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
             before calling the wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:
         dataset_name = args[0]
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
-                f"Dataset {dataset_name} does not exists. "
+                f"Dataset {dataset_name} does not exist. "
                 + "Please, verify the client object initialisation.",
             )
         return func(self, *args, **kwargs)
@@ -96,7 +96,7 @@ def user_must_have_access_to_dataset(
             to the dataset before calling the wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:

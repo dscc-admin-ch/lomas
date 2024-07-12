@@ -324,7 +324,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/dummy_diffprivlib_query", json=example_dummy_diffprivlib
+                "/dummy_diffprivlib_query",
+                json=example_dummy_diffprivlib,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -332,15 +334,45 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert response_dict["query_response"]["score"] > 0
             assert response_dict["query_response"]["model"]
 
+            # Expect to fail: user does have access to dataset
+            body = dict(example_dummy_diffprivlib)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/dummy_diffprivlib_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }
+
     def test_diffprivlib_cost(self) -> None:
         """test_diffprivlib_cost"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/estimate_diffprivlib_cost", json=example_diffprivlib
+                "/estimate_diffprivlib_cost",
+                json=example_diffprivlib,
+                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["epsilon_cost"] == 1.5
             assert response_dict["delta_cost"] == 0
+
+            # Expect to fail: user does have access to dataset
+            body = dict(example_diffprivlib)
+            body["dataset_name"] = "IRIS"
+            response = client.post(
+                "/estimate_diffprivlib_cost",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.json() == {
+                "UnauthorizedAccessException": ""
+                + f"{self.user_name} does not have access to IRIS."
+            }

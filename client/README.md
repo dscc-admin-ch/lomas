@@ -1,3 +1,10 @@
+[![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
+[![PyPi status](https://img.shields.io/pypi/status/lomas_client.svg)](https://pypi.org/project/lomas_client/)
+
+<h1 align="center">
+<img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
+</h1><br>
+
 # Lomas Client
 
 The `lomas_client` library is a client to interact with the Lomas server.

@@ -11,6 +11,7 @@ from admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
+from utils.error_handler import InvalidQueryException
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -134,6 +135,11 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the user has access, False otherwise.
         """
+        if not self.does_dataset_exist(dataset_name):
+            raise InvalidQueryException(
+                f"Dataset {dataset_name} does not exist. "
+                + "Please, verify the client object initialisation.",
+            )
         doc_count = self.db.users.count_documents(
             {
                 "user_name": f"{user_name}",

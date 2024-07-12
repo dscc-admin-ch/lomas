@@ -1,6 +1,9 @@
 server/lomas_server/tests/test_data/local_db_file_*
 server/lomas_server/.streamlit/*
+server/venv/*
 client/notebooks/personal_notebooks/*
+client/configs/lab/*
+client/venv/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

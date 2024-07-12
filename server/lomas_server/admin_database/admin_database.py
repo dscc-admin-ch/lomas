@@ -1,12 +1,11 @@
 import argparse
-import functools
 import time
 from abc import ABC, abstractmethod
+from functools import wraps
 from typing import Callable, Dict, List
 
-from constants import DPLibraries
+from constants import MODEL_INPUT_TO_LIB
 from utils.error_handler import (
-    InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
 )
@@ -29,7 +28,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
             before calling func.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:
@@ -61,14 +60,14 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
             before calling the wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:
         dataset_name = args[0]
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
-                f"Dataset {dataset_name} does not exists. "
+                f"Dataset {dataset_name} does not exist. "
                 + "Please, verify the client object initialisation.",
             )
         return func(self, *args, **kwargs)
@@ -97,7 +96,7 @@ def user_must_have_access_to_dataset(
             to the dataset before calling the wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper_decorator(
         self, *args: argparse.Namespace, **kwargs: Dict[str, str]
     ) -> None:
@@ -442,22 +441,16 @@ class AdminDatabase(ABC):
         Returns:
             dict: The query archive dictionary.
         """
+        model_input = query_json.__class__.__name__
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
+            "dp_librairy": MODEL_INPUT_TO_LIB[model_input],
             "client_input": query_json.model_dump(),
             "response": response,
             "timestamp": time.time(),
         }
-        match query_json.__class__.__name__:
-            case "SNSQLInp":
-                to_archive["dp_librairy"] = DPLibraries.SMARTNOISE_SQL
-            case "OpenDPInp":
-                to_archive["dp_librairy"] = DPLibraries.OPENDP
-            case _:
-                raise InternalServerException(
-                    f"Unknown query input: {query_json.__class__.__name__}"
-                )
+
         return to_archive
 
     @abstractmethod

@@ -327,7 +327,14 @@ class Client:
         and return a trained Pipeline.
 
         Args:
-            pipeline (sklearn.pipeline): the DiffPrivLib pipeline
+            pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
+                - The pipeline MUST start with a `models.StandardScaler`.
+                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
+                  is treated as an error in lomas server.
+                - `random_state` fields can only be int (`RandomState` will not work).
+                - `accountant` fields must be None.
+                Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
+                to ensure that the pipeline does what is intended.
             feature_columns (list[str]): the list of feature column to train
             target_columns (list[str], optional): the list of target column to predict \
                 May be None for certain models.
@@ -390,7 +397,14 @@ class Client:
         """This function estimates the cost of executing a DiffPrivLib query.
 
         Args:
-            pipeline (sklearn.pipeline): the DiffPrivLib pipeline
+            pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
+                - The pipeline MUST start with a `models.StandardScaler`.
+                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
+                  is treated as an error in lomas server.
+                - `random_state` fields can only be int (`RandomState` will not work).
+                - `accountant` fields must be None.
+                Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
+                to ensure that the pipeline does what is intended.
             feature_columns (list[str]): the list of feature column to train
             target_columns (list[str], optional): the list of target column to predict \
                 May be None for certain models.

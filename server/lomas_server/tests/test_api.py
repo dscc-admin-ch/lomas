@@ -39,6 +39,7 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
+from utils.loggr import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -837,6 +838,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_2 = client.post(
                 "/get_previous_queries", json=example_get_admin_db_data
             )
+            LOG.error(response_2)
+            response_dict = json.loads(response.content.decode("utf8"))
+            LOG.error(response_dict)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))

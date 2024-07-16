@@ -67,7 +67,7 @@ Users
   - ``-u, --user``: Username of the user (required).
   - ``-v, --value``: Value to set for "may query" (choices: "False" or "True") (required).
 
-- ``show_user``: Show all information about a user in the users collection.
+- ``get_user``: Show all information about a user in the users collection.
 
   - ``-u, --user``: Username of the user to be shown (required).
 
@@ -77,7 +77,7 @@ Users
   - ``-c, --clean``: Clean the existing users collection (optional, default: False).
   - ``-o, --overwrite``: Overwrite the existing users collection (optional, default: False).
 
-- ``show_archives``: Show all previous queries from a user.
+- ``get_archives``: Show all previous queries from a user.
 
   - ``-u, --user``: Username of the user to show archives (required).
 
@@ -118,11 +118,11 @@ Datasets
 
   - ``-d, --dataset``: Name of the dataset to be deleted (required).
 
-- ``show_dataset``: Show a dataset from the dataset collection.
+- ``get_dataset``: Show a dataset from the dataset collection.
 
   - ``-d, --dataset``: Name of the dataset to show (required).
 
-- ``show_metadata``: Show metadata from the metadata collection.
+- ``get_metadata``: Show metadata from the metadata collection.
 
   - ``-d, --dataset``: Name of the dataset of the metadata to show (required).
 
@@ -134,7 +134,7 @@ Collections
 
   - ``-c, --collection``: Name of the collection to be deleted. Choices: "users", "datasets", "metadata", "queries_archives" (required).
 
-- ``show_collection``: Print a collection.
+- ``get_collection``: Print a collection.
 
   - ``-c, --collection``: Name of the collection to be shown. Choices: "users", "datasets", "metadata", "queries_archives" (required).
 
@@ -164,13 +164,13 @@ Examples
    python mongodb_admin_cli.py set_may_query -u username -v True
 
    # Show user metadata
-   python mongodb_admin_cli.py show_user -u username
+   python mongodb_admin_cli.py get_user -u username
 
    # Create users collection from a YAML file
    python mongodb_admin_cli.py add_users_via_yaml -yf users.yaml -c
 
    # Show all previous queries from user "username"
-   python mongodb_admin_cli.py show_archives -u username
+   python mongodb_admin_cli.py get_archives -u username
 
    # Get the list of all users
    python mongodb_admin_cli.py get_users
@@ -188,16 +188,16 @@ Examples
    python mongodb_admin_cli.py del_dataset -d dataset_name
 
    # Show dataset "dataset_name"
-   python mongodb_admin_cli.py show_dataset -d dataset_name
+   python mongodb_admin_cli.py get_dataset -d dataset_name
 
    # Show metadata for dataset "dataset_name"
-   python mongodb_admin_cli.py show_metadata -d dataset_name
+   python mongodb_admin_cli.py get_metadata -d dataset_name
 
    # Drop a collection
    python mongodb_admin_cli.py drop_collection -c users
 
    # Show a collection
-   python mongodb_admin_cli.py show_collection -c datasets
+   python mongodb_admin_cli.py get_collection -c datasets
 
 .. toctree::
    :maxdepth: 2

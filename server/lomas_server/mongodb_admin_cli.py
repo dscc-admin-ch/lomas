@@ -20,11 +20,11 @@ from mongodb_admin import (
     get_list_of_users,
     set_budget_field,
     set_may_query,
-    show_archives_of_user,
-    show_collection,
-    show_dataset,
-    show_metadata_of_dataset,
-    show_user,
+    get_archives_of_user,
+    get_collection,
+    get_dataset,
+    get_metadata_of_dataset,
+    get_user,
 )
 
 if __name__ == "__main__":
@@ -153,13 +153,13 @@ if __name__ == "__main__":
     set_may_query_parser.set_defaults(func=set_may_query)
 
     # Show the user
-    show_user_parser = subparsers.add_parser(
-        "show_user",
+    get_user_parser = subparsers.add_parser(
+        "get_user",
         help="show all metadata of user",
         parents=[connection_parser],
     )
-    show_user_parser.add_argument("-u", "--user", required=True, type=str)
-    show_user_parser.set_defaults(func=show_user)
+    get_user_parser.add_argument("-u", "--user", required=True, type=str)
+    get_user_parser.set_defaults(func=get_user)
 
     # Create the parser for the "create_example_users" command
     users_collection_from_yaml_parser = subparsers.add_parser(
@@ -189,19 +189,19 @@ if __name__ == "__main__":
     users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
     # Function: Show Archives of User
-    show_archives_parser = subparsers.add_parser(
-        "show_archives_of_user",
+    get_archives_parser = subparsers.add_parser(
+        "get_archives_of_user",
         help="show all previous queries from a user",
         parents=[connection_parser],
     )
-    show_archives_parser.add_argument(
+    get_archives_parser.add_argument(
         "-u",
         "--user",
         required=True,
         type=str,
         help="username of the user to show archives",
     )
-    show_archives_parser.set_defaults(func=show_archives_of_user)
+    get_archives_parser.set_defaults(func=get_archives_of_user)
 
     # Function: Get List of Users
     get_users_parser = subparsers.add_parser(
@@ -318,34 +318,34 @@ if __name__ == "__main__":
     del_dataset_parser.set_defaults(func=del_dataset)
 
     # Function: Show Dataset
-    show_dataset_parser = subparsers.add_parser(
-        "show_dataset",
+    get_dataset_parser = subparsers.add_parser(
+        "get_dataset",
         help="show a dataset from the dataset collection",
         parents=[connection_parser],
     )
-    show_dataset_parser.add_argument(
+    get_dataset_parser.add_argument(
         "-d",
         "--dataset",
         required=True,
         type=str,
         help="name of the dataset to show",
     )
-    show_dataset_parser.set_defaults(func=show_dataset)
+    get_dataset_parser.set_defaults(func=get_dataset)
 
     # Function: Show Metadata of Dataset
-    show_metadata_parser = subparsers.add_parser(
-        "show_metadata_of_dataset",
+    get_metadata_parser = subparsers.add_parser(
+        "get_metadata_of_dataset",
         help="show metadata from the metadata collection",
         parents=[connection_parser],
     )
-    show_metadata_parser.add_argument(
+    get_metadata_parser.add_argument(
         "-d",
         "--dataset",
         required=True,
         type=str,
         help="name of the dataset of the metadata to show",
     )
-    show_metadata_parser.set_defaults(func=show_metadata_of_dataset)
+    get_metadata_parser.set_defaults(func=get_metadata_of_dataset)
 
     # Function: Get List of Datasets
     get_datasets_parser = subparsers.add_parser(
@@ -370,19 +370,19 @@ if __name__ == "__main__":
     )
     drop_collection_parser.set_defaults(func=drop_collection)
 
-    # Create the parser for the "show_users_collection" command
-    show_collection_parser = subparsers.add_parser(
-        "show_collection",
+    # Create the parser for the "get_users_collection" command
+    get_collection_parser = subparsers.add_parser(
+        "get_collection",
         help="print a collection",
         parents=[connection_parser],
     )
-    show_collection_parser.add_argument(
+    get_collection_parser.add_argument(
         "-c",
         "--collection",
         required=True,
         choices=["users", "datasets", "metadata", "queries_archives"],
     )
-    show_collection_parser.set_defaults(func=show_collection)
+    get_collection_parser.set_defaults(func=get_collection)
 
     args = parser.parse_args()
 
@@ -409,11 +409,11 @@ if __name__ == "__main__":
         "set_may_query": lambda args: set_may_query(
             mongo_db, args.user, args.value
         ),
-        "show_user": lambda args: show_user(mongo_db, args.user),
+        "get_user": lambda args: get_user(mongo_db, args.user),
         "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.yaml_file, args.clean, args.overwrite
         ),
-        "show_archives_of_user": lambda args: show_archives_of_user(
+        "get_archives_of_user": lambda args: get_archives_of_user(
             mongo_db, args.user
         ),
         "get_list_of_users": lambda args: get_list_of_users(mongo_db),
@@ -446,15 +446,15 @@ if __name__ == "__main__":
             args.overwrite_metadata,
         ),
         "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
-        "show_dataset": lambda args: show_dataset(mongo_db, args.dataset),
-        "show_metadata_of_dataset": lambda args: show_metadata_of_dataset(
+        "get_dataset": lambda args: get_dataset(mongo_db, args.dataset),
+        "get_metadata_of_dataset": lambda args: get_metadata_of_dataset(
             mongo_db, args.dataset
         ),
         "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
         "drop_collection": lambda args: drop_collection(
             mongo_db, args.collection
         ),
-        "show_collection": lambda args: show_collection(
+        "get_collection": lambda args: get_collection(
             mongo_db, args.collection
         ),
     }

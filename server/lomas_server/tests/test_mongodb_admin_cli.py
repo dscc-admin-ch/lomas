@@ -615,9 +615,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "./tests/test_data/metadata/penguin_metadata.yaml",
             ],
         )
-        self.run_cli_command(
-            "get_metadata_of_dataset", ["--dataset", dataset]
-        )
+        self.run_cli_command("get_metadata_of_dataset", ["--dataset", dataset])
 
     def test_get_list_of_datasets_cli(self) -> None:
         """Test get list of datasets via CLI

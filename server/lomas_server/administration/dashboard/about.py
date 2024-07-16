@@ -2,7 +2,7 @@ import os
 import sys
 
 import streamlit as st
-from st_pages import Page, get_pages
+from st_pages import Page, show_pages
 
 if __name__ == "__main__":
     # We add the src directory to the python search path
@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     st.set_page_config(page_title="Lomas Dashboard")
     FOLDER = "./administration/dashboard"  # TODO move
-    get_pages(
+    show_pages(
         [
             Page(f"{FOLDER}/about.py", "Home Page", "🏠"),
             Page(

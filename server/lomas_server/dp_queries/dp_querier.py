@@ -46,6 +46,5 @@ class DPQuerier(ABC):
             query_json (BaseModel): The JSON request object for the query.
 
         Returns:
-            TODO check this.
             str: The JSON encoded string representation of the query result.
         """

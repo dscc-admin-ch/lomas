@@ -1,5 +1,4 @@
 import datetime
-import random
 
 import numpy as np
 import pandas as pd
@@ -50,9 +49,7 @@ def make_dummy_dataset(
                     cardinality = data["cardinality"]
                     if "categories" in data.keys():
                         categories = data["categories"]
-                        serie = pd.Series(
-                            rng.choice(categories, size=nb_rows)
-                        )
+                        serie = pd.Series(rng.choice(categories, size=nb_rows))
                     else:
                         serie = pd.Series(
                             rng.choice(
@@ -60,9 +57,7 @@ def make_dummy_dataset(
                             )
                         )
                 else:
-                    serie = pd.Series(
-                        rng.choice(RANDOM_STRINGS, size=nb_rows)
-                    )
+                    serie = pd.Series(rng.choice(RANDOM_STRINGS, size=nb_rows))
             case "boolean":
                 # type boolean instead of bool will allow null values
                 serie = pd.Series(
@@ -84,18 +79,24 @@ def make_dummy_dataset(
 
                 if "cardinality" in data.keys():
                     categories = np.array(data["categories"], dtype=dtype)
-                    serie = pd.Series(
-                        rng.choice(categories, size=nb_rows)
-                    )
+                    serie = pd.Series(rng.choice(categories, size=nb_rows))
                 else:
                     if data["type"] == "int":
                         # pd.Series to ensure consistency between different types
                         serie = pd.Series(
-                            rng.integers(column_min, high=column_max, endpoint=True, size=nb_rows, dtype=dtype)
+                            rng.integers(
+                                column_min,
+                                high=column_max,
+                                endpoint=True,
+                                size=nb_rows,
+                                dtype=dtype,
+                            )
                         )
                     else:
                         serie = pd.Series(
-                            column_min + (column_max - column_min) * rng.random(size=nb_rows, dtype=dtype)
+                            column_min
+                            + (column_max - column_min)
+                            * rng.random(size=nb_rows, dtype=dtype)
                         )
             case "datetime":
                 # From start date and random on a range above
@@ -106,7 +107,9 @@ def make_dummy_dataset(
                     [
                         start
                         + datetime.timedelta(
-                            seconds=rng.integer(RANDOM_DATE_RANGE, endpoint=True)
+                            seconds=rng.integers(
+                                RANDOM_DATE_RANGE, endpoint=True
+                            ).astype(float)
                         )
                         for _ in range(nb_rows)
                     ]

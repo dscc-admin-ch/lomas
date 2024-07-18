@@ -32,17 +32,13 @@ class PrivateDataset(ABC):
             pd.DataFrame: The pandas dataframe for this dataset.
         """
 
-    def get_polars_lf(self, ) -> pl.LazyFrame:
-        """TODO: Very inefficient way of doing things. Options are:
-            1. always return a lazyframe (scan_csv, not possible with s3)
-            2. as is implemented now
-            3. cache a dataframe and return a .lazy() version, a bit more efficient
-               in speed than 1. but potentially uses double the memory if mixed with
-               pandas df.
-            4. ??
+    def get_polars_lf(
+        self,
+    ) -> pl.LazyFrame:
+        """Get the data in polars lazyframe format.
 
         Returns:
-            pl.LazyFrame: _description_
+            pl.LazyFrame: The polars lazyframe for this dataset.
         """
         return pl.from_pandas(self.get_pandas_df()).lazy()
 
@@ -94,5 +90,5 @@ def _get_dtypes(metadata: dict) -> dict:
             dtypes[col_name] = f"{data['type']}{data['precision']}"
         else:
             dtypes[col_name] = data["type"]
-    
+
     return dtypes

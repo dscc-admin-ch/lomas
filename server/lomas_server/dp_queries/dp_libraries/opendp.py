@@ -1,11 +1,11 @@
+import io
 from typing import List, Union
 
-import io
 import opendp as dp
+import polars as pl
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
-import polars as pl
 
 from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
@@ -41,27 +41,27 @@ def get_lf_domain(metadata):
         else:
             series_type = series_info["type"]
 
-        # TODO should this be a constant?
+        # TODO should this be a constant? leave here
         opendp_type_mapping = {
-                    "int32": dp.typing.i32,
-                    "float32": dp.typing.f32,
-                    "int64": dp.typing.i64,
-                    "float64": dp.typing.f64,
-                    "string": dp.typing.String,
-                    "boolean": bool
+            "int32": dp.typing.i32,
+            "float32": dp.typing.f32,
+            "int64": dp.typing.i64,
+            "float64": dp.typing.f64,
+            "string": dp.typing.String,
+            "boolean": bool,
         }
 
-        if series_type not in opendp_type_mapping.keys():
+        if series_type not in opendp_type_mapping:
             # For valid metadata, only datetime would fail here
             raise InvalidQueryException(
                 f"Column type {series_type} not supported by OpenDP. "
                 f"Type must be in {opendp_type_mapping.keys()}"
             )
-        
+
         series_type = opendp_type_mapping[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = True if "nullable" in series_info else False
+        series_nullable = "nullable" in series_info
 
         series_bounds = None
         if "lower" in series_info and "upper" in series_info:
@@ -78,7 +78,7 @@ def get_lf_domain(metadata):
     lf_domain = dp.domains.lazyframe_domain(series_domains)
 
     # Margins
-    # TODO Check lengths vs. keys for public info
+    # TODO Check lengths vs. keys for public info -> not in doc anymore.
     if "rows" in metadata:
         lf_domain = dp.domains.with_margin(
             lf_domain,
@@ -89,7 +89,7 @@ def get_lf_domain(metadata):
         )
 
     for name, series_info in metadata["columns"].items():
-        # TODO what about other info (max_partition_length, etc..)
+        # TODO add max_partition_contributions, max_influenced_partitions
         if "max_num_partitions" in series_info:
             lf_domain = dp.domains.with_margin(
                 lf_domain,
@@ -158,7 +158,7 @@ class OpenDPQuerier(DPQuerier):
                         "delta must be set for smooth max divergence"
                         + " and zero concentrated divergence."
                     )
-                epsilon = cost.epsilon(fixed_delta=query_json.delta)
+                epsilon = cost.epsilon(delta=query_json.delta)
                 delta = query_json.delta
             case _:
                 raise InternalServerException(
@@ -187,7 +187,7 @@ class OpenDPQuerier(DPQuerier):
         if query_json.pipeline_type == "legacy":
             input_data = self.private_dataset.get_pandas_df().to_csv(
                 header=False, index=False
-            )  # TODO very inefficient, why not get_csv directly?
+            )
         elif query_json.pipeline_type == "polars":
             input_data = self.private_dataset.get_polars_lf()
         else:  # TODO validate input in json model instead of with if-else statements
@@ -281,9 +281,11 @@ def reconstruct_measurement_pipeline(
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json))
         output_measure = {
             "Laplace": dp.measures.max_divergence(
-                T=float
-            ), # TODO Can T be other than float?
-            "Gaussian": dp.measures.zero_concentrated_divergence(T=float),
+                T=query_json.output_measure_type_arg,
+            ),
+            "Gaussian": dp.measures.zero_concentrated_divergence(
+                T=query_json.output_measure_type_arg
+            ),
         }[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata)

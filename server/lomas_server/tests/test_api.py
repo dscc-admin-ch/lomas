@@ -556,6 +556,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": transformation_pipeline.to_json(),
+                    "pipeline_type": "legacy",
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -573,6 +574,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": md_pipeline.to_json(),
+                    "pipeline_type": "legacy",
                 },
             )
             assert response.status_code == status.HTTP_200_OK
@@ -590,17 +592,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
+                "pipeline_type": "legacy",
             }
-            # Should error because missing fixed_delta
+            # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
+                + "delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
             }
-            # Should work because fixed_delta is set
-            json_obj["fixed_delta"] = 1e-6
+            # Should work because delta is set
+            json_obj["delta"] = 1e-6
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
 
@@ -615,18 +618,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
+                "pipeline_type": "legacy",
             }
-            # Should error because missing fixed_delta
+            # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
+                + "delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
             }
 
-            # Should work because fixed_delta is set
-            json_obj["fixed_delta"] = 1e-6
+            # Should work because delta is set
+            json_obj["delta"] = 1e-6
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
@@ -640,15 +644,14 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
                 >> dp_p.t.make_select_column(key="island", TOA=str)
                 >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
-                >> dp_p.m.then_base_laplace_threshold(
-                    scale=2.0, threshold=28.0
-                )
+                >> dp_p.m.then_laplace_threshold(scale=2.0, threshold=28.0)
             )
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": fms_pipeline.to_json(),
+                "pipeline_type": "legacy",
             }
-            # Should error because missing fixed_delta
+            # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
@@ -846,7 +849,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert len(response_dict_2["previous_queries"]) == 1
             assert (
-                response_dict_2["previous_queries"][0]["dp_librairy"]
+                response_dict_2["previous_queries"][0]["dp_library"]
                 == DPLibraries.SMARTNOISE_SQL
             )
             assert (
@@ -877,7 +880,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 == response_dict_2["previous_queries"][0]
             )
             assert (
-                response_dict_3["previous_queries"][1]["dp_librairy"]
+                response_dict_3["previous_queries"][1]["dp_library"]
                 == DPLibraries.OPENDP
             )
             assert (

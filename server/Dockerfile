@@ -3,7 +3,9 @@ FROM python:3.11 as lomas_server_base
 
 # To install missing packages
 COPY ./requirements.txt /requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt 
+RUN pip install --no-cache-dir --upgrade -r /requirements.txt
+# Need to do that manually because of version conflicts.
+RUN pip install opendp==0.10.0a20240722001
 
 WORKDIR /code
 

@@ -332,7 +332,7 @@ class Client:
             body_json["opendp_json"] = opendp_pipeline.to_json()
             body_json["pipeline_type"] = "legacy"
         elif isinstance(opendp_pipeline, pl.LazyFrame):
-            body_json["opendp_json"] = opendp_pipeline.serialize()
+            body_json["opendp_json"] = opendp_pipeline.serialize(format="json")
             body_json["pipeline_type"] = "polars"
         else:
             raise TypeError(

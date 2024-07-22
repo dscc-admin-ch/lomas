@@ -25,6 +25,7 @@ from utils.input_models import (
     OpenDPModel,
     SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
+    SmartnoiseSQLModelCost,
     SmartnoiseSynthModel,
 )
 from utils.utils import server_live
@@ -235,6 +236,7 @@ def smartnoise_synth_handler(
     return handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
+
 
 
 @router.post(

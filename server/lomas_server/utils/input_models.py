@@ -63,7 +63,7 @@ class SNSQLInpCost(BaseModel):
     mechanisms: dict
 
 
-class SNSynthInp(BaseModel):
+class SmartnoiseSynthModel(BaseModel):
     """Model input for a smarnoise-synth query"""
 
     dataset_name: str

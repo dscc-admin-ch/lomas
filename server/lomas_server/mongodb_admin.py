@@ -380,7 +380,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
 
 @check_user_exists(True)
-def show_user(db: Database, user: str) -> dict:
+def get_user(db: Database, user: str) -> dict:
     """Show a user
 
     Args:
@@ -467,7 +467,7 @@ def add_users_via_yaml(
 
 
 @check_user_exists(True)
-def show_archives_of_user(db: Database, user: str) -> List[dict]:
+def get_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user
 
     Args:
@@ -775,7 +775,7 @@ def del_dataset(db: Database, dataset: str) -> None:
 
 
 @check_dataset_and_metadata_exist(True)
-def show_dataset(db: Database, dataset: str) -> dict:
+def get_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
     Args:
@@ -792,7 +792,7 @@ def show_dataset(db: Database, dataset: str) -> dict:
 
 
 @check_dataset_and_metadata_exist(True)
-def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
+def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 
     Args:
@@ -843,7 +843,7 @@ def drop_collection(db: Database, collection: str) -> None:
     LOG.info(f"Deleted collection {collection}.")
 
 
-def show_collection(db: Database, collection: str) -> list:
+def get_collection(db: Database, collection: str) -> list:
     """Show a collection
 
     Args:

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels
-=======
-from constants import DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
->>>>>>> develop
+from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels, DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
 
 # Dummy queries
 DUMMY_EPSILON = 100.0

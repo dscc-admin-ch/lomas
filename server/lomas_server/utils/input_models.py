@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, Field, validator
 
 from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels
-
 from utils.error_handler import InvalidQueryException
 
 
@@ -76,6 +75,7 @@ class SmartnoiseSynthModel(BaseModel):
 
     @validator("model")
     def valid_model(cls, model):
+        """Validate input model"""
         supported_models = [model.value for model in SmartnoiseSynthModels]
         if model not in supported_models:
             raise InvalidQueryException(
@@ -85,6 +85,7 @@ class SmartnoiseSynthModel(BaseModel):
 
     @validator("delta")
     def valid_delta(cls, delta, values):
+        """Validate input delta"""
         if values["model"] != SmartnoiseSynthModels.MWEM and (
             not delta > 0 or delta > DELTA_LIMIT
         ):

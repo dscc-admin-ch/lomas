@@ -1,4 +1,8 @@
-from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels, DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
+from constants import (
+    DIFFPRIVLIB_PIPELINE,
+    OPENDP_PIPELINE,
+    SmartnoiseSynthModels,
+)
 
 # Dummy queries
 DUMMY_EPSILON = 100.0
@@ -67,8 +71,8 @@ example_smartnoise_sql_cost = {
 example_smartnoise_synth = {
     "dataset_name": PENGUIN_DATASET,
     "model": SmartnoiseSynthModels.MWEM,
-    "epsilon": SMARTNOISE_QUERY_EPSILON,
-    "delta": SMARTNOISE_QUERY_DELTA,
+    "epsilon": QUERY_EPSILON,
+    "delta": QUERY_DELTA,
 }
 
 example_opendp = {

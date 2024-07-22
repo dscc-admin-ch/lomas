@@ -17,7 +17,7 @@ from utils.example_inputs import (
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
-    example_smartnoise_synth
+    example_smartnoise_synth,
 )
 from utils.input_models import (
     DiffPrivLibModel,
@@ -27,7 +27,7 @@ from utils.input_models import (
     OpenDPModel,
     SmartnoiseSQLModel,
     SmartnoiseSQLModelCost,
-    SmartnoiseSynthModel
+    SmartnoiseSynthModel,
 )
 from utils.utils import server_live
 
@@ -182,7 +182,7 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
-def estimate_smartnoise_cost(
+def estimate_smartnoise_sql_cost(
     request: Request,
     query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
@@ -297,6 +297,7 @@ def smartnoise_synth_handler(
         raise InternalServerException(e) from e
 
     return response
+
 
 @router.post(
     "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]

@@ -36,6 +36,7 @@ def make_dummy_dataset(
     Returns:
         pd.DataFrame: dummy dataframe based on metadata
     """
+    # pylint: disable=too-many-locals
     # Creating new random generator with fixed seed
     rng = np.random.default_rng(seed)
 
@@ -89,14 +90,14 @@ def make_dummy_dataset(
                                 high=column_max,
                                 endpoint=True,
                                 size=nb_rows,
-                                dtype=dtype,
+                                dtype=np.dtype(dtype),
                             )
                         )
                     else:
                         serie = pd.Series(
                             column_min
                             + (column_max - column_min)
-                            * rng.random(size=nb_rows, dtype=dtype)
+                            * rng.random(size=nb_rows, dtype=np.dtype(dtype))
                         )
             case "datetime":
                 # From start date and random on a range above

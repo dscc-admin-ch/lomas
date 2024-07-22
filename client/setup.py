@@ -23,16 +23,12 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
-<<<<<<< HEAD
         "Natural Language :: English",
         "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
-=======
-        "Programming Language :: Python :: 3.11",
->>>>>>> 845c2cc (backup)
     ],
     keywords=[
         "differential privacy",

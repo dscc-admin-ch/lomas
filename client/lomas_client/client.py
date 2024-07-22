@@ -2,7 +2,7 @@ import base64
 import json
 from enum import StrEnum
 from io import StringIO
-from typing import Dict, List, Optional, OrderedDict, Union
+from typing import Dict, List, Optional, OrderedDict, Union, cast
 
 import opendp as dp
 import pandas as pd
@@ -66,16 +66,31 @@ class Client:
         self.headers["user-name"] = user_name
         self.dataset_name = dataset_name
 
-    def get_df_dtypes(self) -> Dict[str, type]:
+    def get_df_dtypes(self) -> Dict[str, str]:
         """
         Returns the pandas dictionary for the dataframe types of the dataset.
+
+        Raises:
+            ValueError: If metadata does not have the correct format or\
+                cannot be fetched.
 
         Returns:
             Dict[str, type]: The dtypes dictionary
         """
         metadata = self.get_dataset_metadata()
+        if metadata is None:
+            raise ValueError(
+                f"Could not get metadata for dataset {self.dataset_name}."
+            )
         dtypes = {}
-        for col_name, data in metadata["columns"].items():
+
+        # Note if metadata was a pydantic model, this would be cleaner.
+        if not isinstance(metadata["columns"], dict):
+            raise ValueError("Metadata not in correct format.")
+
+        for col_name, data in cast(
+            Dict[str, Dict[str, str]], metadata["columns"]
+        ).items():
             if data["type"] in ["int", "float"]:
                 dtypes[col_name] = f"{data['type']}{data['precision']}"
             else:
@@ -85,6 +100,7 @@ class Client:
 
     def get_dataset_metadata(
         self,
+        # Note: Replace this with pydantic model? It should be extended be correct.
     ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
         """This function retrieves metadata for the dataset.
 
@@ -104,8 +120,8 @@ class Client:
 
             print(error_message(res))
             return None
-        else:
-            return self.metadata
+
+        return self.metadata
 
     def get_dummy_dataset(
         self,
@@ -289,15 +305,16 @@ class Client:
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
-                (`See Smartnoise-SQL postprocessing documentation.
-                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
-                In that case a delta must be provided by the user.
+                (`See Smartnoise-SQL postprocessing documentation.\
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
+                In that case a delta must be provided by the user.\
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "Laplace" or "Gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the output measure.
-                Usually "float64" for continuous noise or "int32" for discrete noise.
-        
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
+
         Raises:
             Exception: If the opendp_pipeline type is not supported.
 
@@ -318,7 +335,7 @@ class Client:
             body_json["opendp_json"] = opendp_pipeline.serialize()
             body_json["pipeline_type"] = "polars"
         else:
-            raise Exception(
+            raise TypeError(
                 f"Opendp_pipeline must either of type Measurement"
                 f" or LazyFrame, found {type(opendp_pipeline)}"
             )
@@ -350,8 +367,9 @@ class Client:
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "Laplace" or "Gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the output measure.
-                Usually "float64" for continuous noise or "int32" for discrete noise.
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -409,8 +427,9 @@ class Client:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "Laplace" or "Gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the output measure.
-                Usually "float64" for continuous noise or "int32" for discrete noise.
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -454,7 +473,7 @@ class Client:
         schema = OrderedDict()
         for name, series_info in metadata["columns"].items():
             if "type" not in series_info:
-                raise Exception("Missing type info in metadata")
+                raise KeyError("Missing type info in metadata")
             try:
                 if series_info["type"] in ["float", "int"]:
                     dtype = f"{series_info['type']}{series_info['precision']}"
@@ -469,10 +488,10 @@ class Client:
                     "string": pl.datatypes.String,
                     "boolean": pl.datatypes.Boolean,
                 }[dtype]
-            except Exception as _:
-                raise Exception(
+            except Exception as e:
+                raise ValueError(
                     f"Type {series_info['type']} not supported by OpenDP."
-                )
+                ) from e
 
             schema[name] = series_type
 

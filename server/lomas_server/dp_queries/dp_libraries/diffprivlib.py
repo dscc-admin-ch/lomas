@@ -53,6 +53,8 @@ class DiffPrivLibQuerier(DPQuerier):
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
         try:
+            if y_train is not None:
+                y_train = y_train.values.ravel()
             fitted_dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(

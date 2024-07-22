@@ -1,3 +1,5 @@
+from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels
+
 # Dummy queries
 DUMMY_EPSILON = 100.0
 DUMMY_DELTA = 0.99
@@ -48,6 +50,14 @@ example_smartnoise_sql_cost = {
     "delta": SMARTNOISE_QUERY_DELTA,
     "mechanisms": {"count": "gaussian"},
 }
+
+example_smartnoise_synth = {
+    "dataset_name": PENGUIN_DATASET,
+    "model": SmartnoiseSynthModels.MWEM,
+    "epsilon": SMARTNOISE_QUERY_EPSILON,
+    "delta": SMARTNOISE_QUERY_DELTA,
+}
+
 
 MEASUREMENT_PIPELINE = (
     '{"version": "0.8.0", '

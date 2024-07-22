@@ -77,6 +77,7 @@ class DPLibraries(StrEnum):
     """Name of DP Library used in the query"""
 
     SMARTNOISE_SQL = "smartnoise_sql"
+    SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
 
@@ -84,6 +85,7 @@ class DPLibraries(StrEnum):
 # Query model input to DP librairy
 MODEL_INPUT_TO_LIB = {
     "SNSQLInp": DPLibraries.SMARTNOISE_SQL,
+    "SNSynthInp": DPLibraries.SMARTNOISE_SYNTH,
     "OpenDPInp": DPLibraries.OPENDP,
     "DiffPrivLibInp": DPLibraries.DIFFPRIVLIB,
 }
@@ -139,6 +141,24 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 # Smartnoise sql
 STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 MAX_NAN_ITERATION = 5
+
+
+# Smartnoise synth
+class SmartnoiseSynthModels(StrEnum):
+    """Models for smarntoise synth"""
+
+    MWEM = "MWEM"
+    DPCTGAN = "DPCTGAN"
+    MST = "MST"
+    PATECTGAN = "PATECTGAN"
+
+
+SYNTH_MAP = {
+    SmartnoiseSynthModels.MWEM: MWEM,
+    SmartnoiseSynthModels.DPCTGAN: DPCTGAN,
+    SmartnoiseSynthModels.MST: MST,
+    SmartnoiseSynthModels.PATECTGAN: PATECTGAN,
+}
 
 
 # Data preprocessing

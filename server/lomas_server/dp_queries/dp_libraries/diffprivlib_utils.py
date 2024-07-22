@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 from constants import NUMERICAL_DTYPES
 from utils.error_handler import InvalidQueryException
-from utils.input_models import DiffPrivLibInp
+from utils.input_models import DiffPrivLibModel
 
 
 def handle_missing_data(
@@ -74,12 +74,12 @@ def handle_missing_data(
 
 
 def split_train_test_data(
-    df: pd.DataFrame, query_json: DiffPrivLibInp
+    df: pd.DataFrame, query_json: DiffPrivLibModel
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split the data between train and test set
     Args:
         df (pd.DataFrame): dataframe with the data
-        query_json (DiffPrivLibInp): user input query indication
+        query_json (DiffPrivLibModel): user input query indication
             feature_columns (list[str]): columns from data to use as features
             target_columns (list[str]): columns from data to use as target (to predict)
             test_size (float): proportion of data in the test set

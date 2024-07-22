@@ -5,7 +5,7 @@ from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
-from utils.input_models import SNSQLInp, SNSQLInpCost
+from utils.input_models import SmartnoiseSQLModel, SmartnoiseSQLModelCost
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -30,7 +30,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         del metadata["columns"]
         self.snsql_metadata = {"": {"": {"df": metadata}}}
 
-    def cost(self, query_json: SNSQLInpCost) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSQLModelCost) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
@@ -63,7 +63,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_json: SNSQLInp, nb_iter: int = 0) -> dict:
+    def query(self, query_json: SmartnoiseSQLModel, nb_iter: int = 0) -> dict:
         """Perform the query and return the response.
 
         Args:

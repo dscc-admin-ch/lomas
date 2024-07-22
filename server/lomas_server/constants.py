@@ -83,9 +83,9 @@ class DPLibraries(StrEnum):
 
 # Query model input to DP librairy
 MODEL_INPUT_TO_LIB = {
-    "SNSQLInp": DPLibraries.SMARTNOISE_SQL,
-    "OpenDPInp": DPLibraries.OPENDP,
-    "DiffPrivLibInp": DPLibraries.DIFFPRIVLIB,
+    "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
+    "OpenDPModel": DPLibraries.OPENDP,
+    "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
 }
 
 
@@ -143,3 +143,102 @@ MAX_NAN_ITERATION = 5
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
+
+# Example pipeline inputs
+OPENDP_PIPELINE = (
+    '{"version": "0.8.0", '
+    '"ast": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "constructor", '
+    '"func": "make_chain_tt", '
+    '"module": "combinators", '
+    '"args": ['
+    "{"
+    '"_type": "constructor", '
+    '"func": "make_select_column", '
+    '"module": "transformations", '
+    '"kwargs": {"key": "bill_length_mm", "TOA": "String"}'
+    "}, {"
+    '"_type": "constructor", '
+    '"func": "make_split_dataframe", '
+    '"module": "transformations", '
+    '"kwargs": {"separator": ",", "col_names": {"_type": '
+    '"list", "_items": ["species", "island", '
+    '"bill_length_mm", "bill_depth_mm", "flipper_length_'
+    'mm", "body_mass_g", "sex"]}}'
+    "}]}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_cast_default", '
+    '"module": "transformations", '
+    '"kwargs": {"TOA": "f64"}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_clamp", '
+    '"module": "transformations", '
+    '"kwargs": {"bounds": [30.0, 65.0]}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_resize", '
+    '"module": "transformations", '
+    '"kwargs": {"size": 346, "constant": 43.61}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_variance", '
+    '"module": "transformations"'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_laplace", '
+    '"module": "measurements", '
+    '"kwargs": {"scale": 5.0}'
+    "}}}"
+)
+
+DIFFPRIVLIB_PIPELINE = (
+    '{"module": "diffprivlib", '
+    '"version": "0.6.4", '
+    '"pipeline": ['
+    "{"
+    '"type": "_dpl_type:StandardScaler", '
+    '"name": "scaler", '
+    '"params": {'
+    '"with_mean": true, '
+    '"with_std": true, '
+    '"copy": true, '
+    '"epsilon": 0.5, '
+    '"bounds": {'
+    '"_tuple": true, '
+    '"_items": [[30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0]]'
+    "}, "
+    '"random_state": null, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}, "
+    "{"
+    '"type": "_dpl_type:LogisticRegression", '
+    '"name": "classifier", '
+    '"params": {'
+    '"tol": 0.0001, '
+    '"C": 1.0, '
+    '"fit_intercept": true, '
+    '"random_state": null, '
+    '"max_iter": 100, '
+    '"verbose": 0, '
+    '"warm_start": false, '
+    '"n_jobs": null, '
+    '"epsilon": 1.0, '
+    '"data_norm": 83.69469642643347, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}"
+    "]"
+    "}"
+)

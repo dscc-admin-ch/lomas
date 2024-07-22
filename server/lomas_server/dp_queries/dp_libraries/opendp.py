@@ -13,7 +13,7 @@ from utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from utils.input_models import OpenDPInp
+from utils.input_models import OpenDPModel
 from utils.loggr import LOG
 
 
@@ -22,7 +22,7 @@ class OpenDPQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
 
-    def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
+    def cost(self, query_json: OpenDPModel) -> tuple[float, float]:
         """
         Estimate cost of query
 
@@ -82,7 +82,7 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPInp) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPModel) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:

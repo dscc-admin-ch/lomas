@@ -15,11 +15,11 @@ class GetDummyDataset(BaseModel):
     """Model input to get a dummy dataset"""
 
     dataset_name: str
-    dummy_nb_rows: int
+    dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
 
 
-class SNSQLInp(BaseModel):
+class SmartnoiseSQLModel(BaseModel):
     """Model input for a smarnoise-sql query"""
 
     query_str: str
@@ -38,30 +38,30 @@ class SNSQLInp(BaseModel):
     postprocess: bool
 
 
-class DummySNSQLInp(BaseModel):
+class DummySmartnoiseSQLModel(BaseModel):
     """Model input for a smarnoise-sql dummy query"""
 
     query_str: str
     dataset_name: str
-    dummy_nb_rows: int
+    dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
-    epsilon: float
-    delta: float
+    epsilon: float = Field(..., gt=0)
+    delta: float = Field(..., gt=0)
     mechanisms: dict
     postprocess: bool
 
 
-class SNSQLInpCost(BaseModel):
+class SmartnoiseSQLModelCost(BaseModel):
     """Model input for a smarnoise-sql cost query"""
 
     query_str: str
     dataset_name: str
-    epsilon: float
-    delta: float
+    epsilon: float = Field(..., gt=0)
+    delta: float = Field(..., gt=0)
     mechanisms: dict
 
 
-class OpenDPInp(BaseModel):
+class OpenDPModel(BaseModel):
     """Model input for an opendp query"""
 
     dataset_name: str
@@ -69,37 +69,37 @@ class OpenDPInp(BaseModel):
     fixed_delta: Optional[float] = None
 
 
-class DummyOpenDPInp(BaseModel):
+class DummyOpenDPModel(BaseModel):
     """Model input for a dummy opendp query"""
 
     dataset_name: str
     opendp_json: str
-    dummy_nb_rows: int
+    dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
     fixed_delta: Optional[float] = None
 
 
-class DiffPrivLibInp(BaseModel):
+class DiffPrivLibModel(BaseModel):
     """Model input for a diffprivlib query"""
 
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list
     target_columns: Optional[list]
-    test_size: float
+    test_size: float = Field(..., gt=0.0, lt=1.0)
     test_train_split_seed: int
     imputer_strategy: str
 
 
-class DummyDiffPrivLibInp(BaseModel):
+class DummyDiffPrivLibModel(BaseModel):
     """Model input for a dummy diffprivlib query"""
 
     dataset_name: str
     diffprivlib_json: str
     feature_columns: list
     target_columns: Optional[list]
-    test_size: float
+    test_size: float = Field(..., gt=0.0, lt=1.0)
     test_train_split_seed: int
     imputer_strategy: str
-    dummy_nb_rows: int
+    dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int

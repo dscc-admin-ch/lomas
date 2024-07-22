@@ -29,8 +29,8 @@ from utils.error_handler import InternalServerException
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
-    SMARTNOISE_QUERY_DELTA,
-    SMARTNOISE_QUERY_EPSILON,
+    QUERY_DELTA,
+    QUERY_EPSILON,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_get_admin_db_data,
@@ -319,8 +319,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["query_response"]["columns"] == ["NB_ROW"]
             assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
-            assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
+            assert response_dict["spent_epsilon"] == QUERY_EPSILON
+            assert response_dict["spent_delta"] >= QUERY_DELTA
 
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
@@ -328,7 +328,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
                     "dataset_name": PENGUIN_DATASET,
-                    "epsilon": SMARTNOISE_QUERY_EPSILON,
+                    "epsilon": QUERY_EPSILON,
                     "postprocess": True,
                 },
                 headers=self.headers,
@@ -439,10 +439,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 response_dict = json.loads(response.content.decode("utf8"))
                 assert response_dict["requested_by"] == self.user_name
                 assert response_dict["query_response"]["columns"] == ["NB_ROW"]
-                assert (
-                    response_dict["spent_epsilon"] == SMARTNOISE_QUERY_EPSILON
-                )
-                assert response_dict["spent_delta"] >= SMARTNOISE_QUERY_DELTA
+                assert response_dict["spent_epsilon"] == QUERY_EPSILON
+                assert response_dict["spent_delta"] >= QUERY_DELTA
 
     def test_dummy_smartnoise_query(self) -> None:
         """test_dummy_smartnoise_query"""
@@ -496,8 +494,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] == SMARTNOISE_QUERY_EPSILON
-            assert response_dict["delta_cost"] > SMARTNOISE_QUERY_DELTA
+            assert response_dict["epsilon_cost"] == QUERY_EPSILON
+            assert response_dict["delta_cost"] > QUERY_DELTA
 
             # Should fail: user does not have access to dataset
             body = dict(example_smartnoise_sql_cost)
@@ -769,13 +767,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert response_dict_2 != response_dict
-            assert (
-                response_dict_2["total_spent_epsilon"]
-                == SMARTNOISE_QUERY_EPSILON
-            )
-            assert (
-                response_dict_2["total_spent_delta"] >= SMARTNOISE_QUERY_DELTA
-            )
+            assert response_dict_2["total_spent_epsilon"] == QUERY_EPSILON
+            assert response_dict_2["total_spent_delta"] >= QUERY_DELTA
 
     def test_get_remaining_budget(self) -> None:
         """test_get_remaining_budget"""
@@ -807,11 +800,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_2 != response_dict
             assert (
                 response_dict_2["remaining_epsilon"]
-                == INITAL_EPSILON - SMARTNOISE_QUERY_EPSILON
+                == INITAL_EPSILON - QUERY_EPSILON
             )
             assert (
                 response_dict_2["remaining_delta"]
-                <= INITIAL_DELTA - SMARTNOISE_QUERY_DELTA
+                <= INITIAL_DELTA - QUERY_DELTA
             )
 
     def test_get_previous_queries(self) -> None:

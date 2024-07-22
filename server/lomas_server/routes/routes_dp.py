@@ -240,6 +240,65 @@ def smartnoise_synth_handler(
 
 
 @router.post(
+    "/smartnoise_synth_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def smartnoise_synth_handler(
+    request: Request,
+    query_json: SmartnoiseSynthModel = Body(example_smartnoise_synth),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - query: The SQL query to execute. NOTE: the table name is "df",
+              the query must end with "FROM df".
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+            - TODO
+
+            Defaults to Body(example_smartnoise_synth).
+
+        user_name (str, optional): The user name.
+            Defaults to Header(None).
+
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    app = request.app
+
+    try:
+        response = app.state.query_handler.handle_query(
+            DPLibraries.SMARTNOISE_SYNTH, query_json, user_name
+        )
+    except KNOWN_EXCEPTIONS as e:
+        raise e
+    except Exception as e:
+        raise InternalServerException(e) from e
+
+    return response
+
+@router.post(
     "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
 )
 def opendp_query_handler(

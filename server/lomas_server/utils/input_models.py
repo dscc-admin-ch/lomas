@@ -52,7 +52,7 @@ class DummySmartnoiseSQLModel(BaseModel):
     postprocess: bool
 
 
-class SmartnoiseSQLModelCost(BaseModel):
+class SmartnoiseSQLCostModel(BaseModel):
     """Model input for a smarnoise-sql cost query"""
 
     query_str: str
@@ -72,6 +72,9 @@ class SmartnoiseSynthModel(BaseModel):
     select_cols: List = []
     params: dict = {}
     mul_matrix: List = []
+    nullable: bool = True
+    condition: Optional[str] = None
+    nb_samples: Optional[int] = None
 
     @validator("model")
     def valid_model(cls, model):

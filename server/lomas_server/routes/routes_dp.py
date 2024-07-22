@@ -23,8 +23,8 @@ from utils.input_models import (
     DummyOpenDPModel,
     DummySmartnoiseSQLModel,
     OpenDPModel,
+    SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
-    SmartnoiseSQLModelCost,
     SmartnoiseSynthModel,
 )
 from utils.utils import server_live
@@ -150,7 +150,7 @@ def dummy_smartnoise_sql_handler(
 )
 def estimate_smartnoise_sql_cost(
     request: Request,
-    query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLCostModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -158,7 +158,7 @@ def estimate_smartnoise_sql_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SmartnoiseSQLModelCost, optional):
+        query_json (SmartnoiseSQLCostModel, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -211,8 +211,7 @@ def smartnoise_synth_handler(
 
             Defaults to Body(example_smartnoise_synth).
 
-        user_name (str, optional): The user name.
-            Defaults to Header(None).
+        user_name (str): The user name.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -233,18 +232,9 @@ def smartnoise_synth_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    app = request.app
-
-    try:
-        response = app.state.query_handler.handle_query(
-            DPLibraries.SMARTNOISE_SYNTH, query_json, user_name
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return response
+    return handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(

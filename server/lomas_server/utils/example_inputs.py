@@ -73,6 +73,9 @@ example_smartnoise_synth = {
     "model": SmartnoiseSynthModels.MWEM,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
+    "nullable": True,
+    "condition": None,
+    "nb_samples": None,
 }
 
 example_opendp = {

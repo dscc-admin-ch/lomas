@@ -159,7 +159,7 @@ SYNTH_MAP = {
     SmartnoiseSynthModels.MST: MST,
     SmartnoiseSynthModels.PATECTGAN: PATECTGAN,
 }
-
+DEFAULT_NB_SYNTHETIC_SAMPLES = 100
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]

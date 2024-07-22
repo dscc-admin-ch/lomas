@@ -15,16 +15,16 @@ from mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_archives_of_user,
+    get_collection,
+    get_dataset,
     get_list_of_datasets,
     get_list_of_datasets_from_user,
     get_list_of_users,
+    get_metadata_of_dataset,
+    get_user,
     set_budget_field,
     set_may_query,
-    show_archives_of_user,
-    show_collection,
-    show_dataset,
-    show_metadata_of_dataset,
-    show_user,
 )
 
 EPSILON_STEP = 0.01
@@ -547,7 +547,7 @@ with content_tab:
             key="username of user to show",
         )
         if st.button(f"Displaying information of: {user_selected}"):
-            user_to_show = show_user(st.session_state.admin_db, user_selected)
+            user_to_show = get_user(st.session_state.admin_db, user_selected)
             st.write(user_to_show)
 
     with elem_archives:
@@ -559,7 +559,7 @@ with content_tab:
         if st.button(
             f"Displaying previous queries of: {user_archives_selected}"
         ):
-            user_archives_to_show = show_archives_of_user(
+            user_archives_to_show = get_archives_of_user(
                 st.session_state.admin_db, user_archives_selected
             )
             st.write(user_archives_to_show)
@@ -572,7 +572,7 @@ with content_tab:
             key="dataset of dataset to show",
         )
         if st.button(f"Displaying dataset: {dataset_selected}"):
-            dataset_to_show = show_dataset(
+            dataset_to_show = get_dataset(
                 st.session_state.admin_db, dataset_selected
             )
             st.write(dataset_to_show)
@@ -584,7 +584,7 @@ with content_tab:
             key="dataset of metadata to show",
         )
         if st.button(f"Displaying metadata of: {metadata_selected}"):
-            metadata_to_show = show_metadata_of_dataset(
+            metadata_to_show = get_metadata_of_dataset(
                 st.session_state.admin_db, metadata_selected
             )
             st.write(metadata_to_show)
@@ -593,21 +593,21 @@ with content_tab:
     col_users, col_datasets, col_metadata, col_archives = st.columns(4)
     with col_users:
         if st.button("Show all users"):
-            users = show_collection(st.session_state.admin_db, "users")
+            users = get_collection(st.session_state.admin_db, "users")
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets"):
-            datasets = show_collection(st.session_state.admin_db, "datasets")
+            datasets = get_collection(st.session_state.admin_db, "datasets")
             st.write(datasets)
     with col_metadata:
         if st.button("Show all metadata"):
-            metadatas = show_collection(st.session_state.admin_db, "metadata")
+            metadatas = get_collection(st.session_state.admin_db, "metadata")
             st.write(metadatas)
     with col_archives:
         if st.button(
             "Show archives",
         ):
-            archives = show_collection(
+            archives = get_collection(
                 st.session_state.admin_db, "queries_archives"
             )
             st.write(archives)

@@ -20,13 +20,13 @@ from utils.example_inputs import (
     example_smartnoise_synth
 )
 from utils.input_models import (
-    DiffPrivLibInp,
-    DummyDiffPrivLibInp,
-    DummyOpenDPInp,
-    DummySNSQLInp,
-    OpenDPInp,
-    SNSQLInp,
-    SNSQLInpCost,
+    DiffPrivLibModel,
+    DummyDiffPrivLibModel,
+    DummyOpenDPModel,
+    DummySmartnoiseSQLModel,
+    OpenDPModel,
+    SmartnoiseSQLModel,
+    SmartnoiseSQLModelCost,
     SmartnoiseSynthModel
 )
 from utils.utils import server_live
@@ -41,7 +41,7 @@ router = APIRouter()
 )
 def smartnoise_sql_handler(
     request: Request,
-    query_json: SNSQLInp = Body(example_smartnoise_sql),
+    query_json: SmartnoiseSQLModel = Body(example_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -49,7 +49,7 @@ def smartnoise_sql_handler(
 
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInp): A JSON object containing:
+        query_json (SmartnoiseSQLModel): A JSON object containing:
             - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
@@ -108,7 +108,7 @@ def smartnoise_sql_handler(
 )
 def dummy_smartnoise_sql_handler(
     request: Request,
-    query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
+    query_json: DummySmartnoiseSQLModel = Body(example_dummy_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -116,7 +116,7 @@ def dummy_smartnoise_sql_handler(
 
     Args:
         request (Request): Raw request object
-        query_json (DummySNSQLInp, optional): A JSON object containing:
+        query_json (DummySmartnoiseSQLModel, optional): A JSON object containing:
             - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
@@ -184,7 +184,7 @@ def dummy_smartnoise_sql_handler(
 )
 def estimate_smartnoise_cost(
     request: Request,
-    query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -192,7 +192,7 @@ def estimate_smartnoise_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInpCost, optional):
+        query_json (SmartnoiseSQLModelCost, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -303,7 +303,7 @@ def smartnoise_synth_handler(
 )
 def opendp_query_handler(
     request: Request,
-    query_json: OpenDPInp = Body(example_opendp),
+    query_json: OpenDPModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -311,7 +311,7 @@ def opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPInp, optional): A JSON object containing the following:
+        query_json (OpenDPModel, optional): A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type
                 "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
@@ -365,7 +365,7 @@ def opendp_query_handler(
 )
 def dummy_opendp_query_handler(
     request: Request,
-    query_json: DummyOpenDPInp = Body(example_dummy_opendp),
+    query_json: DummyOpenDPModel = Body(example_dummy_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -373,7 +373,7 @@ def dummy_opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DummyOpenDPInp, optional):
+        query_json (DummyOpenDPModel, optional):
             A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type\
@@ -440,7 +440,7 @@ def dummy_opendp_query_handler(
 )
 def estimate_opendp_cost(
     request: Request,
-    query_json: OpenDPInp = Body(example_opendp),
+    query_json: OpenDPModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -448,7 +448,7 @@ def estimate_opendp_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (OpenDPInp, optional):
+        query_json (OpenDPModel, optional):
             A JSON object containing the following:
             - "opendp_pipeline": The OpenDP pipeline for the query.
 
@@ -496,7 +496,7 @@ def estimate_opendp_cost(
 )
 def diffprivlib_query_handler(
     request: Request,
-    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    query_json: DiffPrivLibModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -504,7 +504,7 @@ def diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPInp, optional): A JSON object containing the following:
+        query_json (OpenDPModel, optional): A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train
             - target_columns: the list of target column to predict
@@ -557,7 +557,7 @@ def diffprivlib_query_handler(
 )
 def dummy_diffprivlib_query_handler(
     request: Request,
-    query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+    query_json: DummyDiffPrivLibModel = Body(example_dummy_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -565,7 +565,7 @@ def dummy_diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DiffPrivLibInp, optional): A JSON object containing the following:
+        query_json (DiffPrivLibModel, optional): A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train
             - target_columns: the list of target column to predict
@@ -625,7 +625,7 @@ def dummy_diffprivlib_query_handler(
 )
 def estimate_diffprivlib_cost(
     request: Request,
-    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    query_json: DiffPrivLibModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -633,7 +633,7 @@ def estimate_diffprivlib_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (DiffPrivLibInp, optional):
+        query_json (DiffPrivLibModel, optional):
         A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train

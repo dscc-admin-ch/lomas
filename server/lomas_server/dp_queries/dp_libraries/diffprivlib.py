@@ -15,7 +15,7 @@ from dp_queries.dp_libraries.diffprivlib_utils import (
 )
 from dp_queries.dp_querier import DPQuerier
 from utils.error_handler import ExternalLibraryException
-from utils.input_models import DiffPrivLibInp
+from utils.input_models import DiffPrivLibModel
 
 
 class DiffPrivLibQuerier(DPQuerier):
@@ -24,7 +24,7 @@ class DiffPrivLibQuerier(DPQuerier):
     """
 
     def fit_model_on_data(
-        self, query_json: DiffPrivLibInp
+        self, query_json: DiffPrivLibModel
     ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
         """Perform necessary steps to fit the model on the data
 
@@ -69,7 +69,7 @@ class DiffPrivLibQuerier(DPQuerier):
 
         return fitted_dpl_pipeline, x_test, y_test
 
-    def cost(self, query_json: DiffPrivLibInp) -> tuple[float, float]:
+    def cost(self, query_json: DiffPrivLibModel) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
@@ -93,7 +93,7 @@ class DiffPrivLibQuerier(DPQuerier):
             spent_delta += step[1].accountant.spent_budget[0][1]
         return spent_epsilon, spent_delta
 
-    def query(self, query_json: DiffPrivLibInp) -> Dict:
+    def query(self, query_json: DiffPrivLibModel) -> Dict:
         """Perform the query and return the response.
 
         Args:

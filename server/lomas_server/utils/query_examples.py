@@ -1,4 +1,8 @@
-from constants import DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
+from constants import (
+    DIFFPRIVLIB_PIPELINE,
+    OPENDP_PIPELINE,
+    SmartnoiseSynthModels,
+)
 
 # Dummy queries
 DUMMY_EPSILON = 100.0
@@ -61,6 +65,16 @@ example_smartnoise_sql_cost = {
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "mechanisms": DP_MECHANISM,
+}
+
+example_smartnoise_synth = {
+    "dataset_name": PENGUIN_DATASET,
+    "model": SmartnoiseSynthModels.MWEM,
+    "epsilon": QUERY_EPSILON,
+    "delta": QUERY_DELTA,
+    "nullable": True,
+    "condition": None,
+    "nb_samples": None,
 }
 
 example_opendp = {

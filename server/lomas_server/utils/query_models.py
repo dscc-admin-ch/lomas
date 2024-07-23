@@ -1,9 +1,13 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
-from constants import DELTA_LIMIT, EPSILON_LIMIT, SmartnoiseSynthModels
-from utils.error_handler import InvalidQueryException
+from constants import (
+    DELTA_LIMIT,
+    EPSILON_LIMIT,
+    SSynthSynthesizer,
+    SSynthTableTransStyle,
+)
 
 
 class GetDbData(BaseModel):
@@ -66,37 +70,16 @@ class SmartnoiseSynthModel(BaseModel):
     """Model input for a smarnoise-synth query"""
 
     dataset_name: str
-    model: str
+    model: SSynthSynthesizer
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
-    delta: float = 0.0
+    delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
     select_cols: List = []
     params: dict = {}
     mul_matrix: List = []
     nullable: bool = True
     condition: Optional[str] = None
     nb_samples: Optional[int] = None
-
-    @validator("model")
-    def valid_model(cls, model):
-        """Validate input model"""
-        supported_models = [model.value for model in SmartnoiseSynthModels]
-        if model not in supported_models:
-            raise InvalidQueryException(
-                f"'{model}' is not one of {supported_models}."
-            )
-        return model
-
-    @validator("delta")
-    def valid_delta(cls, delta, values):
-        """Validate input delta"""
-        if values["model"] != SmartnoiseSynthModels.MWEM and (
-            not delta > 0 or delta > DELTA_LIMIT
-        ):
-            raise InvalidQueryException(
-                "For models other than MWEM delta value should be greater than 0 and"
-                + f" less than or equal to {DELTA_LIMIT}. User provided: {str(delta)}."
-            )
-        return delta
+    table_transformer_style: SSynthTableTransStyle = SSynthTableTransStyle.GAN
 
 
 class OpenDPModel(BaseModel):

@@ -99,6 +99,31 @@ class PrivateDatabaseType(StrEnum):
     S3 = "S3_DB"
 
 
+# Smartnoise sql
+STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
+MAX_NAN_ITERATION = 5
+
+
+# Smartnoise synth
+class SSynthSynthesizer(StrEnum):
+    """Synthesizer models for smartnoise synth"""
+
+    MWEM = "MWEM"
+    DPCTGAN = "DPCTGAN"
+    MST = "MST"
+    PATECTGAN = "PATECTGAN"
+
+
+class SSynthTableTransStyle(StrEnum):
+    """Transformer style for smartnoise synth"""
+
+    GAN = "gan"
+    CUBE = "cube"
+
+
+DEFAULT_NB_SYNTHETIC_SAMPLES = 100
+
+
 # OpenDP Measurement Divergence Type
 class OpenDPMeasurement(StrEnum):
     """Type of divergence for opendp measurement
@@ -138,22 +163,6 @@ RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
-# Smartnoise sql
-STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
-MAX_NAN_ITERATION = 5
-
-
-# Smartnoise synth
-class SmartnoiseSynthModels(StrEnum):
-    """Models for smarntoise synth"""
-
-    MWEM = "MWEM"
-    DPCTGAN = "DPCTGAN"
-    MST = "MST"
-    PATECTGAN = "PATECTGAN"
-
-
-DEFAULT_NB_SYNTHETIC_SAMPLES = 100
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]

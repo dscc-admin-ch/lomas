@@ -2,8 +2,6 @@ name: Server Testing
 
 on: 
   pull_request:
-    branches-ignore:
-      - feature/opendp_polars # TODO: remove later
   workflow_dispatch:
   
 jobs:

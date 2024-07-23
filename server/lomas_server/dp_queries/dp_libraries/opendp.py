@@ -9,6 +9,7 @@ from opendp_logger import make_load_json
 
 from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.config import OpenDPConfig
 from utils.error_handler import (
     ExternalLibraryException,
@@ -106,6 +107,21 @@ class OpenDPQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
 
+    def __init__(
+        self,
+        private_dataset: PrivateDataset,
+    ) -> None:
+        """Initializer.
+
+        Args:
+            private_dataset (PrivateDataset): Private dataset to query.
+        """
+        super().__init__(private_dataset)
+
+        # Get metadata once and for all
+        self.metadata = dict(self.private_dataset.get_metadata())
+        
+
     def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
         """
         Estimate cost of query
@@ -125,8 +141,7 @@ class OpenDPQuerier(DPQuerier):
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        metadata = self.private_dataset.get_metadata()
-        opendp_pipe = reconstruct_measurement_pipeline(query_json, metadata)
+        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
 
         measurement_type = get_output_measure(opendp_pipe)
         # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
@@ -134,7 +149,7 @@ class OpenDPQuerier(DPQuerier):
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = metadata["max_ids"]
+        max_ids = self.metadata["max_ids"]
         try:
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
@@ -181,7 +196,7 @@ class OpenDPQuerier(DPQuerier):
             (Union[List, int, float]) query result
         """
         opendp_pipe = reconstruct_measurement_pipeline(
-            query_json, self.private_dataset.get_metadata()
+            query_json, self.metadata
         )
 
         if query_json.pipeline_type == "legacy":
@@ -280,10 +295,10 @@ def reconstruct_measurement_pipeline(
         # TODO Might pickle, huge security implications!!
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json))
         output_measure = {
-            "Laplace": dp.measures.max_divergence(
+            "laplace": dp.measures.max_divergence(
                 T=query_json.output_measure_type_arg,
             ),
-            "Gaussian": dp.measures.zero_concentrated_divergence(
+            "gaussian": dp.measures.zero_concentrated_divergence(
                 T=query_json.output_measure_type_arg
             ),
         }[query_json.mechanism]

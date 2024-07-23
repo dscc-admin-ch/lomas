@@ -16,7 +16,7 @@ from utils.query_examples import (
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
-    example_smartnoise_synth
+    example_smartnoise_synth,
 )
 from utils.query_models import (
     DiffPrivLibModel,
@@ -26,7 +26,6 @@ from utils.query_models import (
     OpenDPModel,
     SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
-    SmartnoiseSQLModelCost,
     SmartnoiseSynthModel,
 )
 

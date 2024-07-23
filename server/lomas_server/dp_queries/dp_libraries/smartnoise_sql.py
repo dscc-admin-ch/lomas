@@ -25,7 +25,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
         """
         super().__init__(private_dataset)
 
-    def cost(self, query_json: SmartnoiseSQLModelCost) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:

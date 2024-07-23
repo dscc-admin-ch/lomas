@@ -168,11 +168,11 @@ class Client:
             "postprocess": postprocess,
         }
         if dummy:
-            endpoint = "dummy_smartnoise_query"
+            endpoint = "dummy_smartnoise_sql_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
         else:
-            endpoint = "smartnoise_query"
+            endpoint = "smartnoise_sql_query"
 
         res = self._exec(endpoint, body_json)
 
@@ -216,7 +216,7 @@ class Client:
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        res = self._exec("estimate_smartnoise_cost", body_json)
+        res = self._exec("estimate_smartnoise_sql_cost", body_json)
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))

@@ -16,6 +16,7 @@ from utils.query_examples import (
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
+    example_smartnoise_synth
 )
 from utils.query_models import (
     DiffPrivLibModel,
@@ -23,15 +24,17 @@ from utils.query_models import (
     DummyOpenDPModel,
     DummySmartnoiseSQLModel,
     OpenDPModel,
+    SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
     SmartnoiseSQLModelCost,
+    SmartnoiseSynthModel,
 )
 
 router = APIRouter()
 
 
 @router.post(
-    "/smartnoise_query",
+    "/smartnoise_sql_query",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
@@ -89,7 +92,7 @@ def smartnoise_sql_handler(
 
 # Smartnoise SQL Dummy query
 @router.post(
-    "/dummy_smartnoise_query",
+    "/dummy_smartnoise_sql_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
@@ -142,13 +145,13 @@ def dummy_smartnoise_sql_handler(
 
 
 @router.post(
-    "/estimate_smartnoise_cost",
+    "/estimate_smartnoise_sql_cost",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
 def estimate_smartnoise_cost(
     request: Request,
-    query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLCostModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -156,7 +159,7 @@ def estimate_smartnoise_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SmartnoiseSQLModelCost, optional):
+        query_json (SmartnoiseSQLCostModel, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -182,6 +185,51 @@ def estimate_smartnoise_cost(
     """
     return handle_cost_query(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
+    )
+
+
+@router.post(
+    "/smartnoise_synth_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def smartnoise_synth_handler(
+    request: Request,
+    query_json: SmartnoiseSynthModel = Body(example_smartnoise_synth),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - query: The SQL query to execute. NOTE: the table name is "df",
+              the query must end with "FROM df".
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+            - TODO
+            Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    return handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 

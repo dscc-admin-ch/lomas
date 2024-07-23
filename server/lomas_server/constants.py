@@ -153,12 +153,6 @@ class SmartnoiseSynthModels(StrEnum):
     PATECTGAN = "PATECTGAN"
 
 
-SYNTH_MAP = {
-    SmartnoiseSynthModels.MWEM: MWEM,
-    SmartnoiseSynthModels.DPCTGAN: DPCTGAN,
-    SmartnoiseSynthModels.MST: MST,
-    SmartnoiseSynthModels.PATECTGAN: PATECTGAN,
-}
 DEFAULT_NB_SYNTHETIC_SAMPLES = 100
 
 # Data preprocessing

@@ -156,7 +156,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
     def test_linear_regression_models(self) -> None:
         """Test diffprivlib query: Linear Regression"""
         with TestClient(app, headers=self.headers) as client:
-
             # Test Linear Regression
             pipeline = Pipeline(
                 [

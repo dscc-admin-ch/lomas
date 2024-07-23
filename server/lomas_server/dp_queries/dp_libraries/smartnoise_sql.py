@@ -3,7 +3,6 @@ from snsql import Mechanism, Privacy, Stat, from_connection
 
 from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.collections_models import Metadata
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
 from utils.input_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
@@ -13,17 +12,6 @@ class SmartnoiseSQLQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
-
-    def __init__(
-        self,
-        private_dataset: PrivateDataset,
-    ) -> None:
-        """Initializer.
-
-        Args:
-            private_dataset (PrivateDataset): Private dataset to query.
-        """
-        super().__init__(private_dataset)
 
     def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
         """Estimate cost of query

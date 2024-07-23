@@ -1,7 +1,8 @@
 from constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
-    SmartnoiseSynthModels,
+    SSynthSynthesizer,
+    SSynthTableTransStyle,
 )
 
 # Dummy queries
@@ -28,6 +29,7 @@ TARGET_COLUMNS = ["species"]
 SPLIT_SEED = 4
 TEST_SIZE = 0.2
 IMPUTER_STRATEGY = "drop"
+TABLE_TRANSFORMER_STYLE = SSynthTableTransStyle.GAN
 
 example_get_admin_db_data = {
     "dataset_name": PENGUIN_DATASET,
@@ -69,12 +71,13 @@ example_smartnoise_sql_cost = {
 
 example_smartnoise_synth = {
     "dataset_name": PENGUIN_DATASET,
-    "model": SmartnoiseSynthModels.MWEM,
+    "model": SSynthSynthesizer.MWEM,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "nullable": True,
     "condition": None,
     "nb_samples": None,
+    "table_transformer_style": TABLE_TRANSFORMER_STYLE,
 }
 
 example_opendp = {

@@ -69,12 +69,16 @@ class AdminYamlDatabase(AdminDatabase):
         Returns:
             dict: The metadata dict.
         """
+        metadata = None
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
                 metadata_path = dt["metadata"]["metadata_path"]
 
                 with open(metadata_path, mode="r", encoding="utf-8") as f:
                     metadata = yaml.safe_load(f)
+
+        # This should never happen since @dataset_must_exist is called.
+        assert metadata is not None
 
         return metadata
 

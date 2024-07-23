@@ -66,7 +66,10 @@ class OpenDPInp(BaseModel):
 
     dataset_name: str
     opendp_json: str
-    fixed_delta: Optional[float] = None
+    pipeline_type: str
+    delta: Optional[float] = None
+    mechanism: Optional[str] = None
+    output_measure_type_arg: Optional[str] = None
 
 
 class DummyOpenDPInp(BaseModel):
@@ -74,9 +77,12 @@ class DummyOpenDPInp(BaseModel):
 
     dataset_name: str
     opendp_json: str
+    mechanism: Optional[str] = None
+    output_measure_type_arg: Optional[str] = None
+    pipeline_type: str
     dummy_nb_rows: int
     dummy_seed: int
-    fixed_delta: Optional[float] = None
+    delta: Optional[float] = None
 
 
 class DiffPrivLibInp(BaseModel):

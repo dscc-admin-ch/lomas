@@ -4,10 +4,12 @@ columns:
   PassengerId:
     type: int
     lower: 1
+    precision: 32
   Pclass:
     type: int
     lower: 1
     upper: 3
+    precision: 32
   Name:
     type: string
   Sex:
@@ -20,17 +22,21 @@ columns:
     type: float
     lower: 0.1
     upper: 100.0
+    precision: 64
   SibSp:
     type: int
     lower: 0
+    precision: 32
   Parch:
     type: int
     lower: 0
+    precision: 32
   Ticket:
     type: string
   Fare:
     type: float
     lower: 0.0
+    precision: 64
   Cabin:
     type: string
   Embarked:

@@ -50,7 +50,7 @@ example_smartnoise_sql_cost = {
 }
 
 MEASUREMENT_PIPELINE = (
-    '{"version": "0.8.0", '
+    '{"version": "0.10.0", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'
@@ -109,15 +109,21 @@ MEASUREMENT_PIPELINE = (
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": MEASUREMENT_PIPELINE,
-    "fixed_delta": 1e-6,
+    "pipeline_type": "legacy",  # TODO set constant
+    "delta": 1e-6,
+    "mechanism": None,
+    "output_measure_type_arg": None,
 }
 
 example_dummy_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": MEASUREMENT_PIPELINE,
-    "fixed_delta": 1e-6,
+    "pipeline_type": "legacy",  # TODO set constant
+    "delta": 1e-6,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
+    "mechanism": None,
+    "output_measure_type_arg": None,
 }
 
 DIFFPRIVLIB_JSON = (

@@ -5,10 +5,12 @@ columns:
     type: float
     lower: 0.5
     upper: 10.0
+    precision: 64
   petal_width:
     type: float
     lower: 0.05
     upper: 5.0
+    precision: 64
   sepal_length:
     type: float
     lower: 2.0
@@ -17,6 +19,7 @@ columns:
     type: float
     lower: 1.0
     upper: 6.0
+    precision: 64
   species:
     type: string
     cardinality: 3

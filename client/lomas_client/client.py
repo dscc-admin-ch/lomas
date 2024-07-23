@@ -2,10 +2,11 @@ import base64
 import json
 from enum import StrEnum
 from io import StringIO
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, OrderedDict, Union, cast
 
 import opendp as dp
 import pandas as pd
+import polars as pl
 import requests
 from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
@@ -50,6 +51,8 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
+    metadata = None
+
     def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
         """Initializes the Client with the specified URL, user name, and dataset name.
 
@@ -63,8 +66,41 @@ class Client:
         self.headers["user-name"] = user_name
         self.dataset_name = dataset_name
 
+    def get_df_dtypes(self) -> Dict[str, str]:
+        """
+        Returns the pandas dictionary for the dataframe types of the dataset.
+
+        Raises:
+            ValueError: If metadata does not have the correct format or\
+                cannot be fetched.
+
+        Returns:
+            Dict[str, type]: The dtypes dictionary
+        """
+        metadata = self.get_dataset_metadata()
+        if metadata is None:
+            raise ValueError(
+                f"Could not get metadata for dataset {self.dataset_name}."
+            )
+        dtypes = {}
+
+        # Note if metadata was a pydantic model, this would be cleaner.
+        if not isinstance(metadata["columns"], dict):
+            raise ValueError("Metadata not in correct format.")
+
+        for col_name, data in cast(
+            Dict[str, Dict[str, str]], metadata["columns"]
+        ).items():
+            if data["type"] in ["int", "float"]:
+                dtypes[col_name] = f"{data['type']}{data['precision']}"
+            else:
+                dtypes[col_name] = data["type"]
+
+        return dtypes
+
     def get_dataset_metadata(
         self,
+        # Note: Replace this with pydantic model? It should be extended be correct.
     ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
         """This function retrieves metadata for the dataset.
 
@@ -72,16 +108,20 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
-        res = self._exec(
-            "get_dataset_metadata", {"dataset_name": self.dataset_name}
-        )
-        if res.status_code == HTTP_200_OK:
-            data = res.content.decode("utf8")
-            metadata = json.loads(data)
-            return metadata
+        if self.metadata is None:
+            res = self._exec(
+                "get_dataset_metadata", {"dataset_name": self.dataset_name}
+            )
+            if res.status_code == HTTP_200_OK:
+                data = res.content.decode("utf8")
+                self.metadata = json.loads(data)
 
-        print(error_message(res))
-        return None
+                return self.metadata
+
+            print(error_message(res))
+            return None
+
+        return self.metadata
 
     def get_dummy_dataset(
         self,
@@ -113,10 +153,36 @@ class Client:
 
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
+            dtypes = self.get_df_dtypes()
+            df = pd.read_csv(StringIO(data), dtype=dtypes)
             return df
         print(error_message(res))
         return None
+
+    def get_dummy_lf(
+        self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
+    ) -> Optional[pl.LazyFrame]:
+        """
+        Returns the polars LazyFrame for the dummy dataset with
+        optional parameters.
+
+        Args:
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+
+                Defaults to DUMMY_NB_ROWS.
+
+            seed (int, optional): The random seed for generating the dummy dataset.
+
+                Defaults to DUMMY_SEED.
+
+        Returns:
+            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
+        """
+        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
+
+        if dummy_pandas is None:
+            return None
+        return pl.from_pandas(dummy_pandas).lazy()
 
     def smartnoise_query(
         self,
@@ -223,10 +289,65 @@ class Client:
         print(error_message(res))
         return None
 
+    def _get_opendp_request_body(
+        self,
+        opendp_pipeline: dp.Measurement | pl.LazyFrame,
+        delta: Optional[float] = None,
+        mechanism: Optional[str] = "laplace",
+        output_measure_type_arg: Optional[str] = "float64",
+    ):
+        """This function executes an OpenDP query.
+
+        Args:
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
+                Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
+                pipelines.
+            delta (Optional[float], optional): If the pipeline measurement is of\
+                type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
+                converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
+                (`See Smartnoise-SQL postprocessing documentation.\
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
+                In that case a delta must be provided by the user.\
+                Defaults to None.
+            mechanism: (str, optional): Type of noise addition mechanism to use\
+                in polars pipelines. "laplace" or "gaussian".
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
+
+        Raises:
+            Exception: If the opendp_pipeline type is not supported.
+
+        Returns:
+            dict: A dictionnary for the request body.
+        """
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "delta": delta,
+            "mechanism": mechanism,
+            "output_measure_type_arg": output_measure_type_arg,
+        }
+
+        if isinstance(opendp_pipeline, dp.Measurement):
+            body_json["opendp_json"] = opendp_pipeline.to_json()
+            body_json["pipeline_type"] = "legacy"
+        elif isinstance(opendp_pipeline, pl.LazyFrame):
+            body_json["opendp_json"] = opendp_pipeline.serialize()
+            body_json["pipeline_type"] = "polars"
+        else:
+            raise TypeError(
+                f"Opendp_pipeline must either of type Measurement"
+                f" or LazyFrame, found {type(opendp_pipeline)}"
+            )
+
+        return body_json
+
     def opendp_query(
         self,
-        opendp_pipeline: dp.Measurement,
-        fixed_delta: Optional[float] = None,
+        opendp_pipeline: dp.Measurement | pl.LazyFrame,
+        delta: Optional[float] = None,
+        mechanism: Optional[str] = "laplace",
+        output_measure_type_arg: Optional[str] = "float64",
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -234,14 +355,21 @@ class Client:
         """This function executes an OpenDP query.
 
         Args:
-            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
+                Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
+                pipelines.
+            delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
                 (`See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
-                In that case a fixed_delta must be provided by the user.
+                In that case a delta must be provided by the user.
                 Defaults to None.
+            mechanism: (str, optional): Type of noise addition mechanism to use\
+                in polars pipelines. "laplace" or "gaussian".
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -249,17 +377,18 @@ class Client:
             Defaults to DUMMY_SEED.
 
         Raises:
-            Exception: If the server returns dataframes
+            Exception: If the opendp_pipeline type is not suppported.
 
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            Optional[dict]: A dictionary of the response body\
+                containing the deserialized pipeline result.
         """
-        opendp_json = opendp_pipeline.to_json()
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "opendp_json": opendp_json,
-            "fixed_delta": fixed_delta,
-        }
+        body_json = self._get_opendp_request_body(
+            opendp_pipeline,
+            delta=delta,
+            mechanism=mechanism,
+            output_measure_type_arg=output_measure_type_arg,
+        )
         if dummy:
             endpoint = "dummy_opendp_query"
             body_json["dummy_nb_rows"] = nb_rows
@@ -271,6 +400,15 @@ class Client:
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
+
+            # Opendp outputs can be single numbers or dataframes,
+            # we handle the latter here.
+            # This is a hack for now, maybe use parquet to send results over.
+            if isinstance(response_dict["query_response"], str):
+                response_dict["query_response"] = pl.read_json(
+                    StringIO(response_dict["query_response"])
+                )
+
             return response_dict
 
         print(error_message(res))
@@ -279,30 +417,39 @@ class Client:
     def estimate_opendp_cost(
         self,
         opendp_pipeline: dp.Measurement,
-        fixed_delta: Optional[float] = None,
+        mechanism: Optional[str] = "laplace",
+        output_measure_type_arg: Optional[str] = "float64",
+        delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing an OpenDP query.
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+            mechanism: (str, optional): Type of noise addition mechanism to use\
+                in polars pipelines. "laplace" or "gaussian".
+            output_measure_type_arg: (str, optional): Type argument for the\
+                output measure. Usually "float64" for continuous noise or "int32"\
+                for discrete noise.
+            delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
                 (`See Smartnoise-SQL postprocessing documentation.\
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
-                In that case a fixed_delta must be provided by the user.\
+                In that case a delta must be provided by the user.\
                 Defaults to None.
 
+        Raises:
+            Exception: If the opendp_pipeline type is not supported.
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        opendp_json = opendp_pipeline.to_json()
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "opendp_json": opendp_json,
-            "fixed_delta": fixed_delta,
-        }
+        body_json = self._get_opendp_request_body(
+            opendp_pipeline,
+            delta=delta,
+            mechanism=mechanism,
+            output_measure_type_arg=output_measure_type_arg,
+        )
         res = self._exec("estimate_opendp_cost", body_json)
 
         if res.status_code == HTTP_200_OK:
@@ -310,6 +457,45 @@ class Client:
 
         print(error_message(res))
         return None
+
+    def get_lf_seed(self):
+        """
+        Get the LazyFrame seed for OpenDP polars pipelines
+
+        Raises:
+            Exception: If some column type is not supported by polars or\
+                if some information is missing from the metadata.
+
+        Returns:
+            pl.LazyFrame: The polars LazyFrame seed for an OpenDP polars pipeline.
+        """
+        metadata = self.get_dataset_metadata()
+        schema = OrderedDict()
+        for name, series_info in metadata["columns"].items():
+            if "type" not in series_info:
+                raise KeyError("Missing type info in metadata")
+            try:
+                if series_info["type"] in ["float", "int"]:
+                    dtype = f"{series_info['type']}{series_info['precision']}"
+                else:
+                    dtype = series_info["type"]
+
+                series_type = {
+                    "int32": pl.datatypes.Int32,
+                    "float32": pl.datatypes.Float32,
+                    "int64": pl.datatypes.Int64,
+                    "float64": pl.datatypes.Float64,
+                    "string": pl.datatypes.String,
+                    "boolean": pl.datatypes.Boolean,
+                }[dtype]
+            except Exception as e:
+                raise ValueError(
+                    f"Type {series_info['type']} not supported by OpenDP."
+                ) from e
+
+            schema[name] = series_type
+
+        return pl.DataFrame(None, schema, orient="row").lazy()
 
     def diffprivlib_query(
         self,
@@ -517,7 +703,7 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                match query["dp_librairy"]:
+                match query["dp_library"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.OPENDP:
@@ -535,7 +721,7 @@ class Client:
                     case _:
                         raise ValueError(
                             "Cannot deserialise unknown query type:"
-                            + f"{query['dp_librairy']}"
+                            + f"{query['dp_library']}"
                         )
 
                 deserialised_queries.append(query)

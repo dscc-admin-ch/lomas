@@ -1,10 +1,17 @@
-import random
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
 from snsynth import Synthesizer
-from snsynth.transform import AnonymizationTransformer, MinMaxTransformer
+from snsynth.transform import (
+    AnonymizationTransformer,
+    BinTransformer,
+    ChainTransformer,
+    DateTimeTransformer,
+    LabelTransformer,
+    MinMaxTransformer,
+    OneHotEncoder,
+)
 from snsynth.transform.table import TableTransformer
 
 from constants import (
@@ -13,6 +20,7 @@ from constants import (
     SSynthTableTransStyle,
 )
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.collections_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -26,6 +34,20 @@ class SmartnoiseSynthQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
+
+    def __init__(
+        self,
+        private_dataset: PrivateDataset,
+    ) -> None:
+        """Initializer.
+
+        Args:
+            private_dataset (PrivateDataset): Private dataset to query.
+        """
+        super().__init__(private_dataset)
+        self.transformer = None
+        self.private_data = None
+        self.model = None
 
     def cost(
         self, query_json: SmartnoiseSynthModelCost
@@ -42,7 +64,57 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # synth.odometer.spent
         return query_json.epsilon, query_json.delta
 
-    def _get_data_transformer(
+    def _get_column_by_types(
+        self,
+        metadata: Metadata,
+        select_cols: List[str],
+    ) -> Dict[str, List[str]]:
+        """
+        Sort the column in categories based on their types and metadata
+
+        Args:
+            metadata (Metadata): Metadata of the dataset
+            select_cols (List[str]): List of columns to select
+
+        Returns:
+            Tuple[List]: Tuple of list os columns by categories
+        """
+        col_categories: Dict[str, List[str]] = {
+            "categorical": [],
+            "continuous": [],
+            "datetime": [],
+            "ordinal": [],
+            "uuids": [],
+        }
+        for col_name, data in metadata["columns"].items():
+            if select_cols and col_name not in select_cols:
+                continue
+
+            if data["private_id"]:
+                col_categories["uuids"].append(col_name)
+                continue
+
+            # Sort the column in categories based on their types and metadata
+            match data["type"]:
+                case "string" | "boolean":
+                    col_categories["categorical"].append(col_name)
+                case "int" | "float":
+                    if data["lower"]:
+                        col_categories["continuous"].append(col_name)
+                    elif data["cardinality"]:
+                        col_categories["categorical"].append(col_name)
+                    else:
+                        col_categories["ordinal"].append(col_name)
+                case "datetime":
+                    col_categories["datetime"].append(col_name)
+                case _:
+                    raise InternalServerException(
+                        f"Unknown column type in metadata: \
+                        {data['type']} in column {col_name}"
+                    )
+        return col_categories
+
+    def _prepare_data_transformer(
         self,
         metadata: Metadata,
         select_cols: List[str],
@@ -50,56 +122,69 @@ class SmartnoiseSynthQuerier(DPQuerier):
         table_transformer_style: SSynthTableTransStyle,
     ) -> TableTransformer:
         """
-        Creates the transformer based on the metadata.
+        Creates the transformer based on the metadata
         The transformer is used to transform the data before synthesis and then
         reverse the transformation after synthesis.
-        See https://docs.smartnoise.org/synth/transforms/index.html
-        Sort the column in three categories (categorical, ordinal and continuous)
-        based on their types and metadata.
+        See https://docs.smartnoise.org/synth/transforms/index.html for documentation
+        See https://github.com/opendp/smartnoise-sdk/blob/main/synth/snsynth/
+            transform/type_map.py#L40 for get_transformer() method taken as basis.
 
         Args:
             metadata (Metadata): Metadata of the dataset
             select_cols (List[str]): List of columns to select
+            nullable (bool): True is the data can have Null values, False otherwise
+            table_transformer_style: 'gan' or 'cube'
 
         Returns:
             table_tranformer (TableTransformer) to pre and post-process the data
         """
+        col_categories = self._get_column_by_types(metadata, select_cols)
+
         constraints = {}
-        for col_name, data in metadata["columns"].items():
-            if select_cols and col_name not in select_cols:
-                continue
+        for col in col_categories["uuids"]:
+            constraints[col] = AnonymizationTransformer("uuid4")
 
-            if data["private_id"]:
-                constraints[col_name] = AnonymizationTransformer(
-                    lambda: random.randint(0, 1_000)
-                )  # TODO: parameter
-                continue
+        for col in col_categories["categorical"]:
+            if table_transformer_style == SSynthTableTransStyle.GAN:
+                constraints[col] = ChainTransformer(
+                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
+                )
+            else:
+                constraints[col] = LabelTransformer(nullable=nullable)
 
-            match data["type"]:
-                case "string":
-                    constraints[col_name] = "categorical"
-                case "boolean":
-                    constraints[col_name] = "categorical"
-                case "int":
-                    if data["lower"]:
-                        constraints[col_name] = MinMaxTransformer(
-                            lower=data["lower"], upper=data["upper"]
-                        )
-                    elif data["cardinality"]:
-                        constraints[col_name] = "categorical"
-                    else:
-                        constraints[col_name] = "ordinal"
-                case "float":
-                    constraints[col_name] = MinMaxTransformer(
-                        lower=data["lower"], upper=data["upper"]
-                    )
-                case "datetime":
-                    constraints[col_name] = "categorical"  # TODO: check
-                case _:
-                    raise InternalServerException(
-                        f"unknown column type in metadata: \
-                        {data['type']} in column {col_name}"
-                    )
+        for col in col_categories["datetime"]:
+            if table_transformer_style == SSynthTableTransStyle.GAN:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        MinMaxTransformer(nullable=nullable),
+                    ]
+                )
+            else:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        BinTransformer(bins=20, nullable=nullable),
+                    ]
+                )
+
+        for col in col_categories["ordinal"]:
+            if table_transformer_style == SSynthTableTransStyle.GAN:
+                constraints[col] = ChainTransformer(
+                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
+                )
+            else:
+                constraints[col] = LabelTransformer(nullable=nullable)
+
+        for col in col_categories["continuous"]:
+            if table_transformer_style == SSynthTableTransStyle.GAN:
+                constraints[col] = MinMaxTransformer(
+                    lower=metadata["columns"][col]["lower"],
+                    upper=metadata["columns"][col]["upper"],
+                    nullable=nullable,
+                )
+            else:
+                constraints[col] = BinTransformer(nullable=nullable)
 
         self.transformer = TableTransformer.create(
             data=self.private_data,
@@ -182,15 +267,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
         metadata = self.private_dataset.get_metadata()
         self.private_data = self.private_dataset.get_pandas_df()
 
-        self._get_data_transformer(
+        self._prepare_data_transformer(
             metadata,
             query_json.select_cols,
             query_json.nullable,
             query_json.table_transformer_style,
         )
         self._preprocess_data(query_json.select_cols, query_json.mul_matrix)
-
-        # Preprocessing budget
 
         # Create and fit synthesizer
         self.model = Synthesizer.create(

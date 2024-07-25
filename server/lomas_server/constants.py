@@ -100,8 +100,8 @@ class PrivateDatabaseType(StrEnum):
 
 
 # Smartnoise sql
-STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
-MAX_NAN_ITERATION = 5
+SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
+SSQL_MAX_ITERATION = 5
 
 
 # Smartnoise synth
@@ -121,10 +121,21 @@ class SSynthTableTransStyle(StrEnum):
     CUBE = "cube"
 
 
-DEFAULT_NB_SYNTHETIC_SAMPLES = 100
+class SSynthColumnType(StrEnum):
+    """Type of columns for SmartnoiseSynth transformer pre-processing"""
+
+    PRIVATE_ID = "private_id"
+    CATEGORICAL = "categorical"
+    CONTINUOUS = "continuous"
+    ORDINAL = "ordinal"
+    DATETIME = "datetime"
 
 
-# OpenDP Measurement Divergence Type
+SSYNTH_PRIVATE_COLUMN = "uuid"
+SSYNTH_DEFAULT_NB_SAMPLES = 100
+
+
+# OpenDP
 class OpenDPMeasurement(StrEnum):
     """Type of divergence for opendp measurement
     see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
@@ -136,7 +147,6 @@ class OpenDPMeasurement(StrEnum):
     ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
 
 
-# OpenDP Dataset Input Metric Type
 class OpenDPDatasetInputMetric(StrEnum):
     """Type of opendp input metric for datasets
     see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html

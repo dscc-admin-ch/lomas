@@ -71,7 +71,7 @@ example_smartnoise_sql_cost = {
 
 example_smartnoise_synth = {
     "dataset_name": PENGUIN_DATASET,
-    "model": SSynthSynthesizer.MWEM,
+    "model_name": SSynthSynthesizer.MWEM,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "nullable": True,

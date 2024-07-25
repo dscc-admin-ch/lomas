@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
+import polars as pl
 
 from admin_database.utils import database_factory, get_mongodb
 from app import app
@@ -38,6 +39,8 @@ from utils.example_inputs import (
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
+    example_opendp_polars,
+    
 )
 from utils.loggr import LOG
 
@@ -108,6 +111,29 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 overwrite_datasets=True,
                 overwrite_metadata=True,
             )
+            
+        with TestClient(app, headers=self.headers) as client:
+
+            # Create serialized plan
+            res = client.post(
+                "/get_dummy_dataset",
+                json={
+                    "dataset_name": PENGUIN_DATASET,
+                    "dummy_nb_rows": 1,
+                    "dummy_seed": 0,
+                },
+            )
+
+            data = res.content.decode("utf8")
+            df = pd.read_csv(StringIO(data))
+            lf = pl.from_pandas(df).lazy()
+            plan = lf.select(
+                pl.col("bill_depth_mm").dp.mean(bounds=(30.0, 65.0), scale=0.001)
+            )
+
+            self.opendp_polars_body = dict(example_opendp_polars)
+            polars_string = plan.serialize()
+            self.opendp_polars_body["opendp_json"] = polars_string
 
     def tearDown(self) -> None:
         # Clean up database if needed

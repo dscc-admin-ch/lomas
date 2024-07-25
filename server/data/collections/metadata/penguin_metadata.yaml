@@ -42,3 +42,4 @@ columns:
     categories:
     - MALE
     - FEMALE
+rows: 344 # Added by Lomas, note present in examples from SmartNoiseSQL although not documented.

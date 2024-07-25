@@ -15,6 +15,7 @@ services:
       - ./data/collections/metadata:/data/collections/metadata/
       - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
       - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+      - ./data/datasets/income_synthetic_data.csv:/data/datasets/income_synthetic_data.csv
     depends_on:
       minio-client:
         condition: service_completed_successfully

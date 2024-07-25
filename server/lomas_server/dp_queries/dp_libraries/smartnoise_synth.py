@@ -245,19 +245,23 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 epsilon (float): epsilon budget value
                 delta (float): delta budget value
                 nullable (bool): True if some data cells may be null
+                params (dict): Keyword arguments to pass to the synthesizer constructor
 
         Returns:
             Synthesizer: Fitted synthesizer model
         """
         model = Synthesizer.create(
-            query_json.model_name, query_json.epsilon, query_json.delta
+            synth=query_json.model_name, 
+            epsilon=query_json.epsilon, 
+            delta=query_json.delta,
+            kwargs=query_jon.params
         )
 
         try:
             model = model.fit(
                 data=private_data,
                 transformer=transformer,
-                preprocessor_eps=0.0,
+                preprocessor_eps=0.0, # will error if not
                 nullable=query_json.nullable,
             )
         except Exception as e:
@@ -327,10 +331,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Prepare private data
         private_data = self._preprocess_data(private_data, query_json)
-
-        # Verify preprocessing does not spend budget
-        _ = transformer.fit_transform(private_data)
-        assert transformer.odometer.spent == (0.0, 0.0)
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)

@@ -328,6 +328,10 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Prepare private data
         private_data = self._preprocess_data(private_data, query_json)
 
+        # Verify preprocessing does not spend budget
+        _ = transformer.fit_transform(private_data)
+        assert transformer.odometer.spent == (0.0, 0.0)
+
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
 

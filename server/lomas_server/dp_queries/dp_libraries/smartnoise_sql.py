@@ -1,7 +1,7 @@
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 
-from constants import MAX_NAN_ITERATION, STATS, DPLibraries
+from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from utils.collections_models import Metadata
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
@@ -106,8 +106,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
         df_res = pd.DataFrame(result, columns=cols)
 
         if df_res.isnull().values.any():
-            # Try again up to MAX_NAN_ITERATION
-            if nb_iter < MAX_NAN_ITERATION:
+            # Try again up to SSQL_MAX_ITERATION
+            if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
 
@@ -133,7 +133,7 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     Returns:
         Privacy: The updated Privacy object.
     """
-    for stat in STATS:
+    for stat in SSQL_STATS:
         if stat in mechanisms.keys():
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy

@@ -70,7 +70,7 @@ class SmartnoiseSynthModel(BaseModel):
     """Model input for a smarnoise-synth query"""
 
     dataset_name: str
-    model: SSynthSynthesizer
+    model_name: SSynthSynthesizer
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
     delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
     select_cols: List = []

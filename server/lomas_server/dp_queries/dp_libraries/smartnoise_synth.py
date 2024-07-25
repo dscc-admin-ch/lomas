@@ -15,12 +15,13 @@ from snsynth.transform import (
 from snsynth.transform.table import TableTransformer
 
 from constants import (
-    DEFAULT_NB_SYNTHETIC_SAMPLES,
+    SSYNTH_DEFAULT_NB_SAMPLES,
+    SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
+    SSynthColumnType,
     SSynthTableTransStyle,
 )
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.collections_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -34,20 +35,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
-
-    def __init__(
-        self,
-        private_dataset: PrivateDataset,
-    ) -> None:
-        """Initializer.
-
-        Args:
-            private_dataset (PrivateDataset): Private dataset to query.
-        """
-        super().__init__(private_dataset)
-        self.transformer = None
-        self.private_data = None
-        self.model = None
 
     def cost(
         self, query_json: SmartnoiseSynthModelCost
@@ -64,6 +51,32 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # synth.odometer.spent
         return query_json.epsilon, query_json.delta
 
+    def _categorize_column(self, data: dict) -> str:
+        """
+        Categorize the column based on its metadata.
+
+        Args:
+            data (dict): Metadata of the column.
+
+        Returns:
+            str: Category of the column.
+        """
+        match data["type"]:
+            case "string" | "boolean":
+                return SSynthColumnType.CATEGORICAL
+            case "int" | "float":
+                if data["lower"]:
+                    return SSynthColumnType.CONTINUOUS
+                if data["cardinality"]:
+                    return SSynthColumnType.CATEGORICAL
+                return SSynthColumnType.ORDINAL
+            case "datetime":
+                return SSynthColumnType.DATETIME
+            case _:
+                raise InternalServerException(
+                    f"Unknown column type in metadata: {data['type']}"
+                )
+
     def _get_column_by_types(
         self,
         metadata: Metadata,
@@ -77,49 +90,34 @@ class SmartnoiseSynthQuerier(DPQuerier):
             select_cols (List[str]): List of columns to select
 
         Returns:
-            Tuple[List]: Tuple of list os columns by categories
+            Dict[str, List[str]]: Dictionnary of list of columns by categories
         """
         col_categories: Dict[str, List[str]] = {
-            "categorical": [],
-            "continuous": [],
-            "datetime": [],
-            "ordinal": [],
-            "uuids": [],
+            SSynthColumnType.CATEGORICAL: [],
+            SSynthColumnType.CONTINUOUS: [],
+            SSynthColumnType.DATETIME: [],
+            SSynthColumnType.ORDINAL: [],
+            SSynthColumnType.PRIVATE_ID: [],
         }
         for col_name, data in metadata["columns"].items():
             if select_cols and col_name not in select_cols:
                 continue
 
             if data["private_id"]:
-                col_categories["uuids"].append(col_name)
+                col_categories[SSynthColumnType.PRIVATE_ID].append(col_name)
                 continue
 
             # Sort the column in categories based on their types and metadata
-            match data["type"]:
-                case "string" | "boolean":
-                    col_categories["categorical"].append(col_name)
-                case "int" | "float":
-                    if data["lower"]:
-                        col_categories["continuous"].append(col_name)
-                    elif data["cardinality"]:
-                        col_categories["categorical"].append(col_name)
-                    else:
-                        col_categories["ordinal"].append(col_name)
-                case "datetime":
-                    col_categories["datetime"].append(col_name)
-                case _:
-                    raise InternalServerException(
-                        f"Unknown column type in metadata: \
-                        {data['type']} in column {col_name}"
-                    )
+            category = self._categorize_column(data)
+            col_categories[category].append(col_name)
+
         return col_categories
 
     def _prepare_data_transformer(
         self,
         metadata: Metadata,
-        select_cols: List[str],
-        nullable: bool,
-        table_transformer_style: SSynthTableTransStyle,
+        private_data: pd.DataFrame,
+        query_json: dict,
     ) -> TableTransformer:
         """
         Creates the transformer based on the metadata
@@ -131,120 +129,177 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         Args:
             metadata (Metadata): Metadata of the dataset
-            select_cols (List[str]): List of columns to select
-            nullable (bool): True is the data can have Null values, False otherwise
-            table_transformer_style: 'gan' or 'cube'
+            private_data
+            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+                select_cols (List[str]): List of columns to select
+                nullable (bool): True is the data can have Null values, False otherwise
+                table_transformer_style: 'gan' or 'cube'
 
         Returns:
             table_tranformer (TableTransformer) to pre and post-process the data
         """
-        col_categories = self._get_column_by_types(metadata, select_cols)
+        col_categories = self._get_column_by_types(
+            metadata, query_json.select_cols
+        )
+        style = query_json.table_transformer_style
+        nullable = query_json.nullable
 
         constraints = {}
-        for col in col_categories["uuids"]:
-            constraints[col] = AnonymizationTransformer("uuid4")
+        for col in col_categories[SSynthColumnType.PRIVATE_ID]:
+            constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
 
-        for col in col_categories["categorical"]:
-            if table_transformer_style == SSynthTableTransStyle.GAN:
+        if style == SSynthTableTransStyle.GAN:
+            for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
                 )
-            else:
-                constraints[col] = LabelTransformer(nullable=nullable)
-
-        for col in col_categories["datetime"]:
-            if table_transformer_style == SSynthTableTransStyle.GAN:
+            for col in col_categories[SSynthColumnType.CONTINUOUS]:
+                constraints[col] = MinMaxTransformer(
+                    lower=metadata["columns"][col]["lower"],
+                    upper=metadata["columns"][col]["upper"],
+                    nullable=nullable,
+                )
+            for col in col_categories[SSynthColumnType.DATETIME]:
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(),
                         MinMaxTransformer(nullable=nullable),
                     ]
                 )
-            else:
+            for col in col_categories[SSynthColumnType.ORDINAL]:
+                constraints[col] = ChainTransformer(
+                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
+                )
+        else:
+            for col in col_categories[SSynthColumnType.CATEGORICAL]:
+                constraints[col] = LabelTransformer(nullable=nullable)
+            for col in col_categories[SSynthColumnType.CONTINUOUS]:
+                constraints[col] = BinTransformer(nullable=nullable)
+            for col in col_categories[SSynthColumnType.DATETIME]:
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(),
                         BinTransformer(bins=20, nullable=nullable),
                     ]
                 )
-
-        for col in col_categories["ordinal"]:
-            if table_transformer_style == SSynthTableTransStyle.GAN:
-                constraints[col] = ChainTransformer(
-                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
-                )
-            else:
+            for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
 
-        for col in col_categories["continuous"]:
-            if table_transformer_style == SSynthTableTransStyle.GAN:
-                constraints[col] = MinMaxTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
-                    nullable=nullable,
-                )
-            else:
-                constraints[col] = BinTransformer(nullable=nullable)
-
-        self.transformer = TableTransformer.create(
-            data=self.private_data,
-            style=table_transformer_style,
+        return TableTransformer.create(
+            data=private_data,
+            style=style,
             nullable=nullable,
             constraints=constraints,
         )
 
     def _preprocess_data(
-        self, select_cols: List[str], mul_matrix: List
-    ) -> None:
-        if select_cols:
+        self,
+        private_data: pd.DataFrame,
+        query_json: dict,
+    ) -> pd.DataFrame:
+        """
+        Preprocess the data based on the query parameters.
+
+        Args:
+            private_data (pd.DataFrame): Private data to be preprocessed
+            query_json (dict): (SmartnoiseSynthModelCost): JSON request object
+                select_cols (List[str]): List of columns to select
+                mul_matrix (List): Multiplication matrix for columns aggregations
+
+        Returns:
+            pd.DataFrame: Preprocessed private data
+        """
+        if query_json.select_cols:
             try:
-                self.private_data = self.private_data[select_cols]
+                private_data = private_data[query_json.select_cols]
             except KeyError as e:
                 raise InvalidQueryException(
                     "Error while selecting provided select_cols: " + str(e)
                 ) from e
 
-        if mul_matrix:
+        if query_json.mul_matrix:
             try:
-                np_matrix = np.array(mul_matrix)
-                mul_private_data = self.private_data.to_numpy().dot(
-                    np_matrix.T
-                )
-                self.private_data = pd.DataFrame(mul_private_data)
+                np_matrix = np.array(query_json.mul_matrix)
+                mul_private_data = private_data.to_numpy().dot(np_matrix.T)
+                private_data = pd.DataFrame(mul_private_data)
             except ValueError as e:
                 raise InvalidQueryException(
                     f"Failed to multiply provided mul_matrix: {(str(e))}"
                 ) from e
+        return private_data
 
-    def _fit(self, nullable: bool) -> None:
+    def _get_fit_model(
+        self,
+        private_data: pd.DataFrame,
+        transformer: TableTransformer,
+        query_json: dict,
+    ) -> Synthesizer:
+        """
+        Create and fit the synthesizer model.
+
+        Args:
+            private_data (pd.DataFrame): Private data for fitting the model
+            transformer (TableTransformer): Transformer to pre/postprocess data
+            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+                model_name (str): name of the Yanthesizer model to use
+                epsilon (float): epsilon budget value
+                delta (float): delta budget value
+                nullable (bool): True if some data cells may be null
+
+        Returns:
+            Synthesizer: Fitted synthesizer model
+        """
+        model = Synthesizer.create(
+            query_json.model_name, query_json.epsilon, query_json.delta
+        )
 
         try:
-            self.model = self.model.fit(
-                data=self.private_data,
-                transformer=self.transformer,
+            model = model.fit(
+                data=private_data,
+                transformer=transformer,
                 preprocessor_eps=0.0,
-                nullable=nullable,
+                nullable=query_json.nullable,
             )
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
             ) from e
 
+        return model
+
     def _sample(
-        self, nb_samples: int, condition: str, mul_matrix: np.array
+        self,
+        model: Synthesizer,
+        nb_samples: int,
+        query_json: dict,
+        colnames: list,
     ) -> pd.DataFrame:
+        """
+        Sample data from the fitted synthesizer model.
+
+        Args:
+            model (Synthesizer): Fitted synthesizer model
+            nb_samples (int): Number of samples to generate
+            query_json (dict): Request body from user with
+                condition (Optional[str]): sampling condition
+                mul_matrix (List): Multiplication matrix for columns aggregations
+            colnames (list): List of column names for the samples
+
+        Returns:
+            pd.DataFrame: DataFrame of sampled data
+        """
         # Sample based on condition
         samples = (
-            self.model.sample_conditional(nb_samples, condition)
-            if condition
-            else self.model.sample(nb_samples)
+            model.sample_conditional(nb_samples, query_json.condition)
+            if query_json.condition
+            else model.sample(nb_samples)
         )
 
         # Format back
         samples_df = (
             pd.DataFrame(samples)
-            if mul_matrix
-            else pd.DataFrame(samples, columns=self.private_data.columns)
+            if query_json.mul_matrix
+            else pd.DataFrame(samples, columns=colnames)
         )
         return samples_df
 
@@ -265,32 +320,25 @@ class SmartnoiseSynthQuerier(DPQuerier):
         """
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
-        self.private_data = self.private_dataset.get_pandas_df()
-
-        self._prepare_data_transformer(
-            metadata,
-            query_json.select_cols,
-            query_json.nullable,
-            query_json.table_transformer_style,
+        private_data = self.private_dataset.get_pandas_df()
+        transformer = self._prepare_data_transformer(
+            metadata, private_data, query_json
         )
-        self._preprocess_data(query_json.select_cols, query_json.mul_matrix)
+
+        # Prepare private data
+        private_data = self._preprocess_data(private_data, query_json)
 
         # Create and fit synthesizer
-        self.model = Synthesizer.create(
-            query_json.model,
-            epsilon=query_json.epsilon,
-            delta=query_json.delta,
-        )
-        self._fit(query_json.nullable)
+        model = self._get_fit_model(private_data, transformer, query_json)
 
         # Sample from synthesizer
         nb_samples = (
             query_json.nb_samples
             or metadata.nb_row
-            or DEFAULT_NB_SYNTHETIC_SAMPLES
+            or SSYNTH_DEFAULT_NB_SAMPLES
         )
         samples_df = self._sample(
-            nb_samples, query_json.condition, query_json.mul_matrix
+            model, nb_samples, query_json, private_data.columns
         )
 
-        return samples_df
+        return samples_df.to_dict(orient="tight")

@@ -108,11 +108,20 @@ SSQL_MAX_ITERATION = 5
 class SSynthSynthesizer(StrEnum):
     """Synthesizer models for smartnoise synth"""
 
-    MWEM = "MWEM"
-    DPCTGAN = "DPCTGAN"
-    MST = "MST"
-    PATECTGAN = "PATECTGAN"
+    # Marginal Synthesizer
+    AIM = "aim"
+    MWEM = "mwem"
+    MST = "mst"
+    PAC_SYNTH = "pacsynth"
 
+    # Neural Network Synthesizer
+    DP_CTGAN = "dpctgan"
+    PATE_CTGAN = "patectgan"
+    PATE_GAN = "" # no documentation
+    DP_GAN = "" # no documentation
+
+    # Hybrid Synthesizer
+    QUAIL = "QUAIL"
 
 class SSynthTableTransStyle(StrEnum):
     """Transformer style for smartnoise synth"""

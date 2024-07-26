@@ -8,7 +8,7 @@ from routes.utils import (
     handle_query_on_private_dataset,
     server_live,
 )
-from utils.input_examples import (
+from utils.query_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
     example_dummy_opendp,
@@ -17,7 +17,7 @@ from utils.input_examples import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.input_models import (
+from utils.query_models import (
     DiffPrivLibModel,
     DummyDiffPrivLibModel,
     DummyOpenDPModel,

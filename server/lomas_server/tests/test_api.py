@@ -27,7 +27,8 @@ from tests.constants import (
 )
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
-from utils.input_examples import (
+from utils.logger import LOG
+from utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,
@@ -40,7 +41,6 @@ from utils.input_examples import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.logger import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005

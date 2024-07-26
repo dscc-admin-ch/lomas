@@ -6,6 +6,7 @@ from routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
     handle_query_on_private_dataset,
+    server_live,
 )
 from utils.input_examples import (
     example_diffprivlib,
@@ -25,7 +26,6 @@ from utils.input_models import (
     SmartnoiseSQLModel,
     SmartnoiseSQLModelCost,
 )
-from utils.utils import server_live
 
 router = APIRouter()
 

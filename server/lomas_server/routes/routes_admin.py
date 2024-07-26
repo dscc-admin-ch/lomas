@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from dp_queries.dummy_dataset import make_dummy_dataset
+from routes.utils import server_live, stream_dataframe
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
@@ -12,7 +13,6 @@ from utils.input_examples import (
     example_get_dummy_dataset,
 )
 from utils.input_models import GetDbData, GetDummyDataset
-from utils.utils import server_live, stream_dataframe
 
 router = APIRouter()
 

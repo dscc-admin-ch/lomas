@@ -13,6 +13,7 @@ from utils.query_examples import (
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
+    example_dummy_smartnoise_synth,
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
@@ -23,6 +24,7 @@ from utils.query_models import (
     DummyDiffPrivLibModel,
     DummyOpenDPModel,
     DummySmartnoiseSQLModel,
+    DummySmartnoiseSynthModel,
     OpenDPModel,
     SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
@@ -202,12 +204,25 @@ def smartnoise_synth_handler(
     Args:
         request (Request): Raw request object
         query_json (SNSQLInp): A JSON object containing:
-            - query: The SQL query to execute. NOTE: the table name is "df",
-              the query must end with "FROM df".
+            - synth_name (str): name of the Synthesizer model to use.
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
-            - TODO
-            Defaults to Body(example_smartnoise_synth).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to None.
+            - select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            - model_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            - mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            - nullable (bool): True if some data cells may be null
+                Defaults to True.
+            - Defaults to Body(example_smartnoise_synth).
         user_name (str): The user name.
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -228,6 +243,131 @@ def smartnoise_synth_handler(
               for the query.
     """
     return handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
+
+
+@router.post(
+    "/dummy_smartnoise_synth_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def dummy_smartnoise_synth_handler(
+    request: Request,
+    query_json: SmartnoiseSynthModel = Body(example_dummy_smartnoise_synth),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - synth_name (str): name of the Synthesizer model to use.
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to None.
+            - select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            - model_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            - mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            - nullable (bool): True if some data cells may be null
+                Defaults to True.
+            - dummy (bool, optional): Whether to use a dummy dataset
+              (default: False).
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+              (default: 100).
+            - seed (int, optional): The random seed for generating
+              the dummy dataset (default: 42).
+
+            Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
+
+
+@router.post(
+    "/estimate_smartnoise_synth_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_smartnoise_synth_cost(
+    request: Request,
+    query_json: DummySmartnoiseSynthModel = Body(example_smartnoise_synth),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - synth_name (str): name of the Synthesizer model to use.
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to None.
+            - select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            - model_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            - mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            - nullable (bool): True if some data cells may be null
+                Defaults to True.
+            - dummy (bool, optional): Whether to use a dummy dataset
+              (default: False).
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+              (default: 100).
+            - seed (int, optional): The random seed for generating
+              the dummy dataset (default: 42).
+
+            Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing:
+            - epsilon_cost (float): The estimated epsilon cost.
+            - delta_cost (float): The estimated delta cost.
+    """
+    return handle_cost_query(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 

@@ -3,9 +3,9 @@ from typing import Dict
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
 from dataset_store.dataset_store import DatasetStore
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.utils import private_dataset_factory
+from private_dataset.factory import private_dataset_factory
 
 
 class BasicDatasetStore(DatasetStore):

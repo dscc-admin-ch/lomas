@@ -30,6 +30,8 @@ from utils.error_handler import InternalServerException
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
+    FSO_INCOME_DATASET,
+    dtypes_income_dataset,
     SMARTNOISE_QUERY_DELTA,
     SMARTNOISE_QUERY_EPSILON,
     example_dummy_opendp,
@@ -111,29 +113,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 overwrite_datasets=True,
                 overwrite_metadata=True,
             )
-            
-        with TestClient(app, headers=self.headers) as client:
-
-            # Create serialized plan
-            res = client.post(
-                "/get_dummy_dataset",
-                json={
-                    "dataset_name": PENGUIN_DATASET,
-                    "dummy_nb_rows": 1,
-                    "dummy_seed": 0,
-                },
-            )
-
-            data = res.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            lf = pl.from_pandas(df).lazy()
-            plan = lf.select(
-                pl.col("bill_depth_mm").dp.mean(bounds=(30.0, 65.0), scale=0.001)
-            )
-
-            self.opendp_polars_body = dict(example_opendp_polars)
-            polars_string = plan.serialize()
-            self.opendp_polars_body["opendp_json"] = polars_string
 
     def tearDown(self) -> None:
         # Clean up database if needed

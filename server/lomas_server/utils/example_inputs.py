@@ -8,6 +8,7 @@ DUMMY_SEED = 42
 
 # DUMMY dataset name
 PENGUIN_DATASET = "PENGUIN"
+FSO_INCOME_DATASET = "FSO_INCOME_SYNTHETIC"
 SMARTNOISE_QUERY_EPSILON = 0.1
 SMARTNOISE_QUERY_DELTA = 0.00001
 
@@ -203,8 +204,18 @@ example_dummy_diffprivlib = {
 #     '{"Projection":{"expr":[{"BinaryExpr":{"left":{"Function":{"input":[{"Agg":{"Sum":{"Function":{"input":[{"Column":"bill_depth_mm"},{"Literal":{"Float64":30.0}},{"Literal":{"Float64":65.0}}],"function":{"Clip":{"has_min":true,"has_max":true}},"options":{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":false,"returns_scalar":false,"cast_to_supertypes":false,"allow_rename":false,"pass_name_to_apply":false,"changes_length":false,"check_lengths":true,"allow_group_aware":true}}}}}],"function":{"FfiPlugin":{"lib":"/usr/local/lib/python3.11/site-packages/opendp/lib/opendp.abi3.so","symbol":"noise","kwargs":[128,5,149,38,0,0,0,0,0,0,0,125,148,40,140,5,115,99,97,108,101,148,71,63,185,153,153,153,153,153,154,140,12,100,105,115,116,114,105,98,117,116,105,111,110,148,78,117,46]}},"options":{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":false,"returns_scalar":false,"cast_to_supertypes":false,"allow_rename":false,"pass_name_to_apply":false,"changes_length":false,"check_lengths":true,"allow_group_aware":true}}},"op":"TrueDivide","right":"Len"}}],"input":{"DataFrameScan":{"df":{"columns":[{"name":"species","datatype":"String","bit_settings":"","values":[]},{"name":"island","datatype":"String","bit_settings":"","values":[]},{"name":"bill_length_mm","datatype":"Float64","bit_settings":"","values":[]},{"name":"bill_depth_mm","datatype":"Float64","bit_settings":"","values":[]},{"name":"flipper_length_mm","datatype":"Float64","bit_settings":"","values":[]},{"name":"body_mass_g","datatype":"Float64","bit_settings":"","values":[]},{"name":"sex","datatype":"String","bit_settings":"","values":[]}]},"schema":{"inner":{"species":"String","island":"String","bill_length_mm":"Float64","bill_depth_mm":"Float64","flipper_length_mm":"Float64","body_mass_g":"Float64","sex":"String"}},"output_schema":null,"projection":null,"selection":null}},"schema":{"inner":{"bill_depth_mm":"Float64"}},"options":{"run_parallel":true,"duplicate_check":true}}}'
 # )
 
+dtypes_income_dataset = {
+    "region": "int32",
+    "eco_branch": "int32",
+    "profession": "int32",
+    "education": "int32",
+    "age": "int32",
+    "sex": "int32",
+    "income": "float64"
+}
+
 example_opendp_polars = {
-    "dataset_name": PENGUIN_DATASET,
+    "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": None, # OPENDP_POLARS_JSON,
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,

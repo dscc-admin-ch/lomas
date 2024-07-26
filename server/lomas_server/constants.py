@@ -117,11 +117,12 @@ class SSynthSynthesizer(StrEnum):
     # Neural Network Synthesizer
     DP_CTGAN = "dpctgan"
     PATE_CTGAN = "patectgan"
-    PATE_GAN = "" # no documentation
-    DP_GAN = "" # no documentation
+    PATE_GAN = ""  # no documentation
+    DP_GAN = ""  # no documentation
 
     # Hybrid Synthesizer
     QUAIL = "QUAIL"
+
 
 class SSynthTableTransStyle(StrEnum):
     """Transformer style for smartnoise synth"""

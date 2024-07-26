@@ -50,16 +50,9 @@ example_smartnoise_sql = {
     "postprocess": True,
 }
 
-example_dummy_smartnoise_sql = {
-    "query_str": SQL_QUERY,
-    "dataset_name": PENGUIN_DATASET,
-    "epsilon": DUMMY_EPSILON,
-    "delta": DUMMY_DELTA,
-    "mechanisms": DP_MECHANISM,
-    "postprocess": False,
-    "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED,
-}
+example_dummy_smartnoise_sql = dict(example_smartnoise_sql)
+example_dummy_smartnoise_sql["dummy_nb_rows"] = DUMMY_NB_ROWS
+example_dummy_smartnoise_sql["dummy_seed"] = DUMMY_SEED
 
 example_smartnoise_sql_cost = {
     "query_str": SQL_QUERY,
@@ -82,6 +75,9 @@ example_smartnoise_synth = {
     "nb_samples": None,
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,
 }
+example_dummy_smartnoise_synth = dict(example_smartnoise_synth)
+example_dummy_smartnoise_synth["dummy_nb_rows"] = DUMMY_NB_ROWS
+example_dummy_smartnoise_synth["dummy_seed"] = DUMMY_SEED
 
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
@@ -89,13 +85,10 @@ example_opendp = {
     "fixed_delta": QUERY_DELTA,
 }
 
-example_dummy_opendp = {
-    "dataset_name": PENGUIN_DATASET,
-    "opendp_json": OPENDP_PIPELINE,
-    "fixed_delta": QUERY_DELTA,
-    "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED,
-}
+example_dummy_opendp = dict(example_opendp)
+example_dummy_opendp["dummy_nb_rows"] = DUMMY_NB_ROWS
+example_dummy_opendp["dummy_seed"] = DUMMY_SEED
+
 
 example_diffprivlib = {
     "dataset_name": PENGUIN_DATASET,
@@ -107,14 +100,6 @@ example_diffprivlib = {
     "imputer_strategy": IMPUTER_STRATEGY,
 }
 
-example_dummy_diffprivlib = {
-    "dataset_name": PENGUIN_DATASET,
-    "diffprivlib_json": DIFFPRIVLIB_PIPELINE,
-    "feature_columns": FEATURE_COLUMNS,
-    "target_columns": TARGET_COLUMNS,
-    "test_train_split_seed": SPLIT_SEED,
-    "test_size": TEST_SIZE,
-    "imputer_strategy": IMPUTER_STRATEGY,
-    "dummy_nb_rows": DUMMY_NB_ROWS,
-    "dummy_seed": DUMMY_SEED,
-}
+example_dummy_diffprivlib = dict(example_diffprivlib)
+example_dummy_diffprivlib["dummy_nb_rows"] = DUMMY_NB_ROWS
+example_dummy_diffprivlib["dummy_seed"] = DUMMY_SEED

@@ -82,6 +82,13 @@ class SmartnoiseSynthModel(BaseModel):
     table_transformer_style: SSynthTableTransStyle = SSynthTableTransStyle.GAN
 
 
+class DummySmartnoiseSynthModel(SmartnoiseSynthModel):
+    """Dummy Model input for a smarnoise-synth query"""
+
+    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_seed: int
+
+
 class OpenDPModel(BaseModel):
     """Model input for an opendp query"""
 

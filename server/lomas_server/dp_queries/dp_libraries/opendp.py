@@ -14,7 +14,7 @@ from utils.error_handler import (
     InvalidQueryException,
 )
 from utils.input_models import OpenDPModel
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 class OpenDPQuerier(DPQuerier):

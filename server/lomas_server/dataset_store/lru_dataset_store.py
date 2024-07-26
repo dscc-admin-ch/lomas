@@ -8,7 +8,7 @@ from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
 from private_dataset.utils import private_dataset_factory
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):

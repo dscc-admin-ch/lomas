@@ -19,7 +19,7 @@ from routes import routes_admin, routes_dp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.error_handler import InternalServerException, add_exception_handlers
-from utils.loggr import LOG
+from utils.logger import LOG
 from utils.utils import add_demo_data_to_admindb
 
 

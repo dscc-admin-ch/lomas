@@ -48,10 +48,37 @@ class TestOpenDpPolarsEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         df = pd.read_csv(StringIO(data), dtype=dtypes_income_dataset)
         lf = pl.from_pandas(df).lazy()
         plan = lf.select(
-            pl.col("income").dp.mean(bounds=(lb, ub), scale=scale)
+            pl.col(column).dp.mean(bounds=(lb, ub), scale=scale)
         )
-        opendp_polars_body = dict(example_opendp_polars)
         polars_string = plan.serialize()
+        
+        opendp_polars_body = dict(example_opendp_polars)
+        opendp_polars_body["opendp_json"] = polars_string
+        
+        return opendp_polars_body
+    
+    def get_body_sum_json(self, client, column = "age", lb = 1, ub = 100, scale=1):
+        
+            
+        # test income 
+        res = client.post(
+            "/get_dummy_dataset",
+            json={
+                "dataset_name": "FSO_INCOME_SYNTHETIC",
+                "dummy_nb_rows": 1,
+                "dummy_seed": 0,
+            },
+        )
+        
+        data = res.content.decode("utf8")
+        df = pd.read_csv(StringIO(data), dtype=dtypes_income_dataset)
+        lf = pl.from_pandas(df).lazy()
+        plan = lf.select(
+            pl.col(column).dp.sum(bounds=(lb, ub), scale=scale)
+        )
+        polars_string = plan.serialize()
+        
+        opendp_polars_body = dict(example_opendp_polars)
         opendp_polars_body["opendp_json"] = polars_string
         
         return opendp_polars_body
@@ -76,6 +103,18 @@ class TestOpenDpPolarsEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=opendp_polars_body,
             )
             assert response.status_code == status.HTTP_200_OK
+            
+            # TODO clean this
+            # opendp_polars_body = self.get_body_json(client, column="age", lb=1, ub=100, scale=1)
+            # # response = client.post(                "/opendp_query",                json=opendp_polars_body,            )
+            # data = json.loads(opendp_polars_body["opendp_json"])
+            # data['Projection']['schema']['inner']['age']="Int32"
+            # opendp_polars_body["opendp_json"] = str(data)
+            # opendp_polars_body["output_measure_type_arg"] = "int"
+            # response = client.post(
+            #     "/opendp_query",
+            #     json=opendp_polars_body,
+            # )
             
     def test_opendp_polars_cost(self) -> None:
         """test_opendp_polars_cost"""

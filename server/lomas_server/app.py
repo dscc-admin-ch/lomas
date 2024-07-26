@@ -5,6 +5,7 @@ from typing import Callable
 from fastapi import FastAPI, Request, Response
 
 from admin_database.factory import admin_database_factory
+from admin_database.utils import add_demo_data_to_mongodb_admin
 from constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -20,7 +21,6 @@ from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.error_handler import InternalServerException, add_exception_handlers
 from utils.logger import LOG
-from utils.utils import add_demo_data_to_admindb
 
 
 @asynccontextmanager
@@ -80,7 +80,7 @@ async def lifespan(
             app.state.server_state["message"].append(
                 "Adding demo data to MongoDB Admin"
             )
-            add_demo_data_to_admindb()
+            add_demo_data_to_mongodb_admin()
 
     # Load admin database
     if status_ok:

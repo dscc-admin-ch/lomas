@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import train_test_split
 
 from constants import NUMERICAL_DTYPES
 from utils.error_handler import InvalidQueryException
-from utils.input_models import DiffPrivLibModel
 
 
 def handle_missing_data(
@@ -71,41 +69,3 @@ def handle_missing_data(
 
     df = df.astype(dtype=dtypes)
     return df
-
-
-def split_train_test_data(
-    df: pd.DataFrame, query_json: DiffPrivLibModel
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Split the data between train and test set
-    Args:
-        df (pd.DataFrame): dataframe with the data
-        query_json (DiffPrivLibModel): user input query indication
-            feature_columns (list[str]): columns from data to use as features
-            target_columns (list[str]): columns from data to use as target (to predict)
-            test_size (float): proportion of data in the test set
-            test_train_split_seed (int): seed for the random train-test split
-
-    Returns:
-        x_train (pd.DataFrame): training data features
-        x_test (pd.DataFrame): testing data features
-        y_train (pd.DataFrame): training data target
-        y_test (pd.DataFrame): testing data target
-    """
-    feature_data = df[query_json.feature_columns]
-
-    if query_json.target_columns is None:
-        x_train, x_test = train_test_split(
-            feature_data,
-            test_size=query_json.test_size,
-            random_state=query_json.test_train_split_seed,
-        )
-        y_train, y_test = None, None
-    else:
-        label_data = df[query_json.target_columns]
-        x_train, x_test, y_train, y_test = train_test_split(
-            feature_data,
-            label_data,
-            test_size=query_json.test_size,
-            random_state=query_json.test_train_split_seed,
-        )
-    return x_train, x_test, y_train, y_test

@@ -17,7 +17,7 @@ from constants import (
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
-from utils.input_models import GetDummyDataset
+from utils.query_models import GetDummyDataset
 
 
 def make_dummy_dataset(

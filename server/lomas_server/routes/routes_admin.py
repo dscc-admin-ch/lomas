@@ -8,11 +8,11 @@ from utils.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from utils.input_examples import (
+from utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
-from utils.input_models import GetDbData, GetDummyDataset
+from utils.query_models import GetDbData, GetDummyDataset
 
 router = APIRouter()
 

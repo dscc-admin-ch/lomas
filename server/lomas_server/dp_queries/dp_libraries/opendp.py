@@ -13,8 +13,8 @@ from utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from utils.input_models import OpenDPModel
 from utils.logger import LOG
+from utils.query_models import OpenDPModel
 
 
 class OpenDPQuerier(DPQuerier):

@@ -14,8 +14,7 @@ from snsynth.transform import (
 )
 from snsynth.transform.table import TableTransformer
 
-from constants import (
-    SSYNTH_DEFAULT_NB_SAMPLES,
+from constants import (  # SSYNTH_DEFAULT_NB_SAMPLES,
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
     SSynthColumnType,
@@ -251,10 +250,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             Synthesizer: Fitted synthesizer model
         """
+        if query_json.delta:  # not all model take delta as argument
+            query_json.model_params["delta"] = query_json.delta
+
         model = Synthesizer.create(
             synth=query_json.synth_name,
             epsilon=query_json.epsilon,
-            delta=query_json.delta,
             kwargs=query_json.model_params,
         )
 
@@ -262,7 +263,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             model = model.fit(
                 data=private_data,
                 transformer=transformer,
-                preprocessor_eps=0.0,  # will error if not
+                preprocessor_eps=0.0,  # will error if not 0.
                 nullable=query_json.nullable,
             )
         except Exception as e:
@@ -336,14 +337,15 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
 
-        # Sample from synthesizer
-        nb_samples = (
-            query_json.nb_samples
-            or metadata.nb_row
-            or SSYNTH_DEFAULT_NB_SAMPLES
-        )
-        samples_df = self._sample(
-            model, nb_samples, query_json, private_data.columns
-        )
+        # # Sample from synthesizer
+        # nb_samples = (
+        #     query_json.nb_samples
+        #     or metadata.nb_row
+        #     or SSYNTH_DEFAULT_NB_SAMPLES
+        # )
+        # samples_df = self._sample(
+        #     model, nb_samples, query_json, private_data.columns
+        # )
 
-        return samples_df.to_dict(orient="tight")
+        # return samples_df.to_dict(orient="tight")
+        return model

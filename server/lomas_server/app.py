@@ -4,7 +4,7 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
-from admin_database.utils import database_factory
+from admin_database.factory import admin_database_factory
 from constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -12,7 +12,7 @@ from constants import (
     SERVER_LIVE,
     AdminDBType,
 )
-from dataset_store.utils import dataset_store_factory
+from dataset_store.factory import dataset_store_factory
 from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from dp_queries.dp_logic import QueryHandler
 from routes import routes_admin, routes_dp
@@ -87,7 +87,9 @@ async def lifespan(
         try:
             LOG.info("Loading admin database")
             app.state.server_state["message"].append("Loading admin database")
-            app.state.admin_database = database_factory(config.admin_database)
+            app.state.admin_database = admin_database_factory(
+                config.admin_database
+            )
         except InternalServerException as e:
             LOG.exception("Failed at startup:" + str(e))
             app.state.server_state["state"].append(DB_NOT_LOADED)

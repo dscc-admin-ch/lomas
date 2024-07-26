@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from constants import DPLibraries
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,

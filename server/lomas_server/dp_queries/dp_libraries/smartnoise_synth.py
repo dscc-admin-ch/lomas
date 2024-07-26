@@ -48,7 +48,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        # synth.odometer.spent
+        # model.odometer.spent
         return query_json.epsilon, query_json.delta
 
     def _categorize_column(self, data: dict) -> str:
@@ -241,27 +241,28 @@ class SmartnoiseSynthQuerier(DPQuerier):
             private_data (pd.DataFrame): Private data for fitting the model
             transformer (TableTransformer): Transformer to pre/postprocess data
             query_json (SmartnoiseSynthModelCost): JSON request object for the query
-                model_name (str): name of the Yanthesizer model to use
+                synth_name (str): name of the Yanthesizer model to use
                 epsilon (float): epsilon budget value
                 delta (float): delta budget value
                 nullable (bool): True if some data cells may be null
-                params (dict): Keyword arguments to pass to the synthesizer constructor
+                model_params (dict): Keyword arguments to pass to the synthesizer
+                    constructor.
 
         Returns:
             Synthesizer: Fitted synthesizer model
         """
         model = Synthesizer.create(
-            synth=query_json.model_name, 
-            epsilon=query_json.epsilon, 
+            synth=query_json.synth_name,
+            epsilon=query_json.epsilon,
             delta=query_json.delta,
-            kwargs=query_jon.params
+            kwargs=query_json.model_params,
         )
 
         try:
             model = model.fit(
                 data=private_data,
                 transformer=transformer,
-                preprocessor_eps=0.0, # will error if not
+                preprocessor_eps=0.0,  # will error if not
                 nullable=query_json.nullable,
             )
         except Exception as e:

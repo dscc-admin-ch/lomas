@@ -7,7 +7,7 @@ from routes.utils import (
     handle_query_on_dummy_dataset,
     handle_query_on_private_dataset,
 )
-from utils.example_inputs import (
+from utils.input_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
     example_dummy_opendp,

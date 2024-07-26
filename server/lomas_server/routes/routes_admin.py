@@ -7,7 +7,7 @@ from utils.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from utils.example_inputs import (
+from utils.input_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )

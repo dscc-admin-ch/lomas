@@ -26,7 +26,7 @@ from tests.constants import (
 )
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
-from utils.example_inputs import (
+from utils.input_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,

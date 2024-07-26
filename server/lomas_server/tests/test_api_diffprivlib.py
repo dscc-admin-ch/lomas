@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 from app import app
 from constants import DPLibraries
 from tests.test_api import TestRootAPIEndpoint
-from utils.example_inputs import example_diffprivlib, example_dummy_diffprivlib
+from utils.input_examples import example_diffprivlib, example_dummy_diffprivlib
 
 
 def validate_pipeline(response):

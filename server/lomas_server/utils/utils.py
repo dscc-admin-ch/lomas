@@ -13,7 +13,7 @@ from mongodb_admin import (
     drop_collection,
 )
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 async def server_live(request: Request) -> AsyncGenerator:

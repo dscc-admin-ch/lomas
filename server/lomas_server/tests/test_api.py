@@ -39,7 +39,7 @@ from utils.input_examples import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.loggr import LOG
+from utils.logger import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005

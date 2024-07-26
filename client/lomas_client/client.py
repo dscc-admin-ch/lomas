@@ -122,7 +122,7 @@ class Client:
         print(error_message(res))
         return None
 
-    def smartnoise_query(
+    def smartnoise_sql_query(
         self,
         query: str,
         epsilon: float,
@@ -133,7 +133,7 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
-        """This function executes a SmartNoise query.
+        """This function executes a SmartNoise SQL query.
 
         Args:
             query (str): The SQL query to execute.
@@ -191,7 +191,7 @@ class Client:
         print(error_message(res))
         return None
 
-    def estimate_smartnoise_cost(
+    def estimate_smartnoise_sql_cost(
         self,
         query: str,
         epsilon: float,
@@ -221,6 +221,152 @@ class Client:
             "mechanisms": mechanisms,
         }
         res = self._exec("estimate_smartnoise_sql_cost", body_json)
+
+        if res.status_code == HTTP_200_OK:
+            return json.loads(res.content.decode("utf8"))
+        print(error_message(res))
+        return None
+
+    def smartnoise_synth_query(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: Optional[float] = None,
+        select_cols: Optional[List[str]] = None,
+        model_params: Optional[dict] = None,
+        mul_matrix: Optional[List] = None,
+        nullable: bool = True,
+        condition: Optional[str] = None,
+        nb_samples: Optional[int] = None,
+        table_transformer_style: str = "gan",
+        dummy: bool = False,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ) -> Optional[dict]:
+        """This function executes a SmartNoise Synthetic query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to None.
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            model_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            condition (Optional[str]): sampling condition
+                Defaults to None.
+            nb_sample (Optional[int]): number of samples to generete.
+                If None and the number of row of private dataset is public,
+                    then defaults to number of row of private dataset.
+                If None and the number of row of private dataset is not public,
+                    then defaults to 100.
+
+        Returns:
+            Optional[dict]: A Pandas DataFrame containing the query results.
+        """
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "model_params": model_params,
+            "mul_matrix": mul_matrix,
+            "nullable": nullable,
+            "condition": condition,
+            "nb_samples": nb_samples,
+            "table_transformer_style": table_transformer_style,
+        }
+        if dummy:
+            endpoint = "dummy_smartnoise_synth_query"
+            body_json["dummy_nb_rows"] = nb_rows
+            body_json["dummy_seed"] = seed
+        else:
+            endpoint = "smartnoise_synth_query"
+
+        res = self._exec(endpoint, body_json)
+
+        if res.status_code == HTTP_200_OK:
+            data = res.content.decode("utf8")
+            response_dict = json.loads(data)
+            response_dict["query_response"] = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            return response_dict
+
+        print(error_message(res))
+        return None
+
+    def estimate_smartnoise_synth_cost(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: Optional[float] = None,
+        select_cols: Optional[List[str]] = None,
+        model_params: Optional[dict] = None,
+        mul_matrix: Optional[List] = None,
+        nullable: bool = True,
+        condition: Optional[str] = None,
+        nb_samples: Optional[int] = None,
+        table_transformer_style: str = "gan",
+    ) -> Optional[dict[str, float]]:
+        """This function estimates the cost of executing a SmartNoise query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to None.
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            model_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            condition (Optional[str]): sampling condition
+                Defaults to None.
+            nb_sample (Optional[int]): number of samples to generete.
+                If None and the number of row of private dataset is public,
+                    then defaults to number of row of private dataset.
+                If None and the number of row of private dataset is not public,
+                    then defaults to 100.
+
+        Returns:
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+        """
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "model_params": model_params,
+            "mul_matrix": mul_matrix,
+            "nullable": nullable,
+            "condition": condition,
+            "nb_samples": nb_samples,
+            "table_transformer_style": table_transformer_style,
+        }
+        res = self._exec("estimate_smartnoise_synth_cost", body_json)
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))

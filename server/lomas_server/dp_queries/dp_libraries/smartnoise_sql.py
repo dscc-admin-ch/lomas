@@ -5,7 +5,7 @@ from constants import MAX_NAN_ITERATION, STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
 from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
-from utils.input_models import SmartnoiseSQLModel, SmartnoiseSQLModelCost
+from utils.query_models import SmartnoiseSQLModel, SmartnoiseSQLModelCost
 
 
 class SmartnoiseSQLQuerier(DPQuerier):

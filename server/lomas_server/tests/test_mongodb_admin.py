@@ -7,7 +7,10 @@ import boto3
 import yaml
 from pymongo import MongoClient
 
-from admin_database.utils import get_mongodb_url
+from admin_database.utils import (
+    add_demo_data_to_mongodb_admin,
+    get_mongodb_url,
+)
 from constants import PrivateDatabaseType
 from mongodb_admin import (
     add_dataset,
@@ -38,7 +41,6 @@ from tests.constants import (
     TRUE_VALUES,
 )
 from utils.config import CONFIG_LOADER, get_config
-from utils.utils import add_demo_data_to_admindb
 
 
 @unittest.skipIf(
@@ -957,7 +959,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             expected_dataset_collection["datasets"], dataset_collection
         )
 
-    def test_add_demo_data_to_admindb(self) -> None:
+    def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db"""
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
@@ -965,7 +967,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         else:
             dataset_yaml = "tests/test_data/test_datasets.yaml"
 
-        add_demo_data_to_admindb(
+        add_demo_data_to_mongodb_admin(
             user_yaml="./tests/test_data/test_user_collection.yaml",
             dataset_yaml=dataset_yaml,
         )

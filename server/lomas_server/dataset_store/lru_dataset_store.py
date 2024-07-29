@@ -3,12 +3,12 @@ from collections import OrderedDict
 from admin_database.admin_database import AdminDatabase
 from dataset_store.dataset_store import DatasetStore
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.factory import private_dataset_factory
 from private_dataset.private_dataset import PrivateDataset
-from private_dataset.utils import private_dataset_factory
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):

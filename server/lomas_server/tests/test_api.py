@@ -11,7 +11,8 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
 
-from admin_database.utils import database_factory, get_mongodb
+from admin_database.factory import admin_database_factory
+from admin_database.utils import get_mongodb
 from app import app
 from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
 from mongodb_admin import (
@@ -26,7 +27,8 @@ from tests.constants import (
 )
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
-from utils.example_inputs import (
+from utils.logger import LOG
+from utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,
@@ -39,7 +41,6 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.loggr import LOG
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -125,7 +126,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         previous_admin_db = config.admin_database.db_type
         config.admin_database.db_type = "wrong_db"
         with self.assertRaises(InternalServerException) as context:
-            database_factory(config.admin_database)
+            admin_database_factory(config.admin_database)
         self.assertEqual(
             str(context.exception), "Database type wrong_db not supported."
         )

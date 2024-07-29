@@ -1,6 +1,6 @@
 import yaml
 from pydantic import BaseModel
-from typing_extensions import Dict
+from typing_extensions import Dict, List
 
 from constants import (
     CONFIG_PATH,
@@ -64,6 +64,18 @@ class MongoDBConfig(DBConfig):
     password: str
     db_name: str
 
+class PrivateDBCredentials(BaseModel):
+    """BaseModel for private database credentials."""
+
+class S3CredentialsConfig(PrivateDBCredentials):
+    """BaseModel for S3 database credentials. """
+
+    endpoint: str
+    bucket: str
+    key: str
+    access_key_id: str
+    secret_access_key: str
+
 
 class OpenDPConfig(BaseModel):
     """BaseModel for openDP librairy config"""
@@ -94,6 +106,8 @@ class Config(BaseModel):
     submit_limit: float
 
     admin_database: DBConfig
+
+    s3_credentials: List[PrivateDBCredentials]
 
     dataset_store: DatasetStoreConfig
 

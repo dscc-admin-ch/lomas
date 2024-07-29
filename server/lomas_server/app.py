@@ -4,7 +4,8 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
-from admin_database.utils import database_factory
+from admin_database.factory import admin_database_factory
+from admin_database.utils import add_demo_data_to_mongodb_admin
 from constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -12,15 +13,14 @@ from constants import (
     SERVER_LIVE,
     AdminDBType,
 )
-from dataset_store.utils import dataset_store_factory
+from dataset_store.factory import dataset_store_factory
 from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from dp_queries.dp_logic import QueryHandler
 from routes import routes_admin, routes_dp
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.error_handler import InternalServerException, add_exception_handlers
-from utils.loggr import LOG
-from utils.utils import add_demo_data_to_admindb
+from utils.logger import LOG
 
 
 @asynccontextmanager
@@ -80,14 +80,16 @@ async def lifespan(
             app.state.server_state["message"].append(
                 "Adding demo data to MongoDB Admin"
             )
-            add_demo_data_to_admindb()
+            add_demo_data_to_mongodb_admin()
 
     # Load admin database
     if status_ok:
         try:
             LOG.info("Loading admin database")
             app.state.server_state["message"].append("Loading admin database")
-            app.state.admin_database = database_factory(config.admin_database)
+            app.state.admin_database = admin_database_factory(
+                config.admin_database
+            )
         except InternalServerException as e:
             LOG.exception("Failed at startup:" + str(e))
             app.state.server_state["state"].append(DB_NOT_LOADED)

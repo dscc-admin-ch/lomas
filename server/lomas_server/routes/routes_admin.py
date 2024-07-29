@@ -2,17 +2,17 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from dp_queries.dummy_dataset import make_dummy_dataset
+from routes.utils import server_live, stream_dataframe
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
-from utils.example_inputs import (
+from utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
-from utils.input_models import GetDbData, GetDummyDataset
-from utils.utils import server_live, stream_dataframe
+from utils.query_models import GetDbData, GetDummyDataset
 
 router = APIRouter()
 

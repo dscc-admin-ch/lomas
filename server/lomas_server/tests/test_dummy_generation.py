@@ -1,7 +1,7 @@
 import unittest
 
 from dp_queries.dummy_dataset import make_dummy_dataset
-from utils.example_inputs import DUMMY_NB_ROWS, DUMMY_SEED
+from utils.query_examples import DUMMY_NB_ROWS, DUMMY_SEED
 
 
 class TestMakeDummyDataset(unittest.TestCase):

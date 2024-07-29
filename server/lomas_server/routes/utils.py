@@ -1,15 +1,64 @@
+import io
+from collections.abc import AsyncGenerator
+
+import pandas as pd
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from constants import DPLibraries
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
+
+
+async def server_live(request: Request) -> AsyncGenerator:
+    """
+    Checks the server is live and throws an exception otherwise.
+
+    Args:
+        request (Request): Raw request
+
+    Raises:
+        InternalServerException: If the server is not live.
+
+    Returns:
+        AsyncGenerator
+    """
+    if not request.app.state.server_state["LIVE"]:
+        raise InternalServerException(
+            "Woops, the server did not start correctly."
+            + "Contact the administrator of this service.",
+        )
+    yield
+
+
+def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
+    """
+    Creates a streaming response for a given pandas dataframe.
+
+    Args:
+        df (pd.DataFrame): The dataframe to stream.
+
+    Returns:
+        StreamingResponse: The resulting streaming response.
+    """
+    stream = io.StringIO()
+
+    # CSV creation
+    df.to_csv(stream, index=False)
+
+    response = StreamingResponse(
+        iter([stream.getvalue()]), media_type="text/csv"
+    )
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=synthetic_data.csv"
+    )
+    return response
 
 
 def handle_query_on_private_dataset(

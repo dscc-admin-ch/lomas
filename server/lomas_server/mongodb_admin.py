@@ -10,9 +10,9 @@ from pymongo.results import _WriteResult
 
 from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType
-from utils.collections_models import DatasetsCollection, UserCollection
+from utils.collection_models import DatasetsCollection, UserCollection
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 def check_user_exists(enforce_true: bool) -> Callable:

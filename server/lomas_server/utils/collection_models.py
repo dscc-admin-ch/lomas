@@ -47,8 +47,6 @@ class MetadataOfS3DB(MetadataOfDataset):
     s3_bucket: str
     s3_key: str
     endpoint_url: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
 
 
 class Dataset(BaseModel):
@@ -71,8 +69,6 @@ class DatasetOfS3DB(Dataset):
     s3_bucket: str
     s3_key: str
     endpoint_url: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
 
 
 class DatasetsCollection(BaseModel):

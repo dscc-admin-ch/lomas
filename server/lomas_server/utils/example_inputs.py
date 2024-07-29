@@ -8,6 +8,7 @@ DUMMY_SEED = 42
 
 # DUMMY dataset name
 PENGUIN_DATASET = "PENGUIN"
+FSO_INCOME_DATASET = "FSO_INCOME_SYNTHETIC"
 SMARTNOISE_QUERY_EPSILON = 0.1
 SMARTNOISE_QUERY_DELTA = 0.00001
 
@@ -196,4 +197,24 @@ example_dummy_diffprivlib = {
     "imputer_strategy": "drop",
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
+}
+
+
+dtypes_income_dataset = {
+    "region": "int32",
+    "eco_branch": "int32",
+    "profession": "int32",
+    "education": "int32",
+    "age": "int32",
+    "sex": "int32",
+    "income": "float64"
+}
+
+example_opendp_polars = {
+    "dataset_name": FSO_INCOME_DATASET,
+    "opendp_json": None, # OPENDP_POLARS_JSON,
+    "pipeline_type": "polars",  # TODO set constant
+    "delta": 1e-6,
+    "mechanism": "laplace",
+    "output_measure_type_arg": "float",
 }

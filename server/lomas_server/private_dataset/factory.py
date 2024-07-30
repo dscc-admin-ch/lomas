@@ -10,8 +10,9 @@ from utils.error_handler import InternalServerException
 
 
 def private_dataset_factory(
-    dataset_name: str, admin_database: AdminDatabase,
-    private_db_credentials: List[PrivateDBCredentials]
+    dataset_name: str,
+    admin_database: AdminDatabase,
+    private_db_credentials: List[PrivateDBCredentials],
 ) -> PrivateDataset:
     """
     Returns the appropriate dataset class based on dataset storage location
@@ -41,18 +42,26 @@ def private_dataset_factory(
             private_db = PathDataset(ds_metadata, dataset_path)
         case PrivateDatabaseType.S3:
             s3_parameters = {}
-            s3_parameters["s3_bucket"] = admin_database.get_dataset_field(
-                dataset_name, "s3_bucket"
+            s3_parameters["bucket"] = admin_database.get_dataset_field(
+                dataset_name, "bucket"
             )
-            s3_parameters["s3_key"] = admin_database.get_dataset_field(
-                dataset_name, "s3_key"
+            s3_parameters["key"] = admin_database.get_dataset_field(
+                dataset_name, "key"
             )
-            s3_parameters["s3_endpoint"] = admin_database.get_dataset_field(
+            s3_parameters["endpoint_url"] = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
             )
 
+            s3_parameters["credentials_name"] = (
+                admin_database.get_dataset_field(
+                    dataset_name, "credentials_name"
+                )
+            )
+
             db_type = "s3"
-            credentials = get_dataset_credentials(private_db_credentials, db_type, s3_parameters)
+            credentials = get_dataset_credentials(
+                private_db_credentials, db_type, s3_parameters
+            )
 
             private_db = S3Dataset(ds_metadata, credentials)
         case _:
@@ -64,10 +73,10 @@ def private_dataset_factory(
 
 
 def get_dataset_credentials(
-        private_db_credentials: List[PrivateDBCredentials],
-        db_type: str,
-        ds_infos: Dict[str, str]
-    ) -> PrivateDBCredentials:
+    private_db_credentials: List[PrivateDBCredentials],
+    db_type: str,
+    ds_infos: Dict[str, str],
+) -> PrivateDBCredentials:
     """_summary_
 
     Args:
@@ -82,12 +91,17 @@ def get_dataset_credentials(
         PrivateDBCredentials: _description_
     """
 
-    if ds_infos["db_type"] == "s3":
+    if db_type == "s3":
         for c in private_db_credentials:
-            if isinstance(c, S3CredentialsConfig):
-                if ds_infos["endpoint_url"] == c.endpoint and ds_infos["bucket"] == c.bucket and ds_infos["key"] == c.key:
-                    return c
-            
-    raise InternalServerException("Could not find credentials for private dataset."
-                                    "Please contact server administrator.")
+            if isinstance(c, S3CredentialsConfig) and (
+                ds_infos["credentials_name"] == c.credentials_name
+            ):
+                c.endpoint_url = ds_infos["endpoint_url"]
+                c.bucket = ds_infos["bucket"]
+                c.key = ds_infos["key"]
+                return c
 
+    raise InternalServerException(
+        "Could not find credentials for private dataset."
+        "Please contact server administrator."
+    )

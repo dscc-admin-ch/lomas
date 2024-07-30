@@ -1,6 +1,7 @@
+from typing import Dict, List, Literal, Union
+
 import yaml
-from pydantic import BaseModel
-from typing_extensions import Dict, List
+from pydantic import BaseModel, ConfigDict
 
 from constants import (
     CONFIG_PATH,
@@ -8,6 +9,7 @@ from constants import (
     AdminDBType,
     ConfigKeys,
     DatasetStoreType,
+    PrivateDatabaseType,
     TimeAttackMethod,
 )
 from utils.error_handler import InternalServerException
@@ -34,45 +36,51 @@ class Server(BaseModel):
 class DatasetStoreConfig(BaseModel):
     """BaseModel for dataset store configs"""
 
-    ds_store_type: DatasetStoreType
+    ds_store_type: Literal[DatasetStoreType.BASIC.value]  # type: ignore
 
 
 class LRUDatasetStoreConfig(DatasetStoreConfig):
     """BaseModel for dataset store configs in case of a LRU dataset store"""
 
+    ds_store_type: Literal[DatasetStoreType.LRU]  # type: ignore
     max_memory_usage: int
 
 
 class DBConfig(BaseModel):
     """BaseModel for database type config"""
 
-    db_type: str = AdminDBType
+    # db_type: str = AdminDBType
 
 
 class YamlDBConfig(DBConfig):
     """BaseModel for dataset store configs  in case of a Yaml database"""
 
+    db_type: Literal[AdminDBType.YAML]  # type: ignore
     db_file: str
 
 
 class MongoDBConfig(DBConfig):
     """BaseModel for dataset store configs  in case of a  MongoDB database"""
 
+    db_type: Literal[AdminDBType.MONGODB]  # type: ignore
     address: str
     port: int
     username: str
     password: str
     db_name: str
 
+
 class PrivateDBCredentials(BaseModel):
     """BaseModel for private database credentials."""
 
-class S3CredentialsConfig(PrivateDBCredentials):
-    """BaseModel for S3 database credentials. """
 
-    endpoint: str
-    bucket: str
-    key: str
+class S3CredentialsConfig(PrivateDBCredentials):
+    """BaseModel for S3 database credentials."""
+
+    model_config = ConfigDict(extra="allow")
+
+    db_type: Literal[PrivateDatabaseType.S3]  # type: ignore
+    credentials_name: str
     access_key_id: str
     secret_access_key: str
 
@@ -105,11 +113,11 @@ class Config(BaseModel):
     # A limit on the rate which users can submit answers
     submit_limit: float
 
-    admin_database: DBConfig
+    admin_database: Union[MongoDBConfig, YamlDBConfig]
 
-    s3_credentials: List[PrivateDBCredentials]
+    private_db_credentials: List[Union[S3CredentialsConfig]]
 
-    dataset_store: DatasetStoreConfig
+    dataset_store: Union[DatasetStoreConfig, LRUDatasetStoreConfig]
 
     dp_libraries: DPLibraryConfig
 
@@ -160,42 +168,7 @@ class ConfigLoader:
                 secret_data = yaml.safe_load(f)
                 config_data = self._merge_dicts(config_data, secret_data)
 
-            # Server configuration
-            server_config: Server = Server.model_validate(
-                config_data[ConfigKeys.SERVER]
-            )
-
-            # Admin database
-            db_type = AdminDBType(
-                config_data[ConfigKeys.DB][ConfigKeys.DB_TYPE]
-            )
-            admin_database_config = self._validate_admin_db_config(
-                db_type, config_data[ConfigKeys.DB]
-            )
-
-            # Dataset store
-            ds_store_type = DatasetStoreType(
-                config_data[ConfigKeys.DATASET_STORE][
-                    ConfigKeys.DATASET_STORE_TYPE
-                ]
-            )
-            ds_store_config = self._validate_ds_store_config(
-                ds_store_type, config_data[ConfigKeys.DATASET_STORE]
-            )
-
-            # DP Librairies configs
-            dp_library_config = DPLibraryConfig.model_validate(
-                config_data[ConfigKeys.DP_LIBRARY]
-            )
-
-            self._config = Config(
-                develop_mode=config_data[ConfigKeys.DEVELOP_MODE],
-                server=server_config,
-                submit_limit=config_data[ConfigKeys.SUBMIT_LIMIT],
-                admin_database=admin_database_config,
-                dataset_store=ds_store_config,
-                dp_libraries=dp_library_config,
-            )
+            self._config = Config.model_validate(config_data)
 
         except Exception as e:
             raise InternalServerException(
@@ -219,56 +192,6 @@ class ConfigLoader:
             else:
                 d[k] = v
         return d
-
-    def _validate_admin_db_config(
-        self, db_type: AdminDBType, config_data: dict
-    ) -> DBConfig:
-        """Validate admin database based on configuration parameters
-
-        Args:
-            db_type (AdminDBType): type of admin database
-            config_data (dict): additionnal configuration data
-
-        Raises:
-        InternalServerException: If the admin database type from the config
-            does not exist.
-
-        Returns:
-            DBConfig validated admin database configuration
-        """
-        if db_type == AdminDBType.MONGODB:
-            return MongoDBConfig.model_validate(config_data)
-        if db_type == AdminDBType.YAML:
-            return YamlDBConfig.model_validate(config_data)
-
-        raise InternalServerException(
-            f"Admin database type {db_type} not supported."
-        )
-
-    def _validate_ds_store_config(
-        self, ds_store_type: DatasetStoreType, config_data: dict
-    ) -> DatasetStoreConfig:
-        """Validate dataset store configuration parameters
-
-        Args:
-            ds_store_type (DatasetStoreType): type of admin database
-            config_data (dict): additionnal configuration data
-
-        Raises:
-        InternalServerException: If the dataset store type from the config
-            does not exist.
-
-        Returns:
-            DatasetStoreConfig validated dataset store configuration
-        """
-        if ds_store_type == DatasetStoreType.BASIC:
-            return DatasetStoreConfig.model_validate(config_data)
-        if ds_store_type == DatasetStoreType.LRU:
-            return LRUDatasetStoreConfig.model_validate(config_data)
-
-        raise InternalServerException(
-            f"Dataset store {ds_store_type} not supported."
-        )
 
     def set_config(self, config: Config) -> None:
         """

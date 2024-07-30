@@ -19,7 +19,11 @@ class DatasetStore(ABC):
 
     admin_database: AdminDatabase
 
-    def __init__(self, admin_database: AdminDatabase, private_db_credentials: List[PrivateDBCredentials]) -> None:
+    def __init__(
+        self,
+        admin_database: AdminDatabase,
+        private_db_credentials: List[PrivateDBCredentials],
+    ) -> None:
         """Initializer
 
         Args:

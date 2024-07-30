@@ -2,11 +2,10 @@ import argparse
 import time
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List
 
 from constants import MODEL_INPUT_TO_LIB
 from utils.error_handler import (
-    InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
 )
@@ -404,17 +403,6 @@ class AdminDatabase(ABC):
         Returns:
             str: The requested value.
         """
-
-    @abstractmethod
-    def get_private_db_credentials(
-        self,
-        db_type: str,
-        infos: Dict[str, str]
-    ) -> Optional[dict]:
-        if db_type == "s3":
-            ...
-        else:
-            raise InternalServerException(f"Cannot get credentials for {db_type} database type.") 
 
     @abstractmethod
     @user_must_have_access_to_dataset

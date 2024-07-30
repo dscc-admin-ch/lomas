@@ -601,46 +601,45 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
-        s3_bucket = "example"
+        bucket = "example"
         endpoint_url = "http://localhost:9000"
-        aws_access_key_id = "admin"
-        aws_secret_access_key = "admin123"
-        s3_key_file = "data/test_penguin.csv"
-        s3_key_metadata = "metadata/penguin_metadata.yaml"
+        access_key_id = "admin"
+        secret_access_key = "admin123"
+        credentials_name = "local_minio"
+        key_file = "data/test_penguin.csv"
+        key_metadata = "metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.db,
             dataset,
             database_type,
             metadata_database_type,
-            s3_bucket=s3_bucket,
-            s3_key=s3_key_file,
+            bucket=bucket,
+            key=key_file,
             endpoint_url=endpoint_url,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            metadata_s3_bucket=s3_bucket,
-            metadata_s3_key=s3_key_metadata,
+            credentials_name=credentials_name,
+            metadata_bucket=bucket,
+            metadata_key=key_metadata,
             metadata_endpoint_url=endpoint_url,
-            metadata_aws_access_key_id=aws_access_key_id,
-            metadata_aws_secret_access_key=aws_secret_access_key,
+            metadata_access_key_id=access_key_id,
+            metadata_secret_access_key=secret_access_key,
+            metadata_credentials_name=credentials_name,
         )
 
         # Check dataset collection
         expected_dataset = {
             "dataset_name": dataset,
             "database_type": database_type,
-            "s3_bucket": s3_bucket,
-            "s3_key": s3_key_file,
+            "bucket": bucket,
+            "key": key_file,
             "endpoint_url": endpoint_url,
-            "aws_access_key_id": aws_access_key_id,
-            "aws_secret_access_key": aws_secret_access_key,
+            "credentials_name": credentials_name,
             "metadata": {
                 "database_type": metadata_database_type,
-                "s3_bucket": s3_bucket,
-                "s3_key": s3_key_metadata,
+                "bucket": bucket,
+                "key": key_metadata,
                 "endpoint_url": endpoint_url,
-                "aws_access_key_id": aws_access_key_id,
-                "aws_secret_access_key": aws_secret_access_key,
+                "credentials_name": credentials_name,
             },
         }
 
@@ -652,10 +651,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         s3_client = boto3.client(
             "s3",
             endpoint_url=endpoint_url,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
         )
-        response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key_metadata)
+        response = s3_client.get_object(Bucket=bucket, Key=key_metadata)
         expected_metadata = yaml.safe_load(response["Body"])
 
         metadata_found = self.db.metadata.find_one(

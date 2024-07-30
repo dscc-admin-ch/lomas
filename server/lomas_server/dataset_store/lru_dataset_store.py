@@ -25,7 +25,10 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
     dataset_cache: OrderedDict[str, PrivateDataset]
 
     def __init__(
-        self, admin_database: AdminDatabase, private_db_credentials: List[PrivateDBCredentials], max_memory_usage: int = 1024
+        self,
+        admin_database: AdminDatabase,
+        private_db_credentials: List[PrivateDBCredentials],
+        max_memory_usage: int = 1024,
     ) -> None:
         """Initializer.
 

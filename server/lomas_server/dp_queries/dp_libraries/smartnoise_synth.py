@@ -14,13 +14,14 @@ from snsynth.transform import (
 )
 from snsynth.transform.table import TableTransformer
 
-from constants import (  # SSYNTH_DEFAULT_NB_SAMPLES,
+from constants import (
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
     SSynthColumnType,
     SSynthSynthesizer,
     SSynthTableTransStyle,
 )
+from dp_queries.dp_libraries.utils import serialise_model
 from dp_queries.dp_querier import DPQuerier
 from utils.collections_models import Metadata
 from utils.error_handler import (
@@ -282,42 +283,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         return model
 
-    def _sample(
-        self,
-        model: Synthesizer,
-        nb_samples: int,
-        query_json: dict,
-        colnames: list,
-    ) -> pd.DataFrame:
-        """
-        Sample data from the fitted synthesizer model.
-
-        Args:
-            model (Synthesizer): Fitted synthesizer model
-            nb_samples (int): Number of samples to generate
-            query_json (dict): Request body from user with
-                condition (Optional[str]): sampling condition
-                mul_matrix (List): Multiplication matrix for columns aggregations
-            colnames (list): List of column names for the samples
-
-        Returns:
-            pd.DataFrame: DataFrame of sampled data
-        """
-        # Sample based on condition
-        samples = (
-            model.sample_conditional(nb_samples, query_json.condition)
-            if query_json.condition
-            else model.sample(nb_samples)
-        )
-
-        # Format back
-        samples_df = (
-            pd.DataFrame(samples)
-            if query_json.mul_matrix
-            else pd.DataFrame(samples, columns=colnames)
-        )
-        return samples_df
-
     def query(self, query_json: SmartnoiseSynthModel) -> pd.DataFrame:
         """Perform the query and return the response.
 
@@ -344,15 +309,4 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
 
-        # # Sample from synthesizer
-        # nb_samples = (
-        #     query_json.nb_samples
-        #     or metadata.nb_row
-        #     or SSYNTH_DEFAULT_NB_SAMPLES
-        # )
-        # samples_df = self._sample(
-        #     model, nb_samples, query_json, private_data.columns
-        # )
-
-        # return samples_df.to_dict(orient="tight")
-        return model
+        return serialise_model(model)

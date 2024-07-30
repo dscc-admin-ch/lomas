@@ -18,6 +18,7 @@ from constants import (  # SSYNTH_DEFAULT_NB_SAMPLES,
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
     SSynthColumnType,
+    SSynthSynthesizer,
     SSynthTableTransStyle,
 )
 from dp_queries.dp_querier import DPQuerier
@@ -140,6 +141,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         col_categories = self._get_column_by_types(
             metadata, query_json.select_cols
         )
+
         style = query_json.table_transformer_style
         nullable = query_json.nullable
 
@@ -256,19 +258,21 @@ class SmartnoiseSynthQuerier(DPQuerier):
         """
         if query_json.delta:  # not all model take delta as argument
             query_json.synth_params["delta"] = query_json.delta
+        if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
+            query_json.synth_params["disable_dp"] = False
 
         model = Synthesizer.create(
             synth=query_json.synth_name,
             epsilon=query_json.epsilon,
             verbose=True,
-            kwargs=query_json.synth_params,
+            **query_json.synth_params,
         )
 
         try:
             model.fit(
                 data=private_data,
                 transformer=transformer,
-                preprocessor_eps=0.0,  # will error if not 0.
+                preprocessor_eps=0.0,  # will error if not 0.0
                 nullable=query_json.nullable,
             )
         except Exception as e:
@@ -332,12 +336,10 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
         private_data = self.private_dataset.get_pandas_df()
+        private_data = self._preprocess_data(private_data, query_json)
         transformer = self._prepare_data_transformer(
             metadata, private_data, query_json
         )
-
-        # Prepare private data
-        private_data = self._preprocess_data(private_data, query_json)
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)

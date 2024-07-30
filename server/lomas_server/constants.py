@@ -139,7 +139,6 @@ class SSynthColumnType(StrEnum):
 
 
 SSYNTH_PRIVATE_COLUMN = "uuid"
-SSYNTH_DEFAULT_NB_SAMPLES = 100
 
 
 # OpenDP

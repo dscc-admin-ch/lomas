@@ -77,8 +77,6 @@ class SmartnoiseSynthModel(BaseModel):
     synth_params: dict = {}
     mul_matrix: List = []
     nullable: bool = True
-    condition: Optional[str] = None
-    nb_samples: Optional[int] = None
     table_transformer_style: SSynthTableTransStyle = SSynthTableTransStyle.GAN
 
 

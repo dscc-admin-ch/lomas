@@ -7,7 +7,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app import app
-from tests.test_api import TestRootAPIEndpoint
+from tests.test_api_root import TestSetupRootAPIEndpoint
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -17,7 +17,9 @@ from utils.example_inputs import (
 )
 
 
-class TestOpenDpPolarsEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+class TestOpenDpPolarsEndpoint(
+    TestSetupRootAPIEndpoint
+):  # pylint: disable=R0904
     """
     Test OpenDP Endpoint with different polars plans.
     """

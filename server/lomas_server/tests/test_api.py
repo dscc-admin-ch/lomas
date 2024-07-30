@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 from io import StringIO
 
 import opendp.prelude as dp_p
@@ -9,21 +8,15 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
-from pymongo.database import Database
 
-from admin_database.utils import database_factory, get_mongodb
+from admin_database.utils import database_factory
 from app import app
 from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
-from mongodb_admin import (
-    add_datasets_via_yaml,
-    add_users_via_yaml,
-    drop_collection,
-)
 from tests.constants import (
-    ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
+from tests.test_api_root import TestSetupRootAPIEndpoint
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
 from utils.example_inputs import (
@@ -47,7 +40,7 @@ INITIAL_DELTA = 0.005
 enable_features("floating-point")
 
 
-class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
+class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """
     End-to-end tests of the api endpoints.
 
@@ -56,66 +49,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     or a standard test. The first requires a mongodb to be started
     before running while the latter will use a local YamlDatabase.
     """
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        # Read correct config depending on the database we test against
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config_mongo.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
-        else:
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        pass
-
-    def setUp(self) -> None:
-        """Set Up Header and DB for test"""
-        self.user_name = "Dr. Antartica"
-        self.dataset = PENGUIN_DATASET
-        self.headers = {
-            "Content-type": "application/json",
-            "Accept": "*/*",
-        }
-        self.headers["user-name"] = self.user_name
-
-        # Fill up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            self.db: Database = get_mongodb()
-
-            add_users_via_yaml(
-                self.db,
-                yaml_file="tests/test_data/test_user_collection.yaml",
-                clean=True,
-                overwrite=True,
-            )
-
-            if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
-                yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
-            else:
-                yaml_file = "tests/test_data/test_datasets.yaml"
-
-            add_datasets_via_yaml(
-                self.db,
-                yaml_file=yaml_file,
-                clean=True,
-                overwrite_datasets=True,
-                overwrite_metadata=True,
-            )
-
-    def tearDown(self) -> None:
-        # Clean up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            drop_collection(self.db, "metadata")
-            drop_collection(self.db, "datasets")
-            drop_collection(self.db, "users")
-            drop_collection(self.db, "queries_archives")
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration"""

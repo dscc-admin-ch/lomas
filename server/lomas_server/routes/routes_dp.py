@@ -213,7 +213,7 @@ def smartnoise_synth_handler(
                 Defaults to None.
             - select_cols (List[str]): List of columns to select.
                 Defaults to None.
-            - model_params (dict): Keyword arguments to pass to the synthesizer
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
@@ -271,7 +271,7 @@ def dummy_smartnoise_synth_handler(
                 Defaults to None.
             - select_cols (List[str]): List of columns to select.
                 Defaults to None.
-            - model_params (dict): Keyword arguments to pass to the synthesizer
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
@@ -336,7 +336,7 @@ def estimate_smartnoise_synth_cost(
                 Defaults to None.
             - select_cols (List[str]): List of columns to select.
                 Defaults to None.
-            - model_params (dict): Keyword arguments to pass to the synthesizer
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.

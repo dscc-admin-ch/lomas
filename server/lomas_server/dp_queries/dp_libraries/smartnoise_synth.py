@@ -64,9 +64,9 @@ class SmartnoiseSynthQuerier(DPQuerier):
             case "string" | "boolean":
                 return SSynthColumnType.CATEGORICAL
             case "int" | "float":
-                if data["lower"]:
+                if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
-                if data["cardinality"]:
+                if "cardinality" in data.keys():
                     return SSynthColumnType.CATEGORICAL
                 return SSynthColumnType.ORDINAL
             case "datetime":
@@ -102,7 +102,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             if select_cols and col_name not in select_cols:
                 continue
 
-            if data["private_id"]:
+            if "private_id" in data.keys():
                 col_categories[SSynthColumnType.PRIVATE_ID].append(col_name)
                 continue
 
@@ -162,7 +162,11 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(),
-                        MinMaxTransformer(nullable=nullable),
+                        MinMaxTransformer(
+                            lower=metadata["columns"][col]["lower"],
+                            upper=metadata["columns"][col]["upper"],
+                            nullable=nullable,
+                        ),
                     ]
                 )
             for col in col_categories[SSynthColumnType.ORDINAL]:
@@ -244,23 +248,24 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 epsilon (float): epsilon budget value
                 delta (float): delta budget value
                 nullable (bool): True if some data cells may be null
-                model_params (dict): Keyword arguments to pass to the synthesizer
+                synth_params (dict): Keyword arguments to pass to the synthesizer
                     constructor.
 
         Returns:
             Synthesizer: Fitted synthesizer model
         """
         if query_json.delta:  # not all model take delta as argument
-            query_json.model_params["delta"] = query_json.delta
+            query_json.synth_params["delta"] = query_json.delta
 
         model = Synthesizer.create(
             synth=query_json.synth_name,
             epsilon=query_json.epsilon,
-            kwargs=query_json.model_params,
+            verbose=True,
+            kwargs=query_json.synth_params,
         )
 
         try:
-            model = model.fit(
+            model.fit(
                 data=private_data,
                 transformer=transformer,
                 preprocessor_eps=0.0,  # will error if not 0.

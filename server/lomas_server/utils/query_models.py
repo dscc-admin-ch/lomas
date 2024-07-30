@@ -74,7 +74,7 @@ class SmartnoiseSynthModel(BaseModel):
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
     delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
     select_cols: List = []
-    model_params: dict = {}
+    synth_params: dict = {}
     mul_matrix: List = []
     nullable: bool = True
     condition: Optional[str] = None

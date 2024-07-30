@@ -68,7 +68,7 @@ example_smartnoise_synth = {
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "select_cols": [],
-    "model_params": {},
+    "synth_params": {},
     "mul_matrix": [],
     "nullable": True,
     "condition": None,

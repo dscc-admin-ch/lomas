@@ -120,9 +120,6 @@ class SSynthSynthesizer(StrEnum):
     PATE_GAN = "pategan"  # no documentation
     DP_GAN = "dpgan"  # no documentation
 
-    # Hybrid Synthesizer
-    QUAIL = "quail"
-
 
 class SSynthTableTransStyle(StrEnum):
     """Transformer style for smartnoise synth"""

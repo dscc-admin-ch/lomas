@@ -1,6 +1,4 @@
-import pickle
 import warnings
-from base64 import b64encode
 from typing import Dict
 
 import pandas as pd
@@ -10,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from constants import DPLibraries
-from dp_queries.dp_libraries.utils import handle_missing_data
+from dp_queries.dp_libraries.utils import handle_missing_data, serialise_model
 from dp_queries.dp_querier import DPQuerier
 from utils.error_handler import ExternalLibraryException
 from utils.query_models import DiffPrivLibModel
@@ -116,11 +114,9 @@ class DiffPrivLibQuerier(DPQuerier):
         score = fitted_dpl_pipeline.score(x_test, y_test)
 
         # Serialise model
-        pickled_model = b64encode(pickle.dumps(fitted_dpl_pipeline))
-
         query_response = {
             "score": score,
-            "model": pickled_model.decode("utf-8"),
+            "model": serialise_model(fitted_dpl_pipeline),
         }
         return query_response
 

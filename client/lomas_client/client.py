@@ -231,13 +231,11 @@ class Client:
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
+        delta: float = 0,
         select_cols: Optional[List[str]] = None,
         synth_params: Optional[dict] = None,
         mul_matrix: Optional[List] = None,
         nullable: bool = True,
-        condition: Optional[str] = None,
-        nb_samples: Optional[int] = None,
         table_transformer_style: str = "gan",
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -252,7 +250,7 @@ class Client:
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
+                Defaults to 0.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
             synth_params (dict): Keyword arguments to pass to the synthesizer
@@ -264,14 +262,8 @@ class Client:
                 Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
-            condition (Optional[str]): sampling condition
-                Defaults to None.
-            nb_sample (Optional[int]): number of samples to generete.
-                If None and the number of row of private dataset is public,
-                    then defaults to number of row of private dataset.
-                If None and the number of row of private dataset is not public,
-                    then defaults to 100.
-
+            table_transformer_style (str): style of table transformer ('gan' or 'cube')
+                Defaults to "gan".
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
@@ -284,8 +276,6 @@ class Client:
             "synth_params": synth_params,
             "mul_matrix": mul_matrix,
             "nullable": nullable,
-            "condition": condition,
-            "nb_samples": nb_samples,
             "table_transformer_style": table_transformer_style,
         }
         if dummy:
@@ -298,12 +288,10 @@ class Client:
         res = self._exec(endpoint, body_json)
 
         if res.status_code == HTTP_200_OK:
-            data = res.content.decode("utf8")
-            response_dict = json.loads(data)
-            response_dict["query_response"] = pd.DataFrame.from_dict(
-                response_dict["query_response"], orient="tight"
-            )
-            return response_dict
+            response = res.json()
+            model = base64.b64decode(response["query_response"])
+            response["query_response"] = json.loads(model)
+            return response
 
         print(error_message(res))
         return None
@@ -312,13 +300,11 @@ class Client:
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
+        delta: float = 0,
         select_cols: Optional[List[str]] = None,
         synth_params: Optional[dict] = None,
         mul_matrix: Optional[List] = None,
         nullable: bool = True,
-        condition: Optional[str] = None,
-        nb_samples: Optional[int] = None,
         table_transformer_style: str = "gan",
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing a SmartNoise query.
@@ -330,7 +316,7 @@ class Client:
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
+                Defaults to 0.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
             synth_params (dict): Keyword arguments to pass to the synthesizer
@@ -342,13 +328,8 @@ class Client:
                 Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
-            condition (Optional[str]): sampling condition
-                Defaults to None.
-            nb_sample (Optional[int]): number of samples to generete.
-                If None and the number of row of private dataset is public,
-                    then defaults to number of row of private dataset.
-                If None and the number of row of private dataset is not public,
-                    then defaults to 100.
+            table_transformer_style (str): style of table transformer ('gan' or 'cube')
+                Defaults to "gan".
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
@@ -362,8 +343,6 @@ class Client:
             "synth_params": synth_params,
             "mul_matrix": mul_matrix,
             "nullable": nullable,
-            "condition": condition,
-            "nb_samples": nb_samples,
             "table_transformer_style": table_transformer_style,
         }
         res = self._exec("estimate_smartnoise_synth_cost", body_json)

@@ -1,0 +1,22 @@
+max_ids: 1
+row_privacy: true
+censor_dims: False
+columns:
+  age:
+    type: int
+    lower: 18
+    upper: 70
+  sex:
+    type: boolean
+  educ:
+    type: int
+    cardinality: 14
+  race:
+    type: int
+    cardinality: 6
+  income:
+    type: float
+    lower: 0.0
+    upper: 500_000.0
+  married:
+    type: boolean

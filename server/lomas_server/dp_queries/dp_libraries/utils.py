@@ -1,3 +1,7 @@
+import pickle
+from base64 import b64encode
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -69,3 +73,18 @@ def handle_missing_data(
 
     df = df.astype(dtype=dtypes)
     return df
+
+
+def serialise_model(model: Any) -> str:
+    """
+    Serialise a python object (fitted Smartnoise Synth synthesizer of
+    fitted DiffPrivLib pipeline) into an utf-8 string
+
+    Args:
+        model (Any): An object to serialise
+
+    Returns:
+        str: string of serialised model
+    """
+    serialised = b64encode(pickle.dumps(model))
+    return serialised.decode("utf-8")

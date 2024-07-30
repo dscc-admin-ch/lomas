@@ -207,12 +207,12 @@ dtypes_income_dataset = {
     "education": "int32",
     "age": "int32",
     "sex": "int32",
-    "income": "float64"
+    "income": "float64",
 }
 
 example_opendp_polars = {
     "dataset_name": FSO_INCOME_DATASET,
-    "opendp_json": None, # OPENDP_POLARS_JSON,
+    "opendp_json": None,  # OPENDP_POLARS_JSON,
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,
     "mechanism": "laplace",

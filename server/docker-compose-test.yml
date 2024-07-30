@@ -28,7 +28,7 @@ services:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
     ports:
-      - "9000:9000"
+      - "10000:10000"
     volumes:
       - minio-data:/data
     networks:

@@ -233,7 +233,7 @@ class Client:
         epsilon: float,
         delta: Optional[float] = None,
         select_cols: Optional[List[str]] = None,
-        model_params: Optional[dict] = None,
+        synth_params: Optional[dict] = None,
         mul_matrix: Optional[List] = None,
         nullable: bool = True,
         condition: Optional[str] = None,
@@ -255,7 +255,7 @@ class Client:
                 Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
-            model_params (dict): Keyword arguments to pass to the synthesizer
+            synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
@@ -281,7 +281,7 @@ class Client:
             "epsilon": epsilon,
             "delta": delta,
             "select_cols": select_cols,
-            "model_params": model_params,
+            "synth_params": synth_params,
             "mul_matrix": mul_matrix,
             "nullable": nullable,
             "condition": condition,
@@ -314,7 +314,7 @@ class Client:
         epsilon: float,
         delta: Optional[float] = None,
         select_cols: Optional[List[str]] = None,
-        model_params: Optional[dict] = None,
+        synth_params: Optional[dict] = None,
         mul_matrix: Optional[List] = None,
         nullable: bool = True,
         condition: Optional[str] = None,
@@ -333,7 +333,7 @@ class Client:
                 Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
-            model_params (dict): Keyword arguments to pass to the synthesizer
+            synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
@@ -359,7 +359,7 @@ class Client:
             "epsilon": epsilon,
             "delta": delta,
             "select_cols": select_cols,
-            "model_params": model_params,
+            "synth_params": synth_params,
             "mul_matrix": mul_matrix,
             "nullable": nullable,
             "condition": condition,

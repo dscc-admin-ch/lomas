@@ -123,7 +123,6 @@ async def lifespan(
             app.state.server_state["LIVE"] = False
             status_ok = False
 
-    # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
 
     if status_ok:

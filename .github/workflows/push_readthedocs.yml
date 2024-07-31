@@ -22,12 +22,14 @@ jobs:
       with:
         python-version: "3.11"
     - name: Install dependencies
+      # Temporary manually install pre-release version of opendp.
       run: |
         cd client
         pip install -r requirements.txt
         cd ../server
         pip install -r requirements.txt
         cd ../
+        pip install opendp==0.10.0a20240722001
 
     - name: Build with sphinx
       run: |

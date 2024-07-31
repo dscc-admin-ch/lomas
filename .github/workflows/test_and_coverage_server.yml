@@ -25,9 +25,11 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install dependencies
+      # Temporary manually install pre-release version of opendp.
       run: |
         cd server
         pip install -r requirements.txt
+        pip install opendp==0.10.0a20240722001
         pip install coverage==7.5.3
     - name: Run test script
       run: |

@@ -1,4 +1,5 @@
 import io
+import os
 from typing import List, Union
 
 import opendp as dp
@@ -120,7 +121,6 @@ class OpenDPQuerier(DPQuerier):
 
         # Get metadata once and for all
         self.metadata = dict(self.private_dataset.get_metadata())
-        
 
     def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
         """
@@ -141,7 +141,9 @@ class OpenDPQuerier(DPQuerier):
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
+        opendp_pipe = reconstruct_measurement_pipeline(
+            query_json, self.metadata
+        )
 
         measurement_type = get_output_measure(opendp_pipe)
         # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
@@ -293,7 +295,10 @@ def reconstruct_measurement_pipeline(
         opendp_pipe = make_load_json(query_json.opendp_json)
     elif query_json.pipeline_type == "polars":
         # TODO Might pickle, huge security implications!!
-        plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json))
+        plan = pl.LazyFrame.deserialize(
+            io.StringIO(query_json.opendp_json), format="json"
+        )
+
         output_measure = {
             "laplace": dp.measures.max_divergence(
                 T=query_json.output_measure_type_arg,
@@ -305,6 +310,12 @@ def reconstruct_measurement_pipeline(
 
         lf_domain = get_lf_domain(metadata)
 
+        LOG.info(
+            "NOTE: IF THERE IS AN ERROR HERE."
+            "Make private lazyframe relies on OPENDP_LIB_PATH variable."
+            "This will change shortly to OPENDP_POLARS_LIB_PATH when "
+            "https://github.com/opendp/opendp/pull/1839f gets merged."
+        )
         opendp_pipe = dp.measurements.make_private_lazyframe(
             lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
         )
@@ -367,6 +378,10 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
     """Enable opendp features based on config
     See https://github.com/opendp/opendp/discussions/304
 
+    Also sets the "OPENDP_POLARS_LIB_PATH" environment variable
+    for correctly creating private lazyframes from deserialized
+    polars plans.
+
     Args:
         opendp_config (OpenDPConfig): OpenDP configurations
     """
@@ -378,3 +393,8 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
 
     if opendp_config.honest_but_curious:
         enable_features("honest-but-curious")
+
+    # Set DP Libraries config
+    from opendp._lib import lib_path
+
+    os.environ["OPENDP_LIB_PATH"] = str(lib_path)

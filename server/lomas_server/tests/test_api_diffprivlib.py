@@ -13,7 +13,7 @@ from sklearn.pipeline import Pipeline
 
 from app import app
 from constants import DPLibraries
-from tests.test_api import TestRootAPIEndpoint
+from tests.test_api_root import TestSetupRootAPIEndpoint
 from utils.example_inputs import example_diffprivlib, example_dummy_diffprivlib
 
 
@@ -27,7 +27,9 @@ def validate_pipeline(response):
     assert response_dict["query_response"]["model"]
 
 
-class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+class TestDiffPrivLibEndpoint(
+    TestSetupRootAPIEndpoint
+):  # pylint: disable=R0904
     """
     Test DiffPrivLib Endpoint with different models
     """

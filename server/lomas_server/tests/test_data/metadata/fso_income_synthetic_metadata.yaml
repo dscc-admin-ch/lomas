@@ -1,0 +1,30 @@
+max_ids: 1
+columns:
+  region:
+    type: int
+    precision: 32
+    cardinality: 7 # Added by Lomas
+    categories: [1, 2, 3, 4, 5, 6, 7]
+  eco_branch:
+    type: int
+    precision: 32
+  profession:
+    type: int
+    precision: 32
+  education:
+    type: int
+    precision: 32
+  age:
+    type: int
+    precision: 32
+  sex:
+    type: int
+    precision: 32
+    cardinality: 2 # Added by Lomas
+    categories: [1, 2]
+  income:
+    type: float
+    precision: 64
+    lower: 1000.0
+    upper: 100000.0
+rows: 2_032_543 # Added by Lomas, note present in examples from SmartNoiseSQL although not documented.

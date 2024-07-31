@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 from admin_database.admin_database import AdminDatabase
 from constants import PrivateDatabaseType
@@ -41,26 +41,23 @@ def private_dataset_factory(
             )
             private_db = PathDataset(ds_metadata, dataset_path)
         case PrivateDatabaseType.S3:
-            s3_parameters = {}
-            s3_parameters["bucket"] = admin_database.get_dataset_field(
-                dataset_name, "bucket"
+
+            credentials_name = admin_database.get_dataset_field(
+                dataset_name, "credentials_name"
             )
-            s3_parameters["key"] = admin_database.get_dataset_field(
-                dataset_name, "key"
+
+            credentials = get_dataset_credentials(
+                private_db_credentials, database_type, credentials_name
             )
-            s3_parameters["endpoint_url"] = admin_database.get_dataset_field(
+
+            credentials.endpoint_url = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
             )
-
-            s3_parameters["credentials_name"] = (
-                admin_database.get_dataset_field(
-                    dataset_name, "credentials_name"
-                )
+            credentials.bucket = admin_database.get_dataset_field(
+                dataset_name, "bucket"
             )
-
-            db_type = "s3"
-            credentials = get_dataset_credentials(
-                private_db_credentials, db_type, s3_parameters
+            credentials.key = admin_database.get_dataset_field(
+                dataset_name, "key"
             )
 
             private_db = S3Dataset(ds_metadata, credentials)
@@ -74,31 +71,32 @@ def private_dataset_factory(
 
 def get_dataset_credentials(
     private_db_credentials: List[PrivateDBCredentials],
-    db_type: str,
-    ds_infos: Dict[str, str],
+    db_type: PrivateDatabaseType,
+    credentials_name: str,
 ) -> PrivateDBCredentials:
-    """_summary_
+    """
+    Search the list of private database credentials and
+    returns the one that matches the database type and
+    credentials name.
 
     Args:
-        private_db_credentials (List[PrivateDBCredentials]): _description_
-        db_type (str): _description_
+        private_db_credentials (List[PrivateDBCredentials]):\
+            The list of private database credentials.
+        db_type (PrivateDatabaseType): The type of the database.
         ds_infos (Dict[str, str]): _description_
 
     Raises:
-        InternalServerException: _description_
+        InternalServerException: If the credentials are not found.
 
     Returns:
-        PrivateDBCredentials: _description_
+        PrivateDBCredentials: The matching credentials.
     """
 
-    if db_type == "s3":
+    if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials:
             if isinstance(c, S3CredentialsConfig) and (
-                ds_infos["credentials_name"] == c.credentials_name
+                credentials_name == c.credentials_name
             ):
-                c.endpoint_url = ds_infos["endpoint_url"]
-                c.bucket = ds_infos["bucket"]
-                c.key = ds_infos["key"]
                 return c
 
     raise InternalServerException(

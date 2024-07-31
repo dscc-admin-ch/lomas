@@ -3,9 +3,9 @@ from snsql import Mechanism, Privacy, Stat, from_connection
 
 from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
-from utils.collections_models import Metadata
+from utils.collection_models import Metadata
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
-from utils.input_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
+from utils.query_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
 
 
 class SmartnoiseSQLQuerier(DPQuerier):

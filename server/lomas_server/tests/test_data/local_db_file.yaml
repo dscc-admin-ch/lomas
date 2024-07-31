@@ -15,16 +15,22 @@ datasets:
   database_type: "S3_DB"
   s3_bucket: "example"
   s3_key: "data/test_penguin.csv"
-  endpoint_url: "http://localhost:9000"
+  endpoint_url: "http://localhost:10000"
   aws_access_key_id: "admin"
   aws_secret_access_key: "admin123"
   metadata:
     database_type: "S3_DB"
     s3_bucket: "example"
     s3_key: "metadata/penguin_metadata.yaml"
-    endpoint_url: "http://localhost:9000"
+    endpoint_url: "http://localhost:10000"
     aws_access_key_id: "admin"
     aws_secret_access_key: "admin123"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  database_type: "PATH_DB"
+  dataset_path: "tests/test_data/income_synthetic_data.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "tests/test_data/metadata/fso_income_synthetic_metadata.yaml"
 users:
 - user_name: Dr. Antartica
   may_query: True
@@ -35,6 +41,11 @@ users:
     total_spent_epsilon: 0
     total_spent_delta: 0
   - dataset_name: "TINTIN_S3_TEST"
+    initial_epsilon: 10
+    initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
+  - dataset_name: "FSO_INCOME_SYNTHETIC"
     initial_epsilon: 10
     initial_delta: 0.005
     total_spent_epsilon: 0

@@ -11,6 +11,12 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  database_type: "PATH_DB"
+  dataset_path: "tests/test_data/income_synthetic_data.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "tests/test_data/metadata/fso_income_synthetic_metadata.yaml"
 - dataset_name: "TINTIN_S3_TEST"
   database_type: "S3_DB"
   s3_bucket: "example"

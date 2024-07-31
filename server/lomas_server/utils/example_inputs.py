@@ -199,20 +199,38 @@ example_dummy_diffprivlib = {
     "dummy_seed": DUMMY_SEED,
 }
 
+OPENDP_POLARS_JSON = (
+    '{"Select":{"expr":[{"BinaryExpr":{"left":{"Function":{"input":'
+    '[{"Agg":{"Sum":{"Function":{"input":[{"Column":"income"},'
+    '{"Literal":{"Float":1000.0}},{"Literal":{"Float":100000.0}}],'
+    '"function":{"Clip":{"has_min":true,"has_max":true}},"options":'
+    '{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":'
+    'false,"returns_scalar":false,"allow_rename":false,"pass_name_to_apply":'
+    'false,"changes_length":false,"check_lengths":true,"allow_group_aware":'
+    'true}}}}},{"Literal":"Null"},{"Literal":{"Int":1000}}],"function":'
+    '{"FfiPlugin":{"lib":"/home/azureuser/Desktop/POC/lomas/.venv/lib/python3.11/'
+    'site-packages/opendp/lib/opendp.abi3.so","symbol":"noise","kwargs":[]}},'
+    '"options":{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":'
+    'false,"returns_scalar":false,"allow_rename":false,"pass_name_to_apply":false,'
+    '"changes_length":false,"check_lengths":true,"allow_group_aware":true}}},'
+    '"op":"TrueDivide","right":"Len"}}],"input":{"DataFrameScan":{"df":{"columns":'
+    '[{"name":"region","datatype":"Int32","bit_settings":"","values":[6]},'
+    '{"name":"eco_branch","datatype":"Int32","bit_settings":"","values":[2739]},'
+    '{"name":"profession","datatype":"Int32","bit_settings":"","values":[223]},'
+    '{"name":"education","datatype":"Int32","bit_settings":"","values":[-4604]},'
+    '{"name":"age","datatype":"Int32","bit_settings":"","values":[-3844]},'
+    '{"name":"sex","datatype":"Int32","bit_settings":"","values":[1]},'
+    '{"name":"income","datatype":"Float64","bit_settings":"","values":'
+    '[2636.2359173243804]}]},"schema":{"inner":{"region":"Int32","eco_branch":'
+    '"Int32","profession":"Int32","education":"Int32","age":"Int32","sex":"Int32",'
+    '"income":"Float64"}},"output_schema":null,"filter":null}},"options":'
+    '{"run_parallel":true,"duplicate_check":true,"should_broadcast":true}}}'
+)
 
-dtypes_income_dataset = {
-    "region": "int32",
-    "eco_branch": "int32",
-    "profession": "int32",
-    "education": "int32",
-    "age": "int32",
-    "sex": "int32",
-    "income": "float64",
-}
 
 example_opendp_polars = {
     "dataset_name": FSO_INCOME_DATASET,
-    "opendp_json": None,  # OPENDP_POLARS_JSON,
+    "opendp_json": OPENDP_POLARS_JSON,
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,
     "mechanism": "laplace",

@@ -1,8 +1,5 @@
 import json
-from io import StringIO
 
-import pandas as pd
-import polars as pl
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -11,8 +8,6 @@ from tests.test_api_root import TestSetupRootAPIEndpoint
 from utils.example_inputs import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
-    FSO_INCOME_DATASET,
-    dtypes_income_dataset,
     example_opendp_polars,
 )
 
@@ -24,86 +19,44 @@ class TestOpenDpPolarsEndpoint(
     Test OpenDP Endpoint with different polars plans.
     """
 
-    def get_body_json(self, client, column="income", scale=1000):
-        """Get the opendp json body requires to perform an opendp query with
-        a specific polar plan.
-
-        Args:
-            client (TestClient): The client's app required to send the queries
-            column (str, optional): The column selected in the test
-                dataset (fso income). Defaults to "income".
-            scale (int, optional): Noise scale parameter.
-                Defaults to 1000.
-
-        Returns:
-            dict(str, Any):  The input dictionary required to perform
-                the opendp pipeline.
-        """
-
-        # test income
-        res = client.post(
-            "/get_dummy_dataset",
-            json={
-                "dataset_name": FSO_INCOME_DATASET,
-                "dummy_nb_rows": 1,
-                "dummy_seed": 0,
-            },
-        )
-
-        data = res.content.decode("utf8")
-        df = pd.read_csv(StringIO(data), dtype=dtypes_income_dataset)
-        lf = pl.from_pandas(df).lazy()
-        plan = lf.select(
-            pl.col(column).dp.mean(bounds=(1000.0, 100000.0), scale=scale)
-        )
-        polars_string = plan.serialize(format="json")
-
-        opendp_polars_body = dict(example_opendp_polars)
-        opendp_polars_body["opendp_json"] = polars_string
-
-        return opendp_polars_body
-
     def test_opendp_polars_query(self) -> None:
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:
-            opendp_polars_body = self.get_body_json(client)
 
             # Laplace
             response = client.post(
                 "/opendp_query",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
 
             # Gaussian
-            opendp_polars_body["mechanism"] = "gaussian"
+            example_opendp_polars["mechanism"] = "gaussian"
             response = client.post(
                 "/opendp_query",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
 
     def test_opendp_polars_cost(self) -> None:
         """test_opendp_polars_cost"""
         with TestClient(app, headers=self.headers) as client:
-            opendp_polars_body = self.get_body_json(client)
-
             # Expect to work
+            example_opendp_polars["mechanism"] = "laplace"
             response = client.post(
                 "/estimate_opendp_cost",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
-
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["epsilon_cost"] > 0.0
             assert response_dict["delta_cost"] == 0
 
             # Check estimation works for Gaussian mechanism
-            opendp_polars_body["mechanism"] = "gaussian"
+            example_opendp_polars["mechanism"] = "gaussian"
             response = client.post(
                 "/estimate_opendp_cost",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["epsilon_cost"] > 0.0
@@ -112,14 +65,13 @@ class TestOpenDpPolarsEndpoint(
     def test_dummy_opendp_polars_query(self) -> None:
         """test_dummy_opendp_polars_query"""
         with TestClient(app, headers=self.headers) as client:
-            opendp_polars_body = self.get_body_json(client)
-
             # Expect to work
-            opendp_polars_body["dummy_nb_rows"] = DUMMY_NB_ROWS
-            opendp_polars_body["dummy_seed"] = DUMMY_SEED
+            example_opendp_polars["mechanism"] = "laplace"
+            example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
+            example_opendp_polars["dummy_seed"] = DUMMY_SEED
             response = client.post(
                 "/dummy_opendp_query",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
@@ -127,12 +79,12 @@ class TestOpenDpPolarsEndpoint(
             assert response_dict["query_response"]
 
             # Test dummy query with Gaussian mechanism
-            opendp_polars_body["dummy_nb_rows"] = DUMMY_NB_ROWS
-            opendp_polars_body["dummy_seed"] = DUMMY_SEED
-            opendp_polars_body["mechanism"] = "gaussian"
+            example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
+            example_opendp_polars["dummy_seed"] = DUMMY_SEED
+            example_opendp_polars["mechanism"] = "gaussian"
             response = client.post(
                 "/dummy_opendp_query",
-                json=opendp_polars_body,
+                json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))

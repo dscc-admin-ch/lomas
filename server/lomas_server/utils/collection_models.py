@@ -1,6 +1,6 @@
 from typing import Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from constants import PrivateDatabaseType
 
@@ -56,7 +56,9 @@ class Dataset(BaseModel):
     """BaseModel for a dataset"""
 
     dataset_name: str
-    metadata: Union[MetadataOfPathDB, MetadataOfS3DB]
+    metadata: Union[MetadataOfPathDB, MetadataOfS3DB] = Field(
+        ..., discriminator="database_type"
+    )
 
 
 class DatasetOfPathDB(Dataset):
@@ -79,7 +81,9 @@ class DatasetOfS3DB(Dataset):
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]]
+    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]] = Field(
+        ..., discriminator="database_type"
+    )
 
 
 class Metadata(BaseModel):

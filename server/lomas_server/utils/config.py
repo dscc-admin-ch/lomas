@@ -1,7 +1,7 @@
 from typing import Dict, List, Literal, Union
 
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from constants import (
     CONFIG_PATH,
@@ -36,6 +36,10 @@ class Server(BaseModel):
 class DatasetStoreConfig(BaseModel):
     """BaseModel for dataset store configs"""
 
+
+class BasicDatasetStoreConfig(DatasetStoreConfig):
+    """BaseModel for basic dataset store configs"""
+
     ds_store_type: Literal[DatasetStoreType.BASIC.value]  # type: ignore
 
 
@@ -48,8 +52,6 @@ class LRUDatasetStoreConfig(DatasetStoreConfig):
 
 class DBConfig(BaseModel):
     """BaseModel for database type config"""
-
-    # db_type: str = AdminDBType
 
 
 class YamlDBConfig(DBConfig):
@@ -113,11 +115,17 @@ class Config(BaseModel):
     # A limit on the rate which users can submit answers
     submit_limit: float
 
-    admin_database: Union[MongoDBConfig, YamlDBConfig]
+    admin_database: Union[MongoDBConfig, YamlDBConfig] = Field(
+        ..., discriminator="db_type"
+    )
 
-    private_db_credentials: List[Union[S3CredentialsConfig]]
+    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(
+        ..., discriminator="db_type"
+    )
 
-    dataset_store: Union[DatasetStoreConfig, LRUDatasetStoreConfig]
+    dataset_store: Union[BasicDatasetStoreConfig, LRUDatasetStoreConfig] = (
+        Field(..., discriminator="ds_store_type")
+    )
 
     dp_libraries: DPLibraryConfig
 

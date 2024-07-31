@@ -254,7 +254,9 @@ def smartnoise_synth_handler(
 )
 def dummy_smartnoise_synth_handler(
     request: Request,
-    query_json: SmartnoiseSynthModel = Body(example_dummy_smartnoise_synth),
+    query_json: DummySmartnoiseSynthModel = Body(
+        example_dummy_smartnoise_synth
+    ),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -319,7 +321,7 @@ def dummy_smartnoise_synth_handler(
 )
 def estimate_smartnoise_synth_cost(
     request: Request,
-    query_json: DummySmartnoiseSynthModel = Body(example_smartnoise_synth),
+    query_json: SmartnoiseSynthModel = Body(example_smartnoise_synth),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """

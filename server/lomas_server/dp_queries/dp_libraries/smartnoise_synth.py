@@ -3,11 +3,10 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 from snsynth import Synthesizer
-from snsynth.transform import (
+from snsynth.transform import (  # DateTimeTransformer,
     AnonymizationTransformer,
     BinTransformer,
     ChainTransformer,
-    DateTimeTransformer,
     LabelTransformer,
     MinMaxTransformer,
     OneHotEncoder,
@@ -23,13 +22,13 @@ from constants import (
 )
 from dp_queries.dp_libraries.utils import serialise_model
 from dp_queries.dp_querier import DPQuerier
-from utils.collections_models import Metadata
+from utils.collection_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.input_models import SmartnoiseSynthModel, SmartnoiseSynthModelCost
+from utils.query_models import SmartnoiseSynthModel
 
 
 class SmartnoiseSynthQuerier(DPQuerier):
@@ -37,9 +36,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
 
-    def cost(
-        self, query_json: SmartnoiseSynthModelCost
-    ) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSynthModel) -> tuple[float, float]:
         """Return cost of query
 
         Args:
@@ -260,7 +257,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         if query_json.delta:  # not all model take delta as argument
             query_json.synth_params["delta"] = query_json.delta
         if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
-            query_json.synth_params["disable_dp"] = False
+            query_json.synth_params["disabled_dp"] = False
 
         model = Synthesizer.create(
             synth=query_json.synth_name,
@@ -268,7 +265,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             verbose=True,
             **query_json.synth_params,
         )
-
         try:
             model.fit(
                 data=private_data,
@@ -308,5 +304,4 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
-
         return serialise_model(model)

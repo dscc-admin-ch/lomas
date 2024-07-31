@@ -73,11 +73,11 @@ class SmartnoiseSynthModel(BaseModel):
     synth_name: SSynthSynthesizer
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
     delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
-    select_cols: List = []
-    synth_params: dict = {}
-    mul_matrix: List = []
-    nullable: bool = True
-    table_transformer_style: SSynthTableTransStyle = SSynthTableTransStyle.GAN
+    select_cols: List
+    synth_params: dict
+    mul_matrix: List
+    nullable: bool
+    table_transformer_style: SSynthTableTransStyle
 
 
 class DummySmartnoiseSynthModel(SmartnoiseSynthModel):

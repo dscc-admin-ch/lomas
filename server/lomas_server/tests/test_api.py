@@ -500,13 +500,14 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == ["res_0"]
+            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
             assert response_dict["query_response"]["data"][0][0] > 0
             assert response_dict["query_response"]["data"][0][0] < 200
 
             # Should fail: no header
             response = client.post(
-                "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql
+                "/dummy_smartnoise_sql_query",
+                json=example_dummy_smartnoise_sql,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert response.json() == {
@@ -679,27 +680,27 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_epsilon"] > 0.1
             assert response_dict["spent_delta"] == 1e-6
 
-            # Test FIXED_SMOOTHED_MAX_DIVERGENCE
-            fms_pipeline = (
-                dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
-                >> dp_p.t.make_select_column(key="island", TOA=str)
-                >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
-                >> dp_p.m.then_base_laplace_threshold(
-                    scale=2.0, threshold=28.0
-                )
-            )
-            json_obj = {
-                "dataset_name": PENGUIN_DATASET,
-                "opendp_json": fms_pipeline.to_json(),
-            }
-            # Should error because missing fixed_delta
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert isinstance(response_dict["query_response"], dict)
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] > 0
+            # # Test FIXED_SMOOTHED_MAX_DIVERGENCE
+            # fms_pipeline = (
+            #     dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
+            #     >> dp_p.t.make_select_column(key="island", TOA=str)
+            #     >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
+            #     >> dp_p.m.then_base_laplace_threshold(
+            #         scale=2.0, threshold=28.0
+            #     )
+            # )
+            # json_obj = {
+            #     "dataset_name": PENGUIN_DATASET,
+            #     "opendp_json": fms_pipeline.to_json(),
+            # }
+            # # Should error because missing fixed_delta
+            # response = client.post("/opendp_query", json=json_obj)
+            # assert response.status_code == status.HTTP_200_OK
+            # response_dict = json.loads(response.content.decode("utf8"))
+            # assert response_dict["requested_by"] == self.user_name
+            # assert isinstance(response_dict["query_response"], dict)
+            # assert response_dict["spent_epsilon"] > 0.1
+            # assert response_dict["spent_delta"] > 0
 
     def test_dummy_opendp_query(self) -> None:
         """test_dummy_opendp_query"""

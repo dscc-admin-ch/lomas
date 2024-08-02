@@ -150,7 +150,7 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
-def estimate_smartnoise_cost(
+def estimate_smartnoise_sql_cost(
     request: Request,
     query_json: SmartnoiseSQLCostModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),

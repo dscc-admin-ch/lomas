@@ -1,5 +1,6 @@
 import base64
 import json
+import pickle
 from enum import StrEnum
 from io import StringIO
 from typing import Dict, List, Optional, Union
@@ -20,6 +21,10 @@ enable_features("contrib")
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 HTTP_200_OK = 200
+CONNECT_TIMEOUT = 5
+DEFAULT_READ_TIMEOUT = 5
+DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
+SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
 
 class DPLibraries(StrEnum):
@@ -281,12 +286,14 @@ class Client:
         else:
             endpoint = "smartnoise_synth_query"
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(
+            endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
+        )
 
         if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"])
-            response["query_response"] = json.loads(model)
+            response["query_response"] = pickle.loads(model)
             return response
 
         print(error_message(res))
@@ -498,11 +505,13 @@ class Client:
         else:
             endpoint = "diffprivlib_query"
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(
+            endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
+        )
         if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
-            response["query_response"]["model"] = json.loads(model)
+            response["query_response"]["model"] = pickle.loads(model)
             return response
         print(
             f"Error while processing DiffPrivLib request in server \
@@ -556,7 +565,11 @@ class Client:
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
         }
-        res = self._exec("estimate_diffprivlib_cost", body_json)
+        res = self._exec(
+            "estimate_diffprivlib_cost",
+            body_json,
+            read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
+        )
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -670,14 +683,22 @@ class Client:
         print(error_message(res))
         return None
 
-    def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
+    def _exec(
+        self,
+        endpoint: str,
+        body_json: dict = {},
+        read_timeout: int = DEFAULT_READ_TIMEOUT,
+    ) -> requests.Response:
         """Executes a POST request to the specified endpoint with the provided
         JSON body.
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
             body_json (dict, optional): The JSON body to include in the POST request.\
-            Defaults to {}.
+                Defaults to {}.
+            read_timeout (int): number of seconds that client wait for the server
+                to send a response.
+                Defaults to DEFAULT_READ_TIMEOUT.
 
         Returns:
             requests.Response: The response object resulting from the POST request.
@@ -686,6 +707,6 @@ class Client:
             self.url + "/" + endpoint,
             json=body_json,
             headers=self.headers,
-            timeout=50,
+            timeout=(CONNECT_TIMEOUT, read_timeout),
         )
         return r

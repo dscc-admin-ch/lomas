@@ -158,17 +158,17 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     upper=metadata["columns"][col]["upper"],
                     nullable=nullable,
                 )
-            for col in col_categories[SSynthColumnType.DATETIME]:
-                constraints[col] = ChainTransformer(
-                    [
-                        DateTimeTransformer(),
-                        MinMaxTransformer(
-                            lower=metadata["columns"][col]["lower"],
-                            upper=metadata["columns"][col]["upper"],
-                            nullable=nullable,
-                        ),
-                    ]
-                )
+            # for col in col_categories[SSynthColumnType.DATETIME]:
+            #     constraints[col] = ChainTransformer(
+            #         [
+            #             DateTimeTransformer(),
+            #             MinMaxTransformer(
+            #                 lower=metadata["columns"][col]["lower"],
+            #                 upper=metadata["columns"][col]["upper"],
+            #                 nullable=nullable,
+            #             ),
+            #         ]
+            #     )
             for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
@@ -178,13 +178,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = BinTransformer(nullable=nullable)
-            for col in col_categories[SSynthColumnType.DATETIME]:
-                constraints[col] = ChainTransformer(
-                    [
-                        DateTimeTransformer(),
-                        BinTransformer(bins=20, nullable=nullable),
-                    ]
-                )
+            # for col in col_categories[SSynthColumnType.DATETIME]:
+            #     constraints[col] = ChainTransformer(
+            #         [
+            #             DateTimeTransformer(),
+            #             BinTransformer(bins=20, nullable=nullable),
+            #         ]
+            #     )
             for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
 

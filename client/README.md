@@ -49,7 +49,7 @@ df_dummy = client.get_dummy_dataset(nb_rows = 200, seed = 1)
 ####  Query smartnoise-sql
 She can query on the sensitive dataset using smartnoise-sql library in the back-end with the following method:
 ```python
-response = client.smartnoise_query(
+response = client.smartnoise_sql_query(
     query = ""SELECT COUNT(*) AS nb_penguins FROM df"",  
     epsilon = 0.1, 
     delta = 0.00001,
@@ -62,7 +62,7 @@ NOTE: the 'FROM' of the SQL query must be followed by 'df' for the command to wo
 ####  Get smartnoise-sql query cost
 In SmartnoiseSQL, the budget that will by used by a query might be different than what is asked by the user. The estimate cost function returns the estimated real cost of any query.
 ```python
-real_cost_epsilon, real_cost_delta = client.estimate_smartnoise_cost(
+real_cost_epsilon, real_cost_delta = client.estimate_smartnoise_sql_cost(
     query = "SELECT COUNT(*) AS nb_penguins FROM df", 
     epsilon = 0.1, 
     delta = 0.000001

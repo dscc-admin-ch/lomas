@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 from admin_database.admin_database import AdminDatabase
 from dp_queries.dp_querier import DPQuerier
+from utils.config import PrivateDBCredentials
 
 
 class DatasetStore(ABC):
@@ -17,8 +19,20 @@ class DatasetStore(ABC):
 
     admin_database: AdminDatabase
 
-    def __init__(self, admin_database: AdminDatabase) -> None:
+    def __init__(
+        self,
+        admin_database: AdminDatabase,
+        private_db_credentials: List[PrivateDBCredentials],
+    ) -> None:
+        """Initializer
+
+        Args:
+            admin_database (AdminDatabase): The admin database for the server.
+            private_db_credentials (List[PrivateDBCredentials]):\
+                The private database credentials from the server config.
+        """
         self.admin_database = admin_database
+        self.private_db_credentials = private_db_credentials
 
     @abstractmethod
     def _add_dataset(self, dataset_name: str) -> None:

@@ -386,19 +386,13 @@ with dataset_tab:
         case PrivateDatabaseType.PATH:
             ad_path = st.text_input("Dataset path (add dataset)", None)
         case PrivateDatabaseType.S3:
-            ad_s3_1, ad_s3_2, ad_s3_3, ad_s3_4, ad_s3_5 = st.columns(5)
+            ad_s3_1, ad_s3_2, ad_s3_3 = st.columns(3)
             with ad_s3_1:
-                ad_s3_bucket = st.text_input("s3_bucket (add dataset)", None)
+                ad_s3_bucket = st.text_input("bucket (add dataset)", None)
             with ad_s3_2:
-                ad_s3_key = st.text_input("s3_key (add dataset)", None)
+                ad_s3_key = st.text_input("key (add dataset)", None)
             with ad_s3_3:
                 ad_s3_url = st.text_input("endpoint_url (add dataset)", None)
-            with ad_s3_4:
-                ad_s3_kid = st.text_input(
-                    "aws_access_key_id (add dataset)", None
-                )
-            with ad_s3_5:
-                ad_s3_sk = st.text_input("aws_secret_key (add dataset)", None)
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
@@ -413,11 +407,11 @@ with dataset_tab:
             ) = st.columns(5)
             with ad_meta_s3_1:
                 ad_meta_s3_bucket = st.text_input(
-                    "Metadata s3_bucket (add dataset)", None
+                    "Metadata bucket (add dataset)", None
                 )
             with ad_meta_s3_2:
                 ad_meta_s3_key = st.text_input(
-                    "Metadata s3_key (add dataset)", None
+                    "Metadata key (add dataset)", None
                 )
             with ad_meta_s3_3:
                 ad_meta_s3_url = st.text_input(
@@ -425,11 +419,11 @@ with dataset_tab:
                 )
             with ad_meta_s3_4:
                 ad_meta_s3_kid = st.text_input(
-                    "Metadata aws_access_key_id (add dataset)", None
+                    "Metadata access_key_id (add dataset)", None
                 )
             with ad_meta_s3_5:
                 ad_meta_s3_sk = st.text_input(
-                    "Metadata aws_secret_key (add dataset)", None
+                    "Metadata secret_key (add dataset)", None
                 )
 
     keyword_args = {}
@@ -444,14 +438,10 @@ with dataset_tab:
         and ad_s3_bucket
         and ad_s3_key
         and ad_s3_url
-        and ad_s3_kid
-        and ad_s3_sk
     ):
-        keyword_args["s3_bucket"] = ad_s3_bucket
-        keyword_args["s3_key"] = ad_s3_key
+        keyword_args["bucket"] = ad_s3_bucket
+        keyword_args["key"] = ad_s3_key
         keyword_args["endpoint_url"] = ad_s3_url
-        keyword_args["aws_access_key_id"] = ad_s3_kid
-        keyword_args["aws_secret_access_key"] = ad_s3_sk
         DATASET_READY = True
     else:
         if ad_dataset is not None:
@@ -468,11 +458,11 @@ with dataset_tab:
         and ad_meta_s3_kid
         and ad_meta_s3_sk
     ):
-        keyword_args["metadata_s3_bucket"] = ad_meta_s3_bucket
-        keyword_args["metadata_s3_key"] = ad_meta_s3_key
+        keyword_args["metadata_bucket"] = ad_meta_s3_bucket
+        keyword_args["metadata_key"] = ad_meta_s3_key
         keyword_args["metadata_endpoint_url"] = ad_meta_s3_url
-        keyword_args["metadata_aws_access_key_id"] = ad_meta_s3_kid
-        keyword_args["metadata_aws_secret_access_key"] = ad_meta_s3_sk
+        keyword_args["metadata_access_key_id"] = ad_meta_s3_kid
+        keyword_args["metadata_secret_access_key"] = ad_meta_s3_sk
         METADATA_READY = True
     else:
         if ad_dataset is not None:

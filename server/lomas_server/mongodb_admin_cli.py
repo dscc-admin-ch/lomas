@@ -239,16 +239,13 @@ if __name__ == "__main__":
     add_dataset_parser.add_argument(
         "-d_path", "--dataset_path", required=False
     )
-    add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
-    add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
+    add_dataset_parser.add_argument("-s3b", "--bucket", required=False)
+    add_dataset_parser.add_argument("-s3k", "--key", required=False)
     add_dataset_parser.add_argument(
         "-s3_url", "--endpoint_url", required=False
     )
     add_dataset_parser.add_argument(
-        "-s3_ak", "--aws_access_key_id", required=False
-    )
-    add_dataset_parser.add_argument(
-        "-s3_sak", "--aws_secret_access_key", required=False
+        "-cred_n", "--credentials_name", required=False
     )
     # Metadata location
     add_dataset_parser.add_argument(
@@ -256,19 +253,20 @@ if __name__ == "__main__":
     )
     add_dataset_parser.add_argument("-mp", "--metadata_path", required=False)
     add_dataset_parser.add_argument(
-        "-m_s3b", "--metadata_s3_bucket", required=False
+        "-m_s3b", "--metadata_bucket", required=False
     )
-    add_dataset_parser.add_argument(
-        "-m_s3k", "--metadata_s3_key", required=False
-    )
+    add_dataset_parser.add_argument("-m_s3k", "--metadata_key", required=False)
     add_dataset_parser.add_argument(
         "-m_s3_url", "--metadata_endpoint_url", required=False
     )
     add_dataset_parser.add_argument(
-        "-m_s3_ak", "--metadata_aws_access_key_id", required=False
+        "-m_s3_ak", "--metadata_access_key_id", required=False
     )
     add_dataset_parser.add_argument(
-        "-m_s3_sak", "--metadata_aws_secret_access_key", required=False
+        "-m_s3_sak", "--metadata_secret_access_key", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_cred_n", "--metadata_credentials_name", required=False
     )
     add_dataset_parser.set_defaults(func=add_dataset)
 
@@ -427,16 +425,16 @@ if __name__ == "__main__":
             args.metadata_database_type,
             args.dataset_path,
             args.metadata_path,
-            args.s3_bucket,
-            args.s3_key,
+            args.bucket,
+            args.key,
             args.endpoint_url,
-            args.aws_access_key_id,
-            args.aws_secret_access_key,
-            args.metadata_s3_bucket,
-            args.metadata_s3_key,
+            args.credentials_name,
+            args.metadata_bucket,
+            args.metadata_key,
             args.metadata_endpoint_url,
-            args.metadata_aws_access_key_id,
-            args.metadata_aws_secret_access_key,
+            args.metadata_access_key_id,
+            args.metadata_secret_access_key,
+            args.metadata_credentials_name,
         ),
         "add_datasets_via_yaml": lambda args: add_datasets_via_yaml(
             mongo_db,

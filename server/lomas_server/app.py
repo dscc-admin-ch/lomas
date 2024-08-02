@@ -104,7 +104,9 @@ async def lifespan(
         LOG.info("Loading query handler")
         app.state.server_state["message"].append("Loading dataset store")
         app.state.dataset_store = dataset_store_factory(
-            config.dataset_store, app.state.admin_database
+            config.dataset_store,
+            app.state.admin_database,
+            config.private_db_credentials,
         )
 
         app.state.server_state["message"].append("Loading query handler")

@@ -242,6 +242,7 @@ class Client:
         mul_matrix: List = [],
         nullable: bool = True,
         table_transformer_style: str = "gan",
+        private_columns_types: dict = {},
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -269,6 +270,9 @@ class Client:
                 Defaults to True.
             table_transformer_style (str): style of table transformer ('gan' or 'cube')
                 Defaults to "gan".
+            private_columns_types: Dictionnary for representation of private column. 
+                Exemple {"id": "uuid"} if column named "ID" should be represented with "uuid".
+                Defaults to "uuid" for all columns if not specified.
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
@@ -282,6 +286,7 @@ class Client:
             "mul_matrix": mul_matrix,
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
+            "private_columns_types": private_columns_types,
         }
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"

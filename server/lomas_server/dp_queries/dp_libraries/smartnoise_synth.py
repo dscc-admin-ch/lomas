@@ -3,7 +3,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 from snsynth import Synthesizer
-from snsynth.transform import (  # DateTimeTransformer,
+from snsynth.transform import (
     AnonymizationTransformer,
     BinTransformer,
     ChainTransformer,
@@ -11,11 +11,13 @@ from snsynth.transform import (  # DateTimeTransformer,
     MinMaxTransformer,
     OneHotEncoder,
 )
+from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
+from snsynth.transform.type_map import SequenceCounter
 
 from constants import (
-    SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
+    SSynthAnonColumnType,
     SSynthColumnType,
     SSynthSynthesizer,
     SSynthTableTransStyle,
@@ -110,7 +112,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             col_categories[category].append(col_name)
 
         return col_categories
-
+        
     def _prepare_data_transformer(
         self,
         metadata: Metadata,
@@ -142,10 +144,29 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         style = query_json.table_transformer_style
         nullable = query_json.nullable
+        private_types = query_json.private_columns_types
 
         constraints = {}
         for col in col_categories[SSynthColumnType.PRIVATE_ID]:
-            constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
+            if col in private_types.keys():
+                anon_column_type = private_types[col]
+                if anon_column_type == SSynthAnonColumnType.SEQUENCE:
+                    constraints[col] = AnonymizationTransformer(
+                        SequenceCounter()
+                    )
+                elif anon_column_type in SSynthAnonColumnType:
+                    constraints[col] = AnonymizationTransformer(
+                        anon_column_type
+                    )
+                else:
+                    raise InvalidQueryException(
+                        f"Unknown type {anon_column_type} for anonym column {col}."
+                        + f" Must be one of {SSynthAnonColumnType.value}."
+                    )
+            else:  # default
+                constraints[col] = AnonymizationTransformer(
+                    SSynthAnonColumnType.UUID
+                )
 
         if style == SSynthTableTransStyle.GAN:
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
@@ -158,17 +179,17 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     upper=metadata["columns"][col]["upper"],
                     nullable=nullable,
                 )
-            # for col in col_categories[SSynthColumnType.DATETIME]:
-            #     constraints[col] = ChainTransformer(
-            #         [
-            #             DateTimeTransformer(),
-            #             MinMaxTransformer(
-            #                 lower=metadata["columns"][col]["lower"],
-            #                 upper=metadata["columns"][col]["upper"],
-            #                 nullable=nullable,
-            #             ),
-            #         ]
-            #     )
+            for col in col_categories[SSynthColumnType.DATETIME]:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        MinMaxTransformer(
+                            lower=metadata["columns"][col]["lower"],
+                            upper=metadata["columns"][col]["upper"],
+                            nullable=nullable,
+                        ),
+                    ]
+                )
             for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
@@ -178,13 +199,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = BinTransformer(nullable=nullable)
-            # for col in col_categories[SSynthColumnType.DATETIME]:
-            #     constraints[col] = ChainTransformer(
-            #         [
-            #             DateTimeTransformer(),
-            #             BinTransformer(bins=20, nullable=nullable),
-            #         ]
-            #     )
+            for col in col_categories[SSynthColumnType.DATETIME]:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        BinTransformer(bins=20, nullable=nullable),
+                    ]
+                )
             for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
 

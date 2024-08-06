@@ -144,29 +144,29 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         style = query_json.table_transformer_style
         nullable = query_json.nullable
-        private_types = query_json.private_columns_types
+        # private_types = query_json.private_columns_types
 
         constraints = {}
-        for col in col_categories[SSynthColumnType.PRIVATE_ID]:
-            if col in private_types.keys():
-                anon_column_type = private_types[col]
-                if anon_column_type == SSynthAnonColumnType.SEQUENCE:
-                    constraints[col] = AnonymizationTransformer(
-                        SequenceCounter()
-                    )
-                elif anon_column_type in SSynthAnonColumnType:
-                    constraints[col] = AnonymizationTransformer(
-                        anon_column_type
-                    )
-                else:
-                    raise InvalidQueryException(
-                        f"Unknown type {anon_column_type} for anonym column {col}."
-                        + f" Must be one of {SSynthAnonColumnType.value}."
-                    )
-            else:  # default
-                constraints[col] = AnonymizationTransformer(
-                    SSynthAnonColumnType.UUID
-                )
+        # for col in col_categories[SSynthColumnType.PRIVATE_ID]:
+        #     if col in private_types.keys():
+        #         anon_column_type = private_types[col]
+        #         if anon_column_type == SSynthAnonColumnType.SEQUENCE:
+        #             constraints[col] = AnonymizationTransformer(
+        #                 SequenceCounter()
+        #             )
+        #         elif anon_column_type in SSynthAnonColumnType:
+        #             constraints[col] = AnonymizationTransformer(
+        #                 anon_column_type
+        #             )
+        #         else:
+        #             raise InvalidQueryException(
+        #                 f"Unknown type {anon_column_type} for anonym column {col}."
+        #                 + f" Must be one of {SSynthAnonColumnType.value}."
+        #             )
+        #     else:  # default
+        #         constraints[col] = AnonymizationTransformer(
+        #             SSynthAnonColumnType.UUID
+        #         )
 
         if style == SSynthTableTransStyle.GAN:
             for col in col_categories[SSynthColumnType.CATEGORICAL]:

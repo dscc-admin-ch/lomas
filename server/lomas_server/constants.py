@@ -141,7 +141,7 @@ class SSynthColumnType(StrEnum):
 class SSynthAnonColumnType(StrEnum):
     UUID = "uuid4"
     EMAIL = "email"
-    SSN = "uuid"
+    SSN = "ssn"
     SEQUENCE = "sequence"
 
 

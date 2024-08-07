@@ -1,0 +1,15 @@
+# See https://github.com/gramineproject/gsc/blob/master/config.yaml.template for reference and docummentation.
+
+
+Distro: "debian:11"
+
+Registry: ""
+
+Gramine:
+    Repository: "https://github.com/gramineproject/gramine.git"
+    Branch:     "master"
+    Image:      "gramine-base"
+
+SGXDriver:
+    Repository: ""
+    Branch:     ""

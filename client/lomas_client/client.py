@@ -294,7 +294,6 @@ class Client:
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         delta: Optional[float] = None,
         mechanism: Optional[str] = "laplace",
-        output_measure_type_arg: Optional[str] = "float64",
     ):
         """This function executes an OpenDP query.
 
@@ -311,9 +310,6 @@ class Client:
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the\
-                output measure. Usually "float64" for continuous noise or "int32"\
-                for discrete noise.
 
         Raises:
             Exception: If the opendp_pipeline type is not supported.
@@ -325,7 +321,6 @@ class Client:
             "dataset_name": self.dataset_name,
             "delta": delta,
             "mechanism": mechanism,
-            "output_measure_type_arg": output_measure_type_arg,
         }
 
         if isinstance(opendp_pipeline, dp.Measurement):
@@ -347,7 +342,6 @@ class Client:
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         delta: Optional[float] = None,
         mechanism: Optional[str] = "laplace",
-        output_measure_type_arg: Optional[str] = "float64",
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -367,9 +361,6 @@ class Client:
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the\
-                output measure. Usually "float64" for continuous noise or "int32"\
-                for discrete noise.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -387,7 +378,6 @@ class Client:
             opendp_pipeline,
             delta=delta,
             mechanism=mechanism,
-            output_measure_type_arg=output_measure_type_arg,
         )
         if dummy:
             endpoint = "dummy_opendp_query"
@@ -418,7 +408,6 @@ class Client:
         self,
         opendp_pipeline: dp.Measurement,
         mechanism: Optional[str] = "laplace",
-        output_measure_type_arg: Optional[str] = "float64",
         delta: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing an OpenDP query.
@@ -427,9 +416,6 @@ class Client:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
-            output_measure_type_arg: (str, optional): Type argument for the\
-                output measure. Usually "float64" for continuous noise or "int32"\
-                for discrete noise.
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -448,7 +434,6 @@ class Client:
             opendp_pipeline,
             delta=delta,
             mechanism=mechanism,
-            output_measure_type_arg=output_measure_type_arg,
         )
         res = self._exec("estimate_opendp_cost", body_json)
 

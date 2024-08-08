@@ -301,11 +301,9 @@ def reconstruct_measurement_pipeline(
 
         output_measure = {
             "laplace": dp.measures.max_divergence(
-                T=query_json.output_measure_type_arg,
+                T="float",
             ),
-            "gaussian": dp.measures.zero_concentrated_divergence(
-                T=query_json.output_measure_type_arg
-            ),
+            "gaussian": dp.measures.zero_concentrated_divergence(T="float"),
         }[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata)

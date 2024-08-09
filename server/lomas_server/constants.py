@@ -138,7 +138,8 @@ class SSynthColumnType(StrEnum):
     DATETIME = "datetime"
 
 
-SSYNTH_PRIVATE_COLUMN = "uuid"
+SSYNTH_PRIVATE_COLUMN = "uuid4"
+SSYNTH_DEFAULT_BINS = 20
 
 
 # OpenDP

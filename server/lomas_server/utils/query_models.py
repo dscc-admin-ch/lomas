@@ -78,6 +78,7 @@ class SmartnoiseSynthModel(BaseModel):
     mul_matrix: List
     nullable: bool
     table_transformer_style: SSynthTableTransStyle
+    constraints: dict
 
 
 class DummySmartnoiseSynthModel(SmartnoiseSynthModel):

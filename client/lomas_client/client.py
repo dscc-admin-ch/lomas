@@ -12,6 +12,7 @@ from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
+from smartnoise_synth_logger import serialise_constraints
 
 # Opendp_logger
 enable_logging()
@@ -238,7 +239,7 @@ class Client:
         mul_matrix: List = [],
         nullable: bool = True,
         table_transformer_style: str = "gan",
-        private_columns_types: dict = {},
+        constraints: dict = {},
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -266,12 +267,15 @@ class Client:
                 Defaults to True.
             table_transformer_style (str): style of table transformer ('gan' or 'cube')
                 Defaults to "gan".
-            private_columns_types: Dictionnary for representation of private column. 
-                Exemple {"id": "uuid"} if column named "ID" should be represented with "uuid".
-                Defaults to "uuid" for all columns if not specified.
+            constraints: Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
+        if constraints:
+            constraints = serialise_constraints(constraints)
+
         body_json = {
             "dataset_name": self.dataset_name,
             "synth_name": synth_name,
@@ -282,7 +286,7 @@ class Client:
             "mul_matrix": mul_matrix,
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
-            "private_columns_types": private_columns_types,
+            "constraints": constraints,
         }
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
@@ -314,6 +318,7 @@ class Client:
         mul_matrix: List = [],
         nullable: bool = True,
         table_transformer_style: str = "gan",
+        constraints: dict = {},
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing a SmartNoise query.
 
@@ -338,10 +343,15 @@ class Client:
                 Defaults to True.
             table_transformer_style (str): style of table transformer ('gan' or 'cube')
                 Defaults to "gan".
-
+            constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
+        if constraints:
+            constraints = serialise_constraints(constraints)
+
         body_json = {
             "dataset_name": self.dataset_name,
             "synth_name": synth_name,
@@ -352,6 +362,7 @@ class Client:
             "mul_matrix": mul_matrix,
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
+            "constraints": constraints,
         }
         res = self._exec("estimate_smartnoise_synth_cost", body_json)
 
@@ -493,10 +504,9 @@ class Client:
         Returns:
             Optional[Pipeline]: A trained DiffPrivLip pipeline
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
@@ -560,10 +570,9 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,

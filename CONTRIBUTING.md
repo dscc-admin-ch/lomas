@@ -96,9 +96,12 @@ Note: Helm charts are updated when there is a push on the `release/vx.y.z` branc
 It is possible to add DP libraries quite seamlessly. Let0s say the new library is names 'NewLibrary'
 Steps:
 0. Add the necessary requirements in `lomas/lomas_server/requirements.txt` and `lomas/lomas_client/requirements.txt`
-1. Add the library the the DPLibraries StrEnum class in `lomas/lomas_server/constants.py`.
+1. Add the library the the DPLibraries StrEnum class in `lomas/lomas_server/constants.py` and add the `NewLibraryQuerier` option in the `querier_factory`.
 2. Create a file for your querier in the folder `lomas/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
-3. Add the three associated API endpoints in `lomas/lomas_server/routes/routes_dp.py`. There should be: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the pprivacy budget cost of a query).
+3. Add the three associated API endpoints . 
+- a. Add the endpoint handlers in `lomas/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
+- b. The endpoints should have predefined pydantic BaselModel types. Aadd BaseModel classes of expected input `NewLibraryModel`, `DummyNewLibraryModel`, `NewLibraryCostModel` in  `lomas/lomas_server/utils/query_models.py` and 
+- c. predefined default examples `example_new_library`, `example_dummy_new_library` in  `lomas/lomas_server/utils/query_examples.py`.
 4. Add tests in `lomas/lomas_server/tests/test_new_library.py` to test all functionnalities and options of the new library.
 5. Add the associated method in `lomas-client` library in `lomas/client/lomas_client/client.py`. In this case there should be `new_library_query` for queries on the private and on the dummy datasets and `estimate_new_library_cost` to estimate the cost of a query.
 6. Add a notebook `Demo_Client_Notebook_NewLibrary.ipynb` in `lomas/client/notebook/` to give example of the use of the library.
@@ -108,9 +111,9 @@ Some libraries have 'custom object' parameters which are not readily serialisabl
 In those cases, a `logger` library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their `DPQuerier` class in the server.
 
 Some examples are avalaible here:
-- `opendp_logger`: https://github.com/opendp/opendp-logger
-- `diffprivlib_logger`: https://github.com/dscc-admin-ch/diffprivlib-logger
-- `smartnoise_synth_logger`: https://github.com/dscc-admin-ch/smartnoise-synth-logger
+- `opendp_logger` for opendp pipelines: https://github.com/opendp/opendp-logger
+- `diffprivlib_logger` for diffprivlib pipelines: https://github.com/dscc-admin-ch/diffprivlib-logger
+- `smartnoise_synth_logger` for smartnoise_synth table transformer constraints: https://github.com/dscc-admin-ch/smartnoise-synth-logger
 
 Do not forget to add these libraries in the `requirements.txt` files.
 

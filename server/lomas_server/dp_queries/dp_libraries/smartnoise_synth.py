@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
 from snsynth.transform import (
     AnonymizationTransformer,
@@ -13,11 +14,11 @@ from snsynth.transform import (
 )
 from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
-from snsynth.transform.type_map import SequenceCounter
 
 from constants import (
+    SSYNTH_DEFAULT_BINS,
+    SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
-    SSynthAnonColumnType,
     SSynthColumnType,
     SSynthSynthesizer,
     SSynthTableTransStyle,
@@ -112,24 +113,20 @@ class SmartnoiseSynthQuerier(DPQuerier):
             col_categories[category].append(col_name)
 
         return col_categories
-        
-    def _prepare_data_transformer(
+
+    def _get_default_constraints(
         self,
         metadata: Metadata,
-        private_data: pd.DataFrame,
         query_json: dict,
     ) -> TableTransformer:
         """
-        Creates the transformer based on the metadata
-        The transformer is used to transform the data before synthesis and then
-        reverse the transformation after synthesis.
+        Get the defaults table transformer constraints based on the metadata
         See https://docs.smartnoise.org/synth/transforms/index.html for documentation
         See https://github.com/opendp/smartnoise-sdk/blob/main/synth/snsynth/
             transform/type_map.py#L40 for get_transformer() method taken as basis.
 
         Args:
             metadata (Metadata): Metadata of the dataset
-            private_data
             query_json (SmartnoiseSynthModelCost): JSON request object for the query
                 select_cols (List[str]): List of columns to select
                 nullable (bool): True is the data can have Null values, False otherwise
@@ -142,33 +139,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
             metadata, query_json.select_cols
         )
 
-        style = query_json.table_transformer_style
-        nullable = query_json.nullable
-        # private_types = query_json.private_columns_types
-
         constraints = {}
-        # for col in col_categories[SSynthColumnType.PRIVATE_ID]:
-        #     if col in private_types.keys():
-        #         anon_column_type = private_types[col]
-        #         if anon_column_type == SSynthAnonColumnType.SEQUENCE:
-        #             constraints[col] = AnonymizationTransformer(
-        #                 SequenceCounter()
-        #             )
-        #         elif anon_column_type in SSynthAnonColumnType:
-        #             constraints[col] = AnonymizationTransformer(
-        #                 anon_column_type
-        #             )
-        #         else:
-        #             raise InvalidQueryException(
-        #                 f"Unknown type {anon_column_type} for anonym column {col}."
-        #                 + f" Must be one of {SSynthAnonColumnType.value}."
-        #             )
-        #     else:  # default
-        #         constraints[col] = AnonymizationTransformer(
-        #             SSynthAnonColumnType.UUID
-        #         )
+        for col in col_categories[SSynthColumnType.PRIVATE_ID]:
+            constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
 
-        if style == SSynthTableTransStyle.GAN:
+        nullable = query_json.nullable
+        if (
+            query_json.table_transformer_style == SSynthTableTransStyle.GAN
+        ):  # gan
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
@@ -194,7 +172,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
                 )
-        else:
+        else:  # cube
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
@@ -203,18 +181,15 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(),
-                        BinTransformer(bins=20, nullable=nullable),
+                        BinTransformer(
+                            bins=SSYNTH_DEFAULT_BINS, nullable=nullable
+                        ),
                     ]
                 )
             for col in col_categories[SSynthColumnType.ORDINAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
 
-        return TableTransformer.create(
-            data=private_data,
-            style=style,
-            nullable=nullable,
-            constraints=constraints,
-        )
+        return constraints
 
     def _preprocess_data(
         self,
@@ -317,10 +292,29 @@ class SmartnoiseSynthQuerier(DPQuerier):
         """
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
+        constraints = self._get_default_constraints(metadata, query_json)
+
+        # Overwrite default constraint with custom constraint (if any)
+        custom_constraints = query_json.constraints
+        if custom_constraints:
+            custom_constraints = deserialise_constraints(custom_constraints)
+            custom_constraints = {
+                key: custom_constraints[key]
+                for key in query_json.select_cols
+                if key in custom_constraints
+            }
+            constraints.update(custom_constraints)
+
+        # Prepare private data
         private_data = self.private_dataset.get_pandas_df()
         private_data = self._preprocess_data(private_data, query_json)
-        transformer = self._prepare_data_transformer(
-            metadata, private_data, query_json
+
+        # Get transformer
+        transformer = TableTransformer.create(
+            data=private_data,
+            style=query_json.table_transformer_style,
+            nullable=query_json.nullable,
+            constraints=constraints,
         )
 
         # Create and fit synthesizer

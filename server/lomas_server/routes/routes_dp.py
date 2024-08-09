@@ -119,8 +119,6 @@ def dummy_smartnoise_sql_handler(
               results (default: True).
               See Smartnoise-SQL postprocessing documentation
               https://docs.smartnoise.org/sql/advanced.html#postprocess.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows in the dummy dataset
               (default: 100).
             - seed (int, optional): The random seed for generating
@@ -210,18 +208,16 @@ def smartnoise_synth_handler(
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
             - select_cols (List[str]): List of columns to select.
-                Defaults to None.
             - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-                Defaults to None.
             - mul_matrix (List): Multiplication matrix for columns aggregations.
-                Defaults to None.
             - nullable (bool): True if some data cells may be null
-                Defaults to True.
+            - table_transformer_style (str): style of table transformer
+            - constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
             - Defaults to Body(example_smartnoise_synth).
         user_name (str): The user name.
     Raises:
@@ -270,20 +266,16 @@ def dummy_smartnoise_synth_handler(
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
             - select_cols (List[str]): List of columns to select.
-                Defaults to None.
             - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-                Defaults to None.
             - mul_matrix (List): Multiplication matrix for columns aggregations.
-                Defaults to None.
             - nullable (bool): True if some data cells may be null
-                Defaults to True.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
+            - table_transformer_style (str): style of table transformer
+            - constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
             - nb_rows (int, optional): The number of rows in the dummy dataset
               (default: 100).
             - seed (int, optional): The random seed for generating
@@ -335,24 +327,18 @@ def estimate_smartnoise_synth_cost(
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
             - select_cols (List[str]): List of columns to select.
-                Defaults to None.
             - synth_params (dict): Keyword arguments to pass to the synthesizer
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-                Defaults to None.
             - mul_matrix (List): Multiplication matrix for columns aggregations.
-                Defaults to None.
             - nullable (bool): True if some data cells may be null
-                Defaults to True.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
+            - table_transformer_style
+            - constraints
             - nb_rows (int, optional): The number of rows in the dummy dataset
-              (default: 100).
             - seed (int, optional): The random seed for generating
-              the dummy dataset (default: 42).
+                the dummy dataset (default: 42).
 
             Defaults to Body(example_smartnoise_synth).
         user_name (str): The user name.
@@ -450,8 +436,6 @@ def dummy_opendp_query_handler(
               "make_zCDP_to_approxDP" (see opendp measurements documentation at
               https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
               In that case a "fixed_delta" must be provided by the user.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows
               in the dummy dataset (default: 100).
             - seed (int, optional): The random seed for generating

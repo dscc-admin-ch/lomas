@@ -138,11 +138,8 @@ class SSynthColumnType(StrEnum):
     DATETIME = "datetime"
 
 
-class SSynthAnonColumnType(StrEnum):
-    UUID = "uuid4"
-    EMAIL = "email"
-    SSN = "ssn"
-    SEQUENCE = "sequence"
+SSYNTH_PRIVATE_COLUMN = "uuid4"
+SSYNTH_DEFAULT_BINS = 20
 
 
 # OpenDP

@@ -76,6 +76,7 @@ example_smartnoise_synth = {
     "mul_matrix": [],
     "nullable": True,
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,
+    "constraints": {},
 }
 example_dummy_smartnoise_synth = dict(example_smartnoise_synth)
 example_dummy_smartnoise_synth["dummy_nb_rows"] = DUMMY_NB_ROWS

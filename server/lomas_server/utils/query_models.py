@@ -1,8 +1,13 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from constants import DELTA_LIMIT, EPSILON_LIMIT
+from constants import (
+    DELTA_LIMIT,
+    EPSILON_LIMIT,
+    SSynthSynthesizer,
+    SSynthTableTransStyle,
+)
 
 
 class GetDbData(BaseModel):
@@ -51,7 +56,7 @@ class DummySmartnoiseSQLModel(BaseModel):
     postprocess: bool
 
 
-class SmartnoiseSQLModelCost(BaseModel):
+class SmartnoiseSQLCostModel(BaseModel):
     """Model input for a smarnoise-sql cost query"""
 
     query_str: str
@@ -59,6 +64,28 @@ class SmartnoiseSQLModelCost(BaseModel):
     epsilon: float = Field(..., gt=0)
     delta: float = Field(..., gt=0)
     mechanisms: dict
+
+
+class SmartnoiseSynthModel(BaseModel):
+    """Model input for a smarnoise-synth query"""
+
+    dataset_name: str
+    synth_name: SSynthSynthesizer
+    epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
+    delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
+    select_cols: List
+    synth_params: dict
+    mul_matrix: List
+    nullable: bool
+    table_transformer_style: SSynthTableTransStyle
+    constraints: dict
+
+
+class DummySmartnoiseSynthModel(SmartnoiseSynthModel):
+    """Dummy Model input for a smarnoise-synth query"""
+
+    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_seed: int
 
 
 class OpenDPModel(BaseModel):

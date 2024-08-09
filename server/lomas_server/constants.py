@@ -77,6 +77,7 @@ class DPLibraries(StrEnum):
     """Name of DP Library used in the query"""
 
     SMARTNOISE_SQL = "smartnoise_sql"
+    SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
 
@@ -84,6 +85,7 @@ class DPLibraries(StrEnum):
 # Query model input to DP librairy
 MODEL_INPUT_TO_LIB = {
     "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
+    "SmartnoiseSynthModel": DPLibraries.SMARTNOISE_SYNTH,
     "OpenDPModel": DPLibraries.OPENDP,
     "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
 }
@@ -97,7 +99,50 @@ class PrivateDatabaseType(StrEnum):
     S3 = "S3_DB"
 
 
-# OpenDP Measurement Divergence Type
+# Smartnoise sql
+SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
+SSQL_MAX_ITERATION = 5
+
+
+# Smartnoise synth
+class SSynthSynthesizer(StrEnum):
+    """Synthesizer models for smartnoise synth"""
+
+    # Marginal Synthesizer
+    AIM = "aim"
+    MWEM = "mwem"
+    MST = "mst"
+    PAC_SYNTH = "pacsynth"
+
+    # Neural Network Synthesizer
+    DP_CTGAN = "dpctgan"
+    PATE_CTGAN = "patectgan"
+    PATE_GAN = "pategan"  # no documentation
+    DP_GAN = "dpgan"  # no documentation
+
+
+class SSynthTableTransStyle(StrEnum):
+    """Transformer style for smartnoise synth"""
+
+    GAN = "gan"
+    CUBE = "cube"
+
+
+class SSynthColumnType(StrEnum):
+    """Type of columns for SmartnoiseSynth transformer pre-processing"""
+
+    PRIVATE_ID = "private_id"
+    CATEGORICAL = "categorical"
+    CONTINUOUS = "continuous"
+    ORDINAL = "ordinal"
+    DATETIME = "datetime"
+
+
+SSYNTH_PRIVATE_COLUMN = "uuid4"
+SSYNTH_DEFAULT_BINS = 20
+
+
+# OpenDP
 class OpenDPMeasurement(StrEnum):
     """Type of divergence for opendp measurement
     see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
@@ -109,7 +154,6 @@ class OpenDPMeasurement(StrEnum):
     ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
 
 
-# OpenDP Dataset Input Metric Type
 class OpenDPDatasetInputMetric(StrEnum):
     """Type of opendp input metric for datasets
     see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html
@@ -136,17 +180,13 @@ RANDOM_DATE_START = "01/01/2000"
 RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
-# Smartnoise sql
-STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
-MAX_NAN_ITERATION = 5
-
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
 OPENDP_PIPELINE = (
-    '{"version": "0.8.0", '
+    '{"version": "0.10.0", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

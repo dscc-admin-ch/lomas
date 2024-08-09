@@ -1,5 +1,6 @@
 import base64
 import json
+import pickle
 from enum import StrEnum
 from io import StringIO
 from typing import Dict, List, Optional, Union
@@ -11,6 +12,7 @@ from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
+from smartnoise_synth_logger import serialise_constraints
 
 # Opendp_logger
 enable_logging()
@@ -20,6 +22,10 @@ enable_features("contrib")
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 HTTP_200_OK = 200
+CONNECT_TIMEOUT = 5
+DEFAULT_READ_TIMEOUT = 5
+DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
+SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
 
 class DPLibraries(StrEnum):
@@ -118,7 +124,7 @@ class Client:
         print(error_message(res))
         return None
 
-    def smartnoise_query(
+    def smartnoise_sql_query(
         self,
         query: str,
         epsilon: float,
@@ -129,7 +135,7 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
-        """This function executes a SmartNoise query.
+        """This function executes a SmartNoise SQL query.
 
         Args:
             query (str): The SQL query to execute.
@@ -168,11 +174,11 @@ class Client:
             "postprocess": postprocess,
         }
         if dummy:
-            endpoint = "dummy_smartnoise_query"
+            endpoint = "dummy_smartnoise_sql_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
         else:
-            endpoint = "smartnoise_query"
+            endpoint = "smartnoise_sql_query"
 
         res = self._exec(endpoint, body_json)
 
@@ -187,7 +193,7 @@ class Client:
         print(error_message(res))
         return None
 
-    def estimate_smartnoise_cost(
+    def estimate_smartnoise_sql_cost(
         self,
         query: str,
         epsilon: float,
@@ -216,7 +222,149 @@ class Client:
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        res = self._exec("estimate_smartnoise_cost", body_json)
+        res = self._exec("estimate_smartnoise_sql_cost", body_json)
+
+        if res.status_code == HTTP_200_OK:
+            return json.loads(res.content.decode("utf8"))
+        print(error_message(res))
+        return None
+
+    def smartnoise_synth_query(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: float = 0.0,
+        select_cols: List[str] = [],
+        synth_params: dict = {},
+        mul_matrix: List = [],
+        nullable: bool = True,
+        table_transformer_style: str = "gan",
+        constraints: dict = {},
+        dummy: bool = False,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ) -> Optional[dict]:
+        """This function executes a SmartNoise Synthetic query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to 0.
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            table_transformer_style (str): style of table transformer ('gan' or 'cube')
+                Defaults to "gan".
+            constraints: Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
+        Returns:
+            Optional[dict]: A Pandas DataFrame containing the query results.
+        """
+        if constraints:
+            constraints = serialise_constraints(constraints)
+
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "synth_params": synth_params,
+            "mul_matrix": mul_matrix,
+            "nullable": nullable,
+            "table_transformer_style": table_transformer_style,
+            "constraints": constraints,
+        }
+        if dummy:
+            endpoint = "dummy_smartnoise_synth_query"
+            body_json["dummy_nb_rows"] = nb_rows
+            body_json["dummy_seed"] = seed
+        else:
+            endpoint = "smartnoise_synth_query"
+
+        res = self._exec(
+            endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
+        )
+
+        if res.status_code == HTTP_200_OK:
+            response = res.json()
+            model = base64.b64decode(response["query_response"])
+            response["query_response"] = pickle.loads(model)
+            return response
+
+        print(error_message(res))
+        return None
+
+    def estimate_smartnoise_synth_cost(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: float = 0.0,
+        select_cols: List[str] = [],
+        synth_params: dict = {},
+        mul_matrix: List = [],
+        nullable: bool = True,
+        table_transformer_style: str = "gan",
+        constraints: dict = {},
+    ) -> Optional[dict[str, float]]:
+        """This function estimates the cost of executing a SmartNoise query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+                Defaults to 0.
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            mul_matrix (List): Multiplication matrix for columns aggregations.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            table_transformer_style (str): style of table transformer ('gan' or 'cube')
+                Defaults to "gan".
+            constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
+        Returns:
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+        """
+        if constraints:
+            constraints = serialise_constraints(constraints)
+
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "synth_params": synth_params,
+            "mul_matrix": mul_matrix,
+            "nullable": nullable,
+            "table_transformer_style": table_transformer_style,
+            "constraints": constraints,
+        }
+        res = self._exec("estimate_smartnoise_synth_cost", body_json)
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -356,10 +504,9 @@ class Client:
         Returns:
             Optional[Pipeline]: A trained DiffPrivLip pipeline
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
@@ -373,11 +520,13 @@ class Client:
         else:
             endpoint = "diffprivlib_query"
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(
+            endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
+        )
         if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
-            response["query_response"]["model"] = json.loads(model)
+            response["query_response"]["model"] = pickle.loads(model)
             return response
         print(
             f"Error while processing DiffPrivLib request in server \
@@ -421,17 +570,20 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
         }
-        res = self._exec("estimate_diffprivlib_cost", body_json)
+        res = self._exec(
+            "estimate_diffprivlib_cost",
+            body_json,
+            read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
+        )
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -545,14 +697,22 @@ class Client:
         print(error_message(res))
         return None
 
-    def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
+    def _exec(
+        self,
+        endpoint: str,
+        body_json: dict = {},
+        read_timeout: int = DEFAULT_READ_TIMEOUT,
+    ) -> requests.Response:
         """Executes a POST request to the specified endpoint with the provided
         JSON body.
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
             body_json (dict, optional): The JSON body to include in the POST request.\
-            Defaults to {}.
+                Defaults to {}.
+            read_timeout (int): number of seconds that client wait for the server
+                to send a response.
+                Defaults to DEFAULT_READ_TIMEOUT.
 
         Returns:
             requests.Response: The response object resulting from the POST request.
@@ -561,6 +721,6 @@ class Client:
             self.url + "/" + endpoint,
             json=body_json,
             headers=self.headers,
-            timeout=50,
+            timeout=(CONNECT_TIMEOUT, read_timeout),
         )
         return r

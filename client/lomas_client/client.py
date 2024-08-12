@@ -240,7 +240,6 @@ class Client:
         delta: float = 0.0,
         select_cols: List[str] = [],
         synth_params: dict = {},
-        mul_matrix: List = [],
         nullable: bool = True,
         table_transformer_style: str = "gan",
         constraints: dict = {},
@@ -265,8 +264,6 @@ class Client:
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
                 Defaults to None.
-            mul_matrix (List): Multiplication matrix for columns aggregations.
-                Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
             table_transformer_style (str): style of table transformer ('gan' or 'cube')
@@ -287,7 +284,6 @@ class Client:
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
-            "mul_matrix": mul_matrix,
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
             "constraints": constraints,
@@ -319,7 +315,6 @@ class Client:
         delta: float = 0.0,
         select_cols: List[str] = [],
         synth_params: dict = {},
-        mul_matrix: List = [],
         nullable: bool = True,
         table_transformer_style: str = "gan",
         constraints: dict = {},
@@ -341,8 +336,6 @@ class Client:
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
                 Defaults to None.
-            mul_matrix (List): Multiplication matrix for columns aggregations.
-                Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
             table_transformer_style (str): style of table transformer ('gan' or 'cube')
@@ -363,7 +356,6 @@ class Client:
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
-            "mul_matrix": mul_matrix,
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
             "constraints": constraints,

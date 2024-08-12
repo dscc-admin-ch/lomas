@@ -213,7 +213,6 @@ def smartnoise_synth_handler(
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-            - mul_matrix (List): Multiplication matrix for columns aggregations.
             - nullable (bool): True if some data cells may be null
             - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
@@ -271,7 +270,6 @@ def dummy_smartnoise_synth_handler(
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-            - mul_matrix (List): Multiplication matrix for columns aggregations.
             - nullable (bool): True if some data cells may be null
             - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
@@ -332,7 +330,6 @@ def estimate_smartnoise_synth_cost(
                 constructor.
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
-            - mul_matrix (List): Multiplication matrix for columns aggregations.
             - nullable (bool): True if some data cells may be null
             - table_transformer_style
             - constraints

@@ -4,19 +4,23 @@ import pickle
 
 from fastapi import status
 from fastapi.testclient import TestClient
+from smartnoise_synth_logger import serialise_constraints
+from snsynth.transform import (
+    ChainTransformer,
+    LabelTransformer,
+    MinMaxTransformer,
+    OneHotEncoder,
+)
 
 from app import app
 
 # from constants import SSynthTableTransStyle  # DPLibraries
 from tests.constants import PENGUIN_COLUMNS
 from tests.test_api import TestRootAPIEndpoint
-from utils.logger import LOG
 from utils.query_examples import (
     example_dummy_smartnoise_synth,
     example_smartnoise_synth,
 )
-
-# from smartnoise_synth_logger import serialise_constraints
 
 
 def get_model(query_response):
@@ -56,7 +60,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert model.delta == response_dict["spent_delta"]
 
     # def test_smartnoise_synth_query_transformer_type(self) -> None:
-    #     """Test smartnoise synth query"""
+    #     """Test smartnoise synth query transformer_type"""
     #     with TestClient(app, headers=self.headers) as client:
 
     #         body = dict(example_smartnoise_synth)
@@ -77,11 +81,67 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
     #         assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_select_cols(self) -> None:
-        """Test smartnoise synth query"""
+        """Test smartnoise synth query select_cols"""
         with TestClient(app, headers=self.headers) as client:
 
+            # Expect to work
             body = dict(example_smartnoise_synth)
             body["select_cols"] = ["species", "island"]
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == ["species", "island"]
+
+            # Expect to fail
+            body = dict(example_smartnoise_synth)
+            body["select_cols"] = ["species", "idonotexist"]
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json()["InvalidQueryException"].startswith(
+                "Error while selecting provided select_cols: "
+            )
+
+    def test_smartnoise_synth_query_constraints(self) -> None:
+        """Test smartnoise synth query constraints"""
+        with TestClient(app, headers=self.headers) as client:
+
+            constraints = {
+                "species": ChainTransformer(
+                    [LabelTransformer(nullable=True), OneHotEncoder()]
+                ),
+                "island": ChainTransformer(
+                    [LabelTransformer(nullable=True), OneHotEncoder()]
+                ),
+                "bill_length_mm": MinMaxTransformer(
+                    lower=30.0, upper=65.0, nullable=True
+                ),
+                "bill_depth_mm": MinMaxTransformer(
+                    lower=13.0, upper=23.0, nullable=True
+                ),
+                "flipper_length_mm": MinMaxTransformer(
+                    lower=150.0, upper=250.0, nullable=True
+                ),
+                "body_mass_g": MinMaxTransformer(
+                    lower=2000.0, upper=7000.0, nullable=True
+                ),
+                "sex": ChainTransformer(
+                    [LabelTransformer(nullable=True), OneHotEncoder()]
+                ),
+            }
+
+            body = dict(example_smartnoise_synth)
+            body["constraints"] = serialise_constraints(constraints)
 
             # Expect to work
             response = client.post(
@@ -92,11 +152,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error(response_dict.keys())
-
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
-            assert list(df.columns) == ["species", "island"]
+            assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_dummy_smartnoise_synth_query(self) -> None:
         """test_dummy_smartnoise_synth_query"""

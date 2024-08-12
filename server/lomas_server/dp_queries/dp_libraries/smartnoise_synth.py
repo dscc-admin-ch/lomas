@@ -68,9 +68,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             case "int" | "float":
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
-                if "cardinality" in data.keys():
-                    return SSynthColumnType.CATEGORICAL
-                return SSynthColumnType.ORDINAL
+                return SSynthColumnType.CATEGORICAL  # ordinal is categorical
             case "datetime":
                 return SSynthColumnType.DATETIME
             case _:
@@ -97,7 +95,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             SSynthColumnType.CATEGORICAL: [],
             SSynthColumnType.CONTINUOUS: [],
             SSynthColumnType.DATETIME: [],
-            SSynthColumnType.ORDINAL: [],
             SSynthColumnType.PRIVATE_ID: [],
         }
         for col_name, data in metadata["columns"].items():
@@ -168,10 +165,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                         ),
                     ]
                 )
-            for col in col_categories[SSynthColumnType.ORDINAL]:
-                constraints[col] = ChainTransformer(
-                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
-                )
         else:  # cube
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
@@ -186,8 +179,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                         ),
                     ]
                 )
-            for col in col_categories[SSynthColumnType.ORDINAL]:
-                constraints[col] = LabelTransformer(nullable=nullable)
 
         return constraints
 

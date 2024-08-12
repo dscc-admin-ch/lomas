@@ -134,7 +134,6 @@ class SSynthColumnType(StrEnum):
     PRIVATE_ID = "private_id"
     CATEGORICAL = "categorical"
     CONTINUOUS = "continuous"
-    ORDINAL = "ordinal"
     DATETIME = "datetime"
 
 

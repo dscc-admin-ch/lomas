@@ -72,11 +72,11 @@ example_smartnoise_synth = {
         "embedding_dim": 128,
         "generator_dim": (256, 256),
         "discriminator_dim": (256, 256),
+        "batch_size": 50,
     },
-    "mul_matrix": [],
     "nullable": True,
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,
-    "constraints": {},
+    "constraints": "",
 }
 example_dummy_smartnoise_synth = dict(example_smartnoise_synth)
 example_dummy_smartnoise_synth["dummy_nb_rows"] = DUMMY_NB_ROWS

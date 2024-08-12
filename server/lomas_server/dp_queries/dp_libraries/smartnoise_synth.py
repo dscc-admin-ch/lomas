@@ -1,6 +1,5 @@
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
@@ -68,9 +67,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             case "int" | "float":
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
-                if "cardinality" in data.keys():
-                    return SSynthColumnType.CATEGORICAL
-                return SSynthColumnType.ORDINAL
+                return SSynthColumnType.CATEGORICAL  # ordinal is categorical
             case "datetime":
                 return SSynthColumnType.DATETIME
             case _:
@@ -97,7 +94,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             SSynthColumnType.CATEGORICAL: [],
             SSynthColumnType.CONTINUOUS: [],
             SSynthColumnType.DATETIME: [],
-            SSynthColumnType.ORDINAL: [],
             SSynthColumnType.PRIVATE_ID: [],
         }
         for col_name, data in metadata["columns"].items():
@@ -168,64 +164,30 @@ class SmartnoiseSynthQuerier(DPQuerier):
                         ),
                     ]
                 )
-            for col in col_categories[SSynthColumnType.ORDINAL]:
-                constraints[col] = ChainTransformer(
-                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
-                )
         else:  # cube
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
-                constraints[col] = BinTransformer(nullable=nullable)
+                constraints[col] = BinTransformer(
+                    lower=metadata["columns"][col]["lower"],
+                    upper=metadata["columns"][col]["upper"],
+                    bins=SSYNTH_DEFAULT_BINS,
+                    nullable=nullable,
+                )
             for col in col_categories[SSynthColumnType.DATETIME]:
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(),
                         BinTransformer(
-                            bins=SSYNTH_DEFAULT_BINS, nullable=nullable
+                            lower=metadata["columns"][col]["lower"],
+                            upper=metadata["columns"][col]["upper"],
+                            bins=SSYNTH_DEFAULT_BINS,
+                            nullable=nullable,
                         ),
                     ]
                 )
-            for col in col_categories[SSynthColumnType.ORDINAL]:
-                constraints[col] = LabelTransformer(nullable=nullable)
 
         return constraints
-
-    def _preprocess_data(
-        self,
-        private_data: pd.DataFrame,
-        query_json: dict,
-    ) -> pd.DataFrame:
-        """
-        Preprocess the data based on the query parameters.
-
-        Args:
-            private_data (pd.DataFrame): Private data to be preprocessed
-            query_json (dict): (SmartnoiseSynthModelCost): JSON request object
-                select_cols (List[str]): List of columns to select
-                mul_matrix (List): Multiplication matrix for columns aggregations
-
-        Returns:
-            pd.DataFrame: Preprocessed private data
-        """
-        if query_json.select_cols:
-            try:
-                private_data = private_data[query_json.select_cols]
-            except KeyError as e:
-                raise InvalidQueryException(
-                    "Error while selecting provided select_cols: " + str(e)
-                ) from e
-
-        if query_json.mul_matrix:
-            try:
-                np_matrix = np.array(query_json.mul_matrix)
-                mul_private_data = private_data.to_numpy().dot(np_matrix.T)
-                private_data = pd.DataFrame(mul_private_data)
-            except ValueError as e:
-                raise InvalidQueryException(
-                    f"Failed to multiply provided mul_matrix: {(str(e))}"
-                ) from e
-        return private_data
 
     def _get_fit_model(
         self,
@@ -307,7 +269,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Prepare private data
         private_data = self.private_dataset.get_pandas_df()
-        private_data = self._preprocess_data(private_data, query_json)
+        if query_json.select_cols:
+            try:
+                private_data = private_data[query_json.select_cols]
+            except KeyError as e:
+                raise InvalidQueryException(
+                    "Error while selecting provided select_cols: " + str(e)
+                ) from e
 
         # Get transformer
         transformer = TableTransformer.create(

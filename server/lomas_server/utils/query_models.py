@@ -77,7 +77,7 @@ class SmartnoiseSynthModel(BaseModel):
     synth_params: dict
     nullable: bool
     table_transformer_style: SSynthTableTransStyle
-    constraints: dict
+    constraints: str
 
 
 class DummySmartnoiseSynthModel(SmartnoiseSynthModel):

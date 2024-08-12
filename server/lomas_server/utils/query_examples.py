@@ -72,6 +72,7 @@ example_smartnoise_synth = {
         "embedding_dim": 128,
         "generator_dim": (256, 256),
         "discriminator_dim": (256, 256),
+        "batch_size": 50,
     },
     "mul_matrix": [],
     "nullable": True,

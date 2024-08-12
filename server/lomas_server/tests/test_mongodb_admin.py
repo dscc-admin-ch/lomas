@@ -984,4 +984,4 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 ["PENGUIN", "IRIS", "TINTIN_S3_TEST", "BIRTHDAYS"],
             )
         else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS"])
+            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])

@@ -125,4 +125,9 @@ Here is the explanation of how to add a new dataset store named `NewDatasetStore
 3. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new dataset store.
 
 ## Adding a Data Connector (for private dataset in various databases)
-TODO
+Here is the explanation of how to add a new data connector named `NewDataConnector` for the example.
+
+1. Add the new dataset store to the `NewDataConnector` StrEnum class in `lomas/lomas_server/constants.py`.
+2. Add the `NewDataConnector` option in the `private_dataset_factory` function (in `lomas/lomas_server/private_dataset/factory.py`).
+3. Create a file for your dataset store in the folder `lomas/lomas_server/private_dataset/new_data_connector.py`. Inside, create a class `NewDataConnector` that inherits from `PrivateDataset` (`lomas/lomas_server/private_dataset/private_dataset.py`), your class must contain a `get_pandas_df` method that return a dataframe of the dataset.
+4. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new data connector.

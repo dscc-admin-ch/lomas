@@ -74,7 +74,6 @@ example_smartnoise_synth = {
         "discriminator_dim": (256, 256),
         "batch_size": 50,
     },
-    "mul_matrix": [],
     "nullable": True,
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,
     "constraints": {},

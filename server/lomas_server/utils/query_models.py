@@ -75,7 +75,6 @@ class SmartnoiseSynthModel(BaseModel):
     delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
     select_cols: List
     synth_params: dict
-    mul_matrix: List
     nullable: bool
     table_transformer_style: SSynthTableTransStyle
     constraints: dict

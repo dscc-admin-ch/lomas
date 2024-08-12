@@ -912,7 +912,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         list_datasets = get_list_of_datasets(self.db)
-        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+        self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "PUMS"])
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""

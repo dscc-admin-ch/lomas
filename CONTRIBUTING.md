@@ -93,10 +93,10 @@ Note: Helm charts are updated when there is a push on the `release/vx.y.z` branc
 
 ## Adding a DP Library
 
-It is possible to add DP libraries quite seamlessly. Let0s say the new library is names 'NewLibrary'
+It is possible to add DP libraries quite seamlessly. Let's say the new library is named 'NewLibrary'
 Steps:
 0. Add the necessary requirements in `lomas/lomas_server/requirements.txt` and `lomas/lomas_client/requirements.txt`
-1. Add the library the the DPLibraries StrEnum class in `lomas/lomas_server/constants.py` and add the `NewLibraryQuerier` option in the `querier_factory`.
+1. Add the library the the `DPLibraries` StrEnum class in `lomas/lomas_server/constants.py` and add the `NewLibraryQuerier` option in the `querier_factory` (in  `lomas/lomas_server/dp_queries/dp_libraries/factory.py`).
 2. Create a file for your querier in the folder `lomas/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
 3. Add the three associated API endpoints . 
 - a. Add the endpoint handlers in `lomas/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
@@ -118,7 +118,11 @@ Some examples are avalaible here:
 Do not forget to add these libraries in the `requirements.txt` files.
 
 ## Adding a Dataset Store
-TODO
+Here is the explanation of how to add a new dataset store named `NewDatasetStore` for the example.
+
+1. Add the new dataset store the the `DatasetStoreType` StrEnum class in `lomas/lomas_server/constants.py` and add the `NewDatasetStore` option in the `dataset_store_factory` function (in `lomas/lomas_server/dataset_store/factory.py`).
+2. Create a file for your dataset store in the folder `lomas/lomas_server/dataset_store/new_dataset_store.py`. Inside, create a class `NewDatasetStore` that inherits from `DatasetStore` (`lomas/lomas_server/dataset_store/dataset_store.py`), your class must contain a `_add_dataset` method that handle adding a dataset in memory and a `get_querier` method that the querier for the given dataset and library.
+3. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new dataset store.
 
 ## Adding a Data Connector (for private dataset in various databases)
 TODO

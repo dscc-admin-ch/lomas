@@ -156,6 +156,27 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
+    def test_smartnoise_synth_query_private_id(self) -> None:
+        """Test smartnoise synth query on other dataset for private id
+        and categorical int columns
+        """
+        with TestClient(app, headers=self.headers) as client:
+
+            # Expect to work
+            body = dict(example_smartnoise_synth)
+            body["dataset"] = "PUMS"
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == PENGUIN_COLUMNS
+
     def test_dummy_smartnoise_synth_query(self) -> None:
         """test_dummy_smartnoise_synth_query"""
         with TestClient(app) as client:

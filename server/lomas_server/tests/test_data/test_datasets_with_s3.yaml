@@ -11,6 +11,12 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
+- dataset_name: "PUMS"
+  database_type: "PATH_DB"
+  dataset_path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "tests/test_data/metadata/pums_metadata.yaml"
 - dataset_name: "TINTIN_S3_TEST"
   database_type: "S3_DB"
   bucket: "example"

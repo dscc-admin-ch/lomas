@@ -49,6 +49,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 is the epsilon cost, the second value is the delta value.
         """
         # model.odometer.spent
+        if query_json.delta is None:
+            return query_json.epsilon, 0
         return query_json.epsilon, query_json.delta
 
     def _categorize_column(self, data: dict) -> str:
@@ -204,7 +206,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             query_json (SmartnoiseSynthModelCost): JSON request object for the query
                 synth_name (str): name of the Yanthesizer model to use
                 epsilon (float): epsilon budget value
-                delta (float): delta budget value
                 nullable (bool): True if some data cells may be null
                 synth_params (dict): Keyword arguments to pass to the synthesizer
                     constructor.
@@ -212,10 +213,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             Synthesizer: Fitted synthesizer model
         """
-        if (
-            query_json.delta is not None
-        ):  # not all model take delta as argument
-            query_json.synth_params["delta"] = query_json.delta
         if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
             query_json.synth_params["disabled_dp"] = False
 

@@ -274,8 +274,7 @@ class Client:
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
-        if constraints:
-            constraints = serialise_constraints(constraints)
+        constraints = serialise_constraints(constraints) if constraints else ""
 
         body_json = {
             "dataset_name": self.dataset_name,

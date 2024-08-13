@@ -233,7 +233,7 @@ class Client:
         self,
         synth_name: str,
         epsilon: float,
-        delta: float = 0.0,
+        delta: Optional[float] = None,
         select_cols: List[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
@@ -252,7 +252,7 @@ class Client:
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to 0.
+                Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
             synth_params (dict): Keyword arguments to pass to the synthesizer
@@ -308,7 +308,7 @@ class Client:
         self,
         synth_name: str,
         epsilon: float,
-        delta: float = 0.0,
+        delta: Optional[float] = None,
         select_cols: List[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
@@ -324,7 +324,7 @@ class Client:
                 mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
                 query `See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to 0.
+                Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
             synth_params (dict): Keyword arguments to pass to the synthesizer

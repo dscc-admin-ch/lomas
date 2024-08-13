@@ -294,6 +294,7 @@ class Client:
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         delta: Optional[float] = None,
         mechanism: Optional[str] = "laplace",
+        by_config: Optional[float] = None,
     ):
         """This function executes an OpenDP query.
 
@@ -321,6 +322,7 @@ class Client:
             "dataset_name": self.dataset_name,
             "delta": delta,
             "mechanism": mechanism,
+            "by_config": by_config,
         }
 
         if isinstance(opendp_pipeline, dp.Measurement):
@@ -345,6 +347,7 @@ class Client:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
+        by_config: Optional[float] = None,
     ) -> Optional[dict]:
         """This function executes an OpenDP query.
 
@@ -378,6 +381,7 @@ class Client:
             opendp_pipeline,
             delta=delta,
             mechanism=mechanism,
+            by_config=by_config,
         )
         if dummy:
             endpoint = "dummy_opendp_query"
@@ -409,6 +413,7 @@ class Client:
         opendp_pipeline: dp.Measurement,
         mechanism: Optional[str] = "laplace",
         delta: Optional[float] = None,
+        by_config: Optional[float] = None,
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing an OpenDP query.
 
@@ -434,6 +439,7 @@ class Client:
             opendp_pipeline,
             delta=delta,
             mechanism=mechanism,
+            by_config=by_config,
         )
         res = self._exec("estimate_opendp_cost", body_json)
 

@@ -212,7 +212,9 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             Synthesizer: Fitted synthesizer model
         """
-        if query_json.delta:  # not all model take delta as argument
+        if (
+            query_json.delta is not None
+        ):  # not all model take delta as argument
             query_json.synth_params["delta"] = query_json.delta
         if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
             query_json.synth_params["disabled_dp"] = False

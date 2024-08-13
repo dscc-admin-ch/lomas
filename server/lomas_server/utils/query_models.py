@@ -72,7 +72,7 @@ class SmartnoiseSynthModel(BaseModel):
     dataset_name: str
     synth_name: SSynthSynthesizer
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
-    delta: float = Field(..., gt=0.0, le=DELTA_LIMIT)
+    delta: Optional[float] = None
     select_cols: List
     synth_params: dict
     nullable: bool

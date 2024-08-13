@@ -90,3 +90,44 @@ The following actions must take place in this order when preparing a new release
 The workflows listed in the previous section will take care of building and publishing the different items (docker images, pip packages, etc.).
 
 Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, do not forget to update the chart and app versions of your specific deployment.
+
+## Adding a DP Library
+
+It is possible to add DP libraries quite seamlessly. Let's say the new library is named 'NewLibrary'
+Steps:
+0. Add the necessary requirements in `lomas/lomas_server/requirements.txt` and `lomas/lomas_client/requirements.txt`
+1. Add the library the the `DPLibraries` StrEnum class in `lomas/lomas_server/constants.py` and add the `NewLibraryQuerier` option in the `querier_factory` (in  `lomas/lomas_server/dp_queries/dp_libraries/factory.py`).
+2. Create a file for your querier in the folder `lomas/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
+3. Add the three associated API endpoints . 
+- a. Add the endpoint handlers in `lomas/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
+- b. The endpoints should have predefined pydantic BaselModel types. Aadd BaseModel classes of expected input `NewLibraryModel`, `DummyNewLibraryModel`, `NewLibraryCostModel` in  `lomas/lomas_server/utils/query_models.py` and 
+- c. predefined default examples `example_new_library`, `example_dummy_new_library` in  `lomas/lomas_server/utils/query_examples.py`.
+4. Add tests in `lomas/lomas_server/tests/test_new_library.py` to test all functionnalities and options of the new library.
+5. Add the associated method in `lomas-client` library in `lomas/client/lomas_client/client.py`. In this case there should be `new_library_query` for queries on the private and on the dummy datasets and `estimate_new_library_cost` to estimate the cost of a query.
+6. Add a notebook `Demo_Client_Notebook_NewLibrary.ipynb` in `lomas/client/notebook/` to give example of the use of the library.
+
+### External Loggers
+Some libraries have 'custom object' parameters which are not readily serialisable.
+In those cases, a `logger` library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their `DPQuerier` class in the server.
+
+Some examples are avalaible here:
+- `opendp_logger` for opendp pipelines: https://github.com/opendp/opendp-logger
+- `diffprivlib_logger` for diffprivlib pipelines: https://github.com/dscc-admin-ch/diffprivlib-logger
+- `smartnoise_synth_logger` for smartnoise_synth table transformer constraints: https://github.com/dscc-admin-ch/smartnoise-synth-logger
+
+Do not forget to add these libraries in the `requirements.txt` files.
+
+## Adding a Dataset Store
+Here is the explanation of how to add a new dataset store named `NewDatasetStore` for the example.
+
+1. Add the new dataset store the the `DatasetStoreType` StrEnum class in `lomas/lomas_server/constants.py` and add the `NewDatasetStore` option in the `dataset_store_factory` function (in `lomas/lomas_server/dataset_store/factory.py`).
+2. Create a file for your dataset store in the folder `lomas/lomas_server/dataset_store/new_dataset_store.py`. Inside, create a class `NewDatasetStore` that inherits from `DatasetStore` (`lomas/lomas_server/dataset_store/dataset_store.py`), your class must contain a `_add_dataset` method that handle adding a dataset in memory and a `get_querier` method that the querier for the given dataset and library.
+3. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new dataset store.
+
+## Adding a Data Connector (for private dataset in various databases)
+Here is the explanation of how to add a new data connector named `NewDataConnector` for the example.
+
+1. Add the new dataset store to the `NewDataConnector` StrEnum class in `lomas/lomas_server/constants.py`.
+2. Add the `NewDataConnector` option in the `private_dataset_factory` function (in `lomas/lomas_server/private_dataset/factory.py`).
+3. Create a file for your dataset store in the folder `lomas/lomas_server/private_dataset/new_data_connector.py`. Inside, create a class `NewDataConnector` that inherits from `PrivateDataset` (`lomas/lomas_server/private_dataset/private_dataset.py`), your class must contain a `get_pandas_df` method that return a dataframe of the dataset.
+4. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new data connector.

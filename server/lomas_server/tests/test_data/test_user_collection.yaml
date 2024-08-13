@@ -12,6 +12,11 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0
     total_spent_delta: 0
+  - dataset_name: "PUMS"
+    initial_epsilon: 5
+    initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
 - user_name: "Tintin"
   may_query: True
   datasets_list:

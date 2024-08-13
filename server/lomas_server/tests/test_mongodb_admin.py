@@ -768,7 +768,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            tintin = datasets["datasets"][2]
+            tintin = datasets["datasets"][3]
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
@@ -978,7 +978,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
-                list_datasets, ["PENGUIN", "IRIS", "TINTIN_S3_TEST"]
+                list_datasets, ["PENGUIN", "IRIS", "TINTIN_S3_TEST", "PUMS"]
             )
         else:
             self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "PUMS"])

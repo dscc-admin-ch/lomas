@@ -73,6 +73,7 @@ example_smartnoise_synth = {
         "generator_dim": (256, 256),
         "discriminator_dim": (256, 256),
         "batch_size": 50,
+        "epochs": 5,
     },
     "nullable": True,
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,

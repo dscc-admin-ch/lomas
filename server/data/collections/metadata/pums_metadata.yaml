@@ -3,9 +3,8 @@ row_privacy: true
 censor_dims: False
 columns:
   age:
+    private_id: true # for testing purposes
     type: int
-    lower: 18
-    upper: 70
   sex:
     type: boolean
   educ:

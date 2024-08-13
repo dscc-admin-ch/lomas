@@ -13,8 +13,7 @@ from snsynth.transform import (
 )
 
 from app import app
-
-# from constants import SSynthTableTransStyle  # DPLibraries
+from constants import SSynthTableTransStyle  # DPLibraries
 from tests.constants import PENGUIN_COLUMNS
 from tests.test_api import TestRootAPIEndpoint
 from utils.query_examples import (
@@ -48,8 +47,8 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
 
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
-            assert response_dict["spent_epsilon"] > 0
-            assert response_dict["spent_delta"] > 0
+            assert response_dict["spent_epsilon"] == 0.1
+            assert response_dict["spent_delta"] == 1e-05
 
             model = get_model(response_dict["query_response"])
             assert model.__class__.__name__ == "DPCTGAN"
@@ -57,28 +56,27 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             df = model.sample(10)
             assert list(df.columns) == PENGUIN_COLUMNS
             assert model.epsilon == response_dict["spent_epsilon"]
-            assert model.delta == response_dict["spent_delta"]
 
-    # def test_smartnoise_synth_query_transformer_type(self) -> None:
-    #     """Test smartnoise synth query transformer_type"""
-    #     with TestClient(app, headers=self.headers) as client:
+    def test_smartnoise_synth_query_transformer_type(self) -> None:
+        """Test smartnoise synth query transformer_type"""
+        with TestClient(app, headers=self.headers) as client:
 
-    #         body = dict(example_smartnoise_synth)
-    #         body["table_transformer_style"] = SSynthTableTransStyle.CUBE
+            body = dict(example_smartnoise_synth)
+            body["table_transformer_style"] = SSynthTableTransStyle.CUBE
 
-    #         # Expect to work
-    #         response = client.post(
-    #             "/smartnoise_synth_query",
-    #             json=body,
-    #             headers=self.headers,
-    #         )
-    #         # TypeError: list indices must be integers or slices, not numpy.float32
-    #         response_dict = json.loads(response.content.decode("utf8"))
-    #         assert response.status_code == status.HTTP_200_OK
+            # Expect to work
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            # TypeError: list indices must be integers or slices, not numpy.float32
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response.status_code == status.HTTP_200_OK
 
-    #         model = get_model(response_dict["query_response"])
-    #         df = model.sample(10)
-    #         assert list(df.columns) == PENGUIN_COLUMNS
+            _ = get_model(response_dict["query_response"])
+            # df = model.sample(10)
+            # assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_select_cols(self) -> None:
         """Test smartnoise synth query select_cols"""
@@ -165,6 +163,27 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             # Expect to work
             body = dict(example_smartnoise_synth)
             body["dataset"] = "PUMS"
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == PENGUIN_COLUMNS
+
+    def test_smartnoise_synth_query_delta_none(self) -> None:
+        """Test smartnoise synth query on other synthesizer with delta None"""
+        with TestClient(app, headers=self.headers) as client:
+
+            # Expect to work
+            body = dict(example_smartnoise_synth)
+            body["dataset"] = "PUMS"
+            body["delta"] = None
+            body["synth_params"] = {"batch_size": 2, "epochs": 5}
             response = client.post(
                 "/smartnoise_synth_query",
                 json=body,

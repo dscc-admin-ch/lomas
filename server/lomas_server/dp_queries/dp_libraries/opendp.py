@@ -21,7 +21,7 @@ from utils.input_models import OpenDPInp
 from utils.loggr import LOG
 
 
-def get_lf_domain(metadata):
+def get_lf_domain(metadata, by_config):
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
 
@@ -81,24 +81,92 @@ def get_lf_domain(metadata):
 
     # Margins
     # TODO Check lengths vs. keys for public info -> not in doc anymore.
+
+    # Global params
+    params = {}
     if "rows" in metadata:
+        params["max_partition_length"] = metadata["rows"]
+    if "max_ids" in metadata:
+        params["max_num_partitions"] = metadata["max_ids"]
+    if len(params) > 0:
         lf_domain = dp.domains.with_margin(
             lf_domain,
             by=[],
             public_info="lengths",
-            max_partition_length=metadata["rows"],
-            max_num_partitions=1,
+            **params,
         )
 
-    for name, series_info in metadata["columns"].items():
-        # TODO add max_partition_contributions, max_influenced_partitions
-        if "max_num_partitions" in series_info:
-            lf_domain = dp.domains.with_margin(
-                lf_domain,
-                by=[name],
-                public_info="lengths",
-                max_num_partitions=series_info["max_num_partitions"],
+    # Group by logic (margin adaptation)
+    if by_config:
+        if len(by_config) == 1:
+            series_info = metadata["columns"].get(by_config[0])
+            params["max_partition_length"] = int(
+                metadata["rows"] * series_info.get("max_partition_length")
             )
+            params["max_num_partitions"] = series_info.get("cardinality")
+
+            # if multiple partititions, nb of partition an indidivual can be in
+            if "max_influenced_partitions" in series_info:
+                params["max_influenced_partitions"] = min(
+                    metadata["max_ids"],
+                    series_info.get("max_influenced_partitions"),
+                )
+
+            # if muliple partition, how many times (max)
+            # can she be within one of of them
+            if "max_partition_contributions" in series_info:
+                params["max_partition_contributions"] = min(
+                    metadata["max_ids"],
+                    series_info.get("max_partition_contributions"),
+                )
+
+        elif len(by_config) > 1:
+
+            params["max_num_partitions"] = (
+                1  # Initialize with 1 for multiplication
+            )
+            params["max_partition_length"] = metadata["rows"]
+            for column in by_config:
+                series_info = metadata["columns"].get(column)
+                if "cardinality" in series_info:
+                    params["max_num_partitions"] *= series_info["cardinality"]
+
+                    params["max_partition_length"] *= series_info[
+                        "max_partition_length"
+                    ]
+
+                if "max_influenced_partitions" in series_info:
+                    if "max_influenced_partitions" not in params:
+                        params["max_influenced_partitions"] = 1
+                    params["max_influenced_partitions"] *= series_info[
+                        "max_influenced_partitions"
+                    ]
+
+                if "max_partition_contributions" in series_info:
+                    if "max_partition_contributions" not in params:
+                        params["max_partition_contributions"] = 1
+                    params["max_partition_contributions"] *= series_info[
+                        "max_partition_contributions"
+                    ]
+            if "max_influenced_partitions" in params:
+                params["max_influenced_partitions"] = min(
+                    metadata["max_ids"],
+                    params.get("max_influenced_partitions"),
+                )
+            if "max_partition_contributions" in params:
+                params["max_partition_contributions"] = min(
+                    metadata["max_ids"],
+                    params.get("max_partition_contributions"),
+                )
+
+        params["max_partition_length"] = int(params["max_partition_length"])
+        # print(f"PARAMS !!! : {params}")
+        lf_domain = dp.domains.with_margin(
+            lf_domain,
+            by=by_config,
+            public_info="lengths",
+            **params,
+        )
 
     return lf_domain
 
@@ -306,7 +374,7 @@ def reconstruct_measurement_pipeline(
             "gaussian": dp.measures.zero_concentrated_divergence(T="float"),
         }[query_json.mechanism]
 
-        lf_domain = get_lf_domain(metadata)
+        lf_domain = get_lf_domain(metadata, query_json.by_config)
 
         LOG.info(
             "NOTE: IF THERE IS AN ERROR HERE."

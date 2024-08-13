@@ -5,6 +5,7 @@ columns:
     precision: 32
     cardinality: 7 # Added by Lomas
     categories: [1, 2, 3, 4, 5, 6, 7]
+    max_partition_length : 0.23354487457337925
   eco_branch:
     type: int
     precision: 32
@@ -22,6 +23,9 @@ columns:
     precision: 32
     cardinality: 2 # Added by Lomas
     categories: [1, 2]
+    max_partition_length : 0.6877212437818043 # proportion max
+    # max_influenced_partitions: 1
+    # max_partition_contributions: 1
   income:
     type: float
     precision: 64

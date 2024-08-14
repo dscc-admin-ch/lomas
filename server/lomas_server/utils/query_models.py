@@ -81,7 +81,7 @@ class SmartnoiseSynthCostModel(BaseModel):
 
 
 class SmartnoiseSynthQueryModel(SmartnoiseSynthCostModel):
-    """Dummy Model input for a smarnoise-synth query"""
+    """Model input for a smarnoise-synth query"""
 
     return_model: bool
     condition: str

@@ -306,6 +306,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             pd.DataFrame: The resulting pd.DataFrame samples.
         """
+
         model = self._model_pipeline(query_json)
 
         if not query_json.return_model:

@@ -33,6 +33,7 @@ class DPLibraries(StrEnum):
     """
 
     SMARTNOISE_SQL = "smartnoise_sql"
+    SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
 
@@ -667,6 +668,13 @@ class Client:
                 match query["dp_librairy"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
+                    case DPLibraries.SMARTNOISE_SYNTH:
+                        model = base64.b64decode(
+                            query["response"]["query_response"]
+                        )
+                        query["response"]["query_response"] = pickle.loads(
+                            model
+                        )
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(
                             query["client_input"]["opendp_json"]

@@ -12,3 +12,5 @@ PENGUIN_COLUMNS = [
     "body_mass_g",
     "sex",
 ]
+
+PUMS_COLUMNS = ["age", "sex", "educ", "race", "income", "married"]

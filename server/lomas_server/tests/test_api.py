@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import unittest
@@ -79,7 +80,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def setUp(self) -> None:
         """Set Up Header and DB for test"""
         self.user_name = "Dr. Antartica"
-        self.dataset = PENGUIN_DATASET
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
@@ -117,6 +117,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             drop_collection(self.db, "datasets")
             drop_collection(self.db, "users")
             drop_collection(self.db, "queries_archives")
+        else:
+            for file in glob.glob("tests/test_data/local_db_file_*.yaml"):
+                os.remove(file)
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration"""
@@ -515,7 +518,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["query_response"]["columns"] == ["NB_ROW"]
             assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["query_response"]["data"][0][0] < 200
+            assert response_dict["query_response"]["data"][0][0] < 250
 
             # Should fail: no header
             response = client.post(

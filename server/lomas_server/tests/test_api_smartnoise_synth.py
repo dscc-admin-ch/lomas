@@ -13,8 +13,8 @@ from snsynth.transform import (
 )
 
 from app import app
-from constants import SSynthTableTransStyle  # DPLibraries
-from tests.constants import PENGUIN_COLUMNS
+from constants import SSynthTableTransStyle
+from tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from tests.test_api import TestRootAPIEndpoint
 from utils.query_examples import (
     example_dummy_smartnoise_synth,
@@ -162,7 +162,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
 
             # Expect to work
             body = dict(example_smartnoise_synth)
-            body["dataset"] = "PUMS"
+            body["dataset_name"] = "PUMS"
             response = client.post(
                 "/smartnoise_synth_query",
                 json=body,
@@ -173,19 +173,19 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
-            assert list(df.columns) == PENGUIN_COLUMNS
+            assert list(df.columns) == PUMS_COLUMNS
 
     def test_smartnoise_synth_query_delta_none(self) -> None:
         """Test smartnoise synth query on other synthesizer with delta None"""
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
-            body = dict(example_smartnoise_synth)
-            body["dataset"] = "PUMS"
+            body = dict(example_dummy_smartnoise_synth)
+            body["dataset_name"] = "PUMS"
             body["delta"] = None
             body["synth_params"] = {"batch_size": 2, "epochs": 5}
             response = client.post(
-                "/smartnoise_synth_query",
+                "/dummy_smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
@@ -194,7 +194,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
-            assert list(df.columns) == PENGUIN_COLUMNS
+            assert list(df.columns) == PUMS_COLUMNS
 
     def test_dummy_smartnoise_synth_query(self) -> None:
         """test_dummy_smartnoise_synth_query"""

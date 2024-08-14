@@ -113,6 +113,7 @@ example_opendp = {
     "pipeline_type": "legacy",  # TODO set constant
     "delta": 1e-6,
     "mechanism": None,
+    "by_config": None
 }
 
 example_dummy_opendp = {
@@ -123,6 +124,7 @@ example_dummy_opendp = {
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
     "mechanism": None,
+    "by_config": None
 }
 
 DIFFPRIVLIB_JSON = (
@@ -198,31 +200,20 @@ example_dummy_diffprivlib = {
 }
 
 OPENDP_POLARS_JSON = (
-    '{"Select":{"expr":[{"BinaryExpr":{"left":{"Function":{"input":'
-    '[{"Agg":{"Sum":{"Function":{"input":[{"Column":"income"},'
-    '{"Literal":{"Float":1000.0}},{"Literal":{"Float":100000.0}}],'
-    '"function":{"Clip":{"has_min":true,"has_max":true}},"options":'
-    '{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":'
-    'false,"returns_scalar":false,"allow_rename":false,"pass_name_to_apply":'
-    'false,"changes_length":false,"check_lengths":true,"allow_group_aware":'
-    'true}}}}},{"Literal":"Null"},{"Literal":{"Int":1000}}],"function":'
-    '{"FfiPlugin":{"lib":"/home/azureuser/Desktop/POC/lomas/.venv/lib/python3.11/'
-    'site-packages/opendp/lib/opendp.abi3.so","symbol":"noise","kwargs":[]}},'
-    '"options":{"collect_groups":"ElementWise","fmt_str":"","input_wildcard_expansion":'
-    'false,"returns_scalar":false,"allow_rename":false,"pass_name_to_apply":false,'
-    '"changes_length":false,"check_lengths":true,"allow_group_aware":true}}},'
-    '"op":"TrueDivide","right":"Len"}}],"input":{"DataFrameScan":{"df":{"columns":'
-    '[{"name":"region","datatype":"Int32","bit_settings":"","values":[6]},'
-    '{"name":"eco_branch","datatype":"Int32","bit_settings":"","values":[2739]},'
-    '{"name":"profession","datatype":"Int32","bit_settings":"","values":[223]},'
-    '{"name":"education","datatype":"Int32","bit_settings":"","values":[-4604]},'
-    '{"name":"age","datatype":"Int32","bit_settings":"","values":[-3844]},'
-    '{"name":"sex","datatype":"Int32","bit_settings":"","values":[1]},'
-    '{"name":"income","datatype":"Float64","bit_settings":"","values":'
-    '[2636.2359173243804]}]},"schema":{"inner":{"region":"Int32","eco_branch":'
-    '"Int32","profession":"Int32","education":"Int32","age":"Int32","sex":"Int32",'
-    '"income":"Float64"}},"output_schema":null,"filter":null}},"options":'
-    '{"run_parallel":true,"duplicate_check":true,"should_broadcast":true}}}'
+    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32",'
+    '"bit_settings":"","values":[6,5,4,2,3,1,1,1,2,6]},{"name":"eco_branch",'
+    '"datatype":"Int32","bit_settings":"","values":[66,90,55,63,94,73,65,59,'
+    '60,92]},{"name":"profession","datatype":"Int32","bit_settings":"","values":'
+    '[32,81,71,10,42,91,53,10,74,73]},{"name":"education","datatype":"Int32",'
+    '"bit_settings":"","values":[7,2,1,7,1,5,1,3,4,4]},{"name":"age","datatype":'
+    '"Int32","bit_settings":"","values":[36,19,18,23,18,49,42,48,30,46]},{"name":'
+    '"sex","datatype":"Int32","bit_settings":"","values":[2,1,1,2,2,2,1,2,2,2]},'
+    '{"name":"income","datatype":"Float64","bit_settings":"","values":[69156.22632'
+    '652307,39503.22097393128,14374.55399721871,72427.3456792141,53010.07792509686,'
+    '31713.94568033661,49097.70052434712,89059.29560055102,93470.30807966871,36421.'
+    '72447419795]}]},"schema":{"inner":{"region":"Int32","eco_branch":"Int32",'
+    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":'
+    '"Float64"}},"output_schema":null,"filter":null}}'
 )
 
 
@@ -232,4 +223,5 @@ example_opendp_polars = {
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,
     "mechanism": "laplace",
+    "by_config": None
 }

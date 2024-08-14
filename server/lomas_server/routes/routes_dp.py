@@ -13,22 +13,24 @@ from utils.query_examples import (
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
-    example_dummy_smartnoise_synth,
+    example_dummy_smartnoise_synth_query,
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
-    example_smartnoise_synth,
+    example_smartnoise_synth_cost,
+    example_smartnoise_synth_query,
 )
 from utils.query_models import (
     DiffPrivLibModel,
     DummyDiffPrivLibModel,
     DummyOpenDPModel,
     DummySmartnoiseSQLModel,
-    DummySmartnoiseSynthModel,
+    DummySmartnoiseSynthQueryModel,
     OpenDPModel,
     SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
-    SmartnoiseSynthModel,
+    SmartnoiseSynthCostModel,
+    SmartnoiseSynthQueryModel,
 )
 
 router = APIRouter()
@@ -194,7 +196,9 @@ def estimate_smartnoise_sql_cost(
 )
 def smartnoise_synth_handler(
     request: Request,
-    query_json: SmartnoiseSynthModel = Body(example_smartnoise_synth),
+    query_json: SmartnoiseSynthQueryModel = Body(
+        example_smartnoise_synth_query
+    ),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -217,6 +221,11 @@ def smartnoise_synth_handler(
             - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
+            - return_model (bool): True to get Synthesizer model, False to get samples
+            - condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+            - nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
             - Defaults to Body(example_smartnoise_synth).
         user_name (str): The user name.
     Raises:
@@ -249,8 +258,8 @@ def smartnoise_synth_handler(
 )
 def dummy_smartnoise_synth_handler(
     request: Request,
-    query_json: DummySmartnoiseSynthModel = Body(
-        example_dummy_smartnoise_synth
+    query_json: DummySmartnoiseSynthQueryModel = Body(
+        example_dummy_smartnoise_synth_query
     ),
     user_name: str = Header(None),
 ) -> JSONResponse:
@@ -274,6 +283,11 @@ def dummy_smartnoise_synth_handler(
             - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
+            - return_model (bool): True to get Synthesizer model, False to get samples
+            - condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+            - nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
             - nb_rows (int, optional): The number of rows in the dummy dataset
               (default: 100).
             - seed (int, optional): The random seed for generating
@@ -311,7 +325,7 @@ def dummy_smartnoise_synth_handler(
 )
 def estimate_smartnoise_synth_cost(
     request: Request,
-    query_json: SmartnoiseSynthModel = Body(example_smartnoise_synth),
+    query_json: SmartnoiseSynthCostModel = Body(example_smartnoise_synth_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """

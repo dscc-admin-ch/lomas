@@ -27,6 +27,8 @@ DEFAULT_READ_TIMEOUT = 5
 DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
 SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
+SNSYNTH_DEFAULT_SYMPLES_NB = 200
+
 
 class DPLibraries(StrEnum):
     """Enum of the DP librairies used in the server
@@ -240,6 +242,9 @@ class Client:
         nullable: bool = True,
         table_transformer_style: str = "gan",
         constraints: dict = {},
+        return_model: bool = False,
+        condition: str = "",
+        nb_samples: int = SNSYNTH_DEFAULT_SYMPLES_NB,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -250,10 +255,6 @@ class Client:
             synth_name (str): name of the Synthesizer model to use.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
-                query `See Smartnoise-SQL postprocessing documentation.
-                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
-                Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
             synth_params (dict): Keyword arguments to pass to the synthesizer
@@ -268,6 +269,20 @@ class Client:
             constraints: Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
                 Defaults to {}.
+            return_model (bool): True to get Synthesizer model, False to get samples
+                Defaults to False
+            condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+                Defaults to "".
+            nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
+                Defaults to SNSYNTH_DEFAULT_SYMPLES_NB
+            dummy (bool, optional): Whether to use a dummy dataset.
+                Defaults to False.
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+                Defaults to DUMMY_SEED.
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
@@ -283,6 +298,9 @@ class Client:
             "nullable": nullable,
             "table_transformer_style": table_transformer_style,
             "constraints": constraints,
+            "return_model": return_model,
+            "condition": condition,
+            "nb_samples": nb_samples,
         }
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
@@ -297,8 +315,12 @@ class Client:
 
         if res.status_code == HTTP_200_OK:
             response = res.json()
-            model = base64.b64decode(response["query_response"])
-            response["query_response"] = pickle.loads(model)
+            query_response = response["query_response"]
+            if return_model:
+                model = base64.b64decode(query_response)
+                response["query_response"] = pickle.loads(model)
+            else:
+                response["query_response"] = pd.DataFrame(query_response)
             return response
 
         print(error_message(res))
@@ -321,9 +343,6 @@ class Client:
             synth_name (str): name of the Synthesizer model to use.
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
-                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
-                query `See Smartnoise-SQL postprocessing documentation.
-                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
                 Defaults to None.
             select_cols (List[str]): List of columns to select.
                 Defaults to None.
@@ -356,7 +375,11 @@ class Client:
             "table_transformer_style": table_transformer_style,
             "constraints": constraints,
         }
-        res = self._exec("estimate_smartnoise_synth_cost", body_json)
+        res = self._exec(
+            "estimate_smartnoise_synth_cost",
+            body_json,
+            read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT,
+        )
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))

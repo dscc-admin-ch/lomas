@@ -30,7 +30,18 @@ SPLIT_SEED = 4
 TEST_SIZE = 0.2
 IMPUTER_STRATEGY = "drop"
 TABLE_TRANSFORMER_STYLE = SSynthTableTransStyle.GAN
+SNSYNTH_NB_SAMPLES = 200
 
+
+def make_dummy(example_query):
+    """Make dummy example dummy query based on example query"""
+    example_query_dummy = dict(example_query)
+    example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
+    example_query_dummy["dummy_seed"] = DUMMY_SEED
+    return example_query_dummy
+
+
+# Lomas logic
 example_get_admin_db_data = {
     "dataset_name": PENGUIN_DATASET,
 }
@@ -41,19 +52,7 @@ example_get_dummy_dataset = {
     "dummy_seed": DUMMY_SEED,
 }
 
-example_smartnoise_sql = {
-    "query_str": SQL_QUERY,
-    "dataset_name": PENGUIN_DATASET,
-    "epsilon": QUERY_EPSILON,
-    "delta": QUERY_DELTA,
-    "mechanisms": DP_MECHANISM,
-    "postprocess": True,
-}
-
-example_dummy_smartnoise_sql = dict(example_smartnoise_sql)
-example_dummy_smartnoise_sql["dummy_nb_rows"] = DUMMY_NB_ROWS
-example_dummy_smartnoise_sql["dummy_seed"] = DUMMY_SEED
-
+# Smartnoise-SQL
 example_smartnoise_sql_cost = {
     "query_str": SQL_QUERY,
     "dataset_name": PENGUIN_DATASET,
@@ -62,7 +61,13 @@ example_smartnoise_sql_cost = {
     "mechanisms": DP_MECHANISM,
 }
 
-example_smartnoise_synth = {
+example_smartnoise_sql = dict(example_smartnoise_sql_cost)
+example_smartnoise_sql["postprocess"] = True
+
+example_dummy_smartnoise_sql = make_dummy(example_smartnoise_sql)
+
+# Smartnoise-Synth
+example_smartnoise_synth_cost = {
     "dataset_name": PENGUIN_DATASET,
     "synth_name": SSynthSynthesizer.DP_CTGAN,
     "epsilon": QUERY_EPSILON,
@@ -79,21 +84,24 @@ example_smartnoise_synth = {
     "table_transformer_style": TABLE_TRANSFORMER_STYLE,
     "constraints": "",
 }
-example_dummy_smartnoise_synth = dict(example_smartnoise_synth)
-example_dummy_smartnoise_synth["dummy_nb_rows"] = DUMMY_NB_ROWS
-example_dummy_smartnoise_synth["dummy_seed"] = DUMMY_SEED
+example_smartnoise_synth_query = dict(example_smartnoise_synth_cost)
+example_smartnoise_synth_query["return_model"] = True
+example_smartnoise_synth_query["condition"] = ""
+example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
+example_dummy_smartnoise_synth_query = make_dummy(
+    example_smartnoise_synth_query
+)
+
+# OpenDP
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
 }
+example_dummy_opendp = make_dummy(example_opendp)
 
-example_dummy_opendp = dict(example_opendp)
-example_dummy_opendp["dummy_nb_rows"] = DUMMY_NB_ROWS
-example_dummy_opendp["dummy_seed"] = DUMMY_SEED
-
-
+# DiffPrivLib
 example_diffprivlib = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_PIPELINE,
@@ -103,7 +111,4 @@ example_diffprivlib = {
     "test_train_split_seed": SPLIT_SEED,
     "imputer_strategy": IMPUTER_STRATEGY,
 }
-
-example_dummy_diffprivlib = dict(example_diffprivlib)
-example_dummy_diffprivlib["dummy_nb_rows"] = DUMMY_NB_ROWS
-example_dummy_diffprivlib["dummy_seed"] = DUMMY_SEED
+example_dummy_diffprivlib = make_dummy(example_diffprivlib)

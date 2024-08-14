@@ -66,8 +66,8 @@ class SmartnoiseSQLCostModel(BaseModel):
     mechanisms: dict
 
 
-class SmartnoiseSynthModel(BaseModel):
-    """Model input for a smarnoise-synth query"""
+class SmartnoiseSynthCostModel(BaseModel):
+    """Model input for a smarnoise-synth cost"""
 
     dataset_name: str
     synth_name: SSynthSynthesizer
@@ -80,7 +80,15 @@ class SmartnoiseSynthModel(BaseModel):
     constraints: str
 
 
-class DummySmartnoiseSynthModel(SmartnoiseSynthModel):
+class SmartnoiseSynthQueryModel(SmartnoiseSynthCostModel):
+    """Dummy Model input for a smarnoise-synth query"""
+
+    return_model: bool
+    condition: str
+    nb_samples: int
+
+
+class DummySmartnoiseSynthQueryModel(SmartnoiseSynthQueryModel):
     """Dummy Model input for a smarnoise-synth query"""
 
     dummy_nb_rows: int = Field(..., gt=0)

@@ -20,7 +20,7 @@ class PrivateDataset(ABC):
         Args:
             metadata (Metadata): The metadata for this dataset
         """
-        self.metadata: Metadata = metadata
+        self.metadata: dict = metadata
         self.dataset_observers: List[PrivateDatasetObserver] = []
 
         dtypes, datetime_columns = _get_dtypes(metadata)

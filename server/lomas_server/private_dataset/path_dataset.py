@@ -1,8 +1,9 @@
-from typing import Dict, Optional, Union
+from typing import Optional
 
 import pandas as pd
 
 from private_dataset.private_dataset import PrivateDataset
+from utils.collection_models import Metadata
 from utils.error_handler import InternalServerException, InvalidQueryException
 
 
@@ -15,14 +16,13 @@ class PathDataset(PrivateDataset):
 
     def __init__(
         self,
-        metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
+        metadata: Metadata,
         dataset_path: str,
     ) -> None:
         """Initializer. Does not load the dataset in memory yet.
 
         Args:
-            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]):
-                The metadata dictionary.
+            metadata (Metadata): The metadata dictionary.
             dataset_path (str): path of the dataset (local or remote).
         """
         super().__init__(metadata)
@@ -41,7 +41,11 @@ class PathDataset(PrivateDataset):
         if self.df is None:
             if self.ds_path.endswith(".csv"):
                 try:
-                    self.df = pd.read_csv(self.ds_path, dtype=self.dtypes)
+                    self.df = pd.read_csv(
+                        self.ds_path,
+                        dtype=self.dtypes,
+                        parse_dates=self.datetime_columns,
+                    )
                 except Exception as err:
                     raise InternalServerException(
                         "Error reading csv at http path:"

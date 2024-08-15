@@ -91,4 +91,5 @@ class Metadata(BaseModel):
 
     max_ids: int
     row_privacy: bool
+    censor_dims: Optional[bool] = False
     columns: Dict[str, Dict[str, Union[int, float, str, List[str]]]]

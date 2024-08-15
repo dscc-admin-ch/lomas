@@ -294,7 +294,7 @@ class Client:
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         delta: Optional[float] = None,
         mechanism: Optional[str] = "laplace",
-        by_config: Optional[float] = None,
+        by_config: Optional[list] = None,
     ):
         """This function executes an OpenDP query.
 
@@ -311,6 +311,8 @@ class Client:
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
+            by_config (Optional[list], optional): Configuration for grouping with\
+                opendp polars. Similar to argument "by" in polars.
 
         Raises:
             Exception: If the opendp_pipeline type is not supported.
@@ -347,7 +349,7 @@ class Client:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-        by_config: Optional[float] = None,
+        by_config: Optional[list] = None,
     ) -> Optional[dict]:
         """This function executes an OpenDP query.
 
@@ -369,6 +371,8 @@ class Client:
                 Defaults to DUMMY_NB_ROWS.
             seed (int, optional): The random seed for generating the dummy dataset.\
             Defaults to DUMMY_SEED.
+            by_config (Optional[list], optional): Configuration for grouping with\
+                opendp polars. Similar to argument "by" in polars.
 
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
@@ -413,7 +417,7 @@ class Client:
         opendp_pipeline: dp.Measurement,
         mechanism: Optional[str] = "laplace",
         delta: Optional[float] = None,
-        by_config: Optional[float] = None,
+        by_config: Optional[list] = None,
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing an OpenDP query.
 
@@ -428,6 +432,8 @@ class Client:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
+            by_config (Optional[list], optional): Configuration for grouping with\
+                opendp polars. Similar to argument "by" in polars.
 
         Raises:
             Exception: If the opendp_pipeline type is not supported.

@@ -113,7 +113,7 @@ example_opendp = {
     "pipeline_type": "legacy",  # TODO set constant
     "delta": 1e-6,
     "mechanism": None,
-    "by_config": None
+    "by_config": None,
 }
 
 example_dummy_opendp = {
@@ -124,7 +124,7 @@ example_dummy_opendp = {
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
     "mechanism": None,
-    "by_config": None
+    "by_config": None,
 }
 
 DIFFPRIVLIB_JSON = (
@@ -209,8 +209,8 @@ OPENDP_POLARS_JSON = (
     '"Int32","bit_settings":"","values":[36,19,18,23,18,49,42,48,30,46]},{"name":'
     '"sex","datatype":"Int32","bit_settings":"","values":[2,1,1,2,2,2,1,2,2,2]},'
     '{"name":"income","datatype":"Float64","bit_settings":"","values":[69156.22632'
-    '652307,39503.22097393128,14374.55399721871,72427.3456792141,53010.07792509686,'
-    '31713.94568033661,49097.70052434712,89059.29560055102,93470.30807966871,36421.'
+    "652307,39503.22097393128,14374.55399721871,72427.3456792141,53010.07792509686,"
+    "31713.94568033661,49097.70052434712,89059.29560055102,93470.30807966871,36421."
     '72447419795]}]},"schema":{"inner":{"region":"Int32","eco_branch":"Int32",'
     '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":'
     '"Float64"}},"output_schema":null,"filter":null}}'
@@ -223,5 +223,5 @@ example_opendp_polars = {
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,
     "mechanism": "laplace",
-    "by_config": None
+    "by_config": None,
 }

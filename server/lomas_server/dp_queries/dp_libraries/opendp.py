@@ -90,7 +90,6 @@ def get_lf_domain(metadata, by_config):
     if "max_ids" in metadata:
         params["max_num_partitions"] = metadata["max_ids"]
     if len(params) > 0:
-        print(params)
         lf_domain = dp.domains.with_margin(
             lf_domain,
             by=[],
@@ -164,7 +163,7 @@ def get_lf_domain(metadata, by_config):
                 )
 
         params["max_partition_length"] = int(params["max_partition_length"])
-        
+
         lf_domain = dp.domains.with_margin(
             lf_domain,
             by=by_config,
@@ -370,11 +369,11 @@ def reconstruct_measurement_pipeline(
         plan = pl.LazyFrame.deserialize(
             io.StringIO(query_json.opendp_json), format="json"
         )
-        
+
         if "] BY [" in plan.explain() and (query_json.by_config is None):
             raise InvalidQueryException(
-            f"Your by_config argument is {query_json.by_config}, "
-            + "please pass the same one as provided in your query plan"
+                f"Your by_config argument is {query_json.by_config}, "
+                + "please pass the same one as provided in your query plan"
             )
         output_measure = {
             "laplace": dp.measures.max_divergence(

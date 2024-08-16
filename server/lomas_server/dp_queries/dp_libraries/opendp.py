@@ -1,7 +1,7 @@
 import io
 import os
-from typing import List, Union
 import re
+from typing import List, Union
 
 import opendp as dp
 import polars as pl
@@ -100,71 +100,7 @@ def get_lf_domain(metadata, by_config):
 
     # Grouping logic (margin adaptation)
     if by_config:
-        if len(by_config) == 1:
-            series_info = metadata["columns"].get(by_config[0])
-            params["max_partition_length"] = int(
-                metadata["rows"] * series_info.get("max_partition_length", 1)
-            )
-            params["max_num_partitions"] = series_info.get("cardinality")
-
-            # if multiple partititions, nb of partition an indidivual can be in
-            if "max_influenced_partitions" in series_info:
-                params["max_influenced_partitions"] = min(
-                    metadata["max_ids"],
-                    series_info.get("max_influenced_partitions"),
-                )
-
-            # if muliple partition, how many times (max)
-            # can she be within one of of them
-            if "max_partition_contributions" in series_info:
-                params["max_partition_contributions"] = min(
-                    metadata["max_ids"],
-                    series_info.get("max_partition_contributions"),
-                )
-
-        elif len(by_config) > 1:
-
-            params["max_num_partitions"] = (
-                1  # Initialize with 1 for multiplication
-            )
-            params["max_partition_length"] = metadata["rows"]
-            for column in by_config:
-                series_info = metadata["columns"].get(column)
-                if "cardinality" in series_info:
-                    params["max_num_partitions"] *= series_info["cardinality"]
-
-                    params["max_partition_length"] *= series_info[
-                        "max_partition_length"
-                    ]
-
-                max_influenced = series_info.get("max_influenced_partitions")
-                if max_influenced:
-                    params["max_influenced_partitions"] = (
-                        params.get("max_influenced_partitions", 1)
-                        * max_influenced
-                    )
-
-                max_contributions = series_info.get(
-                    "max_partition_contributions"
-                )
-                if max_contributions:
-                    params["max_partition_contributions"] = (
-                        params.get("max_partition_contributions", 1)
-                        * max_contributions
-                    )
-
-            if "max_influenced_partitions" in params:
-                params["max_influenced_partitions"] = min(
-                    metadata["max_ids"], params["max_influenced_partitions"]
-                )
-            if "max_partition_contributions" in params:
-                params["max_partition_contributions"] = min(
-                    metadata["max_ids"],
-                    params.get("max_partition_contributions"),
-                )
-
-        params["max_partition_length"] = int(params["max_partition_length"])
-
+        params = _update_params_by_grouping(metadata, by_config, params)
         lf_domain = dp.domains.with_margin(
             lf_domain,
             by=by_config,
@@ -173,6 +109,100 @@ def get_lf_domain(metadata, by_config):
         )
 
     return lf_domain
+
+
+def _update_params_by_grouping(metadata, by_config, params):
+    """
+    Updates the parameters for margin adaptation based on
+    grouping configuration.
+
+    Args:
+        metadata (dict): The metadata dictionary.
+        by_config (list): Configuration for grouping.
+        params (dict): Current parameters dictionary to update.
+
+    Returns:
+        dict: Updated parameters dictionary.
+    """
+    if len(by_config) == 1:
+        series_info = metadata["columns"].get(by_config[0])
+        _single_group_update_params(metadata, series_info, params)
+    else:
+        _multiple_group_update_params(metadata, by_config, params)
+
+    params["max_partition_length"] = int(params["max_partition_length"])
+    return params
+
+
+def _single_group_update_params(metadata, series_info, params):
+    """
+    Updates parameters for single-column grouping configuration.
+
+    Args:
+        metadata (dict): The metadata dictionary.
+        series_info (dict): Metadata for the series (column).
+        params (dict): Current parameters dictionary to update.
+    """
+    params["max_partition_length"] = int(
+        metadata["rows"] * series_info.get("max_partition_length", 1)
+    )
+    params["max_num_partitions"] = series_info.get("cardinality")
+
+    if "max_influenced_partitions" in series_info:
+        params["max_influenced_partitions"] = min(
+            metadata["max_ids"],
+            series_info.get("max_influenced_partitions"),
+        )
+
+    if "max_partition_contributions" in series_info:
+        params["max_partition_contributions"] = min(
+            metadata["max_ids"],
+            series_info.get("max_partition_contributions"),
+        )
+
+
+def _multiple_group_update_params(metadata, by_config, params):
+    """
+    Updates parameters for multiple-column grouping configuration.
+
+    Args:
+        metadata (dict): The metadata dictionary.
+        by_config (list): List of columns used for grouping.
+        params (dict): Current parameters dictionary to update.
+    """
+    params["max_num_partitions"] = 1
+    params["max_partition_length"] = metadata["rows"]
+
+    for column in by_config:
+        series_info = metadata["columns"].get(column)
+
+        if "cardinality" in series_info:
+            params["max_num_partitions"] *= series_info["cardinality"]
+            params["max_partition_length"] *= series_info[
+                "max_partition_length"
+            ]
+
+        if "max_influenced_partitions" in series_info:
+            params["max_influenced_partitions"] = (
+                params.get("max_influenced_partitions", 1)
+                * series_info["max_influenced_partitions"]
+            )
+
+        if "max_partition_contributions" in series_info:
+            params["max_partition_contributions"] = (
+                params.get("max_partition_contributions", 1)
+                * series_info["max_partition_contributions"]
+            )
+
+    if "max_influenced_partitions" in params:
+        params["max_influenced_partitions"] = min(
+            metadata["max_ids"], params["max_influenced_partitions"]
+        )
+    if "max_partition_contributions" in params:
+        params["max_partition_contributions"] = min(
+            metadata["max_ids"],
+            params.get("max_partition_contributions"),
+        )
 
 
 class OpenDPQuerier(DPQuerier):
@@ -344,7 +374,8 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
         LOG.exception(e)
         raise InvalidQueryException(e)
 
-def extract_group_by_columns(plan: str) -> list:
+
+def extract_group_by_columns(plan: str) -> list | None:
     """
     Extract column names used in the BY operation from the plan string.
 
@@ -355,11 +386,11 @@ def extract_group_by_columns(plan: str) -> list:
     list: A list of column names used in the BY operation.
     """
     # Regular expression to capture the content inside BY []
-    aggregate_by_pattern = r'AGGREGATE(?:.|\n)+?BY \[(.*?)\]'
-    
+    aggregate_by_pattern = r"AGGREGATE(?:.|\n)+?BY \[(.*?)\]"
+
     # Find the part of the plan related to the GROUP BY clause
     match = re.search(aggregate_by_pattern, plan)
-    
+
     if match:
         # Extract the columns part
         columns_part = match.group(1)
@@ -367,6 +398,7 @@ def extract_group_by_columns(plan: str) -> list:
         column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
         return column_names
     return None
+
 
 def reconstruct_measurement_pipeline(
     query_json: OpenDPInp, metadata: dict
@@ -393,7 +425,7 @@ def reconstruct_measurement_pipeline(
         plan = pl.LazyFrame.deserialize(
             io.StringIO(query_json.opendp_json), format="json"
         )
-        
+
         groups = extract_group_by_columns(plan.explain())
         output_measure = {
             "laplace": dp.measures.max_divergence(

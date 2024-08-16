@@ -912,7 +912,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         list_datasets = get_list_of_datasets(self.db)
-        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+        self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS"])
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""
@@ -972,13 +972,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         users_list = get_list_of_users(self.db)
-        self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou"])
+        self.assertEqual(
+            users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"]
+        )
 
         list_datasets = get_list_of_datasets(self.db)
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
-                list_datasets, ["PENGUIN", "IRIS", "TINTIN_S3_TEST"]
+                list_datasets,
+                ["PENGUIN", "IRIS", "TINTIN_S3_TEST", "BIRTHDAYS"],
             )
         else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS"])

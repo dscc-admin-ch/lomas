@@ -23,6 +23,12 @@ datasets:
     key: "metadata/penguin_metadata.yaml"
     endpoint_url: "http://localhost:9000"
     credentials_name: "local_minio"
+- dataset_name: "BIRTHDAYS"
+  database_type: "PATH_DB"
+  dataset_path: "ITS/MY/BIRTHDAY.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "tests/test_data/metadata/birthday_metadata.yaml"
 users:
 - user_name: Dr. Antartica
   may_query: True
@@ -35,6 +41,14 @@ users:
   - dataset_name: "TINTIN_S3_TEST"
     initial_epsilon: 10
     initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
+- user_name: BirthdayGirl
+  may_query: True
+  datasets_list:
+  - dataset_name: "BIRTHDAYS"
+    initial_epsilon: 1
+    initial_delta: 0.0005
     total_spent_epsilon: 0
     total_spent_delta: 0
 queries: []

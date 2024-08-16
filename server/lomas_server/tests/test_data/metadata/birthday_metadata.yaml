@@ -1,0 +1,8 @@
+max_ids: 1
+row_privacy: true
+censor_dims: False
+columns:
+  birthday_dates:
+    type: datetime
+    lower: "01/01/1900"
+    upper: "01/01/2050"

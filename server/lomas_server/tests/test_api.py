@@ -446,6 +446,28 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "Please, verify the client object initialisation."
             }
 
+    def test_smartnoise_query_datetime(self) -> None:
+        """Test smartnoise-sql query on datetime"""
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work: query with datetimes and another user
+            new_headers = self.headers
+            new_headers["user-name"] = "BirthdayGirl"
+            body = dict(example_smartnoise_sql)
+            body["dataset_name"] = "BIRTHDAYS"
+            body["query_str"] = (
+                "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
+            )
+            response = client.post(
+                "/smartnoise_query",
+                json=body,
+                headers=new_headers,
+            )
+            data = response.content.decode("utf8")
+            df = pd.read_csv(StringIO(data))
+            assert isinstance(
+                df, pd.DataFrame
+            ), "Response should be a pd.DataFrame"
+
     def test_smartnoise_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset"""
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:

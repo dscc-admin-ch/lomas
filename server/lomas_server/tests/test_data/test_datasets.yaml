@@ -13,7 +13,7 @@ datasets:
     metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
 - dataset_name: "BIRTHDAYS"
   database_type: "PATH_DB"
-  dataset_path: "ITS/MY/BIRTHDAY.csv"
+  dataset_path: "tests/test_data//birthdays.csv"
   metadata:
     database_type: "PATH_DB"
     metadata_path: "tests/test_data/metadata/birthday_metadata.yaml"

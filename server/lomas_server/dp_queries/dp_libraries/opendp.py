@@ -1,6 +1,7 @@
 import io
 import os
 from typing import List, Union
+import re
 
 import opendp as dp
 import polars as pl
@@ -343,6 +344,29 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
         LOG.exception(e)
         raise InvalidQueryException(e)
 
+def extract_group_by_columns(plan: str) -> list:
+    """
+    Extract column names used in the BY operation from the plan string.
+
+    Parameters:
+    plan (str): The polars query plan as a string.
+
+    Returns:
+    list: A list of column names used in the BY operation.
+    """
+    # Regular expression to capture the content inside BY []
+    aggregate_by_pattern = r'AGGREGATE(?:.|\n)+?BY \[(.*?)\]'
+    
+    # Find the part of the plan related to the GROUP BY clause
+    match = re.search(aggregate_by_pattern, plan)
+    
+    if match:
+        # Extract the columns part
+        columns_part = match.group(1)
+        # Find all column names inside col("...")
+        column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
+        return column_names
+    return None
 
 def reconstruct_measurement_pipeline(
     query_json: OpenDPInp, metadata: dict
@@ -369,12 +393,8 @@ def reconstruct_measurement_pipeline(
         plan = pl.LazyFrame.deserialize(
             io.StringIO(query_json.opendp_json), format="json"
         )
-
-        if "] BY [" in plan.explain() and (query_json.by_config is None):
-            raise InvalidQueryException(
-                f"Your by_config argument is {query_json.by_config}, "
-                + "please pass the same one as provided in your query plan"
-            )
+        
+        groups = extract_group_by_columns(plan.explain())
         output_measure = {
             "laplace": dp.measures.max_divergence(
                 T="float",
@@ -382,7 +402,7 @@ def reconstruct_measurement_pipeline(
             "gaussian": dp.measures.zero_concentrated_divergence(T="float"),
         }[query_json.mechanism]
 
-        lf_domain = get_lf_domain(metadata, query_json.by_config)
+        lf_domain = get_lf_domain(metadata, groups)
 
         LOG.info(
             "NOTE: IF THERE IS AN ERROR HERE."

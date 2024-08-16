@@ -113,7 +113,6 @@ example_opendp = {
     "pipeline_type": "legacy",  # TODO set constant
     "delta": 1e-6,
     "mechanism": None,
-    "by_config": None,
 }
 
 example_dummy_opendp = {
@@ -124,7 +123,6 @@ example_dummy_opendp = {
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
     "mechanism": None,
-    "by_config": None,
 }
 
 DIFFPRIVLIB_JSON = (
@@ -223,5 +221,4 @@ example_opendp_polars = {
     "pipeline_type": "polars",  # TODO set constant
     "delta": 1e-6,
     "mechanism": "laplace",
-    "by_config": None,
 }

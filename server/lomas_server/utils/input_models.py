@@ -69,7 +69,6 @@ class OpenDPInp(BaseModel):
     pipeline_type: str
     delta: Optional[float] = None
     mechanism: Optional[str] = None
-    by_config: Optional[list]
 
 
 class DummyOpenDPInp(BaseModel):
@@ -82,7 +81,6 @@ class DummyOpenDPInp(BaseModel):
     dummy_nb_rows: int
     dummy_seed: int
     delta: Optional[float] = None
-    by_config: Optional[list]
 
 
 class DiffPrivLibInp(BaseModel):

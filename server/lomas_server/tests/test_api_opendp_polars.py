@@ -197,7 +197,6 @@ class TestOpenDpPolarsEndpoint(
             lf = get_lf_from_json()
             json_plan = group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
-            example_opendp_polars["by_config"] = ["sex"]
 
             response = client.post(
                 "/opendp_query",
@@ -209,28 +208,9 @@ class TestOpenDpPolarsEndpoint(
             lf = get_lf_from_json()
             json_plan = multiple_group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
-            example_opendp_polars["by_config"] = ["sex", "region"]
 
             response = client.post(
                 "/opendp_query",
                 json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
-
-            # Expect to fail if by_config not specified by user
-            example_opendp_polars["by_config"] = None
-            response = client.post(
-                "/opendp_query",
-                json=example_opendp_polars,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-            # Expect to fail, wrong column selected
-            example_opendp_polars["by_config"] = ["region"]
-            response = client.post(
-                "/opendp_query",
-                json=example_opendp_polars,
-            )
-            assert (
-                response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-            )

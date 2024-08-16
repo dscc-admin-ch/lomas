@@ -490,7 +490,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": transformation_pipeline.to_json(),
                     "pipeline_type": "legacy",
-                    "by_config": None,
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -509,7 +508,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": md_pipeline.to_json(),
                     "pipeline_type": "legacy",
-                    "by_config": None,
                 },
             )
             assert response.status_code == status.HTTP_200_OK
@@ -528,7 +526,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
                 "pipeline_type": "legacy",
-                "by_config": None,
             }
             # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
@@ -555,7 +552,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
                 "pipeline_type": "legacy",
-                "by_config": None,
             }
             # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
@@ -587,7 +583,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": fms_pipeline.to_json(),
                 "pipeline_type": "legacy",
-                "by_config": None,
             }
             # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)

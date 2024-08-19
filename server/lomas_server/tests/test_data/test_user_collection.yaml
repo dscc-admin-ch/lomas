@@ -27,4 +27,12 @@ users:
     initial_epsilon: 20
     initial_delta: 0.005
     total_spent_epsilon: 0.0
-    total_spent_delta: 0.0  
+    total_spent_delta: 0.0
+- user_name: BirthdayGirl
+  may_query: True
+  datasets_list:
+  - dataset_name: "BIRTHDAYS"
+    initial_epsilon: 1
+    initial_delta: 0.0005
+    total_spent_epsilon: 0
+    total_spent_delta: 0

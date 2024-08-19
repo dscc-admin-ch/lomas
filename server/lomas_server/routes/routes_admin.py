@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
-from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from dp_queries.dummy_dataset import make_dummy_dataset
-from routes.utils import server_live, stream_dataframe
+from private_dataset.private_dataset import get_column_dtypes
+from routes.utils import server_live
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
@@ -136,7 +137,7 @@ def get_dummy_dataset(
     request: Request,
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
     user_name: str = Header(None),
-) -> StreamingResponse:
+) -> JSONResponse:
     """
     Generates and returns a dummy dataset.
 
@@ -156,7 +157,8 @@ def get_dummy_dataset(
         InternalServerException: For any other unforseen exceptions.
 
     Returns:
-        StreamingResponse: a pd.DataFrame representing the dummy dataset.
+        JSONResponse: a dict with the dataframe as a dict, the column types
+            and the list of datetime columns.
     """
     app = request.app
 
@@ -172,16 +174,27 @@ def get_dummy_dataset(
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
         )
+        dtypes, datetime_columns = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
             ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
         )
+
+        for col in datetime_columns:
+            dummy_df[col] = dummy_df[col].dt.strftime("%Y-%m-%dT%H:%M:%S")
+
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
         raise InternalServerException(e) from e
 
-    return stream_dataframe(dummy_df)
+    return JSONResponse(
+        content={
+            "dummy_dict": dummy_df.to_dict(orient="records"),
+            "dtypes": dtypes,
+            "datetime_columns": datetime_columns,
+        }
+    )
 
 
 # MongoDB get initial budget

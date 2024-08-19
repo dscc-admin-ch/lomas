@@ -179,9 +179,9 @@ def get_dummy_dataset(
         dummy_df = make_dummy_dataset(
             ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
         )
-        
+
         for col in datetime_columns:
-            dummy_df[col] = dummy_df[col].dt.strftime('%Y-%m-%dT%H:%M:%S')
+            dummy_df[col] = dummy_df[col].dt.strftime("%Y-%m-%dT%H:%M:%S")
 
     except KNOWN_EXCEPTIONS as e:
         raise e

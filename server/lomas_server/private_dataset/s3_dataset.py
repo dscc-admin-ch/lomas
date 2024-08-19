@@ -4,6 +4,7 @@ import boto3
 import pandas as pd
 
 from private_dataset.private_dataset import PrivateDataset
+from utils.collection_models import Metadata
 from utils.config import S3CredentialsConfig
 from utils.error_handler import InternalServerException
 
@@ -15,13 +16,13 @@ class S3Dataset(PrivateDataset):
 
     def __init__(
         self,
-        metadata: dict,
+        metadata: Metadata,
         credentials: S3CredentialsConfig,
     ) -> None:
         """Initializer. Does not load the dataset yet.
 
         Args:
-            metadata (dict): The metadata dictionary.
+            metadata (Metadata): The metadata dictionary.
             s3_parameters (dict): informations to access metadata
         """
         super().__init__(metadata)

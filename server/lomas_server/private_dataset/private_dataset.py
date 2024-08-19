@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
+from utils.collection_models import Metadata
 
 
 class PrivateDataset(ABC):
@@ -13,15 +14,18 @@ class PrivateDataset(ABC):
 
     df: Optional[pd.DataFrame] = None
 
-    def __init__(self, metadata: dict) -> None:
+    def __init__(self, metadata: Metadata) -> None:
         """Initializer.
 
         Args:
-            metadata (dict): The metadata for this dataset
+            metadata (Metadata): The metadata for this dataset
         """
         self.metadata: dict = metadata
         self.dataset_observers: List[PrivateDatasetObserver] = []
-        self.dtypes: dict = _get_dtypes(metadata)
+
+        dtypes, datetime_columns = _get_dtypes(metadata)
+        self.dtypes: Dict[str, str] = dtypes
+        self.datetime_columns: List[str] = datetime_columns
 
     @abstractmethod
     def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
@@ -67,7 +71,7 @@ class PrivateDataset(ABC):
         self.dataset_observers.append(dataset_observer)
 
 
-def _get_dtypes(metadata: dict) -> dict:
+def _get_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
     """Extract and return the column types from the metadata.
 
     Args:
@@ -75,8 +79,14 @@ def _get_dtypes(metadata: dict) -> dict:
 
     Returns:
         dict: The dictionary of the column type.
+        list: The list of columns of datetime type
     """
     dtypes = {}
+    datetime_columns = []
     for col_name, data in metadata["columns"].items():
-        dtypes[col_name] = data["type"]
-    return dtypes
+        if data["type"] == "datetime":
+            dtypes[col_name] = "string"
+            datetime_columns.append(col_name)
+        else:
+            dtypes[col_name] = data["type"]
+    return dtypes, datetime_columns

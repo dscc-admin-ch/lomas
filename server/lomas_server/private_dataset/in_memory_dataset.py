@@ -1,8 +1,7 @@
-from typing import Dict, Union
-
 import pandas as pd
 
 from private_dataset.private_dataset import PrivateDataset
+from utils.collection_models import Metadata
 
 
 class InMemoryDataset(PrivateDataset):
@@ -12,14 +11,13 @@ class InMemoryDataset(PrivateDataset):
 
     def __init__(
         self,
-        metadata: Dict[str, Union[int, bool, Dict[str, Union[str, int]]]],
+        metadata: Metadata,
         dataset_df: pd.DataFrame,
     ) -> None:
         """Initializer.
 
         Args:
-            metadata (Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]):
-                Metadata dictionary.
+            metadata (Metadata): Metadata dictionary.
             dataset_df (pd.DataFrame): Dataframe of the dataset
         """
         super().__init__(metadata)

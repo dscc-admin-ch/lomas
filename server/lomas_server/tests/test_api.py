@@ -30,6 +30,7 @@ from utils.error_handler import InternalServerException
 from utils.logger import LOG
 from utils.query_examples import (
     DUMMY_NB_ROWS,
+    DUMMY_SEED,
     PENGUIN_DATASET,
     QUERY_DELTA,
     QUERY_EPSILON,
@@ -305,6 +306,28 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "exist. Please, verify the client object initialisation."
             }
 
+            # Expect to work with datetimes and another user
+            fake_user = "BirthdayGirl"
+            new_headers = self.headers
+            new_headers["user-name"] = fake_user
+            response = client.post(
+                "/get_dummy_dataset",
+                json={
+                    "dataset_name": "BIRTHDAYS",
+                    "dummy_nb_rows": DUMMY_NB_ROWS,
+                    "dummy_seed": DUMMY_SEED,
+                },
+                headers=new_headers,
+            )
+            data = response.content.decode("utf8")
+            df = pd.read_csv(StringIO(data))
+            assert isinstance(
+                df, pd.DataFrame
+            ), "Response should be a pd.DataFrame"
+            assert (
+                df.shape[0] == DUMMY_NB_ROWS
+            ), "Dummy pd.DataFrame does not have expected number of rows"
+
     def test_smartnoise_query(self) -> None:
         """Test smartnoise-sql query"""
         with TestClient(app, headers=self.headers) as client:
@@ -422,6 +445,28 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             }
+
+    def test_smartnoise_query_datetime(self) -> None:
+        """Test smartnoise-sql query on datetime"""
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work: query with datetimes and another user
+            new_headers = self.headers
+            new_headers["user-name"] = "BirthdayGirl"
+            body = dict(example_smartnoise_sql)
+            body["dataset_name"] = "BIRTHDAYS"
+            body["query_str"] = (
+                "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
+            )
+            response = client.post(
+                "/smartnoise_query",
+                json=body,
+                headers=new_headers,
+            )
+            data = response.content.decode("utf8")
+            df = pd.read_csv(StringIO(data))
+            assert isinstance(
+                df, pd.DataFrame
+            ), "Response should be a pd.DataFrame"
 
     def test_smartnoise_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset"""

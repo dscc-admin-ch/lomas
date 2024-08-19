@@ -240,15 +240,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             dummy_df = pd.DataFrame(response_dict["dummy_dict"])
             dummy_df = dummy_df.astype(response_dict["dtypes"])
-            for col in response_dict["datetime_columns"]:
-                dummy_df[col] = pd.to_datetime(dummy_df[col])
             assert (
                 dummy_df.shape[0] == DUMMY_NB_ROWS
             ), "Dummy pd.DataFrame does not have expected number of rows"
+            assert response_dict["datetime_columns"] == []
 
             expected_dtypes = pd.Series(response_dict["dtypes"])
-            for col in response_dict["datetime_columns"]:
-                expected_dtypes[col] = "datetime64[ns]"
             assert (
                 (dummy_df.dtypes == expected_dtypes).all()
             ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"

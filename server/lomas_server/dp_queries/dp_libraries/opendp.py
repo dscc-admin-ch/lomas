@@ -86,10 +86,9 @@ def get_lf_domain(metadata, by_config):
 
     # Global params
     params = {}
+    params["max_num_partitions"] = metadata["max_ids"]
     if "rows" in metadata:
         params["max_partition_length"] = metadata["rows"]
-    if "max_ids" in metadata:
-        params["max_num_partitions"] = metadata["max_ids"]
     if len(params) > 0:
         lf_domain = dp.domains.with_margin(
             lf_domain,

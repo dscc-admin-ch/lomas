@@ -237,15 +237,23 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
 
-            data = response.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            assert isinstance(
-                df, pd.DataFrame
-            ), "Response should be a pd.DataFrame"
+            dummy_df = pd.DataFrame(response_dict["dummy_dict"])
+            dummy_df = dummy_df.astype(response_dict["dtypes"])
+            for col in response_dict["datetime_columns"]:
+                dummy_df[col] = pd.to_datetime(dummy_df[col])
+
             assert (
-                df.shape[0] == DUMMY_NB_ROWS
+                dummy_df.shape[0] == DUMMY_NB_ROWS
             ), "Dummy pd.DataFrame does not have expected number of rows"
+
+            expected_dtypes = pd.Series(response_dict["dtypes"])
+            for col in response_dict["datetime_columns"]:
+                expected_dtypes[col] = "datetime64[ns]"
+            assert dummy_df.dtypes.equals(
+                expected_dtypes
+            ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -319,14 +327,24 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 },
                 headers=new_headers,
             )
-            data = response.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            assert isinstance(
-                df, pd.DataFrame
-            ), "Response should be a pd.DataFrame"
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+
+            dummy_df = pd.DataFrame(response_dict["dummy_dict"])
+            dummy_df = dummy_df.astype(response_dict["dtypes"])
+            for col in response_dict["datetime_columns"]:
+                dummy_df[col] = pd.to_datetime(dummy_df[col])
+
             assert (
-                df.shape[0] == DUMMY_NB_ROWS
+                dummy_df.shape[0] == DUMMY_NB_ROWS
             ), "Dummy pd.DataFrame does not have expected number of rows"
+
+            expected_dtypes = pd.Series(response_dict["dtypes"])
+            for col in response_dict["datetime_columns"]:
+                expected_dtypes[col] = "datetime64[ns]"
+            assert dummy_df.dtypes.equals(
+                expected_dtypes
+            ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
     def test_smartnoise_query(self) -> None:
         """Test smartnoise-sql query"""

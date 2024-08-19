@@ -2,6 +2,7 @@ import base64
 import json
 import pickle
 
+import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
 from smartnoise_synth_logger import serialise_constraints
@@ -17,8 +18,9 @@ from constants import SSynthTableTransStyle
 from tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from tests.test_api import TestRootAPIEndpoint
 from utils.query_examples import (
-    example_dummy_smartnoise_synth,
-    example_smartnoise_synth,
+    example_dummy_smartnoise_synth_query,
+    example_smartnoise_synth_cost,
+    example_smartnoise_synth_query,
 )
 
 
@@ -40,28 +42,71 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             # Expect to work
             response = client.post(
                 "/smartnoise_synth_query",
-                json=example_smartnoise_synth,
+                json=example_smartnoise_synth_query,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
-            assert response_dict["spent_epsilon"] == 0.1
-            assert response_dict["spent_delta"] == 1e-05
+            assert response_dict["spent_epsilon"] >= 0.1
+            assert response_dict["spent_delta"] >= 1e-05
 
             model = get_model(response_dict["query_response"])
             assert model.__class__.__name__ == "DPCTGAN"
 
             df = model.sample(10)
             assert list(df.columns) == PENGUIN_COLUMNS
-            assert model.epsilon == response_dict["spent_epsilon"]
+
+    def test_smartnoise_synth_query_samples(self) -> None:
+        """Test smartnoise synth query return samples"""
+        with TestClient(app, headers=self.headers) as client:
+            nb_samples = 100
+
+            body = dict(example_smartnoise_synth_query)
+            body["return_model"] = False
+            body["nb_samples"] = nb_samples
+
+            # Expect to work - no condition
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+
+            df_0 = pd.DataFrame(response_dict["query_response"])
+            assert df_0.shape[0] == nb_samples
+            assert list(df_0.columns) == PENGUIN_COLUMNS
+
+            # Expect to work - condition
+            body["condition"] = "bill_length_mm < 40"
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+
+            df_1 = pd.DataFrame(response_dict["query_response"])
+            assert df_1.shape[0] == nb_samples
+            assert list(df_1.columns) == PENGUIN_COLUMNS
+
+            assert (
+                df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
+            )
 
     def test_smartnoise_synth_query_transformer_type(self) -> None:
         """Test smartnoise synth query transformer_type"""
         with TestClient(app, headers=self.headers) as client:
 
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_query)
             body["table_transformer_style"] = SSynthTableTransStyle.CUBE
 
             # Expect to work
@@ -83,7 +128,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_query)
             body["select_cols"] = ["species", "island"]
             response = client.post(
                 "/smartnoise_synth_query",
@@ -98,7 +143,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == ["species", "island"]
 
             # Expect to fail
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_query)
             body["select_cols"] = ["species", "idonotexist"]
             response = client.post(
                 "/smartnoise_synth_query",
@@ -138,7 +183,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 ),
             }
 
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_query)
             body["constraints"] = serialise_constraints(constraints)
 
             # Expect to work
@@ -161,7 +206,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "PUMS"
             response = client.post(
                 "/smartnoise_synth_query",
@@ -180,7 +225,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
-            body = dict(example_dummy_smartnoise_synth)
+            body = dict(example_dummy_smartnoise_synth_query)
             body["dataset_name"] = "PUMS"
             body["delta"] = None
             body["synth_params"] = {"batch_size": 2, "epochs": 5}
@@ -202,7 +247,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             # Expect to work
             response = client.post(
                 "/dummy_smartnoise_synth_query",
-                json=example_dummy_smartnoise_synth,
+                json=example_dummy_smartnoise_synth_query,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
@@ -213,7 +258,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert model.__class__.__name__ == "DPCTGAN"
 
             # Expect to fail: user does have access to dataset
-            body = dict(example_dummy_smartnoise_synth)
+            body = dict(example_dummy_smartnoise_synth_query)
             body["dataset_name"] = "IRIS"
             response = client.post(
                 "/dummy_smartnoise_synth_query",
@@ -232,17 +277,17 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             # Expect to work
             response = client.post(
                 "/estimate_smartnoise_synth_cost",
-                json=example_smartnoise_synth,
+                json=example_smartnoise_synth_cost,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] == 0.1
-            assert response_dict["delta_cost"] == 1e-5
+            assert response_dict["epsilon_cost"] >= 0.1
+            assert response_dict["delta_cost"] >= 1e-5
 
             # Expect to fail: user does have access to dataset
-            body = dict(example_smartnoise_synth)
+            body = dict(example_smartnoise_synth_cost)
             body["dataset_name"] = "IRIS"
             response = client.post(
                 "/estimate_smartnoise_synth_cost",

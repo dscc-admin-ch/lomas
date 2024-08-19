@@ -1,7 +1,6 @@
 import base64
 import json
 from enum import StrEnum
-from io import StringIO
 from typing import Dict, List, Optional, Union
 
 import opendp as dp
@@ -113,8 +112,13 @@ class Client:
 
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            return df
+            response = json.loads(data)
+            dummy_df = pd.DataFrame(response["dummy_dict"])
+            dummy_df = dummy_df.astype(response["dtypes"])
+            for col in response["datetime_columns"]:
+                dummy_df[col] = pd.to_datetime(dummy_df[col])
+            return dummy_df
+
         print(error_message(res))
         return None
 

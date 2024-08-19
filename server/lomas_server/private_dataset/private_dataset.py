@@ -23,7 +23,7 @@ class PrivateDataset(ABC):
         self.metadata: dict = metadata
         self.dataset_observers: List[PrivateDatasetObserver] = []
 
-        dtypes, datetime_columns = _get_dtypes(metadata)
+        dtypes, datetime_columns = get_column_dtypes(metadata)
         self.dtypes: Dict[str, str] = dtypes
         self.datetime_columns: List[str] = datetime_columns
 
@@ -71,7 +71,7 @@ class PrivateDataset(ABC):
         self.dataset_observers.append(dataset_observer)
 
 
-def _get_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
+def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
     """Extract and return the column types from the metadata.
 
     Args:

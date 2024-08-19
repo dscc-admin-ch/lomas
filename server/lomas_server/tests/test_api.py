@@ -255,6 +255,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
             )
 
+            expected_dtypes = pd.Series(response_dict["dtypes"])
+            for col in response_dict["datetime_columns"]:
+                expected_dtypes[col] = "datetime64[ns]"
+            assert dummy_df.dtypes.equals(
+                expected_dtypes
+            ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
             response = client.post(

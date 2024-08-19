@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -31,28 +31,16 @@ from utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import SmartnoiseSynthModel
+from utils.query_models import (
+    SmartnoiseSynthCostModel,
+    SmartnoiseSynthQueryModel,
+)
 
 
 class SmartnoiseSynthQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
-
-    def cost(self, query_json: SmartnoiseSynthModel) -> tuple[float, float]:
-        """Return cost of query
-
-        Args:
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query.
-
-        Returns:
-            tuple[float, float]: The tuple of costs, the first value
-                is the epsilon cost, the second value is the delta value.
-        """
-        # model.odometer.spent
-        if query_json.delta is None:
-            return query_json.epsilon, 0
-        return query_json.epsilon, query_json.delta
 
     def _categorize_column(self, data: dict) -> str:
         """
@@ -237,20 +225,16 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         return model
 
-    def query(self, query_json: SmartnoiseSynthModel) -> pd.DataFrame:
-        """Perform the query and return the response.
+    def _model_pipeline(
+        self, query_json: SmartnoiseSynthCostModel
+    ) -> Synthesizer:
+        """Return a trained Synthesizer model based on query_json
 
         Args:
-            query_json (SmartnoiseSynthModel): The JSON request object for the query.
-
-        Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
-            InvalidQueryException: If the budget values are too small to
-                perform the query.
+            query_json (SmartnoiseSynthCostModel): JSON request object for the query.
 
         Returns:
-            pd.DataFrame: The resulting pd.DataFrame samples.
+            model: Smartnoise Synthesizer
         """
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
@@ -287,4 +271,52 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
+
+        return model
+
+    def cost(
+        self, query_json: SmartnoiseSynthCostModel
+    ) -> tuple[float, float]:
+        """Return cost of query_json
+
+        Args:
+            query_json (SmartnoiseSynthModelCost): JSON request object for the query.
+
+        Returns:
+            tuple[float, float]: The tuple of costs, the first value
+                is the epsilon cost, the second value is the delta value.
+        """
+        model = self._model_pipeline(query_json)
+        return model.epsilon_list[-1], model.delta
+
+    def query(
+        self, query_json: SmartnoiseSynthQueryModel
+    ) -> Union[pd.DataFrame, str]:
+        """Perform the query and return the response.
+
+        Args:
+            query_json (SmartnoiseSynthModel): The JSON request object for the query.
+
+        Raises:
+            ExternalLibraryException: For exceptions from libraries
+                external to this package.
+            InvalidQueryException: If the budget values are too small to
+                perform the query.
+
+        Returns:
+            pd.DataFrame: The resulting pd.DataFrame samples.
+        """
+
+        model = self._model_pipeline(query_json)
+
+        if not query_json.return_model:
+            df_samples = (
+                model.sample_conditional(
+                    query_json.nb_samples, query_json.condition
+                )
+                if query_json.condition
+                else model.sample(query_json.nb_samples)
+            )
+            return df_samples.to_dict(orient="records")
+
         return serialise_model(model)

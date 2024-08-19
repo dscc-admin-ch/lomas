@@ -85,7 +85,7 @@ class DPLibraries(StrEnum):
 # Query model input to DP librairy
 MODEL_INPUT_TO_LIB = {
     "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
-    "SmartnoiseSynthModel": DPLibraries.SMARTNOISE_SYNTH,
+    "SmartnoiseSynthQueryModel": DPLibraries.SMARTNOISE_SYNTH,
     "OpenDPModel": DPLibraries.OPENDP,
     "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
 }

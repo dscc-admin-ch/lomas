@@ -12,7 +12,7 @@ from snsynth.transform import (
     OneHotEncoder,
 )
 
-# from snsynth.transform.datetime import DateTimeTransformer
+from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
 
 from constants import (
@@ -59,8 +59,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
                 return SSynthColumnType.CATEGORICAL  # ordinal is categorical
-            # case "datetime":
-            #     return SSynthColumnType.DATETIME
+            case "datetime":
+                return SSynthColumnType.DATETIME
             case _:
                 raise InternalServerException(
                     f"Unknown column type in metadata: {data['type']}"
@@ -144,17 +144,17 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     upper=metadata["columns"][col]["upper"],
                     nullable=nullable,
                 )
-            # for col in col_categories[SSynthColumnType.DATETIME]:
-            #     constraints[col] = ChainTransformer(
-            #         [
-            #             DateTimeTransformer(),
-            #             MinMaxTransformer(
-            #                 lower=metadata["columns"][col]["lower"],
-            #                 upper=metadata["columns"][col]["upper"],
-            #                 nullable=nullable,
-            #             ),
-            #         ]
-            #     )
+            for col in col_categories[SSynthColumnType.DATETIME]:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        MinMaxTransformer(
+                            lower=metadata["columns"][col]["lower"],
+                            upper=metadata["columns"][col]["upper"],
+                            nullable=nullable,
+                        ),
+                    ]
+                )
         else:  # cube
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = LabelTransformer(nullable=nullable)
@@ -165,18 +165,18 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     bins=SSYNTH_DEFAULT_BINS,
                     nullable=nullable,
                 )
-            # for col in col_categories[SSynthColumnType.DATETIME]:
-            #     constraints[col] = ChainTransformer(
-            #         [
-            #             DateTimeTransformer(),
-            #             BinTransformer(
-            #                 lower=metadata["columns"][col]["lower"],
-            #                 upper=metadata["columns"][col]["upper"],
-            #                 bins=SSYNTH_DEFAULT_BINS,
-            #                 nullable=nullable,
-            #             ),
-            #         ]
-            #     )
+            for col in col_categories[SSynthColumnType.DATETIME]:
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(),
+                        BinTransformer(
+                            lower=metadata["columns"][col]["lower"],
+                            upper=metadata["columns"][col]["upper"],
+                            bins=SSYNTH_DEFAULT_BINS,
+                            nullable=nullable,
+                        ),
+                    ]
+                )
 
         return constraints
 

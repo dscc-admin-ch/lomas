@@ -1,7 +1,7 @@
 from constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
-    SSynthSynthesizer,
+    SSynthGanSynthesizer,
 )
 
 # Dummy queries
@@ -67,14 +67,12 @@ example_dummy_smartnoise_sql = make_dummy(example_smartnoise_sql)
 # Smartnoise-Synth
 example_smartnoise_synth_cost = {
     "dataset_name": PENGUIN_DATASET,
-    "synth_name": SSynthSynthesizer.DP_CTGAN,
+    "synth_name": SSynthGanSynthesizer.DP_CTGAN,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "select_cols": [],
     "synth_params": {
         "embedding_dim": 128,
-        "generator_dim": (256, 256),
-        "discriminator_dim": (256, 256),
         "batch_size": 50,
         "epochs": 5,
     },

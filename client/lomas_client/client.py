@@ -707,7 +707,7 @@ class Client:
                             query["response"]["query_response"]["model"]
                         )
                         query["response"]["query_response"]["model"] = (
-                            json.loads(model)
+                            pickle.loads(model)
                         )
                     case _:
                         raise ValueError(

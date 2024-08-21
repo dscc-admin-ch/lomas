@@ -120,11 +120,7 @@ class DiffPrivLibQuerier(DPQuerier):
         Returns:
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
-        if (
-            self.dpl_pipeline is None
-            or self.x_test is None
-            or self.y_test is None
-        ):
+        if self.dpl_pipeline is None:
             raise InternalServerException(
                 "DiffPrivLib `query` method called before `cost` method"
             )

@@ -13,10 +13,7 @@ class DPQuerier(ABC):
     a querier instance is specific to a PrivateDataset instance.
     """
 
-    def __init__(
-        self,
-        private_dataset: PrivateDataset,
-    ) -> None:
+    def __init__(self, private_dataset: PrivateDataset) -> None:
         """Initialise with specific dataset
 
         Args:

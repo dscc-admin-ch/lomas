@@ -1,11 +1,12 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from constants import (
     DELTA_LIMIT,
     EPSILON_LIMIT,
-    SSynthSynthesizer,
+    SSynthGanSynthesizer,
+    SSynthMarginalSynthesizer,
 )
 
 
@@ -69,7 +70,7 @@ class SmartnoiseSynthCostModel(BaseModel):
     """Model input for a smarnoise-synth cost"""
 
     dataset_name: str
-    synth_name: SSynthSynthesizer
+    synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
     epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
     delta: Optional[float] = None
     select_cols: List

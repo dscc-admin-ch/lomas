@@ -2,7 +2,6 @@ from constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
     SSynthSynthesizer,
-    SSynthTableTransStyle,
 )
 
 # Dummy queries
@@ -29,7 +28,6 @@ TARGET_COLUMNS = ["species"]
 SPLIT_SEED = 4
 TEST_SIZE = 0.2
 IMPUTER_STRATEGY = "drop"
-TABLE_TRANSFORMER_STYLE = SSynthTableTransStyle.GAN
 SNSYNTH_NB_SAMPLES = 200
 
 
@@ -81,7 +79,6 @@ example_smartnoise_synth_cost = {
         "epochs": 5,
     },
     "nullable": True,
-    "table_transformer_style": TABLE_TRANSFORMER_STYLE,
     "constraints": "",
 }
 example_smartnoise_synth_query = dict(example_smartnoise_synth_cost)

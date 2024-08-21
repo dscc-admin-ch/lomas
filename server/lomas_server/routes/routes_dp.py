@@ -218,7 +218,6 @@ def smartnoise_synth_handler(
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
             - nullable (bool): True if some data cells may be null
-            - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
             - return_model (bool): True to get Synthesizer model, False to get samples
@@ -280,7 +279,6 @@ def dummy_smartnoise_synth_handler(
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
             - nullable (bool): True if some data cells may be null
-            - table_transformer_style (str): style of table transformer
             - constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
             - return_model (bool): True to get Synthesizer model, False to get samples
@@ -345,7 +343,6 @@ def estimate_smartnoise_synth_cost(
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
             - nullable (bool): True if some data cells may be null
-            - table_transformer_style
             - constraints
             - nb_rows (int, optional): The number of rows in the dummy dataset
             - seed (int, optional): The random seed for generating

@@ -124,6 +124,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         metadata: Metadata,
         query_json: dict,
+        table_transformer_style: str
     ) -> TableTransformer:
         """
         Get the defaults table transformer constraints based on the metadata
@@ -136,7 +137,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             query_json (SmartnoiseSynthModelCost): JSON request object for the query
                 select_cols (List[str]): List of columns to select
                 nullable (bool): True is the data can have Null values, False otherwise
-                table_transformer_style: 'gan' or 'cube'
+            table_transformer_style (str): 'gan' or 'cube'
 
         Returns:
             table_tranformer (TableTransformer) to pre and post-process the data
@@ -150,9 +151,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
 
         nullable = query_json.nullable
-        if (
-            query_json.table_transformer_style == SSynthTableTransStyle.GAN
-        ):  # gan
+        if table_transformer_style == SSynthTableTransStyle.GAN:  # gan
             for col in col_categories[SSynthColumnType.CATEGORICAL]:
                 constraints[col] = ChainTransformer(
                     [LabelTransformer(nullable=nullable), OneHotEncoder()]
@@ -232,14 +231,24 @@ class SmartnoiseSynthQuerier(DPQuerier):
             Synthesizer: Fitted synthesizer model
         """
         if query_json.delta is not None:
+            if query_json.synth_name == SSynthSynthesizer.MWEM:
+                raise InvalidQueryException(
+                    "MWEMSynthesizer does not expected keyword argument 'delta'",
+                )
             query_json.synth_params["delta"] = query_json.delta
+
         if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
             query_json.synth_params["disabled_dp"] = False
+
+        if query_json.synth_name not in [
+            SSynthSynthesizer.PATE_GAN,
+            SSynthSynthesizer.DP_GAN,
+        ]:
+            query_json.synth_params["verbose"] = True
 
         model = Synthesizer.create(
             synth=query_json.synth_name,
             epsilon=query_json.epsilon,
-            verbose=True,
             **query_json.synth_params,
         )
         try:
@@ -267,9 +276,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             model: Smartnoise Synthesizer
         """
+        if query_json.synth_name in SSynthMarginalSynthesizer.keys:
+            table_transformer_style = SSynthSynthesizer.CUBE
+        else:
+            table_transformer_style = SSynthSynthesizer.GAN
+
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
-        constraints = self._get_default_constraints(metadata, query_json)
+        constraints = self._get_default_constraints(metadata, query_json, table_transformer_style)
 
         # Overwrite default constraint with custom constraint (if any)
         custom_constraints = query_json.constraints
@@ -295,7 +309,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Get transformer
         transformer = TableTransformer.create(
             data=private_data,
-            style=query_json.table_transformer_style,
+            style=table_transformer_style,
             nullable=query_json.nullable,
             constraints=constraints,
         )

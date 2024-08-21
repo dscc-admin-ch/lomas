@@ -6,7 +6,6 @@ from constants import (
     DELTA_LIMIT,
     EPSILON_LIMIT,
     SSynthSynthesizer,
-    SSynthTableTransStyle,
 )
 
 
@@ -76,7 +75,6 @@ class SmartnoiseSynthCostModel(BaseModel):
     select_cols: List
     synth_params: dict
     nullable: bool
-    table_transformer_style: SSynthTableTransStyle
     constraints: str
 
 

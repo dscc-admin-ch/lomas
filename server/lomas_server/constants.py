@@ -109,17 +109,16 @@ SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 SSQL_MAX_ITERATION = 5
 
 
-# Smartnoise synth
-class SSynthSynthesizer(StrEnum):
-    """Synthesizer models for smartnoise synth"""
-
-    # Marginal Synthesizer
+class SSynthMarginalSynthesizer(StrEnum):
+    """Marginal Synthesizer models for smartnoise synth"""
     AIM = "aim"
     MWEM = "mwem"
     MST = "mst"
     PAC_SYNTH = "pacsynth"
 
-    # Neural Network Synthesizer
+# Smartnoise synth
+class SSynthGanSynthesizer(StrEnum):
+    """GAN Synthesizer models for smartnoise synth"""
     DP_CTGAN = "dpctgan"
     PATE_CTGAN = "patectgan"
     PATE_GAN = "pategan"  # no documentation

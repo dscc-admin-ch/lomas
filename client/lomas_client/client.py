@@ -22,7 +22,7 @@ DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 HTTP_200_OK = 200
 CONNECT_TIMEOUT = 5
-DEFAULT_READ_TIMEOUT = 5
+DEFAULT_READ_TIMEOUT = 10
 DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
 SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
@@ -244,7 +244,6 @@ class Client:
         select_cols: List[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
-        table_transformer_style: str = "gan",
         constraints: dict = {},
         dummy: bool = False,
         return_model: bool = False,
@@ -268,8 +267,6 @@ class Client:
                 Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
-            table_transformer_style (str): style of table transformer ('gan' or 'cube')
-                Defaults to "gan".
             constraints: Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
                 Defaults to {}.
@@ -300,7 +297,6 @@ class Client:
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "table_transformer_style": table_transformer_style,
             "constraints": constraints,
             "return_model": return_model,
             "condition": condition,
@@ -338,7 +334,6 @@ class Client:
         select_cols: List[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
-        table_transformer_style: str = "gan",
         constraints: dict = {},
     ) -> Optional[dict[str, float]]:
         """This function estimates the cost of executing a SmartNoise query.
@@ -356,8 +351,6 @@ class Client:
                 Defaults to None.
             nullable (bool): True if some data cells may be null
                 Defaults to True.
-            table_transformer_style (str): style of table transformer ('gan' or 'cube')
-                Defaults to "gan".
             constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
                 Defaults to {}.
@@ -375,7 +368,6 @@ class Client:
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "table_transformer_style": table_transformer_style,
             "constraints": constraints,
         }
         res = self._exec(

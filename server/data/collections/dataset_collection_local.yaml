@@ -37,3 +37,9 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "../data/collections/metadata/fso_income_synthetic_metadata.yaml"
+- dataset_name: "BIRTHDAYS"
+  database_type: "PATH_DB"
+  dataset_path: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/wip_306_snsynth-datetime/server/data/datasets/birthdays.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "../data/collections/metadata/birthday_metadata.yaml"

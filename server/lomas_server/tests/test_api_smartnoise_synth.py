@@ -299,3 +299,40 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 "UnauthorizedAccessException": ""
                 + f"{self.user_name} does not have access to IRIS."
             }
+
+    def test_smartnoise_synth_query_datetime(self) -> None:
+        """Test smartnoise synth query on other dataset for datetime columns"""
+        with TestClient(app) as client:
+
+            # Expect to work
+            new_headers = self.headers
+            new_headers["user-name"] = "BirthdayGirl"
+
+            body = dict(example_smartnoise_synth_query)
+            body["dataset_name"] = "BIRTHDAYS"
+            body["synth_params"]["batch_size"] = 2
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=new_headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == ["birthday"]
+
+            # With cube table transformer
+            body["table_transformer_style"] = "cube"
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=new_headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == ["birthday"]

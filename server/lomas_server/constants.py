@@ -67,6 +67,11 @@ INTERNAL_SERVER_ERROR = (
     "Internal server error. Please contact the administrator of this service."
 )
 
+# General values
+DEFAULT_DATE_FORMAT = "%Y-%m-%d"
+SECONDS_IN_A_DAY = 60 * 60 * 24
+
+
 # DP constants
 EPSILON_LIMIT: float = 5.0
 DELTA_LIMIT: float = 0.0004

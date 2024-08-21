@@ -322,3 +322,17 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
+
+            # With cube table transformer
+            body["table_transformer_style"] = "cube"
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=new_headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == ["birthday"]

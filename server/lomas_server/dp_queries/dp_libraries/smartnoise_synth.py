@@ -1,5 +1,6 @@
+import re
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -22,11 +23,13 @@ from constants import (
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
     SSynthColumnType,
-    SSynthSynthesizer,
+    SSynthGanSynthesizer,
+    SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
 from dp_queries.dp_libraries.utils import serialise_model
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.collection_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -60,6 +63,10 @@ class SmartnoiseSynthQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
+
+    def __init__(self, private_dataset: PrivateDataset) -> None:
+        super().__init__(private_dataset)
+        self.model: Optional[Synthesizer] = None
 
     def _categorize_column(self, data: dict) -> str:
         """
@@ -124,7 +131,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         metadata: Metadata,
         query_json: dict,
-        table_transformer_style: str
+        table_transformer_style: str,
     ) -> TableTransformer:
         """
         Get the defaults table transformer constraints based on the metadata
@@ -231,18 +238,18 @@ class SmartnoiseSynthQuerier(DPQuerier):
             Synthesizer: Fitted synthesizer model
         """
         if query_json.delta is not None:
-            if query_json.synth_name == SSynthSynthesizer.MWEM:
+            if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
                 raise InvalidQueryException(
                     "MWEMSynthesizer does not expected keyword argument 'delta'",
                 )
             query_json.synth_params["delta"] = query_json.delta
 
-        if query_json.synth_name == SSynthSynthesizer.DP_CTGAN:
+        if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN:
             query_json.synth_params["disabled_dp"] = False
 
         if query_json.synth_name not in [
-            SSynthSynthesizer.PATE_GAN,
-            SSynthSynthesizer.DP_GAN,
+            SSynthGanSynthesizer.PATE_GAN,
+            SSynthGanSynthesizer.DP_GAN,
         ]:
             query_json.synth_params["verbose"] = True
 
@@ -258,6 +265,31 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 preprocessor_eps=0.0,  # will error if not 0.0
                 nullable=query_json.nullable,
             )
+        except ValueError as e:
+            # Specific error, improve error message for DPCTGAN
+            pattern = (
+                r"sample_rate=[\d\.]+ "
+                r"is not a valid value\. "
+                r"Please provide a float between 0 and 1\."
+            )
+            if (
+                query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN
+                and re.match(pattern, str(e))
+            ):
+                raise ExternalLibraryException(
+                    DPLibraries.SMARTNOISE_SYNTH,
+                    f"Error fitting model: {e} Try decreasing batch_size in "
+                    + "synth_params (default batch_size=500).",
+                ) from e
+            if (
+                query_json.synth_name == SSynthGanSynthesizer.PATE_GAN
+                and str(e) == "number sections must be larger than 0."
+            ):
+                # Need at least 1000 rows. Privacy breach ?
+                raise ExternalLibraryException(
+                    DPLibraries.SMARTNOISE_SYNTH,
+                    f"{SSynthGanSynthesizer.PATE_GAN} not possible with this dataset.",
+                ) from e
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
@@ -276,14 +308,19 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             model: Smartnoise Synthesizer
         """
-        if query_json.synth_name in SSynthMarginalSynthesizer.keys:
-            table_transformer_style = SSynthSynthesizer.CUBE
+        # Table Transformation depenps on the tpe of Synthsizer
+        if query_json.synth_name in [
+            s.value for s in SSynthMarginalSynthesizer
+        ]:
+            table_transformer_style = SSynthTableTransStyle.CUBE
         else:
-            table_transformer_style = SSynthSynthesizer.GAN
+            table_transformer_style = SSynthTableTransStyle.GAN
 
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
-        constraints = self._get_default_constraints(metadata, query_json, table_transformer_style)
+        constraints = self._get_default_constraints(
+            metadata, query_json, table_transformer_style
+        )
 
         # Overwrite default constraint with custom constraint (if any)
         custom_constraints = query_json.constraints
@@ -305,6 +342,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 raise InvalidQueryException(
                     "Error while selecting provided select_cols: " + str(e)
                 ) from e
+
+        if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
+            if private_data.shape[1] > 3:
+                raise InvalidQueryException(  # TODO improve by looking better
+                    "MWEMSynthesizer does not allow too high cardinality. Select "
+                    + "less columns or put less bins in TableTransformer constraints."
+                )
 
         # Get transformer
         transformer = TableTransformer.create(
@@ -330,9 +374,16 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
+        # TODO: verify and model.rho
         """
-        model = self._model_pipeline(query_json)
-        return model.epsilon_list[-1], model.delta
+        self.model = self._model_pipeline(query_json)
+        if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
+            epsilon, delta = self.model.epsilon, 0
+        elif query_json.synth_name == SSynthMarginalSynthesizer.DP_CTGAN:
+            epsilon, delta = self.model.epsilon_list[-1], self.model.delta
+        else:
+            epsilon, delta = self.model.epsilon, self.model.delta
+        return epsilon, delta
 
     def query(
         self, query_json: SmartnoiseSynthQueryModel
@@ -352,16 +403,19 @@ class SmartnoiseSynthQuerier(DPQuerier):
             pd.DataFrame: The resulting pd.DataFrame samples.
         """
 
-        model = self._model_pipeline(query_json)
+        if self.model is None:
+            raise InternalServerException(
+                "Smartnoise Synth `query` method called before `cost` method"
+            )
 
         if not query_json.return_model:
             df_samples = (
-                model.sample_conditional(
+                self.model.sample_conditional(
                     query_json.nb_samples, query_json.condition
                 )
                 if query_json.condition
-                else model.sample(query_json.nb_samples)
+                else self.model.sample(query_json.nb_samples)
             )
             return df_samples.to_dict(orient="records")
 
-        return serialise_model(model)
+        return serialise_model(self.model)

@@ -1,10 +1,18 @@
+from typing import Optional
+
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
+from snsql.reader.base import Reader
 
 from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.collection_models import Metadata
-from utils.error_handler import ExternalLibraryException, InvalidQueryException
+from utils.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+)
 from utils.query_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
 
 
@@ -12,6 +20,10 @@ class SmartnoiseSQLQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
+
+    def __init__(self, private_dataset: PrivateDataset) -> None:
+        super().__init__(private_dataset)
+        self.reader: Optional[Reader] = None
 
     def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
         """Estimate cost of query
@@ -33,21 +45,21 @@ class SmartnoiseSQLQuerier(DPQuerier):
         metadata = self.private_dataset.get_metadata()
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
 
-        reader = from_connection(
+        self.reader = from_connection(
             self.private_dataset.get_pandas_df(),
             privacy=privacy,
             metadata=smartnoise_metadata,
         )
 
         try:
-            result = reader.get_privacy_cost(query_json.query_str)
+            epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
                 "Error obtaining cost: " + str(e),
             ) from e
 
-        return result
+        return epsilon, delta
 
     def query(self, query_json: SmartnoiseSQLModel, nb_iter: int = 0) -> dict:
         """Perform the query and return the response.
@@ -66,22 +78,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
         Returns:
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
-        epsilon, delta = query_json.epsilon, query_json.delta
-
-        privacy = Privacy(epsilon=epsilon, delta=delta)
-        privacy = set_mechanisms(privacy, query_json.mechanisms)
-
-        metadata = self.private_dataset.get_metadata()
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
-
-        reader = from_connection(
-            self.private_dataset.get_pandas_df(),
-            privacy=privacy,
-            metadata=smartnoise_metadata,
-        )
-
+        if self.reader is None:
+            raise InternalServerException(
+                "Smartnoise SQL `query` method called before `cost` method"
+            )
         try:
-            result = reader.execute(
+            result = self.reader.execute(
                 query_json.query_str, postprocess=query_json.postprocess
             )
         except Exception as e:
@@ -98,9 +100,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         if result == []:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
-                f"SQL Reader generated empty results,"
-                f"Epsilon: {epsilon} and Delta: {delta} are too small"
-                " to generate output.",
+                f"SQL Reader generated empty results."
+                f"Epsilon: {query_json.epsilon} and Delta: {query_json.delta} "
+                "are too small to generate output.",
             )
 
         df_res = pd.DataFrame(result, columns=cols)
@@ -112,9 +114,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 return self.query(query_json, nb_iter)
 
             raise InvalidQueryException(
-                f"SQL Reader generated NAN results."
-                f" Epsilon: {epsilon} and Delta: {delta} are too small"
-                " to generate output.",
+                f"SQL Reader generated NAN results. "
+                f"Epsilon: {query_json.epsilon} and Delta: {query_json.delta} "
+                "are too small to generate output.",
             )
 
         return df_res.to_dict(orient="tight")

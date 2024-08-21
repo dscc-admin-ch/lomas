@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -27,6 +27,7 @@ from constants import (
 )
 from dp_queries.dp_libraries.utils import serialise_model
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.private_dataset import PrivateDataset
 from utils.collection_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -60,6 +61,10 @@ class SmartnoiseSynthQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
+
+    def __init__(self, private_dataset: PrivateDataset) -> None:
+        super().__init__(private_dataset)
+        self.model: Optional[Synthesizer] = None
 
     def _categorize_column(self, data: dict) -> str:
         """
@@ -317,8 +322,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        model = self._model_pipeline(query_json)
-        return model.epsilon_list[-1], model.delta
+        self.model = self._model_pipeline(query_json)
+        return self.model.epsilon_list[-1], self.model.delta
 
     def query(
         self, query_json: SmartnoiseSynthQueryModel
@@ -337,17 +342,18 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             pd.DataFrame: The resulting pd.DataFrame samples.
         """
-
-        model = self._model_pipeline(query_json)
-
+        if self.model is None:
+            raise InternalServerException(
+                "Smartnoise Synth `query` method called before `cost` method"
+            )
         if not query_json.return_model:
             df_samples = (
-                model.sample_conditional(
+                self.model.sample_conditional(
                     query_json.nb_samples, query_json.condition
                 )
                 if query_json.condition
-                else model.sample(query_json.nb_samples)
+                else self.model.sample(query_json.nb_samples)
             )
             return df_samples.to_dict(orient="records")
 
-        return serialise_model(model)
+        return serialise_model(self.model)

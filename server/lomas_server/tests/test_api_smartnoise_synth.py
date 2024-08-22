@@ -358,7 +358,7 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
-                "InvalidQueryException": "MWEMSynthesizer does not allow"
+                "InvalidQueryException": "MWEMSynthesizer does not allow "
                 + "too high cardinality. Select less columns or put less bins "
                 + "in TableTransformer constraints."
             }
@@ -414,10 +414,7 @@ class TestSmartnoiseSynthEndpoint(
             # UserWarning: MixtureInference disabled, please install jax and jaxlib
             body["return_model"] = False
             body["nb_samples"] = 10
-            body["select_cols"] = [
-                "bill_length_mm",
-                "island",
-            ]  # too slow otherwise
+            body["select_cols"] = ["bill_length_mm"]  # too slow otherwise
             body["synth_params"] = {}
             response = client.post(
                 "/smartnoise_synth_query",
@@ -431,23 +428,25 @@ class TestSmartnoiseSynthEndpoint(
             assert df.shape[0] == body["nb_samples"]
             assert list(df.columns) == body["select_cols"]
 
-    # def test_smartnoise_synth_query_pacsynth(self) -> None:
-    #     """Test smartnoise synth query PAC-Synth Synthesizer"""
-    #     with TestClient(app) as client:
-    #         # Expect to fail:  #TODO why
-    #         body = dict(example_smartnoise_synth_query)
-    #         body["synth_name"] = "pacsynth"
-    #         body["synth_params"] = {}
-    #         response = client.post(
-    #             "/smartnoise_synth_query",
-    #             json=body,
-    #             headers=self.headers,
-    #         )
-    #         from utils.logger import LOG
-
-    #         LOG.error("***************************")
-    #         LOG.error(response)
-    #         LOG.error(json.loads(response.content.decode("utf8")))
+    def test_smartnoise_synth_query_pacsynth(self) -> None:
+        """Test smartnoise synth query PAC-Synth Synthesizer
+        TOO UNSTABLE BECAUSE OF RUST PANIC
+        """
+        with TestClient(app) as client:
+            # Expect to fail:  #TODO why
+            body = dict(example_smartnoise_synth_query)
+            body["synth_name"] = "pacsynth"
+            body["synth_params"] = {}
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json()["InvalidQueryException"].startswith(
+                "pacsynth synthesizer not supported do to Rust panic. "
+                + "Please select another Synthesizer."
+            )
 
     def test_smartnoise_synth_query_patectgan(self) -> None:
         """Test smartnoise synth query PATE-CTGAN Synthesizer"""
@@ -464,7 +463,7 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": "Error fitting model:"
+                "ExternalLibraryException": "Error fitting model: "
                 + "Inputted epsilon parameter is too small to create a private"
                 + " dataset. Try increasing epsilon and rerunning.",
                 "library": "smartnoise_synth",
@@ -535,7 +534,7 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": "Error fitting model:"
+                "ExternalLibraryException": "Error fitting model: "
                 + "Inputted epsilon and sigma parameters "
                 + "are too small to create a private dataset. "
                 + "Try increasing either parameter and rerunning.",

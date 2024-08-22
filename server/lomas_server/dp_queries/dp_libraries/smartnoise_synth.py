@@ -255,7 +255,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error creating model: " + str(e)
             ) from e
-
         try:
             model.fit(
                 data=private_data,
@@ -306,6 +305,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             model: Smartnoise Synthesizer
         """
+        if query_json.synth_name == SSynthMarginalSynthesizer.PAC_SYNTH:
+            raise InvalidQueryException(
+                "pacsynth synthesizer not supported do to Rust panic. "
+                + "Please select another Synthesizer."
+            )
+
         # Table Transformation depenps on the tpe of Synthsizer
         if query_json.synth_name in [
             s.value for s in SSynthMarginalSynthesizer
@@ -340,7 +345,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 raise InvalidQueryException(
                     "Error while selecting provided select_cols: " + str(e)
                 ) from e
-
         if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
             if private_data.shape[1] > 3:
                 raise InvalidQueryException(  # TODO improve by looking better
@@ -355,7 +359,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             nullable=query_json.nullable,
             constraints=constraints,
         )
-
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
         return model
@@ -380,6 +383,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
             epsilon, delta = self.model.epsilon_list[-1], self.model.delta
         else:
             epsilon, delta = self.model.epsilon, self.model.delta
+
+        # if ( # disabled
+        #     query_json.synth_name == SSynthMarginalSynthesizer.PAC_SYNTH
+        #     and delta is None
+        # ):
+        #     delta = 0
+
         return epsilon, delta
 
     def query(
@@ -403,7 +413,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             raise InternalServerException(
                 "Smartnoise Synth `query` method called before `cost` method"
             )
-
         if not query_json.return_model:
             # Sample
             df_samples = (
@@ -413,7 +422,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 if query_json.condition
                 else self.model.sample(query_json.nb_samples)
             )
-
             # Ensure serialisable
             df_samples = df_samples.fillna("")
             return df_samples.to_dict(orient="records")

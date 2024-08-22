@@ -240,26 +240,22 @@ class SmartnoiseSynthQuerier(DPQuerier):
             Synthesizer: Fitted synthesizer model
         """
         if query_json.delta is not None:
-            if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
-                raise InvalidQueryException(
-                    "MWEMSynthesizer does not expected keyword argument 'delta'.",
-                )
             query_json.synth_params["delta"] = query_json.delta
 
         if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN:
             query_json.synth_params["disabled_dp"] = False
 
-        if query_json.synth_name not in [
-            SSynthGanSynthesizer.PATE_GAN,
-            SSynthGanSynthesizer.DP_GAN,
-        ]:
-            query_json.synth_params["verbose"] = True
+        try:
+            model = Synthesizer.create(
+                synth=query_json.synth_name,
+                epsilon=query_json.epsilon,
+                **query_json.synth_params,
+            )
+        except Exception as e:
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SYNTH, "Error creating model: " + str(e)
+            ) from e
 
-        model = Synthesizer.create(
-            synth=query_json.synth_name,
-            epsilon=query_json.epsilon,
-            **query_json.synth_params,
-        )
         try:
             model.fit(
                 data=private_data,
@@ -269,8 +265,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             )
         except ValueError as e:  # Improve error message
             pattern = (
-                r"sample_rate=[\d\.]+ "
-                r"is not a valid value\. "
+                r"sample_rate=[\d\.]+ is not a valid value\. "
                 r"Please provide a float between 0 and 1\."
             )
             if (
@@ -292,11 +287,11 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     f"{SSynthGanSynthesizer.PATE_GAN} not possible with this dataset.",
                 ) from e
             raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
+                DPLibraries.SMARTNOISE_SYNTH, "Error fitting model: " + str(e)
             ) from e
         except Exception as e:
             raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
+                DPLibraries.SMARTNOISE_SYNTH, "Error fitting model: " + str(e)
             ) from e
         return model
 
@@ -420,9 +415,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             )
 
             # Ensure serialisable
-            # df_samples = df_samples.replace([np.inf, -np.inf], np.nan)
-            # df_samples = df_samples.where(pd.notnull(df_samples), None)
-            df_samples = df_samples.fillna('')
+            df_samples = df_samples.fillna("")
             return df_samples.to_dict(orient="records")
 
         return serialise_model(self.model)

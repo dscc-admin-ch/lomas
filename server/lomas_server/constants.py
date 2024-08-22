@@ -145,7 +145,7 @@ class SSynthColumnType(StrEnum):
 
 
 SSYNTH_PRIVATE_COLUMN = "uuid4"
-SSYNTH_DEFAULT_BINS = 20
+SSYNTH_DEFAULT_BINS = 10
 
 
 # OpenDP

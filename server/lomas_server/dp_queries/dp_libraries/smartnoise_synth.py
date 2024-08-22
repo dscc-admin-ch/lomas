@@ -242,7 +242,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         if query_json.delta is not None:
             if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
                 raise InvalidQueryException(
-                    "MWEMSynthesizer does not expected keyword argument 'delta'",
+                    "MWEMSynthesizer does not expected keyword argument 'delta'.",
                 )
             query_json.synth_params["delta"] = query_json.delta
 
@@ -363,7 +363,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
-        LOG.error(model)
         return model
 
     def cost(
@@ -411,6 +410,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             )
 
         if not query_json.return_model:
+            # Sample
             df_samples = (
                 self.model.sample_conditional(
                     query_json.nb_samples, query_json.condition
@@ -418,6 +418,11 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 if query_json.condition
                 else self.model.sample(query_json.nb_samples)
             )
+
+            # Ensure serialisable
+            # df_samples = df_samples.replace([np.inf, -np.inf], np.nan)
+            # df_samples = df_samples.where(pd.notnull(df_samples), None)
+            df_samples = df_samples.fillna('')
             return df_samples.to_dict(orient="records")
 
         return serialise_model(self.model)

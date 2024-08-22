@@ -82,6 +82,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
             case "string" | "boolean":
                 return SSynthColumnType.CATEGORICAL
             case "int" | "float":
+                if "cardinality" in data.keys():
+                    return SSynthColumnType.CATEGORICAL
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
                 return SSynthColumnType.CATEGORICAL  # ordinal is categorical
@@ -265,8 +267,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 preprocessor_eps=0.0,  # will error if not 0.0
                 nullable=query_json.nullable,
             )
-        except ValueError as e:
-            # Specific error, improve error message for DPCTGAN
+        except ValueError as e:  # Improve error message
             pattern = (
                 r"sample_rate=[\d\.]+ "
                 r"is not a valid value\. "
@@ -290,11 +291,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"{SSynthGanSynthesizer.PATE_GAN} not possible with this dataset.",
                 ) from e
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
+            ) from e
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error fitting model:" + str(e)
             ) from e
-
         return model
 
     def _model_pipeline(
@@ -360,7 +363,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Create and fit synthesizer
         model = self._get_fit_model(private_data, transformer, query_json)
-
+        LOG.error(model)
         return model
 
     def cost(
@@ -379,7 +382,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self.model = self._model_pipeline(query_json)
         if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
             epsilon, delta = self.model.epsilon, 0
-        elif query_json.synth_name == SSynthMarginalSynthesizer.DP_CTGAN:
+        elif query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN:
             epsilon, delta = self.model.epsilon_list[-1], self.model.delta
         else:
             epsilon, delta = self.model.epsilon, self.model.delta
@@ -402,7 +405,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             pd.DataFrame: The resulting pd.DataFrame samples.
         """
-
         if self.model is None:
             raise InternalServerException(
                 "Smartnoise Synth `query` method called before `cost` method"

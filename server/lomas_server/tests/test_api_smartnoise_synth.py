@@ -31,9 +31,11 @@ def get_model(query_response):
     return model
 
 
-class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+class TestSmartnoiseSynthEndpoint(
+    TestRootAPIEndpoint
+):  # pylint: disable=R0904
     """
-    Test Smartnoise Synth Endpoints with different models
+    Test Smartnoise Synth Endpoints with different Synthesizers
     """
 
     def test_smartnoise_synth_query(self) -> None:
@@ -45,6 +47,11 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_smartnoise_synth_query,
                 headers=self.headers,
             )
+            from utils.logger import LOG
+
+            LOG.error("***************************")
+            LOG.error(response)
+            LOG.error(json.loads(response.content.decode("utf8")))
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))

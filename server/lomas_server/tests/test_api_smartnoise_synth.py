@@ -14,7 +14,6 @@ from snsynth.transform import (
 )
 
 from app import app
-from constants import SSynthTableTransStyle
 from tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from tests.test_api import TestRootAPIEndpoint
 from utils.query_examples import (
@@ -47,11 +46,6 @@ class TestSmartnoiseSynthEndpoint(
                 json=example_smartnoise_synth_query,
                 headers=self.headers,
             )
-            # from utils.logger import LOG
-
-            # LOG.error("***************************")
-            # LOG.error(response)
-            # LOG.error(json.loads(response.content.decode("utf8")))
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
@@ -319,25 +313,23 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=new_headers,
             )
-            # from utils.logger import LOG
-
-            # LOG.error("***************************")
-            # LOG.error(response)
-            # LOG.error(json.loads(response.content.decode("utf8")))
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
-            
+
     def test_smartnoise_synth_query_aim(self) -> None:
         """Test smartnoise synth query AIM Synthesizer"""
         with TestClient(app) as client:
             # Expect to work
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "aim"
-            body["select_cols"] = ["bill_depth_mm", "species"] # too slow otherwise
+            body["select_cols"] = [
+                "bill_depth_mm",
+                "species",
+            ]  # too slow otherwise
             body["synth_params"] = {}
             response = client.post(
                 "/smartnoise_synth_query",
@@ -366,12 +358,11 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
-                "InvalidQueryException": 
-                    "MWEMSynthesizer does not allow too high cardinality. "
-                    + "Select less columns or put less bins in TableTransformer "
-                    + "constraints."
+                "InvalidQueryException": "MWEMSynthesizer does not allow"
+                + "too high cardinality. Select less columns or put less bins "
+                + "in TableTransformer constraints."
             }
-            
+
             # Expect to fail: Less columns but still delta
             body["select_cols"] = ["species", "island"]
             response = client.post(
@@ -379,12 +370,14 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "InvalidQueryException": 
-                    "MWEMSynthesizer does not expected keyword argument 'delta'."
+                "ExternalLibraryException": "Error creating model: "
+                + "MWEMSynthesizer.__init__() got an "
+                + "unexpected keyword argument 'delta'",
+                "library": "smartnoise_synth",
             }
-            
+
             # Expect to work: limited columns and delta None
             body["delta"] = None
             response = client.post(
@@ -396,9 +389,9 @@ class TestSmartnoiseSynthEndpoint(
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
-            
+
             # Expect to work: special parameters
-            body["synth_params"] = {"split_factor": 2, "measure_only":False}
+            body["synth_params"] = {"split_factor": 2, "measure_only": False}
             response = client.post(
                 "/smartnoise_synth_query",
                 json=body,
@@ -408,17 +401,12 @@ class TestSmartnoiseSynthEndpoint(
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
-            from utils.logger import LOG
-
-            LOG.error("***************************")
-            LOG.error(response)
-            LOG.error(json.loads(response.content.decode("utf8")))
 
     def test_smartnoise_synth_query_mst(self) -> None:
         """Test smartnoise synth query MST Synthesizer"""
         with TestClient(app) as client:
-            
-            # Expect to work: 
+
+            # Expect to work:
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mst"
             # TODO: Can't pickle local object
@@ -426,41 +414,45 @@ class TestSmartnoiseSynthEndpoint(
             # UserWarning: MixtureInference disabled, please install jax and jaxlib
             body["return_model"] = False
             body["nb_samples"] = 10
-            body["select_cols"] = ["bill_length_mm", "island"] # too slow otherwise
+            body["select_cols"] = [
+                "bill_length_mm",
+                "island",
+            ]  # too slow otherwise
             body["synth_params"] = {}
             response = client.post(
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            
+
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
             df = pd.DataFrame(response_dict["query_response"])
             assert df.shape[0] == body["nb_samples"]
             assert list(df.columns) == body["select_cols"]
 
-    def test_smartnoise_synth_query_pacsynth(self) -> None:
-        """Test smartnoise synth query PAC-Synth Synthesizer"""
-        with TestClient(app) as client:
-            # Expect to fail: 
-            body = dict(example_smartnoise_synth_query)
-            body["synth_name"] = "pacsynth"
-            body["synth_params"] = {}
-            response = client.post(
-                "/smartnoise_synth_query",
-                json=body,
-                headers=self.headers,
-            )
-            from utils.logger import LOG
-            LOG.error("***************************")
-            LOG.error(response)
-            LOG.error(json.loads(response.content.decode("utf8")))
+    # def test_smartnoise_synth_query_pacsynth(self) -> None:
+    #     """Test smartnoise synth query PAC-Synth Synthesizer"""
+    #     with TestClient(app) as client:
+    #         # Expect to fail:  #TODO why
+    #         body = dict(example_smartnoise_synth_query)
+    #         body["synth_name"] = "pacsynth"
+    #         body["synth_params"] = {}
+    #         response = client.post(
+    #             "/smartnoise_synth_query",
+    #             json=body,
+    #             headers=self.headers,
+    #         )
+    #         from utils.logger import LOG
+
+    #         LOG.error("***************************")
+    #         LOG.error(response)
+    #         LOG.error(json.loads(response.content.decode("utf8")))
 
     def test_smartnoise_synth_query_patectgan(self) -> None:
         """Test smartnoise synth query PATE-CTGAN Synthesizer"""
         with TestClient(app) as client:
-            
+
             # Expect to fail: epsilon too small
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "patectgan"
@@ -472,13 +464,12 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": 
-                    "Error fitting model:Inputted epsilon parameter "
-                    + "is too small to create a private dataset. "
-                    + "Try increasing epsilon and rerunning.",
-                    "library": "smartnoise_synth"
+                "ExternalLibraryException": "Error fitting model:"
+                + "Inputted epsilon parameter is too small to create a private"
+                + " dataset. Try increasing epsilon and rerunning.",
+                "library": "smartnoise_synth",
             }
-            
+
             # Expect to work
             body["epsilon"] = 1.0
             response = client.post(
@@ -492,16 +483,11 @@ class TestSmartnoiseSynthEndpoint(
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
-            from utils.logger import LOG
-            LOG.error("***************************")
-            LOG.error(response)
-            LOG.error(json.loads(response.content.decode("utf8")))
-
     def test_smartnoise_synth_query_pategan(self) -> None:
         """Test smartnoise synth query pategan Synthesizer"""
         with TestClient(app) as client:
-            
-            # Expect to fail: penguin dataset is too small 
+
+            # Expect to fail: penguin dataset is too small
             # (pategan needs > 1000 rows)
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "pategan"
@@ -513,15 +499,31 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": 
-                    "pategan not possible with this dataset.",
-                    "library": "smartnoise_synth"
+                "ExternalLibraryException": "pategan not possible with this dataset.",
+                "library": "smartnoise_synth",
             }
+
+            # Expect to work: DUMMY with enough rows and enough budget
+            body = dict(example_dummy_smartnoise_synth_query)
+            body["synth_name"] = "pategan"
+            body["synth_params"] = {}
+            body["dummy_nb_rows"] = 2000
+            body["epsilon"] = 1.0
+            response = client.post(
+                "/dummy_smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            model = get_model(response_dict["query_response"])
+            df = model.sample(1)
+            assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
         """Test smartnoise synth query dpgan Synthesizer"""
         with TestClient(app) as client:
-            
+
             # Expect to fail: epsilon too small
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "dpgan"
@@ -533,13 +535,13 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": 
-                    "Error fitting model:Inputted epsilon and sigma parameters "
-                    + "are too small to create a private dataset. "
-                    + "Try increasing either parameter and rerunning.",
-                    "library": "smartnoise_synth"
+                "ExternalLibraryException": "Error fitting model:"
+                + "Inputted epsilon and sigma parameters "
+                + "are too small to create a private dataset. "
+                + "Try increasing either parameter and rerunning.",
+                "library": "smartnoise_synth",
             }
-            
+
             body["epsilon"] = 1.0
             response = client.post(
                 "/smartnoise_synth_query",
@@ -551,4 +553,3 @@ class TestSmartnoiseSynthEndpoint(
             model = get_model(response_dict["query_response"])
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
- 

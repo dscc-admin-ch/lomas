@@ -4,7 +4,6 @@ FROM python:3.11 AS lomas_server_base
 # To install missing packages
 COPY ./requirements.txt /requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt 
-RUN pip install git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca
 
 WORKDIR /code
 

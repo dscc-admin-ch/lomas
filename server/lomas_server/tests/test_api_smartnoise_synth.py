@@ -59,6 +59,24 @@ class TestSmartnoiseSynthEndpoint(
             df = model.sample(10)
             assert list(df.columns) == PENGUIN_COLUMNS
 
+            # Expect to fail due to parameters
+            body = dict(example_smartnoise_synth_query)
+            body["synth_params"] = {}
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.json() == {
+                "ExternalLibraryException": "Error fitting model: "
+                + "sample_rate=1.4534883720930232 is not a valid value. "
+                + "Please provide a float between 0 and 1. "
+                + "Try decreasing batch_size in "
+                + "synth_params (default batch_size=500).",
+                "library": "smartnoise_synth",
+            }
+
     def test_smartnoise_synth_query_samples(self) -> None:
         """Test smartnoise synth query return samples"""
         with TestClient(app, headers=self.headers) as client:
@@ -444,7 +462,7 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json()["InvalidQueryException"].startswith(
-                "pacsynth synthesizer not supported do to Rust panic. "
+                "pacsynth synthesizer not supported due to Rust panic. "
                 + "Please select another Synthesizer."
             )
 

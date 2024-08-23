@@ -307,11 +307,11 @@ class SmartnoiseSynthQuerier(DPQuerier):
         """
         if query_json.synth_name == SSynthMarginalSynthesizer.PAC_SYNTH:
             raise InvalidQueryException(
-                "pacsynth synthesizer not supported do to Rust panic. "
+                "pacsynth synthesizer not supported due to Rust panic. "
                 + "Please select another Synthesizer."
             )
 
-        # Table Transformation depenps on the tpe of Synthsizer
+        # Table Transformation depenps on the type of Synthesizer
         if query_json.synth_name in [
             s.value for s in SSynthMarginalSynthesizer
         ]:

@@ -247,8 +247,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             expected_dtypes = pd.Series(response_dict["dtypes"])
             assert (
-                (dummy_df.dtypes == expected_dtypes).all()
-            ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+                dummy_df.dtypes == expected_dtypes
+            ).all(), (
+                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+            )
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -338,8 +340,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             for col in response_dict["datetime_columns"]:
                 expected_dtypes[col] = "datetime64[ns]"
             assert (
-                (dummy_df.dtypes == expected_dtypes).all()
-            ), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+                dummy_df.dtypes == expected_dtypes
+            ).all(), (
+                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+            )
 
     def test_smartnoise_query(self) -> None:
         """Test smartnoise-sql query"""

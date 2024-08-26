@@ -1,5 +1,6 @@
 import base64
 import json
+import pickle
 from enum import StrEnum
 from typing import Dict, List, Optional, Union
 
@@ -534,7 +535,7 @@ class Client:
                             query["response"]["query_response"]["model"]
                         )
                         query["response"]["query_response"]["model"] = (
-                            json.loads(model)
+                            pickle.loads(model)
                         )
                     case _:
                         raise ValueError(

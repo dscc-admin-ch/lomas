@@ -426,4 +426,4 @@ class SmartnoiseSynthQuerier(DPQuerier):
             df_samples = df_samples.fillna("")
             return df_samples.to_dict(orient="records")
 
-        return serialise_model(self.model)
+        return serialise_model(self.model, query_json.synth_name)

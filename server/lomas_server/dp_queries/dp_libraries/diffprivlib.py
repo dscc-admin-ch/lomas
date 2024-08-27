@@ -1,7 +1,7 @@
 import pickle
 import warnings
 from base64 import b64encode
-from typing import Dict
+from typing import Dict, Optional
 
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
@@ -12,7 +12,11 @@ from sklearn.pipeline import Pipeline
 from constants import DPLibraries
 from dp_queries.dp_libraries.utils import handle_missing_data
 from dp_queries.dp_querier import DPQuerier
-from utils.error_handler import ExternalLibraryException
+from private_dataset.private_dataset import PrivateDataset
+from utils.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+)
 from utils.query_models import DiffPrivLibModel
 
 
@@ -20,6 +24,12 @@ class DiffPrivLibQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
+
+    def __init__(self, private_dataset: PrivateDataset) -> None:
+        super().__init__(private_dataset)
+        self.dpl_pipeline: Optional[Pipeline] = None
+        self.x_test: Optional[pd.DataFrame] = None
+        self.y_test: Optional[pd.DataFrame] = None
 
     def fit_model_on_data(
         self, query_json: DiffPrivLibModel
@@ -34,7 +44,7 @@ class DiffPrivLibQuerier(DPQuerier):
                 external to this package.
 
         Returns:
-            fitted_dpl_pipeline (dpl model): the fitted model on the training data
+            dpl_pipeline (dpl model): the fitted model on the training data
             x_test (pd.DataFrame): test data feature
             y_test (pd.DataFrame): test data target
         """
@@ -53,7 +63,7 @@ class DiffPrivLibQuerier(DPQuerier):
         try:
             if y_train is not None:
                 y_train = y_train.values.ravel()
-            fitted_dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
+            dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB,
@@ -67,7 +77,7 @@ class DiffPrivLibQuerier(DPQuerier):
                 f"Cannot fit pipeline on data because {e}",
             ) from e
 
-        return fitted_dpl_pipeline, x_test, y_test
+        return dpl_pipeline, x_test, y_test
 
     def cost(self, query_json: DiffPrivLibModel) -> tuple[float, float]:
         """Estimate cost of query
@@ -83,17 +93,21 @@ class DiffPrivLibQuerier(DPQuerier):
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        fitted_dpl_pipeline, _, _ = self.fit_model_on_data(query_json)
+        self.dpl_pipeline, self.x_test, self.y_test = self.fit_model_on_data(
+            query_json
+        )
 
         # Compute budget
         spent_epsilon = 0.0
         spent_delta = 0.0
-        for step in fitted_dpl_pipeline.steps:
+        for step in self.dpl_pipeline.steps:
             spent_epsilon += step[1].accountant.spent_budget[0][0]
             spent_delta += step[1].accountant.spent_budget[0][1]
         return spent_epsilon, spent_delta
 
-    def query(self, query_json: DiffPrivLibModel) -> Dict:
+    def query(
+        self, query_json: DiffPrivLibModel  # pylint: disable=unused-argument
+    ) -> Dict:
         """Perform the query and return the response.
 
         Args:
@@ -108,15 +122,16 @@ class DiffPrivLibQuerier(DPQuerier):
         Returns:
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
-        fitted_dpl_pipeline, x_test, y_test = self.fit_model_on_data(
-            query_json
-        )
+        if self.dpl_pipeline is None:
+            raise InternalServerException(
+                "DiffPrivLib `query` method called before `cost` method"
+            )
 
         # Model accuracy
-        score = fitted_dpl_pipeline.score(x_test, y_test)
+        score = self.dpl_pipeline.score(self.x_test, self.y_test)
 
         # Serialise model
-        pickled_model = b64encode(pickle.dumps(fitted_dpl_pipeline))
+        pickled_model = b64encode(pickle.dumps(self.dpl_pipeline))
 
         query_response = {
             "score": score,

@@ -1,9 +1,7 @@
-import io
 from collections.abc import AsyncGenerator
 
-import pandas as pd
 from fastapi import Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from constants import DPLibraries
@@ -35,30 +33,6 @@ async def server_live(request: Request) -> AsyncGenerator:
             + "Contact the administrator of this service.",
         )
     yield
-
-
-def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
-    """
-    Creates a streaming response for a given pandas dataframe.
-
-    Args:
-        df (pd.DataFrame): The dataframe to stream.
-
-    Returns:
-        StreamingResponse: The resulting streaming response.
-    """
-    stream = io.StringIO()
-
-    # CSV creation
-    df.to_csv(stream, index=False)
-
-    response = StreamingResponse(
-        iter([stream.getvalue()]), media_type="text/csv"
-    )
-    response.headers["Content-Disposition"] = (
-        "attachment; filename=synthetic_data.csv"
-    )
-    return response
 
 
 def handle_query_on_private_dataset(

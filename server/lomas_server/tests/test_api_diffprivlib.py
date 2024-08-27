@@ -1,4 +1,5 @@
 import json
+import pickle
 import warnings
 
 from diffprivlib import models
@@ -14,6 +15,7 @@ from sklearn.pipeline import Pipeline
 from app import app
 from constants import DPLibraries
 from tests.test_api import TestRootAPIEndpoint
+from utils.logger import LOG
 from utils.query_examples import example_diffprivlib, example_dummy_diffprivlib
 
 
@@ -21,6 +23,12 @@ def validate_pipeline(response):
     """Validate that the pipeline ran successfully
     Returns a model and a score.
     """
+    if not response.status_code == status.HTTP_200_OK:
+        LOG.error(" ************** DIFFPRIVLIB ERROR ************** ")
+        # Temporary LOGs to help understand why tests sometimes fail
+        LOG.error(response)
+        LOG.error(pickle.loads(response.content.decode("utf8")))
+
     assert response.status_code == status.HTTP_200_OK
     response_dict = json.loads(response.content.decode("utf8"))
     assert response_dict["query_response"]["score"]

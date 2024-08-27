@@ -19,7 +19,7 @@ If the dataset is stored externally on a s3 instance (minio, aws, etc.)
 
 Once the type of dataset is figured out, one can modify the file `dataset_collection.yaml` in the folder `server/data/collections`.
 
-Example with our fake dataset, the administrator need to add this information (local example).
+Example with our fake dataset, the administrator needs to add this information (local example).
 
 .. code-block:: yaml
 
@@ -33,7 +33,7 @@ Example with our fake dataset, the administrator need to add this information (l
 
 * dataset_name: Name of the given dataset
 * database_type: "S3_DB" if dataset stored on a S3 bucket, otherwise "PATH_DB"
-* dataset_path: Needed if database_type is "PATH_DB". For local dataset, one need to privide the directory path to access the dataset. If HTTP, one should give the url where the dataset is stored.
+* dataset_path: Needed if database_type is "PATH_DB". For local dataset, one needs to privide the directory path to access the dataset. If HTTP, one should give the url where the dataset is stored.
 
 Note that if your dataset is stored on a S3 bucket, other parameters should be used instead of `dataset_path`
 
@@ -78,7 +78,7 @@ This format is based on the `SmartnoiseSQL dictionary format <https://docs.smart
 Table options:
 
 * `max_ids`: Specify how many rows each unique user can appear in (cf. Smartnoise documentation)
-* `rows`: Required: The number of rows in the dataset. If the administrator does not know or do not want to share how many records are in the data, she can specify a very loose upper bound.
+* `rows`: Required. The number of rows in the dataset. If the administrator does not know or do not want to share how many records are in the data, she can specify a very loose upper bound.
 
 Column options:
 

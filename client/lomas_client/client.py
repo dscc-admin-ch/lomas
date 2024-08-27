@@ -11,7 +11,10 @@ from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
-from smartnoise_synth_logger import serialise_constraints
+from smartnoise_synth_logger import (
+    deserialise_mst_model,
+    serialise_constraints,
+)
 
 # Opendp_logger
 enable_logging()
@@ -27,6 +30,15 @@ DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
 SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
 SNSYNTH_DEFAULT_SYMPLES_NB = 200
+
+
+class SSynthMarginalSynthesizer(StrEnum):
+    """Marginal Synthesizer models for smartnoise synth"""
+
+    AIM = "aim"
+    MWEM = "mwem"
+    MST = "mst"
+    PAC_SYNTH = "pacsynth"
 
 
 class DPLibraries(StrEnum):
@@ -317,8 +329,12 @@ class Client:
             response = res.json()
             query_response = response["query_response"]
             if return_model:
-                model = base64.b64decode(query_response)
-                response["query_response"] = pickle.loads(model)
+                if synth_name == SSynthMarginalSynthesizer.MST:
+                    model = deserialise_mst_model(query_response)
+                    response["query_response"] = model
+                else:
+                    model = base64.b64decode(query_response)
+                    response["query_response"] = pickle.loads(model)
             else:
                 response["query_response"] = pd.DataFrame(query_response)
             return response

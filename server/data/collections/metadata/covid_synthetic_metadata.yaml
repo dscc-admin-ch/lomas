@@ -1,0 +1,61 @@
+max_ids: 3
+columns:
+  patient_id:
+    type: int
+    precision: 32
+    private_id: True
+  id:
+    type: int
+    precision: 32
+    lower: 1
+    upper: 2000
+  date:
+    type: datetime
+    lower: "2022-08-01"
+    upper: "2023-07-30"
+  temporal:
+    type: int
+    precision: 32
+    categories: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,41,42,43,44,45,46,47,48,49,50,51,52]
+    cardinality: 52
+    max_partition_length: 0.04
+  georegion:
+    type: string
+    precision: 32
+    categories: ["AG","AI","AR","BE","BL","BS","FL","FR","GE","GL","GR","JU","LU","NE","other","SG","SH","SO","SZ","TG","TI","unknown","VD",VS",ZG",ZH",NW","UR","OW"]
+    cardinality: 29
+    max_partition_length: 0.17
+  agegroup:
+    type: string
+    categories: ["0 - 9","10 - 19","20 - 29","30 - 39","40 - 49","50 - 59","60 - 69","70 - 79","80+","other","unknown"]
+    cardinality: 11
+    max_partition_length: 0.14
+  sex:
+    type: string
+    categories: ["female","male","other","unknown"]
+    cardinality: 4
+    max_partition_length: 0.47
+  testType:
+    type: string
+    cardinality: 2
+    categories: ["pcr", "rapid_antigen_test"]
+    max_partition_length : 0.91
+  testResult:
+    type: string
+    cardinality: 4
+    categories: ["negative","positive","other","unknown"]
+    max_partition_length: 0.58
+  country:
+    type: string
+    cardinality: 4
+    max_partition_length: ["CH","FL","other","unknown"]
+  subType:
+    type: string
+    cardinality: 10
+    categories: ["BA.1","BA.2","BA.2.75","BA.4","BA.5","BQ.1","other","unknown","XBB", "<NA>"]
+    max_partition_length: 0.66
+  hospitalization:
+    type: boolean
+  death:
+    type: boolean
+rows: 50_048

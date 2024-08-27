@@ -914,7 +914,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         list_datasets = get_list_of_datasets(self.db)
         self.assertEqual(
-            list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC"]
+            list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC"]
         )
 
     def test_drop_collection(self) -> None:
@@ -982,9 +982,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
                 list_datasets,
-                ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "TINTIN_S3_TEST"],
+                ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "TINTIN_S3_TEST"],
             )
         else:
             self.assertEqual(
-                list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC"]
+                list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC"]
             )

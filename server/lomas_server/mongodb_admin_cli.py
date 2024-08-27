@@ -15,16 +15,16 @@ from mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_archives_of_user,
+    get_collection,
+    get_dataset,
     get_list_of_datasets,
     get_list_of_datasets_from_user,
     get_list_of_users,
+    get_metadata_of_dataset,
+    get_user,
     set_budget_field,
     set_may_query,
-    show_archives_of_user,
-    show_collection,
-    show_dataset,
-    show_metadata_of_dataset,
-    show_user,
 )
 
 if __name__ == "__main__":
@@ -153,13 +153,13 @@ if __name__ == "__main__":
     set_may_query_parser.set_defaults(func=set_may_query)
 
     # Show the user
-    show_user_parser = subparsers.add_parser(
-        "show_user",
+    get_user_parser = subparsers.add_parser(
+        "get_user",
         help="show all metadata of user",
         parents=[connection_parser],
     )
-    show_user_parser.add_argument("-u", "--user", required=True, type=str)
-    show_user_parser.set_defaults(func=show_user)
+    get_user_parser.add_argument("-u", "--user", required=True, type=str)
+    get_user_parser.set_defaults(func=get_user)
 
     # Create the parser for the "create_example_users" command
     users_collection_from_yaml_parser = subparsers.add_parser(
@@ -189,19 +189,19 @@ if __name__ == "__main__":
     users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
     # Function: Show Archives of User
-    show_archives_parser = subparsers.add_parser(
-        "show_archives_of_user",
+    get_archives_parser = subparsers.add_parser(
+        "get_archives_of_user",
         help="show all previous queries from a user",
         parents=[connection_parser],
     )
-    show_archives_parser.add_argument(
+    get_archives_parser.add_argument(
         "-u",
         "--user",
         required=True,
         type=str,
         help="username of the user to show archives",
     )
-    show_archives_parser.set_defaults(func=show_archives_of_user)
+    get_archives_parser.set_defaults(func=get_archives_of_user)
 
     # Function: Get List of Users
     get_users_parser = subparsers.add_parser(
@@ -239,16 +239,13 @@ if __name__ == "__main__":
     add_dataset_parser.add_argument(
         "-d_path", "--dataset_path", required=False
     )
-    add_dataset_parser.add_argument("-s3b", "--s3_bucket", required=False)
-    add_dataset_parser.add_argument("-s3k", "--s3_key", required=False)
+    add_dataset_parser.add_argument("-s3b", "--bucket", required=False)
+    add_dataset_parser.add_argument("-s3k", "--key", required=False)
     add_dataset_parser.add_argument(
         "-s3_url", "--endpoint_url", required=False
     )
     add_dataset_parser.add_argument(
-        "-s3_ak", "--aws_access_key_id", required=False
-    )
-    add_dataset_parser.add_argument(
-        "-s3_sak", "--aws_secret_access_key", required=False
+        "-cred_n", "--credentials_name", required=False
     )
     # Metadata location
     add_dataset_parser.add_argument(
@@ -256,19 +253,20 @@ if __name__ == "__main__":
     )
     add_dataset_parser.add_argument("-mp", "--metadata_path", required=False)
     add_dataset_parser.add_argument(
-        "-m_s3b", "--metadata_s3_bucket", required=False
+        "-m_s3b", "--metadata_bucket", required=False
     )
-    add_dataset_parser.add_argument(
-        "-m_s3k", "--metadata_s3_key", required=False
-    )
+    add_dataset_parser.add_argument("-m_s3k", "--metadata_key", required=False)
     add_dataset_parser.add_argument(
         "-m_s3_url", "--metadata_endpoint_url", required=False
     )
     add_dataset_parser.add_argument(
-        "-m_s3_ak", "--metadata_aws_access_key_id", required=False
+        "-m_s3_ak", "--metadata_access_key_id", required=False
     )
     add_dataset_parser.add_argument(
-        "-m_s3_sak", "--metadata_aws_secret_access_key", required=False
+        "-m_s3_sak", "--metadata_secret_access_key", required=False
+    )
+    add_dataset_parser.add_argument(
+        "-m_cred_n", "--metadata_credentials_name", required=False
     )
     add_dataset_parser.set_defaults(func=add_dataset)
 
@@ -318,34 +316,34 @@ if __name__ == "__main__":
     del_dataset_parser.set_defaults(func=del_dataset)
 
     # Function: Show Dataset
-    show_dataset_parser = subparsers.add_parser(
-        "show_dataset",
+    get_dataset_parser = subparsers.add_parser(
+        "get_dataset",
         help="show a dataset from the dataset collection",
         parents=[connection_parser],
     )
-    show_dataset_parser.add_argument(
+    get_dataset_parser.add_argument(
         "-d",
         "--dataset",
         required=True,
         type=str,
         help="name of the dataset to show",
     )
-    show_dataset_parser.set_defaults(func=show_dataset)
+    get_dataset_parser.set_defaults(func=get_dataset)
 
     # Function: Show Metadata of Dataset
-    show_metadata_parser = subparsers.add_parser(
-        "show_metadata_of_dataset",
+    get_metadata_parser = subparsers.add_parser(
+        "get_metadata_of_dataset",
         help="show metadata from the metadata collection",
         parents=[connection_parser],
     )
-    show_metadata_parser.add_argument(
+    get_metadata_parser.add_argument(
         "-d",
         "--dataset",
         required=True,
         type=str,
         help="name of the dataset of the metadata to show",
     )
-    show_metadata_parser.set_defaults(func=show_metadata_of_dataset)
+    get_metadata_parser.set_defaults(func=get_metadata_of_dataset)
 
     # Function: Get List of Datasets
     get_datasets_parser = subparsers.add_parser(
@@ -370,19 +368,19 @@ if __name__ == "__main__":
     )
     drop_collection_parser.set_defaults(func=drop_collection)
 
-    # Create the parser for the "show_users_collection" command
-    show_collection_parser = subparsers.add_parser(
-        "show_collection",
+    # Create the parser for the "get_users_collection" command
+    get_collection_parser = subparsers.add_parser(
+        "get_collection",
         help="print a collection",
         parents=[connection_parser],
     )
-    show_collection_parser.add_argument(
+    get_collection_parser.add_argument(
         "-c",
         "--collection",
         required=True,
         choices=["users", "datasets", "metadata", "queries_archives"],
     )
-    show_collection_parser.set_defaults(func=show_collection)
+    get_collection_parser.set_defaults(func=get_collection)
 
     args = parser.parse_args()
 
@@ -409,11 +407,11 @@ if __name__ == "__main__":
         "set_may_query": lambda args: set_may_query(
             mongo_db, args.user, args.value
         ),
-        "show_user": lambda args: show_user(mongo_db, args.user),
+        "get_user": lambda args: get_user(mongo_db, args.user),
         "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.yaml_file, args.clean, args.overwrite
         ),
-        "show_archives_of_user": lambda args: show_archives_of_user(
+        "get_archives_of_user": lambda args: get_archives_of_user(
             mongo_db, args.user
         ),
         "get_list_of_users": lambda args: get_list_of_users(mongo_db),
@@ -427,16 +425,16 @@ if __name__ == "__main__":
             args.metadata_database_type,
             args.dataset_path,
             args.metadata_path,
-            args.s3_bucket,
-            args.s3_key,
+            args.bucket,
+            args.key,
             args.endpoint_url,
-            args.aws_access_key_id,
-            args.aws_secret_access_key,
-            args.metadata_s3_bucket,
-            args.metadata_s3_key,
+            args.credentials_name,
+            args.metadata_bucket,
+            args.metadata_key,
             args.metadata_endpoint_url,
-            args.metadata_aws_access_key_id,
-            args.metadata_aws_secret_access_key,
+            args.metadata_access_key_id,
+            args.metadata_secret_access_key,
+            args.metadata_credentials_name,
         ),
         "add_datasets_via_yaml": lambda args: add_datasets_via_yaml(
             mongo_db,
@@ -446,15 +444,15 @@ if __name__ == "__main__":
             args.overwrite_metadata,
         ),
         "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
-        "show_dataset": lambda args: show_dataset(mongo_db, args.dataset),
-        "show_metadata_of_dataset": lambda args: show_metadata_of_dataset(
+        "get_dataset": lambda args: get_dataset(mongo_db, args.dataset),
+        "get_metadata_of_dataset": lambda args: get_metadata_of_dataset(
             mongo_db, args.dataset
         ),
         "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
         "drop_collection": lambda args: drop_collection(
             mongo_db, args.collection
         ),
-        "show_collection": lambda args: show_collection(
+        "get_collection": lambda args: get_collection(
             mongo_db, args.collection
         ),
     }

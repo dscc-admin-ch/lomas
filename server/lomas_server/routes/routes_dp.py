@@ -2,14 +2,13 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
 
 from constants import DPLibraries
-from dp_queries.dp_libraries.utils import querier_factory
-from dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from utils.error_handler import (
-    KNOWN_EXCEPTIONS,
-    InternalServerException,
-    UnauthorizedAccessException,
+from routes.utils import (
+    handle_cost_query,
+    handle_query_on_dummy_dataset,
+    handle_query_on_private_dataset,
+    server_live,
 )
-from utils.example_inputs import (
+from utils.query_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
     example_dummy_opendp,
@@ -18,16 +17,15 @@ from utils.example_inputs import (
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
 )
-from utils.input_models import (
-    DiffPrivLibInp,
-    DummyDiffPrivLibInp,
-    DummyOpenDPInp,
-    DummySNSQLInp,
-    OpenDPInp,
-    SNSQLInp,
-    SNSQLInpCost,
+from utils.query_models import (
+    DiffPrivLibModel,
+    DummyDiffPrivLibModel,
+    DummyOpenDPModel,
+    DummySmartnoiseSQLModel,
+    OpenDPModel,
+    SmartnoiseSQLModel,
+    SmartnoiseSQLModelCost,
 )
-from utils.utils import server_live
 
 router = APIRouter()
 
@@ -39,7 +37,7 @@ router = APIRouter()
 )
 def smartnoise_sql_handler(
     request: Request,
-    query_json: SNSQLInp = Body(example_smartnoise_sql),
+    query_json: SmartnoiseSQLModel = Body(example_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -47,7 +45,7 @@ def smartnoise_sql_handler(
 
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInp): A JSON object containing:
+        query_json (SmartnoiseSQLModel): A JSON object containing:
             - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
@@ -84,18 +82,9 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    app = request.app
-
-    try:
-        response = app.state.query_handler.handle_query(
-            DPLibraries.SMARTNOISE_SQL, query_json, user_name
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return response
+    return handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 # Smartnoise SQL Dummy query
@@ -106,7 +95,7 @@ def smartnoise_sql_handler(
 )
 def dummy_smartnoise_sql_handler(
     request: Request,
-    query_json: DummySNSQLInp = Body(example_dummy_smartnoise_sql),
+    query_json: DummySmartnoiseSQLModel = Body(example_dummy_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -114,7 +103,7 @@ def dummy_smartnoise_sql_handler(
 
     Args:
         request (Request): Raw request object
-        query_json (DummySNSQLInp, optional): A JSON object containing:
+        query_json (DummySmartnoiseSQLModel, optional): A JSON object containing:
             - query: The SQL query to execute. NOTE: the table name is "df",
               the query must end with "FROM df".
             - epsilon (float): Privacy parameter (e.g., 0.1).
@@ -147,32 +136,9 @@ def dummy_smartnoise_sql_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    ds_private_dataset = get_dummy_dataset_for_query(
-        app.state.admin_database, query_json
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
     )
-    dummy_querier = querier_factory(
-        DPLibraries.SMARTNOISE_SQL, private_dataset=ds_private_dataset
-    )
-    try:
-        _ = dummy_querier.cost(query_json)  # verify cost works
-        response_df = dummy_querier.query(query_json)
-        response = JSONResponse(content={"query_response": response_df})
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return response
 
 
 @router.post(
@@ -182,7 +148,7 @@ def dummy_smartnoise_sql_handler(
 )
 def estimate_smartnoise_cost(
     request: Request,
-    query_json: SNSQLInpCost = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -190,7 +156,7 @@ def estimate_smartnoise_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInpCost, optional):
+        query_json (SmartnoiseSQLModelCost, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -214,27 +180,9 @@ def estimate_smartnoise_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    try:
-        response = app.state.query_handler.estimate_cost(
-            DPLibraries.SMARTNOISE_SQL,
-            query_json,
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return JSONResponse(content=response)
+    return handle_cost_query(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
@@ -242,7 +190,7 @@ def estimate_smartnoise_cost(
 )
 def opendp_query_handler(
     request: Request,
-    query_json: OpenDPInp = Body(example_opendp),
+    query_json: OpenDPModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -250,7 +198,7 @@ def opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPInp, optional): A JSON object containing the following:
+        query_json (OpenDPModel, optional): A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type
                 "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
@@ -283,17 +231,9 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    app = request.app
-
-    try:
-        response = app.state.query_handler.handle_query(
-            DPLibraries.OPENDP, query_json, user_name
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
+    response = handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.OPENDP
+    )
     return JSONResponse(content=response)
 
 
@@ -304,7 +244,7 @@ def opendp_query_handler(
 )
 def dummy_opendp_query_handler(
     request: Request,
-    query_json: DummyOpenDPInp = Body(example_dummy_opendp),
+    query_json: DummyOpenDPModel = Body(example_dummy_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -312,7 +252,7 @@ def dummy_opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DummyOpenDPInp, optional):
+        query_json (DummyOpenDPModel, optional):
             A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type\
@@ -342,34 +282,9 @@ def dummy_opendp_query_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    ds_private_dataset = get_dummy_dataset_for_query(
-        app.state.admin_database, query_json
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.OPENDP
     )
-    dummy_querier = querier_factory(
-        DPLibraries.OPENDP, private_dataset=ds_private_dataset
-    )
-
-    try:
-        _ = dummy_querier.cost(query_json)  # verify cost works
-        response_df = dummy_querier.query(query_json)
-        response = {"query_response": response_df}
-
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return JSONResponse(content=response)
 
 
 @router.post(
@@ -379,7 +294,7 @@ def dummy_opendp_query_handler(
 )
 def estimate_opendp_cost(
     request: Request,
-    query_json: OpenDPInp = Body(example_opendp),
+    query_json: OpenDPModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -387,7 +302,7 @@ def estimate_opendp_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (OpenDPInp, optional):
+        query_json (OpenDPModel, optional):
             A JSON object containing the following:
             - "opendp_pipeline": The OpenDP pipeline for the query.
 
@@ -405,27 +320,9 @@ def estimate_opendp_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    try:
-        response = app.state.query_handler.estimate_cost(
-            DPLibraries.OPENDP,
-            query_json,
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return JSONResponse(content=response)
+    return handle_cost_query(
+        request, query_json, user_name, DPLibraries.OPENDP
+    )
 
 
 @router.post(
@@ -435,7 +332,7 @@ def estimate_opendp_cost(
 )
 def diffprivlib_query_handler(
     request: Request,
-    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    query_json: DiffPrivLibModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -443,7 +340,7 @@ def diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPInp, optional): A JSON object containing the following:
+        query_json (OpenDPModel, optional): A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train
             - target_columns: the list of target column to predict
@@ -475,18 +372,9 @@ def diffprivlib_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    app = request.app
-
-    try:
-        response = app.state.query_handler.handle_query(
-            DPLibraries.DIFFPRIVLIB, query_json, user_name
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return response
+    return handle_query_on_private_dataset(
+        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
@@ -496,7 +384,7 @@ def diffprivlib_query_handler(
 )
 def dummy_diffprivlib_query_handler(
     request: Request,
-    query_json: DummyDiffPrivLibInp = Body(example_dummy_diffprivlib),
+    query_json: DummyDiffPrivLibModel = Body(example_dummy_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -504,7 +392,7 @@ def dummy_diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DiffPrivLibInp, optional): A JSON object containing the following:
+        query_json (DiffPrivLibModel, optional): A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train
             - target_columns: the list of target column to predict
@@ -529,32 +417,9 @@ def dummy_diffprivlib_query_handler(
             - query_response (pd.DataFrame): a DataFrame containing
               the query response.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    ds_private_dataset = get_dummy_dataset_for_query(
-        app.state.admin_database, query_json
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
     )
-    dummy_querier = querier_factory(
-        DPLibraries.DIFFPRIVLIB, private_dataset=ds_private_dataset
-    )
-
-    try:
-        _ = dummy_querier.cost(query_json)  # verify cost works
-        response = dummy_querier.query(query_json)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return JSONResponse(content={"query_response": response})
 
 
 @router.post(
@@ -564,7 +429,7 @@ def dummy_diffprivlib_query_handler(
 )
 def estimate_diffprivlib_cost(
     request: Request,
-    query_json: DiffPrivLibInp = Body(example_diffprivlib),
+    query_json: DiffPrivLibModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -572,7 +437,7 @@ def estimate_diffprivlib_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (DiffPrivLibInp, optional):
+        query_json (DiffPrivLibModel, optional):
         A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train
@@ -595,24 +460,6 @@ def estimate_diffprivlib_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    app = request.app
-
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    try:
-        response = app.state.query_handler.estimate_cost(
-            DPLibraries.DIFFPRIVLIB,
-            query_json,
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(e) from e
-
-    return response
+    return handle_cost_query(
+        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
+    )

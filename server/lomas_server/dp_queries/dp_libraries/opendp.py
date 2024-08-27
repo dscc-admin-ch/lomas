@@ -18,8 +18,8 @@ from utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from utils.input_models import OpenDPInp
-from utils.loggr import LOG
+from utils.logger import LOG
+from utils.query_models import OpenDPModel
 
 
 def get_lf_domain(metadata, by_config):
@@ -208,7 +208,7 @@ class OpenDPQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
-
+    
     def __init__(
         self,
         private_dataset: PrivateDataset,
@@ -223,7 +223,7 @@ class OpenDPQuerier(DPQuerier):
         # Get metadata once and for all
         self.metadata = dict(self.private_dataset.get_metadata())
 
-    def cost(self, query_json: OpenDPInp) -> tuple[float, float]:
+    def cost(self, query_json: OpenDPModel) -> tuple[float, float]:
         """
         Estimate cost of query
 
@@ -285,7 +285,7 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPInp) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPModel) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:
@@ -400,7 +400,7 @@ def extract_group_by_columns(plan: str) -> list | None:
 
 
 def reconstruct_measurement_pipeline(
-    query_json: OpenDPInp, metadata: dict
+    query_json: OpenDPModel, metadata: dict
 ) -> dp.Measurement:
     """Reconstruct OpenDP pipeline from json representation.
 

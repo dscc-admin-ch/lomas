@@ -1,6 +1,6 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from constants import PrivateDatabaseType
 
@@ -32,53 +32,58 @@ class UserCollection(BaseModel):
 class MetadataOfDataset(BaseModel):
     """BaseModel for metadata of a dataset"""
 
-    database_type: PrivateDatabaseType
-
 
 class MetadataOfPathDB(MetadataOfDataset):
     """BaseModel for metadata of a dataset with PATH_DB"""
 
+    database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
     metadata_path: str
 
 
 class MetadataOfS3DB(MetadataOfDataset):
     """BaseModel for metadata of a dataset with S3_DB"""
 
-    s3_bucket: str
-    s3_key: str
+    database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
     endpoint_url: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
+    bucket: str
+    key: str
+    access_key_id: Optional[str] = None
+    secret_access_key: Optional[str] = None
+    credentials_name: str
 
 
 class Dataset(BaseModel):
     """BaseModel for a dataset"""
 
     dataset_name: str
-    database_type: PrivateDatabaseType
-    metadata: Union[MetadataOfPathDB, MetadataOfS3DB]
+    metadata: Union[MetadataOfPathDB, MetadataOfS3DB] = Field(
+        ..., discriminator="database_type"
+    )
 
 
 class DatasetOfPathDB(Dataset):
     """BaseModel for a local dataset"""
 
+    database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
     dataset_path: str
 
 
 class DatasetOfS3DB(Dataset):
     """BaseModel for a dataset on S3"""
 
-    s3_bucket: str
-    s3_key: str
+    database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
     endpoint_url: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
+    bucket: str
+    key: str
+    credentials_name: str
 
 
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]]
+    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]] = Field(
+        ..., discriminator="database_type"
+    )
 
 
 class Metadata(BaseModel):
@@ -86,4 +91,5 @@ class Metadata(BaseModel):
 
     max_ids: int
     row_privacy: bool
+    censor_dims: Optional[bool] = False
     columns: Dict[str, Dict[str, Union[int, float, str, List[str]]]]

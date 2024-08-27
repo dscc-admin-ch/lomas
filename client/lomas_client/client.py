@@ -1,5 +1,6 @@
 import base64
 import json
+import pickle
 from enum import StrEnum
 from io import StringIO
 from typing import Dict, List, Optional, OrderedDict, Union, cast
@@ -153,9 +154,13 @@ class Client:
 
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
-            dtypes = self.get_df_dtypes()
-            df = pd.read_csv(StringIO(data), dtype=dtypes)
-            return df
+            response = json.loads(data)
+            dummy_df = pd.DataFrame(response["dummy_dict"])
+            dummy_df = dummy_df.astype(response["dtypes"])
+            for col in response["datetime_columns"]:
+                dummy_df[col] = pd.to_datetime(dummy_df[col])
+            return dummy_df
+
         print(error_message(res))
         return None
 
@@ -701,7 +706,7 @@ class Client:
                             query["response"]["query_response"]["model"]
                         )
                         query["response"]["query_response"]["model"] = (
-                            json.loads(model)
+                            pickle.loads(model)
                         )
                     case _:
                         raise ValueError(

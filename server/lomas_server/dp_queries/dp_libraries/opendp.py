@@ -208,7 +208,7 @@ class OpenDPQuerier(DPQuerier):
     """
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
-    
+
     def __init__(
         self,
         private_dataset: PrivateDataset,
@@ -320,7 +320,7 @@ class OpenDPQuerier(DPQuerier):
                 "Error executing query:" + str(e),
             ) from e
 
-        if isinstance(release_data, dp.polars.OnceFrame):
+        if isinstance(release_data, dp.extras.polars.OnceFrame):
             release_data = release_data.collect().write_json()
 
         return release_data

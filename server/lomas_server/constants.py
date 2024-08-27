@@ -146,7 +146,7 @@ NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0a20240724001", '
+    '{"version": "0.10.0a20240731001", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

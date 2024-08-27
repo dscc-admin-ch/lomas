@@ -602,7 +602,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
         bucket = "example"
-        endpoint_url = "http://localhost:9000"
+        endpoint_url = "http://localhost:10000"
         access_key_id = "admin"
         secret_access_key = "admin123"
         credentials_name = "local_minio"
@@ -768,7 +768,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            tintin = datasets["datasets"][3]
+            tintin = datasets["datasets"][4]
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
@@ -912,7 +912,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         list_datasets = get_list_of_datasets(self.db)
-        self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "BIRTHDAYS"])
+        self.assertEqual(
+            list_datasets,
+            [
+                "PENGUIN",
+                "IRIS",
+                "FSO_INCOME_SYNTHETIC",
+                "COVID_SYNTHETIC",
+                "BIRTHDAYS",
+            ],
+        )
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""
@@ -981,7 +990,23 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
                 list_datasets,
-                ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "TINTIN_S3_TEST", "BIRTHDAYS"],
+                [
+                    "PENGUIN",
+                    "IRIS",
+                    "FSO_INCOME_SYNTHETIC",
+                    "COVID_SYNTHETIC",
+                    "TINTIN_S3_TEST",
+                    "BIRTHDAYS",
+                ],
             )
         else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "BIRTHDAYS"])
+            self.assertEqual(
+                list_datasets,
+                [
+                    "PENGUIN",
+                    "IRIS",
+                    "FSO_INCOME_SYNTHETIC",
+                    "COVID_SYNTHETIC",
+                    "BIRTHDAYS",
+                ],
+            )

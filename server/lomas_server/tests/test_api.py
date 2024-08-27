@@ -10,7 +10,6 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging
 
 from admin_database.factory import admin_database_factory
-from admin_database.utils import get_mongodb
 from app import app
 from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
 from tests.constants import (

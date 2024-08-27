@@ -3,7 +3,7 @@ diffprivlib_logger==0.0.3
 jupyter==1.0.0
 numpy==1.23.2
 opendp_logger==0.3.0
-opendp==0.10.0a20240731001
+opendp==0.11.1
 pandas==2.2.2
 polars==1.1.0
 pyarrow==16.1.0

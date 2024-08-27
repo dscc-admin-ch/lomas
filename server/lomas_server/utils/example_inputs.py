@@ -51,7 +51,7 @@ example_smartnoise_sql_cost = {
 }
 
 MEASUREMENT_PIPELINE = (
-    '{"version": "0.10.0a20240731001", '
+    '{"version": "0.11.1", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

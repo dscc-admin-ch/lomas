@@ -2,6 +2,7 @@ from constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
     OPENDP_POLARS_PIPELINE,
+    OPENDP_POLARS_PIPELINE_COVID,
 )
 
 # Dummy queries
@@ -111,6 +112,14 @@ example_dummy_diffprivlib = {
 example_opendp_polars = {
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": OPENDP_POLARS_PIPELINE,
+    "pipeline_type": "polars",  # TODO set constant
+    "delta": QUERY_DELTA,
+    "mechanism": "laplace",
+}
+
+example_opendp_polars_datetime = {
+    "dataset_name": "COVID_SYNTHETIC",
+    "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
     "pipeline_type": "polars",  # TODO set constant
     "delta": QUERY_DELTA,
     "mechanism": "laplace",

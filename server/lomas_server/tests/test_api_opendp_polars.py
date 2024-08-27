@@ -11,11 +11,13 @@ from utils.query_examples import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
     OPENDP_POLARS_PIPELINE,
+    OPENDP_POLARS_PIPELINE_COVID,
     example_opendp_polars,
+    example_opendp_polars_datetime,
 )
 
 
-def get_lf_from_json() -> pl.LazyFrame:
+def get_lf_from_json(pipeline) -> pl.LazyFrame:
     """Deserialize a JSON string to create a Polars LazyFrame.
 
     This function deserializes a JSON string into a Polars
@@ -25,9 +27,7 @@ def get_lf_from_json() -> pl.LazyFrame:
         pl.LazyFrame: The deserialized LazyFrame containing the data
         from the JSON string.
     """
-    lf = pl.LazyFrame.deserialize(
-        io.StringIO(OPENDP_POLARS_PIPELINE), format="json"
-    )
+    lf = pl.LazyFrame.deserialize(io.StringIO(pipeline), format="json")
 
     return lf
 
@@ -111,7 +111,7 @@ class TestOpenDpPolarsEndpoint(
     def test_opendp_polars_query(self) -> None:
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:
-            lf = get_lf_from_json()
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = mean_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 
@@ -130,10 +130,48 @@ class TestOpenDpPolarsEndpoint(
             )
             assert response.status_code == status.HTTP_200_OK
 
+    # TODO: opendp v0.12: Adapt for datetime
+    def test_opendp_polars_datetime_query(self) -> None:
+        """Test opendp polars query"""
+        with TestClient(app, headers=self.headers) as client:
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
+            json_plan = lf.select(
+                pl.col("temporal").dp.mean(bounds=(1, 52), scale=100.0)
+            ).serialize(format="json")
+            example_opendp_polars_datetime["opendp_json"] = json_plan
+
+            # Laplace
+            response = client.post(
+                "/opendp_query",
+                json=example_opendp_polars_datetime,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            example_opendp_polars_datetime["dummy_nb_rows"] = DUMMY_NB_ROWS
+            example_opendp_polars_datetime["dummy_seed"] = DUMMY_SEED
+            response = client.post(
+                "/dummy_opendp_query",
+                json=example_opendp_polars_datetime,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+            json_plan = (
+                lf.group_by("date")
+                .agg([pl.col("temporal").dp.mean(bounds=(1, 52), scale=10.0)])
+                .sort("temporal")
+            ).serialize(format="json")
+
+            example_opendp_polars_datetime["opendp_json"] = json_plan
+            response = client.post(
+                "/opendp_query",
+                json=example_opendp_polars_datetime,
+            )
+            assert response.status_code == status.HTTP_200_OK
+
     def test_opendp_polars_cost(self) -> None:
         """test_opendp_polars_cost"""
         with TestClient(app, headers=self.headers) as client:
-            lf = get_lf_from_json()
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = mean_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 
@@ -161,7 +199,7 @@ class TestOpenDpPolarsEndpoint(
     def test_dummy_opendp_polars_query(self) -> None:
         """test_dummy_opendp_polars_query"""
         with TestClient(app, headers=self.headers) as client:
-            lf = get_lf_from_json()
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = mean_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 
@@ -194,7 +232,7 @@ class TestOpenDpPolarsEndpoint(
         """test_dummy_opendp_polars_query with grouing"""
         with TestClient(app, headers=self.headers) as client:
 
-            lf = get_lf_from_json()
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 
@@ -205,7 +243,7 @@ class TestOpenDpPolarsEndpoint(
 
             assert response.status_code == status.HTTP_200_OK
 
-            lf = get_lf_from_json()
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = multiple_group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 

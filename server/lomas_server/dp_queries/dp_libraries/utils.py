@@ -1,13 +1,12 @@
 import pickle
 from base64 import b64encode
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from smartnoise_synth_logger import serialise_mst_model
 
-from constants import NUMERICAL_DTYPES, SSynthMarginalSynthesizer
+from constants import NUMERICAL_DTYPES
 from utils.error_handler import InvalidQueryException
 
 
@@ -76,20 +75,16 @@ def handle_missing_data(
     return df
 
 
-def serialise_model(model: Any, model_name: Optional[str] = None) -> str:
+def serialise_model(model: Any) -> str:
     """
     Serialise a python object (fitted Smartnoise Synth synthesizer of
     fitted DiffPrivLib pipeline) into an utf-8 string
 
     Args:
         model (Any): An object to serialise
-        model_name (str): Name of model for specific serialisation
 
     Returns:
         str: string of serialised model
     """
-    if model_name == SSynthMarginalSynthesizer.MST:
-        return serialise_mst_model(model)
-
     serialised = b64encode(pickle.dumps(model))
     return serialised.decode("utf-8")

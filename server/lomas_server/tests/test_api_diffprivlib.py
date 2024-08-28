@@ -23,14 +23,16 @@ def validate_pipeline(response):
     """Validate that the pipeline ran successfully
     Returns a model and a score.
     """
-    if not response.status_code == status.HTTP_200_OK:
-        LOG.error(" ************** DIFFPRIVLIB ERROR ************** ")
-        # Temporary LOGs to help understand why tests sometimes fail
-        LOG.error(response)
-        LOG.error(pickle.loads(response.content.decode("utf8")))
-
     assert response.status_code == status.HTTP_200_OK
     response_dict = json.loads(response.content.decode("utf8"))
+
+    if not response_dict["query_response"]["score"]:
+        LOG.error(" ************** DIFFPRIVLIB ERROR ************** ")
+        # Temporary LOGs to help understand why tests sometimes fail
+        LOG.error(response_dict)
+        LOG.error(response_dict["query_response"])
+        LOG.error(response_dict["query_response"]["score"])
+
     assert response_dict["query_response"]["score"]
     assert response_dict["query_response"]["model"]
 

@@ -365,23 +365,10 @@ class TestSmartnoiseSynthEndpoint(
         """Test smartnoise synth query MWEM Synthesizer"""
         with TestClient(app) as client:
 
-            # Expect to fail: too high cardinality
+            # Expect to fail: delta
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mwem"
             body["synth_params"] = {}
-            response = client.post(
-                "/smartnoise_synth_query",
-                json=body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": "MWEMSynthesizer does not allow "
-                + "too high cardinality. Select less columns or put less bins "
-                + "in TableTransformer constraints."
-            }
-
-            # Expect to fail: Less columns but still delta
             body["select_cols"] = ["species", "island"]
             response = client.post(
                 "/smartnoise_synth_query",

@@ -353,12 +353,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 raise InvalidQueryException(
                     "Error while selecting provided select_cols: " + str(e)
                 ) from e
-        if query_json.synth_name == SSynthMarginalSynthesizer.MWEM:
-            if private_data.shape[1] > 3:
-                raise InvalidQueryException(  # TODO improve by looking better
-                    "MWEMSynthesizer does not allow too high cardinality. Select "
-                    + "less columns or put less bins in TableTransformer constraints."
-                )
 
         # Get transformer
         transformer = TableTransformer.create(

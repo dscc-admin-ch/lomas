@@ -427,9 +427,6 @@ class TestSmartnoiseSynthEndpoint(
             # Expect to work:
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mst"
-            # TODO: Can't pickle local object
-            # 'MSTSynthesizer.compress_domain.<locals>.<lambda>'
-            # UserWarning: MixtureInference disabled, please install jax and jaxlib
             body["return_model"] = False
             body["nb_samples"] = 10
             body["select_cols"] = ["bill_length_mm"]  # too slow otherwise
@@ -445,6 +442,19 @@ class TestSmartnoiseSynthEndpoint(
             df = pd.DataFrame(response_dict["query_response"])
             assert df.shape[0] == body["nb_samples"]
             assert list(df.columns) == body["select_cols"]
+
+            # Espect to fail: MST cannot return model
+            body["return_model"] = True
+            response = client.post(
+                "/smartnoise_synth_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json()["InvalidQueryException"].startswith(
+                "mst synthesizer cannot be returned, only samples. "
+                + "Please, change model or set `return_model=False`"
+            )
 
     def test_smartnoise_synth_query_pacsynth(self) -> None:
         """Test smartnoise synth query PAC-Synth Synthesizer
@@ -516,7 +526,7 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert response.json() == {
-                "ExternalLibraryException": "pategan not possible with this dataset.",
+                "ExternalLibraryException": "pategan not reliable with this dataset.",
                 "library": "smartnoise_synth",
             }
 

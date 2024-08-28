@@ -283,7 +283,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 # Need at least 1000 rows. Privacy breach ?
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
-                    f"{SSynthGanSynthesizer.PATE_GAN} not possible with this dataset.",
+                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable with this dataset.",
                 ) from e
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error fitting model: " + str(e)
@@ -305,6 +305,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             model: Smartnoise Synthesizer
         """
+        if (
+            query_json.synth_name == SSynthMarginalSynthesizer.MST
+            and query_json.return_model
+        ):
+            raise InvalidQueryException(
+                "mst synthesizer cannot be returned, only samples. "
+                + "Please, change model or set `return_model=False`"
+            )
         if query_json.synth_name == SSynthMarginalSynthesizer.PAC_SYNTH:
             raise InvalidQueryException(
                 "pacsynth synthesizer not supported due to Rust panic. "
@@ -426,4 +434,4 @@ class SmartnoiseSynthQuerier(DPQuerier):
             df_samples = df_samples.fillna("")
             return df_samples.to_dict(orient="records")
 
-        return serialise_model(self.model, query_json.synth_name)
+        return serialise_model(self.model)

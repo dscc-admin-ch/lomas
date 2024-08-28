@@ -1,6 +1,7 @@
 import base64
 import json
 import pickle
+import warnings
 from enum import StrEnum
 from typing import Dict, List, Optional, Union
 
@@ -11,10 +12,7 @@ from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
-from smartnoise_synth_logger import (
-    deserialise_mst_model,
-    serialise_constraints,
-)
+from smartnoise_synth_logger import serialise_constraints
 
 # Opendp_logger
 enable_logging()
@@ -39,6 +37,15 @@ class SSynthMarginalSynthesizer(StrEnum):
     MWEM = "mwem"
     MST = "mst"
     PAC_SYNTH = "pacsynth"
+
+
+class SSynthGanSynthesizer(StrEnum):
+    """GAN Synthesizer models for smartnoise synth"""
+
+    DP_CTGAN = "dpctgan"
+    PATE_CTGAN = "patectgan"
+    PATE_GAN = "pategan"
+    DP_GAN = "dpgan"
 
 
 class DPLibraries(StrEnum):
@@ -321,6 +328,20 @@ class Client:
         else:
             endpoint = "smartnoise_synth_query"
 
+        if synth_name in [
+            SSynthGanSynthesizer.DP_CTGAN,
+            SSynthGanSynthesizer.DP_GAN,
+        ]:
+            warnings.warn(
+                f"Warning:{synth_name} synthesizer random generator for noise and "
+                + "shuffling is not cryptographically secure. "
+                + "(pseudo-rng in vanilla PyTorch)."
+            )
+        if synth_name == SSynthMarginalSynthesizer.MST and return_model:
+            raise ValueError(
+                f"{synth_name} synthesizer cannot be returned, only samples. "
+                + "Please, change model or set `return_model=False`"
+            )
         res = self._exec(
             endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
         )
@@ -329,12 +350,8 @@ class Client:
             response = res.json()
             query_response = response["query_response"]
             if return_model:
-                if synth_name == SSynthMarginalSynthesizer.MST:
-                    model = deserialise_mst_model(query_response)
-                    response["query_response"] = model
-                else:
-                    model = base64.b64decode(query_response)
-                    response["query_response"] = pickle.loads(model)
+                model = base64.b64decode(query_response)
+                response["query_response"] = pickle.loads(model)
             else:
                 response["query_response"] = pd.DataFrame(query_response)
             return response

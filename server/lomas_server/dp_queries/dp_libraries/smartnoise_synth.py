@@ -20,6 +20,7 @@ from constants import (
     DEFAULT_DATE_FORMAT,
     SECONDS_IN_A_DAY,
     SSYNTH_DEFAULT_BINS,
+    SSYNTH_MIN_ROWS_PATE_GAN,
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
     SSynthColumnType,
@@ -277,14 +278,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     f"Error fitting model: {e} Try decreasing batch_size in "
                     + "synth_params (default batch_size=500).",
                 ) from e
-            if (
-                query_json.synth_name == SSynthGanSynthesizer.PATE_GAN
-                and str(e) == "number sections must be larger than 0."
-            ):
-                raise ExternalLibraryException(  # Need at least 1000 rows
-                    DPLibraries.SMARTNOISE_SYNTH,
-                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable with this dataset.",
-                ) from e
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SYNTH, "Error fitting model: " + str(e)
             ) from e
@@ -329,6 +322,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
+        if query_json.synth_name == SSynthMarginalSynthesizer.PATE_GAN:
+            if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
+                raise ExternalLibraryException(
+                    DPLibraries.SMARTNOISE_SYNTH,
+                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable "
+                    + "with this dataset.",
+                )
+
         constraints = self._get_default_constraints(
             metadata, query_json, table_transformer_style
         )

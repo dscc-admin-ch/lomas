@@ -146,6 +146,7 @@ class SSynthColumnType(StrEnum):
 
 SSYNTH_PRIVATE_COLUMN = "uuid4"
 SSYNTH_DEFAULT_BINS = 10
+SSYNTH_MIN_ROWS_PATE_GAN = 1000
 
 
 # OpenDP

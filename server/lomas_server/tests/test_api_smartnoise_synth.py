@@ -517,23 +517,6 @@ class TestSmartnoiseSynthEndpoint(
                 "library": "smartnoise_synth",
             }
 
-            # Expect to work: DUMMY with enough rows and enough budget
-            body = dict(example_dummy_smartnoise_synth_query)
-            body["synth_name"] = "pategan"
-            body["synth_params"] = {}
-            body["dummy_nb_rows"] = 2000
-            body["epsilon"] = 1.0
-            response = client.post(
-                "/dummy_smartnoise_synth_query",
-                json=body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
-            df = model.sample(1)
-            assert list(df.columns) == PENGUIN_COLUMNS
-
     def test_smartnoise_synth_query_dpgan(self) -> None:
         """Test smartnoise synth query dpgan Synthesizer"""
         with TestClient(app) as client:

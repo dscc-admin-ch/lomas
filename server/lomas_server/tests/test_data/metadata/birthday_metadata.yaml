@@ -6,3 +6,4 @@ columns:
     type: datetime
     lower: "1900-01-01"
     upper: "2050-01-01"
+rows: 5

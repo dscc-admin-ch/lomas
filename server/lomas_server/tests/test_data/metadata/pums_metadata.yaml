@@ -19,3 +19,4 @@ columns:
     upper: 500_000.0
   married:
     type: boolean
+rows: 1000

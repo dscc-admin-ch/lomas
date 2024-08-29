@@ -261,13 +261,13 @@ class Client:
                 Available synthesizer are
                     - "aim",
                     - "mwem",
-                    - "dpctgan" with ``disabled_dp` always forced to False and a
+                    - "dpctgan" with `disabled_dp` always forced to False and a
                     warning due to not cryptographically secure random generator
                     - "patectgan"
                     - "dpgan" with a warning due to not cryptographically secure
                     random generator
                 Available under certain conditions:
-                    - "mst" only with `return_model=False`
+                    - "mst" if `return_model=False`
                     - "pategan" if the dataset has enough rows
                 Not available:
                     - "pacsynth" due to Rust panic error
@@ -365,13 +365,13 @@ class Client:
                 Available synthesizer are
                     - "aim",
                     - "mwem",
-                    - "dpctgan" with ``disabled_dp` always forced to False and a
+                    - "dpctgan" with `disabled_dp` always forced to False and a
                     warning due to not cryptographically secure random generator
                     - "patectgan"
                     - "dpgan" with a warning due to not cryptographically secure
                     random generator
                 Available under certain conditions:
-                    - "mst" only with `return_model=False`
+                    - "mst" if `return_model=False`
                     - "pategan" if the dataset has enough rows
                 Not available:
                     - "pacsynth" due to Rust panic error

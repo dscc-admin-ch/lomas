@@ -13,7 +13,7 @@ from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
-from utils import validate_synthesizer
+from lomas_client.utils import validate_synthesizer
 
 # Opendp_logger
 enable_logging()

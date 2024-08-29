@@ -86,7 +86,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
                     return SSynthColumnType.CATEGORICAL
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
-                return SSynthColumnType.CATEGORICAL  # ordinal is categorical
+                # ordinal is categorical
+                return SSynthColumnType.CATEGORICAL
             case "datetime":
                 return SSynthColumnType.DATETIME
             case _:
@@ -262,7 +263,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 preprocessor_eps=0.0,  # will error if not 0.0
                 nullable=query_json.nullable,
             )
-        except ValueError as e:  # Improve error message
+        except ValueError as e:  # Improve snsynth error messages
             pattern = (
                 r"sample_rate=[\d\.]+ is not a valid value\. "
                 r"Please provide a float between 0 and 1\."
@@ -280,8 +281,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 query_json.synth_name == SSynthGanSynthesizer.PATE_GAN
                 and str(e) == "number sections must be larger than 0."
             ):
-                # Need at least 1000 rows. Privacy breach ?
-                raise ExternalLibraryException(
+                raise ExternalLibraryException(  # Need at least 1000 rows
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"{SSynthGanSynthesizer.PATE_GAN} not reliable with this dataset.",
                 ) from e
@@ -385,12 +385,6 @@ class SmartnoiseSynthQuerier(DPQuerier):
             epsilon, delta = self.model.epsilon_list[-1], self.model.delta
         else:
             epsilon, delta = self.model.epsilon, self.model.delta
-
-        # if ( # disabled
-        #     query_json.synth_name == SSynthMarginalSynthesizer.PAC_SYNTH
-        #     and delta is None
-        # ):
-        #     delta = 0
 
         return epsilon, delta
 

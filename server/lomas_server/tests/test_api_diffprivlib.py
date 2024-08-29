@@ -1,5 +1,4 @@
 import json
-import pickle
 import warnings
 
 from diffprivlib import models

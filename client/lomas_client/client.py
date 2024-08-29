@@ -1,7 +1,6 @@
 import base64
 import json
 import pickle
-import warnings
 from enum import StrEnum
 from typing import Dict, List, Optional, Union
 
@@ -13,6 +12,8 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
+
+from utils import validate_synthesizer
 
 # Opendp_logger
 enable_logging()
@@ -28,24 +29,6 @@ DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
 SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
 SNSYNTH_DEFAULT_SYMPLES_NB = 200
-
-
-class SSynthMarginalSynthesizer(StrEnum):
-    """Marginal Synthesizer models for smartnoise synth"""
-
-    AIM = "aim"
-    MWEM = "mwem"
-    MST = "mst"
-    PAC_SYNTH = "pacsynth"
-
-
-class SSynthGanSynthesizer(StrEnum):
-    """GAN Synthesizer models for smartnoise synth"""
-
-    DP_CTGAN = "dpctgan"
-    PATE_CTGAN = "patectgan"
-    PATE_GAN = "pategan"
-    DP_GAN = "dpgan"
 
 
 class DPLibraries(StrEnum):
@@ -275,6 +258,22 @@ class Client:
 
         Args:
             synth_name (str): name of the Synthesizer model to use.
+                Available synthesizer are
+                    - "aim",
+                    - "mwem",
+                    - "dpctgan" with ``disabled_dp` always forced to False and a
+                    warning due to not cryptographically secure random generator
+                    - "patectgan"
+                    - "dpgan" with a warning due to not cryptographically secure
+                    random generator
+                Available under certain conditions:
+                    - "mst" only with `return_model=False`
+                    - "pategan" if the dataset has enough rows
+                Not available:
+                    - "pacsynth" due to Rust panic error
+                    - "quail" currently unavailable in Smartnoise Synth
+                For further documentation on models, please see here:
+                https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
             select_cols (List[str]): List of columns to select.
@@ -289,6 +288,9 @@ class Client:
             constraints: Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
                 Defaults to {}.
+                For further documentation on constraints, please see here:
+                https://docs.smartnoise.org/synth/transforms/index.html.
+                Note: lambda function in `AnonimizationTransformer` are not supported.
             return_model (bool): True to get Synthesizer model, False to get samples
                 Defaults to False
             condition (Optional[str]): sampling condition in `model.sample`
@@ -306,6 +308,7 @@ class Client:
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
+        validate_synthesizer(synth_name, return_model)
         constraints = serialise_constraints(constraints) if constraints else ""
 
         body_json = {
@@ -328,20 +331,6 @@ class Client:
         else:
             endpoint = "smartnoise_synth_query"
 
-        if synth_name in [
-            SSynthGanSynthesizer.DP_CTGAN,
-            SSynthGanSynthesizer.DP_GAN,
-        ]:
-            warnings.warn(
-                f"Warning:{synth_name} synthesizer random generator for noise and "
-                + "shuffling is not cryptographically secure. "
-                + "(pseudo-rng in vanilla PyTorch)."
-            )
-        if synth_name == SSynthMarginalSynthesizer.MST and return_model:
-            raise ValueError(
-                f"{synth_name} synthesizer cannot be returned, only samples. "
-                + "Please, change model or set `return_model=False`"
-            )
         res = self._exec(
             endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
         )
@@ -373,6 +362,22 @@ class Client:
 
         Args:
             synth_name (str): name of the Synthesizer model to use.
+                Available synthesizer are
+                    - "aim",
+                    - "mwem",
+                    - "dpctgan" with ``disabled_dp` always forced to False and a
+                    warning due to not cryptographically secure random generator
+                    - "patectgan"
+                    - "dpgan" with a warning due to not cryptographically secure
+                    random generator
+                Available under certain conditions:
+                    - "mst" only with `return_model=False`
+                    - "pategan" if the dataset has enough rows
+                Not available:
+                    - "pacsynth" due to Rust panic error
+                    - "quail" currently unavailable in Smartnoise Synth
+                For further documentation on models, please see here:
+                https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
             delta (float): Privacy parameter (e.g., 1e-5).
             select_cols (List[str]): List of columns to select.
@@ -387,11 +392,14 @@ class Client:
             constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
                 Defaults to {}.
+                For further documentation on constraints, please see here:
+                https://docs.smartnoise.org/synth/transforms/index.html.
+                Note: lambda function in `AnonimizationTransformer` are not supported.
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        if constraints:
-            constraints = serialise_constraints(constraints)
+        validate_synthesizer(synth_name)
+        constraints = serialise_constraints(constraints) if constraints else ""
 
         body_json = {
             "dataset_name": self.dataset_name,

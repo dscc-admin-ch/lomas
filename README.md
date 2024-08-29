@@ -33,6 +33,7 @@ For a detailed description, please see the links below.
 * **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
 * **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
 * **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+* **Poster**: https://github.com/dscc-admin-ch/lomas/blob/master/images/poster.pdf
 
 
 ## Client package `lomas_client`

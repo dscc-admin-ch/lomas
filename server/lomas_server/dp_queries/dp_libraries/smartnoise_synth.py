@@ -322,7 +322,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         # Preprocessing information from metadata
         metadata = self.private_dataset.get_metadata()
-        if query_json.synth_name == SSynthMarginalSynthesizer.PATE_GAN:
+        if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
             if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,

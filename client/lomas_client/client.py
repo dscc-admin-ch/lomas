@@ -724,12 +724,16 @@ class Client:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.SMARTNOISE_SYNTH:
-                        model = base64.b64decode(
-                            query["response"]["query_response"]
-                        )
-                        query["response"]["query_response"] = pickle.loads(
-                            model
-                        )
+                        return_model = query["client_input"]["return_model"]
+                        res = query["response"]["query_response"]
+                        if return_model:
+                            query["response"]["query_response"] = pickle.loads(
+                                base64.b64decode(res)
+                            )
+                        else:
+                            query["response"]["query_response"] = pd.DataFrame(
+                                res
+                            )
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(
                             query["client_input"]["opendp_json"]

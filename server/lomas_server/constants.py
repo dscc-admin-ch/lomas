@@ -109,6 +109,7 @@ SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 SSQL_MAX_ITERATION = 5
 
 
+# Smartnoise synth
 class SSynthMarginalSynthesizer(StrEnum):
     """Marginal Synthesizer models for smartnoise synth"""
 
@@ -118,21 +119,20 @@ class SSynthMarginalSynthesizer(StrEnum):
     PAC_SYNTH = "pacsynth"
 
 
-# Smartnoise synth
 class SSynthGanSynthesizer(StrEnum):
     """GAN Synthesizer models for smartnoise synth"""
 
     DP_CTGAN = "dpctgan"
     PATE_CTGAN = "patectgan"
-    PATE_GAN = "pategan"  # no documentation
-    DP_GAN = "dpgan"  # no documentation
+    PATE_GAN = "pategan"
+    DP_GAN = "dpgan"
 
 
 class SSynthTableTransStyle(StrEnum):
     """Transformer style for smartnoise synth"""
 
-    GAN = "gan"
-    CUBE = "cube"
+    GAN = "gan"  # for SSynthGanSynthesizer
+    CUBE = "cube"  # for SSynthMarginalSynthesizer
 
 
 class SSynthColumnType(StrEnum):

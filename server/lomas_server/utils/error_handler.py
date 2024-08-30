@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
 
 from constants import INTERNAL_SERVER_ERROR
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 class InvalidQueryException(Exception):

@@ -1,14 +1,16 @@
 from collections import OrderedDict
+from typing import List
 
 from admin_database.admin_database import AdminDatabase
 from dataset_store.dataset_store import DatasetStore
 from dataset_store.private_dataset_observer import PrivateDatasetObserver
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
+from private_dataset.factory import private_dataset_factory
 from private_dataset.private_dataset import PrivateDataset
-from private_dataset.utils import private_dataset_factory
+from utils.config import PrivateDBCredentials
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
@@ -23,17 +25,21 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
     dataset_cache: OrderedDict[str, PrivateDataset]
 
     def __init__(
-        self, admin_database: AdminDatabase, max_memory_usage: int = 1024
+        self,
+        admin_database: AdminDatabase,
+        private_db_credentials: List[PrivateDBCredentials],
+        max_memory_usage: int = 1024,
     ) -> None:
         """Initializer.
 
         Args:
             admin_database (AdminDatabase): An initialized AdminDatabase.
-            max_memory_usage (int, optional): Maximum memory usage limit
+            max_memory_usage (int, optional): Maximum memory usage limit\
                 for the manager.. Defaults to 1024.
+            private_db_credentials (List[PrivateDBCredentials]):\
+                The private database credentials from the server config.
         """
-        super().__init__(admin_database)
-        self.admin_database = admin_database
+        super().__init__(admin_database, private_db_credentials)
         self.max_memory_usage = max_memory_usage
 
         self.dataset_cache = OrderedDict()
@@ -55,7 +61,7 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
 
         # Make private dataset
         private_dataset = private_dataset_factory(
-            dataset_name, self.admin_database
+            dataset_name, self.admin_database, self.private_db_credentials
         )
         private_dataset.subscribe_for_memory_usage_updates(self)
 

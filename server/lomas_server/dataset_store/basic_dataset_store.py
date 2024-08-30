@@ -1,11 +1,12 @@
-from typing import Dict
+from typing import Dict, List
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
 from dataset_store.dataset_store import DatasetStore
-from dp_queries.dp_libraries.utils import querier_factory
+from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.utils import private_dataset_factory
+from private_dataset.factory import private_dataset_factory
+from utils.config import PrivateDBCredentials
 
 
 class BasicDatasetStore(DatasetStore):
@@ -19,15 +20,20 @@ class BasicDatasetStore(DatasetStore):
 
     dp_queriers: Dict[str, Dict[str, DPQuerier]] = {}
 
-    def __init__(self, admin_database: AdminDatabase) -> None:
+    def __init__(
+        self,
+        admin_database: AdminDatabase,
+        private_db_credentials: List[PrivateDBCredentials],
+    ) -> None:
         """Initializer.
 
         Args:
             admin_database (AdminDatabase): An initialized AdminDatabase.
+            private_db_credentials (List[PrivateDBCredentials]):\
+                The private database credentials from the server config.
         """
-        super().__init__(admin_database)
+        super().__init__(admin_database, private_db_credentials)
         self.dp_queriers = {}
-        self.admin_database = admin_database
 
     def _add_dataset(self, dataset_name: str) -> None:
         """Adds a dataset to the manager.
@@ -43,7 +49,7 @@ class BasicDatasetStore(DatasetStore):
 
         # Metadata and data getter
         private_dataset = private_dataset_factory(
-            dataset_name, self.admin_database
+            dataset_name, self.admin_database, self.private_db_credentials
         )
 
         # Initialize dict

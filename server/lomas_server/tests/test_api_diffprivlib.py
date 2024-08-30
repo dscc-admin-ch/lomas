@@ -14,7 +14,8 @@ from sklearn.pipeline import Pipeline
 from app import app
 from constants import DPLibraries
 from tests.test_api import TestRootAPIEndpoint
-from utils.example_inputs import example_diffprivlib, example_dummy_diffprivlib
+from utils.logger import LOG
+from utils.query_examples import example_diffprivlib, example_dummy_diffprivlib
 
 
 def validate_pipeline(response):
@@ -23,6 +24,13 @@ def validate_pipeline(response):
     """
     assert response.status_code == status.HTTP_200_OK
     response_dict = json.loads(response.content.decode("utf8"))
+
+    if not response_dict["query_response"]["score"]:
+        LOG.error(" ************** DIFFPRIVLIB ERROR ************** ")
+        # Temporary LOGs to help understand why tests sometimes fail
+        LOG.error(response_dict)
+        LOG.error(response_dict["query_response"])
+
     assert response_dict["query_response"]["score"]
     assert response_dict["query_response"]["model"]
 
@@ -156,7 +164,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
     def test_linear_regression_models(self) -> None:
         """Test diffprivlib query: Linear Regression"""
         with TestClient(app, headers=self.headers) as client:
-
             # Test Linear Regression
             pipeline = Pipeline(
                 [

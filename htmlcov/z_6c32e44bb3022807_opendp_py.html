@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for dp_queries/dp_libraries/opendp.py: 93%</title>
+    <title>Coverage for dp_queries/dp_libraries/opendp.py: 90%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>dp_queries/dp_libraries/opendp.py</b>:
-            <span class="pc_cov">93%</span>
+            <span class="pc_cov">90%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,17 +55,17 @@
         </aside>
         <h2>
             <span class="text">81 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">75<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">6<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">73<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">8<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">10<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
-            <a id="prevFileLink" class="nav" href="z_6c32e44bb3022807_diffprivlib_utils_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="prevFileLink" class="nav" href="z_6c32e44bb3022807_factory_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a id="nextFileLink" class="nav" href="z_6c32e44bb3022807_smartnoise_sql_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.0">coverage.py v7.6.0</a>,
-            created at 2024-07-12 13:06 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
+            created at 2024-08-30 15:40 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -95,8 +95,8 @@
     <p class="pln"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t">    <span class="nam">InternalServerException</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t">    <span class="nam">InvalidQueryException</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t"><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">input_models</span> <span class="key">import</span> <span class="nam">OpenDPInp</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">loggr</span> <span class="key">import</span> <span class="nam">LOG</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">logger</span> <span class="key">import</span> <span class="nam">LOG</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">query_models</span> <span class="key">import</span> <span class="nam">OpenDPModel</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="key">class</span> <span class="nam">OpenDPQuerier</span><span class="op">(</span><span class="nam">DPQuerier</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -104,7 +104,7 @@
     <p class="pln"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t"><span class="str">    Concrete implementation of the DPQuerier ABC for the OpenDP library.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">    <span class="key">def</span> <span class="nam">cost</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">:</span> <span class="nam">OpenDPInp</span><span class="op">)</span> <span class="op">-></span> <span class="nam">tuple</span><span class="op">[</span><span class="nam">float</span><span class="op">,</span> <span class="nam">float</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">    <span class="key">def</span> <span class="nam">cost</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">:</span> <span class="nam">OpenDPModel</span><span class="op">)</span> <span class="op">-></span> <span class="nam">tuple</span><span class="op">[</span><span class="nam">float</span><span class="op">,</span> <span class="nam">float</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">        <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t"><span class="str">        Estimate cost of query</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -146,7 +146,7 @@
     <p class="run"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">            <span class="nam">case</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">                <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">FIXED_SMOOTHED_MAX_DIVERGENCE</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">            <span class="op">)</span><span class="op">:</span>  <span class="com"># Approximate DP with fix delta</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">                <span class="nam">epsilon</span><span class="op">,</span> <span class="nam">delta</span> <span class="op">=</span> <span class="nam">cost</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">                <span class="nam">epsilon</span><span class="op">,</span> <span class="nam">delta</span> <span class="op">=</span> <span class="nam">cost</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">            <span class="key">case</span> <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">MAX_DIVERGENCE</span><span class="op">:</span>  <span class="com"># Pure DP</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t">                <span class="nam">epsilon</span><span class="op">,</span> <span class="nam">delta</span> <span class="op">=</span> <span class="nam">cost</span><span class="op">,</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">            <span class="key">case</span> <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">SMOOTHED_MAX_DIVERGENCE</span><span class="op">:</span>  <span class="com"># Approximate DP</span>&nbsp;</span><span class="r"></span></p>
@@ -164,7 +164,7 @@
     <p class="pln"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t">        <span class="key">return</span> <span class="nam">epsilon</span><span class="op">,</span> <span class="nam">delta</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">    <span class="key">def</span> <span class="nam">query</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">:</span> <span class="nam">OpenDPInp</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Union</span><span class="op">[</span><span class="nam">List</span><span class="op">,</span> <span class="nam">int</span><span class="op">,</span> <span class="nam">float</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">    <span class="key">def</span> <span class="nam">query</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">:</span> <span class="nam">OpenDPModel</span><span class="op">)</span> <span class="op">-></span> <span class="nam">Union</span><span class="op">[</span><span class="nam">List</span><span class="op">,</span> <span class="nam">int</span><span class="op">,</span> <span class="nam">float</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t">        <span class="str">"""Perform the query and return the response.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t"><span class="str">        Args:</span>&nbsp;</span><span class="r"></span></p>
@@ -292,7 +292,7 @@
     <p class="run"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">    <span class="key">if</span> <span class="nam">output_measure</span> <span class="op">==</span> <span class="nam">dp</span><span class="op">.</span><span class="nam">measures</span><span class="op">.</span><span class="nam">fixed_smoothed_max_divergence</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t">        <span class="nam">T</span><span class="op">=</span><span class="nam">output_type</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t">    <span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">        <span class="nam">measurement</span> <span class="op">=</span> <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">FIXED_SMOOTHED_MAX_DIVERGENCE</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">        <span class="nam">measurement</span> <span class="op">=</span> <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">FIXED_SMOOTHED_MAX_DIVERGENCE</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">    <span class="key">elif</span> <span class="nam">output_measure</span> <span class="op">==</span> <span class="nam">dp</span><span class="op">.</span><span class="nam">measures</span><span class="op">.</span><span class="nam">max_divergence</span><span class="op">(</span><span class="nam">T</span><span class="op">=</span><span class="nam">output_type</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">        <span class="nam">measurement</span> <span class="op">=</span> <span class="nam">OpenDPMeasurement</span><span class="op">.</span><span class="nam">MAX_DIVERGENCE</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">    <span class="key">elif</span> <span class="nam">output_measure</span> <span class="op">==</span> <span class="nam">dp</span><span class="op">.</span><span class="nam">measures</span><span class="op">.</span><span class="nam">smoothed_max_divergence</span><span class="op">(</span><span class="nam">T</span><span class="op">=</span><span class="nam">output_type</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -327,12 +327,12 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="z_6c32e44bb3022807_diffprivlib_utils_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="z_6c32e44bb3022807_factory_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a class="nav" href="z_6c32e44bb3022807_smartnoise_sql_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.0">coverage.py v7.6.0</a>,
-            created at 2024-07-12 13:06 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
+            created at 2024-08-30 15:40 +0000
         </p>
     </div>
 </footer>

@@ -1,9 +1,13 @@
 diffprivlib==0.6.4
 diffprivlib_logger==0.0.3
+git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca
 jupyter==1.0.0
-numpy==1.23.2
-opendp==0.8.0
+numpy==1.24.0
+opendp==0.10.0
 opendp_logger==0.3.0
 pandas==2.2.2
 requests==2.32.0
 scikit-learn==1.4.0
+smartnoise-synth==1.0.4
+smartnoise_synth_logger==0.0.3
+

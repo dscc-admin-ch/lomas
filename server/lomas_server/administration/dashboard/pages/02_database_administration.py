@@ -15,16 +15,16 @@ from mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_archives_of_user,
+    get_collection,
+    get_dataset,
     get_list_of_datasets,
     get_list_of_datasets_from_user,
     get_list_of_users,
+    get_metadata_of_dataset,
+    get_user,
     set_budget_field,
     set_may_query,
-    show_archives_of_user,
-    show_collection,
-    show_dataset,
-    show_metadata_of_dataset,
-    show_user,
 )
 
 EPSILON_STEP = 0.01
@@ -386,19 +386,13 @@ with dataset_tab:
         case PrivateDatabaseType.PATH:
             ad_path = st.text_input("Dataset path (add dataset)", None)
         case PrivateDatabaseType.S3:
-            ad_s3_1, ad_s3_2, ad_s3_3, ad_s3_4, ad_s3_5 = st.columns(5)
+            ad_s3_1, ad_s3_2, ad_s3_3 = st.columns(3)
             with ad_s3_1:
-                ad_s3_bucket = st.text_input("s3_bucket (add dataset)", None)
+                ad_s3_bucket = st.text_input("bucket (add dataset)", None)
             with ad_s3_2:
-                ad_s3_key = st.text_input("s3_key (add dataset)", None)
+                ad_s3_key = st.text_input("key (add dataset)", None)
             with ad_s3_3:
                 ad_s3_url = st.text_input("endpoint_url (add dataset)", None)
-            with ad_s3_4:
-                ad_s3_kid = st.text_input(
-                    "aws_access_key_id (add dataset)", None
-                )
-            with ad_s3_5:
-                ad_s3_sk = st.text_input("aws_secret_key (add dataset)", None)
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
@@ -413,11 +407,11 @@ with dataset_tab:
             ) = st.columns(5)
             with ad_meta_s3_1:
                 ad_meta_s3_bucket = st.text_input(
-                    "Metadata s3_bucket (add dataset)", None
+                    "Metadata bucket (add dataset)", None
                 )
             with ad_meta_s3_2:
                 ad_meta_s3_key = st.text_input(
-                    "Metadata s3_key (add dataset)", None
+                    "Metadata key (add dataset)", None
                 )
             with ad_meta_s3_3:
                 ad_meta_s3_url = st.text_input(
@@ -425,11 +419,11 @@ with dataset_tab:
                 )
             with ad_meta_s3_4:
                 ad_meta_s3_kid = st.text_input(
-                    "Metadata aws_access_key_id (add dataset)", None
+                    "Metadata access_key_id (add dataset)", None
                 )
             with ad_meta_s3_5:
                 ad_meta_s3_sk = st.text_input(
-                    "Metadata aws_secret_key (add dataset)", None
+                    "Metadata secret_key (add dataset)", None
                 )
 
     keyword_args = {}
@@ -444,14 +438,10 @@ with dataset_tab:
         and ad_s3_bucket
         and ad_s3_key
         and ad_s3_url
-        and ad_s3_kid
-        and ad_s3_sk
     ):
-        keyword_args["s3_bucket"] = ad_s3_bucket
-        keyword_args["s3_key"] = ad_s3_key
+        keyword_args["bucket"] = ad_s3_bucket
+        keyword_args["key"] = ad_s3_key
         keyword_args["endpoint_url"] = ad_s3_url
-        keyword_args["aws_access_key_id"] = ad_s3_kid
-        keyword_args["aws_secret_access_key"] = ad_s3_sk
         DATASET_READY = True
     else:
         if ad_dataset is not None:
@@ -468,11 +458,11 @@ with dataset_tab:
         and ad_meta_s3_kid
         and ad_meta_s3_sk
     ):
-        keyword_args["metadata_s3_bucket"] = ad_meta_s3_bucket
-        keyword_args["metadata_s3_key"] = ad_meta_s3_key
+        keyword_args["metadata_bucket"] = ad_meta_s3_bucket
+        keyword_args["metadata_key"] = ad_meta_s3_key
         keyword_args["metadata_endpoint_url"] = ad_meta_s3_url
-        keyword_args["metadata_aws_access_key_id"] = ad_meta_s3_kid
-        keyword_args["metadata_aws_secret_access_key"] = ad_meta_s3_sk
+        keyword_args["metadata_access_key_id"] = ad_meta_s3_kid
+        keyword_args["metadata_secret_access_key"] = ad_meta_s3_sk
         METADATA_READY = True
     else:
         if ad_dataset is not None:
@@ -547,7 +537,7 @@ with content_tab:
             key="username of user to show",
         )
         if st.button(f"Displaying information of: {user_selected}"):
-            user_to_show = show_user(st.session_state.admin_db, user_selected)
+            user_to_show = get_user(st.session_state.admin_db, user_selected)
             st.write(user_to_show)
 
     with elem_archives:
@@ -559,7 +549,7 @@ with content_tab:
         if st.button(
             f"Displaying previous queries of: {user_archives_selected}"
         ):
-            user_archives_to_show = show_archives_of_user(
+            user_archives_to_show = get_archives_of_user(
                 st.session_state.admin_db, user_archives_selected
             )
             st.write(user_archives_to_show)
@@ -572,7 +562,7 @@ with content_tab:
             key="dataset of dataset to show",
         )
         if st.button(f"Displaying dataset: {dataset_selected}"):
-            dataset_to_show = show_dataset(
+            dataset_to_show = get_dataset(
                 st.session_state.admin_db, dataset_selected
             )
             st.write(dataset_to_show)
@@ -584,7 +574,7 @@ with content_tab:
             key="dataset of metadata to show",
         )
         if st.button(f"Displaying metadata of: {metadata_selected}"):
-            metadata_to_show = show_metadata_of_dataset(
+            metadata_to_show = get_metadata_of_dataset(
                 st.session_state.admin_db, metadata_selected
             )
             st.write(metadata_to_show)
@@ -593,21 +583,21 @@ with content_tab:
     col_users, col_datasets, col_metadata, col_archives = st.columns(4)
     with col_users:
         if st.button("Show all users"):
-            users = show_collection(st.session_state.admin_db, "users")
+            users = get_collection(st.session_state.admin_db, "users")
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets"):
-            datasets = show_collection(st.session_state.admin_db, "datasets")
+            datasets = get_collection(st.session_state.admin_db, "datasets")
             st.write(datasets)
     with col_metadata:
         if st.button("Show all metadata"):
-            metadatas = show_collection(st.session_state.admin_db, "metadata")
+            metadatas = get_collection(st.session_state.admin_db, "metadata")
             st.write(metadatas)
     with col_archives:
         if st.button(
             "Show archives",
         ):
-            archives = show_collection(
+            archives = get_collection(
                 st.session_state.admin_db, "queries_archives"
             )
             st.write(archives)

@@ -23,3 +23,9 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "../data/collections/metadata/fso_income_synthetic_metadata.yaml"
+- dataset_name: "COVID_SYNTHETIC"
+  database_type: "PATH_DB"
+  dataset_path: "../data/datasets/covid_synthetic_data.csv"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "../data/collections/metadata/covid_synthetic_metadata.yaml"

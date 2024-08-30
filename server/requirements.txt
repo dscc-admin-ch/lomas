@@ -1,10 +1,10 @@
 boto3==1.34.115
 diffprivlib==0.6.4
 diffprivlib_logger==0.0.3
-fastapi==0.109.1
+fastapi==0.111.1
 httpx==0.27.0
 numpy==1.23.2
-#opendp==0.10.0a20240724001 # Need to install manually because of version conflicts.
+#opendp==0.10.0a20240731001 # Need to install manually because of version conflicts.
 opendp-logger==0.3.0
 pandas==2.2.2
 polars==1.1.0

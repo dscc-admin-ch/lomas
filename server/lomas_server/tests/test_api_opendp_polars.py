@@ -7,10 +7,10 @@ from fastapi.testclient import TestClient
 
 from app import app
 from tests.test_api_root import TestSetupRootAPIEndpoint
-from utils.example_inputs import (
+from utils.query_examples import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
-    OPENDP_POLARS_JSON,
+    OPENDP_POLARS_PIPELINE,
     example_opendp_polars,
 )
 
@@ -26,7 +26,7 @@ def get_lf_from_json() -> pl.LazyFrame:
         from the JSON string.
     """
     lf = pl.LazyFrame.deserialize(
-        io.StringIO(OPENDP_POLARS_JSON), format="json"
+        io.StringIO(OPENDP_POLARS_PIPELINE), format="json"
     )
 
     return lf

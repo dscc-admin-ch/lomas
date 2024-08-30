@@ -10,9 +10,9 @@ from pymongo.results import _WriteResult
 
 from admin_database.mongodb_database import check_result_acknowledged
 from constants import PrivateDatabaseType
-from utils.collections_models import DatasetsCollection, UserCollection
+from utils.collection_models import DatasetsCollection, UserCollection
 from utils.error_handler import InternalServerException
-from utils.loggr import LOG
+from utils.logger import LOG
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
@@ -380,7 +380,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
 
 @check_user_exists(True)
-def show_user(db: Database, user: str) -> dict:
+def get_user(db: Database, user: str) -> dict:
     """Show a user
 
     Args:
@@ -467,7 +467,7 @@ def add_users_via_yaml(
 
 
 @check_user_exists(True)
-def show_archives_of_user(db: Database, user: str) -> List[dict]:
+def get_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user
 
     Args:
@@ -528,16 +528,16 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     metadata_database_type: str,
     dataset_path: Optional[str] = "",
     metadata_path: Optional[str] = "",
-    s3_bucket: Optional[str] = "",
-    s3_key: Optional[str] = "",
+    bucket: Optional[str] = "",
+    key: Optional[str] = "",
     endpoint_url: Optional[str] = "",
-    aws_access_key_id: Optional[str] = "",
-    aws_secret_access_key: Optional[str] = "",
-    metadata_s3_bucket: Optional[str] = "",
-    metadata_s3_key: Optional[str] = "",
+    credentials_name: Optional[str] = "",
+    metadata_bucket: Optional[str] = "",
+    metadata_key: Optional[str] = "",
     metadata_endpoint_url: Optional[str] = "",
-    metadata_aws_access_key_id: Optional[str] = "",
-    metadata_aws_secret_access_key: Optional[str] = "",
+    metadata_access_key_id: Optional[str] = "",
+    metadata_secret_access_key: Optional[str] = "",
+    metadata_credentials_name: Optional[str] = "",
 ) -> None:
     """Set a database type to a dataset in dataset collection.
 
@@ -550,16 +550,18 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
         dataset_path (str): Path to the dataset (for local db type)
         metadata_path (str): Path to metadata (for local db type)
 
-        s3_bucket (str): S3 bucket name
-        s3_key (str): S3 key
+        bucket (str): S3 bucket name
+        key (str): S3 key
         endpoint_url (str): S3 endpoint URL
-        aws_access_key_id (str): AWS access key ID
-        aws_secret_access_key (str): AWS secret access key
-        metadata_s3_bucket (str): Metadata S3 bucket name
-        metadata_s3_key (str): Metadata S3 key
+        credentials_name (str): The name of the credentials in the\
+            server config to retrieve the dataset from S3 storage.
+        metadata_bucket (str): Metadata S3 bucket name
+        metadata_key (str): Metadata S3 key
         metadata_endpoint_url (str): Metadata S3 endpoint URL
-        metadata_aws_access_key_id (str): Metadata AWS access key ID
-        metadata_aws_secret_access_key (str): Metadata AWS secret access key
+        metadata_access_key_id (str): Metadata AWS access key ID
+        metadata_secret_access_key (str): Metadata AWS secret access key
+        metadata_credentials_name (str): The name of the credentials in the\
+            server config for retrieving the metadata.
 
     Raises:
         ValueError: If the dataset already exists
@@ -578,11 +580,10 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     if database_type == PrivateDatabaseType.PATH:
         dataset["dataset_path"] = dataset_path
     elif database_type == PrivateDatabaseType.S3:
-        dataset["s3_bucket"] = s3_bucket
-        dataset["s3_key"] = s3_key
+        dataset["bucket"] = bucket
+        dataset["key"] = key
         dataset["endpoint_url"] = endpoint_url
-        dataset["aws_access_key_id"] = aws_access_key_id
-        dataset["aws_secret_access_key"] = aws_secret_access_key
+        dataset["credentials_name"] = credentials_name
     else:
         raise ValueError(f"Unknown database type {database_type}")
 
@@ -599,24 +600,19 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
         client = boto3.client(
             "s3",
             endpoint_url=metadata_endpoint_url,
-            aws_access_key_id=metadata_aws_access_key_id,
-            aws_secret_access_key=metadata_aws_secret_access_key,
+            aws_access_key_id=metadata_access_key_id,
+            aws_secret_access_key=metadata_secret_access_key,
         )
-        response = client.get_object(
-            Bucket=metadata_s3_bucket, Key=metadata_s3_key
-        )
+        response = client.get_object(Bucket=metadata_bucket, Key=metadata_key)
         try:
             metadata_dict = yaml.safe_load(response["Body"])
         except yaml.YAMLError as e:
             raise e
 
-        dataset["metadata"]["s3_bucket"] = metadata_s3_bucket
-        dataset["metadata"]["s3_key"] = metadata_s3_key
+        dataset["metadata"]["bucket"] = metadata_bucket
+        dataset["metadata"]["key"] = metadata_key
         dataset["metadata"]["endpoint_url"] = metadata_endpoint_url
-        dataset["metadata"]["aws_access_key_id"] = metadata_aws_access_key_id
-        dataset["metadata"][
-            "aws_secret_access_key"
-        ] = metadata_aws_secret_access_key
+        dataset["metadata"]["credentials_name"] = metadata_credentials_name
 
     else:
         raise ValueError(f"Unknown database type {metadata_database_type}")
@@ -717,12 +713,12 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
                 client = boto3.client(
                     "s3",
                     endpoint_url=d.metadata.endpoint_url,
-                    aws_access_key_id=d.metadata.aws_access_key_id,
-                    aws_secret_access_key=d.metadata.aws_secret_access_key,
+                    aws_access_key_id=d.metadata.access_key_id,
+                    aws_secret_access_key=d.metadata.secret_access_key,
                 )
                 response = client.get_object(
-                    Bucket=d.metadata.s3_bucket,
-                    Key=d.metadata.s3_key,
+                    Bucket=d.metadata.bucket,
+                    Key=d.metadata.key,
                 )
                 try:
                     metadata_dict = yaml.safe_load(response["Body"])
@@ -775,7 +771,7 @@ def del_dataset(db: Database, dataset: str) -> None:
 
 
 @check_dataset_and_metadata_exist(True)
-def show_dataset(db: Database, dataset: str) -> dict:
+def get_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
     Args:
@@ -792,7 +788,7 @@ def show_dataset(db: Database, dataset: str) -> dict:
 
 
 @check_dataset_and_metadata_exist(True)
-def show_metadata_of_dataset(db: Database, dataset: str) -> dict:
+def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 
     Args:
@@ -843,7 +839,7 @@ def drop_collection(db: Database, collection: str) -> None:
     LOG.info(f"Deleted collection {collection}.")
 
 
-def show_collection(db: Database, collection: str) -> list:
+def get_collection(db: Database, collection: str) -> list:
     """Show a collection
 
     Args:

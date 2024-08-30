@@ -3,7 +3,7 @@ import os
 import uvicorn
 
 from utils.config import get_config
-from utils.loggr import LOG
+from utils.logger import LOG
 
 if __name__ == "__main__":
     os.chdir("/code/")

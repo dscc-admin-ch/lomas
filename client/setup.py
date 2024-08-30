@@ -44,7 +44,7 @@ setup(
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",
         "numpy>=1.23.2",
-        "opendp==0.10.0a20240724001",
+        "opendp==0.10.0a20240731001",
         "opendp_logger==0.3.0",
         "pandas>=2.2.2",
         "requests>=2.32.0",

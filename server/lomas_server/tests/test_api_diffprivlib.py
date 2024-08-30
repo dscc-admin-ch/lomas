@@ -30,7 +30,6 @@ def validate_pipeline(response):
         # Temporary LOGs to help understand why tests sometimes fail
         LOG.error(response_dict)
         LOG.error(response_dict["query_response"])
-        LOG.error(response_dict["query_response"]["score"])
 
     assert response_dict["query_response"]["score"]
     assert response_dict["query_response"]["model"]

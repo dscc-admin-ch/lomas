@@ -17,10 +17,10 @@ from constants import (
 )
 from private_dataset.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
-from utils.input_models import GetDummyDataset
+from utils.query_models import GetDummyDataset
 
 
-def make_dummy_dataset(
+def make_dummy_dataset(  # pylint: disable=too-many-locals
     metadata: dict, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
     """
@@ -91,17 +91,28 @@ def make_dummy_dataset(
                     )
             case "datetime":
                 # From start date and random on a range above
-                start = datetime.datetime.strptime(
-                    RANDOM_DATE_START, "%m/%d/%Y"
+                start_date = (
+                    data["lower"]
+                    if "lower" in data.keys()
+                    else datetime.datetime.strptime(
+                        RANDOM_DATE_START, "%m/%d/%Y"
+                    )
+                )
+                end_date = (
+                    data["upper"]
+                    if "upper" in data.keys()
+                    else datetime.datetime.strptime(
+                        RANDOM_DATE_START, "%m/%d/%Y"
+                    )
+                    + datetime.timedelta(
+                        seconds=random.randrange(RANDOM_DATE_RANGE)
+                    )
                 )
                 serie = pd.Series(
-                    [
-                        start
-                        + datetime.timedelta(
-                            seconds=random.randrange(RANDOM_DATE_RANGE)
-                        )
-                        for _ in range(nb_rows)
-                    ]
+                    np.random.choice(
+                        pd.date_range(start=start_date, end=end_date),
+                        size=nb_rows,
+                    )
                 )
             case "unknown":
                 # Unknown column are ignored by smartnoise sql

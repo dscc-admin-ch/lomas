@@ -67,7 +67,7 @@ Users
   - ``-u, --user``: Username of the user (required).
   - ``-v, --value``: Value to set for "may query" (choices: "False" or "True") (required).
 
-- ``show_user``: Show all information about a user in the users collection.
+- ``get_user``: Show all information about a user in the users collection.
 
   - ``-u, --user``: Username of the user to be shown (required).
 
@@ -77,7 +77,7 @@ Users
   - ``-c, --clean``: Clean the existing users collection (optional, default: False).
   - ``-o, --overwrite``: Overwrite the existing users collection (optional, default: False).
 
-- ``show_archives``: Show all previous queries from a user.
+- ``get_archives``: Show all previous queries from a user.
 
   - ``-u, --user``: Username of the user to show archives (required).
 
@@ -94,18 +94,18 @@ Datasets
   - ``-d, --dataset_name``: Name of the dataset (required).
   - ``-db, --database_type``: Type of the database where the dataset is stored (required).
   - ``-d_path, --dataset_path``: Path to the dataset (required if database_type is 'PATH_DB').
-  - ``-s3b, --s3_bucket``: S3 bucket name for the dataset file (required if database_type is 'S3_DB').
-  - ``-s3k, --s3_key``: S3 key for the dataset file  (required if database_type is 'S3_DB').
+  - ``-s3b, --bucket``: S3 bucket name for the dataset file (required if database_type is 'S3_DB').
+  - ``-s3k, --key``: S3 key for the dataset file  (required if database_type is 'S3_DB').
   - ``-s3_url, --endpoint_url``: S3 endpoint URL for the dataset file  (required if database_type is 'S3_DB').
-  - ``-s3_ak, --aws_access_key_id``: AWS access key ID for S3 for the dataset file (required if database_type is 'S3_DB').
-  - ``-s3_sak, --aws_secret_access_key``: AWS secret access key for S3 for the dataset file  (required if database_type is 'S3_DB').
+  - ``-s3_ak, --access_key_id``: AWS access key ID for S3 for the dataset file (required if database_type is 'S3_DB').
+  - ``-s3_sak, --secret_access_key``: AWS secret access key for S3 for the dataset file  (required if database_type is 'S3_DB').
   - ``-m_db, --metadata_database_type``: Type of the database where metadata is stored (required).
   - ``-mp, --metadata_path``: Path to the metadata (required if metadata_database_type is 'PATH_DB').
-  - ``-m_s3b, --metadata_s3_bucket``: S3 bucket name for metadata (required if metadata_database_type is 'S3_DB').
-  - ``-m_s3k, --metadata_s3_key``: S3 key for metadata (required if metadata_database_type is 'S3_DB').
+  - ``-m_s3b, --metadata_bucket``: S3 bucket name for metadata (required if metadata_database_type is 'S3_DB').
+  - ``-m_s3k, --metadata_key``: S3 key for metadata (required if metadata_database_type is 'S3_DB').
   - ``-m_s3_url, --metadata_endpoint_url``: S3 endpoint URL for metadata (required if metadata_database_type is 'S3_DB').
-  - ``-m_s3_ak, --metadata_aws_access_key_id``: AWS access key ID for metadata (required if metadata_database_type is 'S3_DB').
-  - ``-m_s3_sak, --metadata_aws_secret_access_key``: AWS secret access key for metadata (required if metadata_database_type is 'S3_DB').
+  - ``-m_s3_ak, --metadata_access_key_id``: AWS access key ID for metadata (required if metadata_database_type is 'S3_DB').
+  - ``-m_s3_sak, --metadata_secret_access_key``: AWS secret access key for metadata (required if metadata_database_type is 'S3_DB').
 
 - ``add_datasets_via_yaml``: Create datasets to database type collection based on a yaml file.
 
@@ -118,11 +118,11 @@ Datasets
 
   - ``-d, --dataset``: Name of the dataset to be deleted (required).
 
-- ``show_dataset``: Show a dataset from the dataset collection.
+- ``get_dataset``: Show a dataset from the dataset collection.
 
   - ``-d, --dataset``: Name of the dataset to show (required).
 
-- ``show_metadata``: Show metadata from the metadata collection.
+- ``get_metadata``: Show metadata from the metadata collection.
 
   - ``-d, --dataset``: Name of the dataset of the metadata to show (required).
 
@@ -134,7 +134,7 @@ Collections
 
   - ``-c, --collection``: Name of the collection to be deleted. Choices: "users", "datasets", "metadata", "queries_archives" (required).
 
-- ``show_collection``: Print a collection.
+- ``get_collection``: Print a collection.
 
   - ``-c, --collection``: Name of the collection to be shown. Choices: "users", "datasets", "metadata", "queries_archives" (required).
 
@@ -164,13 +164,13 @@ Examples
    python mongodb_admin_cli.py set_may_query -u username -v True
 
    # Show user metadata
-   python mongodb_admin_cli.py show_user -u username
+   python mongodb_admin_cli.py get_user -u username
 
    # Create users collection from a YAML file
    python mongodb_admin_cli.py add_users_via_yaml -yf users.yaml -c
 
    # Show all previous queries from user "username"
-   python mongodb_admin_cli.py show_archives -u username
+   python mongodb_admin_cli.py get_archives -u username
 
    # Get the list of all users
    python mongodb_admin_cli.py get_users
@@ -188,16 +188,16 @@ Examples
    python mongodb_admin_cli.py del_dataset -d dataset_name
 
    # Show dataset "dataset_name"
-   python mongodb_admin_cli.py show_dataset -d dataset_name
+   python mongodb_admin_cli.py get_dataset -d dataset_name
 
    # Show metadata for dataset "dataset_name"
-   python mongodb_admin_cli.py show_metadata -d dataset_name
+   python mongodb_admin_cli.py get_metadata -d dataset_name
 
    # Drop a collection
    python mongodb_admin_cli.py drop_collection -c users
 
    # Show a collection
-   python mongodb_admin_cli.py show_collection -c datasets
+   python mongodb_admin_cli.py get_collection -c datasets
 
 .. toctree::
    :maxdepth: 2

@@ -7,7 +7,10 @@ import boto3
 import yaml
 from pymongo import MongoClient
 
-from admin_database.utils import get_mongodb_url
+from admin_database.utils import (
+    add_demo_data_to_mongodb_admin,
+    get_mongodb_url,
+)
 from constants import PrivateDatabaseType
 from mongodb_admin import (
     add_dataset,
@@ -20,16 +23,16 @@ from mongodb_admin import (
     del_dataset_to_user,
     del_user,
     drop_collection,
+    get_archives_of_user,
+    get_collection,
+    get_dataset,
     get_list_of_datasets,
     get_list_of_datasets_from_user,
     get_list_of_users,
+    get_metadata_of_dataset,
+    get_user,
     set_budget_field,
     set_may_query,
-    show_archives_of_user,
-    show_collection,
-    show_dataset,
-    show_metadata_of_dataset,
-    show_user,
 )
 from tests.constants import (
     ENV_MONGO_INTEGRATION,
@@ -38,7 +41,6 @@ from tests.constants import (
     TRUE_VALUES,
 )
 from utils.config import CONFIG_LOADER, get_config
-from utils.utils import add_demo_data_to_admindb
 
 
 @unittest.skipIf(
@@ -302,14 +304,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             set_may_query(self.db, user, value)
 
-    def test_show_user(self) -> None:
+    def test_get_user(self) -> None:
         """Test show user"""
         user = "Milou"
         dataset = "os"
         epsilon = 20
         delta = 0.005
         add_user_with_budget(self.db, user, dataset, epsilon, delta)
-        user_found = show_user(self.db, "Milou")
+        user_found = get_user(self.db, "Milou")
         expected_user = {
             "user_name": user,
             "may_query": True,
@@ -326,7 +328,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(user_found, expected_user)
 
         with self.assertRaises(ValueError):
-            user_found = show_user(self.db, "Bianca Castafiore")
+            user_found = get_user(self.db, "Bianca Castafiore")
 
     def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file"""
@@ -415,21 +417,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertWarns(UserWarning):
             add_users_via_yaml(self.db, path, clean=False, overwrite=False)
 
-    def test_show_archives_of_user(self) -> None:
+    def test_get_archives_of_user(self) -> None:
         """Test show archives of user"""
         add_user(self.db, "Milou")
         add_user(self.db, "Tintin")
 
         # User exist but empty
-        archives_found = show_archives_of_user(self.db, "Milou")
+        archives_found = get_archives_of_user(self.db, "Milou")
         expected_archives: list[Dict] = []
         self.assertEqual(archives_found, expected_archives)
 
         # User does not exist
         with self.assertRaises(ValueError):
-            archives_found = show_archives_of_user(
-                self.db, "Bianca Castafiore"
-            )
+            archives_found = get_archives_of_user(self.db, "Bianca Castafiore")
 
         # Add archives for Tintin and Dr. Antartica
         path = "./tests/test_data/test_archives_collection.yaml"
@@ -438,12 +438,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.db.queries_archives.insert_many(archives)
 
         # Milou still empty
-        archives_found = show_archives_of_user(self.db, "Milou")
+        archives_found = get_archives_of_user(self.db, "Milou")
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
 
         # Tintin has archives
-        archives_found = show_archives_of_user(self.db, "Tintin")[0]
+        archives_found = get_archives_of_user(self.db, "Tintin")[0]
         expected_archives = archives[1]
 
         archives_found.pop("_id")
@@ -601,46 +601,45 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
-        s3_bucket = "example"
+        bucket = "example"
         endpoint_url = "http://localhost:9000"
-        aws_access_key_id = "admin"
-        aws_secret_access_key = "admin123"
-        s3_key_file = "data/test_penguin.csv"
-        s3_key_metadata = "metadata/penguin_metadata.yaml"
+        access_key_id = "admin"
+        secret_access_key = "admin123"
+        credentials_name = "local_minio"
+        key_file = "data/test_penguin.csv"
+        key_metadata = "metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.db,
             dataset,
             database_type,
             metadata_database_type,
-            s3_bucket=s3_bucket,
-            s3_key=s3_key_file,
+            bucket=bucket,
+            key=key_file,
             endpoint_url=endpoint_url,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            metadata_s3_bucket=s3_bucket,
-            metadata_s3_key=s3_key_metadata,
+            credentials_name=credentials_name,
+            metadata_bucket=bucket,
+            metadata_key=key_metadata,
             metadata_endpoint_url=endpoint_url,
-            metadata_aws_access_key_id=aws_access_key_id,
-            metadata_aws_secret_access_key=aws_secret_access_key,
+            metadata_access_key_id=access_key_id,
+            metadata_secret_access_key=secret_access_key,
+            metadata_credentials_name=credentials_name,
         )
 
         # Check dataset collection
         expected_dataset = {
             "dataset_name": dataset,
             "database_type": database_type,
-            "s3_bucket": s3_bucket,
-            "s3_key": s3_key_file,
+            "bucket": bucket,
+            "key": key_file,
             "endpoint_url": endpoint_url,
-            "aws_access_key_id": aws_access_key_id,
-            "aws_secret_access_key": aws_secret_access_key,
+            "credentials_name": credentials_name,
             "metadata": {
                 "database_type": metadata_database_type,
-                "s3_bucket": s3_bucket,
-                "s3_key": s3_key_metadata,
+                "bucket": bucket,
+                "key": key_metadata,
                 "endpoint_url": endpoint_url,
-                "aws_access_key_id": aws_access_key_id,
-                "aws_secret_access_key": aws_secret_access_key,
+                "credentials_name": credentials_name,
             },
         }
 
@@ -652,10 +651,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         s3_client = boto3.client(
             "s3",
             endpoint_url=endpoint_url,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
         )
-        response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key_metadata)
+        response = s3_client.get_object(Bucket=bucket, Key=key_metadata)
         expected_metadata = yaml.safe_load(response["Body"])
 
         metadata_found = self.db.metadata.find_one(
@@ -769,7 +768,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            tintin = datasets["datasets"][2]
+            tintin = datasets["datasets"][3]
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
@@ -844,10 +843,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             del_dataset(self.db, dataset)
 
-    def test_show_dataset(self) -> None:
+    def test_get_dataset(self) -> None:
         """Test show dataset"""
         with self.assertRaises(ValueError):
-            dataset_found = show_dataset(self.db, "PENGUIN")
+            dataset_found = get_dataset(self.db, "PENGUIN")
 
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -863,7 +862,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
-        dataset_found = show_dataset(self.db, "PENGUIN")
+        dataset_found = get_dataset(self.db, "PENGUIN")
         expected_dataset = {
             "dataset_name": dataset,
             "database_type": database_type,
@@ -875,10 +874,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         }
         self.assertEqual(dataset_found, expected_dataset)
 
-    def test_show_metadata_of_dataset(self) -> None:
+    def test_get_metadata_of_dataset(self) -> None:
         """Test show metadata_dataset"""
         with self.assertRaises(ValueError):
-            metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+            metadata_found = get_metadata_of_dataset(self.db, "PENGUIN")
 
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -894,7 +893,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
-        metadata_found = show_metadata_of_dataset(self.db, "PENGUIN")
+        metadata_found = get_metadata_of_dataset(self.db, "PENGUIN")
         with open(metadata_path, encoding="utf-8") as f:
             expected_metadata = yaml.safe_load(f)
         self.assertEqual(metadata_found, expected_metadata)
@@ -913,7 +912,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.db, path, clean, overwrite_datasets, overwrite_metadata
         )
         list_datasets = get_list_of_datasets(self.db)
-        self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+        self.assertEqual(
+            list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"]
+        )
 
     def test_drop_collection(self) -> None:
         """Test drop collection from db"""
@@ -940,9 +941,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
 
-    def test_show_collection(self) -> None:
+    def test_get_collection(self) -> None:
         """Test show collection from db"""
-        dataset_collection = show_collection(self.db, "datasets")
+        dataset_collection = get_collection(self.db, "datasets")
         self.assertEqual(dataset_collection, [])
 
         path = "./tests/test_data/test_datasets.yaml"
@@ -954,12 +955,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         with open(path, encoding="utf-8") as f:
             expected_dataset_collection = yaml.safe_load(f)
-        dataset_collection = show_collection(self.db, "datasets")
+        dataset_collection = get_collection(self.db, "datasets")
         self.assertEqual(
             expected_dataset_collection["datasets"], dataset_collection
         )
 
-    def test_add_demo_data_to_admindb(self) -> None:
+    def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db"""
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
@@ -967,19 +968,24 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         else:
             dataset_yaml = "tests/test_data/test_datasets.yaml"
 
-        add_demo_data_to_admindb(
+        add_demo_data_to_mongodb_admin(
             user_yaml="./tests/test_data/test_user_collection.yaml",
             dataset_yaml=dataset_yaml,
         )
 
         users_list = get_list_of_users(self.db)
-        self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou"])
+        self.assertEqual(
+            users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"]
+        )
 
         list_datasets = get_list_of_datasets(self.db)
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
-                list_datasets, ["PENGUIN", "IRIS", "TINTIN_S3_TEST"]
+                list_datasets,
+                ["PENGUIN", "IRIS", "PUMS", "TINTIN_S3_TEST", "BIRTHDAYS"],
             )
         else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS"])
+            self.assertEqual(
+                list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"]
+            )

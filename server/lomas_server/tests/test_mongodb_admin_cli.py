@@ -370,13 +370,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command("set_may_query", ["-u", user, "-v", "False"])
 
-    def test_show_user_cli(self) -> None:
+    def test_get_user_cli(self) -> None:
         """Test show user via CLI
         Does not verify output for not
         """
         user = "Milou"
         self.run_cli_command("add_user", ["-u", user])
-        self.run_cli_command("show_user", ["-u", user])
+        self.run_cli_command("get_user", ["-u", user])
 
     def test_add_users_via_yaml_cli(self) -> None:
         """Test create user collection via YAML file via cli"""
@@ -403,13 +403,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         self.assertEqual(user_found, tintin)
 
-    def test_show_archives_of_user_cli(self) -> None:
+    def test_get_archives_of_user_cli(self) -> None:
         """Test show archives of user via CLI
         Does not verify output for not
         """
         user = "Milou"
         self.run_cli_command("add_user", ["-u", user])
-        self.run_cli_command("show_archives_of_user", ["-u", user])
+        self.run_cli_command("get_archives_of_user", ["-u", user])
 
     def test_get_list_of_users_cli(self) -> None:
         """Test get list of users via CLI
@@ -565,13 +565,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             self.run_cli_command("del_dataset", ["--dataset", dataset])
 
-    def test_show_dataset_cli(self) -> None:
+    def test_get_dataset_cli(self) -> None:
         """Test show dataset
         Does not verify output for not
         """
         dataset = "PENGUIN"
         with self.assertRaises(ValueError):
-            self.run_cli_command("show_dataset", ["--dataset", dataset])
+            self.run_cli_command("get_dataset", ["--dataset", dataset])
 
         self.run_cli_command(
             "add_dataset",
@@ -588,16 +588,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "./tests/test_data/metadata/penguin_metadata.yaml",
             ],
         )
-        self.run_cli_command("show_dataset", ["--dataset", dataset])
+        self.run_cli_command("get_dataset", ["--dataset", dataset])
 
-    def test_show_metadata_of_dataset_cli(self) -> None:
+    def test_get_metadata_of_dataset_cli(self) -> None:
         """Test show metadata_of dataset
         Does not verify output for not
         """
         dataset = "PENGUIN"
         with self.assertRaises(ValueError):
             self.run_cli_command(
-                "show_metadata_of_dataset", ["--dataset", dataset]
+                "get_metadata_of_dataset", ["--dataset", dataset]
             )
 
         self.run_cli_command(
@@ -615,9 +615,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "./tests/test_data/metadata/penguin_metadata.yaml",
             ],
         )
-        self.run_cli_command(
-            "show_metadata_of_dataset", ["--dataset", dataset]
-        )
+        self.run_cli_command("get_metadata_of_dataset", ["--dataset", dataset])
 
     def test_get_list_of_datasets_cli(self) -> None:
         """Test get list of datasets via CLI
@@ -662,11 +660,11 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
 
-    def test_show_collection_cli(self) -> None:
+    def test_get_collection_cli(self) -> None:
         """Test show collection from db via CLI"""
-        self.run_cli_command("show_collection", ["-c", "datasets"])
+        self.run_cli_command("get_collection", ["-c", "datasets"])
         self.run_cli_command(
             "add_datasets_via_yaml",
             ["--yaml_file", "./tests/test_data/test_datasets.yaml"],
         )
-        self.run_cli_command("show_collection", ["-c", "datasets"])
+        self.run_cli_command("get_collection", ["-c", "datasets"])

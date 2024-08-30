@@ -65,6 +65,7 @@ server:
           contrib: True
           floating_point: True
           honest_but_curious: True
+      private_db_credentials: [] # list of credentials, eg. {credentials_name: "abc", db_type: "S3_DB", ...}
 
 
   service:

@@ -1,11 +1,11 @@
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 
-from constants import MAX_NAN_ITERATION, STATS, DPLibraries
+from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
+from utils.collection_models import Metadata
 from utils.error_handler import ExternalLibraryException, InvalidQueryException
-from utils.input_models import SNSQLInp, SNSQLInpCost
+from utils.query_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
 
 
 class SmartnoiseSQLQuerier(DPQuerier):
@@ -13,28 +13,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
 
-    def __init__(
-        self,
-        private_dataset: PrivateDataset,
-    ) -> None:
-        """Initializer.
-
-        Args:
-            private_dataset (PrivateDataset): Private dataset to query.
-        """
-        super().__init__(private_dataset)
-
-        # Reformat metadata
-        metadata = dict(self.private_dataset.get_metadata())
-        metadata.update(metadata["columns"])
-        del metadata["columns"]
-        self.snsql_metadata = {"": {"": {"df": metadata}}}
-
-    def cost(self, query_json: SNSQLInpCost) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (SmartnoiseSQLModelCost): JSON request object for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -47,10 +30,13 @@ class SmartnoiseSQLQuerier(DPQuerier):
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
+        metadata = self.private_dataset.get_metadata()
+        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
+
         reader = from_connection(
             self.private_dataset.get_pandas_df(),
             privacy=privacy,
-            metadata=self.snsql_metadata,
+            metadata=smartnoise_metadata,
         )
 
         try:
@@ -63,11 +49,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return result
 
-    def query(self, query_json: SNSQLInp, nb_iter: int = 0) -> dict:
+    def query(self, query_json: SmartnoiseSQLModel, nb_iter: int = 0) -> dict:
         """Perform the query and return the response.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (SmartnoiseSQLModel): JSON request object for the query.
             nb_iter (int, optional): Number of trials if output is Nan.
                 Defaults to 0.
 
@@ -85,10 +71,13 @@ class SmartnoiseSQLQuerier(DPQuerier):
         privacy = Privacy(epsilon=epsilon, delta=delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
+        metadata = self.private_dataset.get_metadata()
+        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
+
         reader = from_connection(
             self.private_dataset.get_pandas_df(),
             privacy=privacy,
-            metadata=self.snsql_metadata,
+            metadata=smartnoise_metadata,
         )
 
         try:
@@ -117,8 +106,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
         df_res = pd.DataFrame(result, columns=cols)
 
         if df_res.isnull().values.any():
-            # Try again up to MAX_NAN_ITERATION
-            if nb_iter < MAX_NAN_ITERATION:
+            # Try again up to SSQL_MAX_ITERATION
+            if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
                 return self.query(query_json, nb_iter)
 
@@ -144,7 +133,20 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     Returns:
         Privacy: The updated Privacy object.
     """
-    for stat in STATS:
+    for stat in SSQL_STATS:
         if stat in mechanisms.keys():
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
+
+
+def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
+    """Convert Lomas metadata to smartnoise metadata format (for SQL)
+    Args:
+        metadata (Metadata): Dataset metadata from admin database
+    Returns:
+        dict: metadata of the dataset in smartnoise-sql format
+    """
+    metadata = dict(metadata)
+    metadata.update(metadata["columns"])
+    del metadata["columns"]
+    return {"": {"": {"df": metadata}}}

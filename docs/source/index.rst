@@ -7,7 +7,8 @@ Lomas: The Data Oases Hidden Behind the Mist.
 ========================================
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
-#### Technical Overview:
+Technical Overview:
+-------------
 
 The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
@@ -16,7 +17,8 @@ The server is responsible for processing the client requests and updating its ow
 
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-#### Detailed description:
+Detailed description:
+-------------
 
 For a detailed description, please see the links below.
 
@@ -114,6 +116,15 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    CONTRIBUTING.md
    CONTRIBUTING_CLIENT.md
    CONTRIBUTING_SERVER.md
+
+   poster
+
+.. toctree::
+   :maxdepth: 2
+   :caption: poster
+   :hidden:
+
+   poster
 
 Indices and tables
 ==================

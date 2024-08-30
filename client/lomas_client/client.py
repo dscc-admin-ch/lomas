@@ -1,7 +1,7 @@
 import base64
 import json
+import pickle
 from enum import StrEnum
-from io import StringIO
 from typing import Dict, List, Optional, Union
 
 import opendp as dp
@@ -11,6 +11,9 @@ from diffprivlib_logger import serialise_pipeline
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
+from smartnoise_synth_logger import serialise_constraints
+
+from lomas_client.utils import validate_synthesizer
 
 # Opendp_logger
 enable_logging()
@@ -20,6 +23,12 @@ enable_features("contrib")
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 HTTP_200_OK = 200
+CONNECT_TIMEOUT = 5
+DEFAULT_READ_TIMEOUT = 10
+DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
+SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
+
+SNSYNTH_DEFAULT_SYMPLES_NB = 200
 
 
 class DPLibraries(StrEnum):
@@ -28,6 +37,7 @@ class DPLibraries(StrEnum):
     """
 
     SMARTNOISE_SQL = "smartnoise_sql"
+    SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
 
@@ -113,12 +123,17 @@ class Client:
 
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            return df
+            response = json.loads(data)
+            dummy_df = pd.DataFrame(response["dummy_dict"])
+            dummy_df = dummy_df.astype(response["dtypes"])
+            for col in response["datetime_columns"]:
+                dummy_df[col] = pd.to_datetime(dummy_df[col])
+            return dummy_df
+
         print(error_message(res))
         return None
 
-    def smartnoise_query(
+    def smartnoise_sql_query(
         self,
         query: str,
         epsilon: float,
@@ -129,7 +144,7 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
-        """This function executes a SmartNoise query.
+        """This function executes a SmartNoise SQL query.
 
         Args:
             query (str): The SQL query to execute.
@@ -168,11 +183,11 @@ class Client:
             "postprocess": postprocess,
         }
         if dummy:
-            endpoint = "dummy_smartnoise_query"
+            endpoint = "dummy_smartnoise_sql_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
         else:
-            endpoint = "smartnoise_query"
+            endpoint = "smartnoise_sql_query"
 
         res = self._exec(endpoint, body_json)
 
@@ -187,7 +202,7 @@ class Client:
         print(error_message(res))
         return None
 
-    def estimate_smartnoise_cost(
+    def estimate_smartnoise_sql_cost(
         self,
         query: str,
         epsilon: float,
@@ -216,7 +231,191 @@ class Client:
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        res = self._exec("estimate_smartnoise_cost", body_json)
+        res = self._exec("estimate_smartnoise_sql_cost", body_json)
+
+        if res.status_code == HTTP_200_OK:
+            return json.loads(res.content.decode("utf8"))
+        print(error_message(res))
+        return None
+
+    def smartnoise_synth_query(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: Optional[float] = None,
+        select_cols: List[str] = [],
+        synth_params: dict = {},
+        nullable: bool = True,
+        constraints: dict = {},
+        dummy: bool = False,
+        return_model: bool = False,
+        condition: str = "",
+        nb_samples: int = SNSYNTH_DEFAULT_SYMPLES_NB,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+    ) -> Optional[dict]:
+        """This function executes a SmartNoise Synthetic query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+                Available synthesizer are
+                    - "aim",
+                    - "mwem",
+                    - "dpctgan" with `disabled_dp` always forced to False and a
+                    warning due to not cryptographically secure random generator
+                    - "patectgan"
+                    - "dpgan" with a warning due to not cryptographically secure
+                    random generator
+                Available under certain conditions:
+                    - "mst" if `return_model=False`
+                    - "pategan" if the dataset has enough rows
+                Not available:
+                    - "pacsynth" due to Rust panic error
+                    - "quail" currently unavailable in Smartnoise Synth
+                For further documentation on models, please see here:
+                https://docs.smartnoise.org/synth/index.html#synthesizers-reference
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            constraints: Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
+                For further documentation on constraints, please see here:
+                https://docs.smartnoise.org/synth/transforms/index.html.
+                Note: lambda function in `AnonimizationTransformer` are not supported.
+            return_model (bool): True to get Synthesizer model, False to get samples
+                Defaults to False
+            condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+                Defaults to "".
+            nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
+                Defaults to SNSYNTH_DEFAULT_SYMPLES_NB
+            dummy (bool, optional): Whether to use a dummy dataset.
+                Defaults to False.
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+                Defaults to DUMMY_SEED.
+        Returns:
+            Optional[dict]: A Pandas DataFrame containing the query results.
+        """
+        validate_synthesizer(synth_name, return_model)
+        constraints = serialise_constraints(constraints) if constraints else ""
+
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "synth_params": synth_params,
+            "nullable": nullable,
+            "constraints": constraints,
+            "return_model": return_model,
+            "condition": condition,
+            "nb_samples": nb_samples,
+        }
+        if dummy:
+            endpoint = "dummy_smartnoise_synth_query"
+            body_json["dummy_nb_rows"] = nb_rows
+            body_json["dummy_seed"] = seed
+        else:
+            endpoint = "smartnoise_synth_query"
+
+        res = self._exec(
+            endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
+        )
+
+        if res.status_code == HTTP_200_OK:
+            response = res.json()
+            query_response = response["query_response"]
+            if return_model:
+                model = base64.b64decode(query_response)
+                response["query_response"] = pickle.loads(model)
+            else:
+                response["query_response"] = pd.DataFrame(query_response)
+            return response
+
+        print(error_message(res))
+        return None
+
+    def estimate_smartnoise_synth_cost(
+        self,
+        synth_name: str,
+        epsilon: float,
+        delta: Optional[float] = None,
+        select_cols: List[str] = [],
+        synth_params: dict = {},
+        nullable: bool = True,
+        constraints: dict = {},
+    ) -> Optional[dict[str, float]]:
+        """This function estimates the cost of executing a SmartNoise query.
+
+        Args:
+            synth_name (str): name of the Synthesizer model to use.
+                Available synthesizer are
+                    - "aim",
+                    - "mwem",
+                    - "dpctgan" with `disabled_dp` always forced to False and a
+                    warning due to not cryptographically secure random generator
+                    - "patectgan"
+                    - "dpgan" with a warning due to not cryptographically secure
+                    random generator
+                Available under certain conditions:
+                    - "mst" if `return_model=False`
+                    - "pategan" if the dataset has enough rows
+                Not available:
+                    - "pacsynth" due to Rust panic error
+                    - "quail" currently unavailable in Smartnoise Synth
+                For further documentation on models, please see here:
+                https://docs.smartnoise.org/synth/index.html#synthesizers-reference
+            epsilon (float): Privacy parameter (e.g., 0.1).
+            delta (float): Privacy parameter (e.g., 1e-5).
+            select_cols (List[str]): List of columns to select.
+                Defaults to None.
+            synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+                Defaults to None.
+            nullable (bool): True if some data cells may be null
+                Defaults to True.
+            constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+                Defaults to {}.
+                For further documentation on constraints, please see here:
+                https://docs.smartnoise.org/synth/transforms/index.html.
+                Note: lambda function in `AnonimizationTransformer` are not supported.
+        Returns:
+            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+        """
+        validate_synthesizer(synth_name)
+        constraints = serialise_constraints(constraints) if constraints else ""
+
+        body_json = {
+            "dataset_name": self.dataset_name,
+            "synth_name": synth_name,
+            "epsilon": epsilon,
+            "delta": delta,
+            "select_cols": select_cols,
+            "synth_params": synth_params,
+            "nullable": nullable,
+            "constraints": constraints,
+        }
+        res = self._exec(
+            "estimate_smartnoise_synth_cost",
+            body_json,
+            read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT,
+        )
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -356,10 +555,9 @@ class Client:
         Returns:
             Optional[Pipeline]: A trained DiffPrivLip pipeline
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
@@ -373,11 +571,13 @@ class Client:
         else:
             endpoint = "diffprivlib_query"
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(
+            endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
+        )
         if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
-            response["query_response"]["model"] = json.loads(model)
+            response["query_response"]["model"] = pickle.loads(model)
             return response
         print(
             f"Error while processing DiffPrivLib request in server \
@@ -421,17 +621,20 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        dpl_json = serialise_pipeline(pipeline)
         body_json = {
             "dataset_name": self.dataset_name,
-            "diffprivlib_json": dpl_json,
+            "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
             "test_size": test_size,
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
         }
-        res = self._exec("estimate_diffprivlib_cost", body_json)
+        res = self._exec(
+            "estimate_diffprivlib_cost",
+            body_json,
+            read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
+        )
 
         if res.status_code == HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -520,6 +723,17 @@ class Client:
                 match query["dp_librairy"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
+                    case DPLibraries.SMARTNOISE_SYNTH:
+                        return_model = query["client_input"]["return_model"]
+                        res = query["response"]["query_response"]
+                        if return_model:
+                            query["response"]["query_response"] = pickle.loads(
+                                base64.b64decode(res)
+                            )
+                        else:
+                            query["response"]["query_response"] = pd.DataFrame(
+                                res
+                            )
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(
                             query["client_input"]["opendp_json"]
@@ -530,7 +744,7 @@ class Client:
                             query["response"]["query_response"]["model"]
                         )
                         query["response"]["query_response"]["model"] = (
-                            json.loads(model)
+                            pickle.loads(model)
                         )
                     case _:
                         raise ValueError(
@@ -545,14 +759,22 @@ class Client:
         print(error_message(res))
         return None
 
-    def _exec(self, endpoint: str, body_json: dict = {}) -> requests.Response:
+    def _exec(
+        self,
+        endpoint: str,
+        body_json: dict = {},
+        read_timeout: int = DEFAULT_READ_TIMEOUT,
+    ) -> requests.Response:
         """Executes a POST request to the specified endpoint with the provided
         JSON body.
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
             body_json (dict, optional): The JSON body to include in the POST request.\
-            Defaults to {}.
+                Defaults to {}.
+            read_timeout (int): number of seconds that client wait for the server
+                to send a response.
+                Defaults to DEFAULT_READ_TIMEOUT.
 
         Returns:
             requests.Response: The response object resulting from the POST request.
@@ -561,6 +783,6 @@ class Client:
             self.url + "/" + endpoint,
             json=body_json,
             headers=self.headers,
-            timeout=50,
+            timeout=(CONNECT_TIMEOUT, read_timeout),
         )
         return r

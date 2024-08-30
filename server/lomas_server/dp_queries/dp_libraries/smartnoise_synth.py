@@ -83,11 +83,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
             case "string" | "boolean":
                 return SSynthColumnType.CATEGORICAL
             case "int" | "float":
-                if "cardinality" in data.keys():
-                    return SSynthColumnType.CATEGORICAL
                 if "lower" in data.keys():
                     return SSynthColumnType.CONTINUOUS
-                # ordinal is categorical
                 return SSynthColumnType.CATEGORICAL
             case "datetime":
                 return SSynthColumnType.DATETIME

@@ -2,27 +2,27 @@ from collections import OrderedDict
 from typing import List
 
 from admin_database.admin_database import AdminDatabase
+from data_connector.data_connector import DataConnector
+from data_connector.factory import data_connector_factory
+from dataset_store.data_connector_observer import DataConnectorObserver
 from dataset_store.dataset_store import DatasetStore
-from dataset_store.private_dataset_observer import PrivateDatasetObserver
 from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.factory import private_dataset_factory
-from private_dataset.private_dataset import PrivateDataset
 from utils.config import PrivateDBCredentials
 from utils.error_handler import InternalServerException
 from utils.logger import LOG
 
 
-class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
+class LRUDatasetStore(DatasetStore, DataConnectorObserver):
     """
     Implementation of the DatasetStore interface, with an LRU cache.
 
-    Subscribes to the PrivateDatasets to get notified if their memory usage
+    Subscribes to the DataConnectors to get notified if their memory usage
     changes and then clears the cache accordingly in order stay below
     the maximum memory usage.
     """
 
-    dataset_cache: OrderedDict[str, PrivateDataset]
+    dataset_cache: OrderedDict[str, DataConnector]
 
     def __init__(
         self,
@@ -60,22 +60,22 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
         Trying to add a dataset already in self.dp_queriers"
 
         # Make private dataset
-        private_dataset = private_dataset_factory(
+        data_connector = data_connector_factory(
             dataset_name, self.admin_database, self.private_db_credentials
         )
-        private_dataset.subscribe_for_memory_usage_updates(self)
+        data_connector.subscribe_for_memory_usage_updates(self)
 
         # Remove least recently used dataset from cache if not enough space
-        private_dataset_mem_usage = private_dataset.get_memory_usage()
+        data_connector_mem_usage = data_connector.get_memory_usage()
 
-        if private_dataset_mem_usage > self.max_memory_usage:
+        if data_connector_mem_usage > self.max_memory_usage:
             raise InternalServerException(
                 f"Dataset {dataset_name} too large"
                 "to fit in dataset manager memory."
             )
 
-        self.dataset_cache[dataset_name] = private_dataset
-        self.memory_usage += private_dataset_mem_usage
+        self.dataset_cache[dataset_name] = data_connector
+        self.memory_usage += data_connector_mem_usage
 
         LOG.info(f"New dataset cache size: {self.memory_usage} MiB")
         self.update_memory_usage()
@@ -116,5 +116,5 @@ class LRUDatasetStore(DatasetStore, PrivateDatasetObserver):
             self.dataset_cache.move_to_end(dataset_name)
         assert dataset_name in self.dataset_cache.keys()
 
-        private_dataset = self.dataset_cache[dataset_name]
-        return querier_factory(library, private_dataset)
+        data_connector = self.dataset_cache[dataset_name]
+        return querier_factory(library, data_connector)

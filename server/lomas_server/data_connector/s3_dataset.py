@@ -3,15 +3,15 @@ from typing import Optional
 import boto3
 import pandas as pd
 
-from private_dataset.private_dataset import PrivateDataset
+from data_connector.data_connector import DataConnector
 from utils.collection_models import Metadata
 from utils.config import S3CredentialsConfig
 from utils.error_handler import InternalServerException
 
 
-class S3Dataset(PrivateDataset):
+class S3Dataset(DataConnector):
     """
-    PrivateDataset for dataset in S3 storage.
+    DataConnector for dataset in S3 storage.
     """
 
     def __init__(

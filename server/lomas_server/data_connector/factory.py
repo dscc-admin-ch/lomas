@@ -2,18 +2,18 @@ from typing import List
 
 from admin_database.admin_database import AdminDatabase
 from constants import PrivateDatabaseType
-from private_dataset.path_dataset import PathDataset
-from private_dataset.private_dataset import PrivateDataset
-from private_dataset.s3_dataset import S3Dataset
+from data_connector.data_connector import DataConnector
+from data_connector.path_dataset import PathDataset
+from data_connector.s3_dataset import S3Dataset
 from utils.config import PrivateDBCredentials, S3CredentialsConfig
 from utils.error_handler import InternalServerException
 
 
-def private_dataset_factory(
+def data_connector_factory(
     dataset_name: str,
     admin_database: AdminDatabase,
     private_db_credentials: List[PrivateDBCredentials],
-) -> PrivateDataset:
+) -> DataConnector:
     """
     Returns the appropriate dataset class based on dataset storage location
 
@@ -26,7 +26,7 @@ def private_dataset_factory(
         InternalServerException: If the dataset type does not exist.
 
     Returns:
-        PrivateDataset: The PrivateDataset instance for this dataset.
+        DataConnector: The DataConnector instance for this dataset.
     """
     database_type = admin_database.get_dataset_field(
         dataset_name, "database_type"

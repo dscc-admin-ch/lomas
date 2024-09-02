@@ -15,7 +15,7 @@ from constants import (
     RANDOM_DATE_START,
     RANDOM_STRINGS,
 )
-from private_dataset.in_memory_dataset import InMemoryDataset
+from data_connector.in_memory_dataset import InMemoryDataset
 from utils.error_handler import InternalServerException
 from utils.query_models import GetDummyDataset
 
@@ -158,6 +158,6 @@ def get_dummy_dataset_for_query(
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+    ds_data_connector = InMemoryDataset(ds_metadata, ds_df)
 
-    return ds_private_dataset
+    return ds_data_connector

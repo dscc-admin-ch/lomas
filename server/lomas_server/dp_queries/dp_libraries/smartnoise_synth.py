@@ -28,9 +28,9 @@ from constants import (
     SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
+from data_connector.data_connector import DataConnector
 from dp_queries.dp_libraries.utils import serialise_model
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.collection_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -65,8 +65,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
 
-    def __init__(self, private_dataset: PrivateDataset) -> None:
-        super().__init__(private_dataset)
+    def __init__(self, data_connector: DataConnector) -> None:
+        super().__init__(data_connector)
         self.model: Optional[Synthesizer] = None
 
     def _categorize_column(self, data: dict) -> str:
@@ -318,7 +318,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             table_transformer_style = SSynthTableTransStyle.GAN
 
         # Preprocessing information from metadata
-        metadata = self.private_dataset.get_metadata()
+        metadata = self.data_connector.get_metadata()
         if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
             if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
@@ -343,7 +343,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             constraints.update(custom_constraints)
 
         # Prepare private data
-        private_data = self.private_dataset.get_pandas_df()
+        private_data = self.data_connector.get_pandas_df()
         if query_json.select_cols:
             try:
                 private_data = private_data[query_json.select_cols]

@@ -1,12 +1,12 @@
 import pandas as pd
 
-from private_dataset.private_dataset import PrivateDataset
+from data_connector.data_connector import DataConnector
 from utils.collection_models import Metadata
 
 
-class InMemoryDataset(PrivateDataset):
+class InMemoryDataset(DataConnector):
     """
-    PrivateDataset for a dataset created from an in-memory pandas DataFrame.
+    DataConnector for a dataset created from an in-memory pandas DataFrame.
     """
 
     def __init__(

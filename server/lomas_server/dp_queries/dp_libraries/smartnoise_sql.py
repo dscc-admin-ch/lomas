@@ -42,11 +42,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
-        metadata = self.private_dataset.get_metadata()
+        metadata = self.data_connector.get_metadata()
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
 
         self.reader = from_connection(
-            self.private_dataset.get_pandas_df(),
+            self.data_connector.get_pandas_df(),
             privacy=privacy,
             metadata=smartnoise_metadata,
         )

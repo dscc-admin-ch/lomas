@@ -35,7 +35,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     yield
 
 
-def handle_query_on_private_dataset(
+def handle_query_on_data_connector(
     request: Request,
     query_json: BaseModel,
     user_name: str,
@@ -118,11 +118,11 @@ def handle_query_on_dummy_dataset(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
-    ds_private_dataset = get_dummy_dataset_for_query(
+    ds_data_connector = get_dummy_dataset_for_query(
         app.state.admin_database, query_json
     )
     dummy_querier = querier_factory(
-        dp_library, private_dataset=ds_private_dataset
+        dp_library, data_connector=ds_data_connector
     )
 
     try:

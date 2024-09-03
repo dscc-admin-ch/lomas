@@ -3,8 +3,8 @@ from typing import List
 from admin_database.admin_database import AdminDatabase
 from constants import PrivateDatabaseType
 from data_connector.data_connector import DataConnector
-from data_connector.path_dataset import PathDataset
-from data_connector.s3_dataset import S3Dataset
+from data_connector.path_connector import PathConnector
+from data_connector.s3_connector import S3Connector
 from utils.config import PrivateDBCredentials, S3CredentialsConfig
 from utils.error_handler import InternalServerException
 
@@ -39,7 +39,7 @@ def data_connector_factory(
             dataset_path = admin_database.get_dataset_field(
                 dataset_name, "dataset_path"
             )
-            private_db = PathDataset(ds_metadata, dataset_path)
+            private_db = PathConnector(ds_metadata, dataset_path)
         case PrivateDatabaseType.S3:
 
             credentials_name = admin_database.get_dataset_field(
@@ -60,7 +60,7 @@ def data_connector_factory(
                 dataset_name, "key"
             )
 
-            private_db = S3Dataset(ds_metadata, credentials)
+            private_db = S3Connector(ds_metadata, credentials)
         case _:
             raise InternalServerException(
                 f"Unknown database type: {database_type}"

@@ -7,7 +7,7 @@ from utils.collection_models import Metadata
 from utils.error_handler import InternalServerException, InvalidQueryException
 
 
-class PathDataset(DataConnector):
+class PathConnector(DataConnector):
     """
     DataConnector for dataset located at constant path.
 

@@ -9,7 +9,7 @@ from utils.config import S3CredentialsConfig
 from utils.error_handler import InternalServerException
 
 
-class S3Dataset(DataConnector):
+class S3Connector(DataConnector):
     """
     DataConnector for dataset in S3 storage.
     """

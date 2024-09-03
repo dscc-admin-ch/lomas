@@ -3,11 +3,11 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from dataset_store.private_dataset_observer import PrivateDatasetObserver
+from dataset_store.data_connector_observer import DataConnectorObserver
 from utils.collection_models import Metadata
 
 
-class PrivateDataset(ABC):
+class DataConnector(ABC):
     """
     Overall access to sensitive data
     """
@@ -21,7 +21,7 @@ class PrivateDataset(ABC):
             metadata (Metadata): The metadata for this dataset
         """
         self.metadata: dict = metadata
-        self.dataset_observers: List[PrivateDatasetObserver] = []
+        self.dataset_observers: List[DataConnectorObserver] = []
 
         dtypes, datetime_columns = get_column_dtypes(metadata)
         self.dtypes: Dict[str, str] = dtypes
@@ -60,12 +60,12 @@ class PrivateDataset(ABC):
         return self.df.memory_usage().sum() / (1024**2)
 
     def subscribe_for_memory_usage_updates(
-        self, dataset_observer: PrivateDatasetObserver
+        self, dataset_observer: DataConnectorObserver
     ) -> None:
-        """Add the PrivateDatasetObserver to the list of dataset_observers.
+        """Add the DataConnectorObserver to the list of dataset_observers.
 
         Args:
-            dataset_observer (PrivateDatasetObserver):
+            dataset_observer (DataConnectorObserver):
                 The observer of this dataset.
         """
         self.dataset_observers.append(dataset_observer)

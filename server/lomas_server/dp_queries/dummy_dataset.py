@@ -15,7 +15,7 @@ from constants import (
     RANDOM_DATE_START,
     RANDOM_STRINGS,
 )
-from private_dataset.in_memory_dataset import InMemoryDataset
+from data_connector.in_memory_connector import InMemoryConnector
 from utils.error_handler import InternalServerException
 from utils.query_models import GetDummyDataset
 
@@ -141,7 +141,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 def get_dummy_dataset_for_query(
     admin_database: AdminDatabase, query_json: GetDummyDataset
-) -> InMemoryDataset:
+) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
     Args:
@@ -151,13 +151,13 @@ def get_dummy_dataset_for_query(
 
 
     Returns:
-        InMemoryDataset: An in memory dummy dataset instance.
+        InMemoryConnector: An in memory dummy dataset instance.
     """
     # Create dummy dataset based on seed and number of rows
     ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+    ds_data_connector = InMemoryConnector(ds_metadata, ds_df)
 
-    return ds_private_dataset
+    return ds_data_connector

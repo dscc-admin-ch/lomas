@@ -4,7 +4,7 @@ from data_connector.data_connector import DataConnector
 from utils.collection_models import Metadata
 
 
-class InMemoryDataset(DataConnector):
+class InMemoryConnector(DataConnector):
     """
     DataConnector for a dataset created from an in-memory pandas DataFrame.
     """

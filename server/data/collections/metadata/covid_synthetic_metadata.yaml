@@ -10,9 +10,11 @@ columns:
     lower: 1
     upper: 2000
   date:
-    type: datetime
-    lower: "2022-08-01"
-    upper: "2023-07-30"
+    type: string
+    # TODO: opendp 0.12
+    # type: datetime
+    # lower: "2022-08-01"
+    # upper: "2023-07-30"
   temporal:
     type: int
     precision: 32
@@ -20,8 +22,7 @@ columns:
     lower: 1
   georegion:
     type: string
-    precision: 32
-    categories: ["AG","AI","AR","BE","BL","BS","FL","FR","GE","GL","GR","JU","LU","NE","other","SG","SH","SO","SZ","TG","TI","unknown","VD",VS",ZG",ZH",NW","UR","OW"]
+    categories: ["AG","AI","AR","BE","BL","BS","FL","FR","GE","GL","GR","JU","LU","NE","other","SG","SH","SO","SZ","TG","TI","unknown","VD","VS",ZG",ZH",NW","UR","OW"]
     cardinality: 29
     max_partition_length: 0.17
   agegroup:

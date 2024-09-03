@@ -146,7 +146,7 @@ NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0a20240731001", '
+    '{"version": "0.11", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'
@@ -258,4 +258,26 @@ OPENDP_POLARS_PIPELINE = (
     '72447419795]}]},"schema":{"inner":{"region":"Int32","eco_branch":"Int32",'
     '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":'
     '"Float64"}},"output_schema":null,"filter":null}}'
+)
+
+OPENDP_POLARS_PIPELINE_COVID = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
+    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
+    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
+    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
+    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
+    '"bit_settings":"","values":["BS","VS"]},{"name":"agegroup","datatype":"String",'
+    '"bit_settings":"","values":["70 - 79","unknown"]},{"name":"sex","datatype":"String",'
+    '"bit_settings":"","values":["other","other"]},{"name":"testType","datatype":"String",'
+    '"bit_settings":"","values":["rapid_antigen_test","rapid_antigen_test"]},{"name":"testResult",'
+    '"datatype":"String","bit_settings":"","values":["other","other"]},{"name":"country",'
+    '"datatype":"String","bit_settings":"","values":["other","unknown"]},'
+    '{"name":"subType","datatype":"String","bit_settings":"","values":["BA.2.75","XBB"]},'
+    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"",'
+    '"values":[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"",'
+    '"values":[true,false]}]},"schema":{"inner":{"patient_id":"Int32","id":"Int32",'
+    '"date":"String","temporal":"Int32","georegion":"String","agegroup":"String",'
+    '"sex":"String","testType":"String","testResult":"String","country":"String",'
+    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}},'
+    '"output_schema":null,"filter":null}}'
 )

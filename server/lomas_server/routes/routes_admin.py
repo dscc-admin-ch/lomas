@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from data_connector.data_connector import get_column_dtypes
 from dp_queries.dummy_dataset import make_dummy_dataset
-from private_dataset.private_dataset import get_column_dtypes
 from routes.utils import server_live
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,

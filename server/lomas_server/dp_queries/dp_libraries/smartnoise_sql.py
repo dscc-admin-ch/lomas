@@ -5,8 +5,8 @@ from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
 from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
+from data_connector.data_connector import DataConnector
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.collection_models import Metadata
 from utils.error_handler import (
     ExternalLibraryException,
@@ -21,8 +21,8 @@ class SmartnoiseSQLQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
 
-    def __init__(self, private_dataset: PrivateDataset) -> None:
-        super().__init__(private_dataset)
+    def __init__(self, data_connector: DataConnector) -> None:
+        super().__init__(data_connector)
         self.reader: Optional[Reader] = None
 
     def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
@@ -42,11 +42,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
-        metadata = self.private_dataset.get_metadata()
+        metadata = self.data_connector.get_metadata()
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
 
         self.reader = from_connection(
-            self.private_dataset.get_pandas_df(),
+            self.data_connector.get_pandas_df(),
             privacy=privacy,
             metadata=smartnoise_metadata,
         )

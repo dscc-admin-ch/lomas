@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from private_dataset.private_dataset import PrivateDataset
+from data_connector.data_connector import DataConnector
 
 
 class DPQuerier(ABC):
@@ -10,16 +10,16 @@ class DPQuerier(ABC):
     Abstract Base Class for Queriers to external DP library.
 
     A querier type is specific to a DP library and
-    a querier instance is specific to a PrivateDataset instance.
+    a querier instance is specific to a DataConnector instance.
     """
 
-    def __init__(self, private_dataset: PrivateDataset) -> None:
+    def __init__(self, data_connector: DataConnector) -> None:
         """Initialise with specific dataset
 
         Args:
-            private_dataset (PrivateDataset): The private dataset to query.
+            data_connector (DataConnector): The private dataset to query.
         """
-        self.private_dataset = private_dataset
+        self.data_connector = data_connector
 
     @abstractmethod
     def cost(self, query_json: BaseModel) -> tuple[float, float]:

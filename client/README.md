@@ -3,15 +3,10 @@
 
 
 <picture>
-  <source 
-    media="(prefers-color-scheme: dark)" 
-    srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png?raw=true"
-  >
-  <source 
-    media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
-    srcset="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true"
-  >
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png">
 </picture>
+
 
 # Lomas Client
 

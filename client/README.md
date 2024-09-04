@@ -1,13 +1,16 @@
 [![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
 [![PyPi status](https://img.shields.io/pypi/status/lomas_client.svg)](https://pypi.org/project/lomas_client/)
 
-<h1 align="center">
-<img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
-</h1><br>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_darkmode_txt.png?raw=true">
-  <img alt="Text changing depending on mode. Light: 'So light!' Dark: 'So dark!'" src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true">
+  <source 
+    media="(prefers-color-scheme: dark)" 
+    srcset="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_darkmode_txt.png?raw=true"
+  />
+  <source 
+    media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+    srcset="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true"
+  />
 </picture>
 
 # Lomas Client

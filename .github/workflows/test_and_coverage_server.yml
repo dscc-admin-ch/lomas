@@ -29,7 +29,7 @@ jobs:
       run: |
         cd server
         pip install -r requirements.txt
-        pip install opendp==0.11
+        pip install opendp==0.11.1
         pip install coverage==7.5.3
     - name: Run test script
       run: |

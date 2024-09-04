@@ -18,7 +18,7 @@ jobs:
       run: |
         cd server
         pip install -r requirements.txt
-        pip install opendp==0.11
+        pip install opendp==0.11.1
     - name: Run test script
       run: |
         cd server

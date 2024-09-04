@@ -4,7 +4,7 @@ diffprivlib_logger==0.0.3
 fastapi==0.111.1
 httpx==0.27.0
 numpy==1.23.2
-#opendp==0.11 # Need to install manually because of version conflicts.
+#opendp==0.11.1 # Need to install manually because of version conflicts.
 opendp-logger==0.3.0
 pandas==2.2.2
 polars==1.1.0

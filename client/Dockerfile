@@ -5,7 +5,7 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 # Need to do that manually because of version conflicts.
-RUN pip install opendp==0.11
+RUN pip install opendp==0.11.1
 
 COPY ./lomas_client/ /code/lomas_client/
 COPY ./setup.cfg /code/setup.cfg

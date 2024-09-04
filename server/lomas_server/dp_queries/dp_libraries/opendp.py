@@ -37,7 +37,7 @@ def get_lf_domain(metadata, by_config):
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
     series_domains = []
-
+    # print(metadata)
     # Series domains
     for name, series_info in metadata["columns"].items():
         if series_info["type"] in ["float", "int"]:
@@ -82,35 +82,31 @@ def get_lf_domain(metadata, by_config):
         )
         series_domains.append(series_domain)
 
-    lf_domain = dp.domains.lazyframe_domain(series_domains)
-
     # Margins
     # TODO Check lengths vs. keys for public info -> not in doc anymore.
 
     # Global params
-    params = {}
-    params["max_num_partitions"] = 1
-    if "rows" in metadata:
-        params["max_partition_length"] = metadata["rows"]
+    params = _get_global_params(metadata)
+    if by_config:
+        params = _update_params_by_grouping(metadata, by_config, params)
+    else:
+        by_config = []
+    
     lf_domain = dp.domains.with_margin(
-        lf_domain,
-        by=[],
+        dp.domains.lazyframe_domain(series_domains),
+        by=by_config,
         public_info="lengths",
         **params,
     )
 
-    # Grouping logic (margin adaptation)
-    if by_config:
-        params = _update_params_by_grouping(metadata, by_config, params)
-        lf_domain = dp.domains.with_margin(
-            lf_domain,
-            by=by_config,
-            public_info="lengths",
-            **params,
-        )
-
     return lf_domain
 
+def _get_global_params(metadata):
+    params = {}
+    params["max_num_partitions"] = 1
+    params["max_partition_length"] = metadata["rows"]
+    
+    return params
 
 def _update_params_by_grouping(metadata, by_config, params):
     """
@@ -176,12 +172,10 @@ def _multiple_group_update_params(metadata, by_config, params):
 
     for column in by_config:
         series_info = metadata["columns"].get(column)
-
+        params["max_partition_length"] *= series_info.get("max_partition_length", 1)
+        
         if "cardinality" in series_info:
             params["max_num_partitions"] *= series_info["cardinality"]
-            params["max_partition_length"] *= series_info[
-                "max_partition_length"
-            ]
 
         if "max_influenced_partitions" in series_info:
             params["max_influenced_partitions"] = (

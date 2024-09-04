@@ -136,7 +136,6 @@ class TestOpenDpPolarsEndpoint(
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
-            # json_plan = mean_query_serialized(lf)
             json_plan = lf.select(
                 pl.col("temporal").dp.mean(bounds=(1, 52), scale=100.0)
             ).serialize(format="json")
@@ -254,3 +253,15 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
+            
+    def test_opendp_polars_margin(self) -> None:
+        """Test opendp polars query with different type of partitions"""
+        with TestClient(app, headers=self.headers) as client:
+            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
+            json_plan = lf.select(
+                pl.col("temporal").dp.mean(bounds=(1, 52), scale=100.0)
+            ).serialize(format="json")
+            example_opendp_polars_datetime["opendp_json"] = json_plan
+            example_opendp_polars["mechanism"] = "laplace"
+            
+            

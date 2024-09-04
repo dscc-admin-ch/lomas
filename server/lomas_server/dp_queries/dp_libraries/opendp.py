@@ -126,8 +126,6 @@ def _update_params_by_grouping(metadata, by_config, params):
         _single_group_update_params(metadata, series_info, params)
     else:
         _multiple_group_update_params(metadata, by_config, params)
-
-    params["max_partition_length"] = int(params["max_partition_length"])
     return params
 
 
@@ -140,8 +138,8 @@ def _single_group_update_params(metadata, series_info, params):
         series_info (dict): Metadata for the series (column).
         params (dict): Current parameters dictionary to update.
     """
-    params["max_partition_length"] = int(
-        metadata["rows"] * series_info.get("max_partition_length", 1)
+    params["max_partition_length"] = min(
+        metadata["rows"], series_info.get("max_partition_length", metadata["rows"])
     )
     params["max_num_partitions"] = series_info.get("cardinality")
 
@@ -172,7 +170,9 @@ def _multiple_group_update_params(metadata, by_config, params):
 
     for column in by_config:
         series_info = metadata["columns"].get(column)
-        params["max_partition_length"] *= series_info.get("max_partition_length", 1)
+        params["max_partition_length"] = min(
+            params["max_partition_length"], series_info.get("max_partition_length", metadata["rows"])
+        )
         
         if "cardinality" in series_info:
             params["max_num_partitions"] *= series_info["cardinality"]

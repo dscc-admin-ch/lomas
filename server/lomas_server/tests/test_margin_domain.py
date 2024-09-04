@@ -23,7 +23,7 @@ class TestMarginDomain(unittest.TestCase):
                     'type': 'string',
                     'categories': [1,2,3,4,5],
                     'cardinality': 5,
-                    # 'max_partition_length' : 0.6, # proportion max
+                    # 'max_partition_length' : 60, # proportion max
                     # 'max_influenced_partitions': 1,
                     # 'max_partition_contributions': 1,
                 },
@@ -31,7 +31,7 @@ class TestMarginDomain(unittest.TestCase):
                     'type': 'string',
                     'categories': [1,2,3,4,5],
                     'cardinality': 5,
-                    # 'max_partition_length' : 0.6, # proportion max
+                    # 'max_partition_length' : 10, # proportion max
                     # 'max_influenced_partitions': 1,
                     # 'max_partition_contributions': 1,
                 },
@@ -61,7 +61,7 @@ class TestMarginDomain(unittest.TestCase):
             params["max_partition_contributions"]
             
         # Single grouping, max_partition_length
-        metadata["columns"]["column_category"]["max_partition_length"] = 0.6
+        metadata["columns"]["column_category"]["max_partition_length"] = 60
         params = _update_params_by_grouping(metadata, by_config, _get_global_params(metadata))
         self.assertEqual(params["max_partition_length"], 60)
         
@@ -123,10 +123,10 @@ class TestMarginDomain(unittest.TestCase):
         
         # multiple, above max_ids for max_partition, multiple partition_length
         metadata["columns"]["column_category_2"]["max_partition_contributions"] = 20
-        metadata["columns"]["column_category_2"]["max_partition_length"] = 0.1
+        metadata["columns"]["column_category_2"]["max_partition_length"] = 10
         params = _update_params_by_grouping(metadata, by_config, _get_global_params(metadata))
         self.assertEqual(params["max_partition_contributions"], 30) # 40 > max_ids (30)
-        self.assertEqual(params["max_partition_length"], 6)
+        self.assertEqual(params["max_partition_length"], 10)
         
         # Test lf_domain creation
         lf_domain = get_lf_domain(metadata, by_config)

@@ -1,12 +1,13 @@
 [![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
 [![PyPi status](https://img.shields.io/pypi/status/lomas_client.svg)](https://pypi.org/project/lomas_client/)
 
-
+<h1 align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png"  width="300">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png"  width="500">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png">
   <img alt="I don't know why but this is needed." src="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png">
 </picture>
+</h1><br>
 
 
 # Lomas Client

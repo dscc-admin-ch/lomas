@@ -5,6 +5,11 @@
 <img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
 </h1><br>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_darkmode_txt.png?raw=true">
+  <img alt="Text changing depending on mode. Light: 'So light!' Dark: 'So dark!'" src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true">
+</picture>
+
 # Lomas Client
 
 The `lomas_client` library is a client to interact with the Lomas server.

@@ -27,9 +27,7 @@ def get_lf_from_json(pipeline) -> pl.LazyFrame:
         pl.LazyFrame: The deserialized LazyFrame containing the data
         from the JSON string.
     """
-    lf = pl.LazyFrame.deserialize(
-        io.StringIO(pipeline), format="json"
-    )
+    lf = pl.LazyFrame.deserialize(io.StringIO(pipeline), format="json")
 
     return lf
 
@@ -131,7 +129,7 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
-    
+
     def test_opendp_polars_datetime_query(self) -> None:
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:
@@ -147,7 +145,7 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars_datetime,
             )
             assert response.status_code == status.HTTP_200_OK
-            
+
             example_opendp_polars_datetime["dummy_nb_rows"] = DUMMY_NB_ROWS
             example_opendp_polars_datetime["dummy_seed"] = DUMMY_SEED
             response = client.post(
@@ -155,20 +153,20 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars_datetime,
             )
             assert response.status_code == status.HTTP_200_OK
-            
+
             json_plan = (
                 lf.group_by("date")
                 .agg([pl.col("temporal").dp.mean(bounds=(1, 52), scale=10.0)])
                 .sort("temporal")
             ).serialize(format="json")
-            
+
             example_opendp_polars_datetime["opendp_json"] = json_plan
             response = client.post(
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
             assert response.status_code == status.HTTP_200_OK
-            
+
     def test_opendp_polars_cost(self) -> None:
         """test_opendp_polars_cost"""
         with TestClient(app, headers=self.headers) as client:
@@ -253,15 +251,3 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
-            
-    def test_opendp_polars_margin(self) -> None:
-        """Test opendp polars query with different type of partitions"""
-        with TestClient(app, headers=self.headers) as client:
-            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
-            json_plan = lf.select(
-                pl.col("temporal").dp.mean(bounds=(1, 52), scale=100.0)
-            ).serialize(format="json")
-            example_opendp_polars_datetime["opendp_json"] = json_plan
-            example_opendp_polars["mechanism"] = "laplace"
-            
-            

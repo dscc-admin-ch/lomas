@@ -37,7 +37,6 @@ def get_lf_domain(metadata, by_config):
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
     series_domains = []
-    # print(metadata)
     # Series domains
     for name, series_info in metadata["columns"].items():
         if series_info["type"] in ["float", "int"]:
@@ -91,7 +90,7 @@ def get_lf_domain(metadata, by_config):
         params = _update_params_by_grouping(metadata, by_config, params)
     else:
         by_config = []
-    
+
     lf_domain = dp.domains.with_margin(
         dp.domains.lazyframe_domain(series_domains),
         by=by_config,
@@ -101,12 +100,14 @@ def get_lf_domain(metadata, by_config):
 
     return lf_domain
 
+
 def _get_global_params(metadata):
     params = {}
     params["max_num_partitions"] = 1
     params["max_partition_length"] = metadata["rows"]
-    
+
     return params
+
 
 def _update_params_by_grouping(metadata, by_config, params):
     """
@@ -139,7 +140,8 @@ def _single_group_update_params(metadata, series_info, params):
         params (dict): Current parameters dictionary to update.
     """
     params["max_partition_length"] = min(
-        metadata["rows"], series_info.get("max_partition_length", metadata["rows"])
+        metadata["rows"],
+        series_info.get("max_partition_length", metadata["rows"]),
     )
     params["max_num_partitions"] = series_info.get("cardinality")
 
@@ -171,9 +173,10 @@ def _multiple_group_update_params(metadata, by_config, params):
     for column in by_config:
         series_info = metadata["columns"].get(column)
         params["max_partition_length"] = min(
-            params["max_partition_length"], series_info.get("max_partition_length", metadata["rows"])
+            params["max_partition_length"],
+            series_info.get("max_partition_length", metadata["rows"]),
         )
-        
+
         if "cardinality" in series_info:
             params["max_num_partitions"] *= series_info["cardinality"]
 

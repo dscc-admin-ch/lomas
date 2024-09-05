@@ -14,7 +14,7 @@ hmtl to create links between versions.
 import os
 import subprocess
 import yaml
-
+import re
 
 def git_ref_exists(git_ref: str) -> bool:
   """
@@ -26,8 +26,14 @@ def git_ref_exists(git_ref: str) -> bool:
   Returns:
       bool: True if the reference is found, False otherwise.
   """
+  #check if reference is a tag
+  tag_pattern = r"^v\d+\.\d+\.\d+$"
+  if re.match(tag_pattern, git_ref):
+    refs = "tags"
+  else:
+    refs = "heads"
   try:
-    result = subprocess.run(f"git ls-remote --heads origin {git_ref}",
+    result = subprocess.run(f"git ls-remote --{refs} origin {git_ref}",
                             shell=True, text=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE

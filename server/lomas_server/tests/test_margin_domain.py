@@ -4,8 +4,8 @@ from typing import Any, Dict
 import opendp
 
 from dp_queries.dp_libraries.opendp import (
-    _get_global_params,
-    _update_params_by_grouping,
+    get_global_params,
+    update_params_by_grouping,
     get_lf_domain,
 )
 
@@ -48,19 +48,19 @@ class TestMarginDomain(unittest.TestCase):
 
         # No grouping (only global)
         by_config = []
-        params = _get_global_params(metadata)
+        params = get_global_params(metadata)
         self.assertEqual(params["max_num_partitions"], 1)
         self.assertEqual(params["max_partition_length"], 100)
 
         # Fail if no rows in metadata
         del metadata["rows"]
         with self.assertRaises(KeyError):
-            params = _get_global_params(metadata)
+            params = get_global_params(metadata)
 
         # Single grouping, default params
         metadata["rows"] = 100
         by_config = ["column_category"]
-        params = _update_params_by_grouping(metadata, by_config, params)
+        params = update_params_by_grouping(metadata, by_config, params)
         self.assertEqual(params["max_num_partitions"], 5)
         self.assertEqual(params["max_partition_length"], 100)
         with self.assertRaises(KeyError):
@@ -70,23 +70,23 @@ class TestMarginDomain(unittest.TestCase):
 
         # Single grouping, max_partition_length
         metadata["columns"]["column_category"]["max_partition_length"] = 60
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_length"], 60)
 
         # Single grouping, max_influenced_partitions
         metadata["columns"]["column_category"]["max_influenced_partitions"] = 3
         metadata["max_ids"] = 2
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         # equal to 2 since max_ids is 2 (cannot appear more than max_ids)
         self.assertEqual(params["max_influenced_partitions"], 2)
 
         metadata["max_ids"] = 6
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_influenced_partitions"], 3)
 
@@ -95,14 +95,14 @@ class TestMarginDomain(unittest.TestCase):
         metadata["columns"]["column_category"][
             "max_partition_contributions"
         ] = 8
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_contributions"], 6)
 
         metadata["max_ids"] = 10
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_contributions"], 8)
 
@@ -112,8 +112,8 @@ class TestMarginDomain(unittest.TestCase):
         metadata["columns"]["column_category"][
             "max_partition_contributions"
         ] = 8
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_contributions"], 5)
         self.assertEqual(params["max_influenced_partitions"], 3)
@@ -131,8 +131,8 @@ class TestMarginDomain(unittest.TestCase):
         metadata["columns"]["column_category"][
             "max_partition_contributions"
         ] = 2
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_contributions"], 2)
         self.assertEqual(params["max_influenced_partitions"], 1)
@@ -150,8 +150,8 @@ class TestMarginDomain(unittest.TestCase):
         metadata["columns"]["column_category_2"][
             "max_partition_contributions"
         ] = 4
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_partition_contributions"], 8)
         self.assertEqual(params["max_influenced_partitions"], 3)
@@ -162,8 +162,8 @@ class TestMarginDomain(unittest.TestCase):
             "max_partition_contributions"
         ] = 20
         metadata["columns"]["column_category_2"]["max_partition_length"] = 10
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(
             params["max_partition_contributions"], 30
@@ -183,8 +183,8 @@ class TestMarginDomain(unittest.TestCase):
         del metadata["columns"]["column_category"]["max_influenced_partitions"]
         # test with single grouping
         by_config = ["column_category"]
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_num_partitions"], None)
         lf_domain = get_lf_domain(metadata, by_config)
@@ -192,8 +192,8 @@ class TestMarginDomain(unittest.TestCase):
         # test with multiple grouping
         by_config = ["column_category", "column_category_2"]
         metadata["columns"]["column_category_2"]["cardinality"] = 4
-        params = _update_params_by_grouping(
-            metadata, by_config, _get_global_params(metadata)
+        params = update_params_by_grouping(
+            metadata, by_config, get_global_params(metadata)
         )
         self.assertEqual(params["max_num_partitions"], 4)
         lf_domain = get_lf_domain(metadata, by_config)

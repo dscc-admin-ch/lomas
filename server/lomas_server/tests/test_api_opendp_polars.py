@@ -130,6 +130,7 @@ class TestOpenDpPolarsEndpoint(
             )
             assert response.status_code == status.HTTP_200_OK
 
+    # TODO: opendp v0.12: Adapt for datetime
     def test_opendp_polars_datetime_query(self) -> None:
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:

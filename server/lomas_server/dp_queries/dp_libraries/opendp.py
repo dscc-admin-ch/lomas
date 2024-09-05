@@ -91,6 +91,7 @@ def get_lf_domain(metadata, by_config):
     else:
         by_config = []
 
+    # TODO: Multiple margins?
     lf_domain = dp.domains.with_margin(
         dp.domains.lazyframe_domain(series_domains),
         by=by_config,
@@ -139,6 +140,8 @@ def _single_group_update_params(metadata, series_info, params):
         series_info (dict): Metadata for the series (column).
         params (dict): Current parameters dictionary to update.
     """
+    # 
+    # 
     params["max_partition_length"] = min(
         metadata["rows"],
         series_info.get("max_partition_length", metadata["rows"]),
@@ -167,18 +170,20 @@ def _multiple_group_update_params(metadata, by_config, params):
         by_config (list): List of columns used for grouping.
         params (dict): Current parameters dictionary to update.
     """
+    # initialize
     params["max_num_partitions"] = 1
     params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
         series_info = metadata["columns"].get(column)
+        # to comment
         params["max_partition_length"] = min(
             params["max_partition_length"],
             series_info.get("max_partition_length", metadata["rows"]),
         )
 
         if "cardinality" in series_info:
-            params["max_num_partitions"] *= series_info["cardinality"]
+            params["max_num_partitions"] *= series_info.get("cardinality")
 
         if "max_influenced_partitions" in series_info:
             params["max_influenced_partitions"] = (

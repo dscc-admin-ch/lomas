@@ -37,11 +37,13 @@ def get_lf_domain(metadata, by_config):
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
     series_domains = []
-
     # Series domains
     for name, series_info in metadata["columns"].items():
         if series_info["type"] in ["float", "int"]:
             series_type = f"{series_info['type']}{series_info['precision']}"
+        # TODO: release opendp 0.12 (adapt with type date)
+        elif series_info["type"] == "datetime":
+            series_type = "string"
         else:
             series_type = series_info["type"]
 
@@ -79,38 +81,49 @@ def get_lf_domain(metadata, by_config):
         )
         series_domains.append(series_domain)
 
-    lf_domain = dp.domains.lazyframe_domain(series_domains)
-
     # Margins
     # TODO Check lengths vs. keys for public info -> not in doc anymore.
 
-    # Global params
-    params = {}
-    params["max_num_partitions"] = metadata["max_ids"]
-    if "rows" in metadata:
-        params["max_partition_length"] = metadata["rows"]
-    if len(params) > 0:
-        lf_domain = dp.domains.with_margin(
-            lf_domain,
-            by=[],
-            public_info="lengths",
-            **params,
-        )
+    # Global margin parameters
+    margin_params = get_global_params(metadata)
 
-    # Grouping logic (margin adaptation)
+    # If grouping in the query, we update the margin params
     if by_config:
-        params = _update_params_by_grouping(metadata, by_config, params)
-        lf_domain = dp.domains.with_margin(
-            lf_domain,
-            by=by_config,
-            public_info="lengths",
-            **params,
+        margin_params = update_params_by_grouping(
+            metadata, by_config, margin_params
         )
+    else:
+        by_config = []
+
+    # TODO: Multiple margins?
+    # What if two group_by's in one query?
+    lf_domain = dp.domains.with_margin(
+        dp.domains.lazyframe_domain(series_domains),
+        by=by_config,
+        public_info="lengths",
+        **margin_params,
+    )
 
     return lf_domain
 
 
-def _update_params_by_grouping(metadata, by_config, params):
+def get_global_params(metadata):
+    """Get global parameters for margin
+
+    Args:
+        metadata (dict): The metadata dictionary
+
+    Returns:
+        dict: Parameters for margin
+    """
+    margin_params = {}
+    margin_params["max_num_partitions"] = 1
+    margin_params["max_partition_length"] = metadata["rows"]
+
+    return margin_params
+
+
+def update_params_by_grouping(metadata, by_config, margin_params):
     """
     Updates the parameters for margin adaptation based on
     grouping configuration.
@@ -118,22 +131,20 @@ def _update_params_by_grouping(metadata, by_config, params):
     Args:
         metadata (dict): The metadata dictionary.
         by_config (list): Configuration for grouping.
-        params (dict): Current parameters dictionary to update.
+        margin_params (dict): Current parameters dictionary to update.
 
     Returns:
         dict: Updated parameters dictionary.
     """
     if len(by_config) == 1:
         series_info = metadata["columns"].get(by_config[0])
-        _single_group_update_params(metadata, series_info, params)
+        single_group_update_params(metadata, series_info, margin_params)
     else:
-        _multiple_group_update_params(metadata, by_config, params)
-
-    params["max_partition_length"] = int(params["max_partition_length"])
-    return params
+        multiple_group_update_params(metadata, by_config, margin_params)
+    return margin_params
 
 
-def _single_group_update_params(metadata, series_info, params):
+def single_group_update_params(metadata, series_info, margin_params):
     """
     Updates parameters for single-column grouping configuration.
 
@@ -142,65 +153,103 @@ def _single_group_update_params(metadata, series_info, params):
         series_info (dict): Metadata for the series (column).
         params (dict): Current parameters dictionary to update.
     """
-    params["max_partition_length"] = int(
-        metadata["rows"] * series_info.get("max_partition_length", 1)
+    # Max_partition_length logic:
+    # Must be specified at least at the dataset level (global)
+    # if none are specified at the partition, we use the global
+    margin_params["max_partition_length"] = min(
+        metadata["rows"],
+        series_info.get("max_partition_length", metadata["rows"]),
     )
-    params["max_num_partitions"] = series_info.get("cardinality")
 
+    # If none is given for the partition, None is used (allowed)
+    margin_params["max_num_partitions"] = series_info.get("cardinality")
+
+    # max_influenced partitions logic:
+    # "Greatest number of partitions any one
+    # individual may contribute to."
+    # If max_influenced_partitions is bigger than max_ids
+    # we fix it at max_ids (should not happen)
     if "max_influenced_partitions" in series_info:
-        params["max_influenced_partitions"] = min(
+        margin_params["max_influenced_partitions"] = min(
             metadata["max_ids"],
             series_info.get("max_influenced_partitions"),
         )
-
+    # max_influenced partitins logic:
+    # "The greatest number of records an individual
+    # may contribute to any one partition."
+    # If max_influenced_partitions is bigger than max_ids
+    # we fix it at max_ids (should not happen)
     if "max_partition_contributions" in series_info:
-        params["max_partition_contributions"] = min(
+        margin_params["max_partition_contributions"] = min(
             metadata["max_ids"],
             series_info.get("max_partition_contributions"),
         )
 
 
-def _multiple_group_update_params(metadata, by_config, params):
+def multiple_group_update_params(metadata, by_config, margin_params):
     """
     Updates parameters for multiple-column grouping configuration.
 
     Args:
         metadata (dict): The metadata dictionary.
         by_config (list): List of columns used for grouping.
-        params (dict): Current parameters dictionary to update.
+        margin_params (dict): Current parameters dictionary to update.
     """
-    params["max_num_partitions"] = 1
-    params["max_partition_length"] = metadata["rows"]
+    # Initialize max_numpartitions/max_partition_length to 1
+    margin_params["max_num_partitions"] = 1
+    margin_params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
         series_info = metadata["columns"].get(column)
 
-        if "cardinality" in series_info:
-            params["max_num_partitions"] *= series_info["cardinality"]
-            params["max_partition_length"] *= series_info[
-                "max_partition_length"
-            ]
+        # max_partitions_length logic:
+        # When two columns in the grouping
+        # We use as max_partition_length the smaller value
+        # at the column level. If None are defined, dataset length is used.
+        margin_params["max_partition_length"] = min(
+            margin_params["max_partition_length"],
+            series_info.get("max_partition_length", metadata["rows"]),
+        )
 
+        # max_partitions_length logic:
+        # We multiply the cardinality defined in each column
+        # If None are defined, max_num_partitions is equal to None
+        if "cardinality" in series_info:
+            margin_params["max_num_partitions"] *= series_info.get(
+                "cardinality"
+            )
+
+        # max_influenced_partitions logic:
+        # We multiply the max_influenced_partitions defined in each column
+        # If None are defined, max_influenced_partitions is equal to None
         if "max_influenced_partitions" in series_info:
-            params["max_influenced_partitions"] = (
-                params.get("max_influenced_partitions", 1)
+            margin_params["max_influenced_partitions"] = (
+                margin_params.get("max_influenced_partitions", 1)
                 * series_info["max_influenced_partitions"]
             )
 
+        # max_partition_contributions logic:
+        # We multiply the max_partition_contributions defined in each column
+        # If None are defined, max_partition_contributions is equal to None
         if "max_partition_contributions" in series_info:
-            params["max_partition_contributions"] = (
-                params.get("max_partition_contributions", 1)
+            margin_params["max_partition_contributions"] = (
+                margin_params.get("max_partition_contributions", 1)
                 * series_info["max_partition_contributions"]
             )
 
-    if "max_influenced_partitions" in params:
-        params["max_influenced_partitions"] = min(
-            metadata["max_ids"], params["max_influenced_partitions"]
+    # If max_influenced_partitions > max_ids:
+    # Then max_influenced_partitions = max_ids
+    if "max_influenced_partitions" in margin_params:
+        margin_params["max_influenced_partitions"] = min(
+            metadata["max_ids"], margin_params["max_influenced_partitions"]
         )
-    if "max_partition_contributions" in params:
-        params["max_partition_contributions"] = min(
+
+    # If max_partition_contributions > max_ids:
+    # Then max_partition_contributions = max_ids
+    if "max_partition_contributions" in margin_params:
+        margin_params["max_partition_contributions"] = min(
             metadata["max_ids"],
-            params.get("max_partition_contributions"),
+            margin_params.get("max_partition_contributions"),
         )
 
 

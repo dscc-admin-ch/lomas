@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from constants import (
+from lomas_server.constants import (
     DELTA_LIMIT,
     EPSILON_LIMIT,
     SSynthGanSynthesizer,

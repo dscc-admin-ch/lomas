@@ -9,7 +9,7 @@ services:
       - 80:80
     restart: always
     volumes:
-      - ./lomas_server:/code/
+      - ./lomas_server:/code/lomas_server
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./data/collections/metadata:/data/collections/metadata/
@@ -87,7 +87,7 @@ services:
       - 8501:8501
     restart: always
     volumes:
-      - ./lomas_server:/code/
+      - ./lomas_server:/code/lomas_server
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./configs/example_dashboard_config.yaml:/usr/lomas_dashboard/dashboard.yaml

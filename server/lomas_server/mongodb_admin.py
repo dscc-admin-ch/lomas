@@ -8,11 +8,16 @@ import yaml
 from pymongo.database import Database
 from pymongo.results import _WriteResult
 
-from admin_database.mongodb_database import check_result_acknowledged
-from constants import PrivateDatabaseType
-from utils.collection_models import DatasetsCollection, UserCollection
-from utils.error_handler import InternalServerException
-from utils.logger import LOG
+from lomas_server.admin_database.mongodb_database import (
+    check_result_acknowledged,
+)
+from lomas_server.constants import PrivateDatabaseType
+from lomas_server.utils.collection_models import (
+    DatasetsCollection,
+    UserCollection,
+)
+from lomas_server.utils.error_handler import InternalServerException
+from lomas_server.utils.logger import LOG
 
 
 def check_user_exists(enforce_true: bool) -> Callable:

@@ -12,24 +12,24 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
 
-from admin_database.factory import admin_database_factory
-from admin_database.utils import get_mongodb
-from app import app
-from constants import EPSILON_LIMIT, DPLibraries
-from mongodb_admin import (
+from lomas_server.admin_database.factory import admin_database_factory
+from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.app import app
+from lomas_server.constants import EPSILON_LIMIT, DPLibraries
+from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from tests.constants import (
+from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from utils.config import CONFIG_LOADER
-from utils.error_handler import InternalServerException
-from utils.logger import LOG
-from utils.query_examples import (
+from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.error_handler import InternalServerException
+from lomas_server.utils.logger import LOG
+from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,

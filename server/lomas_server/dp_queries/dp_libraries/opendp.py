@@ -5,16 +5,20 @@ from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
-from dp_queries.dp_querier import DPQuerier
-from utils.config import OpenDPConfig
-from utils.error_handler import (
+from lomas_server.constants import (
+    DPLibraries,
+    OpenDPDatasetInputMetric,
+    OpenDPMeasurement,
+)
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.config import OpenDPConfig
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.logger import LOG
-from utils.query_models import OpenDPModel
+from lomas_server.utils.logger import LOG
+from lomas_server.utils.query_models import OpenDPModel
 
 
 class OpenDPQuerier(DPQuerier):

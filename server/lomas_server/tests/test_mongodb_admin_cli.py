@@ -7,10 +7,10 @@ from typing import List
 import yaml
 from pymongo import MongoClient
 
-from admin_database.utils import get_mongodb_url
-from constants import PrivateDatabaseType
-from tests.constants import ENV_MONGO_INTEGRATION
-from utils.config import CONFIG_LOADER, get_config
+from lomas_server.admin_database.utils import get_mongodb_url
+from lomas_server.constants import PrivateDatabaseType
+from lomas_server.tests.constants import ENV_MONGO_INTEGRATION
+from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
 @unittest.skipIf(

@@ -3,8 +3,8 @@ import argparse
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from admin_database.utils import get_mongodb_url
-from mongodb_admin import (
+from lomas_server.admin_database.utils import get_mongodb_url
+from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,

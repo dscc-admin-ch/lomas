@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable, Dict, List
 
-from constants import MODEL_INPUT_TO_LIB
-from utils.error_handler import (
+from lomas_server.constants import MODEL_INPUT_TO_LIB
+from lomas_server.utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )

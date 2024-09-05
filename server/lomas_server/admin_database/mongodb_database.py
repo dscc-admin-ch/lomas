@@ -5,13 +5,13 @@ from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
 
-from admin_database.admin_database import (
+from lomas_server.admin_database.admin_database import (
     AdminDatabase,
     dataset_must_exist,
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from utils.error_handler import InvalidQueryException
+from lomas_server.utils.error_handler import InvalidQueryException
 
 
 class AdminMongoDatabase(AdminDatabase):

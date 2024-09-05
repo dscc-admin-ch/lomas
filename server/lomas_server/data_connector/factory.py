@@ -1,12 +1,12 @@
 from typing import List
 
-from admin_database.admin_database import AdminDatabase
-from constants import PrivateDatabaseType
-from data_connector.data_connector import DataConnector
-from data_connector.path_connector import PathConnector
-from data_connector.s3_connector import S3Connector
-from utils.config import PrivateDBCredentials, S3CredentialsConfig
-from utils.error_handler import InternalServerException
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import PrivateDatabaseType
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.data_connector.path_connector import PathConnector
+from lomas_server.data_connector.s3_connector import S3Connector
+from lomas_server.utils.config import PrivateDBCredentials, S3CredentialsConfig
+from lomas_server.utils.error_handler import InternalServerException
 
 
 def data_connector_factory(

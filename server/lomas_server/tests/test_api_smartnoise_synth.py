@@ -13,10 +13,10 @@ from snsynth.transform import (
     OneHotEncoder,
 )
 
-from app import app
-from tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
-from tests.test_api import TestRootAPIEndpoint
-from utils.query_examples import (
+from lomas_server.app import app
+from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
+from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.utils.query_examples import (
     example_dummy_smartnoise_synth_query,
     example_smartnoise_synth_cost,
     example_smartnoise_synth_query,

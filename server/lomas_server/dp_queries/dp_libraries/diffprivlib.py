@@ -7,16 +7,19 @@ from diffprivlib_logger import deserialise_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from admin_database.admin_database import AdminDatabase
-from constants import DPLibraries
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.utils import handle_missing_data, serialise_model
-from dp_queries.dp_querier import DPQuerier
-from utils.error_handler import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import DPLibraries
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.utils import (
+    handle_missing_data,
+    serialise_model,
+)
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
 )
-from utils.query_models import DiffPrivLibModel
+from lomas_server.utils.query_models import DiffPrivLibModel
 
 
 class DiffPrivLibQuerier(DPQuerier):

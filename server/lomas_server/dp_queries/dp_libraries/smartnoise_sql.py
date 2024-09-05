@@ -4,17 +4,20 @@ import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
-from admin_database.admin_database import AdminDatabase
-from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_querier import DPQuerier
-from utils.collection_models import Metadata
-from utils.error_handler import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
+from lomas_server.utils.query_models import (
+    SmartnoiseSQLCostModel,
+    SmartnoiseSQLModel,
+)
 
 
 class SmartnoiseSQLQuerier(DPQuerier):

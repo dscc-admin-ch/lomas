@@ -1,19 +1,19 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from data_connector.data_connector import get_column_dtypes
-from dp_queries.dummy_dataset import make_dummy_dataset
-from routes.utils import server_live
-from utils.error_handler import (
+from lomas_server.data_connector.data_connector import get_column_dtypes
+from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.routes.utils import server_live
+from lomas_server.utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
-from utils.query_examples import (
+from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
-from utils.query_models import GetDbData, GetDummyDataset
+from lomas_server.utils.query_models import GetDbData, GetDummyDataset
 
 router = APIRouter()
 

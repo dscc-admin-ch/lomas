@@ -1,12 +1,16 @@
-from admin_database.admin_database import AdminDatabase
-from constants import DPLibraries
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
-from dp_queries.dp_libraries.opendp import OpenDPQuerier
-from dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
-from dp_queries.dp_libraries.smartnoise_synth import SmartnoiseSynthQuerier
-from dp_queries.dp_querier import DPQuerier
-from utils.error_handler import InternalServerException
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import DPLibraries
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
+from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier
+from lomas_server.dp_queries.dp_libraries.smartnoise_sql import (
+    SmartnoiseSQLQuerier,
+)
+from lomas_server.dp_queries.dp_libraries.smartnoise_synth import (
+    SmartnoiseSynthQuerier,
+)
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.error_handler import InternalServerException
 
 
 def querier_factory(

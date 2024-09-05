@@ -4,11 +4,11 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from constants import DPLibraries
-from data_connector.factory import data_connector_factory
-from dp_queries.dp_libraries.factory import querier_factory
-from dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from utils.error_handler import (
+from lomas_server.constants import DPLibraries
+from lomas_server.data_connector.factory import data_connector_factory
+from lomas_server.dp_queries.dp_libraries.factory import querier_factory
+from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,

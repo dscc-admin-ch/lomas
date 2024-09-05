@@ -3,13 +3,13 @@ from types import SimpleNamespace
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from mongodb_admin import (
+from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from utils.config import DBConfig, get_config
-from utils.logger import LOG
+from lomas_server.utils.config import DBConfig, get_config
+from lomas_server.utils.logger import LOG
 
 
 def get_mongodb_url(config: DBConfig) -> str:

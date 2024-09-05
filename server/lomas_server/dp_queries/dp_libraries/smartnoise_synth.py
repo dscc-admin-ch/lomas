@@ -16,8 +16,8 @@ from snsynth.transform import (
 from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
 
-from admin_database.admin_database import AdminDatabase
-from constants import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import (
     DEFAULT_DATE_FORMAT,
     SECONDS_IN_A_DAY,
     SSYNTH_DEFAULT_BINS,
@@ -29,16 +29,16 @@ from constants import (
     SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.utils import serialise_model
-from dp_queries.dp_querier import DPQuerier
-from utils.collection_models import Metadata
-from utils.error_handler import (
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.utils import serialise_model
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import (
+from lomas_server.utils.query_models import (
     SmartnoiseSynthCostModel,
     SmartnoiseSynthQueryModel,
 )

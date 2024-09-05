@@ -4,8 +4,8 @@ import random
 import numpy as np
 import pandas as pd
 
-from admin_database.admin_database import AdminDatabase
-from constants import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import (
     DEFAULT_NUMERICAL_MAX,
     DEFAULT_NUMERICAL_MIN,
     DUMMY_NB_ROWS,
@@ -15,9 +15,9 @@ from constants import (
     RANDOM_DATE_START,
     RANDOM_STRINGS,
 )
-from data_connector.in_memory_connector import InMemoryConnector
-from utils.error_handler import InternalServerException
-from utils.query_models import GetDummyDataset
+from lomas_server.data_connector.in_memory_connector import InMemoryConnector
+from lomas_server.utils.error_handler import InternalServerException
+from lomas_server.utils.query_models import GetDummyDataset
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals

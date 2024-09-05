@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from utils.collection_models import Metadata
+from lomas_server.utils.collection_models import Metadata
 
 
 class DataConnector(ABC):

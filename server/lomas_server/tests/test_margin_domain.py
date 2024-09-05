@@ -5,8 +5,8 @@ import opendp
 
 from dp_queries.dp_libraries.opendp import (
     get_global_params,
-    update_params_by_grouping,
     get_lf_domain,
+    update_params_by_grouping,
 )
 
 

@@ -14,9 +14,6 @@ if __name__ == "__main__":
             f" from {config.server.workers} to 1.",
         )
 
-    import importlib
-
-    importlib.import_module("lomas_server.app")
     uvicorn.run(
         "lomas_server.app:app",
         host=config.server.host_ip,

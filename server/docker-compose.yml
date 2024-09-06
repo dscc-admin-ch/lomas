@@ -114,10 +114,25 @@ services:
       - lomas_server
     networks:
       - lomas-network
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    volumes:
+      - pgdata:/data
+      - ./data/datasets:/docker-entrypoint-initdb.d
+    networks:
+      - lomas-network
 networks:
   lomas-network:
     driver: bridge
-
+ 
 volumes:
   # These volumes needs to be setup only once with "docker volume create <volume_name>"
   # They will be stored in /var/lib/docker/volumes and managed by docker.
@@ -125,5 +140,5 @@ volumes:
     external: true
   minio-data:
     external: true
-
-
+  pgdata:
+    external: true

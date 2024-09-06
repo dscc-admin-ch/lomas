@@ -102,6 +102,7 @@ class PrivateDatabaseType(StrEnum):
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
+    POSTGRESQL = "POSTGRESQL_DB"
 
 
 # Smartnoise sql

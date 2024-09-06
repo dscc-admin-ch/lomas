@@ -15,6 +15,7 @@ pyaml==23.9.5
 pydantic==2.8.2
 pymongo==4.6.3
 scikit-learn==1.4.0
+sqlalchemy==2.0.34
 smartnoise-sql==1.0.4
 smartnoise-synth==1.0.4
 smartnoise_synth_logger==0.0.3

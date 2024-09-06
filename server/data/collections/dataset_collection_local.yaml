@@ -43,3 +43,14 @@ datasets:
   metadata:
     database_type: "PATH_DB"
     metadata_path: "../data/collections/metadata/birthday_metadata.yaml"
+- dataset_name: "TITANIC_2"
+  database_type: "POSTGRESQL_DB"
+  credentials_name: "local_postgres"
+  table: "titanic"
+  user: "user"
+  password: "password"
+  host: "postgres"
+  database: "db"
+  metadata:
+    database_type: "PATH_DB"
+    metadata_path: "../data/collections/metadata/titanic_metadata.yaml"

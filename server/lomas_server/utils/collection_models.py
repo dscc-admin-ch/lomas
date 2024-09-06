@@ -78,10 +78,22 @@ class DatasetOfS3DB(Dataset):
     credentials_name: str
 
 
+class DatasetOfPOSTGRESDB(Dataset):
+    """BaseModel for a dataset in Postgres"""
+
+    database_type: Literal[PrivateDatabaseType.POSTGRESQL]  # type: ignore
+    credentials_name: str
+    table: str
+    user: str
+    password: str
+    host: str
+    database: str
+
+
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]] = Field(
+    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB, DatasetOfPOSTGRESDB]] = Field(
         ..., discriminator="database_type"
     )
 

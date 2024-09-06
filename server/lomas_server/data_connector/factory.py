@@ -5,7 +5,8 @@ from constants import PrivateDatabaseType
 from data_connector.data_connector import DataConnector
 from data_connector.path_connector import PathConnector
 from data_connector.s3_connector import S3Connector
-from utils.config import PrivateDBCredentials, S3CredentialsConfig
+from data_connector.postgresql_connector import PostgreSQLConnector
+from utils.config import PrivateDBCredentials, S3CredentialsConfig, PostgreSQLCredentialsConfig
 from utils.error_handler import InternalServerException
 
 
@@ -61,6 +62,32 @@ def data_connector_factory(
             )
 
             private_db = S3Connector(ds_metadata, credentials)
+        case PrivateDatabaseType.POSTGRESQL:
+            credentials_name = admin_database.get_dataset_field(
+                dataset_name, "credentials_name"
+            )
+
+            credentials = get_dataset_credentials(
+                private_db_credentials, database_type, credentials_name
+            )
+
+            credentials.table = admin_database.get_dataset_field(
+                dataset_name, "table"
+            )
+            credentials.user = admin_database.get_dataset_field(
+                dataset_name, "user"
+            )
+            credentials.password = admin_database.get_dataset_field(
+                dataset_name, "password"
+            )
+            credentials.host = admin_database.get_dataset_field(
+                dataset_name, "host"
+            )
+            credentials.database = admin_database.get_dataset_field(
+                dataset_name, "database"
+            )
+            
+            private_db = PostgreSQLConnector(credentials)
         case _:
             raise InternalServerException(
                 f"Unknown database type: {database_type}"
@@ -95,6 +122,13 @@ def get_dataset_credentials(
     if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials:
             if isinstance(c, S3CredentialsConfig) and (
+                credentials_name == c.credentials_name
+            ):
+                return c
+            
+    if db_type == PrivateDatabaseType.POSTGRESQL:
+        for c in private_db_credentials:
+            if isinstance(c, PostgreSQLCredentialsConfig) and (
                 credentials_name == c.credentials_name
             ):
                 return c

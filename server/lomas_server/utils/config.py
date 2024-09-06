@@ -87,6 +87,13 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
+class PostgreSQLCredentialsConfig(PrivateDBCredentials):
+    """BaseModel for PostgreSQL database credentials."""
+
+    db_type: Literal[PrivateDatabaseType.POSTGRESQL]  # type: ignore
+    credentials_name: str
+
+
 class OpenDPConfig(BaseModel):
     """BaseModel for openDP librairy config"""
 
@@ -119,7 +126,8 @@ class Config(BaseModel):
         ..., discriminator="db_type"
     )
 
-    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(
+    private_db_credentials: List[Union[S3CredentialsConfig, 
+                                       PostgreSQLCredentialsConfig]] = Field(
         ..., discriminator="db_type"
     )
 

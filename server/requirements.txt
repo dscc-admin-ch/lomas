@@ -12,6 +12,7 @@ opendp-logger==0.3.0
 packaging==24.1
 pandas==2.2.2
 pyaml==23.9.5
+pydantic==2.8.2
 pymongo==4.6.3
 scikit-learn==1.4.0
 smartnoise-sql==1.0.4

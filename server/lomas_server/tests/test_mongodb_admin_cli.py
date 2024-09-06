@@ -1,7 +1,6 @@
 import os
 import subprocess
 import unittest
-from types import SimpleNamespace
 from typing import List
 
 import yaml
@@ -10,7 +9,7 @@ from pymongo import MongoClient
 from lomas_server.admin_database.utils import get_mongodb_url
 from lomas_server.constants import PrivateDatabaseType
 from lomas_server.tests.constants import ENV_MONGO_INTEGRATION
-from lomas_server.utils.config import CONFIG_LOADER, get_config
+from lomas_server.utils.config import CONFIG_LOADER, MongoDBConfig, get_config
 
 
 @unittest.skipIf(
@@ -39,12 +38,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         # Access to MongoDB
-        db_args = SimpleNamespace(**vars(get_config().admin_database))
-        db_url = get_mongodb_url(db_args)
-        cls.db = MongoClient(db_url)[db_args.db_name]
+        admin_config = get_config().admin_database
+        if isinstance(admin_config, MongoDBConfig):
+            mongo_config: MongoDBConfig = admin_config
+        else:
+            raise TypeError("Loaded config does not contain a MongoDBConfig.")
+
+        db_url = get_mongodb_url(mongo_config)
+        cls.db = MongoClient(db_url)[mongo_config.db_name]
 
         # CLI args to connect to DB
-        admin_config = get_config().admin_database
         cls.db_connection_cli = [
             "--username",
             admin_config.username,

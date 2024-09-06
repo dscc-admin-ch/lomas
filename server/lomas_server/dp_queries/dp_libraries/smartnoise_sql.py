@@ -69,7 +69,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: SmartnoiseSQLModel, nb_iter: int = 0) -> dict:
+    def query(self, query_json: SmartnoiseSQLModel) -> dict:
+        return self.query_with_iter(query_json)
+
+    def query_with_iter(
+        self, query_json: SmartnoiseSQLModel, nb_iter: int = 0
+    ) -> dict:
         """Perform the query and return the response.
 
         Args:
@@ -122,7 +127,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             # Try again up to SSQL_MAX_ITERATION
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
-                return self.query(query_json, nb_iter)
+                return self.query_with_iter(query_json, nb_iter)
 
             raise InvalidQueryException(
                 f"SQL Reader generated NAN results. "
@@ -159,7 +164,7 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
     Returns:
         dict: metadata of the dataset in smartnoise-sql format
     """
-    metadata = dict(metadata)
-    metadata.update(metadata["columns"])
-    del metadata["columns"]
-    return {"": {"": {"df": metadata}}}
+    metadata_dict = metadata.model_dump()
+    metadata_dict.update(metadata_dict["columns"])
+    del metadata_dict["columns"]
+    return {"": {"": {"df": metadata_dict}}}

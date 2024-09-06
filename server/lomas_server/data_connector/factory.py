@@ -1,4 +1,4 @@
-from typing import List
+from typing import Sequence
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import PrivateDatabaseType
@@ -12,7 +12,7 @@ from lomas_server.utils.error_handler import InternalServerException
 def data_connector_factory(
     dataset_name: str,
     admin_database: AdminDatabase,
-    private_db_credentials: List[PrivateDBCredentials],
+    private_db_credentials: Sequence[PrivateDBCredentials],
 ) -> DataConnector:
     """
     Returns the appropriate dataset class based on dataset storage location
@@ -35,12 +35,12 @@ def data_connector_factory(
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
 
     match database_type:
-        case PrivateDatabaseType.PATH:
+        case PrivateDatabaseType.PATH():
             dataset_path = admin_database.get_dataset_field(
                 dataset_name, "dataset_path"
             )
-            private_db = PathConnector(ds_metadata, dataset_path)
-        case PrivateDatabaseType.S3:
+            return PathConnector(ds_metadata, dataset_path)
+        case PrivateDatabaseType.S3():
 
             credentials_name = admin_database.get_dataset_field(
                 dataset_name, "credentials_name"
@@ -49,6 +49,11 @@ def data_connector_factory(
             credentials = get_dataset_credentials(
                 private_db_credentials, database_type, credentials_name
             )
+
+            if not isinstance(credentials, S3CredentialsConfig):
+                raise InternalServerException(
+                    "Could not get correct credentials"
+                )
 
             credentials.endpoint_url = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
@@ -60,17 +65,15 @@ def data_connector_factory(
                 dataset_name, "key"
             )
 
-            private_db = S3Connector(ds_metadata, credentials)
+            return S3Connector(ds_metadata, credentials)
         case _:
             raise InternalServerException(
                 f"Unknown database type: {database_type}"
             )
 
-    return private_db
-
 
 def get_dataset_credentials(
-    private_db_credentials: List[PrivateDBCredentials],
+    private_db_credentials: Sequence[PrivateDBCredentials],
     db_type: PrivateDatabaseType,
     credentials_name: str,
 ) -> PrivateDBCredentials:
@@ -80,10 +83,9 @@ def get_dataset_credentials(
     credentials name.
 
     Args:
-        private_db_credentials (List[PrivateDBCredentials]):\
+        private_db_credentials (Sequence[PrivateDBCredentials]):\
             The list of private database credentials.
         db_type (PrivateDatabaseType): The type of the database.
-        ds_infos (Dict[str, str]): _description_
 
     Raises:
         InternalServerException: If the credentials are not found.

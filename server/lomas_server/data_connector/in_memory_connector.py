@@ -21,7 +21,7 @@ class InMemoryConnector(DataConnector):
             dataset_df (pd.DataFrame): Dataframe of the dataset
         """
         super().__init__(metadata)
-        self.df = dataset_df.copy()
+        self.df: pd.DataFrame = dataset_df.copy()
 
     def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format

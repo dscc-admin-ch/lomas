@@ -14,6 +14,8 @@ from lomas_server.admin_database.mongodb_database import (
 from lomas_server.constants import PrivateDatabaseType
 from lomas_server.utils.collection_models import (
     DatasetsCollection,
+    MetadataOfPathDB,
+    MetadataOfS3DB,
     UserCollection,
 )
 from lomas_server.utils.error_handler import InternalServerException
@@ -189,7 +191,7 @@ def add_user(db: Database, user: str) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Added user {user}.")
+    LOG.info("Added user {user}.")
 
 
 @check_user_exists(False)
@@ -432,8 +434,10 @@ def add_users_via_yaml(
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
-            yaml_file = yaml.safe_load(f)
-    user_dict = UserCollection(**yaml_file)
+            yaml_dict: dict = yaml.safe_load(f)
+    else:
+        yaml_dict = yaml_file
+    user_dict = UserCollection(**yaml_dict)
 
     # Filter out duplicates
     new_users = []
@@ -667,8 +671,10 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
-            yaml_file = yaml.safe_load(f)
-    dataset_dict = DatasetsCollection(**yaml_file)
+            yaml_dict: dict = yaml.safe_load(f)
+    else:
+        yaml_dict = yaml_file
+    dataset_dict = DatasetsCollection(**yaml_dict)
 
     # Step 1: add datasets
     new_datasets = []
@@ -709,12 +715,14 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         dataset_name = d.dataset_name
         metadata_db_type = d.metadata.database_type
 
-        match metadata_db_type:
-            case PrivateDatabaseType.PATH:
+        match d.metadata:
+            # case PrivateDatabaseType.PATH: TODO
+            case MetadataOfPathDB():
                 with open(d.metadata.metadata_path, encoding="utf-8") as f:
                     metadata_dict = yaml.safe_load(f)
 
-            case PrivateDatabaseType.S3:
+            # case PrivateDatabaseType.S3: TODO
+            case MetadataOfS3DB():
                 client = boto3.client(
                     "s3",
                     endpoint_url=d.metadata.endpoint_url,

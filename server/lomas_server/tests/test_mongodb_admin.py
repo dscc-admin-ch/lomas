@@ -1,6 +1,5 @@
 import os
 import unittest
-from types import SimpleNamespace
 from typing import Dict
 
 import boto3
@@ -40,7 +39,7 @@ from lomas_server.tests.constants import (
     FALSE_VALUES,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER, get_config
+from lomas_server.utils.config import CONFIG_LOADER, MongoDBConfig, get_config
 
 
 @unittest.skipIf(
@@ -68,9 +67,15 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
-        db_args = SimpleNamespace(**vars(get_config().admin_database))
-        db_url = get_mongodb_url(db_args)
-        cls.db = MongoClient(db_url)[db_args.db_name]
+        # Access to MongoDB
+        admin_config = get_config().admin_database
+        if isinstance(admin_config, MongoDBConfig):
+            mongo_config = admin_config
+        else:
+            raise TypeError("Loaded config does not contain a MongoDBConfig.")
+
+        db_url = get_mongodb_url(mongo_config)
+        cls.db = MongoClient(db_url)[mongo_config.db_name]
 
     def tearDown(self) -> None:
         """Drop all data from database"""

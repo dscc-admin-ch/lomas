@@ -127,7 +127,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
         # Put unknown admin database
         previous_admin_db = config.admin_database.db_type
-        config.admin_database.db_type = "wrong_db"
+        config.admin_database.db_type = "wrong_db"  # type: ignore[assignment]
         with self.assertRaises(InternalServerException) as context:
             admin_database_factory(config.admin_database)
         self.assertEqual(

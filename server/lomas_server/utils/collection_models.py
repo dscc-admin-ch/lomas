@@ -1,6 +1,7 @@
 from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from constants import PrivateDatabaseType
 
@@ -81,9 +82,10 @@ class DatasetOfS3DB(Dataset):
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Union[DatasetOfPathDB, DatasetOfS3DB]] = Field(
-        ..., discriminator="database_type"
-    )
+    datasets: Annotated[
+        List[Union[DatasetOfPathDB, DatasetOfS3DB]],
+        Field(discriminator="database_type"),
+    ]
 
 
 class Metadata(BaseModel):

@@ -119,7 +119,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             SSynthColumnType.DATETIME: [],
             SSynthColumnType.PRIVATE_ID: [],
         }
-        for col_name, data in metadata["columns"].items():
+        for col_name, data in metadata.columns.items():
             if select_cols and col_name not in select_cols:
                 continue
 
@@ -136,7 +136,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
     def _get_default_constraints(
         self,
         metadata: Metadata,
-        query_json: dict,
+        query_json: SmartnoiseSynthCostModel,
         table_transformer_style: str,
     ) -> TableTransformer:
         """
@@ -171,21 +171,21 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 )
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = MinMaxTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
+                    lower=metadata.columns[col]["lower"],
+                    upper=metadata.columns[col]["upper"],
                     nullable=nullable,
                 )
             for col in col_categories[SSynthColumnType.DATETIME]:
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
+                            epoch=metadata.columns[col]["lower"]
                         ),
                         MinMaxTransformer(
                             lower=0.0,  # because start epoch at lower bound
                             upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+                                metadata.columns[col]["upper"],
+                                metadata.columns[col]["lower"],
                             ),
                             nullable=nullable,
                         ),
@@ -196,8 +196,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = BinTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
+                    lower=metadata.columns[col]["lower"],
+                    upper=metadata.columns[col]["upper"],
                     bins=SSYNTH_DEFAULT_BINS,
                     nullable=nullable,
                 )
@@ -205,13 +205,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
+                            epoch=metadata.columns[col]["lower"]
                         ),
                         BinTransformer(
                             lower=0.0,  # because start epoch at lower bound
                             upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+                                metadata.columns[col]["upper"],
+                                metadata.columns[col]["lower"],
                             ),
                             bins=SSYNTH_DEFAULT_BINS,
                             nullable=nullable,
@@ -225,7 +225,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         private_data: pd.DataFrame,
         transformer: TableTransformer,
-        query_json: dict,
+        query_json: SmartnoiseSynthCostModel,
     ) -> Synthesizer:
         """
         Create and fit the synthesizer model.
@@ -325,7 +325,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Preprocessing information from metadata
         metadata = self.data_connector.get_metadata()
         if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
-            if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
+            if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"{SSynthGanSynthesizer.PATE_GAN} not reliable "
@@ -337,9 +337,9 @@ class SmartnoiseSynthQuerier(DPQuerier):
         )
 
         # Overwrite default constraint with custom constraint (if any)
-        custom_constraints = query_json.constraints
-        if custom_constraints:
-            custom_constraints = deserialise_constraints(custom_constraints)
+        constraints_json = query_json.constraints
+        if constraints_json:
+            custom_constraints = deserialise_constraints(constraints_json)
             custom_constraints = {
                 key: custom_constraints[key]
                 for key in query_json.select_cols

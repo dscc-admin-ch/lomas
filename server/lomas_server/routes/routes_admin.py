@@ -99,7 +99,7 @@ def get_dataset_metadata(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return ds_metadata
 
@@ -163,7 +163,7 @@ def get_dummy_dataset(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -222,7 +222,7 @@ def get_initial_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -280,7 +280,7 @@ def get_total_spent_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -335,7 +335,7 @@ def get_remaining_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -391,6 +391,6 @@ def get_user_previous_queries(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(content={"previous_queries": previous_queries})

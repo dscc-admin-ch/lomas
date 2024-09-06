@@ -119,7 +119,7 @@ class ConfigLoader:
     """
 
     _instance = None
-    _config = None
+    _config: Config | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -197,7 +197,8 @@ class ConfigLoader:
         """
         if self._config is None:
             self.load_config()
-        return self._config  # type: ignore
+        assert isinstance(self._config, Config)  # Helps mypy
+        return self._config
 
 
 CONFIG_LOADER = ConfigLoader()

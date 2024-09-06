@@ -4,6 +4,7 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.constants import (
@@ -93,7 +94,7 @@ async def lifespan(
                 config.admin_database
             )
         except InternalServerException as e:
-            LOG.exception(f"Failed at startup:" + str(e))
+            LOG.exception(f"Failed at startup: {str(e)}")
             app.state.server_state["state"].append(DB_NOT_LOADED)
             app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"

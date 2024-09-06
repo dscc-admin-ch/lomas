@@ -87,7 +87,7 @@ def handle_query_on_data_connector(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return response
 
@@ -143,7 +143,7 @@ def handle_query_on_dummy_dataset(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return response
 
@@ -199,7 +199,7 @@ def handle_cost_query(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={"epsilon_cost": eps_cost, "delta_cost": delta_cost}

@@ -308,7 +308,7 @@ class TestSmartnoiseSynthEndpoint(
 
             body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "BIRTHDAYS"
-            body["synth_params"]["batch_size"] = 2
+            body["synth_params"]["batch_size"] = 2  # type: ignore
             # With gan synthesizer
             response = client.post(
                 "/smartnoise_synth_query",

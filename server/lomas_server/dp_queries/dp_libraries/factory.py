@@ -33,6 +33,7 @@ def querier_factory(
     Returns:
         DPQuerier: The built DPQuerier.
     """
+    querier: DPQuerier
     match lib:
         case DPLibraries.SMARTNOISE_SQL:
             querier = SmartnoiseSQLQuerier(data_connector, admin_database)

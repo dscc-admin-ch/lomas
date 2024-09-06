@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 
 import yaml
+from pydantic import BaseModel
 
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
@@ -9,6 +10,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
+from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
@@ -61,7 +63,7 @@ class AdminYamlDatabase(AdminDatabase):
         return False
 
     @dataset_must_exist
-    def get_dataset_metadata(self, dataset_name: str) -> dict:
+    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
         """Returns the metadata dictionnary of the dataset.
 
         Wrapped by :py:func:`dataset_must_exist`.
@@ -70,7 +72,7 @@ class AdminYamlDatabase(AdminDatabase):
             dataset_name (str): name of the dataset to get the metadata
 
         Returns:
-            dict: The metadata dict.
+            Metadata: The metadata model.
         """
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
@@ -79,7 +81,7 @@ class AdminYamlDatabase(AdminDatabase):
                 with open(metadata_path, mode="r", encoding="utf-8") as f:
                     metadata = yaml.safe_load(f)
 
-        return metadata
+        return Metadata.model_validate(metadata)
 
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -251,14 +253,14 @@ class AdminYamlDatabase(AdminDatabase):
         return previous_queries
 
     def save_query(
-        self, user_name: str, query_json: dict, response: dict
+        self, user_name: str, query_json: BaseModel, response: dict
     ) -> None:
         """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user
-            query_json (dict): json received from client
+            query_json (BaseModel): request received from client
             response (dict): response sent to the client
         """
         to_archive = super().prepare_save_query(

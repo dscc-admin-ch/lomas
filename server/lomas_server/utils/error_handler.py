@@ -1,3 +1,5 @@
+from typing import Type
+
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
@@ -63,7 +65,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-KNOWN_EXCEPTIONS: tuple[type, ...] = (
+KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

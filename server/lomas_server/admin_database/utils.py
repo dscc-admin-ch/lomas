@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -8,15 +6,16 @@ from lomas_server.mongodb_admin import (
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.utils.config import DBConfig, get_config
+from lomas_server.utils.config import MongoDBConfig, get_config
+from lomas_server.utils.error_handler import InternalServerException
 from lomas_server.utils.logger import LOG
 
 
-def get_mongodb_url(config: DBConfig) -> str:
+def get_mongodb_url(config: MongoDBConfig) -> str:
     """Get URL of the administration MongoDB.
 
     Args:
-        config (DBConfig): An instance of DBConfig.
+        config (MongoDBConfig): An instance of DBConfig.
 
     Returns:
         str: A correctly formatted url for connecting to the
@@ -46,9 +45,15 @@ def get_mongodb() -> Database:
         str: A correctly formatted url for connecting to the
             MongoDB database.
     """
-    db_args = SimpleNamespace(**vars(get_config().admin_database))
-    db_url = get_mongodb_url(db_args)
-    return MongoClient(db_url)[db_args.db_name]
+    admin_config = get_config().admin_database
+    if isinstance(admin_config, MongoDBConfig):
+        db_url = get_mongodb_url(admin_config)
+    else:
+        raise InternalServerException(
+            "Expected MongoDBConfig, found {type(admin_config)}."
+        )
+
+    return MongoClient(db_url)[admin_config.db_name]
 
 
 def add_demo_data_to_mongodb_admin(

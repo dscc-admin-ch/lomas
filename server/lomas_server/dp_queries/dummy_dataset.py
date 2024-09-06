@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
@@ -17,7 +18,6 @@ from lomas_server.constants import (
 )
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.query_models import GetDummyDataset
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals
@@ -140,7 +140,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 
 def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: GetDummyDataset
+    admin_database: AdminDatabase, query_json: BaseModel
 ) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 

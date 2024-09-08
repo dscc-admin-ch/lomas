@@ -6,11 +6,13 @@ git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9
 httpx==0.27.0
 jax==0.4.31
 jaxlib==0.4.31
+pyjwt==2.9.0
 numpy==1.24.0
 opendp==0.10.0
 opendp-logger==0.3.0
 packaging==24.1
 pandas==2.2.2
+passlib==1.7.4
 pyaml==23.9.5
 pydantic==2.8.2
 pymongo==4.6.3

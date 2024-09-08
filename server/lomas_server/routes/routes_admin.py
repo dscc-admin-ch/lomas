@@ -1,9 +1,12 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from data_connector.data_connector import get_column_dtypes
 from dp_queries.dummy_dataset import make_dummy_dataset
 from routes.utils import server_live
+from routes.routes_security import get_current_user, UserInDB
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
@@ -14,6 +17,7 @@ from utils.query_examples import (
     example_get_dummy_dataset,
 )
 from utils.query_models import GetDbData, GetDummyDataset
+
 
 router = APIRouter()
 
@@ -78,7 +82,7 @@ async def get_memory_usage(request: Request) -> JSONResponse:
 # Metadata query
 @router.post(
     "/get_dataset_metadata",
-    dependencies=[Depends(server_live)],
+    dependencies=[Depends(server_live), Depends(get_current_user)],
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(

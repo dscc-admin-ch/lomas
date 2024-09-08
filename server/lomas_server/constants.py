@@ -289,3 +289,11 @@ DIFFPRIVLIB_PIPELINE = (
     "]"
     "}"
 )
+
+
+# JWT encoding/decoding constants
+# To get a string like this run: openssl rand -hex 32
+JWT_ENCODE_DECODE_SECRET_KEY = "83d1e71f72f43e0908963a7cffc15ec1132fb42f52cf9e7632a6aa065ffa5d78"
+JWT_ENCODE_DECODE_ALGORITHM = "HS256"
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+

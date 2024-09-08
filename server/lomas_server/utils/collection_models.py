@@ -20,6 +20,7 @@ class User(BaseModel):
 
     user_name: str
     may_query: bool
+    hashed_password: str
     datasets_list: List[DatasetOfUser]
 
 

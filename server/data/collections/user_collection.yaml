@@ -1,6 +1,7 @@
 users:
 - user_name: Alice
   may_query: True
+  hashed_password: "fakehashedsecret"
   datasets_list:
   - dataset_name: "IRIS"
     initial_epsilon: 10.0
@@ -14,6 +15,7 @@ users:
     total_spent_delta: 0.0000001
 - user_name: Dr. Antartica
   may_query: True
+  hashed_password: "fakehashedsecret2"
   datasets_list:
   - dataset_name: "PENGUIN"
     initial_epsilon: 10.0
@@ -32,6 +34,7 @@ users:
     total_spent_delta: 0.0
 - user_name: Dr. FSO
   may_query: True
+  hashed_password: "fakehashedsecret3"
   datasets_list:
   - dataset_name: "FSO_INCOME_SYNTHETIC"
     initial_epsilon: 45.0
@@ -40,6 +43,7 @@ users:
     total_spent_delta: 0.0
 - user_name: Bob
   may_query: True
+  hashed_password: "fakehashedsecret4"
   datasets_list:
   - dataset_name: "IRIS"
     initial_epsilon: 10.0
@@ -48,6 +52,7 @@ users:
     total_spent_delta: 0.0
 - user_name: Jack
   may_query: True
+  hashed_password: "fakehashedsecret5"
   datasets_list:
   - dataset_name: "TITANIC"
     initial_epsilon: 45.0

@@ -16,7 +16,7 @@ from constants import (
 from dataset_store.factory import dataset_store_factory
 from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from dp_queries.dp_logic import QueryHandler
-from routes import routes_admin, routes_dp
+from routes import routes_admin, routes_dp, routes_security
 from utils.anti_timing_att import anti_timing_att
 from utils.config import get_config
 from utils.error_handler import InternalServerException, add_exception_handlers
@@ -165,3 +165,4 @@ add_exception_handlers(app)
 # Add endpoints
 app.include_router(routes_dp.router)
 app.include_router(routes_admin.router)
+app.include_router(routes_security.router)

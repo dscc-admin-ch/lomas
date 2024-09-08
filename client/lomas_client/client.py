@@ -75,6 +75,7 @@ class Client:
 
     def get_dataset_metadata(
         self,
+        token: str = None,
     ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
         """This function retrieves metadata for the dataset.
 
@@ -82,6 +83,10 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
+
+        # Include Authorization header if Bearer token provided by user
+        if token:
+            self.headers['Authorization'] = "Bearer " + token
         res = self._exec(
             "get_dataset_metadata", {"dataset_name": self.dataset_name}
         )

@@ -15,12 +15,14 @@ from lomas_server.utils.error_handler import (
     InvalidQueryException,
 )
 from lomas_server.utils.query_models import (
-    SmartnoiseSQLCostModel,
-    SmartnoiseSQLModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
 )
 
 
-class SmartnoiseSQLQuerier(DPQuerier):
+class SmartnoiseSQLQuerier(
+    DPQuerier[SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
@@ -33,7 +35,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         super().__init__(data_connector, admin_database)
         self.reader: Optional[Reader] = None
 
-    def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
+    def cost(
+        self, query_json: SmartnoiseSQLRequestModel
+    ) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
@@ -69,11 +73,11 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: SmartnoiseSQLModel) -> dict:
+    def query(self, query_json: SmartnoiseSQLQueryModel) -> dict:
         return self.query_with_iter(query_json)
 
     def query_with_iter(
-        self, query_json: SmartnoiseSQLModel, nb_iter: int = 0
+        self, query_json: SmartnoiseSQLQueryModel, nb_iter: int = 0
     ) -> dict:
         """Perform the query and return the response.
 

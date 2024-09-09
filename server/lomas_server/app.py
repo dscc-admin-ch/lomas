@@ -4,7 +4,6 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.constants import (
@@ -13,7 +12,6 @@ from lomas_server.constants import (
     SERVER_LIVE,
     AdminDBType,
 )
-from lomas_server.dataset_store.factory import dataset_store_factory
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )

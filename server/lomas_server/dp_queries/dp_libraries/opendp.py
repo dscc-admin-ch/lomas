@@ -18,15 +18,18 @@ from lomas_server.utils.error_handler import (
     InvalidQueryException,
 )
 from lomas_server.utils.logger import LOG
-from lomas_server.utils.query_models import OpenDPModel
+from lomas_server.utils.query_models import (
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+)
 
 
-class OpenDPQuerier(DPQuerier):
+class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
     """
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
 
-    def cost(self, query_json: OpenDPModel) -> tuple[float, float]:
+    def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
         Estimate cost of query
 
@@ -86,11 +89,11 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPModel) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPQueryModel) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (OpenDPQueryModel): The input model for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

@@ -39,8 +39,8 @@ from lomas_server.utils.error_handler import (
     InvalidQueryException,
 )
 from lomas_server.utils.query_models import (
-    SmartnoiseSynthCostModel,
     SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
 )
 
 
@@ -61,7 +61,9 @@ def datetime_to_float(upper, lower):
     return float(distance.total_seconds() / SECONDS_IN_A_DAY)
 
 
-class SmartnoiseSynthQuerier(DPQuerier):
+class SmartnoiseSynthQuerier(
+    DPQuerier[SmartnoiseSynthRequestModel, SmartnoiseSynthQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
@@ -136,7 +138,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
     def _get_default_constraints(
         self,
         metadata: Metadata,
-        query_json: SmartnoiseSynthCostModel,
+        query_json: SmartnoiseSynthRequestModel,
         table_transformer_style: str,
     ) -> TableTransformer:
         """
@@ -225,7 +227,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         private_data: pd.DataFrame,
         transformer: TableTransformer,
-        query_json: SmartnoiseSynthCostModel,
+        query_json: SmartnoiseSynthRequestModel,
     ) -> Synthesizer:
         """
         Create and fit the synthesizer model.
@@ -290,7 +292,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def _model_pipeline(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> Synthesizer:
         """Return a trained Synthesizer model based on query_json
 
@@ -369,7 +371,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def cost(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> tuple[float, float]:
         """Return cost of query_json
 
@@ -392,7 +394,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return epsilon, delta
 
     def query(
-        self, query_json: SmartnoiseSynthQueryModel
+        self,
+        query_json: SmartnoiseSynthQueryModel,
     ) -> Union[pd.DataFrame, str]:
         """Perform the query and return the response.
 

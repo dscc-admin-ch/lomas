@@ -19,10 +19,15 @@ from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
 )
-from lomas_server.utils.query_models import DiffPrivLibModel
+from lomas_server.utils.query_models import (
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+)
 
 
-class DiffPrivLibQuerier(DPQuerier):
+class DiffPrivLibQuerier(
+    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
@@ -38,7 +43,7 @@ class DiffPrivLibQuerier(DPQuerier):
         self.y_test: Optional[pd.DataFrame] = None
 
     def fit_model_on_data(
-        self, query_json: DiffPrivLibModel
+        self, query_json: DiffPrivLibRequestModel
     ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
         """Perform necessary steps to fit the model on the data
 
@@ -85,7 +90,7 @@ class DiffPrivLibQuerier(DPQuerier):
 
         return dpl_pipeline, x_test, y_test
 
-    def cost(self, query_json: DiffPrivLibModel) -> tuple[float, float]:
+    def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
@@ -112,7 +117,8 @@ class DiffPrivLibQuerier(DPQuerier):
         return spent_epsilon, spent_delta
 
     def query(
-        self, query_json: DiffPrivLibModel  # pylint: disable=unused-argument
+        self,
+        query_json: DiffPrivLibQueryModel,  # pylint: disable=unused-argument
     ) -> Dict:
         """Perform the query and return the response.
 
@@ -145,7 +151,7 @@ class DiffPrivLibQuerier(DPQuerier):
 
 
 def split_train_test_data(
-    df: pd.DataFrame, query_json: DiffPrivLibModel
+    df: pd.DataFrame, query_json: DiffPrivLibRequestModel
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split the data between train and test set
     Args:

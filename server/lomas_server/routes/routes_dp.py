@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from constants import DPLibraries
 from routes.utils import (
     handle_cost_query,
+    handle_query_on_data_connector,
     handle_query_on_dummy_dataset,
-    handle_query_on_private_dataset,
     server_live,
 )
 from utils.query_examples import (
@@ -88,7 +88,7 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_private_dataset(
+    return handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
     )
 
@@ -245,7 +245,7 @@ def smartnoise_synth_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_private_dataset(
+    return handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
@@ -414,7 +414,7 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    response = handle_query_on_private_dataset(
+    response = handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.OPENDP
     )
     return JSONResponse(content=response)
@@ -553,7 +553,7 @@ def diffprivlib_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_private_dataset(
+    return handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.DIFFPRIVLIB
     )
 

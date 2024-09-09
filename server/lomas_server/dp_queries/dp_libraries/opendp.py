@@ -49,7 +49,7 @@ class OpenDPQuerier(DPQuerier):
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = self.private_dataset.get_metadata()["max_ids"]
+        max_ids = self.data_connector.get_metadata()["max_ids"]
         try:
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
@@ -97,7 +97,7 @@ class OpenDPQuerier(DPQuerier):
         """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        input_data = self.private_dataset.get_pandas_df().to_csv(
+        input_data = self.data_connector.get_pandas_df().to_csv(
             header=False, index=False
         )
 

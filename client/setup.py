@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas_client",
     packages=find_packages(),
-    version="0.3.0",
+    version="0.3.1",
     description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -40,7 +40,7 @@ setup(
         "smartnoise-sql",
         "smartnoise-synth",
     ],
-    python_requires=">=3.10, <4",
+    python_requires=">=3.10, <3.11",
     install_requires=[
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",

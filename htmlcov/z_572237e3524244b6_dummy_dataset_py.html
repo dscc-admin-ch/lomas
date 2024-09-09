@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="mongodb_admin_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-09-05 13:13 +0000
+            created at 2024-09-09 15:24 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -97,7 +97,7 @@
     <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="nam">RANDOM_DATE_START</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="nam">RANDOM_STRINGS</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t17" href="#t17">17</a></span><span class="t"><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t"><span class="key">from</span> <span class="nam">private_dataset</span><span class="op">.</span><span class="nam">in_memory_dataset</span> <span class="key">import</span> <span class="nam">InMemoryDataset</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t18" href="#t18">18</a></span><span class="t"><span class="key">from</span> <span class="nam">data_connector</span><span class="op">.</span><span class="nam">in_memory_connector</span> <span class="key">import</span> <span class="nam">InMemoryConnector</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t19" href="#t19">19</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">error_handler</span> <span class="key">import</span> <span class="nam">InternalServerException</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">query_models</span> <span class="key">import</span> <span class="nam">GetDummyDataset</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -224,7 +224,7 @@
     <p class="run"><span class="n"><a id="t142" href="#t142">142</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t143" href="#t143">143</a></span><span class="t"><span class="key">def</span> <span class="nam">get_dummy_dataset_for_query</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t144" href="#t144">144</a></span><span class="t">    <span class="nam">admin_database</span><span class="op">:</span> <span class="nam">AdminDatabase</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">:</span> <span class="nam">GetDummyDataset</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t145" href="#t145">145</a></span><span class="t"><span class="op">)</span> <span class="op">-></span> <span class="nam">InMemoryDataset</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t145" href="#t145">145</a></span><span class="t"><span class="op">)</span> <span class="op">-></span> <span class="nam">InMemoryConnector</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t146" href="#t146">146</a></span><span class="t">    <span class="str">"""Get a dummy dataset for a given query.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t147" href="#t147">147</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t148" href="#t148">148</a></span><span class="t"><span class="str">    Args:</span>&nbsp;</span><span class="r"></span></p>
@@ -234,16 +234,16 @@
     <p class="pln"><span class="n"><a id="t152" href="#t152">152</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t153" href="#t153">153</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t154" href="#t154">154</a></span><span class="t"><span class="str">    Returns:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t155" href="#t155">155</a></span><span class="t"><span class="str">        InMemoryDataset: An in memory dummy dataset instance.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t155" href="#t155">155</a></span><span class="t"><span class="str">        InMemoryConnector: An in memory dummy dataset instance.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t156" href="#t156">156</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t157" href="#t157">157</a></span><span class="t">    <span class="com"># Create dummy dataset based on seed and number of rows</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t158" href="#t158">158</a></span><span class="t">    <span class="nam">ds_metadata</span> <span class="op">=</span> <span class="nam">admin_database</span><span class="op">.</span><span class="nam">get_dataset_metadata</span><span class="op">(</span><span class="nam">query_json</span><span class="op">.</span><span class="nam">dataset_name</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t159" href="#t159">159</a></span><span class="t">    <span class="nam">ds_df</span> <span class="op">=</span> <span class="nam">make_dummy_dataset</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">        <span class="nam">ds_metadata</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">.</span><span class="nam">dummy_nb_rows</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">.</span><span class="nam">dummy_seed</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t161" href="#t161">161</a></span><span class="t">    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t162" href="#t162">162</a></span><span class="t">    <span class="nam">ds_private_dataset</span> <span class="op">=</span> <span class="nam">InMemoryDataset</span><span class="op">(</span><span class="nam">ds_metadata</span><span class="op">,</span> <span class="nam">ds_df</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t162" href="#t162">162</a></span><span class="t">    <span class="nam">ds_data_connector</span> <span class="op">=</span> <span class="nam">InMemoryConnector</span><span class="op">(</span><span class="nam">ds_metadata</span><span class="op">,</span> <span class="nam">ds_df</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t164" href="#t164">164</a></span><span class="t">    <span class="key">return</span> <span class="nam">ds_private_dataset</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t164" href="#t164">164</a></span><span class="t">    <span class="key">return</span> <span class="nam">ds_data_connector</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -253,7 +253,7 @@
             <a class="nav" href="mongodb_admin_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-09-05 13:13 +0000
+            created at 2024-09-09 15:24 +0000
         </p>
     </div>
 </footer>

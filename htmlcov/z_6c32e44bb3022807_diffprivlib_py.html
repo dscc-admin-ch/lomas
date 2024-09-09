@@ -60,12 +60,12 @@
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">3<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
-            <a id="prevFileLink" class="nav" href="z_c5f248a6a7f10a78_private_dataset_observer_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="prevFileLink" class="nav" href="z_c5f248a6a7f10a78_lru_dataset_store_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a id="nextFileLink" class="nav" href="z_6c32e44bb3022807_factory_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-09-05 13:13 +0000
+            created at 2024-09-09 15:24 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -90,9 +90,9 @@
     <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">from</span> <span class="nam">sklearn</span><span class="op">.</span><span class="nam">pipeline</span> <span class="key">import</span> <span class="nam">Pipeline</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t"><span class="key">from</span> <span class="nam">constants</span> <span class="key">import</span> <span class="nam">DPLibraries</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="key">from</span> <span class="nam">dp_queries</span><span class="op">.</span><span class="nam">dp_libraries</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">handle_missing_data</span><span class="op">,</span> <span class="nam">serialise_model</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="key">from</span> <span class="nam">dp_queries</span><span class="op">.</span><span class="nam">dp_querier</span> <span class="key">import</span> <span class="nam">DPQuerier</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t"><span class="key">from</span> <span class="nam">private_dataset</span><span class="op">.</span><span class="nam">private_dataset</span> <span class="key">import</span> <span class="nam">PrivateDataset</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="key">from</span> <span class="nam">data_connector</span><span class="op">.</span><span class="nam">data_connector</span> <span class="key">import</span> <span class="nam">DataConnector</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t12" href="#t12">12</a></span><span class="t"><span class="key">from</span> <span class="nam">dp_queries</span><span class="op">.</span><span class="nam">dp_libraries</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">handle_missing_data</span><span class="op">,</span> <span class="nam">serialise_model</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t13" href="#t13">13</a></span><span class="t"><span class="key">from</span> <span class="nam">dp_queries</span><span class="op">.</span><span class="nam">dp_querier</span> <span class="key">import</span> <span class="nam">DPQuerier</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t14" href="#t14">14</a></span><span class="t"><span class="key">from</span> <span class="nam">utils</span><span class="op">.</span><span class="nam">error_handler</span> <span class="key">import</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t15" href="#t15">15</a></span><span class="t">    <span class="nam">ExternalLibraryException</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t16" href="#t16">16</a></span><span class="t">    <span class="nam">InternalServerException</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -105,8 +105,8 @@
     <p class="pln"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t"><span class="str">    Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">private_dataset</span><span class="op">:</span> <span class="nam">PrivateDataset</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">        <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">__init__</span><span class="op">(</span><span class="nam">private_dataset</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">data_connector</span><span class="op">:</span> <span class="nam">DataConnector</span><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">        <span class="nam">super</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">__init__</span><span class="op">(</span><span class="nam">data_connector</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">dpl_pipeline</span><span class="op">:</span> <span class="nam">Optional</span><span class="op">[</span><span class="nam">Pipeline</span><span class="op">]</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">x_test</span><span class="op">:</span> <span class="nam">Optional</span><span class="op">[</span><span class="nam">pd</span><span class="op">.</span><span class="nam">DataFrame</span><span class="op">]</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">y_test</span><span class="op">:</span> <span class="nam">Optional</span><span class="op">[</span><span class="nam">pd</span><span class="op">.</span><span class="nam">DataFrame</span><span class="op">]</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
@@ -129,7 +129,7 @@
     <p class="pln"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t"><span class="str">            y_test (pd.DataFrame): test data target</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">        <span class="com"># Prepare data</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">        <span class="nam">raw_data</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">private_dataset</span><span class="op">.</span><span class="nam">get_pandas_df</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">        <span class="nam">raw_data</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">data_connector</span><span class="op">.</span><span class="nam">get_pandas_df</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">        <span class="nam">data</span> <span class="op">=</span> <span class="nam">handle_missing_data</span><span class="op">(</span><span class="nam">raw_data</span><span class="op">,</span> <span class="nam">query_json</span><span class="op">.</span><span class="nam">imputer_strategy</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="nam">x_train</span><span class="op">,</span> <span class="nam">x_test</span><span class="op">,</span> <span class="nam">y_train</span><span class="op">,</span> <span class="nam">y_test</span> <span class="op">=</span> <span class="nam">split_train_test_data</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">            <span class="nam">data</span><span class="op">,</span> <span class="nam">query_json</span>&nbsp;</span><span class="r"></span></p>
@@ -258,12 +258,12 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="z_c5f248a6a7f10a78_private_dataset_observer_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="z_c5f248a6a7f10a78_lru_dataset_store_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
             <a class="nav" href="z_6c32e44bb3022807_factory_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-09-05 13:13 +0000
+            created at 2024-09-09 15:24 +0000
         </p>
     </div>
 </footer>

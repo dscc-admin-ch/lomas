@@ -14,30 +14,30 @@
 | administration/\_\_init\_\_.py                 |        0 |        0 |    100% |           |
 | app.py                                         |       70 |        8 |     89% |79-83, 121-127 |
 | constants.py                                   |       98 |        3 |     97% |   7-8, 13 |
+| data\_connector/\_\_init\_\_.py                |        0 |        0 |    100% |           |
+| data\_connector/data\_connector.py             |       32 |        0 |    100% |           |
+| data\_connector/factory.py                     |       28 |        0 |    100% |           |
+| data\_connector/in\_memory\_connector.py       |        9 |        0 |    100% |           |
+| data\_connector/path\_connector.py             |       19 |        1 |     95% |        55 |
+| data\_connector/s3\_connector.py               |       22 |        0 |    100% |           |
 | dataset\_store/\_\_init\_\_.py                 |        0 |        0 |    100% |           |
 | dataset\_store/basic\_dataset\_store.py        |       24 |        0 |    100% |           |
+| dataset\_store/data\_connector\_observer.py    |        4 |        0 |    100% |           |
 | dataset\_store/dataset\_store.py               |       14 |        0 |    100% |           |
 | dataset\_store/factory.py                      |       15 |        0 |    100% |           |
 | dataset\_store/lru\_dataset\_store.py          |       43 |        3 |     93% |     93-97 |
-| dataset\_store/private\_dataset\_observer.py   |        4 |        0 |    100% |           |
 | dp\_queries/\_\_init\_\_.py                    |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/\_\_init\_\_.py      |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/diffprivlib.py       |       53 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/factory.py           |       19 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/opendp.py            |       81 |        8 |     90% |67, 146-152, 156-161, 213 |
-| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       49 |        7 |     86% |94-95, 99, 110-114 |
+| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       51 |        7 |     86% |99-100, 104, 115-119 |
 | dp\_queries/dp\_libraries/smartnoise\_synth.py |      121 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/utils.py             |       33 |        0 |    100% |           |
 | dp\_queries/dp\_logic.py                       |       43 |        1 |     98% |       145 |
 | dp\_queries/dp\_querier.py                     |       10 |        0 |    100% |           |
 | dp\_queries/dummy\_dataset.py                  |       50 |        0 |    100% |           |
 | mongodb\_admin.py                              |      271 |        0 |    100% |           |
-| private\_dataset/\_\_init\_\_.py               |        0 |        0 |    100% |           |
-| private\_dataset/factory.py                    |       28 |        0 |    100% |           |
-| private\_dataset/in\_memory\_dataset.py        |        9 |        0 |    100% |           |
-| private\_dataset/path\_dataset.py              |       19 |        1 |     95% |        55 |
-| private\_dataset/private\_dataset.py           |       32 |        0 |    100% |           |
-| private\_dataset/s3\_dataset.py                |       22 |        0 |    100% |           |
 | routes/\_\_init\_\_.py                         |        0 |        0 |    100% |           |
 | routes/routes\_admin.py                        |       66 |        0 |    100% |           |
 | routes/routes\_dp.py                           |       44 |        0 |    100% |           |
@@ -58,7 +58,7 @@
 | utils/logger.py                                |        5 |        0 |    100% |           |
 | utils/query\_examples.py                       |       37 |        0 |    100% |           |
 | utils/query\_models.py                         |       75 |        0 |    100% |           |
-|                                      **TOTAL** | **3353** |   **41** | **99%** |           |
+|                                      **TOTAL** | **3355** |   **41** | **99%** |           |
 
 
 ## Setup coverage badge

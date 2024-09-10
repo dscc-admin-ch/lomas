@@ -17,11 +17,6 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0
     total_spent_delta: 0
-  - dataset_name: "IRIS"
-    initial_epsilon: 10.0
-    initial_delta: 0.0001
-    total_spent_epsilon: 1.0
-    total_spent_delta: 0.000001
 - user_name: "Tintin"
   may_query: True
   datasets_list:

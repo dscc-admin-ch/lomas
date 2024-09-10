@@ -31,7 +31,4 @@ def admin_database_factory(config: DBConfig) -> AdminDatabase:
             yaml_database_file = config.db_file
             return AdminYamlDatabase(yaml_database_file)
         case _:
-            db_type = config.db_type
-            raise InternalServerException(
-                f"Database type {db_type} not supported."
-            )
+            raise InternalServerException("Database type not supported.")

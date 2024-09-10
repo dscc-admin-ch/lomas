@@ -4,7 +4,6 @@ from lomas_server.utils.config import get_config
 from lomas_server.utils.logger import LOG
 
 if __name__ == "__main__":
-    # os.chdir("/code/")
 
     config = get_config()
 

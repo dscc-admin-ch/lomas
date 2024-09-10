@@ -76,15 +76,6 @@ class DPLibraries(StrEnum):
     DIFFPRIVLIB = "diffprivlib"
 
 
-# Query model input to DP librairy
-MODEL_INPUT_TO_LIB = {
-    "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
-    "SmartnoiseSynthQueryModel": DPLibraries.SMARTNOISE_SYNTH,
-    "OpenDPModel": DPLibraries.OPENDP,
-    "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
-}
-
-
 # Private Databases
 class PrivateDatabaseType(StrEnum):
     """Type of Private Database for the private data"""
@@ -182,7 +173,7 @@ NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0", '
+    '{"version": "0.11.1", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

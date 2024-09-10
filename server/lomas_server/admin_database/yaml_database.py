@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List
 
 import yaml
-from pydantic import BaseModel
 
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
@@ -15,6 +14,7 @@ from lomas_server.utils.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
+from lomas_server.utils.query_models import RequestModel
 
 
 class AdminYamlDatabase(AdminDatabase):
@@ -253,14 +253,14 @@ class AdminYamlDatabase(AdminDatabase):
         return previous_queries
 
     def save_query(
-        self, user_name: str, query_json: BaseModel, response: dict
+        self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user
-            query_json (BaseModel): request received from client
+            query_json (RequestModel): request received from client
             response (dict): response sent to the client
         """
         to_archive = super().prepare_save_query(

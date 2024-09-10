@@ -112,7 +112,6 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
 
         try:
             # Get cost of the query
-            # TODO an issue will be opened for this on mypy. Issue 334 for us.
             eps_cost, delta_cost = self.cost(query_json)  # type: ignore [arg-type]
 
             # Check that enough budget to do the query

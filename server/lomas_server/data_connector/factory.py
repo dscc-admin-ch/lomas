@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import List
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import PrivateDatabaseType
@@ -12,7 +12,7 @@ from lomas_server.utils.error_handler import InternalServerException
 def data_connector_factory(
     dataset_name: str,
     admin_database: AdminDatabase,
-    private_db_credentials: Sequence[PrivateDBCredentials],
+    private_db_credentials: List[PrivateDBCredentials],
 ) -> DataConnector:
     """
     Returns the appropriate dataset class based on dataset storage location
@@ -35,12 +35,12 @@ def data_connector_factory(
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
 
     match database_type:
-        case PrivateDatabaseType.PATH():
+        case PrivateDatabaseType.PATH:
             dataset_path = admin_database.get_dataset_field(
                 dataset_name, "dataset_path"
             )
             return PathConnector(ds_metadata, dataset_path)
-        case PrivateDatabaseType.S3():
+        case PrivateDatabaseType.S3:
 
             credentials_name = admin_database.get_dataset_field(
                 dataset_name, "credentials_name"
@@ -73,7 +73,7 @@ def data_connector_factory(
 
 
 def get_dataset_credentials(
-    private_db_credentials: Sequence[PrivateDBCredentials],
+    private_db_credentials: List[PrivateDBCredentials],
     db_type: PrivateDatabaseType,
     credentials_name: str,
 ) -> PrivateDBCredentials:

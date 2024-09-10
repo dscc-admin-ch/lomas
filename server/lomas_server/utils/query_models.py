@@ -5,9 +5,11 @@ from pydantic import BaseModel, Field
 from lomas_server.constants import (
     DELTA_LIMIT,
     EPSILON_LIMIT,
+    DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
+from lomas_server.utils.error_handler import InternalServerException
 
 
 class GetDbData(BaseModel):
@@ -157,3 +159,34 @@ class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
     """Input model for a DiffPrivLib query on a dummy dataset"""
+
+
+# Utils
+# ----------------------------------------------------------------------------
+
+
+def model_input_to_lib(request: RequestModel) -> DPLibraries:
+    """Return the type of DP library given a RequestModel.
+
+    Args:
+        request (RequestModel): The user request
+
+    Raises:
+        InternalServerException: If the library type cannot be determined.
+
+    Returns:
+        DPLibraries: The type of library for the request.
+    """
+    match request:
+        case SmartnoiseSQLRequestModel():
+            return DPLibraries.SMARTNOISE_SQL
+        case SmartnoiseSynthRequestModel():
+            return DPLibraries.SMARTNOISE_SYNTH
+        case OpenDPRequestModel():
+            return DPLibraries.OPENDP
+        case DiffPrivLibRequestModel():
+            return DPLibraries.DIFFPRIVLIB
+        case _:
+            raise InternalServerException(
+                "Cannot find library type for given model."
+            )

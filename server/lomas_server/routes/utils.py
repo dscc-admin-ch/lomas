@@ -2,7 +2,6 @@ from collections.abc import AsyncGenerator
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from lomas_server.constants import DPLibraries
 from lomas_server.data_connector.factory import data_connector_factory
@@ -12,6 +11,11 @@ from lomas_server.utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
+)
+from lomas_server.utils.query_models import (
+    DummyQueryModel,
+    QueryModel,
+    RequestModel,
 )
 
 
@@ -36,9 +40,9 @@ async def server_live(request: Request) -> AsyncGenerator:
     yield
 
 
-def handle_query_on_data_connector(
+def handle_query_on_private_dataset(
     request: Request,
-    query_json: BaseModel,
+    query_json: QueryModel,
     user_name: str,
     dp_library: DPLibraries,
 ):
@@ -94,7 +98,7 @@ def handle_query_on_data_connector(
 
 def handle_query_on_dummy_dataset(
     request: Request,
-    query_json: BaseModel,
+    query_json: DummyQueryModel,
     user_name: str,
     dp_library: DPLibraries,
 ):
@@ -150,7 +154,7 @@ def handle_query_on_dummy_dataset(
 
 def handle_cost_query(
     request: Request,
-    query_json: BaseModel,
+    query_json: RequestModel,
     user_name: str,
     dp_library: DPLibraries,
 ):

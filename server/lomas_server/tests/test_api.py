@@ -26,9 +26,8 @@ from lomas_server.tests.constants import (
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import CONFIG_LOADER, DBConfig
 from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.logger import LOG
 from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -123,18 +122,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration"""
-        config = CONFIG_LOADER.get_config()
 
         # Put unknown admin database
-        previous_admin_db = config.admin_database.db_type
-        config.admin_database.db_type = "wrong_db"  # type: ignore[assignment]
         with self.assertRaises(InternalServerException) as context:
-            admin_database_factory(config.admin_database)
+            admin_database_factory(DBConfig())
         self.assertEqual(
-            str(context.exception), "Database type wrong_db not supported."
+            str(context.exception), "Database type not supported."
         )
-        # Put original state back
-        config.admin_database.db_type = previous_admin_db
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint"""
@@ -923,9 +917,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_2 = client.post(
                 "/get_previous_queries", json=example_get_admin_db_data
             )
-            LOG.error(response_2)
-            response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error(response_dict)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))

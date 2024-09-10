@@ -74,6 +74,14 @@ class SmartnoiseSQLQuerier(
         return epsilon, delta
 
     def query(self, query_json: SmartnoiseSQLQueryModel) -> dict:
+        """Performs the query and returns the response.
+
+        Args:
+            query_json (SmartnoiseSQLQueryModel): The request model object.
+
+        Returns:
+            dict: The dictionary encoding of the result pd.DataFrame.
+        """
         return self.query_with_iter(query_json)
 
     def query_with_iter(
@@ -82,7 +90,7 @@ class SmartnoiseSQLQuerier(
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSQLModel): JSON request object for the query.
+            query_json (SmartnoiseSQLQueryModel): Request object for the query.
             nb_iter (int, optional): Number of trials if output is Nan.
                 Defaults to 0.
 

@@ -34,7 +34,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
         Estimate cost of query
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (OpenDPRequestModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

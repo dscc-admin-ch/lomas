@@ -149,7 +149,7 @@ class SmartnoiseSynthQuerier(
 
         Args:
             metadata (Metadata): Metadata of the dataset
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 select_cols (List[str]): List of columns to select
                 nullable (bool): True is the data can have Null values, False otherwise
             table_transformer_style (str): 'gan' or 'cube'
@@ -235,7 +235,7 @@ class SmartnoiseSynthQuerier(
         Args:
             private_data (pd.DataFrame): Private data for fitting the model
             transformer (TableTransformer): Transformer to pre/postprocess data
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 synth_name (str): name of the Yanthesizer model to use
                 epsilon (float): epsilon budget value
                 nullable (bool): True if some data cells may be null
@@ -297,7 +297,7 @@ class SmartnoiseSynthQuerier(
         """Return a trained Synthesizer model based on query_json
 
         Args:
-            query_json (SmartnoiseSynthCostModel): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             model: Smartnoise Synthesizer
@@ -376,7 +376,7 @@ class SmartnoiseSynthQuerier(
         """Return cost of query_json
 
         Args:
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             tuple[float, float]: The tuple of costs, the first value
@@ -400,7 +400,7 @@ class SmartnoiseSynthQuerier(
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSynthModel): The JSON request object for the query.
+            query_json (SmartnoiseSynthQueryModel): The JSON request object for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

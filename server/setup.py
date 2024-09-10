@@ -4,10 +4,10 @@ from setuptools import find_packages, setup
 setup(
     name="lomas-server",
     packages=find_packages(),
-    version="0.3.0",
+    version="0.3.2",
     description="Lomas server.",
-    #long_description=long_description,
-    #long_description_content_type="text/markdown",
+    # long_description=long_description,
+    # long_description_content_type="text/markdown",
     url="https://github.com/dscc-admin-ch/lomas/",
     author="Data Science Competence Center, Swiss Federal Statistical Office",
     author_email="dscc@bfs.admin.ch",
@@ -24,5 +24,5 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
     ],
-    #install_requires=..
+    # install_requires=..
 )

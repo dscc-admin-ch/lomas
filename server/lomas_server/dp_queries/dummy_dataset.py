@@ -3,7 +3,6 @@ import random
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
@@ -18,11 +17,13 @@ from lomas_server.constants import (
 )
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 from lomas_server.utils.error_handler import InternalServerException
+from lomas_server.utils.query_models import RequestModel
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals
     metadata: dict, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
+    # TODO change to Metadata once model is complete.
     """
     Create a dummy dataset based on a metadata dictionnary
 
@@ -52,7 +53,9 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     if "categories" in data.keys():
                         categories = data["categories"]
                         serie = pd.Series(
-                            random.choices(categories, k=nb_rows)
+                            random.choices(
+                                categories, k=nb_rows  # type: ignore
+                            )
                         )
                     else:
                         serie = pd.Series(
@@ -140,14 +143,14 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 
 def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: BaseModel
+    admin_database: AdminDatabase, query_json: RequestModel
 ) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
     Args:
         admin_database (AdminDatabase): An initialized instance
             of AdminDatabase.
-        query_json (GetDummyDataset): The JSON request object for the query.
+        query_json (RequestModel): The request object for the query.
 
 
     Returns:
@@ -155,8 +158,10 @@ def get_dummy_dataset_for_query(
     """
     # Create dummy dataset based on seed and number of rows
     ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
-    ds_df = make_dummy_dataset(
-        ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+    ds_df = make_dummy_dataset(  # TODO change once metadata model is done.
+        ds_metadata.model_dump(),
+        query_json.dummy_nb_rows,
+        query_json.dummy_seed,
     )
     ds_data_connector = InMemoryConnector(ds_metadata, ds_df)
 

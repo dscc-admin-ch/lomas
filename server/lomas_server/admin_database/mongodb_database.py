@@ -1,6 +1,5 @@
 from typing import List
 
-from pydantic import BaseModel
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
@@ -14,6 +13,7 @@ from lomas_server.admin_database.admin_database import (
 )
 from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.error_handler import InvalidQueryException
+from lomas_server.utils.query_models import RequestModel
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -250,14 +250,14 @@ class AdminMongoDatabase(AdminDatabase):
         return list(queries)
 
     def save_query(
-        self, user_name: str, query_json: BaseModel, response: dict
+        self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user
-            query_json (BaseModel): json received from client
+            query_json (RequestModel): json received from client
             response (dict): response sent to the client
 
         Raises:

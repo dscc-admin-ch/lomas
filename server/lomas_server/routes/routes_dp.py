@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from lomas_server.constants import DPLibraries
 from lomas_server.routes.utils import (
     handle_cost_query,
-    handle_query_on_data_connector,
     handle_query_on_dummy_dataset,
+    handle_query_on_private_dataset,
     server_live,
 )
 from lomas_server.utils.query_examples import (
@@ -21,16 +21,18 @@ from lomas_server.utils.query_examples import (
     example_smartnoise_synth_query,
 )
 from lomas_server.utils.query_models import (
-    DiffPrivLibModel,
-    DummyDiffPrivLibModel,
-    DummyOpenDPModel,
-    DummySmartnoiseSQLModel,
-    DummySmartnoiseSynthQueryModel,
-    OpenDPModel,
-    SmartnoiseSQLCostModel,
-    SmartnoiseSQLModel,
-    SmartnoiseSynthCostModel,
+    DiffPrivLibDummyQueryModel,
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+    OpenDPDummyQueryModel,
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+    SmartnoiseSQLDummyQueryModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+    SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
 )
 
 router = APIRouter()
@@ -43,7 +45,7 @@ router = APIRouter()
 )
 def smartnoise_sql_handler(
     request: Request,
-    query_json: SmartnoiseSQLModel = Body(example_smartnoise_sql),
+    query_json: SmartnoiseSQLQueryModel = Body(example_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -88,7 +90,7 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_data_connector(
+    return handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
     )
 
@@ -101,7 +103,9 @@ def smartnoise_sql_handler(
 )
 def dummy_smartnoise_sql_handler(
     request: Request,
-    query_json: DummySmartnoiseSQLModel = Body(example_dummy_smartnoise_sql),
+    query_json: SmartnoiseSQLDummyQueryModel = Body(
+        example_dummy_smartnoise_sql
+    ),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -152,7 +156,7 @@ def dummy_smartnoise_sql_handler(
 )
 def estimate_smartnoise_sql_cost(
     request: Request,
-    query_json: SmartnoiseSQLCostModel = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLRequestModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -160,7 +164,7 @@ def estimate_smartnoise_sql_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SmartnoiseSQLCostModel, optional):
+        query_json (SmartnoiseSQLRequestModel, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -205,7 +209,7 @@ def smartnoise_synth_handler(
     Handles queries for the SmartNoise Synth library.
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInp): A JSON object containing:
+        query_json (SmartnoiseSynthQueryModel): A JSON object containing:
             - synth_name (str): name of the Synthesizer model to use.
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
@@ -245,7 +249,7 @@ def smartnoise_synth_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_data_connector(
+    return handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
@@ -257,7 +261,7 @@ def smartnoise_synth_handler(
 )
 def dummy_smartnoise_synth_handler(
     request: Request,
-    query_json: DummySmartnoiseSynthQueryModel = Body(
+    query_json: SmartnoiseSynthDummyQueryModel = Body(
         example_dummy_smartnoise_synth_query
     ),
     user_name: str = Header(None),
@@ -266,7 +270,7 @@ def dummy_smartnoise_synth_handler(
     Handles queries for the SmartNoise Synth library.
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInp): A JSON object containing:
+        query_json (SmartnoiseSynthDummyQueryModel): A JSON object containing:
             - synth_name (str): name of the Synthesizer model to use.
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
@@ -323,14 +327,16 @@ def dummy_smartnoise_synth_handler(
 )
 def estimate_smartnoise_synth_cost(
     request: Request,
-    query_json: SmartnoiseSynthCostModel = Body(example_smartnoise_synth_cost),
+    query_json: SmartnoiseSynthRequestModel = Body(
+        example_smartnoise_synth_cost
+    ),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Handles queries for the SmartNoise Synth library.
     Args:
         request (Request): Raw request object
-        query_json (SNSQLInp): A JSON object containing:
+        query_json (SmartnoiseSynthRequestModel): A JSON object containing:
             - synth_name (str): name of the Synthesizer model to use.
             - epsilon (float): Privacy parameter (e.g., 0.1).
             - delta (float): Privacy parameter (e.g., 1e-5).
@@ -373,7 +379,7 @@ def estimate_smartnoise_synth_cost(
 )
 def opendp_query_handler(
     request: Request,
-    query_json: OpenDPModel = Body(example_opendp),
+    query_json: OpenDPQueryModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -381,7 +387,7 @@ def opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPModel, optional): A JSON object containing the following:
+        query_json (OpenDPQueryModel, optional): A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type
                 "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then it is
@@ -414,7 +420,7 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    response = handle_query_on_data_connector(
+    response = handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.OPENDP
     )
     return JSONResponse(content=response)
@@ -427,7 +433,7 @@ def opendp_query_handler(
 )
 def dummy_opendp_query_handler(
     request: Request,
-    query_json: DummyOpenDPModel = Body(example_dummy_opendp),
+    query_json: OpenDPDummyQueryModel = Body(example_dummy_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -435,7 +441,7 @@ def dummy_opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DummyOpenDPModel, optional):
+        query_json (OpenDPDummyQueryModel, optional):
             A JSON object containing the following:
             - opendp_pipeline: The OpenDP pipeline for the query.
             - fixed_delta: If the pipeline measurement is of type\
@@ -475,7 +481,7 @@ def dummy_opendp_query_handler(
 )
 def estimate_opendp_cost(
     request: Request,
-    query_json: OpenDPModel = Body(example_opendp),
+    query_json: OpenDPRequestModel = Body(example_opendp),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -483,7 +489,7 @@ def estimate_opendp_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (OpenDPModel, optional):
+        query_json (OpenDPRequestModel, optional):
             A JSON object containing the following:
             - "opendp_pipeline": The OpenDP pipeline for the query.
 
@@ -513,7 +519,7 @@ def estimate_opendp_cost(
 )
 def diffprivlib_query_handler(
     request: Request,
-    query_json: DiffPrivLibModel = Body(example_diffprivlib),
+    query_json: DiffPrivLibQueryModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -521,13 +527,14 @@ def diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPModel, optional): A JSON object containing the following:
-            - pipeline: The DiffPrivLib pipeline for the query.
-            - feature_columns: the list of feature column to train
-            - target_columns: the list of target column to predict
-            - test_size: proportion of the test set
-            - test_train_split_seed: seed for the random train test split,
-            - imputer_strategy: imputation strategy
+        query_json (DiffPrivLibQueryModel, optional):
+            A JSON object containing the following:
+                - pipeline: The DiffPrivLib pipeline for the query.
+                - feature_columns: the list of feature column to train
+                - target_columns: the list of target column to predict
+                - test_size: proportion of the test set
+                - test_train_split_seed: seed for the random train test split,
+                - imputer_strategy: imputation strategy
 
             Defaults to Body(example_diffprivlib).
 
@@ -553,7 +560,7 @@ def diffprivlib_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_data_connector(
+    return handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.DIFFPRIVLIB
     )
 
@@ -565,7 +572,7 @@ def diffprivlib_query_handler(
 )
 def dummy_diffprivlib_query_handler(
     request: Request,
-    query_json: DummyDiffPrivLibModel = Body(example_dummy_diffprivlib),
+    query_json: DiffPrivLibDummyQueryModel = Body(example_dummy_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -573,17 +580,18 @@ def dummy_diffprivlib_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (DiffPrivLibModel, optional): A JSON object containing the following:
-            - pipeline: The DiffPrivLib pipeline for the query.
-            - feature_columns: the list of feature column to train
-            - target_columns: the list of target column to predict
-            - test_size: proportion of the test set
-            - test_train_split_seed: seed for the random train test split,
-            - imputer_strategy: imputation strategy
-            - nb_rows (int, optional): The number of rows in the dummy dataset
-              (default: 100).
-            - seed (int, optional): The random seed for generating
-              the dummy dataset (default: 42).
+        query_json (DiffPrivLibDummyQueryModel, optional):
+            A JSON object containing the following:
+                - pipeline: The DiffPrivLib pipeline for the query.
+                - feature_columns: the list of feature column to train
+                - target_columns: the list of target column to predict
+                - test_size: proportion of the test set
+                - test_train_split_seed: seed for the random train test split,
+                - imputer_strategy: imputation strategy
+                - nb_rows (int, optional):
+                  The number of rows in the dummy dataset (default: 100).
+                - seed (int, optional): The random seed for generating
+                the dummy dataset (default: 42).
               Defaults to Body(example_dummy_diffprivlib)
 
     Raises:
@@ -610,7 +618,7 @@ def dummy_diffprivlib_query_handler(
 )
 def estimate_diffprivlib_cost(
     request: Request,
-    query_json: DiffPrivLibModel = Body(example_diffprivlib),
+    query_json: DiffPrivLibRequestModel = Body(example_diffprivlib),
     user_name: str = Header(None),
 ):
     """
@@ -618,7 +626,7 @@ def estimate_diffprivlib_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (DiffPrivLibModel, optional):
+        query_json (DiffPrivLibRequestModel, optional):
         A JSON object containing the following:
             - pipeline: The DiffPrivLib pipeline for the query.
             - feature_columns: the list of feature column to train

@@ -4,14 +4,12 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable, Dict, List
 
-from pydantic import BaseModel
-
-from lomas_server.constants import MODEL_INPUT_TO_LIB
 from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+from lomas_server.utils.query_models import RequestModel, model_input_to_lib
 
 
 def user_must_exist(func: Callable) -> Callable:  # type: ignore
@@ -428,14 +426,14 @@ class AdminDatabase(ABC):
         """
 
     def prepare_save_query(
-        self, user_name: str, query_json: BaseModel, response: dict
+        self, user_name: str, query_json: RequestModel, response: dict
     ) -> dict:
         """
         Prepare the query to save in archives
 
         Args:
             user_name (str): name of the user
-            query_json (BaseModel): request received from client
+            query_json (RequestModel): request received from client
             response (dict): response sent to the client
 
         Raises:
@@ -444,11 +442,10 @@ class AdminDatabase(ABC):
         Returns:
             dict: The query archive dictionary.
         """
-        model_input = query_json.__class__.__name__
         to_archive = {
             "user_name": user_name,
             "dataset_name": query_json.dataset_name,
-            "dp_librairy": MODEL_INPUT_TO_LIB[model_input],
+            "dp_librairy": model_input_to_lib(query_json),
             "client_input": query_json.model_dump(),
             "response": response,
             "timestamp": time.time(),
@@ -458,7 +455,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def save_query(
-        self, user_name: str, query_json: BaseModel, response: dict
+        self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table)

@@ -94,7 +94,7 @@ class DiffPrivLibQuerier(
         """Estimate cost of query
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (DiffPrivLibRequestModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -123,7 +123,7 @@ class DiffPrivLibQuerier(
         """Perform the query and return the response.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (DiffPrivLibQueryModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -156,7 +156,7 @@ def split_train_test_data(
     """Split the data between train and test set
     Args:
         df (pd.DataFrame): dataframe with the data
-        query_json (DiffPrivLibModel): user input query indication
+        query_json (DiffPrivLibRequestModel): user input query indication
             feature_columns (list[str]): columns from data to use as features
             target_columns (list[str]): columns from data to use as target (to predict)
             test_size (float): proportion of data in the test set

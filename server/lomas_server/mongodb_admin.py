@@ -191,7 +191,7 @@ def add_user(db: Database, user: str) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info("Added user {user}.")
+    LOG.info(f"Added user {user}.")
 
 
 @check_user_exists(False)

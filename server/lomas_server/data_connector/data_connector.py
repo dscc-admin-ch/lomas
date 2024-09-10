@@ -45,6 +45,7 @@ class DataConnector(ABC):
 
 
 def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
+    # TODO change once metadata model is done.
     """Extract and return the column types from the metadata.
 
     Args:

@@ -93,9 +93,11 @@ class ColumnMetadata(BaseModel):
     """Base model for column metadata"""
 
     private_id: bool = False
-    max_partition_length: Optional[int] = None
-    max_influenced_partitions: Optional[int] = None
-    max_partition_contributions: Optional[int] = None
+    nullable: bool = False
+    # TODO create validator and test these, see issue #323
+    max_partition_length: Optional[Annotated[int, Field(gt=0)]] = None
+    max_influenced_partitions: Optional[Annotated[int, Field(gt=0)]] = None
+    max_partition_contributions: Optional[Annotated[int, Field(gt=0)]] = None
 
 
 class StrMetadata(ColumnMetadata):
@@ -110,10 +112,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
     @model_validator(mode="after")
     def validate_categories(self):
         """Makes sure number of categories matches cardinality."""
-        if (
-            self.categories is not None
-            and len(self.categories) != self.cardinality
-        ):
+        if len(self.categories) != self.cardinality:
             raise ValueError(
                 "Number of categories should be equal to cardinality."
             )
@@ -125,7 +124,7 @@ class StrCategoricalMetadata(CategoricalColumnMetadata):
 
     type: Literal["string"]
     cardinality: int
-    categories: Optional[List[str]] = None
+    categories: List[str]
 
 
 class Precision(IntEnum):
@@ -166,7 +165,7 @@ class IntCategoricalMetadata(CategoricalColumnMetadata):
     type: Literal["int"]
     precision: Precision
     cardinality: int
-    categories: Optional[List[int]] = None
+    categories: List[int]
 
 
 class FloatMetadata(BoundedColumnMetadata):
@@ -187,7 +186,7 @@ class BooleanMetadata(ColumnMetadata):
 class DatetimeMetadata(BoundedColumnMetadata):
     """Model for datetime column metadata"""
 
-    type: Literal["datetime"]  # TODO make these constants.
+    type: Literal["datetime"]  # TODO make these constants, see issue #268
     lower: datetime
     upper: datetime
 
@@ -224,8 +223,8 @@ def get_column_metadata_discriminator(v: Any) -> str:
 class Metadata(BaseModel):
     """BaseModel for a metadata format"""
 
-    max_ids: int
-    rows: int
+    max_ids: Annotated[int, Field(gt=0)]
+    rows: Annotated[int, Field(gt=0)]
     row_privacy: bool
     censor_dims: Optional[bool] = False
     columns: Dict[

@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.collection_models import DatetimeMetadata, Metadata
 
 
 class DataConnector(ABC):
@@ -21,9 +21,7 @@ class DataConnector(ABC):
         """
         self.metadata: Metadata = metadata
 
-        dtypes, datetime_columns = get_column_dtypes(
-            self.metadata.model_dump()
-        )
+        dtypes, datetime_columns = get_column_dtypes(self.metadata)
         self.dtypes: Dict[str, str] = dtypes
         self.datetime_columns: List[str] = datetime_columns
 
@@ -44,23 +42,24 @@ class DataConnector(ABC):
         return self.metadata
 
 
-def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
-    # TODO change once metadata model is done.
-    """Extract and return the column types from the metadata.
+def get_column_dtypes(metadata: Metadata) -> Tuple[Dict[str, str], List[str]]:
+    """Extracts and returns the column types from the metadata.
 
     Args:
-        metadata (dict): The metadata dictionary.
+        metadata (Metadata): The metadata.
 
     Returns:
-        dict: The dictionary of the column type.
-        list: The list of columns of datetime type
+        Tuple[Dict[str, str], List[str]]:
+           dict: The dictionary of the column type.
+            list: The list of columns of datetime type
     """
+
     dtypes = {}
     datetime_columns = []
-    for col_name, data in metadata["columns"].items():
-        if data["type"] == "datetime":
+    for col_name, data in metadata.columns.items():
+        if isinstance(data, DatetimeMetadata):
             dtypes[col_name] = "string"
             datetime_columns.append(col_name)
         else:
-            dtypes[col_name] = data["type"]
+            dtypes[col_name] = data.type
     return dtypes, datetime_columns

@@ -151,15 +151,12 @@ def get_dummy_dataset(
         ds_metadata = app.state.admin_database.get_dataset_metadata(
             query_json.dataset_name
         )
-        # TODO change metadata once model is complete
-        dtypes, datetime_columns = get_column_dtypes(ds_metadata.model_dump())
+        dtypes, datetime_columns = get_column_dtypes(ds_metadata)
 
-        dummy_df = (
-            make_dummy_dataset(  # TODO change metadata once model is complete.
-                ds_metadata.model_dump(),
-                query_json.dummy_nb_rows,
-                query_json.dummy_seed,
-            )
+        dummy_df = make_dummy_dataset(
+            ds_metadata,
+            query_json.dummy_nb_rows,
+            query_json.dummy_seed,
         )
 
         for col in datetime_columns:

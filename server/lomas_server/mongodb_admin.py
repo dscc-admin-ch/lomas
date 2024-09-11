@@ -716,12 +716,10 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         metadata_db_type = d.metadata.database_type
 
         match d.metadata:
-            # case PrivateDatabaseType.PATH: TODO
             case MetadataOfPathDB():
                 with open(d.metadata.metadata_path, encoding="utf-8") as f:
                     metadata_dict = yaml.safe_load(f)
 
-            # case PrivateDatabaseType.S3: TODO
             case MetadataOfS3DB():
                 client = boto3.client(
                     "s3",

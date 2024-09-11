@@ -94,10 +94,10 @@ class SmartnoiseSQLQuerier(DPQuerier):
                 DPLibraries.SMARTNOISE_SQL,
                 "Error executing query:" + str(e),
             ) from e
-
         if not query_json.postprocess:
-            result = list(result)
+            result = list(result)[0]
             cols = [f"res_{i}" for i in range(len(result))]
+            result = [result]
         else:
             cols = result.pop(0)
         if result == []:

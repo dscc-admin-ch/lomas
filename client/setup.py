@@ -50,5 +50,7 @@ setup(
         "pandas>=2.2.2",
         "requests>=2.32.0",
         "scikit-learn==1.4.0",
+        "smartnoise-synth==1.0.4",
+        "smartnoise_synth_logger==0.0.3"
     ],
 )

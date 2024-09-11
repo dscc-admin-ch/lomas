@@ -31,7 +31,7 @@
 | dp\_queries/dp\_libraries/diffprivlib.py       |       53 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/factory.py           |       19 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/opendp.py            |       81 |        8 |     90% |67, 146-152, 156-161, 213 |
-| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       51 |        7 |     86% |99-100, 104, 115-119 |
+| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       52 |        5 |     90% |104, 115-119 |
 | dp\_queries/dp\_libraries/smartnoise\_synth.py |      121 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/utils.py             |       33 |        0 |    100% |           |
 | dp\_queries/dp\_logic.py                       |       43 |        1 |     98% |       145 |
@@ -44,7 +44,7 @@
 | routes/utils.py                                |       36 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                          |        0 |        0 |    100% |           |
 | tests/constants.py                             |        6 |        0 |    100% |           |
-| tests/test\_api.py                             |      407 |        1 |     99% |       103 |
+| tests/test\_api.py                             |      428 |        1 |     99% |       103 |
 | tests/test\_api\_diffprivlib.py                |      140 |        3 |     98% |     29-32 |
 | tests/test\_api\_smartnoise\_synth.py          |      248 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py               |       63 |        0 |    100% |           |
@@ -58,7 +58,7 @@
 | utils/logger.py                                |        5 |        0 |    100% |           |
 | utils/query\_examples.py                       |       37 |        0 |    100% |           |
 | utils/query\_models.py                         |       75 |        0 |    100% |           |
-|                                      **TOTAL** | **3355** |   **41** | **99%** |           |
+|                                      **TOTAL** | **3377** |   **39** | **99%** |           |
 
 
 ## Setup coverage badge

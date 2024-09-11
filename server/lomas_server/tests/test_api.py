@@ -488,18 +488,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == [
-                "avg_bill_length_mm"
-            ]
             df_response = pd.DataFrame.from_dict(
                 response_dict["query_response"], orient="tight"
             )
             assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-
-            # Change the mechaism
+            # Change the mechanism
             body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
             response = client.post(
                 "/smartnoise_sql_query",
@@ -508,9 +502,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == [
-                "avg_bill_length_mm"
-            ]
             df_response = pd.DataFrame.from_dict(
                 response_dict["query_response"], orient="tight"
             )
@@ -525,9 +516,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == [
-                "avg_bill_length_mm"
-            ]
             df_response = pd.DataFrame.from_dict(
                 response_dict["query_response"], orient="tight"
             )

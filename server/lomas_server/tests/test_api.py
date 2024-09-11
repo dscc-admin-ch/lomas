@@ -494,7 +494,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             df_response = pd.DataFrame.from_dict(
                 response_dict["query_response"], orient="tight"
             )
-            assert df_response["avg_bill_length_mm"] > 0.0
+            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
 
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
@@ -514,7 +514,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             df_response = pd.DataFrame.from_dict(
                 response_dict["query_response"], orient="tight"
             )
-            assert df_response["avg_bill_length_mm"] > 0.0
+            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
 
             # Try postprocess False
             body["postprocess"] = False

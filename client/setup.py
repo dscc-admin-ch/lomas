@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas_client",
     packages=find_packages(),
-    version="0.3.1",
+    version="0.3.2",
     description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -50,5 +50,7 @@ setup(
         "pandas>=2.2.2",
         "requests>=2.32.0",
         "scikit-learn==1.4.0",
+        "smartnoise-synth==1.0.4",
+        "smartnoise_synth_logger==0.0.3"
     ],
 )

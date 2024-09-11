@@ -473,7 +473,67 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "Please, verify the client object initialisation."
             }
 
-    def test_smartnoise_query_datetime(self) -> None:
+    def test_smartnoise_sql_query_parameters(self) -> None:
+        """Test smartnoise-sql query parameters"""
+        with TestClient(app, headers=self.headers) as client:
+            # Change the Query
+            body = dict(example_smartnoise_sql)
+            body["query_str"] = (
+                "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
+            )
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"]["columns"] == [
+                "avg_bill_length_mm"
+            ]
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response["avg_bill_length_mm"] > 0.0
+
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+
+            # Change the mechaism
+            body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"]["columns"] == [
+                "avg_bill_length_mm"
+            ]
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response["avg_bill_length_mm"] > 0.0
+
+            # Try postprocess False
+            body["postprocess"] = False
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["query_response"]["columns"] == [
+                "avg_bill_length_mm"
+            ]
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response.shape[1] == 2
+
+    def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work: query with datetimes and another user

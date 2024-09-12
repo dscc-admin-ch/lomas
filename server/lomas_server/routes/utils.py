@@ -12,7 +12,7 @@ from utils.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-
+from dp_queries.dp_logic import QueryHandler
 
 async def server_live(request: Request) -> AsyncGenerator:
     """
@@ -70,9 +70,11 @@ def handle_query_on_data_connector(
               for the query.
     """
     app = request.app
-
+    query_handler = QueryHandler(
+        app.state.admin_database, app.state.dataset_store
+    )
     try:
-        response = app.state.query_handler.handle_query(
+        response = query_handler.handle_query(
             dp_library, query_json, user_name
         )
     except KNOWN_EXCEPTIONS as e:

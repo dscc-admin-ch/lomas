@@ -57,7 +57,6 @@ class TimeAttackMethod(StrEnum):
 
 
 # Server states
-QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"

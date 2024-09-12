@@ -4,6 +4,7 @@ import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
+from admin_database.admin_database import AdminDatabase
 from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from data_connector.data_connector import DataConnector
 from dp_queries.dp_querier import DPQuerier
@@ -21,8 +22,12 @@ class SmartnoiseSQLQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
 
-    def __init__(self, data_connector: DataConnector) -> None:
-        super().__init__(data_connector)
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: AdminDatabase,
+    ) -> None:
+        super().__init__(data_connector, admin_database)
         self.reader: Optional[Reader] = None
 
     def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:

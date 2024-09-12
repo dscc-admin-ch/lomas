@@ -12,7 +12,6 @@ from constants import (
     SERVER_LIVE,
     AdminDBType,
 )
-from dataset_store.factory import dataset_store_factory
 from dp_queries.dp_libraries.opendp import set_opendp_features_config
 from routes import routes_admin, routes_dp
 from utils.anti_timing_att import anti_timing_att
@@ -43,7 +42,6 @@ async def lifespan(
 
     # Set some app state
     app.state.admin_database = None
-    app.state.dataset_store = None
 
     # General server state, can add fields if need be.
     app.state.server_state = {
@@ -59,6 +57,7 @@ async def lifespan(
         LOG.info("Loading config")
         app.state.server_state["message"].append("Loading config")
         config = get_config()
+        app.state.private_credentials = config.private_db_credentials
     except InternalServerException:
         LOG.info("Config could not loaded")
         app.state.server_state["state"].append(CONFIG_NOT_LOADED)
@@ -92,25 +91,6 @@ async def lifespan(
             app.state.server_state["state"].append(DB_NOT_LOADED)
             app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"
-            )
-            app.state.server_state["LIVE"] = False
-            status_ok = False
-
-    # Load dataset store
-    if status_ok:
-        try:
-            LOG.info("Loading dataset store")
-            app.state.server_state["message"].append("Loading dataset store")
-            app.state.dataset_store = dataset_store_factory(
-                config.dataset_store,
-                app.state.admin_database,
-                config.private_db_credentials,
-            )
-        except InternalServerException as e:
-            LOG.exception("Failed at startup:" + str(e))
-            app.state.server_state["state"].append("Dataset store not loaded")
-            app.state.server_state["message"].append(
-                f"Dataset Store could not be loaded: {str(e)}"
             )
             app.state.server_state["LIVE"] = False
             status_ok = False

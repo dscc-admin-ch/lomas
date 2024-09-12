@@ -7,6 +7,7 @@ from diffprivlib_logger import deserialise_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
+from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
 from data_connector.data_connector import DataConnector
 from dp_queries.dp_libraries.utils import handle_missing_data, serialise_model
@@ -23,8 +24,12 @@ class DiffPrivLibQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
 
-    def __init__(self, data_connector: DataConnector) -> None:
-        super().__init__(data_connector)
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: AdminDatabase,
+    ) -> None:
+        super().__init__(data_connector, admin_database)
         self.dpl_pipeline: Optional[Pipeline] = None
         self.x_test: Optional[pd.DataFrame] = None
         self.y_test: Optional[pd.DataFrame] = None

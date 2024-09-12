@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 from admin_database.admin_database import AdminDatabase
 from data_connector.data_connector import DataConnector
-from dataset_store.dataset_store import DatasetStore
 from utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
@@ -25,7 +24,6 @@ class DPQuerier(ABC):
         self,
         data_connector: DataConnector,
         admin_database: AdminDatabase,
-        dataset_store: DatasetStore,
     ) -> None:
         """Initialise with specific dataset
 
@@ -33,11 +31,9 @@ class DPQuerier(ABC):
             data_connector (DataConnector): The private dataset to query.
             admin_database (AdminDatabase): An initialized instance of
                 an AdminDatabase.
-            dataset_store (DatasetStore): A dataset store.
         """
         self.data_connector = data_connector
         self.admin_database = admin_database
-        self.dataset_store = dataset_store
 
     @abstractmethod
     def cost(self, query_json: BaseModel) -> tuple[float, float]:

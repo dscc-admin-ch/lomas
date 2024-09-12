@@ -16,6 +16,7 @@ from snsynth.transform import (
 from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
 
+from admin_database.admin_database import AdminDatabase
 from constants import (
     DEFAULT_DATE_FORMAT,
     SECONDS_IN_A_DAY,
@@ -65,8 +66,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
 
-    def __init__(self, data_connector: DataConnector) -> None:
-        super().__init__(data_connector)
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: AdminDatabase,
+    ) -> None:
+        super().__init__(data_connector, admin_database)
         self.model: Optional[Synthesizer] = None
 
     def _categorize_column(self, data: dict) -> str:

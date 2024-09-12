@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from constants import DPLibraries
+from data_connector.factory import data_connector_factory
 from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from utils.error_handler import (
@@ -71,8 +72,15 @@ def handle_query_on_data_connector(
     """
     app = request.app
 
-    dp_querier = app.state.dataset_store.get_querier(
-        query_json.dataset_name, dp_library
+    data_connector = data_connector_factory(
+        query_json.dataset_name,
+        app.state.admin_database,
+        app.state.private_credentials,
+    )
+    dp_querier = querier_factory(
+        dp_library,
+        data_connector=data_connector,
+        admin_database=app.state.admin_database,
     )
     try:
         response = dp_querier.handle_query(dp_library, query_json, user_name)
@@ -123,7 +131,9 @@ def handle_query_on_dummy_dataset(
         app.state.admin_database, query_json
     )
     dummy_querier = querier_factory(
-        dp_library, data_connector=ds_data_connector
+        dp_library,
+        data_connector=ds_data_connector,
+        admin_database=app.state.admin_database,
     )
 
     try:
@@ -174,8 +184,15 @@ def handle_cost_query(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
-    dp_querier = app.state.dataset_store.get_querier(
-        query_json.dataset_name, dp_library
+    data_connector = data_connector_factory(
+        query_json.dataset_name,
+        app.state.admin_database,
+        app.state.private_credentials,
+    )
+    dp_querier = querier_factory(
+        dp_library,
+        data_connector=data_connector,
+        admin_database=app.state.admin_database,
     )
     try:
         eps_cost, delta_cost = dp_querier.cost(query_json)

@@ -15,7 +15,7 @@ from pymongo.database import Database
 from admin_database.factory import admin_database_factory
 from admin_database.utils import get_mongodb
 from app import app
-from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
+from constants import EPSILON_LIMIT, DPLibraries
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -155,36 +155,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
-
-    def test_memory_usage(self) -> None:
-        """Test memory usage endpoint"""
-        with TestClient(app, headers=self.headers) as client:
-            config = CONFIG_LOADER.get_config()
-            if config.dataset_store.ds_store_type == DatasetStoreType.LRU:
-                # Test before adding data
-                response = client.get(
-                    "/get_memory_usage", headers=self.headers
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["memory_usage"] == 0
-
-                # Test after adding data
-                response = client.post(
-                    "/smartnoise_sql_query",
-                    json=example_smartnoise_sql,
-                    headers=self.headers,
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response = client.get(
-                    "/get_memory_usage", headers=self.headers
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["memory_usage"] > 0
 
     def test_get_dataset_metadata(self) -> None:
         """test_get_dataset_metadata"""

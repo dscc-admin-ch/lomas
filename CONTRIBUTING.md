@@ -117,13 +117,6 @@ Some examples are avalaible here:
 
 Do not forget to add these libraries in the `requirements.txt` files.
 
-## Adding a Dataset Store
-Here is the explanation of how to add a new dataset store named `NewDatasetStore` for the example.
-
-1. Add the new dataset store the the `DatasetStoreType` StrEnum class in `lomas/lomas_server/constants.py` and add the `NewDatasetStore` option in the `dataset_store_factory` function (in `lomas/lomas_server/dataset_store/factory.py`).
-2. Create a file for your dataset store in the folder `lomas/lomas_server/dataset_store/new_dataset_store.py`. Inside, create a class `NewDatasetStore` that inherits from `DatasetStore` (`lomas/lomas_server/dataset_store/dataset_store.py`), your class must contain a `_add_dataset` method that handle adding a dataset in memory and a `get_querier` method that the querier for the given dataset and library.
-3. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new dataset store.
-
 ## Adding a Data Connector (for private dataset in various databases)
 Here is the explanation of how to add a new data connector named `NewDataConnector` for the example.
 

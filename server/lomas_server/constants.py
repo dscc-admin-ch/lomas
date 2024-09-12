@@ -29,9 +29,6 @@ class ConfigKeys(StrEnum):
     DB_TYPE_MONGODB: str = "mongodb"
     MONGODB_ADDR: str = "address"
     MONGODB_PORT: str = "port"
-    DATASET_STORE: str = "dataset_store"
-    DATASET_STORE_TYPE: str = "ds_store_type"
-    LRU_DATASET_STORE_MAX_SIZE: str = "max_memory_usage"
     DP_LIBRARY: str = "dp_libraries"
 
 
@@ -42,13 +39,6 @@ class AdminDBType(StrEnum):
     MONGODB: str = "mongodb"
 
 
-class DatasetStoreType(StrEnum):
-    """Types of classes to handle datasets in memory"""
-
-    BASIC: str = "basic"
-    LRU: str = "LRU_cache"
-
-
 class TimeAttackMethod(StrEnum):
     """Possible methods against timing attacks"""
 
@@ -57,7 +47,6 @@ class TimeAttackMethod(StrEnum):
 
 
 # Server states
-QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"

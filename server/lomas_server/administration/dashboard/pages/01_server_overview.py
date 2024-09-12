@@ -2,7 +2,7 @@ import requests
 import streamlit as st
 from config import get_config
 
-from constants import AdminDBType, DatasetStoreType
+from constants import AdminDBType
 from utils.config import get_config as get_server_config
 from utils.error_handler import InternalServerException
 
@@ -62,7 +62,7 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
     else:
         st.write(":red[The server is in PRODUCTION mode.]")
 
-    tab_1, tab_2, tab_3 = st.columns(3)
+    tab_1, tab_2 = st.columns(2)
     with tab_1:
         st.subheader("Server configurations")
 
@@ -107,24 +107,4 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
         else:
             raise InternalServerException(
                 f"Admin database type {db_type} not supported."
-            )
-
-    with tab_3:
-        st.subheader("Dataset Store")
-        ds_store_type = st.session_state.config.dataset_store.ds_store_type
-        st.write("The dataset store type is: ", ds_store_type)
-        if ds_store_type == DatasetStoreType.LRU:
-            st.write(
-                "The maximum memory usage is: ",
-                st.session_state.config.dataset_store.max_memory_usage,
-                "MB.",
-            )
-            memory = get_server_data(
-                st.session_state.dashboard_config.server_service,
-                "get_memory_usage",
-            )
-            st.write(
-                "Current memory usage with loaded datasets: ",
-                memory["memory_usage"],
-                "MB.",
             )

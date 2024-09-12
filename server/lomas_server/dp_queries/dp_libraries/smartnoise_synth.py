@@ -400,7 +400,8 @@ class SmartnoiseSynthQuerier(
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSynthQueryModel): The JSON request object for the query.
+            query_json (SmartnoiseSynthQueryModel):
+                The request object for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

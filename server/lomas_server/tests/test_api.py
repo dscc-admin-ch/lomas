@@ -15,7 +15,7 @@ from pymongo.database import Database
 from admin_database.factory import admin_database_factory
 from admin_database.utils import get_mongodb
 from app import app
-from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
+from constants import EPSILON_LIMIT, DPLibraries
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -155,7 +155,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
-
 
     def test_get_dataset_metadata(self) -> None:
         """test_get_dataset_metadata"""

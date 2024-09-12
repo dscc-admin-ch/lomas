@@ -39,13 +39,6 @@ class AdminDBType(StrEnum):
     MONGODB: str = "mongodb"
 
 
-class DatasetStoreType(StrEnum):
-    """Types of classes to handle datasets in memory"""
-
-    BASIC: str = "basic"
-    LRU: str = "LRU_cache"
-
-
 class TimeAttackMethod(StrEnum):
     """Possible methods against timing attacks"""
 

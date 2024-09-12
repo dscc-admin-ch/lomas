@@ -8,7 +8,6 @@ from constants import (
     SECRETS_PATH,
     AdminDBType,
     ConfigKeys,
-    DatasetStoreType,
     PrivateDatabaseType,
     TimeAttackMethod,
 )
@@ -31,23 +30,6 @@ class Server(BaseModel):
     log_level: str
     reload: bool
     workers: int
-
-
-class DatasetStoreConfig(BaseModel):
-    """BaseModel for dataset store configs"""
-
-
-class BasicDatasetStoreConfig(DatasetStoreConfig):
-    """BaseModel for basic dataset store configs"""
-
-    ds_store_type: Literal[DatasetStoreType.BASIC.value]  # type: ignore
-
-
-class LRUDatasetStoreConfig(DatasetStoreConfig):
-    """BaseModel for dataset store configs in case of a LRU dataset store"""
-
-    ds_store_type: Literal[DatasetStoreType.LRU]  # type: ignore
-    max_memory_usage: int
 
 
 class DBConfig(BaseModel):

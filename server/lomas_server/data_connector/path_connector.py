@@ -57,8 +57,4 @@ class PathConnector(DataConnector):
                     "loading into pandas DataFrame."
                 )
 
-            # Notify observer since memory usage has changed
-            for observer in self.dataset_observers:
-                observer.update_memory_usage()
-
         return self.df

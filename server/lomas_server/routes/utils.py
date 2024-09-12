@@ -83,7 +83,7 @@ def handle_query_on_data_connector(
         admin_database=app.state.admin_database,
     )
     try:
-        response = dp_querier.handle_query(dp_library, query_json, user_name)
+        response = dp_querier.handle_query(query_json, user_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

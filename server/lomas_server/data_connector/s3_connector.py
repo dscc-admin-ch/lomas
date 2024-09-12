@@ -56,8 +56,4 @@ class S3Connector(DataConnector):
                     + f"{self.bucket}/{self.key}: {err}"
                 ) from err
 
-            # Notify observer since memory usage has changed
-            for observer in self.dataset_observers:
-                observer.update_memory_usage()
-
         return self.df

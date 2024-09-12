@@ -44,19 +44,6 @@ class DataConnector(ABC):
         """
         return self.metadata
 
-    def get_memory_usage(self) -> int:
-        """Returns the memory usage of this dataset, in MiB.
-
-        The number returned only takes into account the memory usage
-        of the pandas DataFrame "cached" in the instance.
-
-        Returns:
-            int: The memory usage, in MiB.
-        """
-        if self.df is None:
-            return 0
-        return self.df.memory_usage().sum() / (1024**2)
-
 
 def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
     """Extract and return the column types from the metadata.

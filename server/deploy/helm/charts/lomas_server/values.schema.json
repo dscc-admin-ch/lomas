@@ -277,23 +277,6 @@
                         "settings": {
                             "type": "object",
                             "properties": {
-                                "dataset_store": {
-                                    "type": "object",
-                                    "properties": {
-                                        "ds_store_type": {
-                                            "description": "The type of dataset store.",
-                                            "enum": [
-                                                "basic",
-                                                "LRU_cache"
-                                            ],
-                                            "type": "string"
-                                        },
-                                        "max_memory_usage": {
-                                            "description": "Max memory usage of dataset store. Only useful for LRU_cache type.",
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
                                 "develop_mode": {
                                     "description": "When True, service database is reset to default user and dataset collections.",
                                     "type": "boolean"

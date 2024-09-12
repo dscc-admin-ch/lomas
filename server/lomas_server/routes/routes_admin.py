@@ -52,29 +52,6 @@ async def get_state(
     )
 
 
-@router.get(
-    "/get_memory_usage",
-    dependencies=[Depends(server_live)],
-    tags=["ADMIN_USER"],
-)
-async def get_memory_usage(request: Request) -> JSONResponse:
-    """Return the dataset store object memory usage
-    Args:
-        request (Request): Raw request object
-        user_name (str, optional): The user name. Defaults to Header(None).
-
-    Returns:
-        JSONResponse: with DatasetStore object memory usage
-    """
-    app = request.app
-
-    return JSONResponse(
-        content={
-            "memory_usage": app.state.dataset_store.memory_usage,
-        }
-    )
-
-
 # Metadata query
 @router.post(
     "/get_dataset_metadata",

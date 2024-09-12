@@ -16,9 +16,6 @@ runtime_args:
       address: "mongodb"
       port: 27017
       db_name: "defaultdb"
-    dataset_store:
-      ds_store_type: "LRU_cache"
-      max_memory_usage: 512
     dp_libraries:
       opendp:
         contrib: True

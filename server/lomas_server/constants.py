@@ -29,9 +29,6 @@ class ConfigKeys(StrEnum):
     DB_TYPE_MONGODB: str = "mongodb"
     MONGODB_ADDR: str = "address"
     MONGODB_PORT: str = "port"
-    DATASET_STORE: str = "dataset_store"
-    DATASET_STORE_TYPE: str = "ds_store_type"
-    LRU_DATASET_STORE_MAX_SIZE: str = "max_memory_usage"
     DP_LIBRARY: str = "dp_libraries"
 
 

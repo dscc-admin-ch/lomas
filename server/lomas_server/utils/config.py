@@ -123,10 +123,6 @@ class Config(BaseModel):
         ..., discriminator="db_type"
     )
 
-    dataset_store: Union[BasicDatasetStoreConfig, LRUDatasetStoreConfig] = (
-        Field(..., discriminator="ds_store_type")
-    )
-
     dp_libraries: DPLibraryConfig
 
 

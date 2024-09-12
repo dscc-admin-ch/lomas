@@ -15,7 +15,7 @@ from constants import (
     RANDOM_DATE_START,
     RANDOM_STRINGS,
 )
-from private_dataset.in_memory_dataset import InMemoryDataset
+from data_connector.in_memory_connector import InMemoryConnector
 from utils.error_handler import InternalServerException
 from utils.query_models import GetDummyDataset
 
@@ -80,8 +80,24 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                 dtype = f"{data['type']}{data['precision']}"
 
                 if "cardinality" in data.keys():
-                    categories = np.array(data["categories"], dtype=dtype)
-                    serie = pd.Series(rng.choice(categories, size=nb_rows))
+                    if "categories" in data.keys():
+                        categories = np.array(data["categories"], dtype=dtype)
+                        serie = pd.Series(rng.choice(categories, size=nb_rows))
+                    else:
+                        if data["type"] == "int":
+                            serie = pd.Series(
+                                rng.integers(
+                                    1,
+                                    high=data["cardinality"],
+                                    endpoint=True,
+                                    size=nb_rows
+                                ),
+                                dtype=np.dtype(dtype)
+                            )
+                        else:
+                            raise InternalServerException(
+                                "Float column cannot be categorical."
+                            )
                 else:
                     if data["type"] == "int":
                         # pd.Series to ensure consistency between different types
@@ -90,9 +106,9 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                                 column_min,
                                 high=column_max,
                                 endpoint=True,
-                                size=nb_rows,
-                                dtype=np.dtype(dtype),
-                            )
+                                size=nb_rows
+                            ),
+                            dtype=np.dtype(dtype)
                         )
                     else:
                         serie = pd.Series(
@@ -152,7 +168,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 def get_dummy_dataset_for_query(
     admin_database: AdminDatabase, query_json: GetDummyDataset
-) -> InMemoryDataset:
+) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
     Args:
@@ -162,13 +178,13 @@ def get_dummy_dataset_for_query(
 
 
     Returns:
-        InMemoryDataset: An in memory dummy dataset instance.
+        InMemoryConnector: An in memory dummy dataset instance.
     """
     # Create dummy dataset based on seed and number of rows
     ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
     ds_df = make_dummy_dataset(
         ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
     )
-    ds_private_dataset = InMemoryDataset(ds_metadata, ds_df)
+    ds_data_connector = InMemoryConnector(ds_metadata, ds_df)
 
-    return ds_private_dataset
+    return ds_data_connector

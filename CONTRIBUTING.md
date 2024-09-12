@@ -70,7 +70,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Client library push**: The version must be set in `client/setup.py`
+* **Client library push**: The 'version' and the 'install_requires' must be set in `client/setup.py` ('install_requires' should match the list of library in requirements.txt).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the generation of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
 
@@ -128,6 +128,6 @@ Here is the explanation of how to add a new dataset store named `NewDatasetStore
 Here is the explanation of how to add a new data connector named `NewDataConnector` for the example.
 
 1. Add the new dataset store to the `NewDataConnector` StrEnum class in `lomas/lomas_server/constants.py`.
-2. Add the `NewDataConnector` option in the `private_dataset_factory` function (in `lomas/lomas_server/private_dataset/factory.py`).
-3. Create a file for your dataset store in the folder `lomas/lomas_server/private_dataset/new_data_connector.py`. Inside, create a class `NewDataConnector` that inherits from `PrivateDataset` (`lomas/lomas_server/private_dataset/private_dataset.py`), your class must contain a `get_pandas_df` method that return a dataframe of the dataset.
+2. Add the `NewDataConnector` option in the `data_connector_factory` function (in `lomas/lomas_server/data_connector/factory.py`).
+3. Create a file for your dataset store in the folder `lomas/lomas_server/data_connector/new_data_connector.py`. Inside, create a class `NewDataConnector` that inherits from `DataConnector` (`lomas/lomas_server/data_connector/data_connector.py`), your class must contain a `get_pandas_df` method that return a dataframe of the dataset.
 4. Add tests in `lomas/lomas_server/tests/` to test all functionnalities of the new data connector.

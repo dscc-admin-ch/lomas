@@ -1,5 +1,9 @@
 <h1 align="center">
-<img src="https://github.com/dscc-admin-ch/lomas/blob/develop/images/lomas_logo_txt.png?raw=true" width="300">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png"  width="300">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png"  width="300">
+  <img alt="I don't know why but this is needed." src="https://user-images.githubusercontent.com/25423296/163456779-a8556205-d0a5-45e2-ac17-42d089e3c3f8.png">
+</picture>
 </h1><br>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -33,6 +37,7 @@ For a detailed description, please see the links below.
 * **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
 * **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
 * **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+* **Poster**: https://github.com/dscc-admin-ch/lomas/blob/master/images/poster.pdf
 
 
 ## Client package `lomas_client`

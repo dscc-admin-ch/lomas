@@ -117,6 +117,15 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    CONTRIBUTING_CLIENT.md
    CONTRIBUTING_SERVER.md
 
+   poster
+
+.. toctree::
+   :maxdepth: 2
+   :caption: poster
+   :hidden:
+
+   poster
+
 Indices and tables
 ==================
 

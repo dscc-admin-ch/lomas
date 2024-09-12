@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
 
-class PrivateDatasetObserver(ABC):
+class DataConnectorObserver(ABC):
     """
     We use this abstract class to "subscribe" to object instances
-    (PrivateDataset) so that they can notify instances of this
+    (DataConnector) so that they can notify instances of this
     abstract class (LRUDatasetStore or other DatasetStore implementing
     caching) when their memory usage changes.
     """

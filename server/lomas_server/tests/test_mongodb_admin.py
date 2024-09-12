@@ -920,6 +920,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "FSO_INCOME_SYNTHETIC",
                 "COVID_SYNTHETIC",
                 "BIRTHDAYS",
+                "PUMS",
             ],
         )
 
@@ -993,6 +994,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 [
                     "PENGUIN",
                     "IRIS",
+                    "PUMS",
                     "FSO_INCOME_SYNTHETIC",
                     "COVID_SYNTHETIC",
                     "TINTIN_S3_TEST",
@@ -1008,5 +1010,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                     "FSO_INCOME_SYNTHETIC",
                     "COVID_SYNTHETIC",
                     "BIRTHDAYS",
+                    "PUMS",
                 ],
             )

@@ -5,13 +5,14 @@ from typing import List, Union
 
 import opendp as dp
 import polars as pl
+from opendp._lib import lib_path
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
 from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
+from data_connector.data_connector import DataConnector
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.config import OpenDPConfig
 from utils.error_handler import (
     ExternalLibraryException,
@@ -260,17 +261,18 @@ class OpenDPQuerier(DPQuerier):
 
     def __init__(
         self,
-        private_dataset: PrivateDataset,
+        data_connector: DataConnector,
     ) -> None:
         """Initializer.
 
         Args:
-            private_dataset (PrivateDataset): Private dataset to query.
+            data_connector (DataConnector): DataConnector for the dataset
+                to query.
         """
-        super().__init__(private_dataset)
+        super().__init__(data_connector)
 
         # Get metadata once and for all
-        self.metadata = dict(self.private_dataset.get_metadata())
+        self.metadata = dict(self.data_connector.get_metadata())
 
     def cost(self, query_json: OpenDPModel) -> tuple[float, float]:
         """
@@ -352,11 +354,11 @@ class OpenDPQuerier(DPQuerier):
         )
 
         if query_json.pipeline_type == "legacy":
-            input_data = self.private_dataset.get_pandas_df().to_csv(
+            input_data = self.data_connector.get_pandas_df().to_csv(
                 header=False, index=False
             )
         elif query_json.pipeline_type == "polars":
-            input_data = self.private_dataset.get_polars_lf()
+            input_data = self.data_connector.get_polars_lf()
         else:  # TODO validate input in json model instead of with if-else statements
             raise InvalidQueryException("invalid pipeline type")
 
@@ -569,6 +571,4 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
         enable_features("honest-but-curious")
 
     # Set DP Libraries config
-    from opendp._lib import lib_path
-
     os.environ["OPENDP_LIB_PATH"] = str(lib_path)

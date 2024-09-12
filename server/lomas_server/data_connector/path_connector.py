@@ -2,14 +2,14 @@ from typing import Optional
 
 import pandas as pd
 
-from private_dataset.private_dataset import PrivateDataset
+from data_connector.data_connector import DataConnector
 from utils.collection_models import Metadata
 from utils.error_handler import InternalServerException, InvalidQueryException
 
 
-class PathDataset(PrivateDataset):
+class PathConnector(DataConnector):
     """
-    PrivateDataset for dataset located at constant path.
+    DataConnector for dataset located at constant path.
 
     Path can be local or remote (http).
     """

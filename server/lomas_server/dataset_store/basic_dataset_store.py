@@ -59,13 +59,13 @@ class BasicDatasetStore(DatasetStore):
             querier = querier_factory(lib.value, data_connector)
             self.dp_queriers[dataset_name][lib.value] = querier
 
-    def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:
+    def get_querier(self, dataset_name: str, dp_library: str) -> DPQuerier:
         """
         Returns the querier for the given dataset and library
 
         Args:
             dataset_name (str): The dataset name.
-            query_type (str): The type of DP library.
+            dp_library (str): The type of DP library.
                 One of :py:class:`constants.DPLibraries`
 
         Returns:
@@ -74,4 +74,4 @@ class BasicDatasetStore(DatasetStore):
         if dataset_name not in self.dp_queriers:
             self._add_dataset(dataset_name)
 
-        return self.dp_queriers[dataset_name][query_type]
+        return self.dp_queriers[dataset_name][dp_library]

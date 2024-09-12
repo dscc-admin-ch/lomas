@@ -118,7 +118,6 @@ async def lifespan(
         app.state.server_state["state"].append("Startup completed")
         app.state.server_state["message"].append("Startup completed")
 
-
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
 

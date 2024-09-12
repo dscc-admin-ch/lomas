@@ -12,7 +12,7 @@ from utils.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from dp_queries.dp_logic import QueryHandler
+
 
 async def server_live(request: Request) -> AsyncGenerator:
     """
@@ -70,13 +70,12 @@ def handle_query_on_data_connector(
               for the query.
     """
     app = request.app
-    query_handler = QueryHandler(
-        app.state.admin_database, app.state.dataset_store
+
+    dp_querier = app.state.dataset_store.get_querier(
+        query_json.dataset_name, dp_library
     )
     try:
-        response = query_handler.handle_query(
-            dp_library, query_json, user_name
-        )
+        response = dp_querier.handle_query(dp_library, query_json, user_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -175,13 +174,16 @@ def handle_cost_query(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
+    dp_querier = app.state.dataset_store.get_querier(
+        query_json.dataset_name, dp_library
+    )
     try:
-        response = app.state.query_handler.estimate_cost(
-            dp_library, query_json
-        )
+        eps_cost, delta_cost = dp_querier.cost(query_json)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
         raise InternalServerException(e) from e
 
-    return JSONResponse(content=response)
+    return JSONResponse(
+        content={"epsilon_cost": eps_cost, "delta_cost": delta_cost}
+    )

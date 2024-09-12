@@ -1,7 +1,5 @@
-import glob
 import json
 import os
-import unittest
 from io import StringIO
 
 import opendp.prelude as dp_p
@@ -10,22 +8,15 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
-from pymongo.database import Database
 
 from admin_database.factory import admin_database_factory
-from admin_database.utils import get_mongodb
 from app import app
 from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
-from mongodb_admin import (
-    add_datasets_via_yaml,
-    add_users_via_yaml,
-    drop_collection,
-)
 from tests.constants import (
-    ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
+from tests.test_api_root import TestSetupRootAPIEndpoint
 from utils.config import CONFIG_LOADER
 from utils.error_handler import InternalServerException
 from utils.logger import LOG
@@ -49,7 +40,7 @@ INITIAL_DELTA = 0.005
 enable_features("floating-point")
 
 
-class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
+class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """
     End-to-end tests of the api endpoints.
 
@@ -58,68 +49,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     or a standard test. The first requires a mongodb to be started
     before running while the latter will use a local YamlDatabase.
     """
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        # Read correct config depending on the database we test against
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config_mongo.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
-        else:
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        pass
-
-    def setUp(self) -> None:
-        """Set Up Header and DB for test"""
-        self.user_name = "Dr. Antartica"
-        self.headers = {
-            "Content-type": "application/json",
-            "Accept": "*/*",
-        }
-        self.headers["user-name"] = self.user_name
-
-        # Fill up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            self.db: Database = get_mongodb()
-
-            add_users_via_yaml(
-                self.db,
-                yaml_file="tests/test_data/test_user_collection.yaml",
-                clean=True,
-                overwrite=True,
-            )
-
-            if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
-                yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
-            else:
-                yaml_file = "tests/test_data/test_datasets.yaml"
-
-            add_datasets_via_yaml(
-                self.db,
-                yaml_file=yaml_file,
-                clean=True,
-                overwrite_datasets=True,
-                overwrite_metadata=True,
-            )
-
-    def tearDown(self) -> None:
-        # Clean up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            drop_collection(self.db, "metadata")
-            drop_collection(self.db, "datasets")
-            drop_collection(self.db, "users")
-            drop_collection(self.db, "queries_archives")
-        else:
-            for file in glob.glob("tests/test_data/local_db_file_*.yaml"):
-                os.remove(file)
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration"""
@@ -676,6 +605,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": transformation_pipeline.to_json(),
+                    "pipeline_type": "legacy",
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -693,6 +623,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "dataset_name": PENGUIN_DATASET,
                     "opendp_json": md_pipeline.to_json(),
+                    "pipeline_type": "legacy",
                 },
             )
             assert response.status_code == status.HTTP_200_OK
@@ -710,17 +641,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
+                "pipeline_type": "legacy",
             }
-            # Should error because missing fixed_delta
+            # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
+                + "delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
             }
-            # Should work because fixed_delta is set
-            json_obj["fixed_delta"] = 1e-6
+            # Should work because delta is set
+            json_obj["delta"] = 1e-6
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
 
@@ -735,18 +667,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
+                "pipeline_type": "legacy",
             }
-            # Should error because missing fixed_delta
+            # Should error because missing delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert response.json() == {
                 "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
+                + "delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
             }
 
-            # Should work because fixed_delta is set
-            json_obj["fixed_delta"] = 1e-6
+            # Should work because delta is set
+            json_obj["delta"] = 1e-6
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
@@ -755,27 +688,26 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_epsilon"] > 0.1
             assert response_dict["spent_delta"] == 1e-6
 
-            # # Test FIXED_SMOOTHED_MAX_DIVERGENCE
-            # fms_pipeline = (
-            #     dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
-            #     >> dp_p.t.make_select_column(key="island", TOA=str)
-            #     >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
-            #     >> dp_p.m.then_base_laplace_threshold(
-            #         scale=2.0, threshold=28.0
-            #     )
-            # )
-            # json_obj = {
-            #     "dataset_name": PENGUIN_DATASET,
-            #     "opendp_json": fms_pipeline.to_json(),
-            # }
-            # # Should error because missing fixed_delta
-            # response = client.post("/opendp_query", json=json_obj)
-            # assert response.status_code == status.HTTP_200_OK
-            # response_dict = json.loads(response.content.decode("utf8"))
-            # assert response_dict["requested_by"] == self.user_name
-            # assert isinstance(response_dict["query_response"], dict)
-            # assert response_dict["spent_epsilon"] > 0.1
-            # assert response_dict["spent_delta"] > 0
+            # Test FIXED_SMOOTHED_MAX_DIVERGENCE
+            fms_pipeline = (
+                dp_p.t.make_split_dataframe(separator=",", col_names=colnames)
+                >> dp_p.t.make_select_column(key="island", TOA=str)
+                >> dp_p.t.then_count_by(MO=dp_p.L1Distance[float], TV=float)
+                >> dp_p.m.then_laplace_threshold(scale=2.0, threshold=28.0)
+            )
+            json_obj = {
+                "dataset_name": PENGUIN_DATASET,
+                "opendp_json": fms_pipeline.to_json(),
+                "pipeline_type": "legacy",
+            }
+            # Should error because missing delta
+            response = client.post("/opendp_query", json=json_obj)
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            assert response_dict["requested_by"] == self.user_name
+            assert isinstance(response_dict["query_response"], dict)
+            assert response_dict["spent_epsilon"] > 0.1
+            assert response_dict["spent_delta"] > 0
 
     def test_dummy_opendp_query(self) -> None:
         """test_dummy_opendp_query"""
@@ -961,7 +893,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert len(response_dict_2["previous_queries"]) == 1
             assert (
-                response_dict_2["previous_queries"][0]["dp_librairy"]
+                response_dict_2["previous_queries"][0]["dp_library"]
                 == DPLibraries.SMARTNOISE_SQL
             )
             assert (
@@ -992,7 +924,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 == response_dict_2["previous_queries"][0]
             )
             assert (
-                response_dict_3["previous_queries"][1]["dp_librairy"]
+                response_dict_3["previous_queries"][1]["dp_library"]
                 == DPLibraries.OPENDP
             )
             assert (

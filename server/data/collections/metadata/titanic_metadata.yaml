@@ -4,10 +4,14 @@ columns:
   PassengerId:
     private_id: true
     type: int
+    lower: 1
+    upper: 887
+    precision: 32
   Pclass:
     type: int
     lower: 1
     upper: 3
+    precision: 32
   Name:
     type: string
   Sex:
@@ -20,20 +24,33 @@ columns:
     type: float
     lower: 0.1
     upper: 100.0
+    precision: 64
   SibSp:
     type: int
     lower: 0
+<<<<<<< HEAD
+    precision: 32
+  Parch:
+    type: int
+    lower: 0
+    precision: 32
+=======
     upper: 10
   Parch:
     type: int
     lower: 0
     upper: 10
+>>>>>>> dcee4d3ac0daff77eface2f9175fac58dd9fb807
   Ticket:
     type: string
   Fare:
     type: float
     lower: 0.0
+<<<<<<< HEAD
+    precision: 64
+=======
     upper: 1000
+>>>>>>> dcee4d3ac0daff77eface2f9175fac58dd9fb807
   Cabin:
     type: string
   Embarked:

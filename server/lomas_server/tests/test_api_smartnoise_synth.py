@@ -15,7 +15,7 @@ from snsynth.transform import (
 
 from app import app
 from tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
-from tests.test_api import TestRootAPIEndpoint
+from tests.test_api import TestSetupRootAPIEndpoint
 from utils.query_examples import (
     example_dummy_smartnoise_synth_query,
     example_smartnoise_synth_cost,
@@ -31,7 +31,7 @@ def get_model(query_response):
 
 
 class TestSmartnoiseSynthEndpoint(
-    TestRootAPIEndpoint
+    TestSetupRootAPIEndpoint
 ):  # pylint: disable=R0904
     """
     Test Smartnoise Synth Endpoints with different Synthesizers

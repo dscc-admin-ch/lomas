@@ -76,6 +76,7 @@ class TestMakeDummyDataset(unittest.TestCase):
                     "type": "float",
                     "upper": upper_bound,
                     "lower": lower_bound,
+                    "precision": 64,
                 }
             }
         }
@@ -98,6 +99,7 @@ class TestMakeDummyDataset(unittest.TestCase):
                     "type": "int",
                     "upper": upper_bound,
                     "lower": lower_bound,
+                    "precision": 64,
                 }
             }
         }
@@ -134,7 +136,11 @@ class TestMakeDummyDataset(unittest.TestCase):
     def test_seed(self) -> None:
         """test_seed"""
         # Test the behavior with different seeds
-        metadata = {"columns": {"col_int": {"type": "int", "nullable": True}}}
+        metadata = {
+            "columns": {
+                "col_int": {"type": "int", "nullable": True, "precision": "32"}
+            }
+        }
         seed1 = DUMMY_SEED
         seed2 = DUMMY_SEED + 1
 

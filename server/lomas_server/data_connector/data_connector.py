@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+import polars as pl
 
 from dataset_store.data_connector_observer import DataConnectorObserver
 from utils.collection_models import Metadata
@@ -28,15 +29,22 @@ class DataConnector(ABC):
         self.datetime_columns: List[str] = datetime_columns
 
     @abstractmethod
-    def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
+    def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format
-
-        Args:
-            dataset_name (str): name of the private dataset
 
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
+
+    def get_polars_lf(
+        self,
+    ) -> pl.LazyFrame:
+        """Get the data in polars lazyframe format.
+
+        Returns:
+            pl.LazyFrame: The polars lazyframe for this dataset.
+        """
+        return pl.from_pandas(self.get_pandas_df()).lazy()
 
     def get_metadata(self) -> dict:
         """Get the metadata for this dataset
@@ -87,6 +95,8 @@ def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
         if data["type"] == "datetime":
             dtypes[col_name] = "string"
             datetime_columns.append(col_name)
+        elif "precision" in data:
+            dtypes[col_name] = f'{data["type"]}{data["precision"]}'
         else:
             dtypes[col_name] = data["type"]
     return dtypes, datetime_columns

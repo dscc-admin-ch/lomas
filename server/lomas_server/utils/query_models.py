@@ -99,7 +99,9 @@ class OpenDPModel(BaseModel):
 
     dataset_name: str
     opendp_json: str
-    fixed_delta: Optional[float] = None
+    pipeline_type: str
+    delta: Optional[float] = None
+    mechanism: Optional[str] = None
 
 
 class DummyOpenDPModel(BaseModel):
@@ -107,9 +109,11 @@ class DummyOpenDPModel(BaseModel):
 
     dataset_name: str
     opendp_json: str
+    mechanism: Optional[str] = None
+    pipeline_type: str
     dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
-    fixed_delta: Optional[float] = None
+    delta: Optional[float] = None
 
 
 class DiffPrivLibModel(BaseModel):

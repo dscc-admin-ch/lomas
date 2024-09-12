@@ -12,9 +12,7 @@ services:
       - ./lomas_server:/code/
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
-      - ./data/collections/metadata:/data/collections/metadata/
-      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
-      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+      - ./data/:/data/
     depends_on:
       minio-client:
         condition: service_completed_successfully
@@ -50,13 +48,13 @@ services:
     container_name: minio
     image: minio/minio
     ports:
-      - 9000:9000
-      - 9001:9001
+      - 10000:10000
+      - 10001:10001
     command: server /data
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
-      - MINIO_CONSOLE_ADDRESS=:9001
+      - MINIO_CONSOLE_ADDRESS=:10001
     volumes:
       - minio-data:/data
     networks:
@@ -68,7 +66,7 @@ services:
       - minio
     entrypoint: /bin/sh -c "
       sleep 15 && 
-      mc alias set myminio http://minio:9000 admin admin123 && 
+      mc alias set myminio http://minio:10000 admin admin123 && 
       mc mb myminio/example || true && 
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&

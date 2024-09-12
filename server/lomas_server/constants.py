@@ -193,7 +193,7 @@ NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0", '
+    '{"version": "0.11.1", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'
@@ -288,4 +288,49 @@ DIFFPRIVLIB_PIPELINE = (
     "}"
     "]"
     "}"
+)
+
+OPENDP_POLARS_PIPELINE = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32",'
+    '"bit_settings":"","values":[6,5,4,2,3,1,1,1,2,6]},{"name":"eco_branch",'
+    '"datatype":"Int32","bit_settings":"","values":[66,90,55,63,94,73,65,59,'
+    '60,92]},{"name":"profession","datatype":"Int32","bit_settings":"","values":'
+    '[32,81,71,10,42,91,53,10,74,73]},{"name":"education","datatype":"Int32",'
+    '"bit_settings":"","values":[7,2,1,7,1,5,1,3,4,4]},{"name":"age","datatype":'
+    '"Int32","bit_settings":"","values":[36,19,18,23,18,49,42,48,30,46]},{"name":'
+    '"sex","datatype":"Int32","bit_settings":"","values":[2,1,1,2,2,2,1,2,2,2]},'
+    '{"name":"income","datatype":"Float64","bit_settings":"","values":[69156.22632'
+    "652307,39503.22097393128,14374.55399721871,72427.3456792141,53010.07792509686,"
+    "31713.94568033661,49097.70052434712,89059.29560055102,93470.30807966871,36421."
+    '72447419795]}]},"schema":{"inner":{"region":"Int32","eco_branch":"Int32",'
+    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":'
+    '"Float64"}},"output_schema":null,"filter":null}}'
+)
+
+OPENDP_POLARS_PIPELINE_COVID = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
+    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
+    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
+    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
+    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
+    '"bit_settings":"","values":["BS","VS"]},'
+    '{"name":"agegroup","datatype":"String",'
+    '"bit_settings":"","values":["70 - 79","unknown"]},'
+    '{"name":"sex","datatype":"String",'
+    '"bit_settings":"","values":["other","other"]},'
+    '{"name":"testType","datatype":"String",'
+    '"bit_settings":"","values":["rapid_antigen_test",'
+    '"rapid_antigen_test"]},{"name":"testResult",'
+    '"datatype":"String","bit_settings":"",'
+    '"values":["other","other"]},{"name":"country",'
+    '"datatype":"String","bit_settings":"","values":["other","unknown"]},'
+    '{"name":"subType","datatype":"String",'
+    '"bit_settings":"","values":["BA.2.75","XBB"]},'
+    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"",'
+    '"values":[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"",'
+    '"values":[true,false]}]},"schema":{"inner":{"patient_id":"Int32","id":"Int32",'
+    '"date":"String","temporal":"Int32","georegion":"String","agegroup":"String",'
+    '"sex":"String","testType":"String","testResult":"String","country":"String",'
+    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}},'
+    '"output_schema":null,"filter":null}}'
 )

@@ -37,9 +37,9 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
     Returns:
         pd.DataFrame: dummy dataframe based on metadata
     """
-    # Setting seed
-    random.seed(seed)
-    np.random.seed(seed)
+    # pylint: disable=too-many-locals
+    # Creating new random generator with fixed seed
+    rng = np.random.default_rng(seed)
 
     # Create dataframe
     df = pd.DataFrame()
@@ -51,23 +51,19 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     cardinality = data["cardinality"]
                     if "categories" in data.keys():
                         categories = data["categories"]
-                        serie = pd.Series(
-                            random.choices(categories, k=nb_rows)
-                        )
+                        serie = pd.Series(rng.choice(categories, size=nb_rows))
                     else:
                         serie = pd.Series(
-                            random.choices(
-                                RANDOM_STRINGS[:cardinality], k=nb_rows
+                            rng.choice(
+                                RANDOM_STRINGS[:cardinality], size=nb_rows
                             )
                         )
                 else:
-                    serie = pd.Series(
-                        random.choices(RANDOM_STRINGS, k=nb_rows)
-                    )
+                    serie = pd.Series(rng.choice(RANDOM_STRINGS, size=nb_rows))
             case "boolean":
                 # type boolean instead of bool will allow null values
                 serie = pd.Series(
-                    random.choices([True, False], k=nb_rows), dtype="boolean"
+                    rng.choice([True, False], size=nb_rows), dtype="boolean"
                 )
             case "int" | "float":
                 column_min = (
@@ -80,15 +76,46 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     if "upper" in data.keys()
                     else DEFAULT_NUMERICAL_MAX
                 )
-                if data["type"] == "int":
-                    # pd.Series to ensure consistency between different types
-                    serie = pd.Series(
-                        np.random.randint(column_min, column_max, size=nb_rows)
-                    )
+
+                dtype = f"{data['type']}{data['precision']}"
+
+                if "cardinality" in data.keys():
+                    if "categories" in data.keys():
+                        categories = np.array(data["categories"], dtype=dtype)
+                        serie = pd.Series(rng.choice(categories, size=nb_rows))
+                    else:
+                        if data["type"] == "int":
+                            serie = pd.Series(
+                                rng.integers(
+                                    1,
+                                    high=data["cardinality"],
+                                    endpoint=True,
+                                    size=nb_rows
+                                ),
+                                dtype=np.dtype(dtype)
+                            )
+                        else:
+                            raise InternalServerException(
+                                "Float column cannot be categorical."
+                            )
                 else:
-                    serie = pd.Series(
-                        np.random.uniform(column_min, column_max, size=nb_rows)
-                    )
+                    if data["type"] == "int":
+                        # pd.Series to ensure consistency between different types
+                        serie = pd.Series(
+                            rng.integers(
+                                column_min,
+                                high=column_max,
+                                endpoint=True,
+                                size=nb_rows
+                            ),
+                            dtype=np.dtype(dtype)
+                        )
+                    else:
+                        serie = pd.Series(
+                            column_min
+                            + (column_max - column_min)
+                            * rng.random(size=nb_rows, dtype=np.dtype(dtype))
+                        )
             case "datetime":
                 # From start date and random on a range above
                 start_date = (
@@ -130,7 +157,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
             # Get the indexes of 'serie'
             indexes = serie.index.tolist()
             for _ in range(0, NB_RANDOM_NONE):
-                index_to_insert = random.choice(indexes)
+                index_to_insert = rng.choice(indexes)
                 serie.at[index_to_insert] = None
 
         # Add randomly generated data as new column of dataframe

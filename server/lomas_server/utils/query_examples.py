@@ -1,6 +1,8 @@
 from constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
+    OPENDP_POLARS_PIPELINE,
+    OPENDP_POLARS_PIPELINE_COVID,
     SSynthGanSynthesizer,
 )
 
@@ -14,6 +16,7 @@ DUMMY_SEED = 42
 
 # Query constants
 PENGUIN_DATASET = "PENGUIN"
+FSO_INCOME_DATASET = "FSO_INCOME_SYNTHETIC"
 QUERY_EPSILON = 0.1
 QUERY_DELTA = 0.00001
 SQL_QUERY = "SELECT COUNT(*) AS NB_ROW FROM df"
@@ -92,9 +95,28 @@ example_dummy_smartnoise_synth_query = make_dummy(
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
-    "fixed_delta": QUERY_DELTA,
+    "pipeline_type": "legacy",  # TODO set constant
+    "delta": QUERY_DELTA,
+    "mechanism": None,
 }
 example_dummy_opendp = make_dummy(example_opendp)
+
+# OpenDP Polars
+example_opendp_polars = {
+    "dataset_name": FSO_INCOME_DATASET,
+    "opendp_json": OPENDP_POLARS_PIPELINE,
+    "pipeline_type": "polars",  # TODO set constant
+    "delta": QUERY_DELTA,
+    "mechanism": "laplace",
+}
+
+example_opendp_polars_datetime = {
+    "dataset_name": "COVID_SYNTHETIC",
+    "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
+    "pipeline_type": "polars",  # TODO set constant
+    "delta": QUERY_DELTA,
+    "mechanism": "laplace",
+}
 
 # DiffPrivLib
 example_diffprivlib = {
@@ -106,4 +128,5 @@ example_diffprivlib = {
     "test_train_split_seed": SPLIT_SEED,
     "imputer_strategy": IMPUTER_STRATEGY,
 }
+
 example_dummy_diffprivlib = make_dummy(example_diffprivlib)

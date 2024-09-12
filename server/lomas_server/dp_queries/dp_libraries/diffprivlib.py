@@ -1,6 +1,4 @@
-import pickle
 import warnings
-from base64 import b64encode
 from typing import Dict, Optional
 
 import pandas as pd
@@ -10,9 +8,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from constants import DPLibraries
-from dp_queries.dp_libraries.utils import handle_missing_data
+from data_connector.data_connector import DataConnector
+from dp_queries.dp_libraries.utils import handle_missing_data, serialise_model
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.private_dataset import PrivateDataset
 from utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
@@ -25,8 +23,8 @@ class DiffPrivLibQuerier(DPQuerier):
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
 
-    def __init__(self, private_dataset: PrivateDataset) -> None:
-        super().__init__(private_dataset)
+    def __init__(self, data_connector: DataConnector) -> None:
+        super().__init__(data_connector)
         self.dpl_pipeline: Optional[Pipeline] = None
         self.x_test: Optional[pd.DataFrame] = None
         self.y_test: Optional[pd.DataFrame] = None
@@ -49,7 +47,7 @@ class DiffPrivLibQuerier(DPQuerier):
             y_test (pd.DataFrame): test data target
         """
         # Prepare data
-        raw_data = self.private_dataset.get_pandas_df()
+        raw_data = self.data_connector.get_pandas_df()
         data = handle_missing_data(raw_data, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(
             data, query_json
@@ -131,11 +129,9 @@ class DiffPrivLibQuerier(DPQuerier):
         score = self.dpl_pipeline.score(self.x_test, self.y_test)
 
         # Serialise model
-        pickled_model = b64encode(pickle.dumps(self.dpl_pipeline))
-
         query_response = {
             "score": score,
-            "model": pickled_model.decode("utf-8"),
+            "model": serialise_model(self.dpl_pipeline),
         }
         return query_response
 

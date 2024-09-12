@@ -2,10 +2,10 @@ from typing import Dict, List
 
 from admin_database.admin_database import AdminDatabase
 from constants import DPLibraries
+from data_connector.factory import data_connector_factory
 from dataset_store.dataset_store import DatasetStore
 from dp_queries.dp_libraries.factory import querier_factory
 from dp_queries.dp_querier import DPQuerier
-from private_dataset.factory import private_dataset_factory
 from utils.config import PrivateDBCredentials
 
 
@@ -48,7 +48,7 @@ class BasicDatasetStore(DatasetStore):
         Trying to add a dataset already in self.dp_queriers"
 
         # Metadata and data getter
-        private_dataset = private_dataset_factory(
+        data_connector = data_connector_factory(
             dataset_name, self.admin_database, self.private_db_credentials
         )
 
@@ -56,7 +56,7 @@ class BasicDatasetStore(DatasetStore):
         self.dp_queriers[dataset_name] = {}
 
         for lib in DPLibraries:
-            querier = querier_factory(lib.value, private_dataset)
+            querier = querier_factory(lib.value, data_connector)
             self.dp_queriers[dataset_name][lib.value] = querier
 
     def get_querier(self, dataset_name: str, query_type: str) -> DPQuerier:

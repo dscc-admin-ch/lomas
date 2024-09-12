@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from constants import DPLibraries
 from routes.utils import (
     handle_cost_query,
+    handle_query_on_data_connector,
     handle_query_on_dummy_dataset,
-    handle_query_on_private_dataset,
     server_live,
 )
 from utils.query_examples import (
@@ -13,25 +13,31 @@ from utils.query_examples import (
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
+    example_dummy_smartnoise_synth_query,
     example_opendp,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
+    example_smartnoise_synth_cost,
+    example_smartnoise_synth_query,
 )
 from utils.query_models import (
     DiffPrivLibModel,
     DummyDiffPrivLibModel,
     DummyOpenDPModel,
     DummySmartnoiseSQLModel,
+    DummySmartnoiseSynthQueryModel,
     OpenDPModel,
+    SmartnoiseSQLCostModel,
     SmartnoiseSQLModel,
-    SmartnoiseSQLModelCost,
+    SmartnoiseSynthCostModel,
+    SmartnoiseSynthQueryModel,
 )
 
 router = APIRouter()
 
 
 @router.post(
-    "/smartnoise_query",
+    "/smartnoise_sql_query",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
@@ -82,14 +88,14 @@ def smartnoise_sql_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_private_dataset(
+    return handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
     )
 
 
 # Smartnoise SQL Dummy query
 @router.post(
-    "/dummy_smartnoise_query",
+    "/dummy_smartnoise_sql_query",
     dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
@@ -115,8 +121,6 @@ def dummy_smartnoise_sql_handler(
               results (default: True).
               See Smartnoise-SQL postprocessing documentation
               https://docs.smartnoise.org/sql/advanced.html#postprocess.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows in the dummy dataset
               (default: 100).
             - seed (int, optional): The random seed for generating
@@ -142,13 +146,13 @@ def dummy_smartnoise_sql_handler(
 
 
 @router.post(
-    "/estimate_smartnoise_cost",
+    "/estimate_smartnoise_sql_cost",
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
-def estimate_smartnoise_cost(
+def estimate_smartnoise_sql_cost(
     request: Request,
-    query_json: SmartnoiseSQLModelCost = Body(example_smartnoise_sql_cost),
+    query_json: SmartnoiseSQLCostModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -156,7 +160,7 @@ def estimate_smartnoise_cost(
 
     Args:
         request (Request): Raw request object
-        query_json (SmartnoiseSQLModelCost, optional):
+        query_json (SmartnoiseSQLCostModel, optional):
             A JSON object containing the following:
             - query: The SQL query to estimate the cost for.
               NOTE: the table name is "df", the query must end with "FROM df".
@@ -182,6 +186,185 @@ def estimate_smartnoise_cost(
     """
     return handle_cost_query(
         request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
+    )
+
+
+@router.post(
+    "/smartnoise_synth_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def smartnoise_synth_handler(
+    request: Request,
+    query_json: SmartnoiseSynthQueryModel = Body(
+        example_smartnoise_synth_query
+    ),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - synth_name (str): name of the Synthesizer model to use.
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+            - select_cols (List[str]): List of columns to select.
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+            - nullable (bool): True if some data cells may be null
+            - constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+            - return_model (bool): True to get Synthesizer model, False to get samples
+            - condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+            - nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
+            - Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    return handle_query_on_data_connector(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
+
+
+@router.post(
+    "/dummy_smartnoise_synth_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def dummy_smartnoise_synth_handler(
+    request: Request,
+    query_json: DummySmartnoiseSynthQueryModel = Body(
+        example_dummy_smartnoise_synth_query
+    ),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - synth_name (str): name of the Synthesizer model to use.
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+            - select_cols (List[str]): List of columns to select.
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+            - nullable (bool): True if some data cells may be null
+            - constraints (dict): Dictionnary for custom table transformer constraints.
+                Column that are not specified will be inferred based on metadata.
+            - return_model (bool): True to get Synthesizer model, False to get samples
+            - condition (Optional[str]): sampling condition in `model.sample`
+                (only relevant if return_model is False)
+            - nb_samples (Optional[int]): number of samples to generate.
+                (only relevant if return_model is False)
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+              (default: 100).
+            - seed (int, optional): The random seed for generating
+              the dummy dataset (default: 42).
+
+            Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing the following:
+            - requested_by (str): The user name.
+            - query_response (pd.DataFrame): A DataFrame containing
+              the query response.
+            - spent_epsilon (float): The amount of epsilon budget spent
+              for the query.
+            - spent_delta (float): The amount of delta budget spent
+              for the query.
+    """
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
+
+
+@router.post(
+    "/estimate_smartnoise_synth_cost",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+def estimate_smartnoise_synth_cost(
+    request: Request,
+    query_json: SmartnoiseSynthCostModel = Body(example_smartnoise_synth_cost),
+    user_name: str = Header(None),
+) -> JSONResponse:
+    """
+    Handles queries for the SmartNoise Synth library.
+    Args:
+        request (Request): Raw request object
+        query_json (SNSQLInp): A JSON object containing:
+            - synth_name (str): name of the Synthesizer model to use.
+            - epsilon (float): Privacy parameter (e.g., 0.1).
+            - delta (float): Privacy parameter (e.g., 1e-5).
+                mechanisms (dict[str, str], optional): Dictionary of mechanisms for the\
+                query `See Smartnoise-SQL postprocessing documentation.
+                <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__
+            - select_cols (List[str]): List of columns to select.
+            - synth_params (dict): Keyword arguments to pass to the synthesizer
+                constructor.
+                See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
+                all parameters of the model except `epsilon` and `delta`.
+            - nullable (bool): True if some data cells may be null
+            - constraints
+            - nb_rows (int, optional): The number of rows in the dummy dataset
+            - seed (int, optional): The random seed for generating
+                the dummy dataset (default: 42).
+
+            Defaults to Body(example_smartnoise_synth).
+        user_name (str): The user name.
+    Raises:
+        ExternalLibraryException: For exceptions from libraries
+            external to this package.
+        InternalServerException: For any other unforseen exceptions.
+        InvalidQueryException: If there is not enough budget or the dataset
+            does not exist.
+        UnauthorizedAccessException: A query is already ongoing for this user,
+            the user does not exist or does not have access to the dataset.
+    Returns:
+        JSONResponse: A JSON object containing:
+            - epsilon_cost (float): The estimated epsilon cost.
+            - delta_cost (float): The estimated delta cost.
+    """
+    return handle_cost_query(
+        request, query_json, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
@@ -231,7 +414,7 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    response = handle_query_on_private_dataset(
+    response = handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.OPENDP
     )
     return JSONResponse(content=response)
@@ -261,8 +444,6 @@ def dummy_opendp_query_handler(
               "make_zCDP_to_approxDP" (see opendp measurements documentation at
               https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
               In that case a "fixed_delta" must be provided by the user.
-            - dummy (bool, optional): Whether to use a dummy dataset
-              (default: False).
             - nb_rows (int, optional): The number of rows
               in the dummy dataset (default: 100).
             - seed (int, optional): The random seed for generating
@@ -372,7 +553,7 @@ def diffprivlib_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    return handle_query_on_private_dataset(
+    return handle_query_on_data_connector(
         request, query_json, user_name, DPLibraries.DIFFPRIVLIB
     )
 

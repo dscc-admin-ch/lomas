@@ -27,3 +27,4 @@ columns:
     - setosa
     - versicolor
     - virginica
+rows: 150

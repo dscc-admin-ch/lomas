@@ -15,7 +15,7 @@ class TestMarginDomain(unittest.TestCase):
     Tests for margin update with lazyframe domain
     """
 
-    def test_opendp_margin(self) -> None:
+    def test_opendp_margin(self) -> None:  # pylint: disable=R0915
         """test opendp margin. Partitions parameters"""
         metadata: Dict[str, Any] = {
             "max_ids": 1,
@@ -64,9 +64,9 @@ class TestMarginDomain(unittest.TestCase):
         self.assertEqual(params["max_num_partitions"], 5)
         self.assertEqual(params["max_partition_length"], 100)
         with self.assertRaises(KeyError):
-            params["max_influenced_partitions"]
+            params["max_influenced_partitions"]  # pylint: disable=W0104
         with self.assertRaises(KeyError):
-            params["max_partition_contributions"]
+            params["max_partition_contributions"]  # pylint: disable=W0104
 
         # Single grouping, max_partition_length
         metadata["columns"]["column_category"]["max_partition_length"] = 60

@@ -101,7 +101,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
                 # Test after adding data
                 response = client.post(
-                    "/smartnoise_query",
+                    "/smartnoise_sql_query",
                     json=example_smartnoise_sql,
                     headers=self.headers,
                 )
@@ -176,6 +176,13 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 dummy_df.shape[0] == DUMMY_NB_ROWS
             ), "Dummy pd.DataFrame does not have expected number of rows"
             assert response_dict["datetime_columns"] == []
+
+            expected_dtypes = pd.Series(response_dict["dtypes"])
+            assert (
+                dummy_df.dtypes == expected_dtypes
+            ).all(), (
+                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+            )
 
             expected_dtypes = pd.Series(response_dict["dtypes"])
             assert (
@@ -277,12 +284,12 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
             )
 
-    def test_smartnoise_query(self) -> None:
+    def test_smartnoise_sql_query(self) -> None:
         """Test smartnoise-sql query"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=self.headers,
             )
@@ -297,7 +304,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json={
                     "query_str": "SELECT COUNT(*) AS NB_ROW FROM df",
                     "dataset_name": PENGUIN_DATASET,
@@ -320,7 +327,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["epsilon"] = 0.000000001
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=input_smartnoise,
                 headers=self.headers,
             )
@@ -340,7 +347,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "SELECT AVG(bill) FROM df"  # no 'bill' column
             )
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=input_smartnoise,
                 headers=self.headers,
             )
@@ -355,7 +362,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "IRIS"
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=input_smartnoise,
                 headers=self.headers,
             )
@@ -369,7 +376,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "I_do_not_exist"
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=input_smartnoise,
                 headers=self.headers,
             )
@@ -384,7 +391,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             new_headers = self.headers
             new_headers["user-name"] = "I_do_not_exist"
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=new_headers,
             )
@@ -395,7 +402,55 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 + "Please, verify the client object initialisation."
             }
 
-    def test_smartnoise_query_datetime(self) -> None:
+    def test_smartnoise_sql_query_parameters(self) -> None:
+        """Test smartnoise-sql query parameters"""
+        with TestClient(app, headers=self.headers) as client:
+            # Change the Query
+            body = dict(example_smartnoise_sql)
+            body["query_str"] = (
+                "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
+            )
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
+
+            # Change the mechanism
+            body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
+
+            # Try postprocess False
+            body["postprocess"] = False
+            response = client.post(
+                "/smartnoise_sql_query",
+                json=body,
+                headers=self.headers,
+            )
+            assert response.status_code == status.HTTP_200_OK
+            response_dict = json.loads(response.content.decode("utf8"))
+            df_response = pd.DataFrame.from_dict(
+                response_dict["query_response"], orient="tight"
+            )
+            assert df_response.shape[1] == 2
+
+    def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime"""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work: query with datetimes and another user
@@ -417,7 +472,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 df, pd.DataFrame
             ), "Response should be a pd.DataFrame"
 
-    def test_smartnoise_query_on_s3_dataset(self) -> None:
+    def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset"""
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             with TestClient(app, headers=self.headers) as client:
@@ -425,7 +480,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 input_smartnoise = dict(example_smartnoise_sql)
                 input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
                 response = client.post(
-                    "/smartnoise_query",
+                    "/smartnoise_sql_query",
                     json=input_smartnoise,
                     headers=self.headers,
                 )
@@ -437,25 +492,26 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 assert response_dict["spent_epsilon"] == QUERY_EPSILON
                 assert response_dict["spent_delta"] >= QUERY_DELTA
 
-    def test_dummy_smartnoise_query(self) -> None:
-        """test_dummy_smartnoise_query"""
+    def test_dummy_smartnoise_sql_query(self) -> None:
+        """test_dummy_smartnoise_sql_query"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/dummy_smartnoise_query",
+                "/dummy_smartnoise_sql_query",
                 json=example_dummy_smartnoise_sql,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == ["res_0"]
+            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
             assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["query_response"]["data"][0][0] < 200
+            assert response_dict["query_response"]["data"][0][0] < 250
 
             # Should fail: no header
             response = client.post(
-                "/dummy_smartnoise_query", json=example_dummy_smartnoise_sql
+                "/dummy_smartnoise_sql_query",
+                json=example_dummy_smartnoise_sql,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert response.json() == {
@@ -467,7 +523,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             body = dict(example_dummy_smartnoise_sql)
             body["dataset_name"] = "IRIS"
             response = client.post(
-                "/dummy_smartnoise_query",
+                "/dummy_smartnoise_sql_query",
                 json=body,
                 headers=self.headers,
             )
@@ -477,12 +533,12 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 + f"{self.user_name} does not have access to IRIS."
             }
 
-    def test_smartnoise_cost(self) -> None:
-        """test_smartnoise_cost"""
+    def test_smartnoise_sql_cost(self) -> None:
+        """test_smartnoise_sql_cost"""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/estimate_smartnoise_cost",
+                "/estimate_smartnoise_sql_cost",
                 json=example_smartnoise_sql_cost,
                 headers=self.headers,
             )
@@ -496,7 +552,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             body = dict(example_smartnoise_sql_cost)
             body["dataset_name"] = "IRIS"
             response = client.post(
-                "/estimate_smartnoise_cost",
+                "/estimate_smartnoise_sql_cost",
                 json=body,
                 headers=self.headers,
             )
@@ -724,7 +780,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to spend budget
             _ = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=self.headers,
             )
@@ -752,7 +808,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to spend budget
             _ = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=self.headers,
             )
@@ -783,7 +839,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to spend budget
             _ = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=self.headers,
             )
@@ -819,7 +875,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to archive 1 (smartnoise)
             query_res = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
                 headers=self.headers,
             )
@@ -887,7 +943,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
 
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=smartnoise_body,
                 headers=self.headers,
             )
@@ -907,7 +963,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=smartnoise_body,
                 headers=self.headers,
             )
@@ -917,7 +973,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=smartnoise_body,
                 headers=self.headers,
             )
@@ -927,7 +983,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             response = client.post(
-                "/smartnoise_query",
+                "/smartnoise_sql_query",
                 json=smartnoise_body,
                 headers=self.headers,
             )

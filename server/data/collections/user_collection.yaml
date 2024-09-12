@@ -20,6 +20,16 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
+  - dataset_name: "PUMS"
+    initial_epsilon: 5.0
+    initial_delta: 0.0005
+    total_spent_epsilon: 0.2
+    total_spent_delta: 0.0000001
+  - dataset_name: "BIRTHDAYS"
+    initial_epsilon: 5.0
+    initial_delta: 0.0005
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0
 - user_name: Dr. FSO
   may_query: True
   datasets_list:

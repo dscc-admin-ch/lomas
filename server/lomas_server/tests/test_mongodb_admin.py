@@ -768,7 +768,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            tintin = datasets["datasets"][4]
+            tintin = datasets["datasets"][5]
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
@@ -920,6 +920,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "FSO_INCOME_SYNTHETIC",
                 "COVID_SYNTHETIC",
                 "BIRTHDAYS",
+                "PUMS",
             ],
         )
 
@@ -995,6 +996,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                     "IRIS",
                     "FSO_INCOME_SYNTHETIC",
                     "COVID_SYNTHETIC",
+                    "PUMS",
                     "TINTIN_S3_TEST",
                     "BIRTHDAYS",
                 ],
@@ -1008,5 +1010,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                     "FSO_INCOME_SYNTHETIC",
                     "COVID_SYNTHETIC",
                     "BIRTHDAYS",
+                    "PUMS",
                 ],
             )

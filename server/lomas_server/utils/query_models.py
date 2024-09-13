@@ -3,8 +3,6 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 from lomas_server.constants import (
-    DELTA_LIMIT,
-    EPSILON_LIMIT,
     DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
@@ -67,16 +65,8 @@ class SmartnoiseSQLRequestModel(RequestModel):
     """Base input model for a smarnoise-sql request"""
 
     query_str: str
-    epsilon: float = Field(
-        ...,
-        gt=0,
-        le=EPSILON_LIMIT,
-    )
-    delta: float = Field(
-        ...,
-        gt=0,
-        le=DELTA_LIMIT,
-    )
+    epsilon: float = Field(..., gt=0)
+    delta: float = Field(..., gt=0)
     mechanisms: dict
 
 
@@ -96,7 +86,7 @@ class SmartnoiseSynthRequestModel(RequestModel):
     """Base input model for a SmartnoiseSynth request"""
 
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
-    epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
+    epsilon: float = Field(..., gt=0)
     delta: Optional[float] = None
     select_cols: List
     synth_params: dict

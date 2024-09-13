@@ -40,11 +40,11 @@ setup(
         "smartnoise-sql",
         "smartnoise-synth",
     ],
-    python_requires=">=3.10, <3.11",
+    python_requires=">=3.10, <=3.12",
     install_requires=[
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",
-        "numpy>=1.24.0",
+        "numpy>=1.26.2",
         "opendp==0.10.0",
         "opendp_logger==0.3.0",
         "pandas>=2.2.2",

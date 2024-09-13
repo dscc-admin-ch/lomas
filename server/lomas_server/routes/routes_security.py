@@ -4,7 +4,6 @@ from typing import Annotated, Union
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 
@@ -17,8 +16,8 @@ from constants import (
 
 
 fake_users_db = {
-    "alice": {
-        "username": "alice",
+    "Alice": {
+        "username": "Alice",
         "full_name": "Alice Wonderson",
         "email": "alice@example.com",
         "hashed_password": "$2b$12$4ythU2KpXmrESQ7eHyusI.sQqENpGUIHfX0W5NepXgkrv5f7RTIAa",
@@ -26,12 +25,12 @@ fake_users_db = {
     },
 }
 
-    
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password, hashed_password):

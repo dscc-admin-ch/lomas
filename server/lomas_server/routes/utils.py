@@ -141,9 +141,15 @@ def handle_query_on_dummy_dataset(
     )
 
     try:
-        _ = dummy_querier.cost(query_json)  # verify cost works
+        eps_cost, delta_cost = dummy_querier.cost(query_json)
         response_df = dummy_querier.query(query_json)
-        response = JSONResponse(content={"query_response": response_df})
+        response = JSONResponse(
+            content={
+                "query_response": response_df,
+                "epsilon": eps_cost,
+                "delta": delta_cost,
+            }
+        )
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

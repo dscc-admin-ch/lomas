@@ -18,7 +18,6 @@ setup(
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Topic :: Software Development :: Libraries",
@@ -26,5 +25,6 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
     ],
+    python_requires=">=3.11, <=3.12",
     # install_requires=..
 )

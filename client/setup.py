@@ -25,6 +25,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering",
@@ -40,7 +41,7 @@ setup(
         "smartnoise-sql",
         "smartnoise-synth",
     ],
-    python_requires=">=3.10, <=3.12",
+    python_requires=">=3.11, <=3.12",
     install_requires=[
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",

@@ -1,4 +1,4 @@
-name: "CodeQL Extended"
+name: CodeQL Extended
 
 on:
   pull_request:
@@ -19,27 +19,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - language: python
-          build-mode: none
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Initializes the CodeQL tools for scanning.
+    # Set up Python for each version specified in the matrix
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Initialize CodeQL with the current Python version
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: python
         build-mode: none
         queries: security-extended
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-
-        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

@@ -1,5 +1,5 @@
 # To install packages including opendp_polars and opendp_logger 
-FROM python:3.11 AS lomas_server_base
+FROM python:3.12 AS lomas_server_base
 
 # To install missing packages
 COPY ./requirements.txt /requirements.txt

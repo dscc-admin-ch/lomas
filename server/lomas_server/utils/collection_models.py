@@ -3,7 +3,7 @@ from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
-from constants import PrivateDatabaseType
+from lomas_server.constants import PrivateDatabaseType
 
 
 class DatasetOfUser(BaseModel):

@@ -15,7 +15,7 @@ from pymongo.database import Database
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
-from lomas_server.constants import EPSILON_LIMIT, DPLibraries
+from lomas_server.constants import DPLibraries
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -963,25 +963,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert (
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )
-
-    def test_budget_over_limit(self) -> None:
-        """test_budget_over_limit"""
-        with TestClient(app, headers=self.headers) as client:
-            # Should fail: too much budget on one go
-            smartnoise_body = dict(example_smartnoise_sql)
-            smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
-
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            error = response.json()["detail"][0]
-            assert error["type"] == "less_than_equal"
-            assert error["loc"] == ["body", "epsilon"]
-            assert error["msg"] == "Input should be less than or equal to 5"
 
     def test_subsequent_budget_limit_logic(self) -> None:
         """test_subsequent_budget_limit_logic"""

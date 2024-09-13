@@ -16,8 +16,8 @@ from snsynth.transform import (
 from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
 
-from admin_database.admin_database import AdminDatabase
-from constants import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import (
     DEFAULT_DATE_FORMAT,
     SECONDS_IN_A_DAY,
     SSYNTH_DEFAULT_BINS,
@@ -29,18 +29,18 @@ from constants import (
     SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.utils import serialise_model
-from dp_queries.dp_querier import DPQuerier
-from utils.collection_models import Metadata
-from utils.error_handler import (
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.utils import serialise_model
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import (
-    SmartnoiseSynthCostModel,
+from lomas_server.utils.query_models import (
     SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
 )
 
 
@@ -61,7 +61,9 @@ def datetime_to_float(upper, lower):
     return float(distance.total_seconds() / SECONDS_IN_A_DAY)
 
 
-class SmartnoiseSynthQuerier(DPQuerier):
+class SmartnoiseSynthQuerier(
+    DPQuerier[SmartnoiseSynthRequestModel, SmartnoiseSynthQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
@@ -119,7 +121,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
             SSynthColumnType.DATETIME: [],
             SSynthColumnType.PRIVATE_ID: [],
         }
-        for col_name, data in metadata["columns"].items():
+        for col_name, data in metadata.columns.items():
             if select_cols and col_name not in select_cols:
                 continue
 
@@ -136,7 +138,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
     def _get_default_constraints(
         self,
         metadata: Metadata,
-        query_json: dict,
+        query_json: SmartnoiseSynthRequestModel,
         table_transformer_style: str,
     ) -> TableTransformer:
         """
@@ -147,7 +149,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         Args:
             metadata (Metadata): Metadata of the dataset
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 select_cols (List[str]): List of columns to select
                 nullable (bool): True is the data can have Null values, False otherwise
             table_transformer_style (str): 'gan' or 'cube'
@@ -171,21 +173,21 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 )
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = MinMaxTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
+                    lower=metadata.columns[col]["lower"],
+                    upper=metadata.columns[col]["upper"],
                     nullable=nullable,
                 )
             for col in col_categories[SSynthColumnType.DATETIME]:
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
+                            epoch=metadata.columns[col]["lower"]
                         ),
                         MinMaxTransformer(
                             lower=0.0,  # because start epoch at lower bound
                             upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+                                metadata.columns[col]["upper"],
+                                metadata.columns[col]["lower"],
                             ),
                             nullable=nullable,
                         ),
@@ -196,8 +198,8 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = LabelTransformer(nullable=nullable)
             for col in col_categories[SSynthColumnType.CONTINUOUS]:
                 constraints[col] = BinTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
+                    lower=metadata.columns[col]["lower"],
+                    upper=metadata.columns[col]["upper"],
                     bins=SSYNTH_DEFAULT_BINS,
                     nullable=nullable,
                 )
@@ -205,13 +207,13 @@ class SmartnoiseSynthQuerier(DPQuerier):
                 constraints[col] = ChainTransformer(
                     [
                         DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
+                            epoch=metadata.columns[col]["lower"]
                         ),
                         BinTransformer(
                             lower=0.0,  # because start epoch at lower bound
                             upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+                                metadata.columns[col]["upper"],
+                                metadata.columns[col]["lower"],
                             ),
                             bins=SSYNTH_DEFAULT_BINS,
                             nullable=nullable,
@@ -225,7 +227,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         private_data: pd.DataFrame,
         transformer: TableTransformer,
-        query_json: dict,
+        query_json: SmartnoiseSynthRequestModel,
     ) -> Synthesizer:
         """
         Create and fit the synthesizer model.
@@ -233,7 +235,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Args:
             private_data (pd.DataFrame): Private data for fitting the model
             transformer (TableTransformer): Transformer to pre/postprocess data
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 synth_name (str): name of the Yanthesizer model to use
                 epsilon (float): epsilon budget value
                 nullable (bool): True if some data cells may be null
@@ -290,12 +292,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def _model_pipeline(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> Synthesizer:
         """Return a trained Synthesizer model based on query_json
 
         Args:
-            query_json (SmartnoiseSynthCostModel): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             model: Smartnoise Synthesizer
@@ -325,7 +327,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Preprocessing information from metadata
         metadata = self.data_connector.get_metadata()
         if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
-            if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
+            if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"{SSynthGanSynthesizer.PATE_GAN} not reliable "
@@ -337,9 +339,9 @@ class SmartnoiseSynthQuerier(DPQuerier):
         )
 
         # Overwrite default constraint with custom constraint (if any)
-        custom_constraints = query_json.constraints
-        if custom_constraints:
-            custom_constraints = deserialise_constraints(custom_constraints)
+        constraints_json = query_json.constraints
+        if constraints_json:
+            custom_constraints = deserialise_constraints(constraints_json)
             custom_constraints = {
                 key: custom_constraints[key]
                 for key in query_json.select_cols
@@ -369,12 +371,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def cost(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> tuple[float, float]:
         """Return cost of query_json
 
         Args:
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             tuple[float, float]: The tuple of costs, the first value
@@ -392,12 +394,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return epsilon, delta
 
     def query(
-        self, query_json: SmartnoiseSynthQueryModel
+        self,
+        query_json: SmartnoiseSynthQueryModel,
     ) -> Union[pd.DataFrame, str]:
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSynthModel): The JSON request object for the query.
+            query_json (SmartnoiseSynthQueryModel):
+                The request object for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

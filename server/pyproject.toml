@@ -26,5 +26,6 @@ disable = [
     "E0611",  # no-name-in-module
     "W0511",  # fixme
     "C0302",  # too-many-lines
+    "W1203",  # use lazy % formatting in logging functions
     "duplicate-code"  # duplicate-code
 ]

@@ -5,16 +5,22 @@ columns:
   age:
     private_id: true # for testing purposes
     type: int
+    precision: 32
+    lower: 0
+    upper: 120
   sex:
     type: boolean
   educ:
     type: int
+    precision: 32
     cardinality: 14
   race:
     type: int
+    precision: 32
     cardinality: 6
   income:
     type: float
+    precision: 64
     lower: 0.0
     upper: 500_000.0
   married:

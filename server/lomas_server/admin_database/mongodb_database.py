@@ -5,13 +5,15 @@ from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
 
-from admin_database.admin_database import (
+from lomas_server.admin_database.admin_database import (
     AdminDatabase,
     dataset_must_exist,
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from utils.error_handler import InvalidQueryException
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import InvalidQueryException
+from lomas_server.utils.query_models import RequestModel
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -59,7 +61,7 @@ class AdminMongoDatabase(AdminDatabase):
         return False
 
     @dataset_must_exist
-    def get_dataset_metadata(self, dataset_name: str) -> dict:
+    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
         """Returns the metadata dictionnary of the dataset.
 
         Wrapped by :py:func:`dataset_must_exist`.
@@ -68,12 +70,12 @@ class AdminMongoDatabase(AdminDatabase):
             dataset_name (str): name of the dataset to get the metadata
 
         Returns:
-            dict: The metadata dict.
+            Metadata: The metadata model.
         """
         metadatas = self.db.metadata.find_one(
             {dataset_name: {"$exists": True}}
         )
-        return metadatas[dataset_name]  # type: ignore
+        return Metadata.model_validate(metadatas[dataset_name])  # type: ignore
 
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -248,14 +250,14 @@ class AdminMongoDatabase(AdminDatabase):
         return list(queries)
 
     def save_query(
-        self, user_name: str, query_json: dict, response: dict
+        self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """Save queries of user on datasets in a separate collection (table)
         named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user
-            query_json (dict): json received from client
+            query_json (RequestModel): json received from client
             response (dict): response sent to the client
 
         Raises:

@@ -3,7 +3,7 @@ from typing import Dict, List, Literal, Union
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from constants import (
+from lomas_server.constants import (
     CONFIG_PATH,
     SECRETS_PATH,
     AdminDBType,
@@ -11,7 +11,7 @@ from constants import (
     PrivateDatabaseType,
     TimeAttackMethod,
 )
-from utils.error_handler import InternalServerException
+from lomas_server.utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
@@ -119,7 +119,7 @@ class ConfigLoader:
     """
 
     _instance = None
-    _config = None
+    _config: Config | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -197,7 +197,8 @@ class ConfigLoader:
         """
         if self._config is None:
             self.load_config()
-        return self._config  # type: ignore
+        assert isinstance(self._config, Config)  # Helps mypy
+        return self._config
 
 
 CONFIG_LOADER = ConfigLoader()

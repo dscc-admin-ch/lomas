@@ -1,7 +1,7 @@
 import unittest
 
-from dp_queries.dummy_dataset import make_dummy_dataset
-from utils.query_examples import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.utils.query_examples import DUMMY_NB_ROWS, DUMMY_SEED
 
 
 class TestMakeDummyDataset(unittest.TestCase):

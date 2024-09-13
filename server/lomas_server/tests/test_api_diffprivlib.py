@@ -11,11 +11,14 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
 
-from app import app
-from constants import DPLibraries
-from tests.test_api import TestRootAPIEndpoint
-from utils.logger import LOG
-from utils.query_examples import example_diffprivlib, example_dummy_diffprivlib
+from lomas_server.app import app
+from lomas_server.constants import DPLibraries
+from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.utils.logger import LOG
+from lomas_server.utils.query_examples import (
+    example_diffprivlib,
+    example_dummy_diffprivlib,
+)
 
 
 def validate_pipeline(response):

@@ -5,7 +5,7 @@ docker compose -f docker-compose-test.yml up --detach
 sleep 15
 
 cd ./lomas_server
-
+export PYTHONPATH=$(pwd)/..:$PYTHONPATH
 
 # "mongodb", "LRU_cache", production mode, "jitter"
 export LOMAS_TEST_MONGO_INTEGRATION=1 # tests with mongodb available

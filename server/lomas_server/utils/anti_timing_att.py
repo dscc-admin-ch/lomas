@@ -4,8 +4,8 @@ from typing import Callable
 
 from fastapi import Request, Response
 
-from utils.config import Config
-from utils.error_handler import InternalServerException
+from lomas_server.utils.config import Config
+from lomas_server.utils.error_handler import InternalServerException
 
 
 async def anti_timing_att(

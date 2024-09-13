@@ -2,6 +2,8 @@ import os
 import string
 from enum import StrEnum
 
+import pkg_resources
+
 # Get config and secrets from correct location
 if "LOMAS_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
@@ -74,15 +76,6 @@ class DPLibraries(StrEnum):
     SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
-
-
-# Query model input to DP librairy
-MODEL_INPUT_TO_LIB = {
-    "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
-    "SmartnoiseSynthQueryModel": DPLibraries.SMARTNOISE_SYNTH,
-    "OpenDPModel": DPLibraries.OPENDP,
-    "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
-}
 
 
 # Private Databases
@@ -181,8 +174,9 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0", '
+    f'{{"version": "{OPENDP_VERSION}", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

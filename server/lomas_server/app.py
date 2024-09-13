@@ -4,20 +4,25 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
-from admin_database.factory import admin_database_factory
-from admin_database.utils import add_demo_data_to_mongodb_admin
-from constants import (
+from lomas_server.admin_database.factory import admin_database_factory
+from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
+from lomas_server.constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     SERVER_LIVE,
     AdminDBType,
 )
-from dp_queries.dp_libraries.opendp import set_opendp_features_config
-from routes import routes_admin, routes_dp
-from utils.anti_timing_att import anti_timing_att
-from utils.config import get_config
-from utils.error_handler import InternalServerException, add_exception_handlers
-from utils.logger import LOG
+from lomas_server.dp_queries.dp_libraries.opendp import (
+    set_opendp_features_config,
+)
+from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.utils.anti_timing_att import anti_timing_att
+from lomas_server.utils.config import get_config
+from lomas_server.utils.error_handler import (
+    InternalServerException,
+    add_exception_handlers,
+)
+from lomas_server.utils.logger import LOG
 
 
 @asynccontextmanager
@@ -87,7 +92,7 @@ async def lifespan(
                 config.admin_database
             )
         except InternalServerException as e:
-            LOG.exception("Failed at startup:" + str(e))
+            LOG.exception(f"Failed at startup: {str(e)}")
             app.state.server_state["state"].append(DB_NOT_LOADED)
             app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"

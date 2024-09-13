@@ -1,18 +1,17 @@
 import os
 import unittest
-from types import SimpleNamespace
 from typing import Dict
 
 import boto3
 import yaml
 from pymongo import MongoClient
 
-from admin_database.utils import (
+from lomas_server.admin_database.utils import (
     add_demo_data_to_mongodb_admin,
     get_mongodb_url,
 )
-from constants import PrivateDatabaseType
-from mongodb_admin import (
+from lomas_server.constants import PrivateDatabaseType
+from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
@@ -34,13 +33,13 @@ from mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
-from tests.constants import (
+from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     FALSE_VALUES,
     TRUE_VALUES,
 )
-from utils.config import CONFIG_LOADER, get_config
+from lomas_server.utils.config import CONFIG_LOADER, MongoDBConfig, get_config
 
 
 @unittest.skipIf(
@@ -68,9 +67,15 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
-        db_args = SimpleNamespace(**vars(get_config().admin_database))
-        db_url = get_mongodb_url(db_args)
-        cls.db = MongoClient(db_url)[db_args.db_name]
+        # Access to MongoDB
+        admin_config = get_config().admin_database
+        if isinstance(admin_config, MongoDBConfig):
+            mongo_config = admin_config
+        else:
+            raise TypeError("Loaded config does not contain a MongoDBConfig.")
+
+        db_url = get_mongodb_url(mongo_config)
+        cls.db = MongoClient(db_url)[mongo_config.db_name]
 
     def tearDown(self) -> None:
         """Drop all data from database"""

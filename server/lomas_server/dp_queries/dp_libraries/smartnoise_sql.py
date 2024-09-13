@@ -4,20 +4,25 @@ import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
-from admin_database.admin_database import AdminDatabase
-from constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_querier import DPQuerier
-from utils.collection_models import Metadata
-from utils.error_handler import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import SmartnoiseSQLCostModel, SmartnoiseSQLModel
+from lomas_server.utils.query_models import (
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+)
 
 
-class SmartnoiseSQLQuerier(DPQuerier):
+class SmartnoiseSQLQuerier(
+    DPQuerier[SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
     """
@@ -30,7 +35,9 @@ class SmartnoiseSQLQuerier(DPQuerier):
         super().__init__(data_connector, admin_database)
         self.reader: Optional[Reader] = None
 
-    def cost(self, query_json: SmartnoiseSQLCostModel) -> tuple[float, float]:
+    def cost(
+        self, query_json: SmartnoiseSQLRequestModel
+    ) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
@@ -66,11 +73,24 @@ class SmartnoiseSQLQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: SmartnoiseSQLModel, nb_iter: int = 0) -> dict:
+    def query(self, query_json: SmartnoiseSQLQueryModel) -> dict:
+        """Performs the query and returns the response.
+
+        Args:
+            query_json (SmartnoiseSQLQueryModel): The request model object.
+
+        Returns:
+            dict: The dictionary encoding of the result pd.DataFrame.
+        """
+        return self.query_with_iter(query_json)
+
+    def query_with_iter(
+        self, query_json: SmartnoiseSQLQueryModel, nb_iter: int = 0
+    ) -> dict:
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSQLModel): JSON request object for the query.
+            query_json (SmartnoiseSQLQueryModel): Request object for the query.
             nb_iter (int, optional): Number of trials if output is Nan.
                 Defaults to 0.
 
@@ -119,7 +139,7 @@ class SmartnoiseSQLQuerier(DPQuerier):
             # Try again up to SSQL_MAX_ITERATION
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
-                return self.query(query_json, nb_iter)
+                return self.query_with_iter(query_json, nb_iter)
 
             raise InvalidQueryException(
                 f"SQL Reader generated NAN results. "
@@ -156,7 +176,7 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
     Returns:
         dict: metadata of the dataset in smartnoise-sql format
     """
-    metadata = dict(metadata)
-    metadata.update(metadata["columns"])
-    del metadata["columns"]
-    return {"": {"": {"df": metadata}}}
+    metadata_dict = metadata.model_dump()
+    metadata_dict.update(metadata_dict["columns"])
+    del metadata_dict["columns"]
+    return {"": {"": {"df": metadata_dict}}}

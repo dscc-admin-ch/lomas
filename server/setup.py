@@ -25,6 +25,6 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
     ],
-    python_requires=">=3.11, <=3.12",
+    python_requires=">=3.11, <3.13",
     # install_requires=..
 )

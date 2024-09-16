@@ -1,4 +1,4 @@
-FROM python:3.12 AS lomas_client_base
+FROM lomas_core AS lomas_client_base
 
 WORKDIR /code
 

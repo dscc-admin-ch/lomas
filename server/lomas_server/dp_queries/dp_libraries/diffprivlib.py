@@ -8,14 +8,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import DPLibraries
+from lomas_core.constants import DPLibraries
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
     handle_missing_data,
     serialise_model,
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
 )

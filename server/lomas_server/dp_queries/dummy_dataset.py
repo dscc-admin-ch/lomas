@@ -18,7 +18,7 @@ from lomas_server.utils.collection_models import (
     Metadata,
     StrMetadata,
 )
-from lomas_server.utils.error_handler import InternalServerException
+from lomas.core.lomas_core.error_handler import InternalServerException
 from lomas_server.utils.query_models import RequestModel
 
 

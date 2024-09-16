@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Callable, Dict, List
 
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )

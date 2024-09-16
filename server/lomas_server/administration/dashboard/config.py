@@ -3,7 +3,7 @@ import os
 import yaml
 from pydantic import BaseModel
 
-from utils.error_handler import InternalServerException
+from lomas.core.lomas_core.error_handler import InternalServerException
 
 # Get config and secrets from correct location
 if "LOMAS_DASHBOARD_CONFIG_PATH" in os.environ:

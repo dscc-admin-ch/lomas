@@ -7,8 +7,8 @@ from lomas_server.mongodb_admin import (
     drop_collection,
 )
 from lomas_server.utils.config import MongoDBConfig, get_config
-from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.logger import LOG
+from lomas.core.lomas_core.error_handler import InternalServerException
+from lomas.core.lomas_core.logger import LOG
 
 
 def get_mongodb_url(config: MongoDBConfig) -> str:

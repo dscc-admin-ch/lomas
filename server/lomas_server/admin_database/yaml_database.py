@@ -10,7 +10,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )

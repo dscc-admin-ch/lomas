@@ -3,7 +3,7 @@ from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.admin_database.utils import get_mongodb_url
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
 from lomas_server.utils.config import DBConfig, MongoDBConfig, YamlDBConfig
-from lomas_server.utils.error_handler import InternalServerException
+from lomas.core.lomas_core.error_handler import InternalServerException
 
 
 def admin_database_factory(config: DBConfig) -> AdminDatabase:

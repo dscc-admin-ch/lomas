@@ -12,12 +12,12 @@ from lomas_server.constants import (
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.utils.config import OpenDPConfig
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_server.utils.logger import LOG
+from lomas.core.lomas_core.logger import LOG
 from lomas_server.utils.query_models import (
     OpenDPQueryModel,
     OpenDPRequestModel,

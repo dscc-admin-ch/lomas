@@ -9,7 +9,7 @@ from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS, DPLibraries
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

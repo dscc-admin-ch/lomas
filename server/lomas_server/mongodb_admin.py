@@ -18,8 +18,8 @@ from lomas_server.utils.collection_models import (
     MetadataOfS3DB,
     UserCollection,
 )
-from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.logger import LOG
+from lomas.core.lomas_core.error_handler import InternalServerException
+from lomas.core.lomas_core.logger import LOG
 
 
 def check_user_exists(enforce_true: bool) -> Callable:

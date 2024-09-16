@@ -41,7 +41,7 @@ from lomas_server.utils.collection_models import (
     StrCategoricalMetadata,
     StrMetadata,
 )
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

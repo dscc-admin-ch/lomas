@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
 
-from lomas_server.constants import DPLibraries
+from lomas_core.constants import DPLibraries
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,

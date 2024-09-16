@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.routes.utils import server_live
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,

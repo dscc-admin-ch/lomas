@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
 
 from lomas_server.app import app
-from lomas_server.constants import DPLibraries
+from lomas_core.constants import DPLibraries
 from lomas_server.tests.test_api import TestRootAPIEndpoint
 from lomas_server.utils.query_examples import (
     example_diffprivlib,

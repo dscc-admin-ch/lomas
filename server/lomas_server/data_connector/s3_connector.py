@@ -6,7 +6,7 @@ import pandas as pd
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.config import S3CredentialsConfig
-from lomas_server.utils.error_handler import InternalServerException
+from lomas.core.lomas_core.error_handler import InternalServerException
 
 
 class S3Connector(DataConnector):

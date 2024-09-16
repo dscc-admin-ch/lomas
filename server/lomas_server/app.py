@@ -18,11 +18,11 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.utils.anti_timing_att import anti_timing_att
 from lomas_server.utils.config import get_config
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
-from lomas_server.utils.logger import LOG
+from lomas.core.lomas_core.logger import LOG
 
 
 @asynccontextmanager

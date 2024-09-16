@@ -13,6 +13,7 @@ from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
+from lomas_core.constants import DPLibraries
 from lomas_client.utils import validate_synthesizer
 
 # Opendp_logger
@@ -31,15 +32,7 @@ SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 SNSYNTH_DEFAULT_SYMPLES_NB = 200
 
 
-class DPLibraries(StrEnum):
-    """Enum of the DP librairies used in the server
-    WARNING: MUST match those of lomas_server
-    """
 
-    SMARTNOISE_SQL = "smartnoise_sql"
-    SMARTNOISE_SYNTH = "smartnoise_synth"
-    OPENDP = "opendp"
-    DIFFPRIVLIB = "diffprivlib"
 
 
 def error_message(res: requests.Response) -> str:

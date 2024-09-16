@@ -7,7 +7,7 @@ from lomas_server.constants import (
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
-from lomas_server.utils.error_handler import InternalServerException
+from lomas.core.lomas_core.error_handler import InternalServerException
 
 
 class GetDbData(BaseModel):

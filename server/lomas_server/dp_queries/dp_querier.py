@@ -3,7 +3,7 @@ from typing import Any, Generic, List, TypeVar
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     InvalidQueryException,

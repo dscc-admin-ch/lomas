@@ -3,11 +3,11 @@ from collections.abc import AsyncGenerator
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from lomas_server.constants import DPLibraries
+from lomas_core.constants import DPLibraries
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.utils.error_handler import (
+from lomas.core.lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,

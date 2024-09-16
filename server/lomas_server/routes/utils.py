@@ -2,15 +2,20 @@ from collections.abc import AsyncGenerator
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
-from constants import DPLibraries
-from dp_queries.dp_libraries.factory import querier_factory
-from dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from utils.error_handler import (
+from lomas_server.constants import DPLibraries
+from lomas_server.data_connector.factory import data_connector_factory
+from lomas_server.dp_queries.dp_libraries.factory import querier_factory
+from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
+)
+from lomas_server.utils.query_models import (
+    DummyQueryModel,
+    QueryModel,
+    RequestModel,
 )
 
 
@@ -35,9 +40,9 @@ async def server_live(request: Request) -> AsyncGenerator:
     yield
 
 
-def handle_query_on_data_connector(
+def handle_query_on_private_dataset(
     request: Request,
-    query_json: BaseModel,
+    query_json: QueryModel,
     user_name: str,
     dp_library: DPLibraries,
 ):
@@ -71,21 +76,29 @@ def handle_query_on_data_connector(
     """
     app = request.app
 
+    data_connector = data_connector_factory(
+        query_json.dataset_name,
+        app.state.admin_database,
+        app.state.private_credentials,
+    )
+    dp_querier = querier_factory(
+        dp_library,
+        data_connector=data_connector,
+        admin_database=app.state.admin_database,
+    )
     try:
-        response = app.state.query_handler.handle_query(
-            dp_library, query_json, user_name
-        )
+        response = dp_querier.handle_query(query_json, user_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return response
 
 
 def handle_query_on_dummy_dataset(
     request: Request,
-    query_json: BaseModel,
+    query_json: DummyQueryModel,
     user_name: str,
     dp_library: DPLibraries,
 ):
@@ -122,24 +135,32 @@ def handle_query_on_dummy_dataset(
         app.state.admin_database, query_json
     )
     dummy_querier = querier_factory(
-        dp_library, data_connector=ds_data_connector
+        dp_library,
+        data_connector=ds_data_connector,
+        admin_database=app.state.admin_database,
     )
 
     try:
-        _ = dummy_querier.cost(query_json)  # verify cost works
+        eps_cost, delta_cost = dummy_querier.cost(query_json)
         response_df = dummy_querier.query(query_json)
-        response = JSONResponse(content={"query_response": response_df})
+        response = JSONResponse(
+            content={
+                "query_response": response_df,
+                "epsilon": eps_cost,
+                "delta": delta_cost,
+            }
+        )
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return response
 
 
 def handle_cost_query(
     request: Request,
-    query_json: BaseModel,
+    query_json: RequestModel,
     user_name: str,
     dp_library: DPLibraries,
 ):
@@ -173,13 +194,23 @@ def handle_cost_query(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
+    data_connector = data_connector_factory(
+        query_json.dataset_name,
+        app.state.admin_database,
+        app.state.private_credentials,
+    )
+    dp_querier = querier_factory(
+        dp_library,
+        data_connector=data_connector,
+        admin_database=app.state.admin_database,
+    )
     try:
-        response = app.state.query_handler.estimate_cost(
-            dp_library, query_json
-        )
+        eps_cost, delta_cost = dp_querier.cost(query_json)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
-    return JSONResponse(content=response)
+    return JSONResponse(
+        content={"epsilon_cost": eps_cost, "delta_cost": delta_cost}
+    )

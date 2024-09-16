@@ -4,23 +4,25 @@ from typing import Callable
 
 from fastapi import FastAPI, Request, Response
 
-from admin_database.factory import admin_database_factory
-from admin_database.utils import add_demo_data_to_mongodb_admin
-from constants import (
+from lomas_server.admin_database.factory import admin_database_factory
+from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
+from lomas_server.constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
-    QUERY_HANDLER_NOT_LOADED,
     SERVER_LIVE,
     AdminDBType,
 )
-from dataset_store.factory import dataset_store_factory
-from dp_queries.dp_libraries.opendp import set_opendp_features_config
-from dp_queries.dp_logic import QueryHandler
-from routes import routes_admin, routes_dp
-from utils.anti_timing_att import anti_timing_att
-from utils.config import get_config
-from utils.error_handler import InternalServerException, add_exception_handlers
-from utils.logger import LOG
+from lomas_server.dp_queries.dp_libraries.opendp import (
+    set_opendp_features_config,
+)
+from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.utils.anti_timing_att import anti_timing_att
+from lomas_server.utils.config import get_config
+from lomas_server.utils.error_handler import (
+    InternalServerException,
+    add_exception_handlers,
+)
+from lomas_server.utils.logger import LOG
 
 
 @asynccontextmanager
@@ -45,8 +47,6 @@ async def lifespan(
 
     # Set some app state
     app.state.admin_database = None
-    app.state.query_handler = None
-    app.state.dataset_store = None
 
     # General server state, can add fields if need be.
     app.state.server_state = {
@@ -62,6 +62,7 @@ async def lifespan(
         LOG.info("Loading config")
         app.state.server_state["message"].append("Loading config")
         config = get_config()
+        app.state.private_credentials = config.private_db_credentials
     except InternalServerException:
         LOG.info("Config could not loaded")
         app.state.server_state["state"].append(CONFIG_NOT_LOADED)
@@ -91,7 +92,7 @@ async def lifespan(
                 config.admin_database
             )
         except InternalServerException as e:
-            LOG.exception("Failed at startup:" + str(e))
+            LOG.exception(f"Failed at startup: {str(e)}")
             app.state.server_state["state"].append(DB_NOT_LOADED)
             app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"
@@ -99,32 +100,8 @@ async def lifespan(
             app.state.server_state["LIVE"] = False
             status_ok = False
 
-    # Load query handler
-    if status_ok:
-        LOG.info("Loading query handler")
-        app.state.server_state["message"].append("Loading dataset store")
-        app.state.dataset_store = dataset_store_factory(
-            config.dataset_store,
-            app.state.admin_database,
-            config.private_db_credentials,
-        )
-
-        app.state.server_state["message"].append("Loading query handler")
-        app.state.query_handler = QueryHandler(
-            app.state.admin_database, app.state.dataset_store
-        )
-
         app.state.server_state["state"].append("Startup completed")
         app.state.server_state["message"].append("Startup completed")
-
-        if app.state.query_handler is None:
-            LOG.info("QueryHandler not loaded")
-            app.state.server_state["state"].append(QUERY_HANDLER_NOT_LOADED)
-            app.state.server_state["message"].append(
-                "Server could not be started!"
-            )
-            app.state.server_state["LIVE"] = False
-            status_ok = False
 
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)

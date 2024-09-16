@@ -17,7 +17,7 @@ if __name__ == "__main__":
     sys.path.append(src_dir)
 
     st.set_page_config(page_title="Lomas Dashboard")
-    FOLDER = "./administration/dashboard"  # TODO move
+    FOLDER = "./lomas_server/administration/dashboard"  # TODO move
     show_pages(
         [
             Page(f"{FOLDER}/about.py", "Home Page", "🏠"),

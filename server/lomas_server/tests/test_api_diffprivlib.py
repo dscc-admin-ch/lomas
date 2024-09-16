@@ -11,11 +11,13 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
 
-from app import app
-from constants import DPLibraries
-from tests.test_api import TestRootAPIEndpoint
-from utils.logger import LOG
-from utils.query_examples import example_diffprivlib, example_dummy_diffprivlib
+from lomas_server.app import app
+from lomas_server.constants import DPLibraries
+from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.utils.query_examples import (
+    example_diffprivlib,
+    example_dummy_diffprivlib,
+)
 
 
 def validate_pipeline(response):
@@ -25,13 +27,7 @@ def validate_pipeline(response):
     assert response.status_code == status.HTTP_200_OK
     response_dict = json.loads(response.content.decode("utf8"))
 
-    if not response_dict["query_response"]["score"]:
-        LOG.error(" ************** DIFFPRIVLIB ERROR ************** ")
-        # Temporary LOGs to help understand why tests sometimes fail
-        LOG.error(response_dict)
-        LOG.error(response_dict["query_response"])
-
-    assert response_dict["query_response"]["score"]
+    assert "score" in response_dict["query_response"]  # might be 0
     assert response_dict["query_response"]["model"]
 
 

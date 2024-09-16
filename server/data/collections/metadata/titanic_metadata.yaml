@@ -1,11 +1,10 @@
 max_ids: 1
 row_privacy: true
+rows: 887
 columns:
-  PassengerId:
-    private_id: true
-    type: int
   Pclass:
     type: int
+    precision: 32
     lower: 1
     upper: 3
   Name:
@@ -18,20 +17,24 @@ columns:
     - female
   Age:
     type: float
+    precision: 64
     lower: 0.1
     upper: 100.0
   SibSp:
     type: int
+    precision: 32
     lower: 0
     upper: 10
   Parch:
     type: int
+    precision: 32
     lower: 0
     upper: 10
   Ticket:
     type: string
   Fare:
     type: float
+    precision: 64
     lower: 0.0
     upper: 1000
   Cabin:

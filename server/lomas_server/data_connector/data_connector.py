@@ -3,8 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from dataset_store.data_connector_observer import DataConnectorObserver
-from utils.collection_models import Metadata
+from lomas_server.utils.collection_models import DatetimeMetadata, Metadata
 
 
 class DataConnector(ABC):
@@ -20,73 +19,47 @@ class DataConnector(ABC):
         Args:
             metadata (Metadata): The metadata for this dataset
         """
-        self.metadata: dict = metadata
-        self.dataset_observers: List[DataConnectorObserver] = []
+        self.metadata: Metadata = metadata
 
-        dtypes, datetime_columns = get_column_dtypes(metadata)
+        dtypes, datetime_columns = get_column_dtypes(self.metadata)
         self.dtypes: Dict[str, str] = dtypes
         self.datetime_columns: List[str] = datetime_columns
 
     @abstractmethod
-    def get_pandas_df(self, dataset_name: str) -> pd.DataFrame:
+    def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format
-
-        Args:
-            dataset_name (str): name of the private dataset
 
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
 
-    def get_metadata(self) -> dict:
+    def get_metadata(self) -> Metadata:
         """Get the metadata for this dataset
 
         Returns:
-            dict: The metadata dictionary.
+            Metadata: The metadata object.
         """
         return self.metadata
 
-    def get_memory_usage(self) -> int:
-        """Returns the memory usage of this dataset, in MiB.
 
-        The number returned only takes into account the memory usage
-        of the pandas DataFrame "cached" in the instance.
-
-        Returns:
-            int: The memory usage, in MiB.
-        """
-        if self.df is None:
-            return 0
-        return self.df.memory_usage().sum() / (1024**2)
-
-    def subscribe_for_memory_usage_updates(
-        self, dataset_observer: DataConnectorObserver
-    ) -> None:
-        """Add the DataConnectorObserver to the list of dataset_observers.
-
-        Args:
-            dataset_observer (DataConnectorObserver):
-                The observer of this dataset.
-        """
-        self.dataset_observers.append(dataset_observer)
-
-
-def get_column_dtypes(metadata: dict) -> Tuple[Dict[str, str], List[str]]:
-    """Extract and return the column types from the metadata.
+def get_column_dtypes(metadata: Metadata) -> Tuple[Dict[str, str], List[str]]:
+    """Extracts and returns the column types from the metadata.
 
     Args:
-        metadata (dict): The metadata dictionary.
+        metadata (Metadata): The metadata.
 
     Returns:
-        dict: The dictionary of the column type.
-        list: The list of columns of datetime type
+        Tuple[Dict[str, str], List[str]]:
+           dict: The dictionary of the column type.
+            list: The list of columns of datetime type
     """
+
     dtypes = {}
     datetime_columns = []
-    for col_name, data in metadata["columns"].items():
-        if data["type"] == "datetime":
+    for col_name, data in metadata.columns.items():
+        if isinstance(data, DatetimeMetadata):
             dtypes[col_name] = "string"
             datetime_columns.append(col_name)
         else:
-            dtypes[col_name] = data["type"]
+            dtypes[col_name] = data.type
     return dtypes, datetime_columns

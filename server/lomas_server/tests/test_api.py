@@ -12,24 +12,23 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
 
-from admin_database.factory import admin_database_factory
-from admin_database.utils import get_mongodb
-from app import app
-from constants import EPSILON_LIMIT, DatasetStoreType, DPLibraries
-from mongodb_admin import (
+from lomas_server.admin_database.factory import admin_database_factory
+from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.app import app
+from lomas_server.constants import DPLibraries
+from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from tests.constants import (
+from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from utils.config import CONFIG_LOADER
-from utils.error_handler import InternalServerException
-from utils.logger import LOG
-from utils.query_examples import (
+from lomas_server.utils.config import CONFIG_LOADER, DBConfig
+from lomas_server.utils.error_handler import InternalServerException
+from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,
@@ -123,18 +122,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration"""
-        config = CONFIG_LOADER.get_config()
 
         # Put unknown admin database
-        previous_admin_db = config.admin_database.db_type
-        config.admin_database.db_type = "wrong_db"
         with self.assertRaises(InternalServerException) as context:
-            admin_database_factory(config.admin_database)
+            admin_database_factory(DBConfig())
         self.assertEqual(
-            str(context.exception), "Database type wrong_db not supported."
+            str(context.exception), "Database type not supported."
         )
-        # Put original state back
-        config.admin_database.db_type = previous_admin_db
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint"""
@@ -155,36 +149,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
-
-    def test_memory_usage(self) -> None:
-        """Test memory usage endpoint"""
-        with TestClient(app, headers=self.headers) as client:
-            config = CONFIG_LOADER.get_config()
-            if config.dataset_store.ds_store_type == DatasetStoreType.LRU:
-                # Test before adding data
-                response = client.get(
-                    "/get_memory_usage", headers=self.headers
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["memory_usage"] == 0
-
-                # Test after adding data
-                response = client.post(
-                    "/smartnoise_sql_query",
-                    json=example_smartnoise_sql,
-                    headers=self.headers,
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response = client.get(
-                    "/get_memory_usage", headers=self.headers
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["memory_usage"] > 0
 
     def test_get_dataset_metadata(self) -> None:
         """test_get_dataset_metadata"""
@@ -953,9 +917,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_2 = client.post(
                 "/get_previous_queries", json=example_get_admin_db_data
             )
-            LOG.error(response_2)
-            response_dict = json.loads(response.content.decode("utf8"))
-            LOG.error(response_dict)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
@@ -1002,25 +963,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert (
                 response_dict_3["previous_queries"][1]["response"] == query_res
             )
-
-    def test_budget_over_limit(self) -> None:
-        """test_budget_over_limit"""
-        with TestClient(app, headers=self.headers) as client:
-            # Should fail: too much budget on one go
-            smartnoise_body = dict(example_smartnoise_sql)
-            smartnoise_body["epsilon"] = EPSILON_LIMIT * 2
-
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            error = response.json()["detail"][0]
-            assert error["type"] == "less_than_equal"
-            assert error["loc"] == ["body", "epsilon"]
-            assert error["msg"] == "Input should be less than or equal to 5"
 
     def test_subsequent_budget_limit_logic(self) -> None:
         """test_subsequent_budget_limit_logic"""

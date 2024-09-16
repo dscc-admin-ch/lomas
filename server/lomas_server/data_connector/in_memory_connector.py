@@ -1,7 +1,7 @@
 import pandas as pd
 
-from data_connector.data_connector import DataConnector
-from utils.collection_models import Metadata
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.utils.collection_models import Metadata
 
 
 class InMemoryConnector(DataConnector):
@@ -21,7 +21,7 @@ class InMemoryConnector(DataConnector):
             dataset_df (pd.DataFrame): Dataframe of the dataset
         """
         super().__init__(metadata)
-        self.df = dataset_df.copy()
+        self.df: pd.DataFrame = dataset_df.copy()
 
     def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format

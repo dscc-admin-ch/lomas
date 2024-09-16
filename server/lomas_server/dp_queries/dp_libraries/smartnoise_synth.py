@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -16,122 +16,178 @@ from snsynth.transform import (
 from snsynth.transform.datetime import DateTimeTransformer
 from snsynth.transform.table import TableTransformer
 
-from constants import (
-    DEFAULT_DATE_FORMAT,
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import (
     SECONDS_IN_A_DAY,
     SSYNTH_DEFAULT_BINS,
     SSYNTH_MIN_ROWS_PATE_GAN,
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
-    SSynthColumnType,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.utils import serialise_model
-from dp_queries.dp_querier import DPQuerier
-from utils.collection_models import Metadata
-from utils.error_handler import (
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.utils import serialise_model
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.collection_models import (
+    BooleanMetadata,
+    ColumnMetadata,
+    DatetimeMetadata,
+    FloatMetadata,
+    IntCategoricalMetadata,
+    IntMetadata,
+    Metadata,
+    StrCategoricalMetadata,
+    StrMetadata,
+)
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.query_models import (
-    SmartnoiseSynthCostModel,
+from lomas_server.utils.query_models import (
     SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
 )
 
 
-def datetime_to_float(upper, lower):
+def datetime_to_float(upper: datetime, lower: datetime) -> float:
     """Convert the upper date as the distance between the upper date and
     lower date as float
 
     Args:
-            upper (str): date to convert
-            lower (str): start date to convert from
+            upper (datetime): date to convert
+            lower (datetime): start date to convert from
 
         Returns:
             float: number of days between upper and lower
     """
-    distance = datetime.strptime(
-        upper, DEFAULT_DATE_FORMAT
-    ) - datetime.strptime(lower, DEFAULT_DATE_FORMAT)
+    distance = upper - lower
     return float(distance.total_seconds() / SECONDS_IN_A_DAY)
 
 
-class SmartnoiseSynthQuerier(DPQuerier):
+# TODO maybe a better place to put this? See issue #336
+SSynthColumnType: TypeAlias = Union[
+    StrMetadata,
+    StrCategoricalMetadata,
+    BooleanMetadata,
+    IntCategoricalMetadata,
+    IntMetadata,
+    FloatMetadata,
+    DatetimeMetadata,
+]
+
+
+class SmartnoiseSynthQuerier(
+    DPQuerier[SmartnoiseSynthRequestModel, SmartnoiseSynthQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
     """
 
-    def __init__(self, data_connector: DataConnector) -> None:
-        super().__init__(data_connector)
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: AdminDatabase,
+    ) -> None:
+        super().__init__(data_connector, admin_database)
         self.model: Optional[Synthesizer] = None
 
-    def _categorize_column(self, data: dict) -> str:
+    def _is_categorical(
+        self, col_metadata: ColumnMetadata
+    ) -> TypeGuard[
+        StrMetadata
+        | StrCategoricalMetadata
+        | BooleanMetadata
+        | IntCategoricalMetadata
+    ]:
         """
-        Categorize the column based on its metadata.
+        Checks if the column type is categorical
 
         Args:
-            data (dict): Metadata of the column.
+            col_metadata (ColumnMetadata): The column metadata
 
         Returns:
-            str: Category of the column.
+            TypeGuard[StrMetadata | StrCategoricalMetadata| BooleanMetadata |
+                      IntCategoricalMetadata]:
+                TypeGuard for categorical columns metadata
         """
-        match data["type"]:
-            case "string" | "boolean":
-                return SSynthColumnType.CATEGORICAL
-            case "int" | "float":
-                if "lower" in data.keys():
-                    return SSynthColumnType.CONTINUOUS
-                return SSynthColumnType.CATEGORICAL
-            case "datetime":
-                return SSynthColumnType.DATETIME
-            case _:
-                raise InternalServerException(
-                    f"Unknown column type in metadata: {data['type']}"
-                )
+        return isinstance(
+            col_metadata,
+            (
+                StrMetadata,
+                StrCategoricalMetadata,
+                BooleanMetadata,
+                IntCategoricalMetadata,
+            ),
+        )
 
-    def _get_column_by_types(
-        self,
-        metadata: Metadata,
-        select_cols: List[str],
-    ) -> Dict[str, List[str]]:
-        """
-        Sort the column in categories based on their types and metadata
+    def _is_continuous(
+        self, col_metadata: ColumnMetadata
+    ) -> TypeGuard[IntMetadata | FloatMetadata]:
+        """Checks if the column type is continuous
 
         Args:
-            metadata (Metadata): Metadata of the dataset
-            select_cols (List[str]): List of columns to select
+            col_metadata (ColumnMetadata): The column metadata
 
         Returns:
-            Dict[str, List[str]]: Dictionnary of list of columns by categories
+            TypeGuard[IntMetadata | FloatMetadata]:
+                TypeGuard for continuous columns metadata
         """
-        col_categories: Dict[str, List[str]] = {
-            SSynthColumnType.CATEGORICAL: [],
-            SSynthColumnType.CONTINUOUS: [],
-            SSynthColumnType.DATETIME: [],
-            SSynthColumnType.PRIVATE_ID: [],
-        }
-        for col_name, data in metadata["columns"].items():
+        return isinstance(col_metadata, (IntMetadata, FloatMetadata))
+
+    def _is_datetime(
+        self, col_metadata: ColumnMetadata
+    ) -> TypeGuard[DatetimeMetadata]:
+        """Checks if the column type is datetime
+
+        Args:
+            col_metadata (ColumnMetadata): The column metadata
+
+        Returns:
+            TypeGuard[DatetimeMetadata]: TypeGuard for datetime metadata.
+        """
+        return isinstance(col_metadata, DatetimeMetadata)
+
+    def _get_and_check_valid_column_types(
+        self, metadata: Metadata, select_cols: List[str]
+    ) -> Dict[str, SSynthColumnType]:
+        """
+        Ensures the type of the selected columns can be handled with
+        SmartnoiseSynth and returns the dict of column metadata
+        for the selected columns.
+
+        Args:
+            metadata (Metadata): Dataset metadata
+            select_cols (List[str]): List of selected columns
+
+        Raises:
+            InternalServerException: If one of the column types
+                cannot be handled with SmartnoiseSynth.
+
+        Returns:
+            Dict[str, SSynthColumnType]: The filtered dict of selected columns.
+        """
+        columns: Dict[str, SSynthColumnType] = {}
+
+        for col_name, data in metadata.columns.items():
             if select_cols and col_name not in select_cols:
                 continue
 
-            if "private_id" in data.keys():
-                col_categories[SSynthColumnType.PRIVATE_ID].append(col_name)
-                continue
+            if not isinstance(data, SSynthColumnType):  # type: ignore[misc, arg-type]
+                raise InternalServerException(
+                    f"Column type {data.type} not supported for SmartnoiseSynth"
+                )
 
-            # Sort the column in categories based on their types and metadata
-            category = self._categorize_column(data)
-            col_categories[category].append(col_name)
+            columns[col_name] = data
 
-        return col_categories
+        return columns
 
     def _get_default_constraints(
         self,
         metadata: Metadata,
-        query_json: dict,
+        query_json: SmartnoiseSynthRequestModel,
         table_transformer_style: str,
     ) -> TableTransformer:
         """
@@ -142,7 +198,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
 
         Args:
             metadata (Metadata): Metadata of the dataset
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 select_cols (List[str]): List of columns to select
                 nullable (bool): True is the data can have Null values, False otherwise
             table_transformer_style (str): 'gan' or 'cube'
@@ -150,69 +206,72 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Returns:
             table_tranformer (TableTransformer) to pre and post-process the data
         """
-        col_categories = self._get_column_by_types(
+        columns = self._get_and_check_valid_column_types(
             metadata, query_json.select_cols
         )
 
         constraints = {}
-        for col in col_categories[SSynthColumnType.PRIVATE_ID]:
-            constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
-
         nullable = query_json.nullable
-        if table_transformer_style == SSynthTableTransStyle.GAN:  # gan
-            for col in col_categories[SSynthColumnType.CATEGORICAL]:
-                constraints[col] = ChainTransformer(
-                    [LabelTransformer(nullable=nullable), OneHotEncoder()]
+        for col, col_metadata in columns.items():
+            if col_metadata.private_id:
+                constraints[col] = AnonymizationTransformer(
+                    SSYNTH_PRIVATE_COLUMN
                 )
-            for col in col_categories[SSynthColumnType.CONTINUOUS]:
-                constraints[col] = MinMaxTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
-                    nullable=nullable,
-                )
-            for col in col_categories[SSynthColumnType.DATETIME]:
-                constraints[col] = ChainTransformer(
-                    [
-                        DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
-                        ),
-                        MinMaxTransformer(
-                            lower=0.0,  # because start epoch at lower bound
-                            upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+
+            if table_transformer_style == SSynthTableTransStyle.GAN:  # gan
+                if self._is_categorical(
+                    col_metadata
+                ):  # TODO any way of specifying cardinality? See issue #337
+                    constraints[col] = ChainTransformer(
+                        [LabelTransformer(nullable=nullable), OneHotEncoder()]
+                    )
+                elif self._is_continuous(col_metadata):
+                    constraints[col] = MinMaxTransformer(
+                        lower=col_metadata.lower,
+                        upper=col_metadata.upper,
+                        nullable=nullable,
+                    )
+                elif self._is_datetime(col_metadata):
+                    constraints[col] = ChainTransformer(
+                        [
+                            DateTimeTransformer(epoch=col_metadata.lower),
+                            MinMaxTransformer(
+                                lower=0.0,  # because start epoch at lower bound
+                                upper=datetime_to_float(
+                                    col_metadata.upper,
+                                    col_metadata.lower,
+                                ),
+                                nullable=nullable,
                             ),
-                            nullable=nullable,
-                        ),
-                    ]
-                )
-        else:  # cube
-            for col in col_categories[SSynthColumnType.CATEGORICAL]:
-                constraints[col] = LabelTransformer(nullable=nullable)
-            for col in col_categories[SSynthColumnType.CONTINUOUS]:
-                constraints[col] = BinTransformer(
-                    lower=metadata["columns"][col]["lower"],
-                    upper=metadata["columns"][col]["upper"],
-                    bins=SSYNTH_DEFAULT_BINS,
-                    nullable=nullable,
-                )
-            for col in col_categories[SSynthColumnType.DATETIME]:
-                constraints[col] = ChainTransformer(
-                    [
-                        DateTimeTransformer(
-                            epoch=metadata["columns"][col]["lower"]
-                        ),
-                        BinTransformer(
-                            lower=0.0,  # because start epoch at lower bound
-                            upper=datetime_to_float(
-                                metadata["columns"][col]["upper"],
-                                metadata["columns"][col]["lower"],
+                        ]
+                    )
+            else:  # Cube
+                if self._is_categorical(
+                    col_metadata
+                ):  # TODO any way of specifying cardinality? See issue #337
+                    constraints[col] = LabelTransformer(nullable=nullable)
+                elif self._is_continuous(col_metadata):
+                    constraints[col] = BinTransformer(
+                        lower=col_metadata.lower,
+                        upper=col_metadata.upper,
+                        bins=SSYNTH_DEFAULT_BINS,
+                        nullable=nullable,
+                    )
+                elif self._is_datetime(col_metadata):
+                    constraints[col] = ChainTransformer(
+                        [
+                            DateTimeTransformer(epoch=col_metadata.lower),
+                            BinTransformer(
+                                lower=0.0,  # because start epoch at lower bound
+                                upper=datetime_to_float(
+                                    col_metadata.upper,
+                                    col_metadata.lower,
+                                ),
+                                bins=SSYNTH_DEFAULT_BINS,
+                                nullable=nullable,
                             ),
-                            bins=SSYNTH_DEFAULT_BINS,
-                            nullable=nullable,
-                        ),
-                    ]
-                )
+                        ]
+                    )
 
         return constraints
 
@@ -220,7 +279,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         self,
         private_data: pd.DataFrame,
         transformer: TableTransformer,
-        query_json: dict,
+        query_json: SmartnoiseSynthRequestModel,
     ) -> Synthesizer:
         """
         Create and fit the synthesizer model.
@@ -228,7 +287,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         Args:
             private_data (pd.DataFrame): Private data for fitting the model
             transformer (TableTransformer): Transformer to pre/postprocess data
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 synth_name (str): name of the Yanthesizer model to use
                 epsilon (float): epsilon budget value
                 nullable (bool): True if some data cells may be null
@@ -285,12 +344,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def _model_pipeline(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> Synthesizer:
         """Return a trained Synthesizer model based on query_json
 
         Args:
-            query_json (SmartnoiseSynthCostModel): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             model: Smartnoise Synthesizer
@@ -320,7 +379,7 @@ class SmartnoiseSynthQuerier(DPQuerier):
         # Preprocessing information from metadata
         metadata = self.data_connector.get_metadata()
         if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
-            if metadata["rows"] < SSYNTH_MIN_ROWS_PATE_GAN:
+            if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"{SSynthGanSynthesizer.PATE_GAN} not reliable "
@@ -332,9 +391,9 @@ class SmartnoiseSynthQuerier(DPQuerier):
         )
 
         # Overwrite default constraint with custom constraint (if any)
-        custom_constraints = query_json.constraints
-        if custom_constraints:
-            custom_constraints = deserialise_constraints(custom_constraints)
+        constraints_json = query_json.constraints
+        if constraints_json:
+            custom_constraints = deserialise_constraints(constraints_json)
             custom_constraints = {
                 key: custom_constraints[key]
                 for key in query_json.select_cols
@@ -364,12 +423,12 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return model
 
     def cost(
-        self, query_json: SmartnoiseSynthCostModel
+        self, query_json: SmartnoiseSynthRequestModel
     ) -> tuple[float, float]:
         """Return cost of query_json
 
         Args:
-            query_json (SmartnoiseSynthModelCost): JSON request object for the query.
+            query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
 
         Returns:
             tuple[float, float]: The tuple of costs, the first value
@@ -387,12 +446,14 @@ class SmartnoiseSynthQuerier(DPQuerier):
         return epsilon, delta
 
     def query(
-        self, query_json: SmartnoiseSynthQueryModel
+        self,
+        query_json: SmartnoiseSynthQueryModel,
     ) -> Union[pd.DataFrame, str]:
         """Perform the query and return the response.
 
         Args:
-            query_json (SmartnoiseSynthModel): The JSON request object for the query.
+            query_json (SmartnoiseSynthQueryModel):
+                The request object for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

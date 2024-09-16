@@ -3,16 +3,15 @@ from typing import Dict, List, Literal, Union
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from constants import (
+from lomas_server.constants import (
     CONFIG_PATH,
     SECRETS_PATH,
     AdminDBType,
     ConfigKeys,
-    DatasetStoreType,
     PrivateDatabaseType,
     TimeAttackMethod,
 )
-from utils.error_handler import InternalServerException
+from lomas_server.utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):
@@ -31,23 +30,6 @@ class Server(BaseModel):
     log_level: str
     reload: bool
     workers: int
-
-
-class DatasetStoreConfig(BaseModel):
-    """BaseModel for dataset store configs"""
-
-
-class BasicDatasetStoreConfig(DatasetStoreConfig):
-    """BaseModel for basic dataset store configs"""
-
-    ds_store_type: Literal[DatasetStoreType.BASIC.value]  # type: ignore
-
-
-class LRUDatasetStoreConfig(DatasetStoreConfig):
-    """BaseModel for dataset store configs in case of a LRU dataset store"""
-
-    ds_store_type: Literal[DatasetStoreType.LRU]  # type: ignore
-    max_memory_usage: int
 
 
 class DBConfig(BaseModel):
@@ -123,10 +105,6 @@ class Config(BaseModel):
         ..., discriminator="db_type"
     )
 
-    dataset_store: Union[BasicDatasetStoreConfig, LRUDatasetStoreConfig] = (
-        Field(..., discriminator="ds_store_type")
-    )
-
     dp_libraries: DPLibraryConfig
 
 
@@ -141,7 +119,7 @@ class ConfigLoader:
     """
 
     _instance = None
-    _config = None
+    _config: Config | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -219,7 +197,8 @@ class ConfigLoader:
         """
         if self._config is None:
             self.load_config()
-        return self._config  # type: ignore
+        assert isinstance(self._config, Config)  # Helps mypy
+        return self._config
 
 
 CONFIG_LOADER = ConfigLoader()

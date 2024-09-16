@@ -1,4 +1,4 @@
-from constants import (
+from lomas_server.constants import (
     DIFFPRIVLIB_PIPELINE,
     OPENDP_PIPELINE,
     SSynthGanSynthesizer,

@@ -1,19 +1,19 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from data_connector.data_connector import get_column_dtypes
-from dp_queries.dummy_dataset import make_dummy_dataset
-from routes.utils import server_live
-from utils.error_handler import (
+from lomas_server.data_connector.data_connector import get_column_dtypes
+from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.routes.utils import server_live
+from lomas_server.utils.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
-from utils.query_examples import (
+from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
-from utils.query_models import GetDbData, GetDummyDataset
+from lomas_server.utils.query_models import GetDbData, GetDummyDataset
 
 router = APIRouter()
 
@@ -48,29 +48,6 @@ async def get_state(
         content={
             "requested_by": user_name,
             "state": app.state.server_state,
-        }
-    )
-
-
-@router.get(
-    "/get_memory_usage",
-    dependencies=[Depends(server_live)],
-    tags=["ADMIN_USER"],
-)
-async def get_memory_usage(request: Request) -> JSONResponse:
-    """Return the dataset store object memory usage
-    Args:
-        request (Request): Raw request object
-        user_name (str, optional): The user name. Defaults to Header(None).
-
-    Returns:
-        JSONResponse: with DatasetStore object memory usage
-    """
-    app = request.app
-
-    return JSONResponse(
-        content={
-            "memory_usage": app.state.dataset_store.memory_usage,
         }
     )
 
@@ -122,7 +99,7 @@ def get_dataset_metadata(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return ds_metadata
 
@@ -177,7 +154,9 @@ def get_dummy_dataset(
         dtypes, datetime_columns = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
-            ds_metadata, query_json.dummy_nb_rows, query_json.dummy_seed
+            ds_metadata,
+            query_json.dummy_nb_rows,
+            query_json.dummy_seed,
         )
 
         for col in datetime_columns:
@@ -186,7 +165,7 @@ def get_dummy_dataset(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -245,7 +224,7 @@ def get_initial_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -303,7 +282,7 @@ def get_total_spent_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -358,7 +337,7 @@ def get_remaining_budget(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(
         content={
@@ -414,6 +393,6 @@ def get_user_previous_queries(
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
-        raise InternalServerException(e) from e
+        raise InternalServerException(str(e)) from e
 
     return JSONResponse(content={"previous_queries": previous_queries})

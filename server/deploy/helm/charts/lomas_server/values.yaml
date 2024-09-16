@@ -57,9 +57,6 @@ server:
         time_attack:
           method: "jitter" # or "stall"
           magnitude: 1
-      dataset_store:
-        ds_store_type: "LRU_cache"
-        max_memory_usage : 512
       dp_libraries:
         opendp:
           contrib: True

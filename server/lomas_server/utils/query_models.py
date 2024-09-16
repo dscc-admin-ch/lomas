@@ -2,12 +2,12 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from constants import (
-    DELTA_LIMIT,
-    EPSILON_LIMIT,
+from lomas_server.constants import (
+    DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
+from lomas_server.utils.error_handler import InternalServerException
 
 
 class GetDbData(BaseModel):
@@ -24,54 +24,69 @@ class GetDummyDataset(BaseModel):
     dummy_seed: int
 
 
-class SmartnoiseSQLModel(BaseModel):
-    """Model input for a smarnoise-sql query"""
+class RequestModel(BaseModel):
+    """
+    Base input model for any request on a dataset.
 
-    query_str: str
+    We differentiate between requests and queries:
+        - a request does not necessarily require an algorithm
+          to be executed on the private dataset (e.g. some cost requests).
+        - a query requires executing an algorithm on a private
+          dataset (or a potentially a dummy).
+    """
+
     dataset_name: str
-    epsilon: float = Field(
-        ...,
-        gt=0,
-        le=EPSILON_LIMIT,
-    )
-    delta: float = Field(
-        ...,
-        gt=0,
-        le=DELTA_LIMIT,
-    )
-    mechanisms: dict
-    postprocess: bool
 
 
-class DummySmartnoiseSQLModel(BaseModel):
-    """Model input for a smarnoise-sql dummy query"""
+class QueryModel(RequestModel):
+    """
+    Base input model for any query on a dataset.
 
-    query_str: str
-    dataset_name: str
+    We differentiate between requests and queries:
+        - a request does not necessarily require an algorithm
+          to be executed on the private dataset (e.g. some cost requests).
+        - a query requires executing an algorithm on a private
+          dataset (or a potentially a dummy).
+    """
+
+
+class DummyQueryModel(QueryModel):
+    """
+    Input model for a query on a dummy dataset.
+    """
+
     dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
+
+
+# SmartnoiseSQL
+# ----------------------------------------------------------------------------
+class SmartnoiseSQLRequestModel(RequestModel):
+    """Base input model for a smarnoise-sql request"""
+
+    query_str: str
     epsilon: float = Field(..., gt=0)
     delta: float = Field(..., gt=0)
     mechanisms: dict
+
+
+class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
+    """Base input model for a smartnoise-sql query"""
+
     postprocess: bool
 
 
-class SmartnoiseSQLCostModel(BaseModel):
-    """Model input for a smarnoise-sql cost query"""
-
-    query_str: str
-    dataset_name: str
-    epsilon: float = Field(..., gt=0)
-    delta: float = Field(..., gt=0)
-    mechanisms: dict
+class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
+    """Input model for a smartnoise-sql query on a dummy dataset."""
 
 
-class SmartnoiseSynthCostModel(BaseModel):
-    """Model input for a smarnoise-synth cost"""
+# SmartnoiseSynth
+# ----------------------------------------------------------------------------
+class SmartnoiseSynthRequestModel(RequestModel):
+    """Base input model for a SmartnoiseSynth request"""
 
-    dataset_name: str
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
-    epsilon: float = Field(..., gt=0, le=EPSILON_LIMIT)
+    epsilon: float = Field(..., gt=0)
     delta: Optional[float] = None
     select_cols: List
     synth_params: dict
@@ -79,43 +94,47 @@ class SmartnoiseSynthCostModel(BaseModel):
     constraints: str
 
 
-class SmartnoiseSynthQueryModel(SmartnoiseSynthCostModel):
-    """Model input for a smarnoise-synth query"""
+class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
+    """Base input model for a smarnoise-synth query"""
 
     return_model: bool
     condition: str
     nb_samples: int
 
 
-class DummySmartnoiseSynthQueryModel(SmartnoiseSynthQueryModel):
-    """Dummy Model input for a smarnoise-synth query"""
+class SmartnoiseSynthDummyQueryModel(
+    SmartnoiseSynthQueryModel, DummyQueryModel
+):
+    """Input model for a smarnoise-synth query on a dummy dataset"""
 
-    dummy_nb_rows: int = Field(..., gt=0)
-    dummy_seed: int
+    # Same as normal query.
+    return_model: bool
+    condition: str
+    nb_samples: int
 
 
-class OpenDPModel(BaseModel):
-    """Model input for an opendp query"""
+# OpenDP
+# ----------------------------------------------------------------------------
+class OpenDPRequestModel(RequestModel):
+    """Base input model for an opendp request"""
 
-    dataset_name: str
     opendp_json: str
     fixed_delta: Optional[float] = None
 
 
-class DummyOpenDPModel(BaseModel):
-    """Model input for a dummy opendp query"""
-
-    dataset_name: str
-    opendp_json: str
-    dummy_nb_rows: int = Field(..., gt=0)
-    dummy_seed: int
-    fixed_delta: Optional[float] = None
+class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
+    """Base input model for an opendp query"""
 
 
-class DiffPrivLibModel(BaseModel):
-    """Model input for a diffprivlib query"""
+class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
+    """Input model for an opendp query on a dummy dataset"""
 
-    dataset_name: str
+
+# DiffPrivLib
+# ----------------------------------------------------------------------------
+class DiffPrivLibRequestModel(RequestModel):
+    """Base input model for a diffprivlib request"""
+
     diffprivlib_json: str
     feature_columns: list
     target_columns: Optional[list]
@@ -124,15 +143,40 @@ class DiffPrivLibModel(BaseModel):
     imputer_strategy: str
 
 
-class DummyDiffPrivLibModel(BaseModel):
-    """Model input for a dummy diffprivlib query"""
+class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
+    """Base input model for a diffprivlib query"""
 
-    dataset_name: str
-    diffprivlib_json: str
-    feature_columns: list
-    target_columns: Optional[list]
-    test_size: float = Field(..., gt=0.0, lt=1.0)
-    test_train_split_seed: int
-    imputer_strategy: str
-    dummy_nb_rows: int = Field(..., gt=0)
-    dummy_seed: int
+
+class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
+    """Input model for a DiffPrivLib query on a dummy dataset"""
+
+
+# Utils
+# ----------------------------------------------------------------------------
+
+
+def model_input_to_lib(request: RequestModel) -> DPLibraries:
+    """Return the type of DP library given a RequestModel.
+
+    Args:
+        request (RequestModel): The user request
+
+    Raises:
+        InternalServerException: If the library type cannot be determined.
+
+    Returns:
+        DPLibraries: The type of library for the request.
+    """
+    match request:
+        case SmartnoiseSQLRequestModel():
+            return DPLibraries.SMARTNOISE_SQL
+        case SmartnoiseSynthRequestModel():
+            return DPLibraries.SMARTNOISE_SYNTH
+        case OpenDPRequestModel():
+            return DPLibraries.OPENDP
+        case DiffPrivLibRequestModel():
+            return DPLibraries.DIFFPRIVLIB
+        case _:
+            raise InternalServerException(
+                "Cannot find library type for given model."
+            )

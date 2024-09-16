@@ -7,30 +7,43 @@ from diffprivlib_logger import deserialise_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from constants import DPLibraries
-from data_connector.data_connector import DataConnector
-from dp_queries.dp_libraries.utils import handle_missing_data, serialise_model
-from dp_queries.dp_querier import DPQuerier
-from utils.error_handler import (
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.constants import DPLibraries
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.dp_queries.dp_libraries.utils import (
+    handle_missing_data,
+    serialise_model,
+)
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
 )
-from utils.query_models import DiffPrivLibModel
+from lomas_server.utils.query_models import (
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+)
 
 
-class DiffPrivLibQuerier(DPQuerier):
+class DiffPrivLibQuerier(
+    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]
+):
     """
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
 
-    def __init__(self, data_connector: DataConnector) -> None:
-        super().__init__(data_connector)
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: AdminDatabase,
+    ) -> None:
+        super().__init__(data_connector, admin_database)
         self.dpl_pipeline: Optional[Pipeline] = None
         self.x_test: Optional[pd.DataFrame] = None
         self.y_test: Optional[pd.DataFrame] = None
 
     def fit_model_on_data(
-        self, query_json: DiffPrivLibModel
+        self, query_json: DiffPrivLibRequestModel
     ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
         """Perform necessary steps to fit the model on the data
 
@@ -77,11 +90,11 @@ class DiffPrivLibQuerier(DPQuerier):
 
         return dpl_pipeline, x_test, y_test
 
-    def cost(self, query_json: DiffPrivLibModel) -> tuple[float, float]:
+    def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
         """Estimate cost of query
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (DiffPrivLibRequestModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -104,12 +117,13 @@ class DiffPrivLibQuerier(DPQuerier):
         return spent_epsilon, spent_delta
 
     def query(
-        self, query_json: DiffPrivLibModel  # pylint: disable=unused-argument
+        self,
+        query_json: DiffPrivLibQueryModel,  # pylint: disable=unused-argument
     ) -> Dict:
         """Perform the query and return the response.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (DiffPrivLibQueryModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -137,12 +151,12 @@ class DiffPrivLibQuerier(DPQuerier):
 
 
 def split_train_test_data(
-    df: pd.DataFrame, query_json: DiffPrivLibModel
+    df: pd.DataFrame, query_json: DiffPrivLibRequestModel
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Split the data between train and test set
     Args:
         df (pd.DataFrame): dataframe with the data
-        query_json (DiffPrivLibModel): user input query indication
+        query_json (DiffPrivLibRequestModel): user input query indication
             feature_columns (list[str]): columns from data to use as features
             target_columns (list[str]): columns from data to use as target (to predict)
             test_size (float): proportion of data in the test set

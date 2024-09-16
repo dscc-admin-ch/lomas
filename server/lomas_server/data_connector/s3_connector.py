@@ -3,10 +3,10 @@ from typing import Optional
 import boto3
 import pandas as pd
 
-from data_connector.data_connector import DataConnector
-from utils.collection_models import Metadata
-from utils.config import S3CredentialsConfig
-from utils.error_handler import InternalServerException
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.config import S3CredentialsConfig
+from lomas_server.utils.error_handler import InternalServerException
 
 
 class S3Connector(DataConnector):
@@ -55,9 +55,5 @@ class S3Connector(DataConnector):
                     "Error reading csv at s3 path:"
                     + f"{self.bucket}/{self.key}: {err}"
                 ) from err
-
-            # Notify observer since memory usage has changed
-            for observer in self.dataset_observers:
-                observer.update_memory_usage()
 
         return self.df

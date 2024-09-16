@@ -2,6 +2,8 @@ import os
 import string
 from enum import StrEnum
 
+import pkg_resources
+
 # Get config and secrets from correct location
 if "LOMAS_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
@@ -29,9 +31,6 @@ class ConfigKeys(StrEnum):
     DB_TYPE_MONGODB: str = "mongodb"
     MONGODB_ADDR: str = "address"
     MONGODB_PORT: str = "port"
-    DATASET_STORE: str = "dataset_store"
-    DATASET_STORE_TYPE: str = "ds_store_type"
-    LRU_DATASET_STORE_MAX_SIZE: str = "max_memory_usage"
     DP_LIBRARY: str = "dp_libraries"
 
 
@@ -42,13 +41,6 @@ class AdminDBType(StrEnum):
     MONGODB: str = "mongodb"
 
 
-class DatasetStoreType(StrEnum):
-    """Types of classes to handle datasets in memory"""
-
-    BASIC: str = "basic"
-    LRU: str = "LRU_cache"
-
-
 class TimeAttackMethod(StrEnum):
     """Possible methods against timing attacks"""
 
@@ -57,7 +49,6 @@ class TimeAttackMethod(StrEnum):
 
 
 # Server states
-QUERY_HANDLER_NOT_LOADED = "QueryHander not loaded"
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
@@ -68,13 +59,11 @@ INTERNAL_SERVER_ERROR = (
 )
 
 # General values
-DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 SECONDS_IN_A_DAY = 60 * 60 * 24
 
-
-# DP constants
-EPSILON_LIMIT: float = 5.0
-DELTA_LIMIT: float = 0.0004
+# DP constants (max budget per user per dataset)
+EPSILON_LIMIT: float = 10.0
+DELTA_LIMIT: float = 0.01
 
 
 # Supported DP libraries
@@ -85,15 +74,6 @@ class DPLibraries(StrEnum):
     SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     DIFFPRIVLIB = "diffprivlib"
-
-
-# Query model input to DP librairy
-MODEL_INPUT_TO_LIB = {
-    "SmartnoiseSQLModel": DPLibraries.SMARTNOISE_SQL,
-    "SmartnoiseSynthQueryModel": DPLibraries.SMARTNOISE_SYNTH,
-    "OpenDPModel": DPLibraries.OPENDP,
-    "DiffPrivLibModel": DPLibraries.DIFFPRIVLIB,
-}
 
 
 # Private Databases
@@ -178,13 +158,9 @@ class OpenDPDatasetInputMetric(StrEnum):
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
-DEFAULT_NUMERICAL_MIN = -10000
-DEFAULT_NUMERICAL_MAX = 10000
 RANDOM_STRINGS = list(
     string.ascii_lowercase + string.ascii_uppercase + string.digits
 )
-RANDOM_DATE_START = "01/01/2000"
-RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 
@@ -192,8 +168,9 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 # Example pipeline inputs
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 OPENDP_PIPELINE = (
-    '{"version": "0.10.0", '
+    f'{{"version": "{OPENDP_VERSION}", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
     '"_type": "partial_chain", "lhs": {'

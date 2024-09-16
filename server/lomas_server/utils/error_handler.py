@@ -1,9 +1,11 @@
+from typing import Type
+
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
 
-from constants import INTERNAL_SERVER_ERROR
-from utils.logger import LOG
+from lomas_server.constants import INTERNAL_SERVER_ERROR
+from lomas_server.utils.logger import LOG
 
 
 class InvalidQueryException(Exception):
@@ -63,7 +65,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-KNOWN_EXCEPTIONS: tuple[type, ...] = (
+KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

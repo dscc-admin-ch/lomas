@@ -5,29 +5,36 @@ from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from constants import DPLibraries, OpenDPDatasetInputMetric, OpenDPMeasurement
-from dp_queries.dp_querier import DPQuerier
-from utils.config import OpenDPConfig
-from utils.error_handler import (
+from lomas_server.constants import (
+    DPLibraries,
+    OpenDPDatasetInputMetric,
+    OpenDPMeasurement,
+)
+from lomas_server.dp_queries.dp_querier import DPQuerier
+from lomas_server.utils.config import OpenDPConfig
+from lomas_server.utils.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from utils.logger import LOG
-from utils.query_models import OpenDPModel
+from lomas_server.utils.logger import LOG
+from lomas_server.utils.query_models import (
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+)
 
 
-class OpenDPQuerier(DPQuerier):
+class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
     """
     Concrete implementation of the DPQuerier ABC for the OpenDP library.
     """
 
-    def cost(self, query_json: OpenDPModel) -> tuple[float, float]:
+    def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
         Estimate cost of query
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (OpenDPRequestModel): The request model object.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -49,7 +56,7 @@ class OpenDPQuerier(DPQuerier):
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = self.data_connector.get_metadata()["max_ids"]
+        max_ids = self.data_connector.get_metadata().max_ids
         try:
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
@@ -82,11 +89,11 @@ class OpenDPQuerier(DPQuerier):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPModel) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPQueryModel) -> Union[List, int, float]:
         """Perform the query and return the response.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json (OpenDPQueryModel): The input model for the query.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries

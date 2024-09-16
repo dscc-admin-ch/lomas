@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 
-from constants import NUMERICAL_DTYPES
-from utils.error_handler import InvalidQueryException
+from lomas_server.constants import NUMERICAL_DTYPES
+from lomas_server.utils.error_handler import InvalidQueryException
 
 
 def handle_missing_data(

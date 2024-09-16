@@ -2,9 +2,12 @@ from typing import Optional
 
 import pandas as pd
 
-from data_connector.data_connector import DataConnector
-from utils.collection_models import Metadata
-from utils.error_handler import InternalServerException, InvalidQueryException
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.utils.collection_models import Metadata
+from lomas_server.utils.error_handler import (
+    InternalServerException,
+    InvalidQueryException,
+)
 
 
 class PathConnector(DataConnector):
@@ -56,9 +59,5 @@ class PathConnector(DataConnector):
                     "File type other than .csv not supported for"
                     "loading into pandas DataFrame."
                 )
-
-            # Notify observer since memory usage has changed
-            for observer in self.dataset_observers:
-                observer.update_memory_usage()
 
         return self.df

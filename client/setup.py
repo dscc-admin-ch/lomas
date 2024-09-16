@@ -41,7 +41,7 @@ setup(
         "smartnoise-sql",
         "smartnoise-synth",
     ],
-    python_requires=">=3.11, <=3.12",
+    python_requires=">=3.11, <3.13",
     install_requires=[
         "diffprivlib>=0.6.4",
         "diffprivlib_logger>=0.0.3",

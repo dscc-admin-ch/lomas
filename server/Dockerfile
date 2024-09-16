@@ -13,7 +13,7 @@ COPY ./data/ /data/
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
 FROM lomas_server_base AS lomas_server_dev
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
 FROM lomas_server_base AS lomas_admin_dashboard_base
@@ -27,5 +27,5 @@ COPY ./data/ /data/
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
 
 FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]

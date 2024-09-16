@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas-core",
     packages=find_packages(),
-    version="0.3.2",
+    version="0.3.3",
     description="Lomas core.",
     long_description=long_description,
     long_description_content_type="text/markdown",

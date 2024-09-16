@@ -7,58 +7,52 @@
 | \_\_init\_\_.py                                |        0 |        0 |    100% |           |
 | admin\_database/\_\_init\_\_.py                |        0 |        0 |    100% |           |
 | admin\_database/admin\_database.py             |       87 |        0 |    100% |           |
-| admin\_database/factory.py                     |       17 |        0 |    100% |           |
-| admin\_database/mongodb\_database.py           |       57 |        1 |     98% |       281 |
-| admin\_database/utils.py                       |       27 |        0 |    100% |           |
-| admin\_database/yaml\_database.py              |       91 |        1 |     99% |       176 |
+| admin\_database/factory.py                     |       15 |        0 |    100% |           |
+| admin\_database/mongodb\_database.py           |       59 |        1 |     98% |       283 |
+| admin\_database/utils.py                       |       28 |        0 |    100% |           |
+| admin\_database/yaml\_database.py              |       93 |        1 |     99% |       181 |
 | administration/\_\_init\_\_.py                 |        0 |        0 |    100% |           |
-| app.py                                         |       70 |        8 |     89% |79-83, 121-127 |
-| constants.py                                   |       98 |        3 |     97% |   7-8, 13 |
+| app.py                                         |       55 |        3 |     95% |     80-84 |
+| constants.py                                   |       87 |        3 |     97% |  9-10, 15 |
 | data\_connector/\_\_init\_\_.py                |        0 |        0 |    100% |           |
-| data\_connector/data\_connector.py             |       32 |        0 |    100% |           |
+| data\_connector/data\_connector.py             |       24 |        0 |    100% |           |
 | data\_connector/factory.py                     |       28 |        0 |    100% |           |
 | data\_connector/in\_memory\_connector.py       |        9 |        0 |    100% |           |
-| data\_connector/path\_connector.py             |       19 |        1 |     95% |        55 |
-| data\_connector/s3\_connector.py               |       22 |        0 |    100% |           |
-| dataset\_store/\_\_init\_\_.py                 |        0 |        0 |    100% |           |
-| dataset\_store/basic\_dataset\_store.py        |       24 |        0 |    100% |           |
-| dataset\_store/data\_connector\_observer.py    |        4 |        0 |    100% |           |
-| dataset\_store/dataset\_store.py               |       14 |        0 |    100% |           |
-| dataset\_store/factory.py                      |       15 |        0 |    100% |           |
-| dataset\_store/lru\_dataset\_store.py          |       43 |        3 |     93% |     93-97 |
+| data\_connector/path\_connector.py             |       17 |        1 |     94% |        58 |
+| data\_connector/s3\_connector.py               |       20 |        0 |    100% |           |
 | dp\_queries/\_\_init\_\_.py                    |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/\_\_init\_\_.py      |        0 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/diffprivlib.py       |       53 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/factory.py           |       19 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/opendp.py            |       81 |        8 |     90% |67, 146-152, 156-161, 213 |
-| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       52 |        5 |     90% |104, 115-119 |
-| dp\_queries/dp\_libraries/smartnoise\_synth.py |      121 |        0 |    100% |           |
+| dp\_queries/dp\_libraries/diffprivlib.py       |       54 |        0 |    100% |           |
+| dp\_queries/dp\_libraries/factory.py           |       20 |        0 |    100% |           |
+| dp\_queries/dp\_libraries/opendp.py            |       81 |        8 |     90% |74, 153-159, 163-168, 220 |
+| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       55 |        5 |     91% |129, 140-144 |
+| dp\_queries/dp\_libraries/smartnoise\_synth.py |      117 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/utils.py             |       33 |        0 |    100% |           |
-| dp\_queries/dp\_logic.py                       |       43 |        1 |     98% |       145 |
-| dp\_queries/dp\_querier.py                     |       10 |        0 |    100% |           |
-| dp\_queries/dummy\_dataset.py                  |       50 |        0 |    100% |           |
-| mongodb\_admin.py                              |      271 |        0 |    100% |           |
+| dp\_queries/dp\_querier.py                     |       34 |        1 |     97% |       108 |
+| dp\_queries/dummy\_dataset.py                  |       40 |        1 |     98% |        54 |
+| mongodb\_admin.py                              |      273 |        2 |     99% |  439, 676 |
 | routes/\_\_init\_\_.py                         |        0 |        0 |    100% |           |
-| routes/routes\_admin.py                        |       66 |        0 |    100% |           |
+| routes/routes\_admin.py                        |       62 |        0 |    100% |           |
 | routes/routes\_dp.py                           |       44 |        0 |    100% |           |
-| routes/utils.py                                |       36 |        0 |    100% |           |
+| routes/utils.py                                |       41 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                          |        0 |        0 |    100% |           |
 | tests/constants.py                             |        6 |        0 |    100% |           |
-| tests/test\_api.py                             |      428 |        1 |     99% |       103 |
-| tests/test\_api\_diffprivlib.py                |      140 |        3 |     98% |     29-32 |
+| tests/test\_api.py                             |      396 |        1 |     99% |       102 |
+| tests/test\_api\_diffprivlib.py                |      135 |        0 |    100% |           |
 | tests/test\_api\_smartnoise\_synth.py          |      248 |        0 |    100% |           |
+| tests/test\_collection\_models.py              |       85 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py               |       63 |        0 |    100% |           |
-| tests/test\_mongodb\_admin.py                  |      414 |        0 |    100% |           |
-| tests/test\_mongodb\_admin\_cli.py             |      242 |        0 |    100% |           |
+| tests/test\_mongodb\_admin.py                  |      416 |        1 |     99% |        75 |
+| tests/test\_mongodb\_admin\_cli.py             |      243 |        1 |     99% |        45 |
 | utils/\_\_init\_\_.py                          |        0 |        0 |    100% |           |
 | utils/anti\_timing\_att.py                     |       18 |        0 |    100% |           |
-| utils/collection\_models.py                    |       46 |        0 |    100% |           |
-| utils/config.py                                |       83 |        2 |     98% |  211, 221 |
-| utils/error\_handler.py                        |       36 |        2 |     94% |   120-121 |
+| utils/collection\_models.py                    |      106 |        3 |     97% |116, 209, 218 |
+| utils/config.py                                |       77 |        2 |     97% |  189, 199 |
+| utils/error\_handler.py                        |       37 |        2 |     95% |   122-123 |
 | utils/logger.py                                |        5 |        0 |    100% |           |
 | utils/query\_examples.py                       |       37 |        0 |    100% |           |
-| utils/query\_models.py                         |       75 |        0 |    100% |           |
-|                                      **TOTAL** | **3377** |   **39** | **99%** |           |
+| utils/query\_models.py                         |       64 |        0 |    100% |           |
+|                                      **TOTAL** | **3312** |   **36** | **99%** |           |
 
 
 ## Setup coverage badge

@@ -1,12 +1,11 @@
 services:
   lomas_core:
-    image: dsccadminch/lomas_core
+    image: dsccadminch/lomas_core_dev
     build:
       dockerfile: ../core/Dockerfile
-      target: lomas_core
+      target: lomas_core_dev
       context: ../core/
-    container_name: lomas_core
-    restart: always
+    container_name: lomas_core_dev
     networks:
       - lomas-network
   lomas_server:

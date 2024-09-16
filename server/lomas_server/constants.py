@@ -76,24 +76,6 @@ SSQL_MAX_ITERATION = 5
 
 
 # Smartnoise synth
-class SSynthMarginalSynthesizer(StrEnum):
-    """Marginal Synthesizer models for smartnoise synth"""
-
-    AIM = "aim"
-    MWEM = "mwem"
-    MST = "mst"
-    PAC_SYNTH = "pacsynth"
-
-
-class SSynthGanSynthesizer(StrEnum):
-    """GAN Synthesizer models for smartnoise synth"""
-
-    DP_CTGAN = "dpctgan"
-    PATE_CTGAN = "patectgan"
-    PATE_GAN = "pategan"
-    DP_GAN = "dpgan"
-
-
 class SSynthTableTransStyle(StrEnum):
     """Transformer style for smartnoise synth"""
 
@@ -144,9 +126,7 @@ class OpenDPDatasetInputMetric(StrEnum):
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
-RANDOM_STRINGS = list(
-    string.ascii_lowercase + string.ascii_uppercase + string.digits
-)
+RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 

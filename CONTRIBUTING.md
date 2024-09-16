@@ -83,7 +83,7 @@ The following actions must take place in this order when preparing a new release
 
 1. Create a `release/vx.y.z` branch from develop.
 2. Fix remaining issues.
-3. Adjust versions for the client library, the helm charts, as well as for the documentation.
+3. Adjust versions for the client, core and server libraries (in the different setup.py), the helm charts, as well as for the documentation.
 4. Create a GitHub PR from this branch to develop AND master (make sure you are up to date with develop by rebasing on it)
 5. Once merged, manually create a release on GitHub with the tag `vx.y.z`.
 

@@ -1,4 +1,5 @@
 import pathlib
+
 from setuptools import find_packages, setup
 
 here = pathlib.Path(__file__).parent.resolve()
@@ -8,10 +9,10 @@ long_description = (this_directory / "README.md").read_text()
 
 
 setup(
-    name="lomas-server",
+    name="lomas-core",
     packages=find_packages(),
     version="0.3.2",
-    description="Lomas server.",
+    description="Lomas core.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dscc-admin-ch/lomas/",
@@ -31,6 +32,6 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Security",
     ],
-    python_requires=">=3.11, <3.13",
+    python_requires=">=3.11, <=3.12",
     # install_requires=..
 )

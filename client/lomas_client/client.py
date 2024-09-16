@@ -1,19 +1,18 @@
 import base64
 import json
 import pickle
-from enum import StrEnum
 from typing import Dict, List, Optional, Union
 
 import opendp as dp
 import pandas as pd
 import requests
 from diffprivlib_logger import serialise_pipeline
+from lomas_core.constants import DPLibraries
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
-from lomas_core.constants import DPLibraries
 from lomas_client.utils import validate_synthesizer
 
 # Opendp_logger
@@ -29,10 +28,7 @@ DEFAULT_READ_TIMEOUT = 10
 DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
 SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
 
-SNSYNTH_DEFAULT_SYMPLES_NB = 200
-
-
-
+SNSYNTH_DEFAULT_SAMPLES_NB = 200
 
 
 def error_message(res: requests.Response) -> str:
@@ -75,9 +71,7 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
-        res = self._exec(
-            "get_dataset_metadata", {"dataset_name": self.dataset_name}
-        )
+        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name})
         if res.status_code == HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -243,7 +237,7 @@ class Client:
         dummy: bool = False,
         return_model: bool = False,
         condition: str = "",
-        nb_samples: int = SNSYNTH_DEFAULT_SYMPLES_NB,
+        nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Optional[dict]:
@@ -291,7 +285,7 @@ class Client:
                 Defaults to "".
             nb_samples (Optional[int]): number of samples to generate.
                 (only relevant if return_model is False)
-                Defaults to SNSYNTH_DEFAULT_SYMPLES_NB
+                Defaults to SNSYNTH_DEFAULT_SAMPLES_NB
             dummy (bool, optional): Whether to use a dummy dataset.
                 Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.
@@ -564,9 +558,7 @@ class Client:
         else:
             endpoint = "diffprivlib_query"
 
-        res = self._exec(
-            endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
-        )
+        res = self._exec(endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT)
         if res.status_code == HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
@@ -704,9 +696,7 @@ class Client:
         res = self._exec("get_previous_queries", body_json)
 
         if res.status_code == HTTP_200_OK:
-            queries = json.loads(res.content.decode("utf8"))[
-                "previous_queries"
-            ]
+            queries = json.loads(res.content.decode("utf8"))["previous_queries"]
 
             if not queries:
                 return queries
@@ -724,9 +714,7 @@ class Client:
                                 base64.b64decode(res)
                             )
                         else:
-                            query["response"]["query_response"] = pd.DataFrame(
-                                res
-                            )
+                            query["response"]["query_response"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(
                             query["client_input"]["opendp_json"]
@@ -736,8 +724,8 @@ class Client:
                         model = base64.b64decode(
                             query["response"]["query_response"]["model"]
                         )
-                        query["response"]["query_response"]["model"] = (
-                            pickle.loads(model)
+                        query["response"]["query_response"]["model"] = pickle.loads(
+                            model
                         )
                     case _:
                         raise ValueError(

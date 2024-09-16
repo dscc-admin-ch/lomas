@@ -30,9 +30,7 @@ def get_model(query_response):
     return model
 
 
-class TestSmartnoiseSynthEndpoint(
-    TestRootAPIEndpoint
-):  # pylint: disable=R0904
+class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
     """
     Test Smartnoise Synth Endpoints with different Synthesizers
     """
@@ -117,9 +115,7 @@ class TestSmartnoiseSynthEndpoint(
             assert df_1.shape[0] == nb_samples
             assert list(df_1.columns) == PENGUIN_COLUMNS
 
-            assert (
-                df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
-            )
+            assert df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
 
     def test_smartnoise_synth_query_select_cols(self) -> None:
         """Test smartnoise synth query select_cols"""

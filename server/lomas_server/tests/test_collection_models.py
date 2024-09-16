@@ -25,14 +25,10 @@ class TestMetadataModel(unittest.TestCase):
             "categories": ["a", "b", "c", "d"],
         }
 
-        str_categorical_metadata = StrCategoricalMetadata.model_validate(
-            input_str
-        )
+        str_categorical_metadata = StrCategoricalMetadata.model_validate(input_str)
 
         self.assertIsInstance(str_categorical_metadata, StrCategoricalMetadata)
-        self.assertIsInstance(
-            str_categorical_metadata, CategoricalColumnMetadata
-        )
+        self.assertIsInstance(str_categorical_metadata, CategoricalColumnMetadata)
 
         input_int = {
             "type": "int",
@@ -41,14 +37,10 @@ class TestMetadataModel(unittest.TestCase):
             "categories": [5, 6, 7, 8],
         }
 
-        int_categorical_metadata = IntCategoricalMetadata.model_validate(
-            input_int
-        )
+        int_categorical_metadata = IntCategoricalMetadata.model_validate(input_int)
 
         self.assertIsInstance(int_categorical_metadata, IntCategoricalMetadata)
-        self.assertIsInstance(
-            int_categorical_metadata, CategoricalColumnMetadata
-        )
+        self.assertIsInstance(int_categorical_metadata, CategoricalColumnMetadata)
 
     def test_categories_required(self) -> None:
         """test categories required"""
@@ -212,13 +204,9 @@ class TestMetadataModel(unittest.TestCase):
         metadata = Metadata.model_validate(input_metadata)
 
         self.assertIsInstance(metadata.columns["str"], StrMetadata)
-        self.assertIsInstance(
-            metadata.columns["str_cat"], StrCategoricalMetadata
-        )
+        self.assertIsInstance(metadata.columns["str_cat"], StrCategoricalMetadata)
         self.assertIsInstance(metadata.columns["int"], IntMetadata)
-        self.assertIsInstance(
-            metadata.columns["int_cat"], IntCategoricalMetadata
-        )
+        self.assertIsInstance(metadata.columns["int_cat"], IntCategoricalMetadata)
         self.assertIsInstance(metadata.columns["float"], FloatMetadata)
         self.assertIsInstance(metadata.columns["boolean"], BooleanMetadata)
         self.assertIsInstance(metadata.columns["datetime"], DatetimeMetadata)

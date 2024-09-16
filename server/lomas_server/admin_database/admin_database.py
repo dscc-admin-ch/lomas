@@ -4,11 +4,12 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable, Dict, List
 
-from lomas_server.utils.collection_models import Metadata
-from lomas.core.lomas_core.error_handler import (
+from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+
+from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.query_models import RequestModel, model_input_to_lib
 
 
@@ -186,9 +187,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def get_and_set_may_user_query(
-        self, user_name: str, may_query: bool
-    ) -> bool:
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
 
@@ -206,9 +205,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def has_user_access_to_dataset(
-        self, user_name: str, dataset_name: str
-    ) -> bool:
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """
         Checks if a user may access a particular dataset
 
@@ -240,9 +237,7 @@ class AdminDatabase(ABC):
         """
 
     @user_must_have_access_to_dataset
-    def get_total_spent_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
         Get the total spent epsilon and delta spent by a specific user
         on a specific dataset (since the initialisation)
@@ -258,18 +253,12 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "total_spent_epsilon"
-            ),
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "total_spent_delta"
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, "total_spent_epsilon"),
+            self.get_epsilon_or_delta(user_name, dataset_name, "total_spent_delta"),
         ]
 
     @user_must_have_access_to_dataset
-    def get_initial_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
         Get the initial epsilon and delta budget
 
@@ -284,18 +273,12 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "initial_epsilon"
-            ),
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "initial_delta"
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, "initial_epsilon"),
+            self.get_epsilon_or_delta(user_name, dataset_name, "initial_delta"),
         ]
 
     @user_must_have_access_to_dataset
-    def get_remaining_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
         Get the remaining epsilon and delta budget (initial - total spent)
 
@@ -310,9 +293,7 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
-        spent_eps, spent_delta = self.get_total_spent_budget(
-            user_name, dataset_name
-        )
+        spent_eps, spent_delta = self.get_total_spent_budget(user_name, dataset_name)
         return [init_eps - spent_eps, init_delta - spent_delta]
 
     @abstractmethod

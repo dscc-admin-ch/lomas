@@ -1,6 +1,12 @@
 from typing import List, Union
 
 import opendp as dp
+from lomas_core.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+)
+from lomas_core.logger import LOG
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
@@ -12,12 +18,6 @@ from lomas_server.constants import (
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.utils.config import OpenDPConfig
-from lomas.core.lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-)
-from lomas.core.lomas_core.logger import LOG
 from lomas_server.utils.query_models import (
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -214,17 +214,13 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
                 + f"with output type {output_type}."
             )
 
-    if output_measure == dp.measures.fixed_smoothed_max_divergence(
-        T=output_type
-    ):
+    if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):
         measurement = OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
     elif output_measure == dp.measures.max_divergence(T=output_type):
         measurement = OpenDPMeasurement.MAX_DIVERGENCE
     elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
         measurement = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.zero_concentrated_divergence(
-        T=output_type
-    ):
+    elif output_measure == dp.measures.zero_concentrated_divergence(T=output_type):
         measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
         raise InternalServerException(

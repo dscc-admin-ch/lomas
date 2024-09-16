@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
-
 from lomas_core.constants import DPLibraries
+
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -103,9 +103,7 @@ def smartnoise_sql_handler(
 )
 def dummy_smartnoise_sql_handler(
     request: Request,
-    query_json: SmartnoiseSQLDummyQueryModel = Body(
-        example_dummy_smartnoise_sql
-    ),
+    query_json: SmartnoiseSQLDummyQueryModel = Body(example_dummy_smartnoise_sql),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -188,9 +186,7 @@ def estimate_smartnoise_sql_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    return handle_cost_query(
-        request, query_json, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return handle_cost_query(request, query_json, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -200,9 +196,7 @@ def estimate_smartnoise_sql_cost(
 )
 def smartnoise_synth_handler(
     request: Request,
-    query_json: SmartnoiseSynthQueryModel = Body(
-        example_smartnoise_synth_query
-    ),
+    query_json: SmartnoiseSynthQueryModel = Body(example_smartnoise_synth_query),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -327,9 +321,7 @@ def dummy_smartnoise_synth_handler(
 )
 def estimate_smartnoise_synth_cost(
     request: Request,
-    query_json: SmartnoiseSynthRequestModel = Body(
-        example_smartnoise_synth_cost
-    ),
+    query_json: SmartnoiseSynthRequestModel = Body(example_smartnoise_synth_cost),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -374,9 +366,7 @@ def estimate_smartnoise_synth_cost(
     )
 
 
-@router.post(
-    "/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"]
-)
+@router.post("/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"])
 def opendp_query_handler(
     request: Request,
     query_json: OpenDPQueryModel = Body(example_opendp),
@@ -507,9 +497,7 @@ def estimate_opendp_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    return handle_cost_query(
-        request, query_json, user_name, DPLibraries.OPENDP
-    )
+    return handle_cost_query(request, query_json, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -649,6 +637,4 @@ def estimate_diffprivlib_cost(
             - epsilon_cost (float): The estimated epsilon cost.
             - delta_cost (float): The estimated delta cost.
     """
-    return handle_cost_query(
-        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
-    )
+    return handle_cost_query(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)

@@ -10,7 +10,7 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 88
 split_on_trailing_comma = true
-src_paths = ["lomas_server"]
+src_paths = ["lomas_core"]
 
 [tool.flake8]
 max-line-length = 88
@@ -19,17 +19,10 @@ max-line-length = 88
 disable_error_code = ["import-untyped", "import-not-found", "attr-defined"]
 
 [tool.pylint.MASTER]
-ignore-patterns = "test_*.py"
 max-line-length = 88
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
-    "E0401",  # import-error
     "C0114",  # missing-module-docstring
-    "R0903",  # too-few-public-methods
-    "E0611",  # no-name-in-module
-    "W0511",  # fixme
-    "C0302",  # too-many-lines
     "W1203",  # use lazy % formatting in logging functions
-    "duplicate-code"  # duplicate-code
 ]

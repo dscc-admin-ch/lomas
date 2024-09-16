@@ -2,11 +2,11 @@ from typing import Optional
 
 import boto3
 import pandas as pd
+from lomas_core.error_handler import InternalServerException
 
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.utils.collection_models import Metadata
 from lomas_server.utils.config import S3CredentialsConfig
-from lomas.core.lomas_core.error_handler import InternalServerException
 
 
 class S3Connector(DataConnector):
@@ -52,8 +52,7 @@ class S3Connector(DataConnector):
                 self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
             except Exception as err:
                 raise InternalServerException(
-                    "Error reading csv at s3 path:"
-                    + f"{self.bucket}/{self.key}: {err}"
+                    "Error reading csv at s3 path:" + f"{self.bucket}/{self.key}: {err}"
                 ) from err
 
         return self.df

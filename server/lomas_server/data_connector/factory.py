@@ -1,12 +1,13 @@
 from typing import List
 
+from lomas_core.error_handler import InternalServerException
+
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import PrivateDatabaseType
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.utils.config import PrivateDBCredentials, S3CredentialsConfig
-from lomas.core.lomas_core.error_handler import InternalServerException
 
 
 def data_connector_factory(
@@ -28,9 +29,7 @@ def data_connector_factory(
     Returns:
         DataConnector: The DataConnector instance for this dataset.
     """
-    database_type = admin_database.get_dataset_field(
-        dataset_name, "database_type"
-    )
+    database_type = admin_database.get_dataset_field(dataset_name, "database_type")
 
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
 
@@ -51,9 +50,7 @@ def data_connector_factory(
             )
 
             if not isinstance(credentials, S3CredentialsConfig):
-                raise InternalServerException(
-                    "Could not get correct credentials"
-                )
+                raise InternalServerException("Could not get correct credentials")
 
             credentials.endpoint_url = admin_database.get_dataset_field(
                 dataset_name, "endpoint_url"
@@ -61,15 +58,11 @@ def data_connector_factory(
             credentials.bucket = admin_database.get_dataset_field(
                 dataset_name, "bucket"
             )
-            credentials.key = admin_database.get_dataset_field(
-                dataset_name, "key"
-            )
+            credentials.key = admin_database.get_dataset_field(dataset_name, "key")
 
             return S3Connector(ds_metadata, credentials)
         case _:
-            raise InternalServerException(
-                f"Unknown database type: {database_type}"
-            )
+            raise InternalServerException(f"Unknown database type: {database_type}")
 
 
 def get_dataset_credentials(

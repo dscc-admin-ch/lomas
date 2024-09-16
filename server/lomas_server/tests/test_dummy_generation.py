@@ -44,9 +44,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         """test_boolean_column"""
 
         # Test a boolean column
-        self.metadata["columns"] = {
-            "col_bool": {"type": "boolean", "nullable": True}
-        }
+        self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable": True}}
         metadata = Metadata.model_validate(self.metadata)
         df = make_dummy_dataset(metadata)
 

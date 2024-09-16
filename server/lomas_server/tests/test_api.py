@@ -8,6 +8,8 @@ import opendp.prelude as dp_p
 import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
+from lomas_core.constants import DPLibraries
+from lomas_core.error_handler import InternalServerException
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
@@ -15,7 +17,6 @@ from pymongo.database import Database
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
-from lomas_core.constants import DPLibraries
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -27,7 +28,6 @@ from lomas_server.tests.constants import (
     TRUE_VALUES,
 )
 from lomas_server.utils.config import CONFIG_LOADER, DBConfig
-from lomas.core.lomas_core.error_handler import InternalServerException
 from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,
@@ -126,9 +126,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # Put unknown admin database
         with self.assertRaises(InternalServerException) as context:
             admin_database_factory(DBConfig())
-        self.assertEqual(
-            str(context.exception), "Database type not supported."
-        )
+        self.assertEqual(str(context.exception), "Database type not supported.")
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint"""
@@ -136,9 +134,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_root = client.get("/", headers=self.headers)
             response_state = client.get("/state", headers=self.headers)
             assert response_root.status_code == response_state.status_code
-            assert json.loads(
-                response_root.content.decode("utf8")
-            ) == json.loads(response_state.content.decode("utf8"))
+            assert json.loads(response_root.content.decode("utf8")) == json.loads(
+                response_state.content.decode("utf8")
+            )
 
     def test_state(self) -> None:
         """Test state endpoint"""
@@ -215,16 +213,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             expected_dtypes = pd.Series(response_dict["dtypes"])
             assert (
                 dummy_df.dtypes == expected_dtypes
-            ).all(), (
-                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
-            )
+            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
             expected_dtypes = pd.Series(response_dict["dtypes"])
             assert (
                 dummy_df.dtypes == expected_dtypes
-            ).all(), (
-                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
-            )
+            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -315,9 +309,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 expected_dtypes[col] = "datetime64[ns]"
             assert (
                 dummy_df.dtypes == expected_dtypes
-            ).all(), (
-                f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
-            )
+            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
     def test_smartnoise_sql_query(self) -> None:
         """Test smartnoise-sql query"""
@@ -350,9 +342,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-            response_dict = json.loads(response.content.decode("utf8"))[
-                "detail"
-            ]
+            response_dict = json.loads(response.content.decode("utf8"))["detail"]
             assert response_dict[0]["type"] == "missing"
             assert response_dict[0]["loc"] == ["body", "delta"]
             assert response_dict[1]["type"] == "missing"
@@ -493,9 +483,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             new_headers["user-name"] = "BirthdayGirl"
             body = dict(example_smartnoise_sql)
             body["dataset_name"] = "BIRTHDAYS"
-            body["query_str"] = (
-                "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
-            )
+            body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
             response = client.post(
                 "/smartnoise_query",
                 json=body,
@@ -503,9 +491,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             data = response.content.decode("utf8")
             df = pd.read_csv(StringIO(data))
-            assert isinstance(
-                df, pd.DataFrame
-            ), "Response should be a pd.DataFrame"
+            assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
 
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset"""
@@ -649,9 +635,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
             # Test MAX_DIVERGENCE (pure DP)
-            md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(
-                scale=5.0
-            )
+            md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(scale=5.0)
             response = client.post(
                 "/opendp_query",
                 json={
@@ -668,9 +652,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["spent_delta"] == 0
 
             # Test ZERO_CONCENTRATED_DIVERGENCE
-            zcd_pipeline = transformation_pipeline >> dp_p.m.then_gaussian(
-                scale=5.0
-            )
+            zcd_pipeline = transformation_pipeline >> dp_p.m.then_gaussian(scale=5.0)
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
@@ -885,13 +867,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert response_dict_2 != response_dict
             assert (
-                response_dict_2["remaining_epsilon"]
-                == INITAL_EPSILON - QUERY_EPSILON
+                response_dict_2["remaining_epsilon"] == INITAL_EPSILON - QUERY_EPSILON
             )
-            assert (
-                response_dict_2["remaining_delta"]
-                <= INITIAL_DELTA - QUERY_DELTA
-            )
+            assert response_dict_2["remaining_delta"] <= INITIAL_DELTA - QUERY_DELTA
 
     def test_get_previous_queries(self) -> None:
         """test_get_previous_queries"""
@@ -929,9 +907,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 response_dict_2["previous_queries"][0]["client_input"]
                 == example_smartnoise_sql
             )
-            assert (
-                response_dict_2["previous_queries"][0]["response"] == query_res
-            )
+            assert response_dict_2["previous_queries"][0]["response"] == query_res
 
             # Query to archive 2 (opendp)
             query_res = client.post(
@@ -957,12 +933,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 == DPLibraries.OPENDP
             )
             assert (
-                response_dict_3["previous_queries"][1]["client_input"]
-                == example_opendp
+                response_dict_3["previous_queries"][1]["client_input"] == example_opendp
             )
-            assert (
-                response_dict_3["previous_queries"][1]["response"] == query_res
-            )
+            assert response_dict_3["previous_queries"][1]["response"] == query_res
 
     def test_subsequent_budget_limit_logic(self) -> None:
         """test_subsequent_budget_limit_logic"""

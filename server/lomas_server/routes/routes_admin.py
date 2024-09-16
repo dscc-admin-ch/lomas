@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-
-from lomas_server.data_connector.data_connector import get_column_dtypes
-from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
-from lomas_server.routes.utils import server_live
-from lomas.core.lomas_core.error_handler import (
+from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
+
+from lomas_server.data_connector.data_connector import get_column_dtypes
+from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.routes.utils import server_live
 from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
@@ -84,17 +84,13 @@ def get_dataset_metadata(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
     try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(
-            dataset_name
-        )
+        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
 
     except KNOWN_EXCEPTIONS as e:
         raise e
@@ -140,9 +136,7 @@ def get_dummy_dataset(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )

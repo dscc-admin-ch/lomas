@@ -3,6 +3,15 @@ from datetime import datetime
 from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
 
 import pandas as pd
+from lomas_core.constants import (
+    SSynthGanSynthesizer,
+    SSynthMarginalSynthesizer,
+)
+from lomas_core.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+)
 from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
 from snsynth.transform import (
@@ -23,8 +32,6 @@ from lomas_server.constants import (
     SSYNTH_MIN_ROWS_PATE_GAN,
     SSYNTH_PRIVATE_COLUMN,
     DPLibraries,
-    SSynthGanSynthesizer,
-    SSynthMarginalSynthesizer,
     SSynthTableTransStyle,
 )
 from lomas_server.data_connector.data_connector import DataConnector
@@ -40,11 +47,6 @@ from lomas_server.utils.collection_models import (
     Metadata,
     StrCategoricalMetadata,
     StrMetadata,
-)
-from lomas.core.lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
 )
 from lomas_server.utils.query_models import (
     SmartnoiseSynthQueryModel,
@@ -97,10 +99,7 @@ class SmartnoiseSynthQuerier(
     def _is_categorical(
         self, col_metadata: ColumnMetadata
     ) -> TypeGuard[
-        StrMetadata
-        | StrCategoricalMetadata
-        | BooleanMetadata
-        | IntCategoricalMetadata
+        StrMetadata | StrCategoricalMetadata | BooleanMetadata | IntCategoricalMetadata
     ]:
         """
         Checks if the column type is categorical
@@ -137,9 +136,7 @@ class SmartnoiseSynthQuerier(
         """
         return isinstance(col_metadata, (IntMetadata, FloatMetadata))
 
-    def _is_datetime(
-        self, col_metadata: ColumnMetadata
-    ) -> TypeGuard[DatetimeMetadata]:
+    def _is_datetime(self, col_metadata: ColumnMetadata) -> TypeGuard[DatetimeMetadata]:
         """Checks if the column type is datetime
 
         Args:
@@ -214,9 +211,7 @@ class SmartnoiseSynthQuerier(
         nullable = query_json.nullable
         for col, col_metadata in columns.items():
             if col_metadata.private_id:
-                constraints[col] = AnonymizationTransformer(
-                    SSYNTH_PRIVATE_COLUMN
-                )
+                constraints[col] = AnonymizationTransformer(SSYNTH_PRIVATE_COLUMN)
 
             if table_transformer_style == SSynthTableTransStyle.GAN:  # gan
                 if self._is_categorical(
@@ -325,9 +320,8 @@ class SmartnoiseSynthQuerier(
                 r"sample_rate=[\d\.]+ is not a valid value\. "
                 r"Please provide a float between 0 and 1\."
             )
-            if (
-                query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN
-                and re.match(pattern, str(e))
+            if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN and re.match(
+                pattern, str(e)
             ):
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
@@ -343,9 +337,7 @@ class SmartnoiseSynthQuerier(
             ) from e
         return model
 
-    def _model_pipeline(
-        self, query_json: SmartnoiseSynthRequestModel
-    ) -> Synthesizer:
+    def _model_pipeline(self, query_json: SmartnoiseSynthRequestModel) -> Synthesizer:
         """Return a trained Synthesizer model based on query_json
 
         Args:
@@ -369,9 +361,7 @@ class SmartnoiseSynthQuerier(
             )
 
         # Table Transformation depenps on the type of Synthesizer
-        if query_json.synth_name in [
-            s.value for s in SSynthMarginalSynthesizer
-        ]:
+        if query_json.synth_name in [s.value for s in SSynthMarginalSynthesizer]:
             table_transformer_style = SSynthTableTransStyle.CUBE
         else:
             table_transformer_style = SSynthTableTransStyle.GAN
@@ -422,9 +412,7 @@ class SmartnoiseSynthQuerier(
         model = self._get_fit_model(private_data, transformer, query_json)
         return model
 
-    def cost(
-        self, query_json: SmartnoiseSynthRequestModel
-    ) -> tuple[float, float]:
+    def cost(self, query_json: SmartnoiseSynthRequestModel) -> tuple[float, float]:
         """Return cost of query_json
 
         Args:

@@ -66,9 +66,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("drop_collection", ["--collection", "metadata"])
         self.run_cli_command("drop_collection", ["--collection", "datasets"])
         self.run_cli_command("drop_collection", ["--collection", "users"])
-        self.run_cli_command(
-            "drop_collection", ["--collection", "queries_archives"]
-        )
+        self.run_cli_command("drop_collection", ["--collection", "queries_archives"])
 
     def run_cli_command(self, command: str, args: List) -> None:
         """Run a MongoDB administration CLI command.
@@ -88,9 +86,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             + str_args
         )
         try:
-            subprocess.run(
-                cli_command, capture_output=True, text=True, check=True
-            )
+            subprocess.run(cli_command, capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
             error_message = (
                 f"Command: {cli_command}\n"
@@ -250,9 +246,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         # Test dataset deletion
-        self.run_cli_command(
-            "del_dataset_to_user", ["-u", user, "-d", dataset]
-        )
+        self.run_cli_command("del_dataset_to_user", ["-u", user, "-d", dataset])
         expected_user = {
             "user_name": user,
             "may_query": True,
@@ -265,17 +259,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Remove dataset from non-existant user should raise error
         user = "Milou"
         with self.assertRaises(ValueError):
-            self.run_cli_command(
-                "del_dataset_to_user", ["-u", user, "-d", dataset]
-            )
+            self.run_cli_command("del_dataset_to_user", ["-u", user, "-d", dataset])
 
         # Remove dataset not present in user should raise error
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
         with self.assertRaises(Exception):
-            self.run_cli_command(
-                "del_dataset_to_user", ["-u", user, "-d", dataset]
-            )
+            self.run_cli_command("del_dataset_to_user", ["-u", user, "-d", dataset])
 
     def test_set_budget_field_cli(self) -> None:
         """Test setting a budget field via cli"""
@@ -481,9 +471,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         del dataset_found["_id"]
         self.assertEqual(dataset_found, expected_dataset)
 
-        metadata_found = self.db.metadata.find_one(
-            {dataset: {"$exists": True}}
-        )[dataset]
+        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[
+            dataset
+        ]
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets_via_yaml_cli(self) -> None:
@@ -505,24 +495,22 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         def verify_datasets():
             # Check penguin and iris are in db
-            penguin_found = self.db.datasets.find_one(
-                {"dataset_name": "PENGUIN"}
-            )
+            penguin_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
             del penguin_found["_id"]
             self.assertEqual(penguin_found, penguin)
 
-            metadata_found = self.db.metadata.find_one(
-                {"PENGUIN": {"$exists": True}}
-            )["PENGUIN"]
+            metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})[
+                "PENGUIN"
+            ]
             self.assertEqual(metadata_found, penguin_metadata)
 
             iris_found = self.db.datasets.find_one({"dataset_name": "IRIS"})
             del iris_found["_id"]
             self.assertEqual(iris_found, iris)
 
-            metadata_found = self.db.metadata.find_one(
-                {"IRIS": {"$exists": True}}
-            )["IRIS"]
+            metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})[
+                "IRIS"
+            ]
             self.assertEqual(metadata_found, penguin_metadata)
 
         path = "./tests/test_data/test_datasets.yaml"
@@ -599,9 +587,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """
         dataset = "PENGUIN"
         with self.assertRaises(ValueError):
-            self.run_cli_command(
-                "get_metadata_of_dataset", ["--dataset", dataset]
-            )
+            self.run_cli_command("get_metadata_of_dataset", ["--dataset", dataset])
 
         self.run_cli_command(
             "add_dataset",

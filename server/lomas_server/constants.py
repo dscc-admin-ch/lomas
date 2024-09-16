@@ -59,9 +59,7 @@ INTERNAL_SERVER_ERROR = (
 )
 
 # General values
-DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 SECONDS_IN_A_DAY = 60 * 60 * 24
-
 
 # DP constants (max budget per user per dataset)
 EPSILON_LIMIT: float = 10.0
@@ -160,13 +158,9 @@ class OpenDPDatasetInputMetric(StrEnum):
 # Dummy dataset generation
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
-DEFAULT_NUMERICAL_MIN = -10000
-DEFAULT_NUMERICAL_MAX = 10000
 RANDOM_STRINGS = list(
     string.ascii_lowercase + string.ascii_uppercase + string.digits
 )
-RANDOM_DATE_START = "01/01/2000"
-RANDOM_DATE_RANGE = 50 * 365 * 24 * 60 * 60  # 50 years
 NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 

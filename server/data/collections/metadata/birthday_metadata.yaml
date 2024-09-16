@@ -1,6 +1,7 @@
 max_ids: 1
 row_privacy: true
 censor_dims: False
+rows: 5
 columns:
   birthday:
     type: datetime

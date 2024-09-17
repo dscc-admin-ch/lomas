@@ -1,13 +1,12 @@
 from typing import List, Optional, Union
 
 from lomas_core.constants import (
+    DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
 from lomas_core.error_handler import InternalServerException
 from pydantic import BaseModel, Field
-
-from lomas_server.constants import DPLibraries
 
 
 class GetDbData(BaseModel):

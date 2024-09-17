@@ -6,6 +6,9 @@ services:
       target: lomas_core_dev
       context: ../core/
     container_name: lomas_core_dev
+    restart: always
+    volumes:
+      - ./lomas_core:/code/lomas_core
     networks:
       - lomas-network
   lomas_server:

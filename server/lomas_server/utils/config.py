@@ -1,4 +1,4 @@
-from typing import Annotated, Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union
 
 import yaml
 from lomas_core.error_handler import InternalServerException
@@ -83,9 +83,6 @@ class DPLibraryConfig(BaseModel):
     opendp: OpenDPConfig
 
 
-Credential = Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]
-
-
 class Config(BaseModel):
     """
     Server runtime config.
@@ -104,7 +101,9 @@ class Config(BaseModel):
         ..., discriminator="db_type"
     )
 
-    private_db_credentials: List[Credential]
+    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(
+        ..., discriminator="db_type"
+    )
 
     dp_libraries: DPLibraryConfig
 

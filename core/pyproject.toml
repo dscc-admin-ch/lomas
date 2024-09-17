@@ -23,6 +23,7 @@ max-line-length = 88
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
+    "E0401",  # import-error
     "C0114",  # missing-module-docstring
     "W1203",  # use lazy % formatting in logging functions
 ]

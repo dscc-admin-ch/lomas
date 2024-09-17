@@ -23,11 +23,11 @@ jobs:
           pip install pylint==3.1.0
       - name: flake8
         run: |
-          cd client
+          cd client/lomas_client
           flake8 --toml-config=../pyproject.toml .
-          cd ../core
+          cd ../../core/lomas_core
           flake8 --toml-config=../pyproject.toml .
-          cd ../server
+          cd ../../server/lomas_server
           flake8 --toml-config=../pyproject.toml .
       - name: mypy
         run: |

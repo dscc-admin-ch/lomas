@@ -80,15 +80,13 @@ class DatasetOfS3DB(Dataset):
     credentials_name: str
 
 
-Dataset = Annotated[
-    Union[DatasetOfPathDB, DatasetOfS3DB], Field(discriminator="database_type")
-]
-
-
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
 
-    datasets: List[Dataset]
+    datasets: Annotated[
+        List[Union[DatasetOfPathDB, DatasetOfS3DB]],
+        Field(discriminator="database_type"),
+    ]
 
 
 class ColumnMetadata(BaseModel):

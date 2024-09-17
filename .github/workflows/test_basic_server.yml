@@ -23,8 +23,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd server
-        pip install -r requirements.txt
+        pip install -r core/requirements_core.txt
+        pip install -r server/requirements_server.txt
     - name: Run test script
       run: |
         cd server

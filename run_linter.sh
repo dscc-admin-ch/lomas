@@ -44,7 +44,7 @@ mypy .
 cd ../core/lomas_core
 isort .
 black .
-flake8 .
+flake8 --toml-config=../pyproject.toml .
 pylint .
 
 cd ..

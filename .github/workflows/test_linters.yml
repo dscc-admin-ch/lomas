@@ -16,29 +16,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-      - name: Install dependencies
+      - name: Run linters
         run: |
-          pip install mypy==1.10.0
-          pip install pylint==3.1.0
-      - name: flake8 server
-        uses: py-actions/flake8@v2
-        with:
-          path: server/
-          max-line-length: "88"
-      - name: flake8 client
-        uses: py-actions/flake8@v2
-        with:
-          path: client
-          max-line-length: "88"
-      - name: mypy
-        run: |
-          cd client
-          mypy .
-          cd ../server
-          mypy .
-      - name: pylint
-        run: |
-          cd client/lomas_client
-          pylint .
-          cd ../../server/lomas_server
-          pylint .
+          chmod +x run_linter.sh
+          ./run_linter.sh --install-deps

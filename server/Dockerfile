@@ -1,10 +1,9 @@
 FROM dsccadminch/lomas_core_dev AS lomas_server_base
 
-# To install missing packages
-COPY ./requirements.txt /requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt 
-
 WORKDIR /code
+
+COPY ./requirements_server.txt /code/requirements_server.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements_server.txt 
 
 FROM lomas_server_base AS lomas_server
 COPY ./lomas_server/ /code/lomas_server/
@@ -29,3 +28,6 @@ CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
 FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
 ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
+
+RUN echo "in server"
+RUN echo pip list

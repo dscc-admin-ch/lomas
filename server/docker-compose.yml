@@ -16,6 +16,7 @@ services:
     build:
       dockerfile: ./Dockerfile
       target: lomas_server_dev
+      context: .
     container_name: lomas_server_dev
     ports:
       - 80:80

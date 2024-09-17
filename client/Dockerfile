@@ -2,8 +2,8 @@ FROM dsccadminch/lomas_core_dev AS lomas_client_base
 
 WORKDIR /code
 
-COPY ./requirements.txt /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+COPY ./requirements_client.txt /code/requirements_client.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements_client.txt
 
 COPY ./lomas_client/ /code/lomas_client/
 COPY ./setup.py /code/setup.py

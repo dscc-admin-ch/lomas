@@ -26,9 +26,7 @@ from lomas_server.utils.config import get_config
 
 
 @asynccontextmanager
-async def lifespan(
-    lomas_app: FastAPI,
-) -> AsyncGenerator:  # pylint: disable=redefined-outer-name
+async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     """
     Lifespan function for the server.
 
@@ -120,7 +118,7 @@ async def lifespan(
 
 
 # This object holds the server object
-app = FastAPI(lifespan=lifespan)  # pylint: disable=redefined-outer-name
+app = FastAPI(lifespan=lifespan)
 
 
 # A simple hack to hinder the timing attackers

@@ -34,7 +34,7 @@ jobs:
         sudo apt-get install pandoc
         pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser        
         cd docs
-        python3.11 build_docs.py
+        python3.12 build_docs.py
         cd ../pages/
         ls
     - name: Pushes to another repository

@@ -4,7 +4,10 @@ docker compose -f docker-compose-test.yml up --detach
 
 sleep 15
 
-cd ./lomas_server
+cd ../core/lomas_core
+export PYTHONPATH=$(pwd)/..:$PYTHONPATH
+
+cd ../../server/lomas_server
 export PYTHONPATH=$(pwd)/..:$PYTHONPATH
 
 # "mongodb", "LRU_cache", production mode, "jitter"

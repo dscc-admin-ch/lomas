@@ -79,7 +79,11 @@ class DatasetOfS3DB(Dataset):
     key: str
     credentials_name: str
 
-Dataset = Annotated[Union[DatasetOfPathDB, DatasetOfS3DB], Field(discriminator="database_type")]
+
+Dataset = Annotated[
+    Union[DatasetOfPathDB, DatasetOfS3DB], Field(discriminator="database_type")
+]
+
 
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection"""
@@ -111,9 +115,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
     def validate_categories(self):
         """Makes sure number of categories matches cardinality."""
         if len(self.categories) != self.cardinality:
-            raise ValueError(
-                "Number of categories should be equal to cardinality."
-            )
+            raise ValueError("Number of categories should be equal to cardinality.")
         return self
 
 
@@ -207,8 +209,7 @@ def get_column_metadata_discriminator(v: Any) -> str:
         col_type = getattr(v, "type")
 
     if (col_type in ("string", "int")) and (
-        ((isinstance(v, dict)) and "cardinality" in v)
-        or (hasattr(v, "cardinality"))
+        ((isinstance(v, dict)) and "cardinality" in v) or (hasattr(v, "cardinality"))
     ):
         col_type = f"categorical_{col_type}"
 

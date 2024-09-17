@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import opendp as dp
+from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
@@ -11,11 +12,7 @@ from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from lomas_server.constants import (
-    DPLibraries,
-    OpenDPDatasetInputMetric,
-    OpenDPMeasurement,
-)
+from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.utils.config import OpenDPConfig
 from lomas_server.utils.query_models import (

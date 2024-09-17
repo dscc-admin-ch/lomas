@@ -1,8 +1,6 @@
-from lomas_server.constants import (
-    DIFFPRIVLIB_PIPELINE,
-    OPENDP_PIPELINE,
-    SSynthGanSynthesizer,
-)
+from lomas_core.constants import SSynthGanSynthesizer
+
+from lomas_server.constants import DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
 
 # Dummy queries
 DUMMY_EPSILON = 100.0

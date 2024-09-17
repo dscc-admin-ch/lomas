@@ -82,7 +82,9 @@ class DPLibraryConfig(BaseModel):
 
     opendp: OpenDPConfig
 
+
 Credential = Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]
+
 
 class Config(BaseModel):
     """

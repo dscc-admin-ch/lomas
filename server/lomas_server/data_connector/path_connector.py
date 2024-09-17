@@ -1,10 +1,7 @@
 from typing import Optional
 
 import pandas as pd
-from lomas_handler import (
-    InternalServerException,
-    InvalidQueryException,
-)
+from lomas_core.error_handler import InternalServerException, InvalidQueryException
 
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.utils.collection_models import Metadata

@@ -3,7 +3,7 @@
 install_dependencies() {
     pip install isort==5.13.2
     pip install black==24.4.2
-    pip install flake8==7.1.1
+    pip install flake8-pyproject==1.2.3
     pip install mypy==1.10.0
     pip install pylint==3.1.0
 }

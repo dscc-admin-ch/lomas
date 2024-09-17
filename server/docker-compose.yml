@@ -6,11 +6,11 @@ services:
       target: lomas_core_dev
       context: ../core/
     container_name: lomas_core_dev
-    restart: always
     volumes:
       - ./lomas_core:/code/lomas_core
     networks:
       - lomas-network
+
   lomas_server:
     image: dsccadminch/lomas_server_dev
     build:
@@ -39,6 +39,7 @@ services:
         condition: service_completed_successfully
     networks:
       - lomas-network
+
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -61,6 +62,7 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+
   minio:
     container_name: minio
     image: minio/minio
@@ -76,6 +78,7 @@ services:
       - minio-data:/data
     networks:
       - lomas-network
+
   minio-client:
     container_name: minio-client
     image: minio/mc
@@ -92,6 +95,7 @@ services:
       - ./data/:/data
     networks:
       - lomas-network
+
   lomas_admin_dashboard:
     image: dsccadminch/lomas_admin_dashboard_dev
     build:
@@ -112,6 +116,7 @@ services:
       - lomas_server
     networks:
       - lomas-network
+
   client:
     image: dsccadminch/lomas_client_dev
     build:
@@ -130,6 +135,7 @@ services:
       - lomas_core
     networks:
       - lomas-network
+
 networks:
   lomas-network:
     driver: bridge

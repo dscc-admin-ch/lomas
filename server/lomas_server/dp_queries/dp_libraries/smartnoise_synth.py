@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
 
 import pandas as pd
 from lomas_core.constants import (
+    DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
@@ -31,7 +32,6 @@ from lomas_server.constants import (
     SSYNTH_DEFAULT_BINS,
     SSYNTH_MIN_ROWS_PATE_GAN,
     SSYNTH_PRIVATE_COLUMN,
-    DPLibraries,
     SSynthTableTransStyle,
 )
 from lomas_server.data_connector.data_connector import DataConnector

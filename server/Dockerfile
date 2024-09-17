@@ -28,6 +28,3 @@ CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
 FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
 ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
-
-RUN echo "in server"
-RUN echo pip list

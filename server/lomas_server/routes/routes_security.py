@@ -25,7 +25,6 @@ fake_users_db = {
     },
 }
 
-
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

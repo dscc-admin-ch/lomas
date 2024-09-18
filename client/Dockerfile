@@ -5,21 +5,16 @@ WORKDIR /code
 COPY ./requirements_client.txt /code/requirements_client.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements_client.txt
 
-COPY ./lomas_client/ /code/lomas_client/
-COPY ./setup.py /code/setup.py
-COPY ./README.md /code/README.md
 
 FROM lomas_client_base AS lomas_client_dev
-RUN pip install -e /code/
-
+ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM lomas_client_base AS lomas_client
+COPY ./lomas_client/ /code/lomas_client/
+COPY ./README.md /code/README.md
 COPY ./notebooks/images/ /code/notebooks/images/
-COPY ./LICENSE /code/LICENSE
 COPY ./notebooks/Demo_Client_Notebook.ipynb /code/notebooks/Demo_Client_Notebook.ipynb
-COPY ./notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb /code/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
-
-RUN pip install -e /code/
+COPY ./LICENSE /code/LICENSE
 
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]

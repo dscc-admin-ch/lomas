@@ -7,9 +7,10 @@ sleep 15
 cd ../core
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
-cd ../../server/
+cd ../server/
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
+cd lomas_server/
 # "mongodb", "LRU_cache", production mode, "jitter"
 export LOMAS_TEST_MONGO_INTEGRATION=1 # tests with mongodb available
 export LOMAS_TEST_S3_INTEGRATION=1 # tests with s3 minio available

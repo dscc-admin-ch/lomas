@@ -1,4 +1,4 @@
-FROM dsccadminch/lomas_core_dev AS lomas_server_base
+FROM dsccadminch/lomas_core AS lomas_server_base
 
 WORKDIR /code
 

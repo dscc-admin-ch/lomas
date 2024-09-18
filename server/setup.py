@@ -37,7 +37,7 @@ setup(
         "httpx>=0.27.0",
         "jax>=0.4.31",
         "jaxlib>=0.4.31",
-        "lomas_core>=0.3.3",
+        "lomas-core>=0.3.3",
         "packaging>=24.1",
         "pyaml>=23.9.5",
         "pydantic==2.8.2",

@@ -3,6 +3,11 @@ from contextlib import asynccontextmanager
 from typing import Callable
 
 from fastapi import FastAPI, Request, Response
+from lomas_core.error_handler import (
+    InternalServerException,
+    add_exception_handlers,
+)
+from lomas_core.logger import LOG
 
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
@@ -18,19 +23,10 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.utils.anti_timing_att import anti_timing_att
 from lomas_server.utils.config import get_config
-from lomas_server.utils.error_handler import (
-    InternalServerException,
-    add_exception_handlers,
-)
-from lomas_server.utils.logger import LOG
 
 
 @asynccontextmanager
-async def lifespan(
-    app: FastAPI,
-) -> (
-    AsyncGenerator
-):  # pylint: disable=redefined-outer-name, too-many-statements
+async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     """
     Lifespan function for the server.
 
@@ -46,39 +42,37 @@ async def lifespan(
     LOG.info("Startup message")
 
     # Set some app state
-    app.state.admin_database = None
+    lomas_app.state.admin_database = None
 
     # General server state, can add fields if need be.
-    app.state.server_state = {
+    lomas_app.state.server_state = {
         "state": [],
         "message": [],
         "LIVE": False,
     }
-    app.state.server_state["state"].append("Startup event")
+    lomas_app.state.server_state["state"].append("Startup event")
 
     status_ok = True
     # Load config
     try:
         LOG.info("Loading config")
-        app.state.server_state["message"].append("Loading config")
+        lomas_app.state.server_state["message"].append("Loading config")
         config = get_config()
-        app.state.private_credentials = config.private_db_credentials
+        lomas_app.state.private_credentials = config.private_db_credentials
     except InternalServerException:
         LOG.info("Config could not loaded")
-        app.state.server_state["state"].append(CONFIG_NOT_LOADED)
-        app.state.server_state["message"].append(
-            "Server could not be started!"
-        )
-        app.state.server_state["LIVE"] = False
+        lomas_app.state.server_state["state"].append(CONFIG_NOT_LOADED)
+        lomas_app.state.server_state["message"].append("Server could not be started!")
+        lomas_app.state.server_state["LIVE"] = False
         status_ok = False
 
     # Fill up user database if in develop mode ONLY
     if status_ok and config.develop_mode:
         LOG.info("!! Develop mode ON !!")
-        app.state.server_state["message"].append("!! Develop mode ON !!")
+        lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             LOG.info("Adding demo data to MongoDB Admin")
-            app.state.server_state["message"].append(
+            lomas_app.state.server_state["message"].append(
                 "Adding demo data to MongoDB Admin"
             )
             add_demo_data_to_mongodb_admin()
@@ -87,40 +81,40 @@ async def lifespan(
     if status_ok:
         try:
             LOG.info("Loading admin database")
-            app.state.server_state["message"].append("Loading admin database")
-            app.state.admin_database = admin_database_factory(
+            lomas_app.state.server_state["message"].append("Loading admin database")
+            lomas_app.state.admin_database = admin_database_factory(
                 config.admin_database
             )
         except InternalServerException as e:
             LOG.exception(f"Failed at startup: {str(e)}")
-            app.state.server_state["state"].append(DB_NOT_LOADED)
-            app.state.server_state["message"].append(
+            lomas_app.state.server_state["state"].append(DB_NOT_LOADED)
+            lomas_app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"
             )
-            app.state.server_state["LIVE"] = False
+            lomas_app.state.server_state["LIVE"] = False
             status_ok = False
 
-        app.state.server_state["state"].append("Startup completed")
-        app.state.server_state["message"].append("Startup completed")
+        lomas_app.state.server_state["state"].append("Startup completed")
+        lomas_app.state.server_state["message"].append("Startup completed")
 
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
 
     if status_ok:
         LOG.info("Server start condition OK")
-        app.state.server_state["state"].append(SERVER_LIVE)
-        app.state.server_state["message"].append("Server start condition OK")
-        app.state.server_state["LIVE"] = True
+        lomas_app.state.server_state["state"].append(SERVER_LIVE)
+        lomas_app.state.server_state["message"].append("Server start condition OK")
+        lomas_app.state.server_state["LIVE"] = True
 
-    yield  # app is handling requests
+    yield  # lomas_app is handling requests
 
     # Shutdown event
     if (
         config is not None
-        and app.state.admin_database is not None
+        and lomas_app.state.admin_database is not None
         and config.admin_database.db_type == AdminDBType.YAML
     ):
-        app.state.admin_database.save_current_database()
+        lomas_app.state.admin_database.save_current_database()
 
 
 # This object holds the server object

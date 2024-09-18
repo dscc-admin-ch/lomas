@@ -2,16 +2,16 @@ from collections.abc import AsyncGenerator
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
-
-from lomas_server.constants import DPLibraries
-from lomas_server.data_connector.factory import data_connector_factory
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.utils.error_handler import (
+from lomas_core.constants import DPLibraries
+from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
+
+from lomas_server.data_connector.factory import data_connector_factory
+from lomas_server.dp_queries.dp_libraries.factory import querier_factory
+from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.query_models import (
     DummyQueryModel,
     QueryModel,
@@ -124,9 +124,7 @@ def handle_query_on_dummy_dataset(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )
@@ -187,9 +185,7 @@ def handle_cost_query(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )
@@ -211,6 +207,4 @@ def handle_cost_query(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={"epsilon_cost": eps_cost, "delta_cost": delta_cost}
-    )
+    return JSONResponse(content={"epsilon_cost": eps_cost, "delta_cost": delta_cost})

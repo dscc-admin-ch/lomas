@@ -1,10 +1,10 @@
 import requests
 import streamlit as st
 from config import get_config
+from lomas_core.error_handler import InternalServerException
 
 from constants import AdminDBType
 from utils.config import get_config as get_server_config
-from utils.error_handler import InternalServerException
 
 ###############################################################################
 # BACKEND
@@ -18,9 +18,7 @@ try:
         # Store dashboard config
         st.session_state["dashboard_config"] = get_config()
 except Exception as e:
-    st.error(
-        f"Failed to load server or dashboard config. Initial exception: {e}"
-    )
+    st.error(f"Failed to load server or dashboard config. Initial exception: {e}")
 
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds
@@ -93,9 +91,7 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
                 "Its address is: ",
                 st.session_state.config.admin_database.address,
             )
-            st.write(
-                "Its port is: ", st.session_state.config.admin_database.port
-            )
+            st.write("Its port is: ", st.session_state.config.admin_database.port)
             st.write(
                 "Its username is: ",
                 st.session_state.config.admin_database.username,

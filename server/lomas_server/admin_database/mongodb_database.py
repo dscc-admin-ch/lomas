@@ -1,5 +1,6 @@
 from typing import List
 
+from lomas_core.error_handler import InvalidQueryException
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
@@ -12,7 +13,6 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import InvalidQueryException
 from lomas_server.utils.query_models import RequestModel
 
 
@@ -39,9 +39,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the user exists, False otherwise.
         """
-        doc_count = self.db.users.count_documents(
-            {"user_name": f"{user_name}"}
-        )
+        doc_count = self.db.users.count_documents({"user_name": f"{user_name}"})
         return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
@@ -72,9 +70,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             Metadata: The metadata model.
         """
-        metadatas = self.db.metadata.find_one(
-            {dataset_name: {"$exists": True}}
-        )
+        metadatas = self.db.metadata.find_one({dataset_name: {"$exists": True}})
         return Metadata.model_validate(metadatas[dataset_name])  # type: ignore
 
     @user_must_exist
@@ -99,9 +95,7 @@ class AdminMongoDatabase(AdminDatabase):
         check_result_acknowledged(res)
 
     @user_must_exist
-    def get_and_set_may_user_query(
-        self, user_name: str, may_query: bool
-    ) -> bool:
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
 
@@ -123,9 +117,7 @@ class AdminMongoDatabase(AdminDatabase):
         return res["may_query"]  # type: ignore
 
     @user_must_exist
-    def has_user_access_to_dataset(
-        self, user_name: str, dataset_name: str
-    ) -> bool:
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """Checks if a user may access a particular dataset
 
         Wrapped by :py:func:`user_must_exist`.
@@ -263,9 +255,7 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        to_archive = super().prepare_save_query(
-            user_name, query_json, response
-        )
+        to_archive = super().prepare_save_query(user_name, query_json, response)
         res = self.db.queries_archives.insert_one(to_archive)
         check_result_acknowledged(res)
 

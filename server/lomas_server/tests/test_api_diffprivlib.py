@@ -9,10 +9,10 @@ from diffprivlib.utils import (
 from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from fastapi.testclient import TestClient
+from lomas_core.constants import DPLibraries
 from sklearn.pipeline import Pipeline
 
 from lomas_server.app import app
-from lomas_server.constants import DPLibraries
 from lomas_server.tests.test_api import TestRootAPIEndpoint
 from lomas_server.utils.query_examples import (
     example_diffprivlib,
@@ -121,9 +121,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                         ("scaler", models.StandardScaler(epsilon=0.5)),
                         (
                             "classifier",
-                            models.LogisticRegression(
-                                epsilon=1.0, svd_solver="full"
-                            ),
+                            models.LogisticRegression(epsilon=1.0, svd_solver="full"),
                         ),
                     ]
                 )
@@ -142,9 +140,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                     (
                         "classifier",
-                        models.LogisticRegression(
-                            epsilon=1.0, data_norm=83.69
-                        ),
+                        models.LogisticRegression(epsilon=1.0, data_norm=83.69),
                     ),
                 ]
             )
@@ -272,9 +268,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 [
                     (
                         "kmeans",
-                        models.KMeans(
-                            n_clusters=8, epsilon=2.0, bounds=bounds
-                        ),
+                        models.KMeans(n_clusters=8, epsilon=2.0, bounds=bounds),
                     ),
                 ]
             )

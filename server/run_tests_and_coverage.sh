@@ -4,9 +4,13 @@ docker compose -f docker-compose-test.yml up --detach
 
 sleep 15
 
-cd ./lomas_server
-export PYTHONPATH=$(pwd)/..:$PYTHONPATH
+cd ../core
+export PYTHONPATH=$(pwd):$PYTHONPATH
 
+cd ../server/
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
+cd lomas_server/
 # "mongodb", "LRU_cache", production mode, "jitter"
 export LOMAS_TEST_MONGO_INTEGRATION=1 # tests with mongodb available
 export LOMAS_TEST_S3_INTEGRATION=1 # tests with s3 minio available

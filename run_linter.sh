@@ -3,7 +3,7 @@
 install_dependencies() {
     pip install isort==5.13.2
     pip install black==24.4.2
-    pip install flake8==7.1.0
+    pip install flake8-pyproject==1.2.3
     pip install mypy==1.10.0
     pip install pylint==3.1.0
 }
@@ -26,7 +26,7 @@ fi
 cd server/lomas_server
 isort .
 black .
-flake8 .
+flake8 --toml-config=../pyproject.toml .
 pylint .
 
 cd ..
@@ -35,7 +35,16 @@ mypy .
 cd ../client/lomas_client
 isort .
 black .
-flake8 .
+flake8 --toml-config=../pyproject.toml .
+pylint .
+
+cd ..
+mypy .
+
+cd ../core/lomas_core
+isort .
+black .
+flake8 --toml-config=../pyproject.toml .
 pylint .
 
 cd ..

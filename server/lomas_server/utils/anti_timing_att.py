@@ -3,9 +3,9 @@ import time
 from typing import Callable
 
 from fastapi import Request, Response
+from lomas_core.error_handler import InternalServerException
 
 from lomas_server.utils.config import Config
-from lomas_server.utils.error_handler import InternalServerException
 
 
 async def anti_timing_att(
@@ -35,17 +35,11 @@ async def anti_timing_att(
                 # if stall is used slow fast callbacks
                 # to a minimum response time defined by magnitude
                 if process_time < config.server.time_attack.magnitude:
-                    time.sleep(
-                        config.server.time_attack.magnitude - process_time
-                    )
+                    time.sleep(config.server.time_attack.magnitude - process_time)
             case "jitter":
                 # if jitter is used it just adds some time
                 # between 0 and magnitude secs
-                time.sleep(
-                    config.server.time_attack.magnitude * random.uniform(0, 1)
-                )
+                time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
             case _:
-                raise InternalServerException(
-                    "Time attack method not supported."
-                )
+                raise InternalServerException("Time attack method not supported.")
     return response

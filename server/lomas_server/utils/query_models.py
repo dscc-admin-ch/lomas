@@ -1,13 +1,12 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field
-
-from lomas_server.constants import (
+from lomas_core.constants import (
     DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
-from lomas_server.utils.error_handler import InternalServerException
+from lomas_core.error_handler import InternalServerException
+from pydantic import BaseModel, Field
 
 
 class GetDbData(BaseModel):
@@ -102,9 +101,7 @@ class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
     nb_samples: int
 
 
-class SmartnoiseSynthDummyQueryModel(
-    SmartnoiseSynthQueryModel, DummyQueryModel
-):
+class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel):
     """Input model for a smarnoise-synth query on a dummy dataset"""
 
     # Same as normal query.
@@ -177,6 +174,4 @@ def model_input_to_lib(request: RequestModel) -> DPLibraries:
         case DiffPrivLibRequestModel():
             return DPLibraries.DIFFPRIVLIB
         case _:
-            raise InternalServerException(
-                "Cannot find library type for given model."
-            )
+            raise InternalServerException("Cannot find library type for given model.")

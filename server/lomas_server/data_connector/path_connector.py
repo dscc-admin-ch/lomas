@@ -1,13 +1,10 @@
 from typing import Optional
 
 import pandas as pd
+from lomas_core.error_handler import InternalServerException, InvalidQueryException
 
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
-    InternalServerException,
-    InvalidQueryException,
-)
 
 
 class PathConnector(DataConnector):
@@ -51,8 +48,7 @@ class PathConnector(DataConnector):
                     )
                 except Exception as err:
                     raise InternalServerException(
-                        "Error reading csv at http path:"
-                        f"{self.ds_path}: {err}",
+                        "Error reading csv at http path:" f"{self.ds_path}: {err}",
                     ) from err
             else:
                 return InvalidQueryException(

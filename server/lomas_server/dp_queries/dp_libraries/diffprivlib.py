@@ -4,30 +4,28 @@ from typing import Dict, Optional
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
+from lomas_core.constants import DPLibraries
+from lomas_core.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import DPLibraries
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
     handle_missing_data,
     serialise_model,
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-)
 from lomas_server.utils.query_models import (
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
 )
 
 
-class DiffPrivLibQuerier(
-    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]
-):
+class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]):
     """
     Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
     """
@@ -62,9 +60,7 @@ class DiffPrivLibQuerier(
         # Prepare data
         raw_data = self.data_connector.get_pandas_df()
         data = handle_missing_data(raw_data, query_json.imputer_strategy)
-        x_train, x_test, y_train, y_test = split_train_test_data(
-            data, query_json
-        )
+        x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
 
         # Prepare DiffPrivLib pipeline
         dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
@@ -104,9 +100,7 @@ class DiffPrivLibQuerier(
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        self.dpl_pipeline, self.x_test, self.y_test = self.fit_model_on_data(
-            query_json
-        )
+        self.dpl_pipeline, self.x_test, self.y_test = self.fit_model_on_data(query_json)
 
         # Compute budget
         spent_epsilon = 0.0

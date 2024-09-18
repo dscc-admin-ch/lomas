@@ -23,11 +23,9 @@ jobs:
         python-version: "3.12"
     - name: Install dependencies
       run: |
-        cd client
-        pip install -r requirements.txt
-        cd ../server
-        pip install -r requirements.txt
-        cd ../
+        pip install -r core/requirements_core.txt
+        pip install -r client/requirements_client.txt
+        pip install -r server/requirements_server.txt
 
     - name: Build with sphinx
       run: |

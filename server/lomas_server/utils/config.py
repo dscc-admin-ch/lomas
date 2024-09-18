@@ -1,6 +1,7 @@
 from typing import Dict, List, Literal, Union
 
 import yaml
+from lomas_core.error_handler import InternalServerException
 from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_server.constants import (
@@ -11,7 +12,6 @@ from lomas_server.constants import (
     PrivateDatabaseType,
     TimeAttackMethod,
 )
-from lomas_server.utils.error_handler import InternalServerException
 
 
 class TimeAttack(BaseModel):

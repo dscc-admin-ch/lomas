@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, List, TypeVar
 
-from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.error_handler import (
+from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.utils.query_models import (  # pylint: disable=W0611
     QueryModel,
     RequestModel,
@@ -102,9 +103,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
 
         """
         # Block access to other queries to user
-        if not self.admin_database.get_and_set_may_user_query(
-            user_name, False
-        ):
+        if not self.admin_database.get_and_set_may_user_query(user_name, False):
             raise UnauthorizedAccessException(
                 f"User {user_name} is trying to query"
                 + " before end of previous query."

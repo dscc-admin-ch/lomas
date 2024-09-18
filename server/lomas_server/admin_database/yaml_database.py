@@ -2,6 +2,10 @@ from datetime import datetime
 from typing import List
 
 import yaml
+from lomas_core.error_handler import (
+    InternalServerException,
+    InvalidQueryException,
+)
 
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
@@ -10,10 +14,6 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
-    InternalServerException,
-    InvalidQueryException,
-)
 from lomas_server.utils.query_models import RequestModel
 
 
@@ -102,9 +102,7 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @user_must_exist
-    def get_and_set_may_user_query(
-        self, user_name: str, may_query: bool
-    ) -> bool:
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
 
@@ -133,9 +131,7 @@ class AdminYamlDatabase(AdminDatabase):
         return previous_may_query
 
     @user_must_exist
-    def has_user_access_to_dataset(
-        self, user_name: str, dataset_name: str
-    ) -> bool:
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """Checks if a user may access a particular dataset
 
         Wrapped by :py:func:`user_must_exist`.
@@ -205,9 +201,7 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @dataset_must_exist
-    def get_dataset_field(
-        self, dataset_name: str, key: str
-    ) -> str:  # type: ignore
+    def get_dataset_field(self, dataset_name: str, key: str) -> str:  # type: ignore
         """Get dataset field type based on dataset name and key
 
         Wrapped by :py:func:`dataset_must_exist`.
@@ -245,10 +239,7 @@ class AdminYamlDatabase(AdminDatabase):
         """
         previous_queries = []
         for q in self.database["queries"]:
-            if (
-                q["user_name"] == user_name
-                and q["dataset_name"] == dataset_name
-            ):
+            if q["user_name"] == user_name and q["dataset_name"] == dataset_name:
                 previous_queries.append(q)
         return previous_queries
 
@@ -263,9 +254,7 @@ class AdminYamlDatabase(AdminDatabase):
             query_json (RequestModel): request received from client
             response (dict): response sent to the client
         """
-        to_archive = super().prepare_save_query(
-            user_name, query_json, response
-        )
+        to_archive = super().prepare_save_query(user_name, query_json, response)
         self.database["queries"].append(to_archive)
 
     def save_current_database(self) -> None:

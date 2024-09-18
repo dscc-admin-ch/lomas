@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from lomas_core.error_handler import InternalServerException
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
@@ -18,7 +19,6 @@ from lomas_server.utils.collection_models import (
     Metadata,
     StrMetadata,
 )
-from lomas_server.utils.error_handler import InternalServerException
 from lomas_server.utils.query_models import RequestModel
 
 

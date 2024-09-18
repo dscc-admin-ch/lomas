@@ -1,8 +1,6 @@
-from lomas_server.constants import (
-    DIFFPRIVLIB_PIPELINE,
-    OPENDP_PIPELINE,
-    SSynthGanSynthesizer,
-)
+from lomas_core.constants import SSynthGanSynthesizer
+
+from lomas_server.constants import DIFFPRIVLIB_PIPELINE, OPENDP_PIPELINE
 
 # Dummy queries
 DUMMY_EPSILON = 100.0
@@ -84,9 +82,7 @@ example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
-example_dummy_smartnoise_synth_query = make_dummy(
-    example_smartnoise_synth_query
-)
+example_dummy_smartnoise_synth_query = make_dummy(example_smartnoise_synth_query)
 
 # OpenDP
 example_opendp = {

@@ -4,8 +4,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
 
-from lomas_server.constants import INTERNAL_SERVER_ERROR
-from lomas_server.utils.logger import LOG
+from lomas_core.constants import INTERNAL_SERVER_ERROR
+from lomas_core.logger import LOG
 
 
 class InvalidQueryException(Exception):

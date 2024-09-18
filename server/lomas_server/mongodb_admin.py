@@ -5,6 +5,8 @@ from warnings import warn
 
 import boto3
 import yaml
+from lomas_core.error_handler import InternalServerException
+from lomas_core.logger import LOG
 from pymongo.database import Database
 from pymongo.results import _WriteResult
 
@@ -18,8 +20,6 @@ from lomas_server.utils.collection_models import (
     MetadataOfS3DB,
     UserCollection,
 )
-from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.logger import LOG
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
@@ -41,22 +41,16 @@ def check_user_exists(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace, **kwargs: Dict
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
             user = arguments[1]
 
             user_count = db.users.count_documents({"user_name": user})
 
             if enforce_true and user_count == 0:
-                raise ValueError(
-                    f"User {user} does not exist in user collection"
-                )
+                raise ValueError(f"User {user} does not exist in user collection")
             if not enforce_true and user_count > 0:
-                raise ValueError(
-                    f"User {user} already exists in user collection"
-                )
+                raise ValueError(f"User {user} already exists in user collection")
 
             return function(*arguments, **kwargs)  # type: ignore
 
@@ -85,9 +79,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace, **kwargs: Dict
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
             user = arguments[1]
             dataset = arguments[2]
@@ -100,9 +92,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
             )
 
             if enforce_true and user_and_ds_count == 0:
-                raise ValueError(
-                    f"User {user} does not have dataset {dataset}"
-                )
+                raise ValueError(f"User {user} does not have dataset {dataset}")
             if not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
 
@@ -122,15 +112,11 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
         function: Callable[[Database, argparse.Namespace], None]
     ) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(
-            *arguments: argparse.Namespace, **kwargs: Dict
-        ) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
             dataset = arguments[1]
 
-            dataset_count = db.datasets.count_documents(
-                {"dataset_name": dataset}
-            )
+            dataset_count = db.datasets.count_documents({"dataset_name": dataset})
 
             if enforce_true and dataset_count == 0:
                 raise ValueError(
@@ -141,9 +127,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
                     f"Dataset {dataset} already exists in dataset collection"
                 )
 
-            metadata_count = db.metadata.count_documents(
-                {dataset: {"$exists": True}}
-            )
+            metadata_count = db.metadata.count_documents({dataset: {"$exists": True}})
 
             if enforce_true and metadata_count == 0:
                 raise ValueError(
@@ -357,10 +341,7 @@ def set_budget_field(
 
     check_result_acknowledged(res)
 
-    LOG.info(
-        f"Set budget of {user} for dataset {dataset}"
-        f" of {field} to {value}."
-    )
+    LOG.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
 
 
 @check_user_exists(True)
@@ -454,16 +435,11 @@ def add_users_via_yaml(
             for user in existing_users:
                 user_filter = {"user_name": user.user_name}
                 update_operation = {"$set": user.model_dump()}
-                res: _WriteResult = db.users.update_many(
-                    user_filter, update_operation
-                )
+                res: _WriteResult = db.users.update_many(user_filter, update_operation)
                 check_result_acknowledged(res)
             LOG.info("Existing users updated. ")
         else:
-            warn(
-                "Some users already present in database."
-                "Overwrite is set to False."
-            )
+            warn("Some users already present in database. Overwrite is set to False.")
 
     if new_users:
         # Insert new users
@@ -486,9 +462,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(
-        db.queries_archives.find({"user_name": user})
-    )
+    archives_infos: List[dict] = list(db.queries_archives.find({"user_name": user}))
     LOG.info(archives_infos)
     return archives_infos
 
@@ -522,9 +496,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """
     user_data = db.users.find_one({"user_name": user})
     assert user_data is not None, "User must exist"
-    LOG.info(
-        [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
-    )
+    LOG.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 

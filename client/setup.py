@@ -43,15 +43,7 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=[
-        "diffprivlib>=0.6.4",
-        "diffprivlib_logger>=0.0.3",
-        "numpy>=1.26.2",
-        "opendp==0.10.0",
-        "opendp_logger==0.3.0",
-        "pandas>=2.2.2",
+        "lomas_core>=0.3.3",
         "requests>=2.32.0",
-        "scikit-learn==1.4.0",
-        "smartnoise-synth==1.0.4",
-        "smartnoise_synth_logger==0.0.3"
     ],
 )

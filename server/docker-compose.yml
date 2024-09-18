@@ -7,7 +7,7 @@ services:
       context: ../core/
     container_name: lomas_core
     volumes:
-      - ./lomas_core:/code/lomas_core
+      - ../core/lomas_core:/code/lomas_core
     networks:
       - lomas-network
 
@@ -127,9 +127,10 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - ../client/:/code/
-      - ./data/:/data/
+      - ../client/lomas_client:/code/lomas_client
       - ../client/configs/:/root/.jupyter/
+      - ../client/notebooks/:/code/notebooks/
+      - ./data/:/data/
     depends_on:
       - lomas_server
       - lomas_core

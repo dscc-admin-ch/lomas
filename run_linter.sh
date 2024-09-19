@@ -10,42 +10,79 @@ install_dependencies() {
 
 # Parse command line arguments for --install-deps flag
 INSTALL_DEPS=false
+INSTALL_DEPS=false
+RUN_CLIENT=false
+RUN_SERVER=false
+RUN_CORE=false
+
 for arg in "$@"; do
-    if [ "$arg" == "--install-deps" ]; then
-        INSTALL_DEPS=true
-        break
-    fi
+    case $arg in
+        --install-deps)
+            INSTALL_DEPS=true
+            ;;
+        --client)
+            RUN_CLIENT=true
+            ;;
+        --server)
+            RUN_SERVER=true
+            ;;
+        --core)
+            RUN_CORE=true
+            ;;
+    esac
 done
+
 
 # Install dependencies if flag is set
 if [ "$INSTALL_DEPS" == true ]; then
     install_dependencies
 fi
 
+# If none selected, then run all
+if [ "$RUN_CLIENT" == false ] && [ "$RUN_SERVER" == false ] && [ "$RUN_CORE" == false ]; then
+    RUN_CLIENT=true
+    RUN_SERVER=true
+    RUN_CORE=true
+fi
 
-cd server/lomas_server
-isort .
-black .
-flake8 --toml-config=../pyproject.toml .
-pylint .
+if [ "$RUN_SERVER" == true ]; then
+    echo "Running linting and type checking for server..."
+    cd server/lomas_server
+    isort .
+    black .
+    flake8 --toml-config=../pyproject.toml .
+    pylint .
 
-cd ..
-mypy .
+    cd ..
+    mypy .
 
-cd ../client/lomas_client
-isort .
-black .
-flake8 --toml-config=../pyproject.toml .
-pylint .
+    cd ..
+fi
 
-cd ..
-mypy .
+if [ "$RUN_CLIENT" == true ]; then
+    echo "Running linting and type checking for client..."
+    cd client/lomas_client
+    isort .
+    black .
+    flake8 --toml-config=../pyproject.toml .
+    pylint .
 
-cd ../core/lomas_core
-isort .
-black .
-flake8 --toml-config=../pyproject.toml .
-pylint .
+    cd ..
+    mypy .
 
-cd ..
-mypy .
+    cd ..
+fi
+
+if [ "$RUN_CORE" == true ]; then
+    echo "Running linting and type checking for core..."
+    cd core/lomas_core
+    isort .
+    black .
+    flake8 --toml-config=../pyproject.toml .
+    pylint .
+
+    cd ..
+    mypy .
+
+    cd ..
+fi

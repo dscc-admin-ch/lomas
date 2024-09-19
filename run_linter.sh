@@ -8,8 +8,7 @@ install_dependencies() {
     pip install pylint==3.1.0
 }
 
-# Parse command line arguments for --install-deps flag
-INSTALL_DEPS=false
+# Parse command line arguments
 INSTALL_DEPS=false
 RUN_CLIENT=false
 RUN_SERVER=false

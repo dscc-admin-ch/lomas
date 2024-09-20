@@ -7,18 +7,12 @@ if __name__ == "__main__":
 
     config = get_config()
 
-    if config.server.workers != 1:
-        LOG.WARN(
-            "Only supports one server worker.",
-            "Overwriting server.workers config",
-            f" from {config.server.workers} to 1.",
-        )
-
     uvicorn.run(
         "lomas_server.app:app",
         host=config.server.host_ip,
         port=config.server.host_port,
         log_level=config.server.log_level,
-        workers=1,
+        workers=config.server.workers,
         reload=config.server.reload,
+        timeout_graceful_shutdown=config.server.timeout_graceful_shutdown
     )

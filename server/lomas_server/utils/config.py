@@ -30,6 +30,7 @@ class Server(BaseModel):
     log_level: str
     reload: bool
     workers: int
+    timeout_graceful_shutdown: int
 
 
 class DBConfig(BaseModel):

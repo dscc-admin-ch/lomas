@@ -16,11 +16,17 @@ LOGGING_CONFIG = {
             "formatter": "standard",
             "stream": "ext://sys.stdout",
             "level": "INFO",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "formatter": "standard",
+            "filename": "app.log",
+            "level": "INFO",
         }
     },
     "root": {
         "level": "INFO",
-        "handlers": ["console"],
+        "handlers": ["console", "file"],
         "propagate": True,
     },
 }

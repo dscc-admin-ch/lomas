@@ -86,7 +86,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def invalid_query_exception_handler(
         _: Request, exc: InvalidQueryException
     ) -> JSONResponse:
-        LOG.info(f"InvalidQueryException raised: {exc.error_message}")
+        LOG.error(f"InvalidQueryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"InvalidQueryException": exc.error_message},
@@ -96,7 +96,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def external_library_exception_handler(
         _: Request, exc: ExternalLibraryException
     ) -> JSONResponse:
-        LOG.info(f"ExternalLibraryException raised: {exc.error_message}")
+        LOG.error(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
@@ -109,7 +109,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def unauthorized_access_exception_handler(
         _: Request, exc: UnauthorizedAccessException
     ) -> JSONResponse:
-        LOG.info(f"UnauthorizedAccessException raised: {exc.error_message}")
+        LOG.error(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={"UnauthorizedAccessException": exc.error_message},
@@ -119,7 +119,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def internal_server_exception_handler(
         _: Request, exc: InternalServerException
     ) -> JSONResponse:
-        LOG.info(f"InternalServerException raised: {exc.error_message}")
+        LOG.error(f"InternalServerException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"InternalServerException": INTERNAL_SERVER_ERROR},

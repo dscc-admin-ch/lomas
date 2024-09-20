@@ -6,8 +6,8 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
-            "format": "%(asctime)s - %(levelname)s - \
-                [%(filename)s:%(lineno)s - %(funcName)s()] - %(message)s"
+            "format": "%(asctime)s --- %(levelname)s - "
+                "[%(filename)s:%(lineno)s - %(funcName)s()] - %(message)s"
         }
     },
     "handlers": {
@@ -20,7 +20,7 @@ LOGGING_CONFIG = {
         "file": {
             "class": "logging.FileHandler",
             "formatter": "standard",
-            "filename": "app.log",
+            "filename": "lomas_app.log",
             "level": "INFO",
         }
     },

@@ -201,7 +201,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_measure = opendp_pipe.output_measure
 
     if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:
+        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO constant.
             output_type = output_type.args[0]
         else:
             raise InternalServerException(

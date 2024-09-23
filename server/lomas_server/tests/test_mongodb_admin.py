@@ -61,6 +61,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     environment variable is set to True.
     """
 
+    db = None
+
     @classmethod
     def setUpClass(cls) -> None:
         """Connection to database."""

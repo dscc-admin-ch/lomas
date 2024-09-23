@@ -37,7 +37,7 @@ from lomas_server.constants import (
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import serialise_model
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.collection_models import (
+from lomas_server.models.collections import (
     BooleanMetadata,
     ColumnMetadata,
     DatetimeMetadata,
@@ -48,7 +48,7 @@ from lomas_server.utils.collection_models import (
     StrCategoricalMetadata,
     StrMetadata,
 )
-from lomas_server.utils.query_models import (
+from lomas_server.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
@@ -348,7 +348,8 @@ class SmartnoiseSynthQuerier(
             model: Smartnoise Synthesizer
         """
         if (
-            query_json.synth_name == SSynthMarginalSynthesizer.MST
+            isinstance(query_json, SmartnoiseSynthQueryModel)
+            and query_json.synth_name == SSynthMarginalSynthesizer.MST
             and query_json.return_model
         ):
             raise InvalidQueryException(

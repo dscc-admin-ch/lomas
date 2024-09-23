@@ -15,12 +15,12 @@ from lomas_core.error_handler import (
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.utils.config import get_config
-from lomas_server.utils.query_models import (
+from lomas_server.models.requests import (
     DummyQueryModel,
     QueryModel,
     RequestModel,
 )
+from lomas_server.utils.config import get_config
 
 
 def timing_protection(func):

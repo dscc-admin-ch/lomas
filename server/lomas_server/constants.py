@@ -4,6 +4,9 @@ from enum import StrEnum
 
 import pkg_resources
 
+# Config
+# -----------------------------------------------------------------------------
+
 # Get config and secrets from correct location
 if "LOMAS_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
@@ -17,42 +20,13 @@ else:
     SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 
-class ConfigKeys(StrEnum):
-    """Keys of the configuration file."""
-
-    RUNTIME_ARGS: str = "runtime_args"
-    SERVER: str = "server"
-    SETTINGS: str = "settings"
-    DEVELOP_MODE: str = "develop_mode"
-    TIME_ATTACK: str = "time_attack"
-    SUBMIT_LIMIT: str = "submit_limit"
-    DB: str = "admin_database"
-    DB_TYPE: str = "db_type"
-    DB_TYPE_MONGODB: str = "mongodb"
-    MONGODB_ADDR: str = "address"
-    MONGODB_PORT: str = "port"
-    DP_LIBRARY: str = "dp_libraries"
-
-
-class AdminDBType(StrEnum):
-    """Types of administration databases."""
-
-    YAML: str = "yaml"
-    MONGODB: str = "mongodb"
-
-
-class TimeAttackMethod(StrEnum):
-    """Possible methods against timing attacks."""
-
-    JITTER = "jitter"
-    STALL = "stall"
-
+# Misc
+# -----------------------------------------------------------------------------
 
 # Server states
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
-
 
 # General values
 SECONDS_IN_A_DAY = 60 * 60 * 24
@@ -61,14 +35,18 @@ SECONDS_IN_A_DAY = 60 * 60 * 24
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.01
 
+# Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
-# Private Databases
-class PrivateDatabaseType(StrEnum):
-    """Type of Private Database for the private data."""
+# Data preprocessing
+NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
-    PATH = "PATH_DB"
-    S3 = "S3_DB"
 
+# DP Libraries
+# -----------------------------------------------------------------------------
 
 # Smartnoise sql
 SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
@@ -125,18 +103,11 @@ class OpenDPDatasetInputMetric(StrEnum):
     INT_DISTANCE = "u32"  # opendp type for distance between datasets
 
 
-# Dummy dataset generation
-DUMMY_NB_ROWS = 100
-DUMMY_SEED = 42
-RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
-NB_RANDOM_NONE = 5  # if nullable, how many random none to add
-
-
-# Data preprocessing
-NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
-
 # Example pipeline inputs
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
+
+# Example inputs
+# -----------------------------------------------------------------------------
 OPENDP_PIPELINE = (
     f'{{"version": "{OPENDP_VERSION}", '
     '"ast": {'

@@ -8,12 +8,12 @@ from lomas_core.error_handler import (
 
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.models.requests import GetDbData, GetDummyDataset
 from lomas_server.routes.utils import server_live
 from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
-from lomas_server.utils.query_models import GetDbData, GetDummyDataset
 
 router = APIRouter()
 

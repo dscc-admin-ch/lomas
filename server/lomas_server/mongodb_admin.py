@@ -1,6 +1,6 @@
 import argparse
 import functools
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import boto3
@@ -10,16 +10,21 @@ from lomas_core.logger import LOG
 from pymongo.database import Database
 from pymongo.results import _WriteResult
 
+from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
 )
-from lomas_server.constants import PrivateDatabaseType
-from lomas_server.utils.collection_models import (
+from lomas_server.models.collections import (
+    DatasetOfUser,
     DatasetsCollection,
-    MetadataOfPathDB,
-    MetadataOfS3DB,
+    DSInfo,
+    DSPathAccess,
+    DSS3Access,
+    Metadata,
+    User,
     UserCollection,
 )
+from lomas_server.models.constants import PrivateDatabaseType
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
@@ -162,13 +167,15 @@ def add_user(db: Database, user: str) -> None:
         None
     """
 
-    res = db.users.insert_one(
+    validated_user = User.model_validate(
         {
             "user_name": user,
             "may_query": True,
             "datasets_list": [],
         }
-    )
+    ).model_dump()
+
+    res = db.users.insert_one(validated_user)
 
     check_result_acknowledged(res)
 
@@ -194,21 +201,22 @@ def add_user_with_budget(
     Returns:
         None
     """
-    res = db.users.insert_one(
+    validated_user = User.model_validate(
         {
             "user_name": user,
             "may_query": True,
             "datasets_list": [
                 {
                     "dataset_name": dataset,
-                    "initial_epsilon": epsilon,
-                    "initial_delta": delta,
-                    "total_spent_epsilon": 0.0,
-                    "total_spent_delta": 0.0,
+                    BudgetDBKey.EPSILON_INIT: epsilon,
+                    BudgetDBKey.DELTA_INIT: delta,
+                    BudgetDBKey.EPSILON_SPENT: 0.0,
+                    BudgetDBKey.DELTA_SPENT: 0.0,
                 }
             ],
         }
-    )
+    ).model_dump()
+    res = db.users.insert_one(validated_user)
 
     check_result_acknowledged(res)
 
@@ -258,22 +266,22 @@ def add_dataset_to_user(
     Returns:
         None
     """
+    validated_budget = DatasetOfUser.model_validate(
+        {
+            "dataset_name": dataset,
+            BudgetDBKey.EPSILON_INIT: epsilon,
+            BudgetDBKey.DELTA_INIT: delta,
+            BudgetDBKey.EPSILON_SPENT: 0.0,
+            BudgetDBKey.DELTA_SPENT: 0.0,
+        }
+    ).model_dump()
+
     res = db.users.update_one(
         {
             "user_name": user,
             "datasets_list.dataset_name": {"$ne": dataset},
         },
-        {
-            "$push": {
-                "datasets_list": {
-                    "dataset_name": dataset,
-                    "initial_epsilon": epsilon,
-                    "initial_delta": delta,
-                    "total_spent_epsilon": 0.0,
-                    "total_spent_delta": 0.0,
-                }
-            }
-        },
+        {"$push": {"datasets_list": validated_budget}},
     )
 
     check_result_acknowledged(res)
@@ -551,29 +559,32 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     """
 
     # Step 1: Build dataset
-    dataset: Dict = {
-        "dataset_name": dataset_name,
+    dataset: Dict[str, Any] = {"dataset_name": dataset_name}
+
+    dataset_access: Dict[str, Any] = {
         "database_type": database_type,
     }
 
     if database_type == PrivateDatabaseType.PATH:
-        dataset["dataset_path"] = dataset_path
+        dataset_access["path"] = dataset_path
     elif database_type == PrivateDatabaseType.S3:
-        dataset["bucket"] = bucket
-        dataset["key"] = key
-        dataset["endpoint_url"] = endpoint_url
-        dataset["credentials_name"] = credentials_name
+        dataset_access["bucket"] = bucket
+        dataset_access["key"] = key
+        dataset_access["endpoint_url"] = endpoint_url
+        dataset_access["credentials_name"] = credentials_name
     else:
         raise ValueError(f"Unknown database type {database_type}")
 
+    dataset["dataset_access"] = dataset_access
+
     # Step 2: Build metadata
-    dataset["metadata"] = {"database_type": metadata_database_type}
+    metadata_access: Dict[str, Any] = {"database_type": metadata_database_type}
     if metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
         with open(metadata_path, encoding="utf-8") as f:  # type: ignore
             metadata_dict = yaml.safe_load(f)
 
-        dataset["metadata"]["metadata_path"] = metadata_path
+        metadata_access["path"] = metadata_path
 
     elif metadata_database_type == PrivateDatabaseType.S3:
         client = boto3.client(
@@ -588,18 +599,25 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
         except yaml.YAMLError as e:
             raise e
 
-        dataset["metadata"]["bucket"] = metadata_bucket
-        dataset["metadata"]["key"] = metadata_key
-        dataset["metadata"]["endpoint_url"] = metadata_endpoint_url
-        dataset["metadata"]["credentials_name"] = metadata_credentials_name
+        metadata_access["bucket"] = metadata_bucket
+        metadata_access["key"] = metadata_key
+        metadata_access["endpoint_url"] = metadata_endpoint_url
+        metadata_access["credentials_name"] = metadata_credentials_name
 
     else:
         raise ValueError(f"Unknown database type {metadata_database_type}")
 
-    # Step 3: Insert into db
-    res = db.datasets.insert_one(dataset)
+    dataset["metadata_access"] = metadata_access
+
+    # Step 3: Validate
+    ds_info = DSInfo.model_validate(dataset)
+    validated_dataset = ds_info.model_dump()
+    validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+
+    # Step 4: Insert into db
+    res = db.datasets.insert_one(validated_dataset)
     check_result_acknowledged(res)
-    res = db.metadata.insert_one({dataset_name: metadata_dict})
+    res = db.metadata.insert_one({dataset_name: validated_metadata})
     check_result_acknowledged(res)
 
     LOG.info(
@@ -684,23 +702,23 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict.datasets:
         dataset_name = d.dataset_name
-        metadata_db_type = d.metadata.database_type
+        metadata_access = d.metadata_access
 
-        match d.metadata:
-            case MetadataOfPathDB():
-                with open(d.metadata.metadata_path, encoding="utf-8") as f:
+        match metadata_access:
+            case DSPathAccess():
+                with open(metadata_access.path, encoding="utf-8") as f:
                     metadata_dict = yaml.safe_load(f)
 
-            case MetadataOfS3DB():
+            case DSS3Access():
                 client = boto3.client(
                     "s3",
-                    endpoint_url=d.metadata.endpoint_url,
-                    aws_access_key_id=d.metadata.access_key_id,
-                    aws_secret_access_key=d.metadata.secret_access_key,
+                    endpoint_url=metadata_access.endpoint_url,
+                    aws_access_key_id=metadata_access.access_key_id,
+                    aws_secret_access_key=metadata_access.secret_access_key,
                 )
                 response = client.get_object(
-                    Bucket=d.metadata.bucket,
-                    Key=d.metadata.key,
+                    Bucket=metadata_access.bucket,
+                    Key=metadata_access.key,
                 )
                 try:
                     metadata_dict = yaml.safe_load(response["Body"])
@@ -710,7 +728,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             case _:
                 raise InternalServerException(
                     "Unknown metadata_db_type PrivateDatabaseType:"
-                    + f"{metadata_db_type}"
+                    + f"{metadata_access.database_type}"
                 )
 
         # Overwrite or not depending on config if metadata already exists

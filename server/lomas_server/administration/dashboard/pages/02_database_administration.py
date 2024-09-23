@@ -2,6 +2,7 @@
 import streamlit as st
 import yaml
 
+from admin_database.constants import BudgetDBKey
 from admin_database.utils import get_mongodb
 from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
 from mongodb_admin import (
@@ -248,7 +249,7 @@ with user_tab:
                 st.session_state.admin_db,
                 sue_username,
                 sue_dataset,
-                "initial_epsilon",
+                BudgetDBKey.EPSILON_INIT,
                 sue_epsilon,
             )
             st.write(
@@ -293,7 +294,7 @@ with user_tab:
                 st.session_state.admin_db,
                 sud_username,
                 sud_dataset,
-                "initial_delta",
+                BudgetDBKey.DELTA_INIT,
                 sud_delta,
             )
             st.write(

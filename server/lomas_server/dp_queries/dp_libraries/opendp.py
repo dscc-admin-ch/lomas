@@ -14,8 +14,8 @@ from opendp_logger import make_load_json
 
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.config import OpenDPConfig
-from lomas_server.utils.query_models import (
+from lomas_server.models.config import OpenDPConfig
+from lomas_server.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )

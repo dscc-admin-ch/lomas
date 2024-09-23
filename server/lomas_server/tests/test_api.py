@@ -27,7 +27,8 @@ from lomas_server.tests.constants import (
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER, DBConfig
+from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.models.config import DBConfig
 from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,

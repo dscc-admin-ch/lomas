@@ -21,6 +21,7 @@ ret1=$?
 export LOMAS_TEST_MONGO_INTEGRATION=0
 export LOMAS_TEST_S3_INTEGRATION=0
 coverage run -a --source=. -m unittest discover -s .
+
 ret2=$?
 
 coverage report

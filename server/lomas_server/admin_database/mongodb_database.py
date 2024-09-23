@@ -12,8 +12,9 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.query_models import RequestModel
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.models.collections import DSInfo, Metadata
+from lomas_server.models.requests import RequestModel
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -141,14 +142,14 @@ class AdminMongoDatabase(AdminDatabase):
         return doc_count > 0
 
     def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: str
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
     ) -> float:
         """Get total spent epsilon or delta by a user on dataset.
 
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): total_spent_epsilon or total_spent_delta
+            parameter (BudgetDBKey): One of BudgetDBKey.
 
         Returns:
             float: The requested budget value.
@@ -195,20 +196,22 @@ class AdminMongoDatabase(AdminDatabase):
         check_result_acknowledged(res)
 
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:
-        """Get dataset field type based on dataset name and key.
+    def get_dataset(self, dataset_name: str) -> DSInfo:
+        """
+        Get dataset access info based on dataset_name.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
         Args:
             dataset_name (str): Name of the dataset.
-            key (str): Key for the value to get in the dataset dict.
 
         Returns:
-            str: The requested value.
+            Dataset: The dataset model.
         """
         dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
-        return dataset[key]  # type: ignore
+        dataset.pop("_id", None)  # type: ignore[union-attr]
+        dataset.pop("id", None)  # type: ignore[union-attr]
+        return DSInfo.model_validate(dataset)
 
     @user_must_have_access_to_dataset
     def get_user_previous_queries(

@@ -1,9 +1,35 @@
 import warnings
 
-from lomas_core.constants import (
-    SSynthGanSynthesizer,
-    SSynthMarginalSynthesizer,
+import requests
+from fastapi import status
+from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
+from lomas_core.error_handler import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+    UnauthorizedAccessException,
 )
+
+
+def raise_error(response: requests.Response) -> str:
+    """Raise error message based on the HTTP response.
+
+    Args:
+        res (requests.Response): The response object from an HTTP request.
+
+    Raise:
+        Server Error
+    """
+    error_message = response.json()
+    if response.status_code == status.HTTP_400_BAD_REQUEST:
+        raise InvalidQueryException(error_message["InvalidQueryException"])
+    if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
+        raise ExternalLibraryException(error_message["ExternalLibraryException"])
+    if response.status_code == status.HTTP_403_FORBIDDEN:
+        raise UnauthorizedAccessException(error_message["UnauthorizedAccessException"])
+    if response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+        raise InternalServerException(error_message["InternalServerException"])
+    raise InternalServerException(f"Unknown {InternalServerException}")
 
 
 def validate_synthesizer(synth_name: str, return_model: bool = False):

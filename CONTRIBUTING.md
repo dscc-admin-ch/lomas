@@ -45,10 +45,15 @@ To streamline the process, you can use the `run_linter.sh` script in ``lomas`. T
 chmod +x run_linter.sh
 ./run_linter.sh  --install-deps
 ```
-For subsequent runs, simply execute:
+For subsequent runs, to run all linters (on server, client and core) simply execute:
 ```bash
 ./run_linter.sh
 ```
+To run the linter in a specific package, the package can be specified as argument:
+```bash
+./run_linter.sh --client
+```
+will only run the linter for the client. And similarly for `./run_linter.sh --core` and `./run_linter.sh --server`.
 
 There should be no error or warning, otherwise the linting github action will fail. All configurations are in `lomas/server/pyproject.toml` and `lomas/client/pyproject.toml`.
 

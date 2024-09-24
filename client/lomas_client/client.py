@@ -7,41 +7,27 @@ import opendp as dp
 import pandas as pd
 import requests
 from diffprivlib_logger import serialise_pipeline
+from fastapi import status
 from lomas_core.constants import DPLibraries
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
-from lomas_client.utils import validate_synthesizer
+from lomas_client.constants import (
+    CONNECT_TIMEOUT,
+    DEFAULT_READ_TIMEOUT,
+    DIFFPRIVLIB_READ_TIMEOUT,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    SMARTNOISE_SYNTH_READ_TIMEOUT,
+    SNSYNTH_DEFAULT_SAMPLES_NB,
+)
+from lomas_client.utils import raise_error, validate_synthesizer
 
 # Opendp_logger
 enable_logging()
 enable_features("contrib")
-
-# Client constants: may be modified
-DUMMY_NB_ROWS = 100
-DUMMY_SEED = 42
-HTTP_200_OK = 200
-CONNECT_TIMEOUT = 5
-DEFAULT_READ_TIMEOUT = 10
-DIFFPRIVLIB_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 10
-SMARTNOISE_SYNTH_READ_TIMEOUT = DEFAULT_READ_TIMEOUT * 100
-
-SNSYNTH_DEFAULT_SAMPLES_NB = 200
-
-
-def error_message(res: requests.Response) -> str:
-    """Generates an error message based on the HTTP response.
-
-    Args:
-        res (requests.Response): The response object from an HTTP request.
-
-    Returns:
-        str: A formatted string describing the server error,
-            including the status code and response text.
-    """
-    return f"Server error status {res.status_code}: {res.text}"
 
 
 class Client:
@@ -72,12 +58,12 @@ class Client:
                 A dictionary containing dataset metadata.
         """
         res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name})
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
             return metadata
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def get_dummy_dataset(
@@ -108,7 +94,7 @@ class Client:
             },
         )
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             response = json.loads(data)
             dummy_df = pd.DataFrame(response["dummy_dict"])
@@ -117,7 +103,7 @@ class Client:
                 dummy_df[col] = pd.to_datetime(dummy_df[col])
             return dummy_df
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def smartnoise_sql_query(
@@ -178,7 +164,7 @@ class Client:
 
         res = self._exec(endpoint, body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
             response_dict["query_response"] = pd.DataFrame.from_dict(
@@ -186,7 +172,7 @@ class Client:
             )
             return response_dict
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def estimate_smartnoise_sql_cost(
@@ -220,9 +206,9 @@ class Client:
         }
         res = self._exec("estimate_smartnoise_sql_cost", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def smartnoise_synth_query(
@@ -322,7 +308,7 @@ class Client:
             endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
         )
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             response = res.json()
             query_response = response["query_response"]
             if return_model:
@@ -332,7 +318,7 @@ class Client:
                 response["query_response"] = pd.DataFrame(query_response)
             return response
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def estimate_smartnoise_synth_cost(
@@ -404,9 +390,9 @@ class Client:
             read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT,
         )
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def opendp_query(
@@ -454,12 +440,12 @@ class Client:
             endpoint = "opendp_query"
 
         res = self._exec(endpoint, body_json)
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
             return response_dict
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def estimate_opendp_cost(
@@ -491,10 +477,10 @@ class Client:
         }
         res = self._exec("estimate_opendp_cost", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def diffprivlib_query(
@@ -559,7 +545,7 @@ class Client:
             endpoint = "diffprivlib_query"
 
         res = self._exec(endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT)
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
             response["query_response"]["model"] = pickle.loads(model)
@@ -621,7 +607,7 @@ class Client:
             read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
         )
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
         print(
             f"Error while executing provided query in server:\n"
@@ -640,10 +626,10 @@ class Client:
         }
         res = self._exec("get_initial_budget", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def get_total_spent_budget(self) -> Optional[dict[str, float]]:
@@ -657,10 +643,10 @@ class Client:
         }
         res = self._exec("get_total_spent_budget", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def get_remaining_budget(self) -> Optional[dict[str, float]]:
@@ -674,10 +660,10 @@ class Client:
         }
         res = self._exec("get_remaining_budget", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def get_previous_queries(self) -> Optional[List[dict]]:
@@ -695,7 +681,7 @@ class Client:
         }
         res = self._exec("get_previous_queries", body_json)
 
-        if res.status_code == HTTP_200_OK:
+        if res.status_code == status.HTTP_200_OK:
             queries = json.loads(res.content.decode("utf8"))["previous_queries"]
 
             if not queries:
@@ -737,7 +723,7 @@ class Client:
 
             return deserialised_queries
 
-        print(error_message(res))
+        raise_error(res)
         return None
 
     def _exec(

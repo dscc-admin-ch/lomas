@@ -12,7 +12,6 @@ if __name__ == "__main__":
         host=config.server.host_ip,
         port=config.server.host_port,
         log_level=config.server.log_level,
-        workers=config.server.workers,
         reload=config.server.reload,
         timeout_graceful_shutdown=config.server.timeout_graceful_shutdown
     )

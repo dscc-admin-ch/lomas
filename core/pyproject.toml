@@ -31,4 +31,3 @@ disable = [
 [tool.pydocstringformatter]
 write = true
 max-line-length = 88
-style = pep257

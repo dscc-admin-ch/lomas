@@ -42,7 +42,7 @@ setup(
         "opendp_logger>=0.3.0",
         "pandas>=2.2.2",
         "pymongo>=4.6.3",
-        "scikit-learn==1.4.0",
+        "scikit-learn==1.5.0",
         "smartnoise-synth>=1.0.4",
         "smartnoise_synth_logger>=0.0.3"
     ]

@@ -32,7 +32,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
         data_connector: DataConnector,
         admin_database: AdminDatabase,
     ) -> None:
-        """Initialise with specific dataset
+        """Initialise with specific dataset.
 
         Args:
             data_connector (DataConnector): The private dataset to query.
@@ -100,7 +100,6 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
                 for the query.
                 - spent_delta (float): The amount of delta budget spent
                   for the query.
-
         """
         # Block access to other queries to user
         if not self.admin_database.get_and_set_may_user_query(user_name, False):

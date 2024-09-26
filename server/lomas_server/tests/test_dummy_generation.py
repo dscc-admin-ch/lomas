@@ -7,9 +7,7 @@ from lomas_server.utils.query_examples import DUMMY_NB_ROWS, DUMMY_SEED
 
 
 class TestMakeDummyDataset(unittest.TestCase):
-    """
-    Tests for the generation of dummy datasets.
-    """
+    """Tests for the generation of dummy datasets."""
 
     metadata: dict[str, Any] = {
         "max_ids": 1,
@@ -19,7 +17,7 @@ class TestMakeDummyDataset(unittest.TestCase):
     }
 
     def test_categorical_column(self) -> None:
-        """test_categorical_column"""
+        """Test_categorical_column."""
         self.metadata["columns"] = {
             "col_card_cat": {  # cardinality + categories
                 "type": "string",
@@ -41,7 +39,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         assert isinstance(df["col_card_cat"], object)
 
     def test_boolean_column(self) -> None:
-        """test_boolean_column"""
+        """Test_boolean_column."""
 
         # Test a boolean column
         self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable": True}}
@@ -56,7 +54,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.assertEqual(df.col_bool.dtypes.name, "boolean")
 
     def test_float_column(self) -> None:
-        """test_float_column"""
+        """Test_float_column."""
         lower_bound = 10.0
         upper_bound = 20.0
         self.metadata["columns"] = {
@@ -78,7 +76,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.assertTrue((df["col_float"] <= upper_bound).all())
 
     def test_int_column(self) -> None:
-        """test_int_column"""
+        """Test_int_column."""
         lower_bound = 100
         upper_bound = 120
         self.metadata["columns"] = {
@@ -100,7 +98,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.assertTrue((df["col_int"] <= upper_bound).all())
 
     def test_datetime_column(self) -> None:
-        """test_datetime_column"""
+        """Test_datetime_column."""
         self.metadata["columns"] = {
             "col_datetime": {
                 "type": "datetime",
@@ -118,7 +116,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.assertFalse(df.col_datetime.isnull().values.any())
 
     def test_nullable_column(self) -> None:
-        """test_nullable_column"""
+        """Test_nullable_column."""
         self.metadata["columns"] = {
             "col_nullable": {
                 "type": "datetime",
@@ -134,7 +132,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.assertTrue(df.col_nullable.isnull().values.any())
 
     def test_seed(self) -> None:
-        """test_seed"""
+        """Test_seed."""
         # Test the behavior with different seeds
         self.metadata["columns"] = {
             "col_int": {

@@ -24,9 +24,7 @@ from lomas_server.utils.query_models import (
 class SmartnoiseSQLQuerier(
     DPQuerier[SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel]
 ):
-    """
-    Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library.
-    """
+    """Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library."""
 
     def __init__(
         self,
@@ -37,7 +35,7 @@ class SmartnoiseSQLQuerier(
         self.reader: Optional[Reader] = None
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
-        """Estimate cost of query
+        """Estimate cost of query.
 
         Args:
             query_json (SmartnoiseSQLModelCost): JSON request object for the query.
@@ -169,7 +167,8 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
 
 
 def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
-    """Convert Lomas metadata to smartnoise metadata format (for SQL)
+    """Convert Lomas metadata to smartnoise metadata format (for SQL).
+
     Args:
         metadata (Metadata): Dataset metadata from admin database
     Returns:

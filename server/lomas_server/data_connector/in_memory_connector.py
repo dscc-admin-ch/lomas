@@ -5,9 +5,7 @@ from lomas_server.utils.collection_models import Metadata
 
 
 class InMemoryConnector(DataConnector):
-    """
-    DataConnector for a dataset created from an in-memory pandas DataFrame.
-    """
+    """DataConnector for a dataset created from an in-memory pandas DataFrame."""
 
     def __init__(
         self,
@@ -24,7 +22,7 @@ class InMemoryConnector(DataConnector):
         self.df: pd.DataFrame = dataset_df.copy()
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Returns:
             pd.DataFrame: pandas dataframe of dataset (a copy)

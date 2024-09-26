@@ -11,7 +11,8 @@ from lomas_server.constants import NUMERICAL_DTYPES
 
 
 def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame:
-    """Impute missing data based on given imputation strategy for NaNs
+    """Impute missing data based on given imputation strategy for NaNs.
+
     Args:
         df (pd.DataFrame): dataframe with the data
         imputer_strategy (str): string to indicate imputatation for NaNs
@@ -69,7 +70,8 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
 def serialise_model(model: Any) -> str:
     """
-    Serialise a python object (fitted Smartnoise Synth synthesizer of
+    Serialise a python object (fitted Smartnoise Synth synthesizer of.
+
     fitted DiffPrivLib pipeline) into an utf-8 string
 
     Args:

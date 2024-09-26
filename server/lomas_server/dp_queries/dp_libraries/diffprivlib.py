@@ -26,9 +26,7 @@ from lomas_server.utils.query_models import (
 
 
 class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]):
-    """
-    Concrete implementation of the DPQuerier ABC for the DiffPrivLib library.
-    """
+    """Concrete implementation of the DPQuerier ABC for the DiffPrivLib library."""
 
     def __init__(
         self,
@@ -43,7 +41,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
     def fit_model_on_data(
         self, query_json: DiffPrivLibRequestModel
     ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
-        """Perform necessary steps to fit the model on the data
+        """Perform necessary steps to fit the model on the data.
 
         Args:
             query_json (BaseModel): The JSON request object for the query.
@@ -87,7 +85,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         return dpl_pipeline, x_test, y_test
 
     def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
-        """Estimate cost of query
+        """Estimate cost of query.
 
         Args:
             query_json (DiffPrivLibRequestModel): The request model object.
@@ -147,7 +145,8 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 def split_train_test_data(
     df: pd.DataFrame, query_json: DiffPrivLibRequestModel
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Split the data between train and test set
+    """Split the data between train and test set.
+
     Args:
         df (pd.DataFrame): dataframe with the data
         query_json (DiffPrivLibRequestModel): user input query indication

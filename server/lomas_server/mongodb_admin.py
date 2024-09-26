@@ -23,7 +23,8 @@ from lomas_server.utils.collection_models import (
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError if the supplied
+    """Creates a wrapper function that raises a ValueError if the supplied.
+
     user does (not) exist in the user collection depending on the
     enforce_true parameter.
 
@@ -60,7 +61,8 @@ def check_user_exists(enforce_true: bool) -> Callable:
 
 
 def check_user_has_dataset(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError if the supplied
+    """Creates a wrapper function that raises a ValueError if the supplied.
+
     user has access (or not) to the supplied dataset depending on the
     enforce_true parameter.
 
@@ -104,7 +106,8 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
 
 def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError
+    """Creates a wrapper function that raises a ValueError.
+
     if the supplied user does not already exist in the user collection.
     """
 
@@ -150,7 +153,8 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 ##########################  USERS  ########################## # noqa: E266
 @check_user_exists(False)
 def add_user(db: Database, user: str) -> None:
-    """Add new user in users collection with initial values for all fields
+    """Add new user in users collection with initial values for all fields.
+
     set by default.
 
     Args:
@@ -182,7 +186,8 @@ def add_user(db: Database, user: str) -> None:
 def add_user_with_budget(
     db: Database, user: str, dataset: str, epsilon: float, delta: float
 ) -> None:
-    """Add new user in users collection with initial values
+    """Add new user in users collection with initial values.
+
     for all fields set by default.
 
     Args:
@@ -244,7 +249,8 @@ def del_user(db: Database, user: str) -> None:
 def add_dataset_to_user(
     db: Database, user: str, dataset: str, epsilon: float, delta: float
 ) -> None:
-    """Add dataset with initialized budget values to list of datasets
+    """Add dataset with initialized budget values to list of datasets.
+
     that the user has access to.
     Will not add if already added (no error will be raised in that case).
 
@@ -292,7 +298,8 @@ def add_dataset_to_user(
 @check_user_exists(True)
 @check_user_has_dataset(True)
 def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
-    """Remove if exists the dataset (and all related budget info)
+    """Remove if exists the dataset (and all related budget info).
+
     from list of datasets that user has access to.
 
     Args:
@@ -318,7 +325,8 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 def set_budget_field(
     db: Database, user: str, dataset: str, field: str, value: float
 ) -> None:
-    """Set (for some reason) a budget field to a given value
+    """Set (for some reason) a budget field to a given value.
+
     if given user exists and has access to given dataset.
 
     Args:
@@ -346,7 +354,8 @@ def set_budget_field(
 
 @check_user_exists(True)
 def set_may_query(db: Database, user: str, value: bool) -> None:
-    """Set (for some reason) the 'may query' field to a given value
+    """Set (for some reason) the 'may query' field to a given value.
+
     if given user exists.
 
     Args:
@@ -369,7 +378,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
 @check_user_exists(True)
 def get_user(db: Database, user: str) -> dict:
-    """Show a user
+    """Show a user.
 
     Args:
         db (Database): mongo database object
@@ -390,7 +399,7 @@ def add_users_via_yaml(
     clean: bool,
     overwrite: bool,
 ) -> None:
-    """Add all users from yaml file to the user collection
+    """Add all users from yaml file to the user collection.
 
     Args:
         db (Database): mongo database object
@@ -453,7 +462,7 @@ def add_users_via_yaml(
 
 @check_user_exists(True)
 def get_archives_of_user(db: Database, user: str) -> List[dict]:
-    """Show all previous queries from a user
+    """Show all previous queries from a user.
 
     Args:
         db (Database): mongo database object
@@ -468,7 +477,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
 
 
 def get_list_of_users(db: Database) -> list:
-    """Get the list of all users is 'users' collection
+    """Get the list of all users is 'users' collection.
 
     Args:
         db (Database): mongo database object
@@ -485,7 +494,7 @@ def get_list_of_users(db: Database) -> list:
 
 @check_user_exists(True)
 def get_list_of_datasets_from_user(db: Database, user: str) -> list:
-    """Get the list of all datasets from the user
+    """Get the list of all datasets from the user.
 
     Args:
         db (Database): mongo database object
@@ -617,7 +626,8 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     overwrite_datasets: bool,
     overwrite_metadata: bool,
 ) -> None:
-    """Set all database types to datasets in dataset collection based
+    """Set all database types to datasets in dataset collection based.
+
     on yaml file.
 
     Args:
@@ -792,7 +802,7 @@ def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
 
 
 def get_list_of_datasets(db: Database) -> list:
-    """Get the list of all dataset is 'datasets' collection
+    """Get the list of all dataset is 'datasets' collection.
 
     Args:
         db (Database): mongo database object
@@ -823,7 +833,7 @@ def drop_collection(db: Database, collection: str) -> None:
 
 
 def get_collection(db: Database, collection: str) -> list:
-    """Show a collection
+    """Show a collection.
 
     Args:
         db (Database): mongo database object

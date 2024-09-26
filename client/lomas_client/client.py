@@ -31,7 +31,8 @@ enable_features("contrib")
 
 
 class Client:
-    """Client class to send requests to the server
+    """Client class to send requests to the server.
+
     Handle all serialisation and deserialisation steps
     """
 
@@ -465,7 +466,6 @@ class Client:
                 In that case a fixed_delta must be provided by the user.\
                 Defaults to None.
 
-
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
@@ -495,7 +495,8 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
     ) -> Pipeline:
-        """This function trains a DiffPrivLib pipeline on the sensitive data
+        """This function trains a DiffPrivLib pipeline on the sensitive data.
+
         and return a trained Pipeline.
 
         Args:
@@ -732,7 +733,8 @@ class Client:
         body_json: dict = {},
         read_timeout: int = DEFAULT_READ_TIMEOUT,
     ) -> requests.Response:
-        """Executes a POST request to the specified endpoint with the provided
+        """Executes a POST request to the specified endpoint with the provided.
+
         JSON body.
 
         Args:

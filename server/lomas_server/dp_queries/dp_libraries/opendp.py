@@ -22,13 +22,11 @@ from lomas_server.utils.query_models import (
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
-    """
-    Concrete implementation of the DPQuerier ABC for the OpenDP library.
-    """
+    """Concrete implementation of the DPQuerier ABC for the OpenDP library."""
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
-        Estimate cost of query
+        Estimate cost of query.
 
         Args:
             query_json (OpenDPRequestModel): The request model object.
@@ -136,7 +134,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
 
 
 def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
-    """Check that the input metric of the pipeline is a dataset metric
+    """Check that the input metric of the pipeline is a dataset metric.
 
     Args:
         pipeline (dp.Measurement): The pipeline to check.
@@ -227,7 +225,8 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
 
 
 def set_opendp_features_config(opendp_config: OpenDPConfig):
-    """Enable opendp features based on config
+    """Enable opendp features based on config.
+
     See https://github.com/opendp/opendp/discussions/304
 
     Args:

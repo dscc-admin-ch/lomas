@@ -6,6 +6,7 @@ install_dependencies() {
     pip install flake8-pyproject==1.2.3
     pip install mypy==1.10.0
     pip install pylint==3.1.0
+    pip install pydocstringformatter==0.7.3
 }
 
 # Parse command line arguments
@@ -51,6 +52,7 @@ if [ "$RUN_SERVER" == true ]; then
     black .
     flake8 --toml-config=../pyproject.toml .
     pylint .
+    pydocstringformatter -w .
 
     cd ..
     mypy .
@@ -65,6 +67,7 @@ if [ "$RUN_CLIENT" == true ]; then
     black .
     flake8 --toml-config=../pyproject.toml .
     pylint .
+    pydocstringformatter -w .
 
     cd ..
     mypy .
@@ -79,6 +82,7 @@ if [ "$RUN_CORE" == true ]; then
     black .
     flake8 --toml-config=../pyproject.toml .
     pylint .
+    pydocstringformatter -w .
 
     cd ..
     mypy .

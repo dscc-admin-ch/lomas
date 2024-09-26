@@ -30,7 +30,7 @@ SNSYNTH_NB_SAMPLES = 200
 
 
 def make_dummy(example_query):
-    """Make dummy example dummy query based on example query"""
+    """Make dummy example dummy query based on example query."""
     example_query_dummy = dict(example_query)
     example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
     example_query_dummy["dummy_seed"] = DUMMY_SEED

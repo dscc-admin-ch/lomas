@@ -8,7 +8,7 @@ from lomas_server.constants import PrivateDatabaseType
 
 
 class DatasetOfUser(BaseModel):
-    """BaseModel for informations of a user on a dataset"""
+    """BaseModel for informations of a user on a dataset."""
 
     dataset_name: str
     initial_epsilon: float
@@ -18,7 +18,7 @@ class DatasetOfUser(BaseModel):
 
 
 class User(BaseModel):
-    """BaseModel for a user in a user collection"""
+    """BaseModel for a user in a user collection."""
 
     user_name: str
     may_query: bool
@@ -26,24 +26,24 @@ class User(BaseModel):
 
 
 class UserCollection(BaseModel):
-    """BaseModel for users collection"""
+    """BaseModel for users collection."""
 
     users: List[User]
 
 
 class MetadataOfDataset(BaseModel):
-    """BaseModel for metadata of a dataset"""
+    """BaseModel for metadata of a dataset."""
 
 
 class MetadataOfPathDB(MetadataOfDataset):
-    """BaseModel for metadata of a dataset with PATH_DB"""
+    """BaseModel for metadata of a dataset with PATH_DB."""
 
     database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
     metadata_path: str
 
 
 class MetadataOfS3DB(MetadataOfDataset):
-    """BaseModel for metadata of a dataset with S3_DB"""
+    """BaseModel for metadata of a dataset with S3_DB."""
 
     database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
     endpoint_url: str
@@ -55,7 +55,7 @@ class MetadataOfS3DB(MetadataOfDataset):
 
 
 class Dataset(BaseModel):
-    """BaseModel for a dataset"""
+    """BaseModel for a dataset."""
 
     dataset_name: str
     metadata: Union[MetadataOfPathDB, MetadataOfS3DB] = Field(
@@ -64,14 +64,14 @@ class Dataset(BaseModel):
 
 
 class DatasetOfPathDB(Dataset):
-    """BaseModel for a local dataset"""
+    """BaseModel for a local dataset."""
 
     database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
     dataset_path: str
 
 
 class DatasetOfS3DB(Dataset):
-    """BaseModel for a dataset on S3"""
+    """BaseModel for a dataset on S3."""
 
     database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
     endpoint_url: str
@@ -81,7 +81,7 @@ class DatasetOfS3DB(Dataset):
 
 
 class DatasetsCollection(BaseModel):
-    """BaseModel for datasets collection"""
+    """BaseModel for datasets collection."""
 
     datasets: Annotated[
         List[Union[DatasetOfPathDB, DatasetOfS3DB]],
@@ -90,7 +90,7 @@ class DatasetsCollection(BaseModel):
 
 
 class ColumnMetadata(BaseModel):
-    """Base model for column metadata"""
+    """Base model for column metadata."""
 
     private_id: bool = False
     nullable: bool = False
@@ -101,13 +101,13 @@ class ColumnMetadata(BaseModel):
 
 
 class StrMetadata(ColumnMetadata):
-    """Model for string metadata"""
+    """Model for string metadata."""
 
     type: Literal["string"]
 
 
 class CategoricalColumnMetadata(ColumnMetadata):
-    """Model for categorical column metadata"""
+    """Model for categorical column metadata."""
 
     @model_validator(mode="after")
     def validate_categories(self):
@@ -118,7 +118,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
 
 
 class StrCategoricalMetadata(CategoricalColumnMetadata):
-    """Model for categorical string metadata"""
+    """Model for categorical string metadata."""
 
     type: Literal["string"]
     cardinality: int
@@ -126,14 +126,14 @@ class StrCategoricalMetadata(CategoricalColumnMetadata):
 
 
 class Precision(IntEnum):
-    """Precision of integer and float data"""
+    """Precision of integer and float data."""
 
     SINGLE = 32
     DOUBLE = 64
 
 
 class BoundedColumnMetadata(ColumnMetadata):
-    """Model for columns with bounded data"""
+    """Model for columns with bounded data."""
 
     @model_validator(mode="after")
     def validate_bounds(self):
@@ -149,7 +149,7 @@ class BoundedColumnMetadata(ColumnMetadata):
 
 
 class IntMetadata(BoundedColumnMetadata):
-    """Model for integer column metadata"""
+    """Model for integer column metadata."""
 
     type: Literal["int"]
     precision: Precision
@@ -158,7 +158,7 @@ class IntMetadata(BoundedColumnMetadata):
 
 
 class IntCategoricalMetadata(CategoricalColumnMetadata):
-    """Model for integer categorical column metadata"""
+    """Model for integer categorical column metadata."""
 
     type: Literal["int"]
     precision: Precision
@@ -167,7 +167,7 @@ class IntCategoricalMetadata(CategoricalColumnMetadata):
 
 
 class FloatMetadata(BoundedColumnMetadata):
-    """Model for float column metadata"""
+    """Model for float column metadata."""
 
     type: Literal["float"]
     precision: Precision
@@ -176,13 +176,13 @@ class FloatMetadata(BoundedColumnMetadata):
 
 
 class BooleanMetadata(ColumnMetadata):
-    """Model for boolean column metadata"""
+    """Model for boolean column metadata."""
 
     type: Literal["boolean"]
 
 
 class DatetimeMetadata(BoundedColumnMetadata):
-    """Model for datetime column metadata"""
+    """Model for datetime column metadata."""
 
     type: Literal["datetime"]  # TODO make these constants, see issue #268
     lower: datetime
@@ -218,7 +218,7 @@ def get_column_metadata_discriminator(v: Any) -> str:
 
 
 class Metadata(BaseModel):
-    """BaseModel for a metadata format"""
+    """BaseModel for a metadata format."""
 
     max_ids: Annotated[int, Field(gt=0)]
     rows: Annotated[int, Field(gt=0)]

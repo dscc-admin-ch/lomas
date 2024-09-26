@@ -20,24 +20,29 @@ part of the project, refer to:
 
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:
 
-- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
   ```bash
   black .
   ```
 
-- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` , `lomas/client/lomas_client` and `lomas/core/lomas_core`:
  ```bash
   flake8 .
   ```
 
-- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server` and `lomas/client`:
+- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server`, `lomas/client` and `lomas/core`:
  ```bash
   mypy .
   ```
 
-- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
  ```bash
   pylint .
+  ```
+
+- **Automatic docstring linter formatting**: Use pydocstringformatter for automatically formatting docstring following PEP257 recommandations. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
+ ```bash
+  pydocstringformatter .
   ```
 
 To streamline the process, you can use the `run_linter.sh` script in ``lomas`. The first time you run this script, use the following command to install dependencies:

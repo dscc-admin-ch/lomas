@@ -201,6 +201,7 @@ def smartnoise_synth_handler(
 ) -> JSONResponse:
     """
     Handles queries for the SmartNoise Synth library.
+
     Args:
         request (Request): Raw request object
         query_json (SmartnoiseSynthQueryModel): A JSON object containing:
@@ -262,6 +263,7 @@ def dummy_smartnoise_synth_handler(
 ) -> JSONResponse:
     """
     Handles queries for the SmartNoise Synth library.
+
     Args:
         request (Request): Raw request object
         query_json (SmartnoiseSynthDummyQueryModel): A JSON object containing:
@@ -326,6 +328,7 @@ def estimate_smartnoise_synth_cost(
 ) -> JSONResponse:
     """
     Handles queries for the SmartNoise Synth library.
+
     Args:
         request (Request): Raw request object
         query_json (SmartnoiseSynthRequestModel): A JSON object containing:

@@ -18,9 +18,7 @@ from lomas_server.utils.query_models import RequestModel
 
 
 class AdminYamlDatabase(AdminDatabase):
-    """
-    Overall Yaml database management for server state
-    """
+    """Overall Yaml database management for server state."""
 
     def __init__(self, yaml_db_path: str) -> None:
         """Load DB from disk.
@@ -33,7 +31,7 @@ class AdminYamlDatabase(AdminDatabase):
             self.database = yaml.safe_load(f)
 
     def does_user_exist(self, user_name: str) -> bool:
-        """Checks if user exist in the database
+        """Checks if user exist in the database.
 
         Args:
             user_name (str): name of the user to check
@@ -48,7 +46,7 @@ class AdminYamlDatabase(AdminDatabase):
         return False
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
-        """Checks if dataset exist in the database
+        """Checks if dataset exist in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
@@ -132,7 +130,7 @@ class AdminYamlDatabase(AdminDatabase):
 
     @user_must_exist
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
-        """Checks if a user may access a particular dataset
+        """Checks if a user may access a particular dataset.
 
         Wrapped by :py:func:`user_must_exist`.
 
@@ -158,7 +156,8 @@ class AdminYamlDatabase(AdminDatabase):
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """Get the total spent epsilon or delta  by a specific user
+        """Get the total spent epsilon or delta  by a specific user.
+
         on a specific dataset
 
         Args:
@@ -183,7 +182,8 @@ class AdminYamlDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """Update the current budget spent by a specific user
+        """Update the current budget spent by a specific user.
+
         with the last spent budget.
 
         Args:
@@ -202,7 +202,7 @@ class AdminYamlDatabase(AdminDatabase):
 
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:  # type: ignore
-        """Get dataset field type based on dataset name and key
+        """Get dataset field type based on dataset name and key.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
@@ -226,7 +226,7 @@ class AdminYamlDatabase(AdminDatabase):
         user_name: str,
         dataset_name: str,
     ) -> List[dict]:
-        """Retrieves and return the queries already done by a user
+        """Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -246,7 +246,8 @@ class AdminYamlDatabase(AdminDatabase):
     def save_query(
         self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
-        """Save queries of user on datasets in a separate collection (table)
+        """Save queries of user on datasets in a separate collection (table).
+
         named "queries_archives" in the DB
 
         Args:
@@ -258,7 +259,8 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["queries"].append(to_archive)
 
     def save_current_database(self) -> None:
-        """Saves the current database with updated parameters in new yaml
+        """Saves the current database with updated parameters in new yaml.
+
         with the date and hour in the path
         Might be useful to verify state of DB during development
         """

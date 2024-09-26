@@ -31,3 +31,8 @@ disable = [
     "R0913",  # too-many-arguments
     "R0914"   # too-many-locals
 ]
+
+[tool.pydocstringformatter]
+write = true
+max-line-length = 88
+style = pep257

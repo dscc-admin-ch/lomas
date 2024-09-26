@@ -26,7 +26,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
     metadata: Metadata, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
     """
-    Create a dummy dataset based on a metadata dictionnary
+    Create a dummy dataset based on a metadata dictionnary.
 
     Args:
         metadata (Metadata): The metadata model for the real dataset.
@@ -112,7 +112,6 @@ def get_dummy_dataset_for_query(
         admin_database (AdminDatabase): An initialized instance
             of AdminDatabase.
         query_json (RequestModel): The request object for the query.
-
 
     Returns:
         InMemoryConnector: An in memory dummy dataset instance.

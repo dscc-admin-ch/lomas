@@ -158,20 +158,3 @@ class TestMakeDummyDataset(unittest.TestCase):
         # Check if datasets generated with the same seed are identical
         df1_copy = make_dummy_dataset(metadata, seed=seed1)
         self.assertTrue(df1.equals(df1_copy))
-
-    # TODO maybe remove this, see issue #335
-    # def test_unknown_column(self) -> None:
-    #     """test_unknown_column"""
-    #     metadata = {
-    #         "columns": {
-    #             "col_bool": {"type": "boolean", "nullable": True},
-    #             "col_unknown": {"type": "unknown"},
-    #         }
-    #     }
-    #     df = make_dummy_dataset(metadata)
-
-    #     # Test col generated
-    #     self.assertIn("col_bool", df.columns)
-
-    #     # Test col not generated
-    #     self.assertNotIn("col_unknown", df.columns)

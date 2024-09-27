@@ -8,6 +8,7 @@ from lomas_server.routes.utils import (
     handle_query_on_private_dataset,
     server_live,
 )
+from lomas_server.utils.anti_timing_att import timing_protection
 from lomas_server.utils.query_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
@@ -43,6 +44,7 @@ router = APIRouter()
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def smartnoise_sql_handler(
     request: Request,
     query_json: SmartnoiseSQLQueryModel = Body(example_smartnoise_sql),
@@ -152,6 +154,7 @@ def dummy_smartnoise_sql_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def estimate_smartnoise_sql_cost(
     request: Request,
     query_json: SmartnoiseSQLRequestModel = Body(example_smartnoise_sql_cost),
@@ -194,6 +197,7 @@ def estimate_smartnoise_sql_cost(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def smartnoise_synth_handler(
     request: Request,
     query_json: SmartnoiseSynthQueryModel = Body(example_smartnoise_synth_query),
@@ -319,6 +323,7 @@ def dummy_smartnoise_synth_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def estimate_smartnoise_synth_cost(
     request: Request,
     query_json: SmartnoiseSynthRequestModel = Body(example_smartnoise_synth_cost),
@@ -366,7 +371,12 @@ def estimate_smartnoise_synth_cost(
     )
 
 
-@router.post("/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"])
+@router.post(
+    "/opendp_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
+@timing_protection()
 def opendp_query_handler(
     request: Request,
     query_json: OpenDPQueryModel = Body(example_opendp),
@@ -469,6 +479,7 @@ def dummy_opendp_query_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def estimate_opendp_cost(
     request: Request,
     query_json: OpenDPRequestModel = Body(example_opendp),
@@ -505,6 +516,7 @@ def estimate_opendp_cost(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def diffprivlib_query_handler(
     request: Request,
     query_json: DiffPrivLibQueryModel = Body(example_diffprivlib),
@@ -604,6 +616,7 @@ def dummy_diffprivlib_query_handler(
     dependencies=[Depends(server_live)],
     tags=["USER_QUERY"],
 )
+@timing_protection()
 def estimate_diffprivlib_cost(
     request: Request,
     query_json: DiffPrivLibRequestModel = Body(example_diffprivlib),

@@ -1,11 +1,28 @@
 import random
 import time
+from functools import wraps
 from typing import Callable
 
 from fastapi import Request, Response
 from lomas_core.error_handler import InternalServerException
 
-from lomas_server.utils.config import Config
+from lomas_server.utils.config import Config, get_config
+
+
+def timing_protection():
+    """Adds delays to requests response to protect against timing attack"""
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(request: Request, *args, **kwargs):
+            config = get_config()
+            return await anti_timing_att(
+                request, lambda req: func(req, *args, **kwargs), config
+            )
+
+        return wrapper
+
+    return decorator
 
 
 async def anti_timing_att(

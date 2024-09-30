@@ -2,7 +2,7 @@ from typing import Annotated, List, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from lomas_server.models.constants import (
+from lomas_core.models.constants import (
     AdminDBType,
     PrivateDatabaseType,
     TimeAttackMethod,

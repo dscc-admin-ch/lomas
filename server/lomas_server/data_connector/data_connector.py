@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
-
-from lomas_server.models.collections import DatetimeMetadata, Metadata
+from lomas_core.models.collections import DatetimeMetadata, Metadata
 
 
 class DataConnector(ABC):

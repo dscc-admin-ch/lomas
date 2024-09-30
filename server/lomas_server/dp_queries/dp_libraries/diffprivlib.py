@@ -9,6 +9,10 @@ from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
 )
+from lomas_core.models.requests import (
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
@@ -19,10 +23,6 @@ from lomas_server.dp_queries.dp_libraries.utils import (
     serialise_model,
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.models.requests import (
-    DiffPrivLibQueryModel,
-    DiffPrivLibRequestModel,
-)
 
 
 class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]):

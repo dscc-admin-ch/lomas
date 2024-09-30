@@ -7,14 +7,7 @@ import boto3
 import yaml
 from lomas_core.error_handler import InternalServerException
 from lomas_core.logger import LOG
-from pymongo.database import Database
-from pymongo.results import _WriteResult
-
-from lomas_server.admin_database.constants import BudgetDBKey
-from lomas_server.admin_database.mongodb_database import (
-    check_result_acknowledged,
-)
-from lomas_server.models.collections import (
+from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,
     DSInfo,
@@ -24,7 +17,14 @@ from lomas_server.models.collections import (
     User,
     UserCollection,
 )
-from lomas_server.models.constants import PrivateDatabaseType
+from lomas_core.models.constants import PrivateDatabaseType
+from pymongo.database import Database
+from pymongo.results import _WriteResult
+
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.mongodb_database import (
+    check_result_acknowledged,
+)
 
 
 def check_user_exists(enforce_true: bool) -> Callable:

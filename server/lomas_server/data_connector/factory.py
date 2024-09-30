@@ -1,14 +1,14 @@
 from typing import List
 
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import DSPathAccess, DSS3Access
+from lomas_core.models.config import PrivateDBCredentials, S3CredentialsConfig
+from lomas_core.models.constants import PrivateDatabaseType
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
-from lomas_server.models.collections import DSPathAccess, DSS3Access
-from lomas_server.models.config import PrivateDBCredentials, S3CredentialsConfig
-from lomas_server.models.constants import PrivateDatabaseType
 
 
 def data_connector_factory(

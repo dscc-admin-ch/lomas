@@ -1,11 +1,11 @@
 import argparse
 
+from lomas_core.models.config import MongoDBConfig
+from lomas_core.models.constants import AdminDBType
 from pymongo import MongoClient
 from pymongo.database import Database
 
 from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.models.config import MongoDBConfig
-from lomas_server.models.constants import AdminDBType
 from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,

@@ -13,6 +13,21 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
+from lomas_core.models.collections import (
+    BooleanMetadata,
+    ColumnMetadata,
+    DatetimeMetadata,
+    FloatMetadata,
+    IntCategoricalMetadata,
+    IntMetadata,
+    Metadata,
+    StrCategoricalMetadata,
+    StrMetadata,
+)
+from lomas_core.models.requests import (
+    SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
+)
 from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
 from snsynth.transform import (
@@ -37,21 +52,6 @@ from lomas_server.constants import (
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import serialise_model
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.models.collections import (
-    BooleanMetadata,
-    ColumnMetadata,
-    DatetimeMetadata,
-    FloatMetadata,
-    IntCategoricalMetadata,
-    IntMetadata,
-    Metadata,
-    StrCategoricalMetadata,
-    StrMetadata,
-)
-from lomas_server.models.requests import (
-    SmartnoiseSynthQueryModel,
-    SmartnoiseSynthRequestModel,
-)
 
 
 def datetime_to_float(upper: datetime, lower: datetime) -> float:

@@ -7,13 +7,13 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-
-from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.models.requests import (  # pylint: disable=W0611
+from lomas_core.models.requests import (  # pylint: disable=W0611
     QueryModel,
     RequestModel,
 )
+
+from lomas_server.admin_database.admin_database import AdminDatabase
+from lomas_server.data_connector.data_connector import DataConnector
 
 RequestModelGeneric = TypeVar("RequestModelGeneric", bound="RequestModel")
 QueryModelGeneric = TypeVar("QueryModelGeneric", bound="QueryModel")

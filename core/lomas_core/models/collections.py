@@ -3,7 +3,7 @@ from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
 
-from lomas_server.models.constants import (
+from lomas_core.models.constants import (
     CARDINALITY_FIELD,
     CATEGORICAL_TYPE_PREFIX,
     DB_TYPE_FIELD,

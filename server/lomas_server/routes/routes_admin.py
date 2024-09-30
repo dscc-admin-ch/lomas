@@ -5,10 +5,10 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.requests import GetDsData, GetDummyDataset
 
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
-from lomas_server.models.requests import GetDbData, GetDummyDataset
 from lomas_server.routes.utils import server_live
 from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
@@ -61,7 +61,7 @@ async def get_state(
 )
 def get_dataset_metadata(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: GetDsData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -69,7 +69,7 @@ def get_dataset_metadata(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing
+        query_json (GetDsData, optional): A JSON object containing
             the dataset_name key for indicating the dataset.
             Defaults to Body(example_get_admin_db_data).
 
@@ -179,7 +179,7 @@ def get_dummy_dataset(
 )
 def get_initial_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: GetDsData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -187,7 +187,7 @@ def get_initial_budget(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (GetDsData, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -237,7 +237,7 @@ def get_initial_budget(
 )
 def get_total_spent_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: GetDsData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -245,7 +245,7 @@ def get_total_spent_budget(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (GetDsData, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -295,7 +295,7 @@ def get_total_spent_budget(
 )
 def get_remaining_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: GetDsData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -303,7 +303,7 @@ def get_remaining_budget(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (GetDsData, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -350,7 +350,7 @@ def get_remaining_budget(
 )
 def get_user_previous_queries(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: GetDsData = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -358,7 +358,7 @@ def get_user_previous_queries(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (GetDsData, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).

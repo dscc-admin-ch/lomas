@@ -7,6 +7,11 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import (
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+)
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
@@ -14,11 +19,6 @@ from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.models.collections import Metadata
-from lomas_server.models.requests import (
-    SmartnoiseSQLQueryModel,
-    SmartnoiseSQLRequestModel,
-)
 
 
 class SmartnoiseSQLQuerier(

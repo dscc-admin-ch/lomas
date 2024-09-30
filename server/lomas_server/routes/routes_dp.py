@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
 from lomas_core.constants import DPLibraries
-
-from lomas_server.models.requests import (
+from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
@@ -16,6 +15,7 @@ from lomas_server.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
+
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,

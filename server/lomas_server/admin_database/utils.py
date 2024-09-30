@@ -1,9 +1,9 @@
 from lomas_core.error_handler import InternalServerException
 from lomas_core.logger import LOG
+from lomas_core.models.config import MongoDBConfig
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from lomas_server.models.config import MongoDBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,

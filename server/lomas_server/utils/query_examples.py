@@ -1,7 +1,6 @@
 from lomas_core.constants import SSynthGanSynthesizer
 
-from lomas_server.constants import OPENDP_VERSION, DUMMY_NB_ROWS, DUMMY_SEED
-
+from lomas_server.constants import DUMMY_NB_ROWS, DUMMY_SEED, OPENDP_VERSION
 
 # Query constants
 PENGUIN_DATASET = "PENGUIN"

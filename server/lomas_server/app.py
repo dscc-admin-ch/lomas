@@ -7,6 +7,7 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.logger import LOG
+from lomas_core.models.constants import AdminDBType
 
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
@@ -19,7 +20,6 @@ from lomas_server.constants import (
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
-from lomas_server.models.constants import AdminDBType
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.utils.config import get_config
 

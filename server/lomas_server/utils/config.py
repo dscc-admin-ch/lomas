@@ -2,10 +2,10 @@ from typing import Dict
 
 import yaml
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.config import Config
+from lomas_core.models.constants import ConfigKeys
 
 from lomas_server.constants import CONFIG_PATH, SECRETS_PATH
-from lomas_server.models.config import Config
-from lomas_server.models.constants import ConfigKeys
 
 
 class ConfigLoader:

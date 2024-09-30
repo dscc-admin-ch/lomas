@@ -1,8 +1,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Callable
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
@@ -21,7 +20,6 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
 from lomas_server.routes import routes_admin, routes_dp
-from lomas_server.utils.anti_timing_att import anti_timing_att
 from lomas_server.utils.config import get_config
 
 
@@ -119,16 +117,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
-
-
-# A simple hack to hinder the timing attackers
-@app.middleware("http")
-async def middleware(
-    request: Request, call_next: Callable[[Request], Response]
-) -> Response:
-    """Adds delays to requests response to protect against timing attack"""
-    return await anti_timing_att(request, call_next, get_config())
-
 
 # Add custom exception handlers
 add_exception_handlers(app)

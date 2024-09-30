@@ -366,7 +366,11 @@ def estimate_smartnoise_synth_cost(
     )
 
 
-@router.post("/opendp_query", dependencies=[Depends(server_live)], tags=["USER_QUERY"])
+@router.post(
+    "/opendp_query",
+    dependencies=[Depends(server_live)],
+    tags=["USER_QUERY"],
+)
 def opendp_query_handler(
     request: Request,
     query_json: OpenDPQueryModel = Body(example_opendp),

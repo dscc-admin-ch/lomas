@@ -1,4 +1,7 @@
+import random
+import time
 from collections.abc import AsyncGenerator
+from functools import wraps
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -12,11 +15,42 @@ from lomas_core.error_handler import (
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.utils.config import get_config
 from lomas_server.utils.query_models import (
     DummyQueryModel,
     QueryModel,
     RequestModel,
 )
+
+
+def timing_protection(func):
+    """Adds delays to requests response to protect against timing attack"""
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        start_time = time.time()
+        response = await func(*args, **kwargs)
+        process_time = time.time() - start_time
+
+        config = get_config()
+        if config.server.time_attack:
+            match config.server.time_attack.method:
+                case "stall":
+                    # if stall is used slow fast callbacks
+                    # to a minimum response time defined by magnitude
+                    if process_time < config.server.time_attack.magnitude:
+                        time.sleep(config.server.time_attack.magnitude - process_time)
+                case "jitter":
+                    # if jitter is used it just adds some time
+                    # between 0 and magnitude secs
+                    time.sleep(
+                        config.server.time_attack.magnitude * random.uniform(0, 1)
+                    )
+                case _:
+                    raise InternalServerException("Time attack method not supported.")
+        return response
+
+    return wrapper
 
 
 async def server_live(request: Request) -> AsyncGenerator:

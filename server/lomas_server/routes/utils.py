@@ -27,22 +27,20 @@ def timing_protection(func):
     """Adds delays to requests response to protect against timing attack"""
 
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         start_time = time.time()
-        response = await func(*args, **kwargs)
+        response = func(*args, **kwargs)
         process_time = time.time() - start_time
 
         config = get_config()
         if config.server.time_attack:
             match config.server.time_attack.method:
                 case "stall":
-                    # if stall is used slow fast callbacks
-                    # to a minimum response time defined by magnitude
+                    # Slows to a minimum response time defined by magnitude
                     if process_time < config.server.time_attack.magnitude:
                         time.sleep(config.server.time_attack.magnitude - process_time)
                 case "jitter":
-                    # if jitter is used it just adds some time
-                    # between 0 and magnitude secs
+                    # Adds some time between 0 and magnitude secs
                     time.sleep(
                         config.server.time_attack.magnitude * random.uniform(0, 1)
                     )
@@ -74,6 +72,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     yield
 
 
+@timing_protection
 def handle_query_on_private_dataset(
     request: Request,
     query_json: QueryModel,
@@ -190,6 +189,7 @@ def handle_query_on_dummy_dataset(
     return response
 
 
+@timing_protection
 def handle_cost_query(
     request: Request,
     query_json: RequestModel,

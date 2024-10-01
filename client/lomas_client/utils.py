@@ -10,6 +10,15 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 
+class InternalClientException(Exception):
+    """
+    Custom exception for issues within client internal functionalities
+    like unexpected match cases.
+    """
+
+    def __init__(self, error_message: str) -> None:
+        self.error_message = error_message
+
 
 def raise_error(response: requests.Response) -> str:
     """Raise error message based on the HTTP response.

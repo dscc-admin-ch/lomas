@@ -1,14 +1,31 @@
 import base64
 import json
 import pickle
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Type, Union
 
 import opendp as dp
 import pandas as pd
+from pydantic import BaseModel
 import requests
 from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from lomas_core.constants import DPLibraries
+from lomas_core.models.requests import (
+    DiffPrivLibDummyQueryModel,
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+    GetDsData,
+    GetDummyDataset,
+    OpenDPDummyQueryModel,
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+    SmartnoiseSQLDummyQueryModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+    SmartnoiseSynthDummyQueryModel,
+    SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel
+)
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 from sklearn.pipeline import Pipeline
@@ -23,7 +40,7 @@ from lomas_client.constants import (
     SMARTNOISE_SYNTH_READ_TIMEOUT,
     SNSYNTH_DEFAULT_SAMPLES_NB,
 )
-from lomas_client.utils import raise_error, validate_synthesizer
+from lomas_client.utils import InternalClientException, raise_error, validate_synthesizer
 
 # Opendp_logger
 enable_logging()
@@ -35,6 +52,10 @@ class Client:
 
     Handle all serialisation and deserialisation steps
     """
+    opendp = ...
+    diffprivlib = ...
+
+    client.opendp.estimate_cost()
 
     def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
         """Initializes the Client with the specified URL, user name, and dataset name.
@@ -58,7 +79,7 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
-        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name})
+        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name}, GetDsData)
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -93,6 +114,7 @@ class Client:
                 "dummy_nb_rows": nb_rows,
                 "dummy_seed": seed,
             },
+            GetDummyDataset
         )
 
         if res.status_code == status.HTTP_200_OK:
@@ -156,14 +178,18 @@ class Client:
             "mechanisms": mechanisms,
             "postprocess": postprocess,
         }
+
+        request_model: Type[SmartnoiseSQLRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_sql_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
+            request_model = SmartnoiseSQLDummyQueryModel
         else:
             endpoint = "smartnoise_sql_query"
+            request_model = SmartnoiseSQLQueryModel
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(endpoint, body_json, request_model)
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
@@ -205,7 +231,7 @@ class Client:
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        res = self._exec("estimate_smartnoise_sql_cost", body_json)
+        res = self._exec("estimate_smartnoise_sql_cost", body_json, SmartnoiseSQLRequestModel)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -298,15 +324,19 @@ class Client:
             "condition": condition,
             "nb_samples": nb_samples,
         }
+
+        request_model: Type[SmartnoiseSynthRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
+            request_model = SmartnoiseSynthDummyQueryModel
         else:
             endpoint = "smartnoise_synth_query"
+            request_model = SmartnoiseSynthQueryModel
 
         res = self._exec(
-            endpoint, body_json, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
+            endpoint, body_json, request_model, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
         )
 
         if res.status_code == status.HTTP_200_OK:
@@ -388,6 +418,7 @@ class Client:
         res = self._exec(
             "estimate_smartnoise_synth_cost",
             body_json,
+            SmartnoiseSynthRequestModel,
             read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT,
         )
 
@@ -433,14 +464,18 @@ class Client:
             "opendp_json": opendp_json,
             "fixed_delta": fixed_delta,
         }
+
+        request_model: Type[OpenDPRequestModel]
         if dummy:
             endpoint = "dummy_opendp_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
+            request_model = OpenDPDummyQueryModel
         else:
             endpoint = "opendp_query"
+            request_model = OpenDPQueryModel
 
-        res = self._exec(endpoint, body_json)
+        res = self._exec(endpoint, body_json, request_model)
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             response_dict = json.loads(data)
@@ -475,7 +510,7 @@ class Client:
             "opendp_json": opendp_json,
             "fixed_delta": fixed_delta,
         }
-        res = self._exec("estimate_opendp_cost", body_json)
+        res = self._exec("estimate_opendp_cost", body_json, OpenDPRequestModel)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -536,14 +571,18 @@ class Client:
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
         }
+
+        request_model: Type[DiffPrivLibRequestModel]
         if dummy:
             endpoint = "dummy_diffprivlib_query"
             body_json["dummy_nb_rows"] = nb_rows
             body_json["dummy_seed"] = seed
+            request_model = DiffPrivLibDummyQueryModel
         else:
             endpoint = "diffprivlib_query"
+            request_model = DiffPrivLibQueryModel
 
-        res = self._exec(endpoint, body_json, read_timeout=DIFFPRIVLIB_READ_TIMEOUT)
+        res = self._exec(endpoint, body_json, request_model, read_timeout=DIFFPRIVLIB_READ_TIMEOUT)
         if res.status_code == status.HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
@@ -603,6 +642,7 @@ class Client:
         res = self._exec(
             "estimate_diffprivlib_cost",
             body_json,
+            DiffPrivLibRequestModel,
             read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
         )
 
@@ -623,7 +663,7 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
         }
-        res = self._exec("get_initial_budget", body_json)
+        res = self._exec("get_initial_budget", body_json, GetDsData)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -640,7 +680,7 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
         }
-        res = self._exec("get_total_spent_budget", body_json)
+        res = self._exec("get_total_spent_budget", body_json, GetDsData)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -657,7 +697,7 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
         }
-        res = self._exec("get_remaining_budget", body_json)
+        res = self._exec("get_remaining_budget", body_json, GetDsData)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -678,7 +718,7 @@ class Client:
         body_json = {
             "dataset_name": self.dataset_name,
         }
-        res = self._exec("get_previous_queries", body_json)
+        res = self._exec("get_previous_queries", body_json, GetDsData)
 
         if res.status_code == status.HTTP_200_OK:
             queries = json.loads(res.content.decode("utf8"))["previous_queries"]
@@ -724,11 +764,12 @@ class Client:
 
         raise_error(res)
         return None
-
+    
     def _exec(
         self,
         endpoint: str,
         body_json: dict = {},
+        request_model: Type[BaseModel] | None = None,
         read_timeout: int = DEFAULT_READ_TIMEOUT,
     ) -> requests.Response:
         """Executes a POST request to endpoint with the provided JSON body.
@@ -737,13 +778,27 @@ class Client:
             endpoint (str): The API endpoint to which the request will be sent.
             body_json (dict, optional): The JSON body to include in the POST request.\
                 Defaults to {}.
+            request_model: (BaseModel, optional): The pydantic model to validate the\
+                body_json against. Must be non-null if body_json contains data.
             read_timeout (int): number of seconds that client wait for the server
                 to send a response.
                 Defaults to DEFAULT_READ_TIMEOUT.
 
+        Raises:
+            InternalClientException: If there is data in body_json but no request model.
+            InternalClientException: If there is a validation error. 
+
         Returns:
             requests.Response: The response object resulting from the POST request.
         """
+        if body_json is not {}:
+            if request_model is None:
+                raise InternalClientException("Internal exception: No model for request body validation.")
+            try:
+                request_model.model_validate(body_json)
+            except ValueError as e:
+                raise InternalClientException(f"Internal exception: value error while validating request body. {str(e)}") from e
+
         r = requests.post(
             self.url + "/" + endpoint,
             json=body_json,

@@ -21,7 +21,8 @@ from lomas_server.utils.query_examples import (
 
 
 def validate_pipeline(response):
-    """Validate that the pipeline ran successfully
+    """Validate that the pipeline ran successfully.
+
     Returns a model and a score.
     """
     assert response.status_code == status.HTTP_200_OK
@@ -32,12 +33,10 @@ def validate_pipeline(response):
 
 
 class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
-    """
-    Test DiffPrivLib Endpoint with different models
-    """
+    """Test DiffPrivLib Endpoint with different models."""
 
     def test_diffprivlib_query(self) -> None:
-        """Test diffprivlib query"""
+        """Test diffprivlib query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -127,7 +126,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 )
 
     def test_logistic_regression_models(self) -> None:
-        """Test diffprivlib query: Logistic Regression"""
+        """Test diffprivlib query: Logistic Regression."""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
@@ -154,7 +153,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_linear_regression_models(self) -> None:
-        """Test diffprivlib query: Linear Regression"""
+        """Test diffprivlib query: Linear Regression."""
         with TestClient(app, headers=self.headers) as client:
             # Test Linear Regression
             pipeline = Pipeline(
@@ -181,7 +180,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_naives_bayes_model(self) -> None:
-        """Test diffprivlib query: Gaussian Naives Bayes"""
+        """Test diffprivlib query: Gaussian Naives Bayes."""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test Gaussian Naives Bayes
@@ -209,7 +208,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_trees_models(self) -> None:
-        """Test diffprivlib query: Random Forest, Decision Tree"""
+        """Test diffprivlib query: Random Forest, Decision Tree."""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
@@ -259,7 +258,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_clustering_models(self) -> None:
-        """Test diffprivlib query: K-Means"""
+        """Test diffprivlib query: K-Means."""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
 
@@ -290,7 +289,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_dimension_reduction_models(self) -> None:
-        """Test diffprivlib query: PCA"""
+        """Test diffprivlib query: PCA."""
         with TestClient(app, headers=self.headers) as client:
             bounds = ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
             # Test PCA
@@ -317,7 +316,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             validate_pipeline(response)
 
     def test_dummy_diffprivlib_query(self) -> None:
-        """test_dummy_diffprivlib_query"""
+        """Test_dummy_diffprivlib_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -346,7 +345,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             }
 
     def test_diffprivlib_cost(self) -> None:
-        """test_diffprivlib_cost"""
+        """Test_diffprivlib_cost."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(

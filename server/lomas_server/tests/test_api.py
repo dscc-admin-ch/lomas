@@ -77,7 +77,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         pass
 
     def setUp(self) -> None:
-        """Set Up Header and DB for test"""
+        """Set Up Header and DB for test."""
         self.user_name = "Dr. Antartica"
         self.headers = {
             "Content-type": "application/json",
@@ -121,7 +121,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 os.remove(file)
 
     def test_config_and_internal_server_exception(self) -> None:
-        """Test set wrong configuration"""
+        """Test set wrong configuration."""
 
         # Put unknown admin database
         with self.assertRaises(InternalServerException) as context:
@@ -129,7 +129,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(str(context.exception), "Database type not supported.")
 
     def test_root(self) -> None:
-        """Test root endpoint redirection to state endpoint"""
+        """Test root endpoint redirection to state endpoint."""
         with TestClient(app, headers=self.headers) as client:
             response_root = client.get("/", headers=self.headers)
             response_state = client.get("/state", headers=self.headers)
@@ -139,7 +139,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_state(self) -> None:
-        """Test state endpoint"""
+        """Test state endpoint."""
         with TestClient(app, headers=self.headers) as client:
             response = client.get("/state", headers=self.headers)
             assert response.status_code == status.HTTP_200_OK
@@ -149,7 +149,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["state"]["LIVE"]
 
     def test_get_dataset_metadata(self) -> None:
-        """test_get_dataset_metadata"""
+        """Test_get_dataset_metadata."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -192,7 +192,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_get_dummy_dataset(self) -> None:
-        """test_get_dummy_dataset"""
+        """Test_get_dummy_dataset."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -312,7 +312,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
 
     def test_smartnoise_sql_query(self) -> None:
-        """Test smartnoise-sql query"""
+        """Test smartnoise-sql query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -428,7 +428,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_smartnoise_sql_query_parameters(self) -> None:
-        """Test smartnoise-sql query parameters"""
+        """Test smartnoise-sql query parameters."""
         with TestClient(app, headers=self.headers) as client:
             # Change the Query
             body = dict(example_smartnoise_sql)
@@ -476,7 +476,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert df_response.shape[1] == 2
 
     def test_smartnoise_sql_query_datetime(self) -> None:
-        """Test smartnoise-sql query on datetime"""
+        """Test smartnoise-sql query on datetime."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work: query with datetimes and another user
             new_headers = self.headers
@@ -494,7 +494,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
 
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
-        """Test smartnoise-sql on s3 dataset"""
+        """Test smartnoise-sql on s3 dataset."""
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             with TestClient(app, headers=self.headers) as client:
                 # Expect to work
@@ -514,7 +514,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 assert response_dict["spent_delta"] >= QUERY_DELTA
 
     def test_dummy_smartnoise_sql_query(self) -> None:
-        """test_dummy_smartnoise_sql_query"""
+        """Test_dummy_smartnoise_sql_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -555,7 +555,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_smartnoise_sql_cost(self) -> None:
-        """test_smartnoise_sql_cost"""
+        """Test_smartnoise_sql_cost."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -584,7 +584,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
-        """test_opendp_query"""
+        """Test_opendp_query."""
         enable_logging()
 
         with TestClient(app, headers=self.headers) as client:
@@ -724,7 +724,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # assert response_dict["spent_delta"] > 0
 
     def test_dummy_opendp_query(self) -> None:
-        """test_dummy_opendp_query"""
+        """Test_dummy_opendp_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -751,7 +751,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_opendp_cost(self) -> None:
-        """test_opendp_cost"""
+        """Test_opendp_cost."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -780,7 +780,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             }
 
     def test_get_initial_budget(self) -> None:
-        """test_get_initial_budget"""
+        """Test_get_initial_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -808,7 +808,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_2 == response_dict
 
     def test_get_total_spent_budget(self) -> None:
-        """test_get_total_spent_budget"""
+        """Test_get_total_spent_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -839,7 +839,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_2["total_spent_delta"] >= QUERY_DELTA
 
     def test_get_remaining_budget(self) -> None:
-        """test_get_remaining_budget"""
+        """Test_get_remaining_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -872,7 +872,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_2["remaining_delta"] <= INITIAL_DELTA - QUERY_DELTA
 
     def test_get_previous_queries(self) -> None:
-        """test_get_previous_queries"""
+        """Test_get_previous_queries."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -938,7 +938,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict_3["previous_queries"][1]["response"] == query_res
 
     def test_subsequent_budget_limit_logic(self) -> None:
-        """test_subsequent_budget_limit_logic"""
+        """Test_subsequent_budget_limit_logic."""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
             smartnoise_body = dict(example_smartnoise_sql)

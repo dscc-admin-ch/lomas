@@ -33,3 +33,7 @@ disable = [
     "W1203",  # use lazy % formatting in logging functions
     "duplicate-code"  # duplicate-code
 ]
+
+[tool.pydocstringformatter]
+write = true
+max-line-length = 88

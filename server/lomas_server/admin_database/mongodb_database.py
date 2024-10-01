@@ -17,9 +17,7 @@ from lomas_server.utils.query_models import RequestModel
 
 
 class AdminMongoDatabase(AdminDatabase):
-    """
-    Overall MongoDB database management for server state.
-    """
+    """Overall MongoDB database management for server state."""
 
     def __init__(self, connection_string: str, database_name: str) -> None:
         """Connect to database.
@@ -31,7 +29,7 @@ class AdminMongoDatabase(AdminDatabase):
         self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
-        """Checks if user exist in the database
+        """Checks if user exist in the database.
 
         Args:
             user_name (str): name of the user to check
@@ -43,7 +41,7 @@ class AdminMongoDatabase(AdminDatabase):
         return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
-        """Checks if dataset exist in the database
+        """Checks if dataset exist in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
@@ -118,7 +116,7 @@ class AdminMongoDatabase(AdminDatabase):
 
     @user_must_exist
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
-        """Checks if a user may access a particular dataset
+        """Checks if a user may access a particular dataset.
 
         Wrapped by :py:func:`user_must_exist`.
 
@@ -145,8 +143,7 @@ class AdminMongoDatabase(AdminDatabase):
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """Get the total spent epsilon or delta  by a specific user
-        on a specific dataset
+        """Get total spent epsilon or delta by a user on dataset.
 
         Args:
             user_name (str): name of the user
@@ -177,8 +174,7 @@ class AdminMongoDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """Update the current budget spent by a specific user
-        with the last spent budget.
+        """Update current budget of user with the last spent budget.
 
         Args:
             user_name (str): name of the user
@@ -188,7 +184,6 @@ class AdminMongoDatabase(AdminDatabase):
 
         Raises:
             WriteConcernError: If the result is not acknowledged.
-
         """
         res = self.db.users.update_one(
             {
@@ -201,7 +196,7 @@ class AdminMongoDatabase(AdminDatabase):
 
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
-        """Get dataset field type based on dataset name and key
+        """Get dataset field type based on dataset name and key.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
@@ -221,7 +216,7 @@ class AdminMongoDatabase(AdminDatabase):
         user_name: str,
         dataset_name: str,
     ) -> List[dict]:
-        """Retrieves and return the queries already done by a user
+        """Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -244,8 +239,7 @@ class AdminMongoDatabase(AdminDatabase):
     def save_query(
         self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
-        """Save queries of user on datasets in a separate collection (table)
-        named "queries_archives" in the DB
+        """Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user

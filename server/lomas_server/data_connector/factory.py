@@ -16,7 +16,7 @@ def data_connector_factory(
     private_db_credentials: List[PrivateDBCredentials],
 ) -> DataConnector:
     """
-    Returns the appropriate dataset class based on dataset storage location
+    Returns the appropriate dataset class based on dataset storage location.
 
     Args:
         dataset_name (str): The dataset name.
@@ -71,7 +71,8 @@ def get_dataset_credentials(
     credentials_name: str,
 ) -> PrivateDBCredentials:
     """
-    Search the list of private database credentials and
+    Search the list of private database credentials and.
+
     returns the one that matches the database type and
     credentials name.
 

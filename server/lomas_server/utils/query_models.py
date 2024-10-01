@@ -10,13 +10,13 @@ from pydantic import BaseModel, Field
 
 
 class GetDbData(BaseModel):
-    """Model input to get information about a dataset"""
+    """Model input to get information about a dataset."""
 
     dataset_name: str
 
 
 class GetDummyDataset(BaseModel):
-    """Model input to get a dummy dataset"""
+    """Model input to get a dummy dataset."""
 
     dataset_name: str
     dummy_nb_rows: int = Field(..., gt=0)
@@ -50,9 +50,7 @@ class QueryModel(RequestModel):
 
 
 class DummyQueryModel(QueryModel):
-    """
-    Input model for a query on a dummy dataset.
-    """
+    """Input model for a query on a dummy dataset."""
 
     dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
@@ -61,7 +59,7 @@ class DummyQueryModel(QueryModel):
 # SmartnoiseSQL
 # ----------------------------------------------------------------------------
 class SmartnoiseSQLRequestModel(RequestModel):
-    """Base input model for a smarnoise-sql request"""
+    """Base input model for a smarnoise-sql request."""
 
     query_str: str
     epsilon: float = Field(..., gt=0)
@@ -70,7 +68,7 @@ class SmartnoiseSQLRequestModel(RequestModel):
 
 
 class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
-    """Base input model for a smartnoise-sql query"""
+    """Base input model for a smartnoise-sql query."""
 
     postprocess: bool
 
@@ -82,7 +80,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 # SmartnoiseSynth
 # ----------------------------------------------------------------------------
 class SmartnoiseSynthRequestModel(RequestModel):
-    """Base input model for a SmartnoiseSynth request"""
+    """Base input model for a SmartnoiseSynth request."""
 
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
     epsilon: float = Field(..., gt=0)
@@ -94,7 +92,7 @@ class SmartnoiseSynthRequestModel(RequestModel):
 
 
 class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
-    """Base input model for a smarnoise-synth query"""
+    """Base input model for a smarnoise-synth query."""
 
     return_model: bool
     condition: str
@@ -102,7 +100,7 @@ class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
 
 
 class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel):
-    """Input model for a smarnoise-synth query on a dummy dataset"""
+    """Input model for a smarnoise-synth query on a dummy dataset."""
 
     # Same as normal query.
     return_model: bool
@@ -113,24 +111,24 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 # OpenDP
 # ----------------------------------------------------------------------------
 class OpenDPRequestModel(RequestModel):
-    """Base input model for an opendp request"""
+    """Base input model for an opendp request."""
 
     opendp_json: str
     fixed_delta: Optional[float] = None
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
-    """Base input model for an opendp query"""
+    """Base input model for an opendp query."""
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
-    """Input model for an opendp query on a dummy dataset"""
+    """Input model for an opendp query on a dummy dataset."""
 
 
 # DiffPrivLib
 # ----------------------------------------------------------------------------
 class DiffPrivLibRequestModel(RequestModel):
-    """Base input model for a diffprivlib request"""
+    """Base input model for a diffprivlib request."""
 
     diffprivlib_json: str
     feature_columns: list
@@ -141,11 +139,11 @@ class DiffPrivLibRequestModel(RequestModel):
 
 
 class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
-    """Base input model for a diffprivlib query"""
+    """Base input model for a diffprivlib query."""
 
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
-    """Input model for a DiffPrivLib query on a dummy dataset"""
+    """Input model for a DiffPrivLib query on a dummy dataset."""
 
 
 # Utils

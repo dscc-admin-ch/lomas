@@ -81,7 +81,7 @@ def user_must_have_access_to_dataset(
     func: Callable,
 ) -> Callable:  # type: ignore
     """
-    Decorator function to enforce a user has access to a dataset
+    Decorator function to enforce a user has access to a dataset.
 
     Args:
         func (Callable): Function to be decorated.
@@ -114,16 +114,12 @@ def user_must_have_access_to_dataset(
 
 
 class AdminDatabase(ABC):
-    """
-    Overall database management for server state.
-
-    This is an abstract class.
-    """
+    """Overall database management for server state."""
 
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """
-        Connects to the DB
+        Connects to the DB.
 
         Args:
             **connection_parameters (Dict[str, str]): parameters required
@@ -133,7 +129,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
         """
-        Checks if user exist in the database
+        Checks if user exist in the database.
 
         Args:
             user_name (str): name of the user to check
@@ -145,7 +141,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def does_dataset_exist(self, dataset_name: str) -> bool:
         """
-        Checks if dataset exist in the database
+        Checks if dataset exist in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
@@ -207,7 +203,7 @@ class AdminDatabase(ABC):
     @user_must_exist
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """
-        Checks if a user may access a particular dataset
+        Checks if a user may access a particular dataset.
 
         Wrapped by :py:func:`user_must_exist`.
 
@@ -224,8 +220,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
-        Get the total spent epsilon or delta  by a specific user
-        on a specific dataset
+        Get the total spent epsilon or delta by user on dataset.
 
         Args:
             user_name (str): name of the user
@@ -239,8 +234,7 @@ class AdminDatabase(ABC):
     @user_must_have_access_to_dataset
     def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the total spent epsilon and delta spent by a specific user
-        on a specific dataset (since the initialisation)
+        Get the total spent epsilon and delta spent by user on dataset.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -260,7 +254,7 @@ class AdminDatabase(ABC):
     @user_must_have_access_to_dataset
     def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the initial epsilon and delta budget
+        Get the initial epsilon and delta budget.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -280,7 +274,7 @@ class AdminDatabase(ABC):
     @user_must_have_access_to_dataset
     def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the remaining epsilon and delta budget (initial - total spent)
+        Get the remaining epsilon and delta budget (initial - total spent).
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -305,8 +299,7 @@ class AdminDatabase(ABC):
         spent_value: float,
     ) -> None:
         """
-        Update the current budget spent by a specific user
-        with the last spent budget.
+        Update current budget spent by user with spent budget.
 
         Args:
             user_name (str): name of the user
@@ -319,8 +312,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
-        Update the spent epsilon by a specific user
-        with the total spent epsilon
+        Update spent epsilon by user with total spent epsilon.
 
         Args:
             user_name (str): name of the user
@@ -335,8 +327,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
-        Update the spent delta spent by a specific user
-        with the total spent delta of the user
+        Update spent delta spent by user with spent delta of the user.
 
         Args:
             user_name (str): name of the user
@@ -356,8 +347,7 @@ class AdminDatabase(ABC):
         spent_delta: float,
     ) -> None:
         """
-        Update the current epsilon and delta spent by a specific user
-        with the last spent delta
+        Update current epsilon and delta delta spent by user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -374,7 +364,7 @@ class AdminDatabase(ABC):
     @dataset_must_exist
     def get_dataset_field(self, dataset_name: str, key: str) -> str:
         """
-        Get dataset field type based on dataset name and key
+        Get dataset field type based on dataset name and key.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
@@ -394,7 +384,7 @@ class AdminDatabase(ABC):
         dataset_name: str,
     ) -> List[dict]:
         """
-        Retrieves and return the queries already done by a user
+        Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -410,7 +400,7 @@ class AdminDatabase(ABC):
         self, user_name: str, query_json: RequestModel, response: dict
     ) -> dict:
         """
-        Prepare the query to save in archives
+        Prepare the query to save in archives.
 
         Args:
             user_name (str): name of the user
@@ -439,8 +429,7 @@ class AdminDatabase(ABC):
         self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """
-        Save queries of user on datasets in a separate collection (table)
-        named "queries_archives" in the DB
+        Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user

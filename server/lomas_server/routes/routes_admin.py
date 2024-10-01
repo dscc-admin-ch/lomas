@@ -20,7 +20,8 @@ router = APIRouter()
 
 @router.get("/")
 async def root():
-    """Redirect root endpoint to the state endpoint
+    """Redirect root endpoint to the state endpoint.
+
     Returns:
         JSONResponse: The state of the server instance.
     """

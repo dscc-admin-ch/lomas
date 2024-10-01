@@ -7,7 +7,7 @@ INTERNAL_SERVER_ERROR = (
 
 
 class DPLibraries(StrEnum):
-    """Name of DP Library used in the query"""
+    """Name of DP Library used in the query."""
 
     SMARTNOISE_SQL = "smartnoise_sql"
     SMARTNOISE_SYNTH = "smartnoise_synth"
@@ -17,7 +17,7 @@ class DPLibraries(StrEnum):
 
 # Smartnoise synth
 class SSynthMarginalSynthesizer(StrEnum):
-    """Marginal Synthesizer models for smartnoise synth"""
+    """Marginal Synthesizer models for smartnoise synth."""
 
     AIM = "aim"
     MWEM = "mwem"
@@ -26,7 +26,7 @@ class SSynthMarginalSynthesizer(StrEnum):
 
 
 class SSynthGanSynthesizer(StrEnum):
-    """GAN Synthesizer models for smartnoise synth"""
+    """GAN Synthesizer models for smartnoise synth."""
 
     DP_CTGAN = "dpctgan"
     PATE_CTGAN = "patectgan"

@@ -62,6 +62,7 @@ def add_demo_data_to_mongodb_admin(
 ) -> None:
     """
     Adds the demo data to the mongodb admindb.
+
     Meant to be used in the develop mode of the service.
 
     Args:

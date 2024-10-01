@@ -10,7 +10,7 @@ from lomas_core.logger import LOG
 
 class InvalidQueryException(Exception):
     """
-    Custom exception for invalid queries
+    Custom exception for invalid queries.
 
     For example, this exception will occur when the query:
         - is not an opendp measurement
@@ -18,7 +18,7 @@ class InvalidQueryException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
-        """_summary_
+        """Invalid Query Exception initialisation.
 
         Args:
             error_message (str): _description_
@@ -28,14 +28,14 @@ class InvalidQueryException(Exception):
 
 class ExternalLibraryException(Exception):
     """
-    Custom exception for issues within external libraries
+    Custom exception for issues within external libraries.
 
     This exception will occur when the processes fail within the
     external libraries (smartnoise-sql, opendp, diffprivlib)
     """
 
     def __init__(self, library: str, error_message: str) -> None:
-        """_summary_
+        """External Query Exception initialisation.
 
         Args:
             library (str): _description_
@@ -48,6 +48,7 @@ class ExternalLibraryException(Exception):
 class UnauthorizedAccessException(Exception):
     """
     Custom exception for unauthorized access:
+
     (unknown user, no access to dataset, etc)
     """
 
@@ -56,10 +57,7 @@ class UnauthorizedAccessException(Exception):
 
 
 class InternalServerException(Exception):
-    """
-    Custom exception for issues within server internal functionalities
-    like unexpected match cases
-    """
+    """Custom exception for issues within server internal functionalities."""
 
     def __init__(self, error_message: str) -> None:
         self.error_message = error_message
@@ -78,6 +76,7 @@ KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
 def add_exception_handlers(app: FastAPI) -> None:
     """
     Translates custom exceptions to JSONResponses.
+
     Args:
         app (FastAPI): A fastapi App.
     """

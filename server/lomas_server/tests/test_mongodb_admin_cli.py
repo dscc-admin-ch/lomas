@@ -31,7 +31,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Connection to database"""
+        """Connection to database."""
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
@@ -62,7 +62,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         ]
 
     def tearDown(self) -> None:
-        """Drop all data from database"""
+        """Drop all data from database."""
         self.run_cli_command("drop_collection", ["--collection", "metadata"])
         self.run_cli_command("drop_collection", ["--collection", "datasets"])
         self.run_cli_command("drop_collection", ["--collection", "users"])
@@ -97,7 +97,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             raise ValueError(error_message) from e
 
     def test_add_user_cli(self) -> None:
-        """Test adding a user via cli"""
+        """Test adding a user via cli."""
         user = "Tintin"
 
         # Add user
@@ -122,7 +122,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.run_cli_command("add_user", ["--nope", "willfail"])
 
     def test_add_user_wb_cli(self) -> None:
-        """Test adding a user with a dataset via cli"""
+        """Test adding a user with a dataset via cli."""
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10.0
@@ -168,7 +168,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_del_user_cli(self) -> None:
-        """Test deleting a user via cli"""
+        """Test deleting a user via cli."""
         # Setup: add a user
         user = "Tintin"
         self.run_cli_command("add_user", ["--user", user])
@@ -185,7 +185,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.run_cli_command("del_user", ["--user", user])
 
     def test_add_dataset_to_user_cli(self) -> None:
-        """Test add dataset to a user via cli"""
+        """Test add dataset to a user via cli."""
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10.0
@@ -233,7 +233,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_del_dataset_to_user_cli(self) -> None:
-        """Test delete dataset from user via cli"""
+        """Test delete dataset from user via cli."""
         # Setup: add user with dataset
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
@@ -268,7 +268,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.run_cli_command("del_dataset_to_user", ["-u", user, "-d", dataset])
 
     def test_set_budget_field_cli(self) -> None:
-        """Test setting a budget field via cli"""
+        """Test setting a budget field via cli."""
         # Setup: add user with budget
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
@@ -325,7 +325,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
     def test_set_may_query_cli(self) -> None:
-        """Test set may query via cli"""
+        """Test set may query via cli."""
         # Setup: add user with budget
         user = "Tintin"
         dataset = "PENGUIN"
@@ -364,7 +364,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.run_cli_command("set_may_query", ["-u", user, "-v", "False"])
 
     def test_get_user_cli(self) -> None:
-        """Test show user via CLI
+        """Test show user via CLI.
+
         Does not verify output for not
         """
         user = "Milou"
@@ -372,7 +373,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_user", ["-u", user])
 
     def test_add_users_via_yaml_cli(self) -> None:
-        """Test create user collection via YAML file via cli"""
+        """Test create user collection via YAML file via cli."""
         # Adding two users
         path = "./tests/test_data/test_user_collection.yaml"
         self.run_cli_command("add_users_via_yaml", ["-yf", path])
@@ -397,7 +398,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(user_found, tintin)
 
     def test_get_archives_of_user_cli(self) -> None:
-        """Test show archives of user via CLI
+        """Test show archives of user via CLI.
+
         Does not verify output for not
         """
         user = "Milou"
@@ -405,7 +407,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_archives_of_user", ["-u", user])
 
     def test_get_list_of_users_cli(self) -> None:
-        """Test get list of users via CLI
+        """Test get list of users via CLI.
+
         Does not verify output for not
         """
         self.run_cli_command("get_list_of_users", [])
@@ -415,7 +418,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_list_of_users", [])
 
     def test_get_list_of_datasets_from_user_cli(self) -> None:
-        """Test get list of users via CLI
+        """Test get list of users via CLI.
+
         Does not verify output for not
         """
         user = "Milou"
@@ -429,7 +433,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_list_of_datasets_from_user", ["-u", user])
 
     def test_add_local_dataset_cli(self) -> None:
-        """Test adding a local dataset via cli"""
+        """Test adding a local dataset via cli."""
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
@@ -477,7 +481,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets_via_yaml_cli(self) -> None:
-        """Test add datasets via a YAML file via cli"""
+        """Test add datasets via a YAML file via cli."""
         # Load reference data
         with open(
             "./tests/test_data/test_datasets.yaml",
@@ -519,7 +523,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         verify_datasets()
 
     def test_del_dataset_cli(self) -> None:
-        """Test dataset deletion via cli"""
+        """Test dataset deletion via cli."""
         # Setup: add one dataset
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -557,7 +561,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             self.run_cli_command("del_dataset", ["--dataset", dataset])
 
     def test_get_dataset_cli(self) -> None:
-        """Test show dataset
+        """Test show dataset.
+
         Does not verify output for not
         """
         dataset = "PENGUIN"
@@ -582,7 +587,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_dataset", ["--dataset", dataset])
 
     def test_get_metadata_of_dataset_cli(self) -> None:
-        """Test show metadata_of dataset
+        """Test show metadata_of dataset.
+
         Does not verify output for not
         """
         dataset = "PENGUIN"
@@ -607,7 +613,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_metadata_of_dataset", ["--dataset", dataset])
 
     def test_get_list_of_datasets_cli(self) -> None:
-        """Test get list of datasets via CLI
+        """Test get list of datasets via CLI.
+
         Does not verify output for not
         """
         self.run_cli_command("get_list_of_datasets", [])
@@ -618,7 +625,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.run_cli_command("get_list_of_datasets", [])
 
     def test_drop_collection_cli(self) -> None:
-        """Test drop collection from db via cli"""
+        """Test drop collection from db via cli."""
         # Setup: add one dataset
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -650,7 +657,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(nb_datasets, 0)
 
     def test_get_collection_cli(self) -> None:
-        """Test show collection from db via CLI"""
+        """Test show collection from db via CLI."""
         self.run_cli_command("get_collection", ["-c", "datasets"])
         self.run_cli_command(
             "add_datasets_via_yaml",

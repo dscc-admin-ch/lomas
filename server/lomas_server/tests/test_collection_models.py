@@ -18,7 +18,7 @@ class TestMetadataModel(unittest.TestCase):
     """Tests for the input validation of dataset metadata."""
 
     def test_categories(self) -> None:
-        """test categories validation"""
+        """Test categories validation."""
         input_str = {
             "type": "string",
             "cardinality": 4,
@@ -43,14 +43,14 @@ class TestMetadataModel(unittest.TestCase):
         self.assertIsInstance(int_categorical_metadata, CategoricalColumnMetadata)
 
     def test_categories_required(self) -> None:
-        """test categories required"""
+        """Test categories required."""
         input_str = {"type": "string", "cardinality": 4}
 
         with self.assertRaises(ValueError):
             StrCategoricalMetadata.model_validate(input_str)
 
     def test_categories_match_type(self) -> None:
-        """Test categories match column type"""
+        """Test categories match column type."""
         input_str = {
             "type": "string",
             "cardinality": 4,
@@ -61,14 +61,14 @@ class TestMetadataModel(unittest.TestCase):
             StrCategoricalMetadata.model_validate(input_str)
 
     def test_categories_match_cardinality(self) -> None:
-        """Test categories match cardinality"""
+        """Test categories match cardinality."""
         input_int = {"type": "int", "cardinality": 4, "categories": [1, 2, 3]}
 
         with self.assertRaises(ValueError):
             IntCategoricalMetadata.model_validate(input_int)
 
     def test_boolean_column(self) -> None:
-        """test_boolean_column"""
+        """Test_boolean_column."""
         input_bool = {
             "type": "boolean",
         }
@@ -77,7 +77,7 @@ class TestMetadataModel(unittest.TestCase):
         self.assertIsInstance(metadata, BooleanMetadata)
 
     def test_int_column(self) -> None:
-        "test_int_column"
+        """Test_int_column."""
         input_int = {"type": "int", "precision": 32, "lower": 0, "upper": 10}
 
         metadata = IntMetadata.model_validate(input_int)
@@ -85,7 +85,7 @@ class TestMetadataModel(unittest.TestCase):
         self.assertIsInstance(metadata, BoundedColumnMetadata)
 
     def test_float_column(self) -> None:
-        "test_float_column"
+        """Test_float_column."""
         input_float = {
             "type": "float",
             "precision": 64,
@@ -98,7 +98,7 @@ class TestMetadataModel(unittest.TestCase):
         self.assertIsInstance(metadata, BoundedColumnMetadata)
 
     def test_datetime_column(self) -> None:
-        "test_datetime_column"
+        """Test_datetime_column."""
         input_datetime = {
             "type": "datetime",
             "lower": "2000-01-01",
@@ -118,14 +118,14 @@ class TestMetadataModel(unittest.TestCase):
             DatetimeMetadata.model_validate(input_datetime)
 
     def test_precision(self) -> None:
-        "test precision can only be 32 or 64"
+        """Test precision can only be 32 or 64."""
         input_int = {"type": int, "precision": 20, "lower": 0, "upper": 10}
 
         with self.assertRaises(ValueError):
             IntMetadata.model_validate(input_int)
 
     def test_lower_upper_bounded(self) -> None:
-        """Test lower is smaller than upper and of right type"""
+        """Test lower is smaller than upper and of right type."""
         input_int = {"type": "int", "precision": 32, "lower": 0, "upper": -1}
 
         with self.assertRaises(ValueError):
@@ -136,7 +136,7 @@ class TestMetadataModel(unittest.TestCase):
             IntMetadata.model_validate(input_int)
 
     def test_standard_metadata_fields(self):
-        """Test standard metadata fields"""
+        """Test standard metadata fields."""
         input_metadata = {
             "max_ids": 1,
             "rows": 100,
@@ -162,7 +162,7 @@ class TestMetadataModel(unittest.TestCase):
             Metadata.model_validate(input_metadata)
 
     def test_metadata_columns_discriminator(self) -> None:
-        """Test metadata column discriminator"""
+        """Test metadata column discriminator."""
         input_metadata = {
             "max_ids": 1,
             "rows": 100,

@@ -33,7 +33,7 @@ def raise_error(response: requests.Response) -> str:
 
 
 def validate_synthesizer(synth_name: str, return_model: bool = False):
-    """Validate smartnoise synthesizer (some model are not accepted)
+    """Validate smartnoise synthesizer (some model are not accepted).
 
     Args:
         synth_name (str): name of the Synthesizer model to use.

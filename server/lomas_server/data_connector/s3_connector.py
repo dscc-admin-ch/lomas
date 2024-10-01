@@ -10,16 +10,14 @@ from lomas_server.utils.config import S3CredentialsConfig
 
 
 class S3Connector(DataConnector):
-    """
-    DataConnector for dataset in S3 storage.
-    """
+    """DataConnector for dataset in S3 storage."""
 
     def __init__(
         self,
         metadata: Metadata,
         credentials: S3CredentialsConfig,
     ) -> None:
-        """Initializer. Does not load the dataset yet.
+        """Initializer.
 
         Args:
             metadata (Metadata): The metadata dictionary.
@@ -38,7 +36,7 @@ class S3Connector(DataConnector):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Raises:
             InternalServerException: If the dataset cannot be read.

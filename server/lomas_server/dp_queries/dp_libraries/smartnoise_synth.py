@@ -55,7 +55,8 @@ from lomas_server.utils.query_models import (
 
 
 def datetime_to_float(upper: datetime, lower: datetime) -> float:
-    """Convert the upper date as the distance between the upper date and
+    """Convert the upper date as the distance between the upper date and.
+
     lower date as float
 
     Args:
@@ -84,9 +85,7 @@ SSynthColumnType: TypeAlias = Union[
 class SmartnoiseSynthQuerier(
     DPQuerier[SmartnoiseSynthRequestModel, SmartnoiseSynthQueryModel]
 ):
-    """
-    Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library.
-    """
+    """Concrete implementation of the DPQuerier ABC for the SmartNoiseSynth library."""
 
     def __init__(
         self,
@@ -102,7 +101,7 @@ class SmartnoiseSynthQuerier(
         StrMetadata | StrCategoricalMetadata | BooleanMetadata | IntCategoricalMetadata
     ]:
         """
-        Checks if the column type is categorical
+        Checks if the column type is categorical.
 
         Args:
             col_metadata (ColumnMetadata): The column metadata
@@ -125,7 +124,7 @@ class SmartnoiseSynthQuerier(
     def _is_continuous(
         self, col_metadata: ColumnMetadata
     ) -> TypeGuard[IntMetadata | FloatMetadata]:
-        """Checks if the column type is continuous
+        """Checks if the column type is continuous.
 
         Args:
             col_metadata (ColumnMetadata): The column metadata
@@ -137,7 +136,7 @@ class SmartnoiseSynthQuerier(
         return isinstance(col_metadata, (IntMetadata, FloatMetadata))
 
     def _is_datetime(self, col_metadata: ColumnMetadata) -> TypeGuard[DatetimeMetadata]:
-        """Checks if the column type is datetime
+        """Checks if the column type is datetime.
 
         Args:
             col_metadata (ColumnMetadata): The column metadata
@@ -151,7 +150,8 @@ class SmartnoiseSynthQuerier(
         self, metadata: Metadata, select_cols: List[str]
     ) -> Dict[str, SSynthColumnType]:
         """
-        Ensures the type of the selected columns can be handled with
+        Ensures the type of the selected columns can be handled with.
+
         SmartnoiseSynth and returns the dict of column metadata
         for the selected columns.
 
@@ -188,7 +188,8 @@ class SmartnoiseSynthQuerier(
         table_transformer_style: str,
     ) -> TableTransformer:
         """
-        Get the defaults table transformer constraints based on the metadata
+        Get the defaults table transformer constraints based on the metadata.
+
         See https://docs.smartnoise.org/synth/transforms/index.html for documentation
         See https://github.com/opendp/smartnoise-sdk/blob/main/synth/snsynth/
             transform/type_map.py#L40 for get_transformer() method taken as basis.
@@ -338,7 +339,7 @@ class SmartnoiseSynthQuerier(
         return model
 
     def _model_pipeline(self, query_json: SmartnoiseSynthRequestModel) -> Synthesizer:
-        """Return a trained Synthesizer model based on query_json
+        """Return a trained Synthesizer model based on query_json.
 
         Args:
             query_json (SmartnoiseSynthRequestModel): JSON request object for the query.
@@ -413,7 +414,7 @@ class SmartnoiseSynthQuerier(
         return model
 
     def cost(self, query_json: SmartnoiseSynthRequestModel) -> tuple[float, float]:
-        """Return cost of query_json
+        """Return cost of query_json.
 
         Args:
             query_json (SmartnoiseSynthRequestModel): JSON request object for the query.

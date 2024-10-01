@@ -19,7 +19,7 @@ class PathConnector(DataConnector):
         metadata: Metadata,
         dataset_path: str,
     ) -> None:
-        """Initializer. Does not load the dataset in memory yet.
+        """Initializer.
 
         Args:
             metadata (Metadata): The metadata dictionary.
@@ -30,7 +30,7 @@ class PathConnector(DataConnector):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Raises:
             InternalServerException: If the file format is not supported.

@@ -24,19 +24,17 @@ from lomas_server.utils.query_examples import (
 
 
 def get_model(query_response):
-    """Unpickle model from API response"""
+    """Unpickle model from API response."""
     model = base64.b64decode(query_response)
     model = pickle.loads(model)
     return model
 
 
 class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
-    """
-    Test Smartnoise Synth Endpoints with different Synthesizers
-    """
+    """Test Smartnoise Synth Endpoints with different Synthesizers."""
 
     def test_smartnoise_synth_query(self) -> None:
-        """Test smartnoise synth query"""
+        """Test smartnoise synth query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -76,7 +74,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             }
 
     def test_smartnoise_synth_query_samples(self) -> None:
-        """Test smartnoise synth query return samples"""
+        """Test smartnoise synth query return samples."""
         with TestClient(app, headers=self.headers) as client:
             nb_samples = 100
 
@@ -118,7 +116,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
 
     def test_smartnoise_synth_query_select_cols(self) -> None:
-        """Test smartnoise synth query select_cols"""
+        """Test smartnoise synth query select_cols."""
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
@@ -150,7 +148,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
 
     def test_smartnoise_synth_query_constraints(self) -> None:
-        """Test smartnoise synth query constraints"""
+        """Test smartnoise synth query constraints."""
         with TestClient(app, headers=self.headers) as client:
 
             constraints = {
@@ -194,7 +192,8 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_private_id(self) -> None:
-        """Test smartnoise synth query on other dataset for private id
+        """Test smartnoise synth query on other dataset for private id.
+
         and categorical int columns
         """
         with TestClient(app, headers=self.headers) as client:
@@ -215,7 +214,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == PUMS_COLUMNS
 
     def test_smartnoise_synth_query_delta_none(self) -> None:
-        """Test smartnoise synth query on other synthesizer with delta None"""
+        """Test smartnoise synth query on other synthesizer with delta None."""
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
@@ -236,7 +235,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == PUMS_COLUMNS
 
     def test_dummy_smartnoise_synth_query(self) -> None:
-        """test_dummy_smartnoise_synth_query"""
+        """Test_dummy_smartnoise_synth_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -266,7 +265,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             }
 
     def test_smartnoise_synth_cost(self) -> None:
-        """test_smartnoise_synth_cost"""
+        """Test_smartnoise_synth_cost."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -295,7 +294,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             }
 
     def test_smartnoise_synth_query_datetime(self) -> None:
-        """Test smartnoise synth query on other dataset for datetime columns"""
+        """Test smartnoise synth query on other dataset for datetime columns."""
         with TestClient(app) as client:
 
             # Expect to work
@@ -335,7 +334,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == ["birthday"]
 
     def test_smartnoise_synth_query_aim(self) -> None:
-        """Test smartnoise synth query AIM Synthesizer"""
+        """Test smartnoise synth query AIM Synthesizer."""
         with TestClient(app) as client:
             # Expect to work
             body = dict(example_smartnoise_synth_query)
@@ -358,7 +357,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == body["select_cols"]
 
     def test_smartnoise_synth_query_mwem(self) -> None:
-        """Test smartnoise synth query MWEM Synthesizer"""
+        """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: delta
@@ -404,7 +403,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == ["species", "island"]
 
     def test_smartnoise_synth_query_mst(self) -> None:
-        """Test smartnoise synth query MST Synthesizer"""
+        """Test smartnoise synth query MST Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to work:
@@ -440,7 +439,8 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
 
     def test_smartnoise_synth_query_pacsynth(self) -> None:
-        """Test smartnoise synth query PAC-Synth Synthesizer
+        """Test smartnoise synth query PAC-Synth Synthesizer.
+
         TOO UNSTABLE BECAUSE OF RUST PANIC
         """
         with TestClient(app) as client:
@@ -460,7 +460,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
 
     def test_smartnoise_synth_query_patectgan(self) -> None:
-        """Test smartnoise synth query PATE-CTGAN Synthesizer"""
+        """Test smartnoise synth query PATE-CTGAN Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: epsilon too small
@@ -494,7 +494,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_pategan(self) -> None:
-        """Test smartnoise synth query pategan Synthesizer"""
+        """Test smartnoise synth query pategan Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: penguin dataset is too small
@@ -514,7 +514,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             }
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
-        """Test smartnoise synth query dpgan Synthesizer"""
+        """Test smartnoise synth query dpgan Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: epsilon too small

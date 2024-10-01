@@ -18,7 +18,7 @@ else:
 
 
 class ConfigKeys(StrEnum):
-    """Keys of the configuration file"""
+    """Keys of the configuration file."""
 
     RUNTIME_ARGS: str = "runtime_args"
     SERVER: str = "server"
@@ -35,14 +35,14 @@ class ConfigKeys(StrEnum):
 
 
 class AdminDBType(StrEnum):
-    """Types of administration databases"""
+    """Types of administration databases."""
 
     YAML: str = "yaml"
     MONGODB: str = "mongodb"
 
 
 class TimeAttackMethod(StrEnum):
-    """Possible methods against timing attacks"""
+    """Possible methods against timing attacks."""
 
     JITTER = "jitter"
     STALL = "stall"
@@ -64,7 +64,7 @@ DELTA_LIMIT: float = 0.01
 
 # Private Databases
 class PrivateDatabaseType(StrEnum):
-    """Type of Private Database for the private data"""
+    """Type of Private Database for the private data."""
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
@@ -77,14 +77,14 @@ SSQL_MAX_ITERATION = 5
 
 # Smartnoise synth
 class SSynthTableTransStyle(StrEnum):
-    """Transformer style for smartnoise synth"""
+    """Transformer style for smartnoise synth."""
 
     GAN = "gan"  # for SSynthGanSynthesizer
     CUBE = "cube"  # for SSynthMarginalSynthesizer
 
 
 class SSynthColumnType(StrEnum):
-    """Type of columns for SmartnoiseSynth transformer pre-processing"""
+    """Type of columns for SmartnoiseSynth transformer pre-processing."""
 
     PRIVATE_ID = "private_id"
     CATEGORICAL = "categorical"
@@ -99,7 +99,8 @@ SSYNTH_MIN_ROWS_PATE_GAN = 1000
 
 # OpenDP
 class OpenDPMeasurement(StrEnum):
-    """Type of divergence for opendp measurement
+    """Type of divergence for opendp measurement.
+
     see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
     """
 
@@ -110,7 +111,8 @@ class OpenDPMeasurement(StrEnum):
 
 
 class OpenDPDatasetInputMetric(StrEnum):
-    """Type of opendp input metric for datasets
+    """Type of opendp input metric for datasets.
+
     see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html
     see https://github.com/opendp/opendp/blob/main/rust/src/metrics/mod.rs
     """

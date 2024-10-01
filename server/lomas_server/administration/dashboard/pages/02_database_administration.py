@@ -44,7 +44,7 @@ if "list_datasets" not in st.session_state:
 
 
 def check_user_warning(user: str) -> bool:
-    """Verify if user already present and warning if it is
+    """Verify if user already present and warning if it is.
 
     Args:
         user (str): name of user
@@ -59,7 +59,7 @@ def check_user_warning(user: str) -> bool:
 
 
 def check_dataset_warning(ds: str) -> bool:
-    """Verify if dataset already present and warning if it is
+    """Verify if dataset already present and warning if it is.
 
     Args:
         user (str): name of user
@@ -74,7 +74,7 @@ def check_dataset_warning(ds: str) -> bool:
 
 
 def warning_field_missing() -> None:
-    """Writes warning that some fields are missing"""
+    """Writes warning that some fields are missing."""
     st.warning("Please fill all fields.")
 
 

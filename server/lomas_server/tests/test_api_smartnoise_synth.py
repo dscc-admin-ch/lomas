@@ -1,10 +1,13 @@
-import base64
 import json
-import pickle
 
-import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
+from lomas_core.models.responses import (
+    CostResponse,
+    QueryResponse,
+    SmartnoiseSynthModel,
+    SmartnoiseSynthSamples,
+)
 from smartnoise_synth_logger import serialise_constraints
 from snsynth.transform import (
     ChainTransformer,
@@ -23,11 +26,18 @@ from lomas_server.utils.query_examples import (
 )
 
 
-def get_model(query_response):
-    """Unpickle model from API response."""
-    model = base64.b64decode(query_response)
-    model = pickle.loads(model)
-    return model
+def validate_response(response) -> QueryResponse:
+    """Validate that the pipeline ran successfully.
+
+    Returns a model and a score.
+    """
+    assert response.status_code == status.HTTP_200_OK
+    response_dict = json.loads(response.content.decode("utf8"))
+
+    r_model = QueryResponse.model_validate(response_dict)
+    assert isinstance(r_model.result, SmartnoiseSynthModel | SmartnoiseSynthSamples)
+
+    return r_model
 
 
 class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
@@ -44,12 +54,14 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["spent_epsilon"] >= 0.1
-            assert response_dict["spent_delta"] >= 1e-05
+            r_model = validate_response(response)
 
-            model = get_model(response_dict["query_response"])
+            assert r_model.requested_by == self.user_name
+            assert r_model.epsilon >= 0.1
+            assert r_model.delta >= 1e-05
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             assert model.__class__.__name__ == "DPCTGAN"
 
             df = model.sample(10)
@@ -88,12 +100,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-
-            df_0 = pd.DataFrame(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df_0 = r_model.result.df_samples
             assert df_0.shape[0] == nb_samples
             assert list(df_0.columns) == PENGUIN_COLUMNS
 
@@ -104,12 +115,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-
-            df_1 = pd.DataFrame(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df_1 = r_model.result.df_samples
             assert df_1.shape[0] == nb_samples
             assert list(df_1.columns) == PENGUIN_COLUMNS
 
@@ -127,10 +137,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
@@ -184,10 +195,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
@@ -206,10 +218,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PUMS_COLUMNS
 
@@ -227,10 +240,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PUMS_COLUMNS
 
@@ -243,11 +257,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_dummy_smartnoise_synth_query,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = base64.b64decode(response_dict["query_response"])
-            model = pickle.loads(model)
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             assert model.__class__.__name__ == "DPCTGAN"
 
             # Expect to fail: user does have access to dataset
@@ -276,8 +290,9 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] >= 0.1
-            assert response_dict["delta_cost"] >= 1e-5
+            r_model = CostResponse.model_validate(response_dict)
+            assert r_model.epsilon >= 0.1
+            assert r_model.delta >= 1e-5
 
             # Expect to fail: user does have access to dataset
             body = dict(example_smartnoise_synth_cost)
@@ -310,10 +325,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=new_headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == new_headers["user-name"]
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
 
@@ -326,10 +342,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=new_headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == new_headers["user-name"]
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
 
@@ -349,10 +366,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == body["select_cols"]
 
@@ -385,8 +403,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
@@ -397,8 +418,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
@@ -419,9 +443,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
 
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            df = pd.DataFrame(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df = r_model.result.df_samples
             assert df.shape[0] == body["nb_samples"]
             assert list(df.columns) == body["select_cols"]
 
@@ -487,9 +513,11 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
@@ -541,8 +569,10 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS

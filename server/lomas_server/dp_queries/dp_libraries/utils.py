@@ -1,7 +1,3 @@
-import pickle
-from base64 import b64encode
-from typing import Any
-
 import numpy as np
 import pandas as pd
 from lomas_core.error_handler import InvalidQueryException
@@ -66,17 +62,3 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
     df = df.astype(dtype=dtypes)
     return df
-
-
-def serialise_model(model: Any) -> str:
-    """
-    Serialise a python object into an utf-8 string.
-
-    Args:
-        model (Any): An object to serialise
-
-    Returns:
-        str: string of serialised model
-    """
-    serialised = b64encode(pickle.dumps(model))
-    return serialised.decode("utf-8")

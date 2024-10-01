@@ -12,6 +12,7 @@ from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
 )
+from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
@@ -22,7 +23,9 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
 class SmartnoiseSQLQuerier(
-    DPQuerier[SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel]
+    DPQuerier[
+        SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel, SmartnoiseSQLQueryResult
+    ]
 ):
     """Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library."""
 
@@ -70,7 +73,7 @@ class SmartnoiseSQLQuerier(
 
         return epsilon, delta
 
-    def query(self, query_json: SmartnoiseSQLQueryModel) -> dict:
+    def query(self, query_json: SmartnoiseSQLQueryModel) -> SmartnoiseSQLQueryResult:
         """Performs the query and returns the response.
 
         Args:
@@ -83,7 +86,7 @@ class SmartnoiseSQLQuerier(
 
     def query_with_iter(
         self, query_json: SmartnoiseSQLQueryModel, nb_iter: int = 0
-    ) -> dict:
+    ) -> SmartnoiseSQLQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -98,7 +101,8 @@ class SmartnoiseSQLQuerier(
                 perform the query.
 
         Returns:
-            dict: The dictionary encoding of the resulting pd.DataFrame.
+            SmartnoiseSQLQueryResult:
+                The dictionary encoding of the resulting pd.DataFrame.
         """
         epsilon, delta = query_json.epsilon, query_json.delta
 
@@ -143,8 +147,7 @@ class SmartnoiseSQLQuerier(
                 f"Epsilon: {epsilon} and Delta: {delta} are too small "
                 "to generate output.",
             )
-
-        return df_res.to_dict(orient="tight")
+        return SmartnoiseSQLQueryResult(df=df_res)
 
 
 def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:

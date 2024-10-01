@@ -7,6 +7,7 @@ from lomas_core.error_handler import (
 )
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.requests import RequestModel
+from lomas_core.models.responses import QueryResponse
 
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
@@ -239,16 +240,16 @@ class AdminYamlDatabase(AdminDatabase):
         return previous_queries
 
     def save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: RequestModel, response: QueryResponse
     ) -> None:
         """Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query_json (RequestModel): request received from client
-            response (dict): response sent to the client
+            query (RequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
         """
-        to_archive = super().prepare_save_query(user_name, query_json, response)
+        to_archive = super().prepare_save_query(user_name, query, response)
         self.database["queries"].append(to_archive)
 
     def save_current_database(self) -> None:

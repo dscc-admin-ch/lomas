@@ -5,7 +5,6 @@ from typing import Dict, List, Optional, Type, Union
 
 import opendp as dp
 import pandas as pd
-from pydantic import BaseModel
 import requests
 from diffprivlib_logger import serialise_pipeline
 from fastapi import status
@@ -16,6 +15,7 @@ from lomas_core.models.requests import (
     DiffPrivLibRequestModel,
     GetDsData,
     GetDummyDataset,
+    LomasRequestModel,
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -24,10 +24,11 @@ from lomas_core.models.requests import (
     SmartnoiseSQLRequestModel,
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
-    SmartnoiseSynthRequestModel
+    SmartnoiseSynthRequestModel,
 )
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
+from pydantic import BaseModel
 from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
@@ -40,7 +41,12 @@ from lomas_client.constants import (
     SMARTNOISE_SYNTH_READ_TIMEOUT,
     SNSYNTH_DEFAULT_SAMPLES_NB,
 )
-from lomas_client.utils import InternalClientException, raise_error, validate_synthesizer
+from lomas_client.utils import (
+    InternalClientException,
+    raise_error,
+    validate_synthesizer,
+)
+from lomas_core.models.responses import CostResponse, DummyDsResponse, QueryResponse
 
 # Opendp_logger
 enable_logging()
@@ -52,10 +58,6 @@ class Client:
 
     Handle all serialisation and deserialisation steps
     """
-    opendp = ...
-    diffprivlib = ...
-
-    client.opendp.estimate_cost()
 
     def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
         """Initializes the Client with the specified URL, user name, and dataset name.
@@ -79,7 +81,9 @@ class Client:
             Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
                 A dictionary containing dataset metadata.
         """
-        res = self._exec("get_dataset_metadata", {"dataset_name": self.dataset_name}, GetDsData)
+        res = self._exec(
+            "get_dataset_metadata", {"dataset_name": self.dataset_name}, GetDsData
+        )
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -114,17 +118,13 @@ class Client:
                 "dummy_nb_rows": nb_rows,
                 "dummy_seed": seed,
             },
-            GetDummyDataset
+            GetDummyDataset,
         )
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
-            response = json.loads(data)
-            dummy_df = pd.DataFrame(response["dummy_dict"])
-            dummy_df = dummy_df.astype(response["dtypes"])
-            for col in response["datetime_columns"]:
-                dummy_df[col] = pd.to_datetime(dummy_df[col])
-            return dummy_df
+            res_model = DummyDsResponse.model_validate(data)
+            return res_model.dummy_df
 
         raise_error(res)
         return None
@@ -139,7 +139,7 @@ class Client:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[dict]:
+    ) -> Optional[QueryResponse]:
         """This function executes a SmartNoise SQL query.
 
         Args:
@@ -170,7 +170,7 @@ class Client:
         Returns:
             Optional[dict]: A Pandas DataFrame containing the query results.
         """
-        body_json = {
+        body_dict = {
             "query_str": query,
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
@@ -182,22 +182,20 @@ class Client:
         request_model: Type[SmartnoiseSQLRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_sql_query"
-            body_json["dummy_nb_rows"] = nb_rows
-            body_json["dummy_seed"] = seed
+            body_dict["dummy_nb_rows"] = nb_rows
+            body_dict["dummy_seed"] = seed
             request_model = SmartnoiseSQLDummyQueryModel
         else:
             endpoint = "smartnoise_sql_query"
             request_model = SmartnoiseSQLQueryModel
 
-        res = self._exec(endpoint, body_json, request_model)
+        body = request_model.model_validate(body_dict)
+        res = self._exec(endpoint, body, request_model)
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
-            response_dict = json.loads(data)
-            response_dict["query_response"] = pd.DataFrame.from_dict(
-                response_dict["query_response"], orient="tight"
-            )
-            return response_dict
+            r_model = QueryResponse.model_validate(data)
+            return r_model
 
         raise_error(res)
         return None
@@ -208,7 +206,7 @@ class Client:
         epsilon: float,
         delta: float,
         mechanisms: dict[str, str] = {},
-    ) -> Optional[dict[str, float]]:
+    ) -> Optional[CostResponse]:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -224,17 +222,22 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        body_json = {
+        body_dict = {
             "query_str": query,
             "dataset_name": self.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        res = self._exec("estimate_smartnoise_sql_cost", body_json, SmartnoiseSQLRequestModel)
+        body = SmartnoiseSQLRequestModel.model_validate(body_dict)
+        res = self._exec(
+            "estimate_smartnoise_sql_cost", body.model_dump()
+        )
 
         if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
+            data = res.content.decode("utf8")
+            return CostResponse.model_validate(data)
+        
         raise_error(res)
         return None
 
@@ -336,7 +339,10 @@ class Client:
             request_model = SmartnoiseSynthQueryModel
 
         res = self._exec(
-            endpoint, body_json, request_model, read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT
+            endpoint,
+            body_json,
+            request_model,
+            read_timeout=SMARTNOISE_SYNTH_READ_TIMEOUT,
         )
 
         if res.status_code == status.HTTP_200_OK:
@@ -582,7 +588,9 @@ class Client:
             endpoint = "diffprivlib_query"
             request_model = DiffPrivLibQueryModel
 
-        res = self._exec(endpoint, body_json, request_model, read_timeout=DIFFPRIVLIB_READ_TIMEOUT)
+        res = self._exec(
+            endpoint, body_json, request_model, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
+        )
         if res.status_code == status.HTTP_200_OK:
             response = res.json()
             model = base64.b64decode(response["query_response"]["model"])
@@ -764,12 +772,11 @@ class Client:
 
         raise_error(res)
         return None
-    
+
     def _exec(
         self,
         endpoint: str,
-        body_json: dict = {},
-        request_model: Type[BaseModel] | None = None,
+        body: LomasRequestModel = {},
         read_timeout: int = DEFAULT_READ_TIMEOUT,
     ) -> requests.Response:
         """Executes a POST request to endpoint with the provided JSON body.
@@ -786,22 +793,14 @@ class Client:
 
         Raises:
             InternalClientException: If there is data in body_json but no request model.
-            InternalClientException: If there is a validation error. 
+            InternalClientException: If there is a validation error.
 
         Returns:
             requests.Response: The response object resulting from the POST request.
         """
-        if body_json is not {}:
-            if request_model is None:
-                raise InternalClientException("Internal exception: No model for request body validation.")
-            try:
-                request_model.model_validate(body_json)
-            except ValueError as e:
-                raise InternalClientException(f"Internal exception: value error while validating request body. {str(e)}") from e
-
         r = requests.post(
             self.url + "/" + endpoint,
-            json=body_json,
+            json=body.model_dump(),
             headers=self.headers,
             timeout=(CONNECT_TIMEOUT, read_timeout),
         )

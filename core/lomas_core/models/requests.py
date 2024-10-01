@@ -10,13 +10,18 @@ from lomas_core.constants import (
 from lomas_core.error_handler import InternalServerException
 
 
-class GetDbData(BaseModel):
+class LomasRequestModel(BaseModel):
+    """Base class for all types of requests to the lomas server."""
+    pass
+
+
+class GetDsData(LomasRequestModel):
     """Model input to get information about a dataset."""
 
     dataset_name: str
 
 
-class GetDummyDataset(BaseModel):
+class GetDummyDataset(LomasRequestModel):
     """Model input to get a dummy dataset."""
 
     dataset_name: str
@@ -24,7 +29,7 @@ class GetDummyDataset(BaseModel):
     dummy_seed: int
 
 
-class RequestModel(BaseModel):
+class RequestModel(LomasRequestModel):
     """
     Base input model for any request on a dataset.
 

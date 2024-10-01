@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Optional
+from typing import Optional
 
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
@@ -13,6 +13,7 @@ from lomas_core.models.requests import (
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
 )
+from lomas_core.models.responses import DiffPrivLibQueryResult
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
@@ -20,12 +21,13 @@ from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
     handle_missing_data,
-    serialise_model,
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel]):
+class DiffPrivLibQuerier(
+    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]
+):
     """Concrete implementation of the DPQuerier ABC for the DiffPrivLib library."""
 
     def __init__(
@@ -111,7 +113,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
     def query(
         self,
         query_json: DiffPrivLibQueryModel,  # pylint: disable=unused-argument
-    ) -> Dict:
+    ) -> DiffPrivLibQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -135,11 +137,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         score = self.dpl_pipeline.score(self.x_test, self.y_test)
 
         # Serialise model
-        query_response = {
-            "score": score,
-            "model": serialise_model(self.dpl_pipeline),
-        }
-        return query_response
+        return DiffPrivLibQueryResult(score=score, model=self.dpl_pipeline)
 
 
 def split_train_test_data(

@@ -10,9 +10,11 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 
+
 class InternalClientException(Exception):
     """
-    Custom exception for issues within client internal functionalities
+    Custom exception for issues within client internal functionalities.
+
     like unexpected match cases.
     """
 
@@ -33,7 +35,9 @@ def raise_error(response: requests.Response) -> str:
     if response.status_code == status.HTTP_400_BAD_REQUEST:
         raise InvalidQueryException(error_message["InvalidQueryException"])
     if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-        raise ExternalLibraryException(error_message["ExternalLibraryException"])
+        raise ExternalLibraryException(
+            error_message["library"], error_message["ExternalLibraryException"]
+        )
     if response.status_code == status.HTTP_403_FORBIDDEN:
         raise UnauthorizedAccessException(error_message["UnauthorizedAccessException"])
     if response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:

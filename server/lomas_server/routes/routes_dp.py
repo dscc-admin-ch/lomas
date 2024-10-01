@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
-from fastapi.responses import JSONResponse
 from lomas_core.constants import DPLibraries
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
@@ -15,6 +14,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
+from lomas_core.models.responses import CostResponse, QueryResponse
 
 from lomas_server.routes.utils import (
     handle_cost_query,
@@ -47,7 +47,7 @@ def smartnoise_sql_handler(
     request: Request,
     query_json: SmartnoiseSQLQueryModel = Body(example_smartnoise_sql),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -105,7 +105,7 @@ def dummy_smartnoise_sql_handler(
     request: Request,
     query_json: SmartnoiseSQLDummyQueryModel = Body(example_dummy_smartnoise_sql),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
@@ -156,7 +156,7 @@ def estimate_smartnoise_sql_cost(
     request: Request,
     query_json: SmartnoiseSQLRequestModel = Body(example_smartnoise_sql_cost),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> CostResponse:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
@@ -198,7 +198,7 @@ def smartnoise_synth_handler(
     request: Request,
     query_json: SmartnoiseSynthQueryModel = Body(example_smartnoise_synth_query),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries for the SmartNoise Synth library.
 
@@ -260,7 +260,7 @@ def dummy_smartnoise_synth_handler(
         example_dummy_smartnoise_synth_query
     ),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries for the SmartNoise Synth library.
 
@@ -325,7 +325,7 @@ def estimate_smartnoise_synth_cost(
     request: Request,
     query_json: SmartnoiseSynthRequestModel = Body(example_smartnoise_synth_cost),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> CostResponse:
     """
     Handles queries for the SmartNoise Synth library.
 
@@ -378,7 +378,7 @@ def opendp_query_handler(
     request: Request,
     query_json: OpenDPQueryModel = Body(example_opendp),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries for the OpenDP Library.
 
@@ -417,10 +417,9 @@ def opendp_query_handler(
             - spent_delta (float): The amount of delta budget spent
               for the query.
     """
-    response = handle_query_on_private_dataset(
+    return handle_query_on_private_dataset(
         request, query_json, user_name, DPLibraries.OPENDP
     )
-    return JSONResponse(content=response)
 
 
 @router.post(
@@ -432,7 +431,7 @@ def dummy_opendp_query_handler(
     request: Request,
     query_json: OpenDPDummyQueryModel = Body(example_dummy_opendp),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> QueryResponse:
     """
     Handles queries on dummy datasets for the OpenDP library.
 
@@ -480,7 +479,7 @@ def estimate_opendp_cost(
     request: Request,
     query_json: OpenDPRequestModel = Body(example_opendp),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> CostResponse:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
 
@@ -569,7 +568,7 @@ def dummy_diffprivlib_query_handler(
     request: Request,
     query_json: DiffPrivLibDummyQueryModel = Body(example_dummy_diffprivlib),
     user_name: str = Header(None),
-):
+) -> QueryResponse:
     """
     Handles queries on dummy datasets for the DiffPrivLib library.
 
@@ -615,7 +614,7 @@ def estimate_diffprivlib_cost(
     request: Request,
     query_json: DiffPrivLibRequestModel = Body(example_diffprivlib),
     user_name: str = Header(None),
-):
+) -> CostResponse:
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.
 

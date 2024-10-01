@@ -10,6 +10,11 @@ from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from fastapi.testclient import TestClient
 from lomas_core.constants import DPLibraries
+from lomas_core.models.responses import (
+    CostResponse,
+    DiffPrivLibQueryResult,
+    QueryResponse,
+)
 from sklearn.pipeline import Pipeline
 
 from lomas_server.app import app
@@ -20,7 +25,7 @@ from lomas_server.utils.query_examples import (
 )
 
 
-def validate_pipeline(response):
+def validate_pipeline(response) -> QueryResponse:
     """Validate that the pipeline ran successfully.
 
     Returns a model and a score.
@@ -28,8 +33,10 @@ def validate_pipeline(response):
     assert response.status_code == status.HTTP_200_OK
     response_dict = json.loads(response.content.decode("utf8"))
 
-    assert "score" in response_dict["query_response"]  # might be 0
-    assert response_dict["query_response"]["model"]
+    r_model = QueryResponse.model_validate(response_dict)
+    assert isinstance(r_model.result, DiffPrivLibQueryResult)
+
+    return r_model
 
 
 class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
@@ -44,14 +51,13 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"]["score"] >= 0
-            assert response_dict["query_response"]["model"]
-            assert response_dict["spent_epsilon"] > 0
-            assert response_dict["spent_delta"] == 0
+            r_model = validate_pipeline(response)
+            assert isinstance(r_model.result, DiffPrivLibQueryResult)
+            assert r_model.requested_by == self.user_name
+            assert r_model.result.score >= 0
+            assert r_model.epsilon > 0
+            assert r_model.delta == 0
 
             # # Should work for different imputation strategy (but does not yet #255)
             def test_imputation(diffprivlib_body, imputer_strategy):
@@ -65,7 +71,6 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 return response
 
             response = test_imputation(example_diffprivlib, "mean")
-            response_dict = json.loads(response.content.decode("utf8"))
             assert response.status_code == status.HTTP_200_OK
 
             response = test_imputation(example_diffprivlib, "median")
@@ -326,9 +331,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["score"] > 0
-            assert response_dict["query_response"]["model"]
+            r_model = validate_pipeline(response)
+            assert isinstance(r_model.result, DiffPrivLibQueryResult)
+            assert r_model.result.score > 0
 
             # Expect to fail: user does have access to dataset
             body = dict(example_dummy_diffprivlib)
@@ -356,8 +361,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] == 1.5
-            assert response_dict["delta_cost"] == 0
+            r_model = CostResponse.model_validate(response_dict)
+            assert r_model.epsilon == 1.5
+            assert r_model.delta == 0
 
             # Expect to fail: user does have access to dataset
             body = dict(example_diffprivlib)

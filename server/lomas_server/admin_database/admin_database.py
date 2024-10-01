@@ -114,11 +114,7 @@ def user_must_have_access_to_dataset(
 
 
 class AdminDatabase(ABC):
-    """
-    Overall database management for server state.
-
-    This is an abstract class.
-    """
+    """Overall database management for server state."""
 
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
@@ -224,9 +220,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
         """
-        Get the total spent epsilon or delta  by a specific user.
-
-        on a specific dataset
+        Get the total spent epsilon or delta by user on dataset.
 
         Args:
             user_name (str): name of the user
@@ -240,9 +234,7 @@ class AdminDatabase(ABC):
     @user_must_have_access_to_dataset
     def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the total spent epsilon and delta spent by a specific user.
-
-        on a specific dataset (since the initialisation)
+        Get the total spent epsilon and delta spent by user on dataset.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -307,9 +299,7 @@ class AdminDatabase(ABC):
         spent_value: float,
     ) -> None:
         """
-        Update the current budget spent by a specific user.
-
-        with the last spent budget.
+        Update current budget spent by user with spent budget.
 
         Args:
             user_name (str): name of the user
@@ -322,9 +312,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
-        Update the spent epsilon by a specific user.
-
-        with the total spent epsilon
+        Update spent epsilon by user with total spent epsilon.
 
         Args:
             user_name (str): name of the user
@@ -339,9 +327,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
-        Update the spent delta spent by a specific user.
-
-        with the total spent delta of the user
+        Update spent delta spent by user with spent delta of the user.
 
         Args:
             user_name (str): name of the user
@@ -361,9 +347,7 @@ class AdminDatabase(ABC):
         spent_delta: float,
     ) -> None:
         """
-        Update the current epsilon and delta spent by a specific user.
-
-        with the last spent delta
+        Update current epsilon and delta delta spent by user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -446,8 +430,6 @@ class AdminDatabase(ABC):
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
-
-        named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user

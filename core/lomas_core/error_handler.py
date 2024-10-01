@@ -18,7 +18,7 @@ class InvalidQueryException(Exception):
     """
 
     def __init__(self, error_message: str) -> None:
-        """_summary_.
+        """Invalid Query Exception initialisation.
 
         Args:
             error_message (str): _description_
@@ -35,7 +35,7 @@ class ExternalLibraryException(Exception):
     """
 
     def __init__(self, library: str, error_message: str) -> None:
-        """_summary_.
+        """External Query Exception initialisation.
 
         Args:
             library (str): _description_
@@ -57,11 +57,7 @@ class UnauthorizedAccessException(Exception):
 
 
 class InternalServerException(Exception):
-    """
-    Custom exception for issues within server internal functionalities.
-
-    like unexpected match cases
-    """
+    """Custom exception for issues within server internal functionalities."""
 
     def __init__(self, error_message: str) -> None:
         self.error_message = error_message

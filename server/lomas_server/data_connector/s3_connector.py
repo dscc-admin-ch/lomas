@@ -19,8 +19,6 @@ class S3Connector(DataConnector):
     ) -> None:
         """Initializer.
 
-        Does not load the dataset yet.
-
         Args:
             metadata (Metadata): The metadata dictionary.
             s3_parameters (dict): informations to access metadata

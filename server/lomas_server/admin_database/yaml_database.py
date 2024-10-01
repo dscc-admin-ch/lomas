@@ -156,9 +156,7 @@ class AdminYamlDatabase(AdminDatabase):
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """Get the total spent epsilon or delta  by a specific user.
-
-        on a specific dataset
+        """Get total spent epsilon or delta by user on dataset.
 
         Args:
             user_name (str): name of the user
@@ -182,9 +180,7 @@ class AdminYamlDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """Update the current budget spent by a specific user.
-
-        with the last spent budget.
+        """Update current budget spent by user with the last spent budget.
 
         Args:
             user_name (str): name of the user
@@ -248,8 +244,6 @@ class AdminYamlDatabase(AdminDatabase):
     ) -> None:
         """Save queries of user on datasets in a separate collection (table).
 
-        named "queries_archives" in the DB
-
         Args:
             user_name (str): name of the user
             query_json (RequestModel): request received from client
@@ -259,11 +253,7 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["queries"].append(to_archive)
 
     def save_current_database(self) -> None:
-        """Saves the current database with updated parameters in new yaml.
-
-        with the date and hour in the path
-        Might be useful to verify state of DB during development
-        """
+        """Saves the current database with updated parameters in new yaml."""
         new_path = self.path.replace(
             ".yaml", f'_{datetime.now().strftime("%m_%d_%Y__%H_%M")}.yaml'
         )

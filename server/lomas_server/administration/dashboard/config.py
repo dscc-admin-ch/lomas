@@ -41,7 +41,7 @@ class ConfigLoader:
         """
         Loads the config and the secret data from disk,.
 
-        merges them and returns the config object.
+        Merges them and returns the config object.
 
         Args:
             config_path (str, optional):

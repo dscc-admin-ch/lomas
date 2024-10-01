@@ -70,9 +70,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
 def serialise_model(model: Any) -> str:
     """
-    Serialise a python object (fitted Smartnoise Synth synthesizer of.
-
-    fitted DiffPrivLib pipeline) into an utf-8 string
+    Serialise a python object into an utf-8 string.
 
     Args:
         model (Any): An object to serialise

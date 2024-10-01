@@ -21,8 +21,6 @@ class PathConnector(DataConnector):
     ) -> None:
         """Initializer.
 
-        Does not load the dataset in memory yet.
-
         Args:
             metadata (Metadata): The metadata dictionary.
             dataset_path (str): path of the dataset (local or remote).

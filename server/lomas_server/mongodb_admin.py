@@ -23,10 +23,9 @@ from lomas_server.utils.collection_models import (
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError if the supplied.
+    """Raises a ValueError if the user does (not) exist in the user collection.
 
-    user does (not) exist in the user collection depending on the
-    enforce_true parameter.
+    Depending on the enforce_true parameter.
 
     Args:
         enforce_true (bool): If set to True, the wrapper will enforce
@@ -61,10 +60,9 @@ def check_user_exists(enforce_true: bool) -> Callable:
 
 
 def check_user_has_dataset(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError if the supplied.
+    """Raises a ValueError if the user has access (or not) to the supplied dataset.
 
-    user has access (or not) to the supplied dataset depending on the
-    enforce_true parameter.
+    Depending on the enforce_true parameter.
 
     Args:
         enforce_true (bool): If set to true, the wrapper function will
@@ -106,10 +104,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
 
 def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
-    """Creates a wrapper function that raises a ValueError.
-
-    if the supplied user does not already exist in the user collection.
-    """
+    """Rises a ValueError if the user does not already exist in the user collection."""
 
     def inner_func(
         function: Callable[[Database, argparse.Namespace], None]
@@ -153,9 +148,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 ##########################  USERS  ########################## # noqa: E266
 @check_user_exists(False)
 def add_user(db: Database, user: str) -> None:
-    """Add new user in users collection with initial values for all fields.
-
-    set by default.
+    """Add new user in users collection with default values for all fields.
 
     Args:
         db (Database): mongo database object
@@ -186,9 +179,7 @@ def add_user(db: Database, user: str) -> None:
 def add_user_with_budget(
     db: Database, user: str, dataset: str, epsilon: float, delta: float
 ) -> None:
-    """Add new user in users collection with initial values.
-
-    for all fields set by default.
+    """Add new user in users collection with default values for all fields.
 
     Args:
         db (Database): mongo database object
@@ -249,9 +240,9 @@ def del_user(db: Database, user: str) -> None:
 def add_dataset_to_user(
     db: Database, user: str, dataset: str, epsilon: float, delta: float
 ) -> None:
-    """Add dataset with initialized budget values to list of datasets.
+    """Add dataset to user with initialized budget values.
 
-    that the user has access to.
+    Adds to list of datasets, that the user has access to.
     Will not add if already added (no error will be raised in that case).
 
     Args:
@@ -298,9 +289,7 @@ def add_dataset_to_user(
 @check_user_exists(True)
 @check_user_has_dataset(True)
 def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
-    """Remove if exists the dataset (and all related budget info).
-
-    from list of datasets that user has access to.
+    """Remove access from user to dataset(and all related budget info).
 
     Args:
         db (Database): mongo database object
@@ -327,7 +316,7 @@ def set_budget_field(
 ) -> None:
     """Set (for some reason) a budget field to a given value.
 
-    if given user exists and has access to given dataset.
+    (Only) If given user exists and has access to given dataset.
 
     Args:
         db (Database): mongo database object
@@ -356,7 +345,7 @@ def set_budget_field(
 def set_may_query(db: Database, user: str, value: bool) -> None:
     """Set (for some reason) the 'may query' field to a given value.
 
-    if given user exists.
+    (Only) if given user exists.
 
     Args:
         db (Database): mongo database object

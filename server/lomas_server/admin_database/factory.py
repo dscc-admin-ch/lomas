@@ -8,9 +8,7 @@ from lomas_server.utils.config import DBConfig, MongoDBConfig, YamlDBConfig
 
 
 def admin_database_factory(config: DBConfig) -> AdminDatabase:
-    """Instantiates and returns the correct database type described in the.
-
-    provided config.
+    """Instantiates and returns database type described in config.
 
     Args:
         config (DBConfig): An instance of DBconfig.

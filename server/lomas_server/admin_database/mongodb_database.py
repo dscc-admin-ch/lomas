@@ -143,9 +143,7 @@ class AdminMongoDatabase(AdminDatabase):
     def get_epsilon_or_delta(
         self, user_name: str, dataset_name: str, parameter: str
     ) -> float:
-        """Get the total spent epsilon or delta  by a specific user.
-
-        on a specific dataset
+        """Get total spent epsilon or delta by a user on dataset.
 
         Args:
             user_name (str): name of the user
@@ -176,9 +174,7 @@ class AdminMongoDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """Update the current budget spent by a specific user.
-
-        with the last spent budget.
+        """Update current budget of user with the last spent budget.
 
         Args:
             user_name (str): name of the user
@@ -244,8 +240,6 @@ class AdminMongoDatabase(AdminDatabase):
         self, user_name: str, query_json: RequestModel, response: dict
     ) -> None:
         """Save queries of user on datasets in a separate collection (table).
-
-        named "queries_archives" in the DB
 
         Args:
             user_name (str): name of the user

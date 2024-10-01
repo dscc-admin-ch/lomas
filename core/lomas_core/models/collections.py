@@ -7,8 +7,8 @@ from lomas_core.models.constants import (
     CARDINALITY_FIELD,
     CATEGORICAL_TYPE_PREFIX,
     DB_TYPE_FIELD,
-    METADATA_COLUMN_TYPE,
     TYPE_FIELD,
+    MetadataColumnType,
     Precision,
     PrivateDatabaseType,
 )
@@ -101,7 +101,8 @@ class ColumnMetadata(BaseModel):
 
     private_id: bool = False
     nullable: bool = False
-    # TODO create validator and test these, see issue #323
+    # See issue #323 for checking this and validating.
+
     max_partition_length: Optional[Annotated[int, Field(gt=0)]] = None
     max_influenced_partitions: Optional[Annotated[int, Field(gt=0)]] = None
     max_partition_contributions: Optional[Annotated[int, Field(gt=0)]] = None
@@ -110,7 +111,7 @@ class ColumnMetadata(BaseModel):
 class StrMetadata(ColumnMetadata):
     """Model for string metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.STRING]
+    type: Literal[MetadataColumnType.STRING]
 
 
 class CategoricalColumnMetadata(ColumnMetadata):
@@ -127,7 +128,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
 class StrCategoricalMetadata(CategoricalColumnMetadata):
     """Model for categorical string metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.STRING]
+    type: Literal[MetadataColumnType.STRING]
     cardinality: int
     categories: List[str]
 
@@ -151,7 +152,7 @@ class BoundedColumnMetadata(ColumnMetadata):
 class IntMetadata(BoundedColumnMetadata):
     """Model for integer column metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.INT]
+    type: Literal[MetadataColumnType.INT]
     precision: Precision
     lower: int
     upper: int
@@ -160,7 +161,7 @@ class IntMetadata(BoundedColumnMetadata):
 class IntCategoricalMetadata(CategoricalColumnMetadata):
     """Model for integer categorical column metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.INT]
+    type: Literal[MetadataColumnType.INT]
     precision: Precision
     cardinality: int
     categories: List[int]
@@ -169,7 +170,7 @@ class IntCategoricalMetadata(CategoricalColumnMetadata):
 class FloatMetadata(BoundedColumnMetadata):
     """Model for float column metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.FLOAT]
+    type: Literal[MetadataColumnType.FLOAT]
     precision: Precision
     lower: float
     upper: float
@@ -178,13 +179,13 @@ class FloatMetadata(BoundedColumnMetadata):
 class BooleanMetadata(ColumnMetadata):
     """Model for boolean column metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.BOOLEAN]
+    type: Literal[MetadataColumnType.BOOLEAN]
 
 
 class DatetimeMetadata(BoundedColumnMetadata):
     """Model for datetime column metadata."""
 
-    type: Literal[METADATA_COLUMN_TYPE.DATETIME]
+    type: Literal[MetadataColumnType.DATETIME]
     lower: datetime
     upper: datetime
 
@@ -209,8 +210,8 @@ def get_column_metadata_discriminator(v: Any) -> str:
     if (
         col_type
         in (
-            METADATA_COLUMN_TYPE.STRING,
-            METADATA_COLUMN_TYPE.INT,
+            MetadataColumnType.STRING,
+            MetadataColumnType.INT,
         )
     ) and (
         ((isinstance(v, dict)) and CARDINALITY_FIELD in v)
@@ -235,13 +236,13 @@ class Metadata(BaseModel):
         str,
         Annotated[
             Union[
-                Annotated[StrMetadata, Tag(METADATA_COLUMN_TYPE.STRING)],
-                Annotated[StrCategoricalMetadata, Tag(METADATA_COLUMN_TYPE.CAT_STRING)],
-                Annotated[IntMetadata, Tag(METADATA_COLUMN_TYPE.INT)],
-                Annotated[IntCategoricalMetadata, Tag(METADATA_COLUMN_TYPE.CAT_INT)],
-                Annotated[FloatMetadata, Tag(METADATA_COLUMN_TYPE.FLOAT)],
-                Annotated[BooleanMetadata, Tag(METADATA_COLUMN_TYPE.BOOLEAN)],
-                Annotated[DatetimeMetadata, Tag(METADATA_COLUMN_TYPE.DATETIME)],
+                Annotated[StrMetadata, Tag(MetadataColumnType.STRING)],
+                Annotated[StrCategoricalMetadata, Tag(MetadataColumnType.CAT_STRING)],
+                Annotated[IntMetadata, Tag(MetadataColumnType.INT)],
+                Annotated[IntCategoricalMetadata, Tag(MetadataColumnType.CAT_INT)],
+                Annotated[FloatMetadata, Tag(MetadataColumnType.FLOAT)],
+                Annotated[BooleanMetadata, Tag(MetadataColumnType.BOOLEAN)],
+                Annotated[DatetimeMetadata, Tag(MetadataColumnType.DATETIME)],
             ],
             Discriminator(get_column_metadata_discriminator),
         ],

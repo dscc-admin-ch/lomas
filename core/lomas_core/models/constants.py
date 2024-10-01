@@ -12,7 +12,9 @@ CARDINALITY_FIELD = "cardinality"
 # -----------------------------------------------------------------------------
 
 
-class METADATA_COLUMN_TYPE(StrEnum):
+class MetadataColumnType(StrEnum):
+    """Column types for metadata."""
+
     STRING = "string"
     CAT_STRING = "categorical_string"
     INT = "int"

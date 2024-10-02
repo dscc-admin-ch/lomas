@@ -78,7 +78,7 @@ Lomas is a Proof of Concept that is still under development.
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
 
-We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open.
+We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues#open.
 
 ## History
 The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/). They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

@@ -1,5 +1,6 @@
 # type: ignore
 import os
+
 import streamlit as st
 import yaml
 
@@ -391,10 +392,12 @@ with dataset_tab:
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
-                ad_meta_path = os.path.join('/data/collections/metadata', uploaded_metadata.name)
+                ad_meta_path = os.path.join(
+                    "/data/collections/metadata", uploaded_metadata.name
+                )
                 with open(ad_meta_path, "wb") as f:
                     f.write(uploaded_metadata.getbuffer())
-                
+
                 st.success(f"File {uploaded_metadata.name} uploaded successfully!")
         case PrivateDatabaseType.S3:
             (

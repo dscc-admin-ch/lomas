@@ -9,8 +9,9 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.query_models import RequestModel, model_input_to_lib
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.models.collections import DSInfo, Metadata
+from lomas_server.models.requests import RequestModel, model_input_to_lib
 
 
 def user_must_exist(func: Callable) -> Callable:  # type: ignore
@@ -217,7 +218,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: str
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
     ) -> float:
         """
         Get the total spent epsilon or delta by user on dataset.
@@ -225,7 +226,7 @@ class AdminDatabase(ABC):
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): total_spent_epsilon or total_spent_delta
+            parameter (str): Member of BudgetDBKey.
 
         Returns:
             float: The requested budget value.
@@ -247,8 +248,10 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "total_spent_epsilon"),
-            self.get_epsilon_or_delta(user_name, dataset_name, "total_spent_delta"),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, BudgetDBKey.EPSILON_SPENT
+            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
         ]
 
     @user_must_have_access_to_dataset
@@ -267,8 +270,10 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, "initial_epsilon"),
-            self.get_epsilon_or_delta(user_name, dataset_name, "initial_delta"),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, BudgetDBKey.EPSILON_INIT
+            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
         ]
 
     @user_must_have_access_to_dataset
@@ -295,7 +300,7 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-        parameter: str,
+        parameter: BudgetDBKey,
         spent_value: float,
     ) -> None:
         """
@@ -304,7 +309,7 @@ class AdminDatabase(ABC):
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): "current_epsilon" or "current_delta"
+            parameter (str): One of BudgetDBKey
             spent_value (float): spending of epsilon or delta on last query
         """
 
@@ -320,7 +325,7 @@ class AdminDatabase(ABC):
             spent_epsilon (float): value of epsilon spent on last query
         """
         return self.update_epsilon_or_delta(
-            user_name, dataset_name, "total_spent_epsilon", spent_epsilon
+            user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon
         )
 
     def update_delta(
@@ -335,7 +340,7 @@ class AdminDatabase(ABC):
             spent_delta (float): value of delta spent on last query
         """
         self.update_epsilon_or_delta(
-            user_name, dataset_name, "total_spent_delta", spent_delta
+            user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta
         )
 
     @user_must_have_access_to_dataset
@@ -362,18 +367,17 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:
+    def get_dataset(self, dataset_name: str) -> DSInfo:
         """
-        Get dataset field type based on dataset name and key.
+        Get dataset access info based on dataset_name.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
         Args:
             dataset_name (str): Name of the dataset.
-            key (str): Key for the value to get in the dataset dict.
 
         Returns:
-            str: The requested value.
+            Dataset: The dataset model.
         """
 
     @abstractmethod

@@ -1,6 +1,6 @@
 import unittest
 
-from lomas_server.utils.collection_models import (
+from lomas_server.models.collections import (
     BooleanMetadata,
     BoundedColumnMetadata,
     CategoricalColumnMetadata,

@@ -19,7 +19,7 @@ from lomas_server.dp_queries.dp_libraries.utils import (
     serialise_model,
 )
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.query_models import (
+from lomas_server.models.requests import (
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
 )

@@ -16,7 +16,12 @@ src_paths = ["lomas_core", "lomas_server"]
 max-line-length = 88
 
 [tool.mypy]
-disable_error_code = ["import-untyped", "import-not-found", "attr-defined"]
+disable_error_code = ["import-untyped", "import-not-found"]
+mypy_path = "../core/"
+
+[[tool.mypy.overrides]]
+module = "lomas_server.tests.*"
+disable_error_code = ["arg-type", "attr-defined"]
 
 [tool.pylint.MASTER]
 ignore-patterns = "test_*.py"

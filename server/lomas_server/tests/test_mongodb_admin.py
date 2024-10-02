@@ -10,7 +10,8 @@ from lomas_server.admin_database.utils import (
     add_demo_data_to_mongodb_admin,
     get_mongodb_url,
 )
-from lomas_server.constants import PrivateDatabaseType
+from lomas_server.models.constants import PrivateDatabaseType
+from lomas_server.models.collections import DSInfo, Metadata
 from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -39,7 +40,8 @@ from lomas_server.tests.constants import (
     FALSE_VALUES,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER, MongoDBConfig, get_config
+from lomas_server.utils.config import CONFIG_LOADER, get_config
+from lomas_server.models.config import MongoDBConfig
 
 
 @unittest.skipIf(
@@ -518,18 +520,20 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         expected_dataset = {
             "dataset_name": dataset,
-            "database_type": database_type,
-            "dataset_path": dataset_path,
-            "metadata": {
+            "dataset_access": {"database_type": database_type, "path": dataset_path},
+            "metadata_access": {
                 "database_type": metadata_database_type,
-                "metadata_path": metadata_path,
+                "path": metadata_path,
             },
         }
+        expected_dataset = DSInfo.model_validate(expected_dataset).model_dump()
+
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
             encoding="utf-8",
         ) as f:
             expected_metadata = yaml.safe_load(f)
+            expected_metadata = Metadata.model_validate(expected_metadata).model_dump()
 
         dataset_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
         del dataset_found["_id"]
@@ -628,12 +632,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Check dataset collection
         expected_dataset = {
             "dataset_name": dataset,
-            "database_type": database_type,
-            "bucket": bucket,
-            "key": key_file,
-            "endpoint_url": endpoint_url,
-            "credentials_name": credentials_name,
-            "metadata": {
+            "dataset_access": {
+                "database_type": database_type,
+                "bucket": bucket,
+                "key": key_file,
+                "endpoint_url": endpoint_url,
+                "credentials_name": credentials_name,
+            },
+            "metadata_access": {
                 "database_type": metadata_database_type,
                 "bucket": bucket,
                 "key": key_metadata,
@@ -641,6 +647,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 "credentials_name": credentials_name,
             },
         }
+        expected_dataset = DSInfo.model_validate(expected_dataset).model_dump()
 
         dataset_found = self.db.datasets.find_one({"dataset_name": dataset})
         del dataset_found["_id"]
@@ -655,6 +662,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         response = s3_client.get_object(Bucket=bucket, Key=key_metadata)
         expected_metadata = yaml.safe_load(response["Body"])
+        expected_metadata = Metadata.model_validate(expected_metadata).model_dump()
 
         metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[
             dataset
@@ -763,7 +771,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
-            tintin = datasets["datasets"][3]
+            tintin = DSInfo.model_validate(datasets["datasets"][3]).model_dump()
 
         with open(
             "./tests/test_data/metadata/penguin_metadata.yaml",
@@ -785,6 +793,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         tintin_found = self.db.datasets.find_one({"dataset_name": "TINTIN_S3_TEST"})
         del tintin_found["_id"]
+        print(tintin_found)
+        print(tintin)
         self.assertEqual(tintin_found, tintin)
 
         metadata_found = self.db.metadata.find_one(
@@ -858,13 +868,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         dataset_found = get_dataset(self.db, "PENGUIN")
         expected_dataset = {
             "dataset_name": dataset,
-            "database_type": database_type,
-            "dataset_path": dataset_path,
-            "metadata": {
+            "dataset_access": {"database_type": database_type, "path": dataset_path},
+            "metadata_access": {
                 "database_type": metadata_database_type,
-                "metadata_path": metadata_path,
+                "path": metadata_path,
             },
         }
+        expected_dataset = DSInfo.model_validate(expected_dataset).model_dump()
         self.assertEqual(dataset_found, expected_dataset)
 
     def test_get_metadata_of_dataset(self) -> None:
@@ -889,6 +899,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_found = get_metadata_of_dataset(self.db, "PENGUIN")
         with open(metadata_path, encoding="utf-8") as f:
             expected_metadata = yaml.safe_load(f)
+            expected_metadata = Metadata.model_validate(expected_metadata).model_dump()
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_get_list_of_datasets(self) -> None:

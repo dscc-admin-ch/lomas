@@ -3,7 +3,6 @@ from typing import List
 
 import yaml
 from lomas_core.error_handler import (
-    InternalServerException,
     InvalidQueryException,
 )
 
@@ -13,8 +12,9 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.query_models import RequestModel
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.models.collections import DSInfo, Metadata
+from lomas_server.models.requests import RequestModel
 
 
 class AdminYamlDatabase(AdminDatabase):
@@ -74,7 +74,7 @@ class AdminYamlDatabase(AdminDatabase):
         """
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
-                metadata_path = dt["metadata"]["metadata_path"]
+                metadata_path = dt["metadata_access"]["path"]
 
                 with open(metadata_path, mode="r", encoding="utf-8") as f:
                     metadata = yaml.safe_load(f)
@@ -154,14 +154,14 @@ class AdminYamlDatabase(AdminDatabase):
         return False
 
     def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: str
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
     ) -> float:
         """Get total spent epsilon or delta by user on dataset.
 
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): total_spent_epsilon or total_spent_delta
+            parameter (BudgetDBKey): One of BudgetDBKey
 
         Returns:
             float: The requested budget value.
@@ -197,24 +197,23 @@ class AdminYamlDatabase(AdminDatabase):
         self.database["users"] = users
 
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:  # type: ignore
-        """Get dataset field type based on dataset name and key.
+    def get_dataset(self, dataset_name: str) -> DSInfo:  # type: ignore[return]
+        """
+        Get dataset access info based on dataset_name.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
         Args:
             dataset_name (str): Name of the dataset.
-            key (str): Key for the value to get in the dataset dict.
 
         Returns:
-            str: The requested value.
+            Dataset: The dataset model.
         """
         for dt in self.database["datasets"]:
             if dt["dataset_name"] == dataset_name:
-                return dt[key]
-        raise InternalServerException(
-            f"Field {key} does not exist for dataset {dataset_name}."
-        )
+                break
+
+        return DSInfo.model_validate(dt)  # pylint: disable=W0631
 
     @user_must_have_access_to_dataset
     def get_user_previous_queries(

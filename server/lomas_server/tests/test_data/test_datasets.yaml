@@ -1,25 +1,29 @@
 datasets:
 - dataset_name: "PENGUIN"
-  database_type: "PATH_DB"
-  dataset_path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
-  metadata:
+  dataset_access:
     database_type: "PATH_DB"
-    metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/penguin_metadata.yaml"
 - dataset_name: "IRIS"
-  database_type: "PATH_DB"
-  dataset_path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
-  metadata:
+  dataset_access:
     database_type: "PATH_DB"
-    metadata_path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/penguin_metadata.yaml"
 - dataset_name: "BIRTHDAYS"
-  database_type: "PATH_DB"
-  dataset_path: "tests/test_data/birthdays.csv"
-  metadata:
+  dataset_access:
     database_type: "PATH_DB"
-    metadata_path: "tests/test_data/metadata/birthday_metadata.yaml"
+    path: "tests/test_data/birthdays.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/birthday_metadata.yaml"
 - dataset_name: "PUMS"
-  database_type: "PATH_DB"
-  dataset_path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
-  metadata:
+  dataset_access:
     database_type: "PATH_DB"
-    metadata_path: "tests/test_data/metadata/pums_metadata.yaml"
+    path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/pums_metadata.yaml"

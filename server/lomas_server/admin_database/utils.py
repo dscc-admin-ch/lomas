@@ -3,12 +3,13 @@ from lomas_core.logger import LOG
 from pymongo import MongoClient
 from pymongo.database import Database
 
+from lomas_server.models.config import MongoDBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.utils.config import MongoDBConfig, get_config
+from lomas_server.utils.config import get_config
 
 
 def get_mongodb_url(config: MongoDBConfig) -> str:

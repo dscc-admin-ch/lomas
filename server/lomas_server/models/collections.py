@@ -1,10 +1,20 @@
 from datetime import datetime
-from enum import IntEnum
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
 
-from lomas_server.constants import PrivateDatabaseType
+from lomas_server.models.constants import (
+    CARDINALITY_FIELD,
+    CATEGORICAL_TYPE_PREFIX,
+    DB_TYPE_FIELD,
+    METADATA_COLUMN_TYPE,
+    TYPE_FIELD,
+    Precision,
+    PrivateDatabaseType,
+)
+
+# Dataset of User
+# -----------------------------------------------------------------------------
 
 
 class DatasetOfUser(BaseModel):
@@ -15,6 +25,10 @@ class DatasetOfUser(BaseModel):
     initial_delta: float
     total_spent_epsilon: float
     total_spent_delta: float
+
+
+# User
+# -----------------------------------------------------------------------------
 
 
 class User(BaseModel):
@@ -31,19 +45,25 @@ class UserCollection(BaseModel):
     users: List[User]
 
 
-class MetadataOfDataset(BaseModel):
-    """BaseModel for metadata of a dataset."""
+# Dataset Access Data
+# -----------------------------------------------------------------------------
 
 
-class MetadataOfPathDB(MetadataOfDataset):
-    """BaseModel for metadata of a dataset with PATH_DB."""
+class DSAccess(BaseModel):
+    """BaseModel for access info to a private dataset."""
+
+    database_type: str
+
+
+class DSPathAccess(DSAccess):
+    """BaseModel for a local dataset."""
 
     database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
-    metadata_path: str
+    path: str
 
 
-class MetadataOfS3DB(MetadataOfDataset):
-    """BaseModel for metadata of a dataset with S3_DB."""
+class DSS3Access(DSAccess):
+    """BaseModel for a dataset on S3."""
 
     database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
     endpoint_url: str
@@ -54,39 +74,26 @@ class MetadataOfS3DB(MetadataOfDataset):
     credentials_name: str
 
 
-class Dataset(BaseModel):
+class DSInfo(BaseModel):
     """BaseModel for a dataset."""
 
     dataset_name: str
-    metadata: Union[MetadataOfPathDB, MetadataOfS3DB] = Field(
-        ..., discriminator="database_type"
-    )
-
-
-class DatasetOfPathDB(Dataset):
-    """BaseModel for a local dataset."""
-
-    database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
-    dataset_path: str
-
-
-class DatasetOfS3DB(Dataset):
-    """BaseModel for a dataset on S3."""
-
-    database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
-    endpoint_url: str
-    bucket: str
-    key: str
-    credentials_name: str
+    dataset_access: Annotated[
+        Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)
+    ]
+    metadata_access: Annotated[
+        Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)
+    ]
 
 
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection."""
 
-    datasets: Annotated[
-        List[Union[DatasetOfPathDB, DatasetOfS3DB]],
-        Field(discriminator="database_type"),
-    ]
+    datasets: List[DSInfo]
+
+
+# Metadata
+# -----------------------------------------------------------------------------
 
 
 class ColumnMetadata(BaseModel):
@@ -103,7 +110,7 @@ class ColumnMetadata(BaseModel):
 class StrMetadata(ColumnMetadata):
     """Model for string metadata."""
 
-    type: Literal["string"]
+    type: Literal[METADATA_COLUMN_TYPE.STRING]
 
 
 class CategoricalColumnMetadata(ColumnMetadata):
@@ -120,16 +127,9 @@ class CategoricalColumnMetadata(ColumnMetadata):
 class StrCategoricalMetadata(CategoricalColumnMetadata):
     """Model for categorical string metadata."""
 
-    type: Literal["string"]
+    type: Literal[METADATA_COLUMN_TYPE.STRING]
     cardinality: int
     categories: List[str]
-
-
-class Precision(IntEnum):
-    """Precision of integer and float data."""
-
-    SINGLE = 32
-    DOUBLE = 64
 
 
 class BoundedColumnMetadata(ColumnMetadata):
@@ -151,7 +151,7 @@ class BoundedColumnMetadata(ColumnMetadata):
 class IntMetadata(BoundedColumnMetadata):
     """Model for integer column metadata."""
 
-    type: Literal["int"]
+    type: Literal[METADATA_COLUMN_TYPE.INT]
     precision: Precision
     lower: int
     upper: int
@@ -160,7 +160,7 @@ class IntMetadata(BoundedColumnMetadata):
 class IntCategoricalMetadata(CategoricalColumnMetadata):
     """Model for integer categorical column metadata."""
 
-    type: Literal["int"]
+    type: Literal[METADATA_COLUMN_TYPE.INT]
     precision: Precision
     cardinality: int
     categories: List[int]
@@ -169,7 +169,7 @@ class IntCategoricalMetadata(CategoricalColumnMetadata):
 class FloatMetadata(BoundedColumnMetadata):
     """Model for float column metadata."""
 
-    type: Literal["float"]
+    type: Literal[METADATA_COLUMN_TYPE.FLOAT]
     precision: Precision
     lower: float
     upper: float
@@ -178,13 +178,13 @@ class FloatMetadata(BoundedColumnMetadata):
 class BooleanMetadata(ColumnMetadata):
     """Model for boolean column metadata."""
 
-    type: Literal["boolean"]
+    type: Literal[METADATA_COLUMN_TYPE.BOOLEAN]
 
 
 class DatetimeMetadata(BoundedColumnMetadata):
     """Model for datetime column metadata."""
 
-    type: Literal["datetime"]  # TODO make these constants, see issue #268
+    type: Literal[METADATA_COLUMN_TYPE.DATETIME]
     lower: datetime
     upper: datetime
 
@@ -202,14 +202,21 @@ def get_column_metadata_discriminator(v: Any) -> str:
         str: The metadata string type.
     """
     if isinstance(v, dict):
-        col_type = v.get("type")
+        col_type = v.get(TYPE_FIELD)
     else:
-        col_type = getattr(v, "type")
+        col_type = getattr(v, TYPE_FIELD)
 
-    if (col_type in ("string", "int")) and (
-        ((isinstance(v, dict)) and "cardinality" in v) or (hasattr(v, "cardinality"))
+    if (
+        col_type
+        in (
+            METADATA_COLUMN_TYPE.STRING,
+            METADATA_COLUMN_TYPE.INT,
+        )
+    ) and (
+        ((isinstance(v, dict)) and CARDINALITY_FIELD in v)
+        or (hasattr(v, CARDINALITY_FIELD))
     ):
-        col_type = f"categorical_{col_type}"
+        col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
 
     if not isinstance(col_type, str):
         raise ValueError("Could not find column type.")
@@ -228,13 +235,13 @@ class Metadata(BaseModel):
         str,
         Annotated[
             Union[
-                Annotated[StrMetadata, Tag("string")],
-                Annotated[StrCategoricalMetadata, Tag("categorical_string")],
-                Annotated[IntMetadata, Tag("int")],
-                Annotated[IntCategoricalMetadata, Tag("categorical_int")],
-                Annotated[FloatMetadata, Tag("float")],
-                Annotated[BooleanMetadata, Tag("boolean")],
-                Annotated[DatetimeMetadata, Tag("datetime")],
+                Annotated[StrMetadata, Tag(METADATA_COLUMN_TYPE.STRING)],
+                Annotated[StrCategoricalMetadata, Tag(METADATA_COLUMN_TYPE.CAT_STRING)],
+                Annotated[IntMetadata, Tag(METADATA_COLUMN_TYPE.INT)],
+                Annotated[IntCategoricalMetadata, Tag(METADATA_COLUMN_TYPE.CAT_INT)],
+                Annotated[FloatMetadata, Tag(METADATA_COLUMN_TYPE.FLOAT)],
+                Annotated[BooleanMetadata, Tag(METADATA_COLUMN_TYPE.BOOLEAN)],
+                Annotated[DatetimeMetadata, Tag(METADATA_COLUMN_TYPE.DATETIME)],
             ],
             Discriminator(get_column_metadata_discriminator),
         ],

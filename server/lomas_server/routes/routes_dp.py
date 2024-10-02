@@ -2,6 +2,20 @@ from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse
 from lomas_core.constants import DPLibraries
 
+from lomas_server.models.requests import (
+    DiffPrivLibDummyQueryModel,
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+    OpenDPDummyQueryModel,
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+    SmartnoiseSQLDummyQueryModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+    SmartnoiseSynthDummyQueryModel,
+    SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
+)
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -19,20 +33,6 @@ from lomas_server.utils.query_examples import (
     example_smartnoise_sql_cost,
     example_smartnoise_synth_cost,
     example_smartnoise_synth_query,
-)
-from lomas_server.utils.query_models import (
-    DiffPrivLibDummyQueryModel,
-    DiffPrivLibQueryModel,
-    DiffPrivLibRequestModel,
-    OpenDPDummyQueryModel,
-    OpenDPQueryModel,
-    OpenDPRequestModel,
-    SmartnoiseSQLDummyQueryModel,
-    SmartnoiseSQLQueryModel,
-    SmartnoiseSQLRequestModel,
-    SmartnoiseSynthDummyQueryModel,
-    SmartnoiseSynthQueryModel,
-    SmartnoiseSynthRequestModel,
 )
 
 router = APIRouter()

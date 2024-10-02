@@ -10,7 +10,7 @@ from lomas_core.error_handler import (
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.query_models import (  # pylint: disable=W0611
+from lomas_server.models.requests import (  # pylint: disable=W0611
     QueryModel,
     RequestModel,
 )

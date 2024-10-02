@@ -32,11 +32,11 @@ jobs:
       - name: mypy
         run: |
           cd client
-          mypy .
+          mypy --config-file pyproject.toml .
           cd ../core
-          mypy .
+          mypy --config-file pyproject.toml .
           cd ../server
-          mypy .
+          mypy --config-file pyproject.toml .
       - name: pylint
         run: |
           cd client/lomas_client

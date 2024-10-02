@@ -10,7 +10,7 @@ from lomas_server.constants import (
     RANDOM_STRINGS,
 )
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
-from lomas_server.utils.collection_models import (
+from lomas_server.models.collections import (
     BooleanMetadata,
     CategoricalColumnMetadata,
     DatetimeMetadata,
@@ -19,7 +19,7 @@ from lomas_server.utils.collection_models import (
     Metadata,
     StrMetadata,
 )
-from lomas_server.utils.query_models import RequestModel
+from lomas_server.models.requests import DummyQueryModel
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals
@@ -104,7 +104,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 
 def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: RequestModel
+    admin_database: AdminDatabase, query_json: DummyQueryModel
 ) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 

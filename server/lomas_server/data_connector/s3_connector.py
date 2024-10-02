@@ -5,8 +5,7 @@ import pandas as pd
 from lomas_core.error_handler import InternalServerException
 
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.config import S3CredentialsConfig
+from lomas_server.models.collections import DSS3Access, Metadata
 
 
 class S3Connector(DataConnector):
@@ -15,7 +14,7 @@ class S3Connector(DataConnector):
     def __init__(
         self,
         metadata: Metadata,
-        credentials: S3CredentialsConfig,
+        credentials: DSS3Access,
     ) -> None:
         """Initializer.
 

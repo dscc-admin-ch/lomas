@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 import yaml
@@ -254,7 +254,8 @@ class AdminYamlDatabase(AdminDatabase):
     def save_current_database(self) -> None:
         """Saves the current database with updated parameters in new yaml."""
         new_path = self.path.replace(
-            ".yaml", f'_{datetime.now().strftime("%m_%d_%Y__%H_%M")}.yaml'
+            ".yaml",
+            f'_{datetime.now(timezone.utc).strftime("%m_%d_%Y__%H_%M")}.yaml',
         )
         with open(new_path, mode="w", encoding="utf-8") as file:
             yaml.dump(self.database, file)

@@ -1,4 +1,6 @@
 # type: ignore
+import os
+
 import streamlit as st
 import yaml
 
@@ -387,7 +389,17 @@ with dataset_tab:
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
-            ad_meta_path = st.text_input("Metadata path (add dataset)", None)
+            uploaded_metadata = st.file_uploader("Import your related metadata file")
+            ad_meta_path = None
+            if uploaded_metadata is not None:
+                # Save the file
+                ad_meta_path = os.path.join(
+                    "/data/collections/metadata", uploaded_metadata.name
+                )
+                with open(ad_meta_path, "wb") as f:
+                    f.write(uploaded_metadata.getbuffer())
+
+                st.success(f"File {uploaded_metadata.name} uploaded successfully!")
         case PrivateDatabaseType.S3:
             (
                 ad_meta_s3_1,

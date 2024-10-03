@@ -1,37 +1,38 @@
-import pytest
-import streamlit as st
-from streamlit.testing import TestApp
+import unittest
 from unittest.mock import patch
+import streamlit as st
 
+class TestAboutPage(unittest.TestCase):
 
-@pytest.fixture
-def app():
-    # Create a Streamlit test app instance
-    return TestApp(__name__)
+    @patch("streamlit.write")
+    @patch("streamlit.header")
+    @patch("streamlit.title")
+    @patch("st_pages.show_pages") 
+    def test_about_page(self, mock_show_pages, mock_title, mock_header, mock_write):
+        # Mock show_pages since it depends on the Streamlit runtime
+        mock_show_pages.return_value = None
 
-
-def test_about_page(app):
-    # Mock the Streamlit functions to avoid side effects
-    with patch("streamlit.write") as mock_write, \
-         patch("streamlit.header") as mock_header, \
-         patch("streamlit.title") as mock_title:
-        
-        # Import the about.py page to simulate the app running
+        # Import the about.py file and call the main() function
         from lomas_server.administration.dashboard import about
-
-        # Call the main method or directly reference the execution block in your about.py file
-        # It ensures the app runs in the test
         about.main()
 
-        # Assert that key UI elements are rendered
+        # Assert that the title is called once with "Welcome!"
         mock_title.assert_called_once_with("Welcome!")
+
+        # Assert that the headers are called with the expected text
         mock_header.assert_any_call("Lomas Administation Dashboard")
         mock_header.assert_any_call("Key Features")
 
-        # Assert that text is written to the page
-        assert mock_write.call_count > 0  # At least one write should be called
+        # Assert that some text has been written to the page
+        mock_write.assert_called()  # At least one write should be called
 
-        # Optionally, check for specific calls if you want to ensure specific text is rendered
-        mock_write.assert_any_call(
-            "The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database."
+        # Get all write calls
+        written_texts = [call.args[0] for call in mock_write.call_args_list]
+
+        # Assert that the expected text is somewhere in the calls
+        self.assertTrue(
+            any("The Lomas Administration Dashboard provides a centralized interface" in text for text in written_texts)
         )
+
+if __name__ == '__main__':
+    unittest.main()

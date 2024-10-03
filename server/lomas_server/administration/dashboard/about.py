@@ -7,7 +7,7 @@ from st_pages import Page, show_pages
 
 def main():
     st.set_page_config(page_title="Lomas Dashboard")
-    FOLDER = "./lomas_server/administration/dashboard"  # TODO move
+    FOLDER = "./lomas_server/administration/dashboard"  # TODO 352 move
     show_pages(
         [
             Page(f"{FOLDER}/about.py", "Home Page", "🏠"),

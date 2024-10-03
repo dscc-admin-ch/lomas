@@ -17,6 +17,7 @@ from pymongo.database import Database
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
+from lomas_server.models.config import DBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -28,7 +29,6 @@ from lomas_server.tests.constants import (
     TRUE_VALUES,
 )
 from lomas_server.utils.config import CONFIG_LOADER
-from lomas_server.models.config import DBConfig
 from lomas_server.utils.query_examples import (
     DUMMY_NB_ROWS,
     PENGUIN_DATASET,

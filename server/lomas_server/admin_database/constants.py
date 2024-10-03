@@ -2,7 +2,8 @@ from enum import StrEnum
 
 
 class BudgetDBKey(StrEnum):
-    """ "
+    """"
+
     Key for selecting budget values in admin db for given
     dataset and user.
     """

@@ -40,6 +40,7 @@ st.set_page_config(layout="wide")
 st.title("Lomas configurations")
 
 if "config" in st.session_state and "dashboard_config" in st.session_state:
+    print(st.session_state.dashboard_config)
     st.write(
         "The server is available for requests at the address: "
         + f"https://{st.session_state.dashboard_config.server_url}"

@@ -25,21 +25,21 @@ class ResponseModel(BaseModel):
     """Base model for any response from the server."""
 
 
-class InitialBudgetResponse(BaseModel):
+class InitialBudgetResponse(ResponseModel):
     """Model for responses to initial budget queries."""
 
     initial_epsilon: float
     initial_delta: float
 
 
-class SpentBudgetResponse(BaseModel):
+class SpentBudgetResponse(ResponseModel):
     """Model for responses to spent budget queries."""
 
     total_spent_epsilon: float
     total_spent_delta: float
 
 
-class RemainingBudgetResponse(BaseModel):
+class RemainingBudgetResponse(ResponseModel):
     """Model for responses to remaining budget queries."""
 
     remaining_epsilon: float

@@ -1,16 +1,4 @@
 services:
-  lomas_core:
-    image: dsccadminch/lomas_core
-    build:
-      dockerfile: ../core/Dockerfile
-      target: lomas_core
-      context: ../core/
-    container_name: lomas_core
-    volumes:
-      - ../core/lomas_core:/code/lomas_core
-    networks:
-      - lomas-network
-
   lomas_server:
     image: dsccadminch/lomas_server_dev
     build:
@@ -23,6 +11,7 @@ services:
     restart: always
     volumes:
       - ./lomas_server:/code/lomas_server
+      - ../core/lomas_core:/code/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./data/collections/metadata:/data/collections/metadata/

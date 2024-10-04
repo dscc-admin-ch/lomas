@@ -754,8 +754,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            response_model = QueryResponse.model_validate_json(response.content.decode("utf8"))
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert response_model.result.value > 0

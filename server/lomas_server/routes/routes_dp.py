@@ -437,9 +437,9 @@ def dummy_opendp_query_handler(
 
     Args:
         request (Request): Raw request object.
-        query_json (OpenDPDummyQueryModel, optional):
+        query_json (OpenDPDummyQueryModel, optional): Model for opendp dummy query.
             A JSON object containing the following:
-            - opendp_pipeline: The OpenDP pipeline for the query.
+            - opendp_pipeline: Open
             - fixed_delta: If the pipeline measurement is of type\
               "ZeroConcentratedDivergence" (e.g. with "make_gaussian") then
               it is converted to "SmoothedMaxDivergence" with

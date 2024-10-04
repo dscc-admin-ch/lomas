@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
     DPLibraries,
@@ -119,7 +119,9 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 class OpenDPRequestModel(RequestModel):
     """Base input model for an opendp request."""
 
+    model_config = ConfigDict(use_attribute_docstrings=True)
     opendp_json: str
+    """Opendp pipeline."""
     fixed_delta: Optional[float] = None
 
 

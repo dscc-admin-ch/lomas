@@ -10,14 +10,14 @@ from lomas_server.models.constants import (
 
 
 class TimeAttack(BaseModel):
-    """BaseModel for configs to prevent timing attacks"""
+    """BaseModel for configs to prevent timing attacks."""
 
     method: TimeAttackMethod
     magnitude: float
 
 
 class Server(BaseModel):
-    """BaseModel for uvicorn server configs"""
+    """BaseModel for uvicorn server configs."""
 
     time_attack: TimeAttack
     host_ip: str
@@ -28,18 +28,18 @@ class Server(BaseModel):
 
 
 class DBConfig(BaseModel):
-    """BaseModel for database type config"""
+    """BaseModel for database type config."""
 
 
 class YamlDBConfig(DBConfig):
-    """BaseModel for dataset store configs  in case of a Yaml database"""
+    """BaseModel for dataset store configs  in case of a Yaml database."""
 
     db_type: Literal[AdminDBType.YAML]  # type: ignore
     db_file: str
 
 
 class MongoDBConfig(DBConfig):
-    """BaseModel for dataset store configs  in case of a  MongoDB database"""
+    """BaseModel for dataset store configs  in case of a  MongoDB database."""
 
     db_type: Literal[AdminDBType.MONGODB]  # type: ignore
     address: str
@@ -65,7 +65,7 @@ class S3CredentialsConfig(PrivateDBCredentials):
 
 
 class OpenDPConfig(BaseModel):
-    """BaseModel for openDP librairy config"""
+    """BaseModel for openDP librairy config."""
 
     contrib: bool
     floating_point: bool
@@ -73,15 +73,13 @@ class OpenDPConfig(BaseModel):
 
 
 class DPLibraryConfig(BaseModel):
-    """BaseModel for DP librairies config"""
+    """BaseModel for DP librairies config."""
 
     opendp: OpenDPConfig
 
 
 class Config(BaseModel):
-    """
-    Server runtime config.
-    """
+    """Server runtime config."""
 
     # Develop mode
     develop_mode: bool

@@ -24,7 +24,7 @@ from lomas_server.utils.config import get_config
 
 
 def timing_protection(func):
-    """Adds delays to requests response to protect against timing attack"""
+    """Adds delays to requests response to protect against timing attack."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):

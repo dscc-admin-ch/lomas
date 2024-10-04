@@ -8,10 +8,10 @@ if __name__ == "__main__":
     config = get_config()
 
     if config.server.workers != 1:
-        LOG.warning(
-            "Only supports one server worker.",
-            "Overwriting server.workers config",
-            f" from {config.server.workers} to 1.",
+        LOG.warning(  # pylint: disable=W1201
+            "Only supports one server worker."
+            + "Overwriting server.workers config"
+            + f" from {config.server.workers} to 1.",
         )
 
     uvicorn.run(

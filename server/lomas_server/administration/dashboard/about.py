@@ -4,30 +4,20 @@ import sys
 import streamlit as st
 from st_pages import Page, show_pages
 
-if __name__ == "__main__":
-    # We add the src directory to the python search path
-    # Required if the code is not installed as a package via pip/setuptools
-    admin_dir = os.path.abspath(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-    )
-    sys.path.append(admin_dir)
-    src_dir = os.path.abspath(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../")
-    )
-    sys.path.append(src_dir)
 
+def main():
     st.set_page_config(page_title="Lomas Dashboard")
-    FOLDER = "./lomas_server/administration/dashboard"  # TODO move
+    FOLDER = "./lomas_server/administration/dashboard"  # TODO 352 move
     show_pages(
         [
             Page(f"{FOLDER}/about.py", "Home Page", "🏠"),
             Page(
-                f"{FOLDER}/pages/01_server_overview.py",
+                f"{FOLDER}/pages/a_server_overview.py",
                 "Lomas server overview",
                 ":computer:",
             ),
             Page(
-                f"{FOLDER}/pages/02_database_administration.py",
+                f"{FOLDER}/pages/b_database_administration.py",
                 "Admin database management",
                 ":file_folder:",
             ),
@@ -84,3 +74,18 @@ if __name__ == "__main__":
         "**Support**: If you encounter any issues or have questions, reach out on [Github issues](%s)"  # noqa: E501
         % "https://github.com/dscc-admin-ch/lomas/issues"
     )
+
+
+if __name__ == "__main__":
+    # We add the src directory to the python search path
+    # Required if the code is not installed as a package via pip/setuptools
+    admin_dir = os.path.abspath(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
+    )
+    sys.path.append(admin_dir)
+    src_dir = os.path.abspath(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../")
+    )
+    sys.path.append(src_dir)
+
+    main()

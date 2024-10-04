@@ -7,11 +7,11 @@ import yaml
 from pymongo import MongoClient
 
 from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.models.constants import PrivateDatabaseType
 from lomas_server.models.collections import DSInfo, Metadata
+from lomas_server.models.config import MongoDBConfig
+from lomas_server.models.constants import PrivateDatabaseType
 from lomas_server.tests.constants import ENV_MONGO_INTEGRATION
 from lomas_server.utils.config import CONFIG_LOADER, get_config
-from lomas_server.models.config import MongoDBConfig
 
 
 @unittest.skipIf(

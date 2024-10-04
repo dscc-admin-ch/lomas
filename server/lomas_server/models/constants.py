@@ -26,7 +26,7 @@ CATEGORICAL_TYPE_PREFIX = "categorical_"
 
 
 class Precision(IntEnum):
-    """Precision of integer and float data"""
+    """Precision of integer and float data."""
 
     SINGLE = 32
     DOUBLE = 64
@@ -37,21 +37,21 @@ class Precision(IntEnum):
 
 
 class ConfigKeys(StrEnum):
-    """Keys of the configuration file"""
+    """Keys of the configuration file."""
 
     RUNTIME_ARGS: str = "runtime_args"
     SETTINGS: str = "settings"
 
 
 class AdminDBType(StrEnum):
-    """Types of administration databases"""
+    """Types of administration databases."""
 
     YAML: str = "yaml"
     MONGODB: str = "mongodb"
 
 
 class TimeAttackMethod(StrEnum):
-    """Possible methods against timing attacks"""
+    """Possible methods against timing attacks."""
 
     JITTER = "jitter"
     STALL = "stall"
@@ -59,7 +59,7 @@ class TimeAttackMethod(StrEnum):
 
 # Private Databases
 class PrivateDatabaseType(StrEnum):
-    """Type of Private Database for the private data"""
+    """Type of Private Database for the private data."""
 
     PATH = "PATH_DB"
     S3 = "S3_DB"

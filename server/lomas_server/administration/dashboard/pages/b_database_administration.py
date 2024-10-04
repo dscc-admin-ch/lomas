@@ -5,6 +5,11 @@ import yaml
 from admin_database.constants import BudgetDBKey
 from admin_database.utils import get_mongodb
 from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
+from lomas_server.administration.dashboard.utils import (
+    check_dataset_warning,
+    check_user_warning,
+    warning_field_missing,
+)
 from mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -42,41 +47,6 @@ if "list_users" not in st.session_state:
 
 if "list_datasets" not in st.session_state:
     st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
-
-
-def check_user_warning(user: str) -> bool:
-    """Verify if user already present and warning if it is.
-
-    Args:
-        user (str): name of user
-
-    Returns:
-        boolean: True if warning
-    """
-    if user in st.session_state.list_users:
-        st.warning(f"User {user} is already in the database.")
-        return True
-    return False
-
-
-def check_dataset_warning(ds: str) -> bool:
-    """Verify if dataset already present and warning if it is.
-
-    Args:
-        user (str): name of user
-
-    Returns:
-        boolean: True if warning
-    """
-    if ds in st.session_state.list_datasets:
-        st.warning(f"Dataset {ds} is already in the database.")
-        return True
-    return False
-
-
-def warning_field_missing() -> None:
-    """Writes warning that some fields are missing."""
-    st.warning("Please fill all fields.")
 
 
 ###############################################################################
@@ -387,7 +357,17 @@ with dataset_tab:
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
-            ad_meta_path = st.text_input("Metadata path (add dataset)", None)
+            uploaded_metadata = st.file_uploader("Import your related metadata file")
+            ad_meta_path = None
+            if uploaded_metadata is not None:
+                # Save the file
+                ad_meta_path = os.path.join(
+                    "/data/collections/metadata", uploaded_metadata.name
+                )
+                with open(ad_meta_path, "wb") as f:
+                    f.write(uploaded_metadata.getbuffer())
+
+                st.success(f"File {uploaded_metadata.name} uploaded successfully!")
         case PrivateDatabaseType.S3:
             (
                 ad_meta_s3_1,

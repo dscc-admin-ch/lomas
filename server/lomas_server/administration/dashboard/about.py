@@ -12,12 +12,12 @@ def main():
         [
             Page(f"{FOLDER}/about.py", "Home Page", "🏠"),
             Page(
-                f"{FOLDER}/pages/01_server_overview.py",
+                f"{FOLDER}/pages/a_server_overview.py",
                 "Lomas server overview",
                 ":computer:",
             ),
             Page(
-                f"{FOLDER}/pages/02_database_administration.py",
+                f"{FOLDER}/pages/b_database_administration.py",
                 "Admin database management",
                 ":file_folder:",
             ),

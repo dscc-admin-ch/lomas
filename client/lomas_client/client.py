@@ -11,6 +11,7 @@ from fastapi import status
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.opendp import OpenDPClient
+from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_core.constants import DPLibraries
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
@@ -74,6 +75,7 @@ class Client:
         self.http_client = LomasHttpClient(url, user_name, dataset_name)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.opendp= OpenDPClient(self.http_client)
+        self.diffprivlib= DiffPrivLibClient(self.http_client)
 
 
     def get_dataset_metadata(
@@ -134,144 +136,6 @@ class Client:
 
         raise_error(res)
         return None
-
-    def diffprivlib_query(
-        self,
-        pipeline: Pipeline,
-        feature_columns: List[str],
-        target_columns: Optional[List[str]] = None,
-        test_size: float = 0.2,
-        test_train_split_seed: int = 1,
-        imputer_strategy: str = "drop",
-        dummy: bool = False,
-        nb_rows: int = DUMMY_NB_ROWS,
-        seed: int = DUMMY_SEED,
-    ) -> Pipeline:
-        """Trains a DiffPrivLib pipeline and return a trained Pipeline.
-
-        Args:
-            pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
-                - The pipeline MUST start with a `models.StandardScaler`.
-                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
-                  is treated as an error in lomas server.
-                - `random_state` fields can only be int (`RandomState` will not work).
-                - `accountant` fields must be None.
-                Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
-                to ensure that the pipeline does what is intended.
-            feature_columns (list[str]): the list of feature column to train
-            target_columns (list[str], optional): the list of target column to predict \
-                May be None for certain models.
-            test_size (float, optional): proportion of the test set \
-                Defaults to 0.2.
-            test_train_split_seed (int, optional): seed for random train test split \
-                Defaults to 1.
-            imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
-                "drop": will drop all rows with missing values
-                "mean": will replace values by the mean of the column values
-                "median": will replace values by the median of the column values
-                "most_frequent": : will replace values by the most frequent values
-            dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
-            nb_rows (int, optional): The number of rows in the dummy dataset.\
-                Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.\
-                Defaults to DUMMY_SEED.
-
-        Returns:
-            Optional[Pipeline]: A trained DiffPrivLip pipeline
-        """
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "diffprivlib_json": serialise_pipeline(pipeline),
-            "feature_columns": feature_columns,
-            "target_columns": target_columns,
-            "test_size": test_size,
-            "test_train_split_seed": test_train_split_seed,
-            "imputer_strategy": imputer_strategy,
-        }
-
-        request_model: Type[DiffPrivLibRequestModel]
-        if dummy:
-            endpoint = "dummy_diffprivlib_query"
-            body_json["dummy_nb_rows"] = nb_rows
-            body_json["dummy_seed"] = seed
-            request_model = DiffPrivLibDummyQueryModel
-        else:
-            endpoint = "diffprivlib_query"
-            request_model = DiffPrivLibQueryModel
-
-        res = self._exec(
-            endpoint, body_json, request_model, read_timeout=DIFFPRIVLIB_READ_TIMEOUT
-        )
-        if res.status_code == status.HTTP_200_OK:
-            response = res.json()
-            model = base64.b64decode(response["query_response"]["model"])
-            response["query_response"]["model"] = pickle.loads(model)
-            return response
-        print(
-            f"Error while processing DiffPrivLib request in server \
-                status code: {res.status_code} message: {res.text}"
-        )
-        return res.text
-
-    def estimate_diffprivlib_cost(
-        self,
-        pipeline: Pipeline,
-        feature_columns: List[str] = [""],
-        target_columns: List[str] = [""],
-        test_size: float = 0.2,
-        test_train_split_seed: int = 1,
-        imputer_strategy: str = "drop",
-    ) -> dict:
-        """This function estimates the cost of executing a DiffPrivLib query.
-
-        Args:
-            pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
-                - The pipeline MUST start with a `models.StandardScaler`.
-                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
-                  is treated as an error in lomas server.
-                - `random_state` fields can only be int (`RandomState` will not work).
-                - `accountant` fields must be None.
-                Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
-                to ensure that the pipeline does what is intended.
-            feature_columns (list[str]): the list of feature column to train
-            target_columns (list[str], optional): the list of target column to predict \
-                May be None for certain models.
-            test_size (float, optional): proportion of the test set \
-                Defaults to 0.2.
-            test_train_split_seed (int, optional): seed for random train test split \
-                Defaults to 1.
-            imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
-                "drop": will drop all rows with missing values
-                "mean": will replace values by the mean of the column values
-                "median": will replace values by the median of the column values
-                "most_frequent": : will replace values by the most frequent values
-
-        Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
-        """
-        body_json = {
-            "dataset_name": self.dataset_name,
-            "diffprivlib_json": serialise_pipeline(pipeline),
-            "feature_columns": feature_columns,
-            "target_columns": target_columns,
-            "test_size": test_size,
-            "test_train_split_seed": test_train_split_seed,
-            "imputer_strategy": imputer_strategy,
-        }
-        res = self._exec(
-            "estimate_diffprivlib_cost",
-            body_json,
-            DiffPrivLibRequestModel,
-            read_timeout=DIFFPRIVLIB_READ_TIMEOUT,
-        )
-
-        if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
-        print(
-            f"Error while executing provided query in server:\n"
-            f"status code: {res.status_code} message: {res.text}"
-        )
-        return res.text
 
     def get_initial_budget(self) -> Optional[dict[str, float]]:
         """This function retrieves the initial budget.
@@ -383,9 +247,9 @@ class Client:
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(
-                            query["response"]["query_response"]["model"]
+                            query["response"]["result"]["model"]
                         )
-                        query["response"]["query_response"]["model"] = pickle.loads(
+                        query["response"]["result"]["model"] = pickle.loads(
                             model
                         )
                     case _:

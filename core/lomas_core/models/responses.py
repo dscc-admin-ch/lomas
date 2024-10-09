@@ -147,7 +147,7 @@ class OpenDPQueryResult(BaseModel):
     """Type for opendp result."""
 
     res_type: Literal["opendp"] = "opendp"
-    value : Union[int, float, List[Union[int, float]]]
+    value: Union[int, float, List[Union[int, float]]]
 
 
 # Response object

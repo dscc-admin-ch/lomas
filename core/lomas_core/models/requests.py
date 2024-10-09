@@ -12,7 +12,6 @@ from lomas_core.error_handler import InternalServerException
 
 class LomasRequestModel(BaseModel):
     """Base class for all types of requests to the lomas server."""
-    pass
 
 
 class GetDsData(LomasRequestModel):

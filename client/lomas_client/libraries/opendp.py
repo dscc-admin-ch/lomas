@@ -21,7 +21,7 @@ class OpenDPClient():
         self,
         opendp_pipeline: dp.Measurement,
         fixed_delta: Optional[float] = None,
-    ) -> Optional[dict[str, float]]:
+    ) -> Optional[CostResponse]:
         """This function estimates the cost of executing an OpenDP query.
 
         Args:
@@ -48,7 +48,8 @@ class OpenDPClient():
         res = self.http_client.post("estimate_opendp_cost", body)
 
         if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
+            data = res.content.decode("utf8")
+            return CostResponse.model_validate_json(data)
 
         raise_error(res)
         return None
@@ -60,7 +61,7 @@ class OpenDPClient():
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[dict]:
+    ) -> Optional[QueryResponse]:
         """This function executes an OpenDP query.
 
         Args:
@@ -106,8 +107,8 @@ class OpenDPClient():
         
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
-            response_dict = json.loads(data)
-            return response_dict
+            r_model = QueryResponse.model_validate_json(data)
+            return r_model
 
         raise_error(res)
         return None

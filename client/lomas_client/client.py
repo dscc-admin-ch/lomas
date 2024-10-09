@@ -10,25 +10,13 @@ from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
+from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_core.constants import DPLibraries
 from lomas_core.models.requests import (
-    DiffPrivLibDummyQueryModel,
-    DiffPrivLibQueryModel,
-    DiffPrivLibRequestModel,
     GetDsData,
     GetDummyDataset,
-    LomasRequestModel,
-    OpenDPDummyQueryModel,
-    OpenDPQueryModel,
-    OpenDPRequestModel,
-    SmartnoiseSQLDummyQueryModel,
-    SmartnoiseSQLQueryModel,
-    SmartnoiseSQLRequestModel,
-    SmartnoiseSynthDummyQueryModel,
-    SmartnoiseSynthQueryModel,
-    SmartnoiseSynthRequestModel,
 )
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
@@ -37,13 +25,8 @@ from sklearn.pipeline import Pipeline
 from smartnoise_synth_logger import serialise_constraints
 
 from lomas_client.constants import (
-    CONNECT_TIMEOUT,
-    DEFAULT_READ_TIMEOUT,
-    DIFFPRIVLIB_READ_TIMEOUT,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
-    SMARTNOISE_SYNTH_READ_TIMEOUT,
-    SNSYNTH_DEFAULT_SAMPLES_NB,
 )
 from lomas_client.utils import (
     InternalClientException,
@@ -74,6 +57,7 @@ class Client:
         
         self.http_client = LomasHttpClient(url, user_name, dataset_name)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
+        self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp= OpenDPClient(self.http_client)
         self.diffprivlib= DiffPrivLibClient(self.http_client)
 
@@ -233,13 +217,13 @@ class Client:
                         pass
                     case DPLibraries.SMARTNOISE_SYNTH:
                         return_model = query["client_input"]["return_model"]
-                        res = query["response"]["query_response"]
+                        res = query["response"]["result"]
                         if return_model:
-                            query["response"]["query_response"] = pickle.loads(
+                            query["response"]["result"] = pickle.loads(
                                 base64.b64decode(res)
                             )
                         else:
-                            query["response"]["query_response"] = pd.DataFrame(res)
+                            query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
                         opdp_query = make_load_json(
                             query["client_input"]["opendp_json"]

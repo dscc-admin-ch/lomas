@@ -1,22 +1,25 @@
-
-
 from typing import Optional, Type
+
 import opendp as dp
-import json
 from fastapi import status
+from lomas_core.models.requests import (
+    OpenDPDummyQueryModel,
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+)
+from lomas_core.models.responses import CostResponse, QueryResponse
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import raise_error
-from lomas_core.models.requests import OpenDPDummyQueryModel, OpenDPQueryModel, OpenDPRequestModel
-from lomas_core.models.responses import CostResponse, QueryResponse
 
 
-class OpenDPClient():
+class OpenDPClient:
+    """A client for executing and estimating the cost of OpenDP queries."""
 
     def __init__(self, http_client: LomasHttpClient):
         self.http_client = http_client
-        
+
     def cost(
         self,
         opendp_pipeline: dp.Measurement,
@@ -43,7 +46,7 @@ class OpenDPClient():
             "opendp_json": opendp_json,
             "fixed_delta": fixed_delta,
         }
-        
+
         body = OpenDPRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_opendp_cost", body)
 
@@ -53,7 +56,7 @@ class OpenDPClient():
 
         raise_error(res)
         return None
-        
+
     def query(
         self,
         opendp_pipeline: dp.Measurement,
@@ -101,10 +104,10 @@ class OpenDPClient():
         else:
             endpoint = "opendp_query"
             request_model = OpenDPQueryModel
-            
+
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body)
-        
+
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             r_model = QueryResponse.model_validate_json(data)

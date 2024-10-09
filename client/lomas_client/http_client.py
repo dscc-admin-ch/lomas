@@ -1,11 +1,12 @@
-
-
 import requests
-from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_core.models.requests import LomasRequestModel
 
+from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 
-class LomasHttpClient():
+
+# pylint: disable=R0903
+class LomasHttpClient:
+    """A client for interacting with the Lomas API."""
 
     def __init__(self, url: str, user_name: str, dataset_name: str):
         self.url = url
@@ -16,7 +17,7 @@ class LomasHttpClient():
     def post(
         self,
         endpoint: str,
-        body: LomasRequestModel = {},
+        body: LomasRequestModel,
         read_timeout: int = DEFAULT_READ_TIMEOUT,
     ) -> requests.Response:
         """Executes a POST request to endpoint with the provided JSON body.

@@ -1,17 +1,20 @@
-
-
 from typing import Optional, Type
 
 from fastapi import status
+from lomas_core.models.requests import (
+    SmartnoiseSQLDummyQueryModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
+)
+from lomas_core.models.responses import CostResponse, QueryResponse
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import raise_error
-from lomas_core.models.requests import SmartnoiseSQLDummyQueryModel, SmartnoiseSQLQueryModel, SmartnoiseSQLRequestModel
-from lomas_core.models.responses import CostResponse, QueryResponse
 
 
-class SmartnoiseSQLClient():
+class SmartnoiseSQLClient:
+    """A client for executing and estimating the cost of SmartNoise SQL queries."""
 
     def __init__(self, http_client: LomasHttpClient):
         self.http_client = http_client
@@ -46,17 +49,15 @@ class SmartnoiseSQLClient():
             "mechanisms": mechanisms,
         }
         body = SmartnoiseSQLRequestModel.model_validate(body_dict)
-        res = self.http_client.post(
-            "estimate_smartnoise_sql_cost", body
-        )
+        res = self.http_client.post("estimate_smartnoise_sql_cost", body)
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             return CostResponse.model_validate_json(data)
-        
+
         raise_error(res)
         return None
-        
+
     def query(
         self,
         query: str,
@@ -124,6 +125,6 @@ class SmartnoiseSQLClient():
             data = res.content.decode("utf8")
             r_model = QueryResponse.model_validate_json(data)
             return r_model
-        
+
         raise_error(res)
         return None

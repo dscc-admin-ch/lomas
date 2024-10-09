@@ -1,39 +1,31 @@
 import base64
 import json
 import pickle
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Union
 
-import opendp as dp
 import pandas as pd
-import requests
-from diffprivlib_logger import serialise_pipeline
 from fastapi import status
-from lomas_client.http_client import LomasHttpClient
-from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
-from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
-from lomas_client.libraries.opendp import OpenDPClient
-from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_core.constants import DPLibraries
 from lomas_core.models.requests import (
     GetDsData,
     GetDummyDataset,
 )
+from lomas_core.models.responses import DummyDsResponse
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
-from pydantic import BaseModel
-from sklearn.pipeline import Pipeline
-from smartnoise_synth_logger import serialise_constraints
 
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
 )
+from lomas_client.http_client import LomasHttpClient
+from lomas_client.libraries.diffprivlib import DiffPrivLibClient
+from lomas_client.libraries.opendp import OpenDPClient
+from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
+from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.utils import (
-    InternalClientException,
     raise_error,
-    validate_synthesizer,
 )
-from lomas_core.models.responses import CostResponse, DummyDsResponse, QueryResponse
 
 # Opendp_logger
 enable_logging()
@@ -54,13 +46,12 @@ class Client:
             user_name (str): The name of the user allowed to perform queries.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
         """
-        
+
         self.http_client = LomasHttpClient(url, user_name, dataset_name)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
-        self.opendp= OpenDPClient(self.http_client)
-        self.diffprivlib= DiffPrivLibClient(self.http_client)
-
+        self.opendp = OpenDPClient(self.http_client)
+        self.diffprivlib = DiffPrivLibClient(self.http_client)
 
     def get_dataset_metadata(
         self,
@@ -73,9 +64,7 @@ class Client:
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
         body = GetDsData.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_dataset_metadata", body
-        )
+        res = self.http_client.post("get_dataset_metadata", body)
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             metadata = json.loads(data)
@@ -104,14 +93,12 @@ class Client:
             Optional[pd.DataFrame]: A Pandas DataFrame representing the dummy dataset.
         """
         body_dict = {
-                "dataset_name": self.http_client.dataset_name,
-                "dummy_nb_rows": nb_rows,
-                "dummy_seed": seed,
-            }
+            "dataset_name": self.http_client.dataset_name,
+            "dummy_nb_rows": nb_rows,
+            "dummy_seed": seed,
+        }
         body = GetDummyDataset.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_dummy_dataset", body
-        )
+        res = self.http_client.post("get_dummy_dataset", body)
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
@@ -127,15 +114,11 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the initial budget.
         """
-        
-        body_dict = {
-                "dataset_name": self.http_client.dataset_name
-            }
-        
+
+        body_dict = {"dataset_name": self.http_client.dataset_name}
+
         body = GetDsData.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_initial_budget", body
-        )
+        res = self.http_client.post("get_initial_budget", body)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -149,14 +132,10 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the total spent budget.
         """
-        body_dict = {
-                "dataset_name": self.http_client.dataset_name
-            }
-        
+        body_dict = {"dataset_name": self.http_client.dataset_name}
+
         body = GetDsData.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_total_spent_budget", body
-        )
+        res = self.http_client.post("get_total_spent_budget", body)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -170,14 +149,10 @@ class Client:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the remaining budget.
         """
-        body_dict = {
-                "dataset_name": self.http_client.dataset_name
-            }
-        
+        body_dict = {"dataset_name": self.http_client.dataset_name}
+
         body = GetDsData.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_remaining_budget", body
-        )
+        res = self.http_client.post("get_remaining_budget", body)
 
         if res.status_code == status.HTTP_200_OK:
             return json.loads(res.content.decode("utf8"))
@@ -195,14 +170,10 @@ class Client:
             Optional[List[dict]]: A list of dictionary containing the different queries
             on the private dataset.
         """
-        body_dict = {
-                "dataset_name": self.http_client.dataset_name
-            }
-        
+        body_dict = {"dataset_name": self.http_client.dataset_name}
+
         body = GetDsData.model_validate(body_dict)
-        res = self.http_client.post(
-            "get_previous_queries", body
-        )
+        res = self.http_client.post("get_previous_queries", body)
 
         if res.status_code == status.HTTP_200_OK:
             queries = json.loads(res.content.decode("utf8"))["previous_queries"]
@@ -230,12 +201,8 @@ class Client:
                         )
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
-                        model = base64.b64decode(
-                            query["response"]["result"]["model"]
-                        )
-                        query["response"]["result"]["model"] = pickle.loads(
-                            model
-                        )
+                        model = base64.b64decode(query["response"]["result"]["model"])
+                        query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
                         raise ValueError(
                             "Cannot deserialise unknown query type:"
@@ -248,5 +215,3 @@ class Client:
 
         raise_error(res)
         return None
-
-    

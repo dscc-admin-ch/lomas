@@ -3,10 +3,11 @@ import os
 
 import streamlit as st
 import yaml
+from lomas_core.models.constants import PrivateDatabaseType
 
 from admin_database.constants import BudgetDBKey
 from admin_database.utils import get_mongodb
-from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
+from constants import DELTA_LIMIT, EPSILON_LIMIT
 from lomas_server.administration.dashboard.utils import (
     check_dataset_warning,
     check_user_warning,

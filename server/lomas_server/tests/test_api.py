@@ -612,6 +612,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_model = QueryResponse.model_validate(response_dict)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
             assert response_model.result.value > 0
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0
@@ -664,6 +665,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_model = QueryResponse.model_validate(response_dict)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
             assert response_model.result.value > 0
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0
@@ -691,6 +693,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_model = QueryResponse.model_validate(response_dict)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
             assert response_model.result.value > 0
             assert response_model.epsilon > 0.1
             assert response_model.delta == 1e-6
@@ -718,6 +721,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_model = QueryResponse.model_validate(response_dict)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
             assert response_model.result.value > 0
             assert response_model.epsilon > 0.1
             assert response_model.delta == 1e-6
@@ -754,9 +758,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_model = QueryResponse.model_validate_json(response.content.decode("utf8"))
+            response_model = QueryResponse.model_validate_json(
+                response.content.decode("utf8")
+            )
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
             assert response_model.result.value > 0
 
             # Should fail: user does not have access to dataset

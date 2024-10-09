@@ -30,7 +30,7 @@ class DiffPrivLibClient():
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
-    ) -> dict:
+    ) -> Optional[CostResponse]:
         """This function estimates the cost of executing a DiffPrivLib query.
 
         Args:
@@ -72,12 +72,11 @@ class DiffPrivLibClient():
         res = self.http_client.post("estimate_diffprivlib_cost", body)
 
         if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
-        print(
-            f"Error while executing provided query in server:\n"
-            f"status code: {res.status_code} message: {res.text}"
-        )
-        return res.text
+            data = res.content.decode("utf8")
+            return CostResponse.model_validate_json(data)
+        
+        raise_error(res)
+        return None
     
     def query(
         self,
@@ -90,7 +89,7 @@ class DiffPrivLibClient():
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Pipeline:
+    ) -> Optional[QueryResponse]:
         """Trains a DiffPrivLib pipeline and return a trained Pipeline.
 
         Args:
@@ -147,12 +146,9 @@ class DiffPrivLibClient():
         res = self.http_client.post(endpoint, body)
         
         if res.status_code == status.HTTP_200_OK:
-            response = res.json()
-            model = base64.b64decode(response["result"]["model"])
-            response["result"]["model"] = pickle.loads(model)
-            return response
-        print(
-            f"Error while processing DiffPrivLib request in server \
-                status code: {res.status_code} message: {res.text}"
-        )
-        return res.text
+            data = res.content.decode("utf8")
+            r_model = QueryResponse.model_validate_json(data)
+            return r_model
+
+        raise_error(res)
+        return None

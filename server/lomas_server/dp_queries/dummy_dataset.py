@@ -1,6 +1,16 @@
 import numpy as np
 import pandas as pd
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import (
+    BooleanMetadata,
+    CategoricalColumnMetadata,
+    DatetimeMetadata,
+    FloatMetadata,
+    IntMetadata,
+    Metadata,
+    StrMetadata,
+)
+from lomas_core.models.requests import DummyQueryModel
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
@@ -10,16 +20,6 @@ from lomas_server.constants import (
     RANDOM_STRINGS,
 )
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
-from lomas_server.models.collections import (
-    BooleanMetadata,
-    CategoricalColumnMetadata,
-    DatetimeMetadata,
-    FloatMetadata,
-    IntMetadata,
-    Metadata,
-    StrMetadata,
-)
-from lomas_server.models.requests import DummyQueryModel
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals

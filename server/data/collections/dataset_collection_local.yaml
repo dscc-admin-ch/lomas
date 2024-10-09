@@ -7,7 +7,7 @@ datasets:
     database_type: "PATH_DB"
     path: "../data/collections/metadata/iris_metadata.yaml"
 - dataset_name: "PENGUIN"
-    dataset_access:
+  dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
   metadata_access:

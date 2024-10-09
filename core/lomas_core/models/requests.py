@@ -1,21 +1,26 @@
 from typing import List, Optional, Union
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from lomas_core.constants import (
     DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
 from lomas_core.error_handler import InternalServerException
-from pydantic import BaseModel, Field
 
 
-class GetDbData(BaseModel):
+class LomasRequestModel(BaseModel):
+    """Base class for all types of requests to the lomas server."""
+
+
+class GetDsData(LomasRequestModel):
     """Model input to get information about a dataset."""
 
     dataset_name: str
 
 
-class GetDummyDataset(BaseModel):
+class GetDummyDataset(LomasRequestModel):
     """Model input to get a dummy dataset."""
 
     dataset_name: str
@@ -23,7 +28,7 @@ class GetDummyDataset(BaseModel):
     dummy_seed: int
 
 
-class RequestModel(BaseModel):
+class RequestModel(LomasRequestModel):
     """
     Base input model for any request on a dataset.
 
@@ -113,7 +118,9 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 class OpenDPRequestModel(RequestModel):
     """Base input model for an opendp request."""
 
+    model_config = ConfigDict(use_attribute_docstrings=True)
     opendp_json: str
+    """Opendp pipeline."""
     fixed_delta: Optional[float] = None
 
 

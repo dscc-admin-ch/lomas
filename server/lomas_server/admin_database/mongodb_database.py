@@ -87,7 +87,9 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).update_one(
             {"user_name": f"{user_name}"},
             {"$set": {"may_query": may_query}},
         )
@@ -260,7 +262,9 @@ class AdminMongoDatabase(AdminDatabase):
             WriteConcernError: If the result is not acknowledged.
         """
         to_archive = super().prepare_save_query(user_name, query_json, response)
-        res = self.db.queries_archives.insert_one(to_archive)
+        res = self.db.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).queries_archives.insert_one(to_archive)
         check_result_acknowledged(res)
 
 

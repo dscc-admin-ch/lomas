@@ -28,6 +28,7 @@ jobs:
       run: |
         pip install -r core/requirements_core.txt
         pip install -r server/requirements_server.txt
+        pip install -r server/requirements_streamlit.txt
         pip install coverage==7.5.3
     - name: Run test script
       run: |

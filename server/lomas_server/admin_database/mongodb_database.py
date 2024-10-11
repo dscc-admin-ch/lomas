@@ -1,7 +1,7 @@
 from typing import List
 
 from lomas_core.error_handler import InvalidQueryException
-from pymongo import MongoClient, ReturnDocument
+from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
@@ -114,6 +114,7 @@ class AdminMongoDatabase(AdminDatabase):
             {"$set": {"may_query": may_query}},
             projection={"may_query": 1},
             return_document=ReturnDocument.BEFORE,
+            write_concern=WriteConcern(w="majority", j=True),
         )
 
         return res["may_query"]  # type: ignore

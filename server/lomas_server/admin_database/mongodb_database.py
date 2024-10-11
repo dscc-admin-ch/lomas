@@ -192,8 +192,8 @@ class AdminMongoDatabase(AdminDatabase):
         """
         res = self.db.users.update_one(
             {
-                "user_name": f"{user_name}",
-                "datasets_list.dataset_name": f"{dataset_name}",
+                "user_name": user_name,
+                "datasets_list.dataset_name": dataset_name,
             },
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )

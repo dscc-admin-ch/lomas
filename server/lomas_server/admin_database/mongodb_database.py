@@ -190,7 +190,9 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w="majority", j=True)
+        ).update_one(
             {
                 "user_name": user_name,
                 "datasets_list.dataset_name": dataset_name,

@@ -12,7 +12,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
 from lomas_server.models.collections import DSInfo, Metadata
 from lomas_server.models.requests import RequestModel
 
@@ -110,7 +110,7 @@ class AdminMongoDatabase(AdminDatabase):
             bool: The may_query status of the user before the update.
         """
         res = self.db.users.with_options(
-            write_concern=WriteConcern(w="majority", j=True)
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).find_one_and_update(
             {"user_name": user_name},
             {"$set": {"may_query": may_query}},
@@ -192,7 +192,7 @@ class AdminMongoDatabase(AdminDatabase):
             WriteConcernError: If the result is not acknowledged.
         """
         res = self.db.users.with_options(
-            write_concern=WriteConcern(w="majority", j=True)
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).update_one(
             {
                 "user_name": user_name,

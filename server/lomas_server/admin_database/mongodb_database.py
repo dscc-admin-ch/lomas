@@ -1,7 +1,7 @@
 from typing import List
 
 from lomas_core.error_handler import InvalidQueryException
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
@@ -110,7 +110,10 @@ class AdminMongoDatabase(AdminDatabase):
             bool: The may_query status of the user before the update.
         """
         res = self.db.users.find_one_and_update(
-            {"user_name": user_name}, {"$set": {"may_query": may_query}}
+            {"user_name": user_name},
+            {"$set": {"may_query": may_query}},
+            projection={"may_query": 1},
+            return_document=ReturnDocument.BEFORE,
         )
 
         return res["may_query"]  # type: ignore

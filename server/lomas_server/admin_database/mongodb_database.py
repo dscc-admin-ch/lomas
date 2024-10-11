@@ -109,12 +109,13 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
-        res = self.db.users.find_one_and_update(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w="majority", j=True)
+        ).find_one_and_update(
             {"user_name": user_name},
             {"$set": {"may_query": may_query}},
             projection={"may_query": 1},
             return_document=ReturnDocument.BEFORE,
-            write_concern=WriteConcern(w="majority", j=True),
         )
 
         return res["may_query"]  # type: ignore

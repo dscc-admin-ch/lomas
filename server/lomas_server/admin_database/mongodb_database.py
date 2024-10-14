@@ -1,7 +1,7 @@
 from typing import List
 
 from lomas_core.error_handler import InvalidQueryException
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
@@ -12,7 +12,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
 from lomas_server.models.collections import DSInfo, Metadata
 from lomas_server.models.requests import RequestModel
 
@@ -87,7 +87,9 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).update_one(
             {"user_name": f"{user_name}"},
             {"$set": {"may_query": may_query}},
         )
@@ -109,8 +111,13 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
-        res = self.db.users.find_one_and_update(
-            {"user_name": user_name}, {"$set": {"may_query": may_query}}
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).find_one_and_update(
+            {"user_name": user_name},
+            {"$set": {"may_query": may_query}},
+            projection={"may_query": 1},
+            return_document=ReturnDocument.BEFORE,
         )
 
         return res["may_query"]  # type: ignore
@@ -186,10 +193,12 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).update_one(
             {
-                "user_name": f"{user_name}",
-                "datasets_list.dataset_name": f"{dataset_name}",
+                "user_name": user_name,
+                "datasets_list.dataset_name": dataset_name,
             },
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )
@@ -253,7 +262,9 @@ class AdminMongoDatabase(AdminDatabase):
             WriteConcernError: If the result is not acknowledged.
         """
         to_archive = super().prepare_save_query(user_name, query_json, response)
-        res = self.db.queries_archives.insert_one(to_archive)
+        res = self.db.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).queries_archives.insert_one(to_archive)
         check_result_acknowledged(res)
 
 

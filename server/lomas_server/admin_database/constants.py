@@ -11,3 +11,6 @@ class BudgetDBKey(StrEnum):
     DELTA_SPENT = "total_spent_delta"
     EPSILON_INIT = "initial_epsilon"
     DELTA_INIT = "initial_delta"
+
+
+WRITE_CONCERN_LEVEL = "majority"

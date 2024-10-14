@@ -1,12 +1,12 @@
-diffprivlib==0.6.4
+diffprivlib==0.6.5
 diffprivlib_logger==0.0.3
 fastapi==0.111.1
 git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca
-numpy==1.26.2
+numpy==2.1.2
 opendp==0.10.0
 opendp-logger==0.3.0
 pandas==2.2.2
 pymongo==4.6.3
-scikit-learn==1.4.0 # due to DiffPrivLib PCA error  
+scikit-learn==1.5.2
 smartnoise-synth==1.0.4
 smartnoise_synth_logger==0.0.3

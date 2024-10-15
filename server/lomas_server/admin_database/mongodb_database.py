@@ -263,15 +263,10 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-<<<<<<< HEAD
-        to_archive = super().prepare_save_query(user_name, query_json, response)
+        to_archive = super().prepare_save_query(user_name, query, response)
         res = self.db.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).queries_archives.insert_one(to_archive)
-=======
-        to_archive = super().prepare_save_query(user_name, query, response)
-        res = self.db.queries_archives.insert_one(to_archive)
->>>>>>> b587f6c (Adding response models)
         check_result_acknowledged(res)
 
 

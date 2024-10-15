@@ -1,7 +1,7 @@
 import base64
 import json
 import pickle
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 from fastapi import status
@@ -10,7 +10,12 @@ from lomas_core.models.requests import (
     GetDsData,
     GetDummyDataset,
 )
-from lomas_core.models.responses import DummyDsResponse
+from lomas_core.models.responses import (
+    DummyDsResponse,
+    InitialBudgetResponse,
+    RemainingBudgetResponse,
+    SpentBudgetResponse,
+)
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 
@@ -55,11 +60,11 @@ class Client:
 
     def get_dataset_metadata(
         self,
-    ) -> Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
+    ) -> Optional[GetDsData]:
         """This function retrieves metadata for the dataset.
 
         Returns:
-            Optional[Dict[str, Union[int, bool, Dict[str, Union[str, int]]]]]:
+            Optional[GetDsData]:
                 A dictionary containing dataset metadata.
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
@@ -77,7 +82,7 @@ class Client:
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[pd.DataFrame]:
+    ) -> Optional[DummyDsResponse]:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
@@ -90,7 +95,8 @@ class Client:
                 Defaults to DUMMY_SEED.
 
         Returns:
-            Optional[pd.DataFrame]: A Pandas DataFrame representing the dummy dataset.
+            Optional[DummyDsResponse]: A Pandas DataFrame
+                representing the dummy dataset.
         """
         body_dict = {
             "dataset_name": self.http_client.dataset_name,
@@ -108,11 +114,12 @@ class Client:
         raise_error(res)
         return None
 
-    def get_initial_budget(self) -> Optional[dict[str, float]]:
+    def get_initial_budget(self) -> Optional[InitialBudgetResponse]:
         """This function retrieves the initial budget.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the initial budget.
+            Optional[InitialBudgetResponse]: A dictionary
+                containing the initial budget.
         """
 
         body_dict = {"dataset_name": self.http_client.dataset_name}
@@ -126,11 +133,12 @@ class Client:
         raise_error(res)
         return None
 
-    def get_total_spent_budget(self) -> Optional[dict[str, float]]:
+    def get_total_spent_budget(self) -> Optional[SpentBudgetResponse]:
         """This function retrieves the total spent budget.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the total spent budget.
+            Optional[SpentBudgetResponse]: A dictionary containing
+                the total spent budget.
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
@@ -143,11 +151,12 @@ class Client:
         raise_error(res)
         return None
 
-    def get_remaining_budget(self) -> Optional[dict[str, float]]:
+    def get_remaining_budget(self) -> Optional[RemainingBudgetResponse]:
         """This function retrieves the remaining budget.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the remaining budget.
+            Optional[RemainingBudgetResponse]: A dictionary
+                containing the remaining budget.
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
@@ -164,11 +173,12 @@ class Client:
         """This function retrieves the previous queries of the user.
 
         Raises:
-            ValueError: If an unknown query type is encountered during deserialization.
+            ValueError: If an unknown query type is encountered
+                during deserialization.
 
         Returns:
-            Optional[List[dict]]: A list of dictionary containing the different queries
-            on the private dataset.
+            Optional[List[dict]]: A list of dictionary containing
+            the different queries on the private dataset.
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 

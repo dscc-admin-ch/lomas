@@ -23,6 +23,7 @@ from lomas_server.utils.query_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
 )
+from lomas_core.logger import LOG
 
 
 def validate_pipeline(response) -> QueryResponse:
@@ -51,6 +52,10 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_diffprivlib,
                 headers=self.headers,
             )
+            LOG.error("ERROR HERE DPL 47")
+            LOG.error(response.status_code)
+            LOG.error(json.loads(response.content.decode("utf8")))
+            assert response.status_code == status.HTTP_200_OK
 
             r_model = validate_pipeline(response)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)
@@ -329,6 +334,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_dummy_diffprivlib,
                 headers=self.headers,
             )
+            LOG.error("ERROR HERE DPL 327")
+            LOG.error(response.status_code)
+            LOG.error(json.loads(response.content.decode("utf8")))
             assert response.status_code == status.HTTP_200_OK
 
             r_model = validate_pipeline(response)
@@ -358,6 +366,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_diffprivlib,
                 headers=self.headers,
             )
+            LOG.error("ERROR HERE DPL 47")
+            LOG.error(response.status_code)
+            LOG.error(json.loads(response.content.decode("utf8")))
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))

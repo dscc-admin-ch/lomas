@@ -7,6 +7,6 @@ opendp==0.10.0
 opendp-logger==0.3.0
 pandas==2.2.2
 pymongo==4.6.3
-scikit-learn==1.5.2
+scikit-learn==1.4.2
 smartnoise-synth==1.0.4
 smartnoise_synth_logger==0.0.3

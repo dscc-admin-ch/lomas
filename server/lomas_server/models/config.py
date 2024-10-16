@@ -47,6 +47,9 @@ class MongoDBConfig(DBConfig):
     username: str
     password: str
     db_name: str
+    max_pool_size: int
+    min_pool_size: int
+    max_connecting: int
 
 
 class PrivateDBCredentials(BaseModel):

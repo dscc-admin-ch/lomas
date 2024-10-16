@@ -39,6 +39,9 @@ if __name__ == "__main__":
     connection_parser.add_argument("-db_a", "--address", default="mongodb")
     connection_parser.add_argument("-db_p", "--port", default=27017)
     connection_parser.add_argument("-db_n", "--db_name", default="defaultdb")
+    connection_parser.add_argument("-db_max_ps", "--db_max_pool_size", default=100)
+    connection_parser.add_argument("-db_min_ps", "--db_min_pool_size", default=0)
+    connection_parser.add_argument("-db_max_conn", "--db_max_connecting", default=2)
 
     ########################################################################
     ######################## MongoDB Administration ############ # noqa: E266
@@ -366,6 +369,9 @@ if __name__ == "__main__":
         username=args.username,
         password=args.password,
         db_name=args.db_name,
+        max_pool_size=args.db_max_pool_size,
+        min_pool_size=args.db_min_pool_size,
+        max_connecting=args.db_max_connecting,
     )
     db_url = get_mongodb_url(mongo_config)
     mongo_db: Database = MongoClient(db_url)[args.db_name]

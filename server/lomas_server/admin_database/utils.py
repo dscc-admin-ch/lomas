@@ -27,10 +27,15 @@ def get_mongodb_url(config: MongoDBConfig) -> str:
     db_address = config.address
     db_port = config.port
     db_name = config.db_name
+    db_max_pool_size = config.max_pool_size
+    db_min_pool_size = config.min_pool_size
+    db_max_connecting = config.max_connecting
 
     db_url = (
         f"mongodb://{db_username}:{db_password}@{db_address}:"
         f"{db_port}/{db_name}?authSource=defaultdb"
+        f"&maxPoolSize={db_max_pool_size}&minPoolSize={db_min_pool_size}"
+        f"&maxConnecting={db_max_connecting}"
     )
 
     return db_url

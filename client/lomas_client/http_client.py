@@ -32,10 +32,6 @@ class LomasHttpClient:
                 to send a response.
                 Defaults to DEFAULT_READ_TIMEOUT.
 
-        Raises:
-            InternalClientException: If there is data in body_json but no request model.
-            InternalClientException: If there is a validation error.
-
         Returns:
             requests.Response: The response object resulting from the POST request.
         """

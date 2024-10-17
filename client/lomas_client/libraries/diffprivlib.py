@@ -1,7 +1,6 @@
 from typing import List, Optional, Type
 
 from diffprivlib_logger import serialise_pipeline
-from fastapi import status
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
@@ -15,7 +14,7 @@ from lomas_client.constants import (
     DUMMY_SEED,
 )
 from lomas_client.http_client import LomasHttpClient
-from lomas_client.utils import raise_error
+from lomas_client.utils import validate_model_response
 
 
 class DiffPrivLibClient:
@@ -73,12 +72,7 @@ class DiffPrivLibClient:
         body = DiffPrivLibRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_diffprivlib_cost", body)
 
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            return CostResponse.model_validate_json(data)
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, CostResponse)
 
     def query(
         self,
@@ -147,10 +141,4 @@ class DiffPrivLibClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body)
 
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            r_model = QueryResponse.model_validate_json(data)
-            return r_model
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, QueryResponse)

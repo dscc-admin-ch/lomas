@@ -378,7 +378,7 @@ def get_user_previous_queries(
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
             user_name, query_json.dataset_name
-        )  # TODO improve on that and return models.
+        )  # TODO 359 improve on that and return models.
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

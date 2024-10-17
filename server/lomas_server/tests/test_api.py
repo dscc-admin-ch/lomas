@@ -484,7 +484,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime."""
-        # Solved in issue 340
+        # Will be solved in issue 340
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
         #     new_headers = self.headers

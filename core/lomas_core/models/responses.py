@@ -13,6 +13,7 @@ from pydantic import (
 )
 from snsynth import Synthesizer
 
+from lomas_core.constants import DPLibraries
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
@@ -97,7 +98,7 @@ class DiffPrivLibQueryResult(BaseModel):
     """Model for diffprivlib query result."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    res_type: Literal["diffprivlib"] = "diffprivlib"
+    res_type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
     score: float
     model: Annotated[
         DiffprivlibMixin,
@@ -111,7 +112,7 @@ class SmartnoiseSQLQueryResult(BaseModel):
     """Type for smartnoise_sql result type."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    res_type: Literal["sn_sql"] = "sn_sql"
+    res_type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
     df: Annotated[
         pd.DataFrame,
         PlainSerializer(dataframe_to_dict),
@@ -124,7 +125,7 @@ class SmartnoiseSynthModel(BaseModel):
     """Type for smartnoise_synth result when it is a pickled model."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    res_type: Literal["sn_synt_model"] = "sn_synt_model"
+    res_type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
     model: Annotated[
         Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)
     ]
@@ -146,7 +147,7 @@ class SmartnoiseSynthSamples(BaseModel):
 class OpenDPQueryResult(BaseModel):
     """Type for opendp result."""
 
-    res_type: Literal["opendp"] = "opendp"
+    res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     value: Union[int, float, List[Union[int, float]]]
 
 

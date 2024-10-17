@@ -28,9 +28,7 @@ from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
-from lomas_client.utils import (
-    raise_error,
-)
+from lomas_client.utils import raise_error, validate_model_response
 
 # Opendp_logger
 enable_logging()
@@ -127,11 +125,7 @@ class Client:
         body = GetDsData.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
 
-        if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, InitialBudgetResponse)
 
     def get_total_spent_budget(self) -> Optional[SpentBudgetResponse]:
         """This function retrieves the total spent budget.
@@ -145,11 +139,7 @@ class Client:
         body = GetDsData.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
 
-        if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, SpentBudgetResponse)
 
     def get_remaining_budget(self) -> Optional[RemainingBudgetResponse]:
         """This function retrieves the remaining budget.
@@ -163,11 +153,7 @@ class Client:
         body = GetDsData.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
 
-        if res.status_code == status.HTTP_200_OK:
-            return json.loads(res.content.decode("utf8"))
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, RemainingBudgetResponse)
 
     def get_previous_queries(self) -> Optional[List[dict]]:
         """This function retrieves the previous queries of the user.

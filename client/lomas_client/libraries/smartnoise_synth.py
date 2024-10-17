@@ -1,6 +1,5 @@
 from typing import List, Optional
 
-from fastapi import status
 from lomas_core.models.requests import (
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
@@ -17,7 +16,7 @@ from lomas_client.constants import (
 )
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import (
-    raise_error,
+    validate_model_response,
     validate_synthesizer,
 )
 
@@ -95,12 +94,7 @@ class SmartnoiseSynthClient:
             "estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT
         )
 
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            return CostResponse.model_validate_json(data)
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, CostResponse)
 
     def query(
         self,
@@ -199,10 +193,4 @@ class SmartnoiseSynthClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            r_model = QueryResponse.model_validate_json(data)
-            return r_model
-
-        raise_error(res)
-        return None
+        return validate_model_response(res, QueryResponse)

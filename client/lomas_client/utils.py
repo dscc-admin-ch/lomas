@@ -1,4 +1,5 @@
 import warnings
+from typing import Any
 
 import requests
 from fastapi import status
@@ -9,17 +10,6 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-
-
-class InternalClientException(Exception):
-    """
-    Custom exception for issues within client internal functionalities.
-
-    like unexpected match cases.
-    """
-
-    def __init__(self, error_message: str) -> None:
-        self.error_message = error_message
 
 
 def raise_error(response: requests.Response) -> str:
@@ -74,3 +64,21 @@ def validate_synthesizer(synth_name: str, return_model: bool = False):
             f"{synth_name} synthesizer not supported. "
             + "Please choose another synthesizer."
         )
+
+
+def validate_model_response(response: requests.Response, response_model: Any) -> Any:
+    """Validate and process a HTTP response.
+
+    Args:
+        response (requests.Response): The response object from an HTTP request.
+
+    Returns:
+        response_model: Model for responses requests.
+    """
+    if response.status_code == status.HTTP_200_OK:
+        data = response.content.decode("utf8")
+        r_model = response_model.model_validate_json(data)
+        return r_model
+
+    raise_error(response)
+    return None

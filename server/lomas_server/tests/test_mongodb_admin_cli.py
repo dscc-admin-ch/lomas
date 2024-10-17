@@ -61,6 +61,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             str(admin_config.port),
             "--db_name",
             admin_config.db_name,
+            "--db_max_pool_size",
+            str(admin_config.max_pool_size),
+            "--db_min_pool_size",
+            str(admin_config.min_pool_size),
+            "--db_max_connecting",
+            str(admin_config.max_connecting),
         ]
 
     def tearDown(self) -> None:

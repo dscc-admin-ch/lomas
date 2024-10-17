@@ -9,7 +9,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSInfo, Metadata
-from lomas_core.models.requests import RequestModel, model_input_to_lib
+from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 
 from lomas_server.admin_database.constants import BudgetDBKey
@@ -402,14 +402,14 @@ class AdminDatabase(ABC):
         """
 
     def prepare_save_query(
-        self, user_name: str, query: RequestModel, response: QueryResponse
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> dict:
         """
         Prepare the query to save in archives.
 
         Args:
             user_name (str): name of the user
-            query (RequestModel): Request object received from client
+            query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
 
         Raises:
@@ -431,13 +431,13 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def save_query(
-        self, user_name: str, query: RequestModel, response: QueryResponse
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query (RequestModel): Request object received from client
+            query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
         """

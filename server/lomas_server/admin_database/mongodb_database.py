@@ -2,7 +2,7 @@ from typing import List
 
 from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
-from lomas_core.models.requests import RequestModel
+from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
@@ -250,14 +250,14 @@ class AdminMongoDatabase(AdminDatabase):
         return list(queries)
 
     def save_query(
-        self, user_name: str, query: RequestModel, response: QueryResponse
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query (RequestModel): Request object received from client
+            query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
 
         Raises:

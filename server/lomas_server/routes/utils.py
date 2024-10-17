@@ -12,8 +12,8 @@ from lomas_core.error_handler import (
 )
 from lomas_core.models.requests import (
     DummyQueryModel,
+    LomasRequestModel,
     QueryModel,
-    RequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
 
@@ -188,7 +188,7 @@ def handle_query_on_dummy_dataset(
 @timing_protection
 def handle_cost_query(
     request: Request,
-    query_json: RequestModel,
+    query_json: LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
 ) -> CostResponse:

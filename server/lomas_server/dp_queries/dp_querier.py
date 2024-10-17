@@ -8,8 +8,8 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.requests import (  # pylint: disable=W0611
+    LomasRequestModel,
     QueryModel,
-    RequestModel,
 )
 from lomas_core.models.responses import (  # pylint: disable=W0611
     QueryResponse,
@@ -19,7 +19,7 @@ from lomas_core.models.responses import (  # pylint: disable=W0611
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 
-RequestModelGeneric = TypeVar("RequestModelGeneric", bound="RequestModel")
+RequestModelGeneric = TypeVar("RequestModelGeneric", bound="LomasRequestModel")
 QueryModelGeneric = TypeVar("QueryModelGeneric", bound="QueryModel")
 QueryResultGeneric = TypeVar("QueryResultGeneric", bound="QueryResultTypeAlias")
 
@@ -56,7 +56,7 @@ class DPQuerier(
 
         Args:
             query_json (RequestModelGeneric): The input object of the request.
-                Must be a subclass of RequestModel.
+                Must be a subclass of LomasRequestModel.
         Returns:
             tuple[float, float]: The tuple of costs, the first value is
                 the epsilon cost, the second value is the delta value.
@@ -85,7 +85,7 @@ class DPQuerier(
         Handle DP query.
 
         Args:
-            query_json (RequestModel): The input object of the query.
+            query_json (LomasRequestModel): The input object of the query.
               Must be a subclass of QueryModel.
             user_name (str, optional): User name.
 

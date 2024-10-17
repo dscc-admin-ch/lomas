@@ -6,7 +6,7 @@ from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.models.collections import DSInfo, Metadata
-from lomas_core.models.requests import RequestModel
+from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 
 from lomas_server.admin_database.admin_database import (
@@ -240,13 +240,13 @@ class AdminYamlDatabase(AdminDatabase):
         return previous_queries
 
     def save_query(
-        self, user_name: str, query: RequestModel, response: QueryResponse
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
         """Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query (RequestModel): Request object received from client
+            query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
         """
         to_archive = super().prepare_save_query(user_name, query, response)

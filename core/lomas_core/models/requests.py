@@ -11,26 +11,7 @@ from lomas_core.error_handler import InternalServerException
 
 
 class LomasRequestModel(BaseModel):
-    """Base class for all types of requests to the lomas server."""
-
-
-class GetDsData(LomasRequestModel):
-    """Model input to get information about a dataset."""
-
-    dataset_name: str
-
-
-class GetDummyDataset(LomasRequestModel):
-    """Model input to get a dummy dataset."""
-
-    dataset_name: str
-    dummy_nb_rows: int = Field(..., gt=0)
-    dummy_seed: int
-
-
-class RequestModel(LomasRequestModel):
-    """
-    Base input model for any request on a dataset.
+    """Base class for all types of requests to the lomas server.
 
     We differentiate between requests and queries:
         - a request does not necessarily require an algorithm
@@ -42,7 +23,14 @@ class RequestModel(LomasRequestModel):
     dataset_name: str
 
 
-class QueryModel(RequestModel):
+class GetDummyDataset(LomasRequestModel):
+    """Model input to get a dummy dataset."""
+
+    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_seed: int
+
+
+class QueryModel(LomasRequestModel):
     """
     Base input model for any query on a dataset.
 
@@ -63,7 +51,7 @@ class DummyQueryModel(QueryModel):
 
 # SmartnoiseSQL
 # ----------------------------------------------------------------------------
-class SmartnoiseSQLRequestModel(RequestModel):
+class SmartnoiseSQLRequestModel(LomasRequestModel):
     """Base input model for a smarnoise-sql request."""
 
     query_str: str
@@ -84,7 +72,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 
 # SmartnoiseSynth
 # ----------------------------------------------------------------------------
-class SmartnoiseSynthRequestModel(RequestModel):
+class SmartnoiseSynthRequestModel(LomasRequestModel):
     """Base input model for a SmartnoiseSynth request."""
 
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
@@ -115,7 +103,7 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 
 # OpenDP
 # ----------------------------------------------------------------------------
-class OpenDPRequestModel(RequestModel):
+class OpenDPRequestModel(LomasRequestModel):
     """Base input model for an opendp request."""
 
     model_config = ConfigDict(use_attribute_docstrings=True)
@@ -134,7 +122,7 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 
 # DiffPrivLib
 # ----------------------------------------------------------------------------
-class DiffPrivLibRequestModel(RequestModel):
+class DiffPrivLibRequestModel(LomasRequestModel):
     """Base input model for a diffprivlib request."""
 
     diffprivlib_json: str
@@ -157,11 +145,11 @@ class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
 # ----------------------------------------------------------------------------
 
 
-def model_input_to_lib(request: RequestModel) -> DPLibraries:
-    """Return the type of DP library given a RequestModel.
+def model_input_to_lib(request: LomasRequestModel) -> DPLibraries:
+    """Return the type of DP library given a LomasRequestModel.
 
     Args:
-        request (RequestModel): The user request
+        request (LomasRequestModel): The user request
 
     Raises:
         InternalServerException: If the library type cannot be determined.

@@ -7,8 +7,8 @@ import pandas as pd
 from fastapi import status
 from lomas_core.constants import DPLibraries
 from lomas_core.models.requests import (
-    GetDsData,
     GetDummyDataset,
+    LomasRequestModel,
 )
 from lomas_core.models.responses import (
     DummyDsResponse,
@@ -58,15 +58,15 @@ class Client:
 
     def get_dataset_metadata(
         self,
-    ) -> Optional[GetDsData]:
+    ) -> Optional[LomasRequestModel]:
         """This function retrieves metadata for the dataset.
 
         Returns:
-            Optional[GetDsData]:
+            Optional[LomasRequestModel]:
                 A dictionary containing dataset metadata.
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
-        body = GetDsData.model_validate(body_dict)
+        body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_dataset_metadata", body)
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
@@ -122,7 +122,7 @@ class Client:
 
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
-        body = GetDsData.model_validate(body_dict)
+        body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
 
         return validate_model_response(res, InitialBudgetResponse)
@@ -136,7 +136,7 @@ class Client:
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
-        body = GetDsData.model_validate(body_dict)
+        body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
 
         return validate_model_response(res, SpentBudgetResponse)
@@ -150,7 +150,7 @@ class Client:
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
-        body = GetDsData.model_validate(body_dict)
+        body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
 
         return validate_model_response(res, RemainingBudgetResponse)
@@ -168,7 +168,7 @@ class Client:
         """
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
-        body = GetDsData.model_validate(body_dict)
+        body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_previous_queries", body)
 
         if res.status_code == status.HTTP_200_OK:

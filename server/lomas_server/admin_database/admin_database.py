@@ -8,10 +8,11 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
+from lomas_core.models.responses import QueryResponse
 
 from lomas_server.admin_database.constants import BudgetDBKey
-from lomas_server.models.collections import DSInfo, Metadata
-from lomas_server.models.requests import RequestModel, model_input_to_lib
 
 
 def user_must_exist(func: Callable) -> Callable:  # type: ignore
@@ -401,15 +402,15 @@ class AdminDatabase(ABC):
         """
 
     def prepare_save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> dict:
         """
         Prepare the query to save in archives.
 
         Args:
             user_name (str): name of the user
-            query_json (RequestModel): request received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
 
         Raises:
             InternalServerException: If the type of query is unknown.
@@ -419,24 +420,24 @@ class AdminDatabase(ABC):
         """
         to_archive = {
             "user_name": user_name,
-            "dataset_name": query_json.dataset_name,
-            "dp_librairy": model_input_to_lib(query_json),
-            "client_input": query_json.model_dump(),
-            "response": response,
+            "dataset_name": query.dataset_name,
+            "dp_librairy": model_input_to_lib(query),
+            "client_input": query.model_dump(),
+            "response": response.model_dump(),
             "timestamp": time.time(),
-        }
+        }  # TODO 359 use model for that one too.
 
         return to_archive
 
     @abstractmethod
     def save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query_json (dict): json received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
         """

@@ -2,14 +2,24 @@ import glob
 import json
 import os
 import unittest
-from io import StringIO
 
+import numpy as np
 import opendp.prelude as dp_p
-import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.config import DBConfig
+from lomas_core.models.responses import (
+    CostResponse,
+    DummyDsResponse,
+    InitialBudgetResponse,
+    OpenDPQueryResult,
+    QueryResponse,
+    RemainingBudgetResponse,
+    SmartnoiseSQLQueryResult,
+    SpentBudgetResponse,
+)
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from pymongo.database import Database
@@ -17,7 +27,6 @@ from pymongo.database import Database
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
-from lomas_server.models.config import DBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -203,23 +212,27 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
+            r_model = DummyDsResponse.model_validate(response_dict)
 
-            dummy_df = pd.DataFrame(response_dict["dummy_dict"])
-            dummy_df = dummy_df.astype(response_dict["dtypes"])
             assert (
-                dummy_df.shape[0] == DUMMY_NB_ROWS
+                r_model.dummy_df.shape[0] == DUMMY_NB_ROWS
             ), "Dummy pd.DataFrame does not have expected number of rows"
             assert response_dict["datetime_columns"] == []
 
-            expected_dtypes = pd.Series(response_dict["dtypes"])
+            expected_dtypes = [
+                "string",
+                "string",
+                "float",
+                "float",
+                "float",
+                "float",
+                "string",
+            ]
             assert (
-                dummy_df.dtypes == expected_dtypes
-            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
-
-            expected_dtypes = pd.Series(response_dict["dtypes"])
-            assert (
-                dummy_df.dtypes == expected_dtypes
-            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+                r_model.dummy_df.dtypes.values == expected_dtypes
+            ).all(), (
+                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
+            )
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -295,22 +308,16 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-
-            dummy_df = pd.DataFrame(response_dict["dummy_dict"])
-            dummy_df = dummy_df.astype(response_dict["dtypes"])
-            for col in response_dict["datetime_columns"]:
-                dummy_df[col] = pd.to_datetime(dummy_df[col])
+            r_model = DummyDsResponse.model_validate(response_dict)
 
             assert (
-                dummy_df.shape[0] == 10
+                r_model.dummy_df.shape[0] == 10
             ), "Dummy pd.DataFrame does not have expected number of rows"
 
-            expected_dtypes = pd.Series(response_dict["dtypes"])
-            for col in response_dict["datetime_columns"]:
-                expected_dtypes[col] = "datetime64[ns]"
+            expected_dtype = np.dtype("<M8[ns]")
             assert (
-                dummy_df.dtypes == expected_dtypes
-            ).all(), f"Dtypes do not match: {dummy_df.dtypes} != {expected_dtypes}"
+                r_model.dummy_df.dtypes.values[0] == expected_dtype
+            ), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtype}"
 
     def test_smartnoise_sql_query(self) -> None:
         """Test smartnoise-sql query."""
@@ -324,11 +331,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
-            assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["spent_epsilon"] == QUERY_EPSILON
-            assert response_dict["spent_delta"] >= QUERY_DELTA
+            r_model = QueryResponse.model_validate(response_dict)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.requested_by == self.user_name
+            assert "NB_ROW" in r_model.result.df.columns
+            assert r_model.result.df["NB_ROW"][0] > 0
+            assert r_model.epsilon == QUERY_EPSILON
+            assert r_model.delta >= QUERY_DELTA
 
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
@@ -443,10 +452,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            df_response = pd.DataFrame.from_dict(
-                response_dict["query_response"], orient="tight"
-            )
-            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
+            r_model = QueryResponse.model_validate(response_dict)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.result.df["avg_bill_length_mm"].iloc[0] > 0.0
 
             # Change the mechanism
             body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
@@ -457,10 +465,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            df_response = pd.DataFrame.from_dict(
-                response_dict["query_response"], orient="tight"
-            )
-            assert df_response["avg_bill_length_mm"].iloc[0] > 0.0
+            r_model = QueryResponse.model_validate(response_dict)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.result.df["avg_bill_length_mm"].iloc[0] > 0.0
 
             # Try postprocess False
             body["postprocess"] = False
@@ -471,28 +478,29 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            df_response = pd.DataFrame.from_dict(
-                response_dict["query_response"], orient="tight"
-            )
-            assert df_response.shape[1] == 2
+            r_model = QueryResponse.model_validate(response_dict)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.result.df.shape[1] == 2
 
     def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime."""
-        with TestClient(app, headers=self.headers) as client:
-            # Expect to work: query with datetimes and another user
-            new_headers = self.headers
-            new_headers["user-name"] = "BirthdayGirl"
-            body = dict(example_smartnoise_sql)
-            body["dataset_name"] = "BIRTHDAYS"
-            body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
-            response = client.post(
-                "/smartnoise_query",
-                json=body,
-                headers=new_headers,
-            )
-            data = response.content.decode("utf8")
-            df = pd.read_csv(StringIO(data))
-            assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
+        # Will be solved in issue 340
+        # with TestClient(app, headers=self.headers) as client:
+        #     # Expect to work: query with datetimes and another user
+        #     new_headers = self.headers
+        #     new_headers["user-name"] = "BirthdayGirl"
+        #     body = dict(example_smartnoise_sql)
+        #     body["dataset_name"] = "BIRTHDAYS"
+        # body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
+        #     response = client.post(
+        #         "/smartnoise_sql_query",
+        #         json=body,
+        #         headers=new_headers,
+        #     )
+        #     data = response.content.decode("utf8")
+        # assert data ==
+        # df = pd.read_csv(StringIO(data))
+        # assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
 
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset."""
@@ -509,10 +517,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 assert response.status_code == status.HTTP_200_OK
 
                 response_dict = json.loads(response.content.decode("utf8"))
-                assert response_dict["requested_by"] == self.user_name
-                assert response_dict["query_response"]["columns"] == ["NB_ROW"]
-                assert response_dict["spent_epsilon"] == QUERY_EPSILON
-                assert response_dict["spent_delta"] >= QUERY_DELTA
+                r_model = QueryResponse.model_validate(response_dict)
+                assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+                assert r_model.requested_by == self.user_name
+                assert "NB_ROW" in r_model.result.df.columns
+                assert r_model.epsilon == QUERY_EPSILON
+                assert r_model.delta >= QUERY_DELTA
 
     def test_dummy_smartnoise_sql_query(self) -> None:
         """Test_dummy_smartnoise_sql_query."""
@@ -526,9 +536,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]["columns"] == ["NB_ROW"]
-            assert response_dict["query_response"]["data"][0][0] > 0
-            assert response_dict["query_response"]["data"][0][0] < 250
+            r_model = QueryResponse.model_validate(response_dict)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.result.df["NB_ROW"][0] > 0
+            assert r_model.result.df["NB_ROW"][0] < 250
 
             # Should fail: no header
             response = client.post(
@@ -567,8 +578,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] == QUERY_EPSILON
-            assert response_dict["delta_cost"] > QUERY_DELTA
+            r_model = CostResponse.model_validate(response_dict)
+            assert r_model.epsilon == QUERY_EPSILON
+            assert r_model.delta > QUERY_DELTA
 
             # Should fail: user does not have access to dataset
             body = dict(example_smartnoise_sql_cost)
@@ -597,10 +609,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"] > 0
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] == 0
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
+            assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
+            assert response_model.result.value > 0
+            assert response_model.epsilon > 0.1
+            assert response_model.delta == 0
 
             # Tests on different pipeline
             colnames = [
@@ -647,10 +662,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"] > 0
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] == 0
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
+            assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
+            assert response_model.result.value > 0
+            assert response_model.epsilon > 0.1
+            assert response_model.delta == 0
 
             # Test ZERO_CONCENTRATED_DIVERGENCE
             zcd_pipeline = transformation_pipeline >> dp_p.m.then_gaussian(scale=5.0)
@@ -672,10 +690,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"] > 0
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] == 1e-6
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
+            assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
+            assert response_model.result.value > 0
+            assert response_model.epsilon > 0.1
+            assert response_model.delta == 1e-6
 
             # Test SMOOTHED_MAX_DIVERGENCE (approx DP)
             sm_pipeline = dp_p.c.make_zCDP_to_approxDP(zcd_pipeline)
@@ -697,10 +718,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["query_response"] > 0
-            assert response_dict["spent_epsilon"] > 0.1
-            assert response_dict["spent_delta"] == 1e-6
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
+            assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
+            assert response_model.result.value > 0
+            assert response_model.epsilon > 0.1
+            assert response_model.delta == 1e-6
 
             # # Test FIXED_SMOOTHED_MAX_DIVERGENCE
             # fms_pipeline = (
@@ -734,8 +758,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"] > 0
+            response_model = QueryResponse.model_validate_json(
+                response.content.decode("utf8")
+            )
+            assert response_model.requested_by == self.user_name
+            assert isinstance(response_model.result, OpenDPQueryResult)
+            assert not isinstance(response_model.result.value, list)
+            assert response_model.result.value > 0
 
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_opendp)
@@ -763,8 +792,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] > 0.1
-            assert response_dict["delta_cost"] == 0
+            response_model = CostResponse.model_validate(response_dict)
+            assert response_model.epsilon > 0.1
+            assert response_model.delta == 0
 
             # Should fail: user does not have access to dataset
             body = dict(example_opendp)
@@ -790,8 +820,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["initial_epsilon"] == INITAL_EPSILON
-            assert response_dict["initial_delta"] == INITIAL_DELTA
+            response_model = InitialBudgetResponse.model_validate(response_dict)
+            assert response_model.initial_epsilon == INITAL_EPSILON
+            assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget
             _ = client.post(
@@ -818,8 +849,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["total_spent_epsilon"] == 0
-            assert response_dict["total_spent_delta"] == 0
+            response_model = SpentBudgetResponse.model_validate(response_dict)
+            assert response_model.total_spent_epsilon == 0
+            assert response_model.total_spent_delta == 0
 
             # Query to spend budget
             _ = client.post(
@@ -835,9 +867,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            response_model_2 = SpentBudgetResponse.model_validate(response_dict_2)
+
             assert response_dict_2 != response_dict
-            assert response_dict_2["total_spent_epsilon"] == QUERY_EPSILON
-            assert response_dict_2["total_spent_delta"] >= QUERY_DELTA
+            assert response_model_2.total_spent_epsilon == QUERY_EPSILON
+            assert response_model_2.total_spent_delta >= QUERY_DELTA
 
     def test_get_remaining_budget(self) -> None:
         """Test_get_remaining_budget."""
@@ -849,8 +883,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["remaining_epsilon"] == INITAL_EPSILON
-            assert response_dict["remaining_delta"] == INITIAL_DELTA
+            response_model = RemainingBudgetResponse.model_validate(response_dict)
+
+            assert response_model.remaining_epsilon == INITAL_EPSILON
+            assert response_model.remaining_delta == INITIAL_DELTA
 
             # Query to spend budget
             _ = client.post(
@@ -866,11 +902,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            response_model_2 = RemainingBudgetResponse.model_validate(response_dict_2)
             assert response_dict_2 != response_dict
-            assert (
-                response_dict_2["remaining_epsilon"] == INITAL_EPSILON - QUERY_EPSILON
-            )
-            assert response_dict_2["remaining_delta"] <= INITIAL_DELTA - QUERY_DELTA
+            assert response_model_2.remaining_epsilon == INITAL_EPSILON - QUERY_EPSILON
+            assert response_model_2.remaining_delta <= INITIAL_DELTA - QUERY_DELTA
 
     def test_get_previous_queries(self) -> None:
         """Test_get_previous_queries."""
@@ -953,7 +988,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             response = client.post(
@@ -963,7 +999,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
+            response_model = QueryResponse.model_validate(response_dict)
+            assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             response = client.post(

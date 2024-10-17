@@ -1,5 +1,3 @@
-from typing import List, Union
-
 import opendp as dp
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -8,20 +6,21 @@ from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.logger import LOG
+from lomas_core.models.config import OpenDPConfig
+from lomas_core.models.requests import (
+    OpenDPQueryModel,
+    OpenDPRequestModel,
+)
+from lomas_core.models.responses import OpenDPQueryResult
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.models.config import OpenDPConfig
-from lomas_server.models.requests import (
-    OpenDPQueryModel,
-    OpenDPRequestModel,
-)
 
 
-class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
+class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
     """Concrete implementation of the DPQuerier ABC for the OpenDP library."""
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
@@ -84,7 +83,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPQueryModel) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -112,7 +111,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
                 "Error executing query:" + str(e),
             ) from e
 
-        return release_data
+        return OpenDPQueryResult(value=release_data)
 
 
 def is_measurement(pipeline: dp.Measurement) -> None:
@@ -201,7 +200,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_measure = opendp_pipe.output_measure
 
     if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:
+        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO 360 : constant.
             output_type = output_type.args[0]
         else:
             raise InternalServerException(

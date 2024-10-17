@@ -4,22 +4,22 @@ from collections.abc import AsyncGenerator
 from functools import wraps
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.requests import (
+    DummyQueryModel,
+    LomasRequestModel,
+    QueryModel,
+)
+from lomas_core.models.responses import CostResponse, QueryResponse
 
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.models.requests import (
-    DummyQueryModel,
-    QueryModel,
-    RequestModel,
-)
 from lomas_server.utils.config import get_config
 
 
@@ -78,7 +78,7 @@ def handle_query_on_private_dataset(
     query_json: QueryModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> QueryResponse:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -134,7 +134,7 @@ def handle_query_on_dummy_dataset(
     query_json: DummyQueryModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> QueryResponse:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -173,13 +173,9 @@ def handle_query_on_dummy_dataset(
 
     try:
         eps_cost, delta_cost = dummy_querier.cost(query_json)
-        response_df = dummy_querier.query(query_json)
-        response = JSONResponse(
-            content={
-                "query_response": response_df,
-                "epsilon": eps_cost,
-                "delta": delta_cost,
-            }
+        result = dummy_querier.query(query_json)
+        response = QueryResponse(
+            requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
     except KNOWN_EXCEPTIONS as e:
         raise e
@@ -192,10 +188,10 @@ def handle_query_on_dummy_dataset(
 @timing_protection
 def handle_cost_query(
     request: Request,
-    query_json: RequestModel,
+    query_json: LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> CostResponse:
     """
     Handles cost queries for DP libraries.
 
@@ -241,4 +237,4 @@ def handle_cost_query(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(content={"epsilon_cost": eps_cost, "delta_cost": delta_cost})
+    return CostResponse(epsilon=eps_cost, delta=delta_cost)

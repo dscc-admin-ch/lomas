@@ -16,7 +16,8 @@ src_paths = ["lomas_client", "lomas_core"]
 max-line-length = 88
 
 [tool.mypy]
-disable_error_code = ["import-untyped", "import-not-found", "attr-defined"]
+disable_error_code = ["import-untyped", "import-not-found"]
+mypy_path = "../core/"
 
 [tool.pylint.MASTER]
 ignore-patterns = ""

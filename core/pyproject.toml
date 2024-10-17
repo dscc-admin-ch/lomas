@@ -25,7 +25,8 @@ max-line-length = 88
 disable = [
     "E0401",  # import-error
     "C0114",  # missing-module-docstring
-    "W1203",  # use lazy % formatting in logging functions
+    "W1203",  # use lazy % formatting in logging functions,
+    "R0903",  # too-few-public-methods
 ]
 
 [tool.pydocstringformatter]

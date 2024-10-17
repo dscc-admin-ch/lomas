@@ -1,14 +1,6 @@
 from lomas_core.constants import SSynthGanSynthesizer
 
-from lomas_server.constants import OPENDP_VERSION
-
-# Dummy queries
-DUMMY_EPSILON = 100.0
-DUMMY_DELTA = 0.99
-
-# Dummy dataset generation
-DUMMY_NB_ROWS = 100
-DUMMY_SEED = 42
+from lomas_server.constants import DUMMY_NB_ROWS, DUMMY_SEED, OPENDP_VERSION
 
 # Query constants
 PENGUIN_DATASET = "PENGUIN"

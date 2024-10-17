@@ -1,9 +1,9 @@
 import streamlit as st
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.constants import AdminDBType
 
 from lomas_server.administration.dashboard.config import get_config
 from lomas_server.administration.dashboard.utils import get_server_data
-from lomas_server.models.constants import AdminDBType
 from lomas_server.utils.config import get_config as get_server_config
 
 ###############################################################################

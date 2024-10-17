@@ -1,4 +1,5 @@
 import warnings
+from typing import Any
 
 import requests
 from fastapi import status
@@ -24,7 +25,9 @@ def raise_error(response: requests.Response) -> str:
     if response.status_code == status.HTTP_400_BAD_REQUEST:
         raise InvalidQueryException(error_message["InvalidQueryException"])
     if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
-        raise ExternalLibraryException(error_message["ExternalLibraryException"])
+        raise ExternalLibraryException(
+            error_message["library"], error_message["ExternalLibraryException"]
+        )
     if response.status_code == status.HTTP_403_FORBIDDEN:
         raise UnauthorizedAccessException(error_message["UnauthorizedAccessException"])
     if response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
@@ -61,3 +64,21 @@ def validate_synthesizer(synth_name: str, return_model: bool = False):
             f"{synth_name} synthesizer not supported. "
             + "Please choose another synthesizer."
         )
+
+
+def validate_model_response(response: requests.Response, response_model: Any) -> Any:
+    """Validate and process a HTTP response.
+
+    Args:
+        response (requests.Response): The response object from an HTTP request.
+
+    Returns:
+        response_model: Model for responses requests.
+    """
+    if response.status_code == status.HTTP_200_OK:
+        data = response.content.decode("utf8")
+        r_model = response_model.model_validate_json(data)
+        return r_model
+
+    raise_error(response)
+    return None

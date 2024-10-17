@@ -1,6 +1,9 @@
 from typing import List
 
 from lomas_core.error_handler import InvalidQueryException
+from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.requests import LomasRequestModel
+from lomas_core.models.responses import QueryResponse
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
@@ -13,8 +16,6 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
-from lomas_server.models.collections import DSInfo, Metadata
-from lomas_server.models.requests import RequestModel
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -249,19 +250,20 @@ class AdminMongoDatabase(AdminDatabase):
         return list(queries)
 
     def save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
-        """Save queries of user on datasets in a separate collection (table).
+        """
+        Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query_json (RequestModel): json received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
 
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        to_archive = super().prepare_save_query(user_name, query_json, response)
+        to_archive = super().prepare_save_query(user_name, query, response)
         res = self.db.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).queries_archives.insert_one(to_archive)

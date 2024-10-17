@@ -5,10 +5,17 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
+from lomas_core.models.responses import (
+    DummyDsResponse,
+    InitialBudgetResponse,
+    RemainingBudgetResponse,
+    SpentBudgetResponse,
+)
 
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
-from lomas_server.models.requests import GetDbData, GetDummyDataset
 from lomas_server.routes.utils import server_live
 from lomas_server.utils.query_examples import (
     example_get_admin_db_data,
@@ -61,15 +68,15 @@ async def get_state(
 )
 def get_dataset_metadata(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = Body(example_get_admin_db_data),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> Metadata:
     """
     Retrieves metadata for a given dataset.
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing
+        query_json (LomasRequestModel, optional): A JSON object containing
             the dataset_name key for indicating the dataset.
             Defaults to Body(example_get_admin_db_data).
 
@@ -79,7 +86,7 @@ def get_dataset_metadata(
         InternalServerException: For any other unforseen exceptions.
 
     Returns:
-        JSONResponse: The metadata dictionary for the specified
+        Metadata: The metadata object for the specified
             dataset_name.
     """
     app = request.app
@@ -111,7 +118,7 @@ def get_dummy_dataset(
     request: Request,
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> DummyDsResponse:
     """
     Generates and returns a dummy dataset.
 
@@ -162,12 +169,8 @@ def get_dummy_dataset(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={
-            "dummy_dict": dummy_df.to_dict(orient="records"),
-            "dtypes": dtypes,
-            "datetime_columns": datetime_columns,
-        }
+    return DummyDsResponse(
+        dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df
     )
 
 
@@ -179,15 +182,15 @@ def get_dummy_dataset(
 )
 def get_initial_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = Body(example_get_admin_db_data),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> InitialBudgetResponse:
     """
     Returns the initial budget for a user and dataset.
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -221,11 +224,8 @@ def get_initial_budget(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={
-            "initial_epsilon": initial_epsilon,
-            "initial_delta": initial_delta,
-        }
+    return InitialBudgetResponse(
+        initial_epsilon=initial_epsilon, initial_delta=initial_delta
     )
 
 
@@ -237,15 +237,15 @@ def get_initial_budget(
 )
 def get_total_spent_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = Body(example_get_admin_db_data),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> SpentBudgetResponse:
     """
     Returns the spent budget for a user and dataset.
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -279,11 +279,8 @@ def get_total_spent_budget(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={
-            "total_spent_epsilon": total_spent_epsilon,
-            "total_spent_delta": total_spent_delta,
-        }
+    return SpentBudgetResponse(
+        total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta
     )
 
 
@@ -295,15 +292,15 @@ def get_total_spent_budget(
 )
 def get_remaining_budget(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = Body(example_get_admin_db_data),
     user_name: str = Header(None),
-) -> JSONResponse:
+) -> RemainingBudgetResponse:
     """
     Returns the remaining budget for a user and dataset.
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -334,11 +331,8 @@ def get_remaining_budget(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={
-            "remaining_epsilon": rem_epsilon,
-            "remaining_delta": rem_delta,
-        }
+    return RemainingBudgetResponse(
+        remaining_epsilon=rem_epsilon, remaining_delta=rem_delta
     )
 
 
@@ -350,7 +344,7 @@ def get_remaining_budget(
 )
 def get_user_previous_queries(
     request: Request,
-    query_json: GetDbData = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = Body(example_get_admin_db_data),
     user_name: str = Header(None),
 ) -> JSONResponse:
     """
@@ -358,7 +352,7 @@ def get_user_previous_queries(
 
     Args:
         request (Request): Raw request object
-        query_json (GetDbData, optional): A JSON object containing:
+        query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
@@ -384,7 +378,7 @@ def get_user_previous_queries(
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
             user_name, query_json.dataset_name
-        )
+        )  # TODO 359 improve on that and return models.
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

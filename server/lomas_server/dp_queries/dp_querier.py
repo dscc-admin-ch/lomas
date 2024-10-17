@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, List, TypeVar
+from typing import Generic, TypeVar
 
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
@@ -7,19 +7,26 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.requests import (  # pylint: disable=W0611
+    LomasRequestModel,
+    QueryModel,
+)
+from lomas_core.models.responses import (  # pylint: disable=W0611
+    QueryResponse,
+    QueryResultTypeAlias,
+)
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.models.requests import (  # pylint: disable=W0611
-    QueryModel,
-    RequestModel,
-)
 
-RequestModelGeneric = TypeVar("RequestModelGeneric", bound="RequestModel")
+RequestModelGeneric = TypeVar("RequestModelGeneric", bound="LomasRequestModel")
 QueryModelGeneric = TypeVar("QueryModelGeneric", bound="QueryModel")
+QueryResultGeneric = TypeVar("QueryResultGeneric", bound="QueryResultTypeAlias")
 
 
-class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
+class DPQuerier(
+    ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]
+):
     """
     Abstract Base Class for Queriers to external DP library.
 
@@ -49,16 +56,14 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
 
         Args:
             query_json (RequestModelGeneric): The input object of the request.
-                Must be a subclass of RequestModel.
+                Must be a subclass of LomasRequestModel.
         Returns:
             tuple[float, float]: The tuple of costs, the first value is
                 the epsilon cost, the second value is the delta value.
         """
 
     @abstractmethod
-    def query(
-        self, query_json: QueryModelGeneric
-    ) -> dict | int | float | List[Any] | Any | str:
+    def query(self, query_json: QueryModelGeneric) -> QueryResultGeneric:
         """
         Perform the query and return the response.
 
@@ -75,12 +80,12 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
         self,
         query_json: QueryModel,
         user_name: str,
-    ) -> dict:
+    ) -> QueryResponse:
         """
         Handle DP query.
 
         Args:
-            query_json (RequestModel): The input object of the query.
+            query_json (LomasRequestModel): The input object of the query.
               Must be a subclass of QueryModel.
             user_name (str, optional): User name.
 
@@ -92,7 +97,9 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
             InternalServerException: For any other unforseen exceptions.
 
         Returns:
-            dict: A dictionary containing:
+            QueryResponse: The response object. # TODO remove what is next.
+
+            A dictionary containing:
                 - requested_by (str): The user name.
                 - query_response (pd.DataFrame): A DataFrame containing
                   the query response.
@@ -131,7 +138,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
 
             # Query
             try:
-                query_response = self.query(query_json)  # type: ignore [arg-type]
+                query_result = self.query(query_json)  # type: ignore [arg-type]
             except KNOWN_EXCEPTIONS as e:
                 raise e
             except Exception as e:
@@ -141,15 +148,18 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric]):
             self.admin_database.update_budget(
                 user_name, query_json.dataset_name, eps_cost, delta_cost
             )
-            response = {
-                "requested_by": user_name,
-                "query_response": query_response,
-                "spent_epsilon": eps_cost,
-                "spent_delta": delta_cost,
-            }
+
+            response = QueryResponse(
+                requested_by=user_name,
+                result=query_result,
+                epsilon=eps_cost,
+                delta=delta_cost,
+            )
 
             # Add query to db (for archive)
-            self.admin_database.save_query(user_name, query_json, response)
+            self.admin_database.save_query(
+                user_name, query_json, response
+            )  # TODO 359 here
 
         except Exception as e:
             self.admin_database.set_may_user_query(user_name, True)

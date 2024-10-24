@@ -34,15 +34,15 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=[
-        "diffprivlib>=0.6.4",
+        "diffprivlib==0.6.5",
         "diffprivlib_logger>=0.0.3",
         "fastapi>=0.111.1",
-        "numpy>=1.26.2",
+        "numpy>=1.26.4",
         "opendp==0.10.0",
         "opendp_logger>=0.3.0",
         "pandas>=2.2.2",
         "pymongo>=4.6.3",
-        "scikit-learn>=1.4.0",
+        "scikit-learn>=1.4.2",
         "smartnoise-synth>=1.0.4",
         "smartnoise_synth_logger>=0.0.3"
     ]

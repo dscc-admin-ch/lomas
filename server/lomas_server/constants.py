@@ -105,6 +105,7 @@ class OpenDPDatasetInputMetric(StrEnum):
 
 # Example pipeline inputs
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
+DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
 
 # Example inputs
 # -----------------------------------------------------------------------------
@@ -167,7 +168,7 @@ OPENDP_PIPELINE = (
 
 DIFFPRIVLIB_PIPELINE = (
     '{"module": "diffprivlib", '
-    '"version": "0.6.4", '
+    f'"version": "{DIFFPRIVLIB_VERSION}", '
     '"pipeline": ['
     "{"
     '"type": "_dpl_type:StandardScaler", '

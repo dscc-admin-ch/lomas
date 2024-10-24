@@ -1,6 +1,11 @@
 from lomas_core.constants import SSynthGanSynthesizer
 
-from lomas_server.constants import DUMMY_NB_ROWS, DUMMY_SEED, OPENDP_VERSION
+from lomas_server.constants import (
+    DIFFPRIVLIB_VERSION,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    OPENDP_VERSION,
+)
 
 # Query constants
 PENGUIN_DATASET = "PENGUIN"
@@ -147,7 +152,7 @@ example_dummy_opendp = make_dummy(example_opendp)
 # DiffPrivLib
 DIFFPRIVLIB_PIPELINE = (
     '{"module": "diffprivlib", '
-    '"version": "0.6.5", '
+    f'"version": "{DIFFPRIVLIB_VERSION}", '
     '"pipeline": ['
     "{"
     '"type": "_dpl_type:StandardScaler", '

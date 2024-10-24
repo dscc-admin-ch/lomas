@@ -147,7 +147,7 @@ example_dummy_opendp = make_dummy(example_opendp)
 # DiffPrivLib
 DIFFPRIVLIB_PIPELINE = (
     '{"module": "diffprivlib", '
-    '"version": "0.6.4", '
+    '"version": "0.6.5", '
     '"pipeline": ['
     "{"
     '"type": "_dpl_type:StandardScaler", '

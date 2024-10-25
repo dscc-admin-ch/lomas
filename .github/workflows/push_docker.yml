@@ -47,7 +47,8 @@ jobs:
         name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: .
+          dockerfile: Dockerfile_server
           push: true
           target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}

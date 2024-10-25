@@ -33,15 +33,15 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=[
-        "boto3>=1.34.115",
-        "httpx>=0.27.0",
-        "jax>=0.4.31",
-        "jaxlib>=0.4.31",
-        "lomas-core>=0.3.3",
-        "packaging>=24.1",
-        "pyaml>=23.9.5",
+        "boto3==1.34.115",
+        "httpx==0.27.0",
+        "jax==0.4.31",
+        "jaxlib==0.4.31",
+        "lomas-core==0.3.3",
+        "packaging==24.1",
+        "pyaml==23.9.5",
         "pydantic==2.8.2",
-        "smartnoise-sql>=1.0.4",
-        "uvicorn>=0.29.0"
+        "smartnoise-sql==1.0.4",
+        "uvicorn==0.29.0"
     ]
 )

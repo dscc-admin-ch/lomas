@@ -51,6 +51,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=example_diffprivlib,
                 headers=self.headers,
             )
+            assert response.status_code == status.HTTP_200_OK
 
             r_model = validate_pipeline(response)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)

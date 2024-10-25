@@ -43,7 +43,7 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=[
-        "lomas-core>=0.3.3",
-        "requests>=2.32.0",
+        "lomas-core==0.3.3",
+        "requests==2.32.0",
     ],
 )

@@ -1,21 +1,10 @@
 services:
-  lomas_core:
-    image: dsccadminch/lomas_core
-    build:
-      dockerfile: ../core/Dockerfile
-      target: lomas_core
-      context: ../core/
-    container_name: lomas_core
-    volumes:
-      - ../core/lomas_core:/code/lomas_core
-    networks:
-      - lomas-network
   lomas_server:
     image: dsccadminch/lomas_server_dev
     build:
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile_server
       target: lomas_server_dev
-      context: .
+      context: ../
     container_name: lomas_server_dev
     ports:
       - 80:80
@@ -35,8 +24,6 @@ services:
       mongodb:
         condition: service_started
         restart: true
-      lomas_core:
-        condition: service_completed_successfully
     networks:
       - lomas-network
 
@@ -99,13 +86,15 @@ services:
   lomas_admin_dashboard:
     image: dsccadminch/lomas_admin_dashboard_dev
     build:
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile_server
       target: lomas_admin_dashboard_dev
+      context: ../
     container_name: lomas_admin_dashboard_dev
     ports:
       - 8501:8501
     restart: always
     volumes:
+      - ../core/lomas_core:/code/lomas_core
       - ./lomas_server:/code/lomas_server
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
@@ -120,9 +109,9 @@ services:
   client:
     image: dsccadminch/lomas_client_dev
     build:
-      dockerfile: ../client/Dockerfile
+      dockerfile: ./Dockerfile_client
       target: lomas_client_dev
-      context: ../client/
+      context: ../
     container_name: lomas_client
     ports:
       - 8888:8888
@@ -133,7 +122,6 @@ services:
       - ./data/:/data/
     depends_on:
       - lomas_server
-      - lomas_core
     networks:
       - lomas-network
 
@@ -148,5 +136,3 @@ volumes:
     external: true
   minio-data:
     external: true
-
-

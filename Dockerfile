@@ -9,6 +9,24 @@ COPY ./core/lomas_core/ /code/lomas_core/
 
 ENV PYTHONPATH="${PYTHONPATH}:/code/"
 
+### CLIENT
+WORKDIR /code
+
+COPY ./client/requirements_client.txt /code/requirements_client.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements_client.txt
+
+FROM lomas_core AS lomas_client_dev
+ENV PYTHONDONTWRITEBYTECODE=1
+CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
+
+FROM lomas_core AS lomas_client
+COPY ./client/lomas_client/ /code/lomas_client/
+COPY ./client/README.md /code/README.md
+COPY ./client/notebooks/images/ /code/notebooks/images/
+COPY ./client/notebooks/Demo_Client_Notebook.ipynb /code/notebooks/Demo_Client_Notebook.ipynb
+COPY ./client/LICENSE /code/LICENSE
+CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
+
 ### SERVER
 COPY ./server/requirements_server.txt /code/requirements_server.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements_server.txt 

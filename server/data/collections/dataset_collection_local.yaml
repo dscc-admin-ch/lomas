@@ -26,7 +26,7 @@ datasets:
     bucket: "example"
     key: "data/titanic.csv"
     endpoint_url: "http://minio:9000"
-    credentials_name: "local_minio"
+    credentials_name: "minio"
   metadata_access:
     database_type: "S3_DB"
     bucket: "example"

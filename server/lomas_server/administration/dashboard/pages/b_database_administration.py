@@ -1,9 +1,18 @@
 # type: ignore
+import os
+
 import streamlit as st
 import yaml
+from lomas_core.models.constants import PrivateDatabaseType
 
+from admin_database.constants import BudgetDBKey
 from admin_database.utils import get_mongodb
-from constants import DELTA_LIMIT, EPSILON_LIMIT, PrivateDatabaseType
+from constants import DELTA_LIMIT, EPSILON_LIMIT
+from lomas_server.administration.dashboard.utils import (
+    check_dataset_warning,
+    check_user_warning,
+    warning_field_missing,
+)
 from mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -37,49 +46,10 @@ if "admin_db" not in st.session_state:
     st.session_state["admin_db"] = get_mongodb()
 
 if "list_users" not in st.session_state:
-    st.session_state["list_users"] = get_list_of_users(
-        st.session_state.admin_db
-    )
+    st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
 
 if "list_datasets" not in st.session_state:
-    st.session_state["list_datasets"] = get_list_of_datasets(
-        st.session_state.admin_db
-    )
-
-
-def check_user_warning(user: str) -> bool:
-    """Verify if user already present and warning if it is
-
-    Args:
-        user (str): name of user
-
-    Returns:
-        boolean: True if warning
-    """
-    if user in st.session_state.list_users:
-        st.warning(f"User {user} is already in the database.")
-        return True
-    return False
-
-
-def check_dataset_warning(ds: str) -> bool:
-    """Verify if dataset already present and warning if it is
-
-    Args:
-        user (str): name of user
-
-    Returns:
-        boolean: True if warning
-    """
-    if ds in st.session_state.list_datasets:
-        st.warning(f"Dataset {ds} is already in the database.")
-        return True
-    return False
-
-
-def warning_field_missing() -> None:
-    """Writes warning that some fields are missing"""
-    st.warning("Please fill all fields.")
+    st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
 
 
 ###############################################################################
@@ -155,9 +125,7 @@ with user_tab:
             st.session_state["list_users"] = get_list_of_users(
                 st.session_state.admin_db
             )
-            st.write(
-                f"User {auwb_username} was added with dataset {auwb_dataset}."
-            )
+            st.write(f"User {auwb_username} was added with dataset {auwb_dataset}.")
         else:
             warning_field_missing()
 
@@ -254,7 +222,7 @@ with user_tab:
                 st.session_state.admin_db,
                 sue_username,
                 sue_dataset,
-                "initial_epsilon",
+                BudgetDBKey.EPSILON_INIT,
                 sue_epsilon,
             )
             st.write(
@@ -299,7 +267,7 @@ with user_tab:
                 st.session_state.admin_db,
                 sud_username,
                 sud_dataset,
-                "initial_delta",
+                BudgetDBKey.DELTA_INIT,
                 sud_delta,
             )
             st.write(
@@ -321,9 +289,7 @@ with user_tab:
         umq_may_query = st.selectbox("May query", (True, False))
     if st.button("Modify user may query"):
         if umq_username:
-            set_may_query(
-                st.session_state.admin_db, umq_username, umq_may_query
-            )
+            set_may_query(st.session_state.admin_db, umq_username, umq_may_query)
             st.write("User", umq_username, "may_query is now:", umq_may_query)
         else:
             warning_field_missing()
@@ -336,9 +302,7 @@ with user_tab:
             + "(will delete all previous users)"
         )
     with amu_2:
-        u_overwrite = st.toggle(
-            "Overwrite: if user already exists, overwrites values"
-        )
+        u_overwrite = st.toggle("Overwrite: if user already exists, overwrites values")
     u_uploaded_file = st.file_uploader(
         "Choose a YAML file for the user collection",
         accept_multiple_files=False,
@@ -396,7 +360,17 @@ with dataset_tab:
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
-            ad_meta_path = st.text_input("Metadata path (add dataset)", None)
+            uploaded_metadata = st.file_uploader("Import your related metadata file")
+            ad_meta_path = None
+            if uploaded_metadata is not None:
+                # Save the file
+                ad_meta_path = os.path.join(
+                    "/data/collections/metadata", uploaded_metadata.name
+                )
+                with open(ad_meta_path, "wb") as f:
+                    f.write(uploaded_metadata.getbuffer())
+
+                st.success(f"File {uploaded_metadata.name} uploaded successfully!")
         case PrivateDatabaseType.S3:
             (
                 ad_meta_s3_1,
@@ -406,13 +380,9 @@ with dataset_tab:
                 ad_meta_s3_5,
             ) = st.columns(5)
             with ad_meta_s3_1:
-                ad_meta_s3_bucket = st.text_input(
-                    "Metadata bucket (add dataset)", None
-                )
+                ad_meta_s3_bucket = st.text_input("Metadata bucket (add dataset)", None)
             with ad_meta_s3_2:
-                ad_meta_s3_key = st.text_input(
-                    "Metadata key (add dataset)", None
-                )
+                ad_meta_s3_key = st.text_input("Metadata key (add dataset)", None)
             with ad_meta_s3_3:
                 ad_meta_s3_url = st.text_input(
                     "Metadata endpoint_url (add dataset)", None
@@ -422,9 +392,7 @@ with dataset_tab:
                     "Metadata access_key_id (add dataset)", None
                 )
             with ad_meta_s3_5:
-                ad_meta_s3_sk = st.text_input(
-                    "Metadata secret_key (add dataset)", None
-                )
+                ad_meta_s3_sk = st.text_input("Metadata secret_key (add dataset)", None)
 
     keyword_args = {}
     DATASET_READY = False
@@ -433,12 +401,7 @@ with dataset_tab:
     if ad_type == PrivateDatabaseType.PATH and ad_path:
         keyword_args["dataset_path"] = ad_path
         DATASET_READY = True
-    elif (
-        ad_type == PrivateDatabaseType.S3
-        and ad_s3_bucket
-        and ad_s3_key
-        and ad_s3_url
-    ):
+    elif ad_type == PrivateDatabaseType.S3 and ad_s3_bucket and ad_s3_key and ad_s3_url:
         keyword_args["bucket"] = ad_s3_bucket
         keyword_args["key"] = ad_s3_key
         keyword_args["endpoint_url"] = ad_s3_url
@@ -546,9 +509,7 @@ with content_tab:
             st.session_state.list_users,
             key="username of archives from user",
         )
-        if st.button(
-            f"Displaying previous queries of: {user_archives_selected}"
-        ):
+        if st.button(f"Displaying previous queries of: {user_archives_selected}"):
             user_archives_to_show = get_archives_of_user(
                 st.session_state.admin_db, user_archives_selected
             )
@@ -562,9 +523,7 @@ with content_tab:
             key="dataset of dataset to show",
         )
         if st.button(f"Displaying dataset: {dataset_selected}"):
-            dataset_to_show = get_dataset(
-                st.session_state.admin_db, dataset_selected
-            )
+            dataset_to_show = get_dataset(st.session_state.admin_db, dataset_selected)
             st.write(dataset_to_show)
 
     with elem_metadata:
@@ -597,18 +556,14 @@ with content_tab:
         if st.button(
             "Show archives",
         ):
-            archives = get_collection(
-                st.session_state.admin_db, "queries_archives"
-            )
+            archives = get_collection(st.session_state.admin_db, "queries_archives")
             st.write(archives)
 
 
 with deletion_tab:
     _, center, _ = st.columns(3)
     with center:
-        st.markdown(
-            ":warning: :red[**Danger Zone: deleting is final**] :warning:"
-        )
+        st.markdown(":warning: :red[**Danger Zone: deleting is final**] :warning:")
 
     st.subheader("Delete one element")
     st.markdown("**Delete one user**")
@@ -649,19 +604,13 @@ with deletion_tab:
             key="dataset of remove dataset from user",
         )
 
-    if st.button(
-        label=f"Remove dataset {rdtu_dataset} from user {rdtu_user}."
-    ):
+    if st.button(label=f"Remove dataset {rdtu_dataset} from user {rdtu_user}."):
         if rdtu_user and rdtu_dataset:
-            del_dataset_to_user(
-                st.session_state.admin_db, rdtu_user, rdtu_dataset
-            )
+            del_dataset_to_user(st.session_state.admin_db, rdtu_user, rdtu_dataset)
             st.session_state["list_datasets"] = get_list_of_datasets(
                 st.session_state.admin_db
             )
-            st.write(
-                f"Dataset {rdtu_dataset} was removed from user {rdtu_user}."
-            )
+            st.write(f"Dataset {rdtu_dataset} was removed from user {rdtu_user}.")
         else:
             warning_field_missing()
 

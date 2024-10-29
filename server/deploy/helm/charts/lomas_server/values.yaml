@@ -9,6 +9,9 @@ fullnameOverride: "lomas"
 mongodb:
   resources: {}
   fullnameOverride: "lomas-mongodb"
+  max_pool_size: 100
+  min_pool_size: 2
+  max_connecting: 2
   architecture: standalone
   image:
     tag: "6.0.9-debian-11-r5"

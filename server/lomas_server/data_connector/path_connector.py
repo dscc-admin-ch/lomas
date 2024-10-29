@@ -1,13 +1,10 @@
 from typing import Optional
 
 import pandas as pd
+from lomas_core.error_handler import InternalServerException, InvalidQueryException
+from lomas_core.models.collections import Metadata
 
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
-    InternalServerException,
-    InvalidQueryException,
-)
 
 
 class PathConnector(DataConnector):
@@ -22,7 +19,7 @@ class PathConnector(DataConnector):
         metadata: Metadata,
         dataset_path: str,
     ) -> None:
-        """Initializer. Does not load the dataset in memory yet.
+        """Initializer.
 
         Args:
             metadata (Metadata): The metadata dictionary.
@@ -33,7 +30,7 @@ class PathConnector(DataConnector):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Raises:
             InternalServerException: If the file format is not supported.
@@ -51,8 +48,7 @@ class PathConnector(DataConnector):
                     )
                 except Exception as err:
                     raise InternalServerException(
-                        "Error reading csv at http path:"
-                        f"{self.ds_path}: {err}",
+                        "Error reading csv at http path:" f"{self.ds_path}: {err}",
                     ) from err
             else:
                 return InvalidQueryException(

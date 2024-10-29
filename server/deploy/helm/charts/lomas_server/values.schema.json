@@ -119,6 +119,18 @@
             "description": "The configuration for the mongodb database. Refer to the subchart for more detailed description.",
             "type": "object",
             "properties": {
+                "max_pool_size": {
+                    "description": "Total number of open connections (active + idle) allowed in the pool.",
+                    "type": "int"
+                },
+                "min_pool_size": {
+                    "description": "Minimum number of idle connections that will be maintained, even when the application is idle or under low load.",
+                    "type": "int"
+                },
+                "max_connecting": {
+                    "description": "Controls the number of simultaneous new connection attempts being made.",
+                    "type": "int"
+                },
                 "architecture": {
                     "type": "string"
                 },

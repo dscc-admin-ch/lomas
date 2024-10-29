@@ -1,37 +1,31 @@
-from typing import List, Union
-
 import opendp as dp
-from opendp.metrics import metric_distance_type, metric_type
-from opendp.mod import enable_features
-from opendp_logger import make_load_json
-
-from lomas_server.constants import (
-    DPLibraries,
-    OpenDPDatasetInputMetric,
-    OpenDPMeasurement,
-)
-from lomas_server.dp_queries.dp_querier import DPQuerier
-from lomas_server.utils.config import OpenDPConfig
-from lomas_server.utils.error_handler import (
+from lomas_core.constants import DPLibraries
+from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_server.utils.logger import LOG
-from lomas_server.utils.query_models import (
+from lomas_core.logger import LOG
+from lomas_core.models.config import OpenDPConfig
+from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )
+from lomas_core.models.responses import OpenDPQueryResult
+from opendp.metrics import metric_distance_type, metric_type
+from opendp.mod import enable_features
+from opendp_logger import make_load_json
+
+from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
+from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
-    """
-    Concrete implementation of the DPQuerier ABC for the OpenDP library.
-    """
+class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
+    """Concrete implementation of the DPQuerier ABC for the OpenDP library."""
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
-        Estimate cost of query
+        Estimate cost of query.
 
         Args:
             query_json (OpenDPRequestModel): The request model object.
@@ -89,7 +83,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPQueryModel) -> Union[List, int, float]:
+    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -117,7 +111,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel]):
                 "Error executing query:" + str(e),
             ) from e
 
-        return release_data
+        return OpenDPQueryResult(value=release_data)
 
 
 def is_measurement(pipeline: dp.Measurement) -> None:
@@ -139,7 +133,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
 
 
 def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
-    """Check that the input metric of the pipeline is a dataset metric
+    """Check that the input metric of the pipeline is a dataset metric.
 
     Args:
         pipeline (dp.Measurement): The pipeline to check.
@@ -206,7 +200,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_measure = opendp_pipe.output_measure
 
     if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:
+        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO 360 : constant.
             output_type = output_type.args[0]
         else:
             raise InternalServerException(
@@ -214,17 +208,13 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
                 + f"with output type {output_type}."
             )
 
-    if output_measure == dp.measures.fixed_smoothed_max_divergence(
-        T=output_type
-    ):
+    if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):
         measurement = OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
     elif output_measure == dp.measures.max_divergence(T=output_type):
         measurement = OpenDPMeasurement.MAX_DIVERGENCE
     elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
         measurement = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.zero_concentrated_divergence(
-        T=output_type
-    ):
+    elif output_measure == dp.measures.zero_concentrated_divergence(T=output_type):
         measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
         raise InternalServerException(
@@ -234,7 +224,8 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
 
 
 def set_opendp_features_config(opendp_config: OpenDPConfig):
-    """Enable opendp features based on config
+    """Enable opendp features based on config.
+
     See https://github.com/opendp/opendp/discussions/304
 
     Args:

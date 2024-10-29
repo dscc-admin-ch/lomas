@@ -16,6 +16,9 @@ runtime_args:
       address: "127.0.0.1"
       port: 27017
       db_name: "defaultdb"
+      max_pool_size: 100
+      min_pool_size: 2
+      max_connecting: 2
     dp_libraries:
       opendp:
         contrib: True

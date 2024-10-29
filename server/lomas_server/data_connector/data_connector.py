@@ -2,14 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
-
-from lomas_server.utils.collection_models import DatetimeMetadata, Metadata
+from lomas_core.models.collections import DatetimeMetadata, Metadata
 
 
 class DataConnector(ABC):
-    """
-    Overall access to sensitive data
-    """
+    """Overall access to sensitive data."""
 
     df: Optional[pd.DataFrame] = None
 
@@ -27,14 +24,14 @@ class DataConnector(ABC):
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
 
     def get_metadata(self) -> Metadata:
-        """Get the metadata for this dataset
+        """Get the metadata for this dataset.
 
         Returns:
             Metadata: The metadata object.

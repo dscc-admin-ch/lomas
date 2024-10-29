@@ -1,3 +1,6 @@
+from lomas_core.error_handler import InternalServerException
+from lomas_core.logger import LOG
+from lomas_core.models.config import MongoDBConfig
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -6,9 +9,7 @@ from lomas_server.mongodb_admin import (
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.utils.config import MongoDBConfig, get_config
-from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.logger import LOG
+from lomas_server.utils.config import get_config
 
 
 def get_mongodb_url(config: MongoDBConfig) -> str:
@@ -26,10 +27,15 @@ def get_mongodb_url(config: MongoDBConfig) -> str:
     db_address = config.address
     db_port = config.port
     db_name = config.db_name
+    db_max_pool_size = config.max_pool_size
+    db_min_pool_size = config.min_pool_size
+    db_max_connecting = config.max_connecting
 
     db_url = (
         f"mongodb://{db_username}:{db_password}@{db_address}:"
         f"{db_port}/{db_name}?authSource=defaultdb"
+        f"&maxPoolSize={db_max_pool_size}&minPoolSize={db_min_pool_size}"
+        f"&maxConnecting={db_max_connecting}"
     )
 
     return db_url
@@ -62,6 +68,7 @@ def add_demo_data_to_mongodb_admin(
 ) -> None:
     """
     Adds the demo data to the mongodb admindb.
+
     Meant to be used in the develop mode of the service.
 
     Args:

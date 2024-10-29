@@ -4,14 +4,16 @@ services:
     build:
       dockerfile: ./Dockerfile
       target: lomas_server_dev
+      context: ../
     container_name: lomas_server_dev
     ports:
       - 80:80
     restart: always
     volumes:
       - ./lomas_server:/code/lomas_server
+      - ../core/lomas_core:/code/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
-      - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
+      - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
       - ./data/collections/metadata:/data/collections/metadata/
       - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
       - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
@@ -24,6 +26,7 @@ services:
         restart: true
     networks:
       - lomas-network
+
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -46,6 +49,7 @@ services:
       - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
+
   minio:
     container_name: minio
     image: minio/minio
@@ -61,6 +65,7 @@ services:
       - minio-data:/data
     networks:
       - lomas-network
+
   minio-client:
     container_name: minio-client
     image: minio/mc
@@ -77,16 +82,19 @@ services:
       - ./data/:/data
     networks:
       - lomas-network
+
   lomas_admin_dashboard:
     image: dsccadminch/lomas_admin_dashboard_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_admin_dashboard_dev
+      context: ../
     container_name: lomas_admin_dashboard_dev
     ports:
       - 8501:8501
     restart: always
     volumes:
+      - ../core/lomas_core:/code/lomas_core
       - ./lomas_server:/code/lomas_server
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
@@ -97,23 +105,26 @@ services:
       - lomas_server
     networks:
       - lomas-network
+
   client:
     image: dsccadminch/lomas_client_dev
     build:
-      dockerfile: ../client/Dockerfile
+      dockerfile: ./Dockerfile
       target: lomas_client_dev
-      context: ../client/
+      context: ../
     container_name: lomas_client
     ports:
       - 8888:8888
     volumes:
-      - ../client/:/code/
-      - ./data/:/data/
+      - ../client/lomas_client:/code/lomas_client
       - ../client/configs/:/root/.jupyter/
+      - ../client/notebooks/:/code/notebooks/
+      - ./data/:/data/
     depends_on:
       - lomas_server
     networks:
       - lomas-network
+
 networks:
   lomas-network:
     driver: bridge
@@ -125,5 +136,3 @@ volumes:
     external: true
   minio-data:
     external: true
-
-

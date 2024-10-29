@@ -1,6 +1,10 @@
 from typing import List
 
-from pymongo import MongoClient
+from lomas_core.error_handler import InvalidQueryException
+from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.requests import LomasRequestModel
+from lomas_core.models.responses import QueryResponse
+from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
@@ -11,15 +15,11 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import InvalidQueryException
-from lomas_server.utils.query_models import RequestModel
+from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
 
 
 class AdminMongoDatabase(AdminDatabase):
-    """
-    Overall MongoDB database management for server state.
-    """
+    """Overall MongoDB database management for server state."""
 
     def __init__(self, connection_string: str, database_name: str) -> None:
         """Connect to database.
@@ -31,7 +31,7 @@ class AdminMongoDatabase(AdminDatabase):
         self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
-        """Checks if user exist in the database
+        """Checks if user exist in the database.
 
         Args:
             user_name (str): name of the user to check
@@ -39,13 +39,11 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the user exists, False otherwise.
         """
-        doc_count = self.db.users.count_documents(
-            {"user_name": f"{user_name}"}
-        )
+        doc_count = self.db.users.count_documents({"user_name": f"{user_name}"})
         return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
-        """Checks if dataset exist in the database
+        """Checks if dataset exist in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
@@ -72,9 +70,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             Metadata: The metadata model.
         """
-        metadatas = self.db.metadata.find_one(
-            {dataset_name: {"$exists": True}}
-        )
+        metadatas = self.db.metadata.find_one({dataset_name: {"$exists": True}})
         return Metadata.model_validate(metadatas[dataset_name])  # type: ignore
 
     @user_must_exist
@@ -92,16 +88,16 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).update_one(
             {"user_name": f"{user_name}"},
             {"$set": {"may_query": may_query}},
         )
         check_result_acknowledged(res)
 
     @user_must_exist
-    def get_and_set_may_user_query(
-        self, user_name: str, may_query: bool
-    ) -> bool:
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
 
@@ -116,17 +112,20 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
-        res = self.db.users.find_one_and_update(
-            {"user_name": user_name}, {"$set": {"may_query": may_query}}
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).find_one_and_update(
+            {"user_name": user_name},
+            {"$set": {"may_query": may_query}},
+            projection={"may_query": 1},
+            return_document=ReturnDocument.BEFORE,
         )
 
         return res["may_query"]  # type: ignore
 
     @user_must_exist
-    def has_user_access_to_dataset(
-        self, user_name: str, dataset_name: str
-    ) -> bool:
-        """Checks if a user may access a particular dataset
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
+        """Checks if a user may access a particular dataset.
 
         Wrapped by :py:func:`user_must_exist`.
 
@@ -151,15 +150,14 @@ class AdminMongoDatabase(AdminDatabase):
         return doc_count > 0
 
     def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: str
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
     ) -> float:
-        """Get the total spent epsilon or delta  by a specific user
-        on a specific dataset
+        """Get total spent epsilon or delta by a user on dataset.
 
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): total_spent_epsilon or total_spent_delta
+            parameter (BudgetDBKey): One of BudgetDBKey.
 
         Returns:
             float: The requested budget value.
@@ -185,8 +183,7 @@ class AdminMongoDatabase(AdminDatabase):
         parameter: str,
         spent_value: float,
     ) -> None:
-        """Update the current budget spent by a specific user
-        with the last spent budget.
+        """Update current budget of user with the last spent budget.
 
         Args:
             user_name (str): name of the user
@@ -196,32 +193,35 @@ class AdminMongoDatabase(AdminDatabase):
 
         Raises:
             WriteConcernError: If the result is not acknowledged.
-
         """
-        res = self.db.users.update_one(
+        res = self.db.users.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).update_one(
             {
-                "user_name": f"{user_name}",
-                "datasets_list.dataset_name": f"{dataset_name}",
+                "user_name": user_name,
+                "datasets_list.dataset_name": dataset_name,
             },
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
         )
         check_result_acknowledged(res)
 
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:
-        """Get dataset field type based on dataset name and key
+    def get_dataset(self, dataset_name: str) -> DSInfo:
+        """
+        Get dataset access info based on dataset_name.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
         Args:
             dataset_name (str): Name of the dataset.
-            key (str): Key for the value to get in the dataset dict.
 
         Returns:
-            str: The requested value.
+            Dataset: The dataset model.
         """
         dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
-        return dataset[key]  # type: ignore
+        dataset.pop("_id", None)  # type: ignore[union-attr]
+        dataset.pop("id", None)  # type: ignore[union-attr]
+        return DSInfo.model_validate(dataset)
 
     @user_must_have_access_to_dataset
     def get_user_previous_queries(
@@ -229,7 +229,7 @@ class AdminMongoDatabase(AdminDatabase):
         user_name: str,
         dataset_name: str,
     ) -> List[dict]:
-        """Retrieves and return the queries already done by a user
+        """Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -250,23 +250,23 @@ class AdminMongoDatabase(AdminDatabase):
         return list(queries)
 
     def save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
-        """Save queries of user on datasets in a separate collection (table)
-        named "queries_archives" in the DB
+        """
+        Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query_json (RequestModel): json received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
 
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
-        to_archive = super().prepare_save_query(
-            user_name, query_json, response
-        )
-        res = self.db.queries_archives.insert_one(to_archive)
+        to_archive = super().prepare_save_query(user_name, query, response)
+        res = self.db.with_options(
+            write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
+        ).queries_archives.insert_one(to_archive)
         check_result_acknowledged(res)
 
 

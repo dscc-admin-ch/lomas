@@ -1,10 +1,11 @@
 import argparse
 
+from lomas_core.models.config import MongoDBConfig
+from lomas_core.models.constants import AdminDBType
 from pymongo import MongoClient
 from pymongo.database import Database
 
 from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.constants import AdminDBType
 from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -27,7 +28,6 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
-from lomas_server.utils.config import MongoDBConfig
 
 if __name__ == "__main__":
     ########################################################################
@@ -39,6 +39,9 @@ if __name__ == "__main__":
     connection_parser.add_argument("-db_a", "--address", default="mongodb")
     connection_parser.add_argument("-db_p", "--port", default=27017)
     connection_parser.add_argument("-db_n", "--db_name", default="defaultdb")
+    connection_parser.add_argument("-db_max_ps", "--db_max_pool_size", default=100)
+    connection_parser.add_argument("-db_min_ps", "--db_min_pool_size", default=0)
+    connection_parser.add_argument("-db_max_conn", "--db_max_connecting", default=2)
 
     ########################################################################
     ######################## MongoDB Administration ############ # noqa: E266
@@ -68,12 +71,8 @@ if __name__ == "__main__":
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
-    add_user_wb_parser.add_argument(
-        "-e", "--epsilon", required=True, type=float
-    )
-    add_user_wb_parser.add_argument(
-        "-del", "--delta", required=True, type=float
-    )
+    add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
+    add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
     add_user_wb_parser.set_defaults(func=add_user_with_budget)
 
     # Create the parser for the "del_user" command
@@ -91,12 +90,8 @@ if __name__ == "__main__":
         help="add dataset with initialized budget values for a user",
         parents=[connection_parser],
     )
-    add_dataset_to_user_parser.add_argument(
-        "-u", "--user", required=True, type=str
-    )
-    add_dataset_to_user_parser.add_argument(
-        "-d", "--dataset", required=True, type=str
-    )
+    add_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
+    add_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
     add_dataset_to_user_parser.add_argument(
         "-e", "--epsilon", required=True, type=float
     )
@@ -111,12 +106,8 @@ if __name__ == "__main__":
         help="delete dataset for user in users collection",
         parents=[connection_parser],
     )
-    del_dataset_to_user_parser.add_argument(
-        "-u", "--user", required=True, type=str
-    )
-    del_dataset_to_user_parser.add_argument(
-        "-d", "--dataset", required=True, type=str
-    )
+    del_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
+    del_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
     del_dataset_to_user_parser.set_defaults(func=del_dataset_to_user)
 
     # Create the parser for the "set_budget_field" command
@@ -125,21 +116,15 @@ if __name__ == "__main__":
         help="set budget field to given value for given user and dataset",
         parents=[connection_parser],
     )
-    set_budget_field_parser.add_argument(
-        "-u", "--user", required=True, type=str
-    )
-    set_budget_field_parser.add_argument(
-        "-d", "--dataset", required=True, type=str
-    )
+    set_budget_field_parser.add_argument("-u", "--user", required=True, type=str)
+    set_budget_field_parser.add_argument("-d", "--dataset", required=True, type=str)
     set_budget_field_parser.add_argument(
         "-f",
         "--field",
         required=True,
         choices=["initial_epsilon", "initial_delta"],
     )
-    set_budget_field_parser.add_argument(
-        "-v", "--value", required=True, type=float
-    )
+    set_budget_field_parser.add_argument("-v", "--value", required=True, type=float)
     set_budget_field_parser.set_defaults(func=set_budget_field)
 
     # Create the parser for the "set_may_query" command
@@ -238,25 +223,15 @@ if __name__ == "__main__":
     # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset_name", required=True)
     add_dataset_parser.add_argument("-db", "--database_type", required=True)
-    add_dataset_parser.add_argument(
-        "-d_path", "--dataset_path", required=False
-    )
+    add_dataset_parser.add_argument("-d_path", "--dataset_path", required=False)
     add_dataset_parser.add_argument("-s3b", "--bucket", required=False)
     add_dataset_parser.add_argument("-s3k", "--key", required=False)
-    add_dataset_parser.add_argument(
-        "-s3_url", "--endpoint_url", required=False
-    )
-    add_dataset_parser.add_argument(
-        "-cred_n", "--credentials_name", required=False
-    )
+    add_dataset_parser.add_argument("-s3_url", "--endpoint_url", required=False)
+    add_dataset_parser.add_argument("-cred_n", "--credentials_name", required=False)
     # Metadata location
-    add_dataset_parser.add_argument(
-        "-m_db", "--metadata_database_type", required=True
-    )
+    add_dataset_parser.add_argument("-m_db", "--metadata_database_type", required=True)
     add_dataset_parser.add_argument("-mp", "--metadata_path", required=False)
-    add_dataset_parser.add_argument(
-        "-m_s3b", "--metadata_bucket", required=False
-    )
+    add_dataset_parser.add_argument("-m_s3b", "--metadata_bucket", required=False)
     add_dataset_parser.add_argument("-m_s3k", "--metadata_key", required=False)
     add_dataset_parser.add_argument(
         "-m_s3_url", "--metadata_endpoint_url", required=False
@@ -310,8 +285,7 @@ if __name__ == "__main__":
     # Create the parser for the "del_dataset" command
     del_dataset_parser = subparsers.add_parser(
         "del_dataset",
-        help="delete dataset and metadata from "
-        "datasets and metadata collection",
+        help="delete dataset and metadata from " "datasets and metadata collection",
         parents=[connection_parser],
     )
     del_dataset_parser.add_argument("-d", "--dataset", required=True, type=str)
@@ -395,6 +369,9 @@ if __name__ == "__main__":
         username=args.username,
         password=args.password,
         db_name=args.db_name,
+        max_pool_size=args.db_max_pool_size,
+        min_pool_size=args.db_min_pool_size,
+        max_connecting=args.db_max_connecting,
     )
     db_url = get_mongodb_url(mongo_config)
     mongo_db: Database = MongoClient(db_url)[args.db_name]
@@ -414,16 +391,12 @@ if __name__ == "__main__":
         "set_budget_field": lambda args: set_budget_field(
             mongo_db, args.user, args.dataset, args.field, args.value
         ),
-        "set_may_query": lambda args: set_may_query(
-            mongo_db, args.user, args.value
-        ),
+        "set_may_query": lambda args: set_may_query(mongo_db, args.user, args.value),
         "get_user": lambda args: get_user(mongo_db, args.user),
         "add_users_via_yaml": lambda args: add_users_via_yaml(
             mongo_db, args.yaml_file, args.clean, args.overwrite
         ),
-        "get_archives_of_user": lambda args: get_archives_of_user(
-            mongo_db, args.user
-        ),
+        "get_archives_of_user": lambda args: get_archives_of_user(mongo_db, args.user),
         "get_list_of_users": lambda args: get_list_of_users(mongo_db),
         "get_list_of_datasets_from_user": lambda args: get_list_of_datasets_from_user(
             mongo_db, args.user
@@ -459,11 +432,7 @@ if __name__ == "__main__":
             mongo_db, args.dataset
         ),
         "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
-        "drop_collection": lambda args: drop_collection(
-            mongo_db, args.collection
-        ),
-        "get_collection": lambda args: get_collection(
-            mongo_db, args.collection
-        ),
+        "drop_collection": lambda args: drop_collection(mongo_db, args.collection),
+        "get_collection": lambda args: get_collection(mongo_db, args.collection),
     }
     function_map[args.func.__name__](args)

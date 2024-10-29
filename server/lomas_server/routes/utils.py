@@ -1,22 +1,54 @@
+import random
+import time
 from collections.abc import AsyncGenerator
+from functools import wraps
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
-
-from lomas_server.constants import DPLibraries
-from lomas_server.data_connector.factory import data_connector_factory
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.utils.error_handler import (
+from lomas_core.constants import DPLibraries
+from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_server.utils.query_models import (
+from lomas_core.models.requests import (
     DummyQueryModel,
+    LomasRequestModel,
     QueryModel,
-    RequestModel,
 )
+from lomas_core.models.responses import CostResponse, QueryResponse
+
+from lomas_server.data_connector.factory import data_connector_factory
+from lomas_server.dp_queries.dp_libraries.factory import querier_factory
+from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.utils.config import get_config
+
+
+def timing_protection(func):
+    """Adds delays to requests response to protect against timing attack."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        response = func(*args, **kwargs)
+        process_time = time.time() - start_time
+
+        config = get_config()
+        if config.server.time_attack:
+            match config.server.time_attack.method:
+                case "stall":
+                    # Slows to a minimum response time defined by magnitude
+                    if process_time < config.server.time_attack.magnitude:
+                        time.sleep(config.server.time_attack.magnitude - process_time)
+                case "jitter":
+                    # Adds some time between 0 and magnitude secs
+                    time.sleep(
+                        config.server.time_attack.magnitude * random.uniform(0, 1)
+                    )
+                case _:
+                    raise InternalServerException("Time attack method not supported.")
+        return response
+
+    return wrapper
 
 
 async def server_live(request: Request) -> AsyncGenerator:
@@ -40,12 +72,13 @@ async def server_live(request: Request) -> AsyncGenerator:
     yield
 
 
+@timing_protection
 def handle_query_on_private_dataset(
     request: Request,
     query_json: QueryModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> QueryResponse:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -101,7 +134,7 @@ def handle_query_on_dummy_dataset(
     query_json: DummyQueryModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> QueryResponse:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -124,9 +157,7 @@ def handle_query_on_dummy_dataset(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )
@@ -142,13 +173,9 @@ def handle_query_on_dummy_dataset(
 
     try:
         eps_cost, delta_cost = dummy_querier.cost(query_json)
-        response_df = dummy_querier.query(query_json)
-        response = JSONResponse(
-            content={
-                "query_response": response_df,
-                "epsilon": eps_cost,
-                "delta": delta_cost,
-            }
+        result = dummy_querier.query(query_json)
+        response = QueryResponse(
+            requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
     except KNOWN_EXCEPTIONS as e:
         raise e
@@ -158,12 +185,13 @@ def handle_query_on_dummy_dataset(
     return response
 
 
+@timing_protection
 def handle_cost_query(
     request: Request,
-    query_json: RequestModel,
+    query_json: LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
-):
+) -> CostResponse:
     """
     Handles cost queries for DP libraries.
 
@@ -187,9 +215,7 @@ def handle_cost_query(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(
-        user_name, dataset_name
-    ):
+    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_name} does not have access to {dataset_name}.",
         )
@@ -211,6 +237,4 @@ def handle_cost_query(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return JSONResponse(
-        content={"epsilon_cost": eps_cost, "delta_cost": delta_cost}
-    )
+    return CostResponse(epsilon=eps_cost, delta=delta_cost)

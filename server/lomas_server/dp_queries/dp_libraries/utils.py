@@ -1,19 +1,14 @@
-import pickle
-from base64 import b64encode
-from typing import Any
-
 import numpy as np
 import pandas as pd
+from lomas_core.error_handler import InvalidQueryException
 from sklearn.impute import SimpleImputer
 
 from lomas_server.constants import NUMERICAL_DTYPES
-from lomas_server.utils.error_handler import InvalidQueryException
 
 
-def handle_missing_data(
-    df: pd.DataFrame, imputer_strategy: str
-) -> pd.DataFrame:
-    """Impute missing data based on given imputation strategy for NaNs
+def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame:
+    """Impute missing data based on given imputation strategy for NaNs.
+
     Args:
         df (pd.DataFrame): dataframe with the data
         imputer_strategy (str): string to indicate imputatation for NaNs
@@ -33,12 +28,8 @@ def handle_missing_data(
     if imputer_strategy == "drop":
         df = df.dropna()
     elif imputer_strategy in ["mean", "median"]:
-        numerical_cols = df.select_dtypes(
-            include=NUMERICAL_DTYPES
-        ).columns.tolist()
-        categorical_cols = [
-            col for col in df.columns if col not in numerical_cols
-        ]
+        numerical_cols = df.select_dtypes(include=NUMERICAL_DTYPES).columns.tolist()
+        categorical_cols = [col for col in df.columns if col not in numerical_cols]
 
         # Impute numerical features using given strategy
         imp_mean = SimpleImputer(strategy=imputer_strategy)
@@ -63,9 +54,7 @@ def handle_missing_data(
         imp_most_frequent = SimpleImputer(strategy=imputer_strategy)
         df[df.columns] = df[df.columns].astype("object")
         df[df.columns] = df[df.columns].replace({pd.NA: np.nan})
-        df = pd.DataFrame(
-            imp_most_frequent.fit_transform(df), columns=df.columns
-        )
+        df = pd.DataFrame(imp_most_frequent.fit_transform(df), columns=df.columns)
     else:
         raise InvalidQueryException(
             f"Imputation strategy {imputer_strategy} not supported."
@@ -73,18 +62,3 @@ def handle_missing_data(
 
     df = df.astype(dtype=dtypes)
     return df
-
-
-def serialise_model(model: Any) -> str:
-    """
-    Serialise a python object (fitted Smartnoise Synth synthesizer of
-    fitted DiffPrivLib pipeline) into an utf-8 string
-
-    Args:
-        model (Any): An object to serialise
-
-    Returns:
-        str: string of serialised model
-    """
-    serialised = b64encode(pickle.dumps(model))
-    return serialised.decode("utf-8")

@@ -1,7 +1,12 @@
 #!/bin/bash
 
-cd ./lomas_server
-export PYTHONPATH=$(pwd)/..:$PYTHONPATH
+cd ../core
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
+cd ../server/
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
+cd lomas_server/
 python -m unittest discover -s .
 ret=$?
 cd ..

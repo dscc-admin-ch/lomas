@@ -1,32 +1,17 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from lomas_server.constants import (
+from lomas_core.constants import (
     DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
-from lomas_server.utils.error_handler import InternalServerException
+from lomas_core.error_handler import InternalServerException
 
 
-class GetDbData(BaseModel):
-    """Model input to get information about a dataset"""
-
-    dataset_name: str
-
-
-class GetDummyDataset(BaseModel):
-    """Model input to get a dummy dataset"""
-
-    dataset_name: str
-    dummy_nb_rows: int = Field(..., gt=0)
-    dummy_seed: int
-
-
-class RequestModel(BaseModel):
-    """
-    Base input model for any request on a dataset.
+class LomasRequestModel(BaseModel):
+    """Base class for all types of requests to the lomas server.
 
     We differentiate between requests and queries:
         - a request does not necessarily require an algorithm
@@ -38,7 +23,14 @@ class RequestModel(BaseModel):
     dataset_name: str
 
 
-class QueryModel(RequestModel):
+class GetDummyDataset(LomasRequestModel):
+    """Model input to get a dummy dataset."""
+
+    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_seed: int
+
+
+class QueryModel(LomasRequestModel):
     """
     Base input model for any query on a dataset.
 
@@ -51,9 +43,7 @@ class QueryModel(RequestModel):
 
 
 class DummyQueryModel(QueryModel):
-    """
-    Input model for a query on a dummy dataset.
-    """
+    """Input model for a query on a dummy dataset."""
 
     dummy_nb_rows: int = Field(..., gt=0)
     dummy_seed: int
@@ -61,8 +51,8 @@ class DummyQueryModel(QueryModel):
 
 # SmartnoiseSQL
 # ----------------------------------------------------------------------------
-class SmartnoiseSQLRequestModel(RequestModel):
-    """Base input model for a smarnoise-sql request"""
+class SmartnoiseSQLRequestModel(LomasRequestModel):
+    """Base input model for a smarnoise-sql request."""
 
     query_str: str
     epsilon: float = Field(..., gt=0)
@@ -71,7 +61,7 @@ class SmartnoiseSQLRequestModel(RequestModel):
 
 
 class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
-    """Base input model for a smartnoise-sql query"""
+    """Base input model for a smartnoise-sql query."""
 
     postprocess: bool
 
@@ -82,8 +72,8 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 
 # SmartnoiseSynth
 # ----------------------------------------------------------------------------
-class SmartnoiseSynthRequestModel(RequestModel):
-    """Base input model for a SmartnoiseSynth request"""
+class SmartnoiseSynthRequestModel(LomasRequestModel):
+    """Base input model for a SmartnoiseSynth request."""
 
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
     epsilon: float = Field(..., gt=0)
@@ -95,17 +85,15 @@ class SmartnoiseSynthRequestModel(RequestModel):
 
 
 class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
-    """Base input model for a smarnoise-synth query"""
+    """Base input model for a smarnoise-synth query."""
 
     return_model: bool
     condition: str
     nb_samples: int
 
 
-class SmartnoiseSynthDummyQueryModel(
-    SmartnoiseSynthQueryModel, DummyQueryModel
-):
-    """Input model for a smarnoise-synth query on a dummy dataset"""
+class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel):
+    """Input model for a smarnoise-synth query on a dummy dataset."""
 
     # Same as normal query.
     return_model: bool
@@ -115,25 +103,27 @@ class SmartnoiseSynthDummyQueryModel(
 
 # OpenDP
 # ----------------------------------------------------------------------------
-class OpenDPRequestModel(RequestModel):
-    """Base input model for an opendp request"""
+class OpenDPRequestModel(LomasRequestModel):
+    """Base input model for an opendp request."""
 
+    model_config = ConfigDict(use_attribute_docstrings=True)
     opendp_json: str
+    """Opendp pipeline."""
     fixed_delta: Optional[float] = None
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
-    """Base input model for an opendp query"""
+    """Base input model for an opendp query."""
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
-    """Input model for an opendp query on a dummy dataset"""
+    """Input model for an opendp query on a dummy dataset."""
 
 
 # DiffPrivLib
 # ----------------------------------------------------------------------------
-class DiffPrivLibRequestModel(RequestModel):
-    """Base input model for a diffprivlib request"""
+class DiffPrivLibRequestModel(LomasRequestModel):
+    """Base input model for a diffprivlib request."""
 
     diffprivlib_json: str
     feature_columns: list
@@ -144,22 +134,22 @@ class DiffPrivLibRequestModel(RequestModel):
 
 
 class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
-    """Base input model for a diffprivlib query"""
+    """Base input model for a diffprivlib query."""
 
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
-    """Input model for a DiffPrivLib query on a dummy dataset"""
+    """Input model for a DiffPrivLib query on a dummy dataset."""
 
 
 # Utils
 # ----------------------------------------------------------------------------
 
 
-def model_input_to_lib(request: RequestModel) -> DPLibraries:
-    """Return the type of DP library given a RequestModel.
+def model_input_to_lib(request: LomasRequestModel) -> DPLibraries:
+    """Return the type of DP library given a LomasRequestModel.
 
     Args:
-        request (RequestModel): The user request
+        request (LomasRequestModel): The user request
 
     Raises:
         InternalServerException: If the library type cannot be determined.
@@ -177,6 +167,4 @@ def model_input_to_lib(request: RequestModel) -> DPLibraries:
         case DiffPrivLibRequestModel():
             return DPLibraries.DIFFPRIVLIB
         case _:
-            raise InternalServerException(
-                "Cannot find library type for given model."
-            )
+            raise InternalServerException("Cannot find library type for given model.")

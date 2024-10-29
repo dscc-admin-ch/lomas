@@ -1,12 +1,14 @@
 from typing import List
 
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import DSPathAccess, DSS3Access
+from lomas_core.models.config import PrivateDBCredentials, S3CredentialsConfig
+from lomas_core.models.constants import PrivateDatabaseType
+
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import PrivateDatabaseType
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
-from lomas_server.utils.config import PrivateDBCredentials, S3CredentialsConfig
-from lomas_server.utils.error_handler import InternalServerException
 
 
 def data_connector_factory(
@@ -15,7 +17,7 @@ def data_connector_factory(
     private_db_credentials: List[PrivateDBCredentials],
 ) -> DataConnector:
     """
-    Returns the appropriate dataset class based on dataset storage location
+    Returns the appropriate dataset class based on dataset storage location.
 
     Args:
         dataset_name (str): The dataset name.
@@ -28,47 +30,32 @@ def data_connector_factory(
     Returns:
         DataConnector: The DataConnector instance for this dataset.
     """
-    database_type = admin_database.get_dataset_field(
-        dataset_name, "database_type"
-    )
+    ds_access = admin_database.get_dataset(dataset_name).dataset_access
 
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
 
-    match database_type:
-        case PrivateDatabaseType.PATH:
-            dataset_path = admin_database.get_dataset_field(
-                dataset_name, "dataset_path"
-            )
-            return PathConnector(ds_metadata, dataset_path)
-        case PrivateDatabaseType.S3:
-
-            credentials_name = admin_database.get_dataset_field(
-                dataset_name, "credentials_name"
-            )
+    match ds_access:
+        case DSPathAccess():
+            return PathConnector(ds_metadata, ds_access.path)
+        case DSS3Access():
 
             credentials = get_dataset_credentials(
-                private_db_credentials, database_type, credentials_name
+                private_db_credentials,
+                ds_access.database_type,
+                ds_access.credentials_name,
             )
 
             if not isinstance(credentials, S3CredentialsConfig):
-                raise InternalServerException(
-                    "Could not get correct credentials"
-                )
+                raise InternalServerException("Could not get correct credentials")
 
-            credentials.endpoint_url = admin_database.get_dataset_field(
-                dataset_name, "endpoint_url"
-            )
-            credentials.bucket = admin_database.get_dataset_field(
-                dataset_name, "bucket"
-            )
-            credentials.key = admin_database.get_dataset_field(
-                dataset_name, "key"
-            )
+            ds_access = DSS3Access.model_validate(ds_access)
+            ds_access.access_key_id = credentials.access_key_id
+            ds_access.secret_access_key = credentials.secret_access_key
 
-            return S3Connector(ds_metadata, credentials)
+            return S3Connector(ds_metadata, ds_access)
         case _:
             raise InternalServerException(
-                f"Unknown database type: {database_type}"
+                f"Unknown database type: {ds_access.database_type}"
             )
 
 
@@ -78,7 +65,8 @@ def get_dataset_credentials(
     credentials_name: str,
 ) -> PrivateDBCredentials:
     """
-    Search the list of private database credentials and
+    Search the list of private database credentials and.
+
     returns the one that matches the database type and
     credentials name.
 

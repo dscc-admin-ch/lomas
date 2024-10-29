@@ -18,27 +18,30 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
+          pip install flake8-pyproject==1.2.3
           pip install mypy==1.10.0
           pip install pylint==3.1.0
-      - name: flake8 server
-        uses: py-actions/flake8@v2
-        with:
-          path: server/
-          max-line-length: "88"
-      - name: flake8 client
-        uses: py-actions/flake8@v2
-        with:
-          path: client
-          max-line-length: "88"
+      - name: flake8
+        run: |
+          cd client/lomas_client
+          flake8 --toml-config=../pyproject.toml .
+          cd ../../core/lomas_core
+          flake8 --toml-config=../pyproject.toml .
+          cd ../../server/lomas_server
+          flake8 --toml-config=../pyproject.toml .
       - name: mypy
         run: |
           cd client
-          mypy .
+          mypy --config-file pyproject.toml .
+          cd ../core
+          mypy --config-file pyproject.toml .
           cd ../server
-          mypy .
+          mypy --config-file pyproject.toml .
       - name: pylint
         run: |
           cd client/lomas_client
+          pylint .
+          cd ../../core/lomas_core
           pylint .
           cd ../../server/lomas_server
           pylint .

@@ -4,12 +4,15 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable, Dict, List
 
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.error_handler import (
+from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from lomas_server.utils.query_models import RequestModel, model_input_to_lib
+from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
+from lomas_core.models.responses import QueryResponse
+
+from lomas_server.admin_database.constants import BudgetDBKey
 
 
 def user_must_exist(func: Callable) -> Callable:  # type: ignore
@@ -80,7 +83,7 @@ def user_must_have_access_to_dataset(
     func: Callable,
 ) -> Callable:  # type: ignore
     """
-    Decorator function to enforce a user has access to a dataset
+    Decorator function to enforce a user has access to a dataset.
 
     Args:
         func (Callable): Function to be decorated.
@@ -113,16 +116,12 @@ def user_must_have_access_to_dataset(
 
 
 class AdminDatabase(ABC):
-    """
-    Overall database management for server state.
-
-    This is an abstract class.
-    """
+    """Overall database management for server state."""
 
     @abstractmethod
     def __init__(self, **connection_parameters: Dict[str, str]) -> None:
         """
-        Connects to the DB
+        Connects to the DB.
 
         Args:
             **connection_parameters (Dict[str, str]): parameters required
@@ -132,7 +131,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
         """
-        Checks if user exist in the database
+        Checks if user exist in the database.
 
         Args:
             user_name (str): name of the user to check
@@ -144,7 +143,7 @@ class AdminDatabase(ABC):
     @abstractmethod
     def does_dataset_exist(self, dataset_name: str) -> bool:
         """
-        Checks if dataset exist in the database
+        Checks if dataset exist in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
@@ -186,9 +185,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def get_and_set_may_user_query(
-        self, user_name: str, may_query: bool
-    ) -> bool:
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
 
@@ -206,11 +203,9 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def has_user_access_to_dataset(
-        self, user_name: str, dataset_name: str
-    ) -> bool:
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """
-        Checks if a user may access a particular dataset
+        Checks if a user may access a particular dataset.
 
         Wrapped by :py:func:`user_must_exist`.
 
@@ -224,28 +219,24 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: str
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
     ) -> float:
         """
-        Get the total spent epsilon or delta  by a specific user
-        on a specific dataset
+        Get the total spent epsilon or delta by user on dataset.
 
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): total_spent_epsilon or total_spent_delta
+            parameter (str): Member of BudgetDBKey.
 
         Returns:
             float: The requested budget value.
         """
 
     @user_must_have_access_to_dataset
-    def get_total_spent_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the total spent epsilon and delta spent by a specific user
-        on a specific dataset (since the initialisation)
+        Get the total spent epsilon and delta spent by user on dataset.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -259,19 +250,15 @@ class AdminDatabase(ABC):
         """
         return [
             self.get_epsilon_or_delta(
-                user_name, dataset_name, "total_spent_epsilon"
+                user_name, dataset_name, BudgetDBKey.EPSILON_SPENT
             ),
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "total_spent_delta"
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
         ]
 
     @user_must_have_access_to_dataset
-    def get_initial_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the initial epsilon and delta budget
+        Get the initial epsilon and delta budget.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -285,19 +272,15 @@ class AdminDatabase(ABC):
         """
         return [
             self.get_epsilon_or_delta(
-                user_name, dataset_name, "initial_epsilon"
+                user_name, dataset_name, BudgetDBKey.EPSILON_INIT
             ),
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, "initial_delta"
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
         ]
 
     @user_must_have_access_to_dataset
-    def get_remaining_budget(
-        self, user_name: str, dataset_name: str
-    ) -> List[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
         """
-        Get the remaining epsilon and delta budget (initial - total spent)
+        Get the remaining epsilon and delta budget (initial - total spent).
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -310,9 +293,7 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         init_eps, init_delta = self.get_initial_budget(user_name, dataset_name)
-        spent_eps, spent_delta = self.get_total_spent_budget(
-            user_name, dataset_name
-        )
+        spent_eps, spent_delta = self.get_total_spent_budget(user_name, dataset_name)
         return [init_eps - spent_eps, init_delta - spent_delta]
 
     @abstractmethod
@@ -320,17 +301,16 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-        parameter: str,
+        parameter: BudgetDBKey,
         spent_value: float,
     ) -> None:
         """
-        Update the current budget spent by a specific user
-        with the last spent budget.
+        Update current budget spent by user with spent budget.
 
         Args:
             user_name (str): name of the user
             dataset_name (str): name of the dataset
-            parameter (str): "current_epsilon" or "current_delta"
+            parameter (str): One of BudgetDBKey
             spent_value (float): spending of epsilon or delta on last query
         """
 
@@ -338,8 +318,7 @@ class AdminDatabase(ABC):
         self, user_name: str, dataset_name: str, spent_epsilon: float
     ) -> None:
         """
-        Update the spent epsilon by a specific user
-        with the total spent epsilon
+        Update spent epsilon by user with total spent epsilon.
 
         Args:
             user_name (str): name of the user
@@ -347,15 +326,14 @@ class AdminDatabase(ABC):
             spent_epsilon (float): value of epsilon spent on last query
         """
         return self.update_epsilon_or_delta(
-            user_name, dataset_name, "total_spent_epsilon", spent_epsilon
+            user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon
         )
 
     def update_delta(
         self, user_name: str, dataset_name: str, spent_delta: float
     ) -> None:
         """
-        Update the spent delta spent by a specific user
-        with the total spent delta of the user
+        Update spent delta spent by user with spent delta of the user.
 
         Args:
             user_name (str): name of the user
@@ -363,7 +341,7 @@ class AdminDatabase(ABC):
             spent_delta (float): value of delta spent on last query
         """
         self.update_epsilon_or_delta(
-            user_name, dataset_name, "total_spent_delta", spent_delta
+            user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta
         )
 
     @user_must_have_access_to_dataset
@@ -375,8 +353,7 @@ class AdminDatabase(ABC):
         spent_delta: float,
     ) -> None:
         """
-        Update the current epsilon and delta spent by a specific user
-        with the last spent delta
+        Update current epsilon and delta delta spent by user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -391,18 +368,17 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @dataset_must_exist
-    def get_dataset_field(self, dataset_name: str, key: str) -> str:
+    def get_dataset(self, dataset_name: str) -> DSInfo:
         """
-        Get dataset field type based on dataset name and key
+        Get dataset access info based on dataset_name.
 
         Wrapped by :py:func:`dataset_must_exist`.
 
         Args:
             dataset_name (str): Name of the dataset.
-            key (str): Key for the value to get in the dataset dict.
 
         Returns:
-            str: The requested value.
+            Dataset: The dataset model.
         """
 
     @abstractmethod
@@ -413,7 +389,7 @@ class AdminDatabase(ABC):
         dataset_name: str,
     ) -> List[dict]:
         """
-        Retrieves and return the queries already done by a user
+        Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
 
@@ -426,15 +402,15 @@ class AdminDatabase(ABC):
         """
 
     def prepare_save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> dict:
         """
-        Prepare the query to save in archives
+        Prepare the query to save in archives.
 
         Args:
             user_name (str): name of the user
-            query_json (RequestModel): request received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
 
         Raises:
             InternalServerException: If the type of query is unknown.
@@ -444,25 +420,24 @@ class AdminDatabase(ABC):
         """
         to_archive = {
             "user_name": user_name,
-            "dataset_name": query_json.dataset_name,
-            "dp_librairy": model_input_to_lib(query_json),
-            "client_input": query_json.model_dump(),
-            "response": response,
+            "dataset_name": query.dataset_name,
+            "dp_librairy": model_input_to_lib(query),
+            "client_input": query.model_dump(),
+            "response": response.model_dump(),
             "timestamp": time.time(),
-        }
+        }  # TODO 359 use model for that one too.
 
         return to_archive
 
     @abstractmethod
     def save_query(
-        self, user_name: str, query_json: RequestModel, response: dict
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
     ) -> None:
         """
-        Save queries of user on datasets in a separate collection (table)
-        named "queries_archives" in the DB
+        Save queries of user on datasets in a separate collection (table).
 
         Args:
             user_name (str): name of the user
-            query_json (dict): json received from client
-            response (dict): response sent to the client
+            query (LomasRequestModel): Request object received from client
+            response (QueryResponse): Response object sent to client
         """

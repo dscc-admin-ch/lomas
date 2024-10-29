@@ -1,14 +1,14 @@
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.config import DBConfig, MongoDBConfig, YamlDBConfig
+
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.admin_database.utils import get_mongodb_url
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
-from lomas_server.utils.config import DBConfig, MongoDBConfig, YamlDBConfig
-from lomas_server.utils.error_handler import InternalServerException
 
 
 def admin_database_factory(config: DBConfig) -> AdminDatabase:
-    """Instantiates and returns the correct database type described in the
-    provided config.
+    """Instantiates and returns database type described in config.
 
     Args:
         config (DBConfig): An instance of DBconfig.

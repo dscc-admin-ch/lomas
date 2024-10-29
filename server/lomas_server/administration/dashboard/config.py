@@ -1,9 +1,8 @@
 import os
 
 import yaml
+from lomas_core.error_handler import InternalServerException
 from pydantic import BaseModel
-
-from utils.error_handler import InternalServerException
 
 # Get config and secrets from correct location
 if "LOMAS_DASHBOARD_CONFIG_PATH" in os.environ:
@@ -14,9 +13,7 @@ else:
 
 
 class Config(BaseModel):
-    """
-    Dashboard runtime config.
-    """
+    """Dashboard runtime config."""
 
     server_url: str
     server_service: str
@@ -42,8 +39,9 @@ class ConfigLoader:
 
     def load_config(self, config_path: str = CONFIG_PATH) -> None:
         """
-        Loads the config and the secret data from disk,
-        merges them and returns the config object.
+        Loads the config and the secret data from disk,.
+
+        Merges them and returns the config object.
 
         Args:
             config_path (str, optional):

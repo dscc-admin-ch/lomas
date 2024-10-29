@@ -2,24 +2,21 @@ from typing import Optional
 
 import boto3
 import pandas as pd
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import DSS3Access, Metadata
 
 from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.utils.collection_models import Metadata
-from lomas_server.utils.config import S3CredentialsConfig
-from lomas_server.utils.error_handler import InternalServerException
 
 
 class S3Connector(DataConnector):
-    """
-    DataConnector for dataset in S3 storage.
-    """
+    """DataConnector for dataset in S3 storage."""
 
     def __init__(
         self,
         metadata: Metadata,
-        credentials: S3CredentialsConfig,
+        credentials: DSS3Access,
     ) -> None:
-        """Initializer. Does not load the dataset yet.
+        """Initializer.
 
         Args:
             metadata (Metadata): The metadata dictionary.
@@ -38,7 +35,7 @@ class S3Connector(DataConnector):
         self.df: Optional[pd.DataFrame] = None
 
     def get_pandas_df(self) -> pd.DataFrame:
-        """Get the data in pandas dataframe format
+        """Get the data in pandas dataframe format.
 
         Raises:
             InternalServerException: If the dataset cannot be read.
@@ -52,8 +49,7 @@ class S3Connector(DataConnector):
                 self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
             except Exception as err:
                 raise InternalServerException(
-                    "Error reading csv at s3 path:"
-                    + f"{self.bucket}/{self.key}: {err}"
+                    "Error reading csv at s3 path:" + f"{self.bucket}/{self.key}: {err}"
                 ) from err
 
         return self.df

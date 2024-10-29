@@ -19,8 +19,8 @@ jobs:
       env:
         SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_HELM }}
       with:
-        source-directory: server/deploy/helm/charts/
+        source-directory: server/deploy/helm/charts/lomas_server/
         destination-github-username: 'dscc-admin-ch'
         destination-repository-name: 'helm-charts'
         target-branch: master
-        target-directory: charts/
+        target-directory: charts/lomas_server/

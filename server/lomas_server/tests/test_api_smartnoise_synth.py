@@ -1,10 +1,13 @@
-import base64
 import json
-import pickle
 
-import pandas as pd
 from fastapi import status
 from fastapi.testclient import TestClient
+from lomas_core.models.responses import (
+    CostResponse,
+    QueryResponse,
+    SmartnoiseSynthModel,
+    SmartnoiseSynthSamples,
+)
 from smartnoise_synth_logger import serialise_constraints
 from snsynth.transform import (
     ChainTransformer,
@@ -23,22 +26,25 @@ from lomas_server.utils.query_examples import (
 )
 
 
-def get_model(query_response):
-    """Unpickle model from API response"""
-    model = base64.b64decode(query_response)
-    model = pickle.loads(model)
-    return model
+def validate_response(response) -> QueryResponse:
+    """Validate that the pipeline ran successfully.
+
+    Returns a model and a score.
+    """
+    assert response.status_code == status.HTTP_200_OK
+    response_dict = json.loads(response.content.decode("utf8"))
+
+    r_model = QueryResponse.model_validate(response_dict)
+    assert isinstance(r_model.result, SmartnoiseSynthModel | SmartnoiseSynthSamples)
+
+    return r_model
 
 
-class TestSmartnoiseSynthEndpoint(
-    TestRootAPIEndpoint
-):  # pylint: disable=R0904
-    """
-    Test Smartnoise Synth Endpoints with different Synthesizers
-    """
+class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+    """Test Smartnoise Synth Endpoints with different Synthesizers."""
 
     def test_smartnoise_synth_query(self) -> None:
-        """Test smartnoise synth query"""
+        """Test smartnoise synth query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
@@ -48,12 +54,14 @@ class TestSmartnoiseSynthEndpoint(
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-            assert response_dict["spent_epsilon"] >= 0.1
-            assert response_dict["spent_delta"] >= 1e-05
+            r_model = validate_response(response)
 
-            model = get_model(response_dict["query_response"])
+            assert r_model.requested_by == self.user_name
+            assert r_model.epsilon >= 0.1
+            assert r_model.delta >= 1e-05
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             assert model.__class__.__name__ == "DPCTGAN"
 
             df = model.sample(10)
@@ -78,7 +86,7 @@ class TestSmartnoiseSynthEndpoint(
             }
 
     def test_smartnoise_synth_query_samples(self) -> None:
-        """Test smartnoise synth query return samples"""
+        """Test smartnoise synth query return samples."""
         with TestClient(app, headers=self.headers) as client:
             nb_samples = 100
 
@@ -92,12 +100,11 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-
-            df_0 = pd.DataFrame(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df_0 = r_model.result.df_samples
             assert df_0.shape[0] == nb_samples
             assert list(df_0.columns) == PENGUIN_COLUMNS
 
@@ -108,21 +115,18 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
-
-            df_1 = pd.DataFrame(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df_1 = r_model.result.df_samples
             assert df_1.shape[0] == nb_samples
             assert list(df_1.columns) == PENGUIN_COLUMNS
 
-            assert (
-                df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
-            )
+            assert df_0["bill_length_mm"].mean() > df_1["bill_length_mm"].mean()
 
     def test_smartnoise_synth_query_select_cols(self) -> None:
-        """Test smartnoise synth query select_cols"""
+        """Test smartnoise synth query select_cols."""
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
@@ -133,10 +137,11 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
@@ -154,7 +159,7 @@ class TestSmartnoiseSynthEndpoint(
             )
 
     def test_smartnoise_synth_query_constraints(self) -> None:
-        """Test smartnoise synth query constraints"""
+        """Test smartnoise synth query constraints."""
         with TestClient(app, headers=self.headers) as client:
 
             constraints = {
@@ -190,15 +195,17 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_private_id(self) -> None:
-        """Test smartnoise synth query on other dataset for private id
+        """Test smartnoise synth query on other dataset for private id.
+
         and categorical int columns
         """
         with TestClient(app, headers=self.headers) as client:
@@ -211,15 +218,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PUMS_COLUMNS
 
     def test_smartnoise_synth_query_delta_none(self) -> None:
-        """Test smartnoise synth query on other synthesizer with delta None"""
+        """Test smartnoise synth query on other synthesizer with delta None."""
         with TestClient(app, headers=self.headers) as client:
 
             # Expect to work
@@ -232,15 +240,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PUMS_COLUMNS
 
     def test_dummy_smartnoise_synth_query(self) -> None:
-        """test_dummy_smartnoise_synth_query"""
+        """Test_dummy_smartnoise_synth_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -248,11 +257,11 @@ class TestSmartnoiseSynthEndpoint(
                 json=example_dummy_smartnoise_synth_query,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = base64.b64decode(response_dict["query_response"])
-            model = pickle.loads(model)
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             assert model.__class__.__name__ == "DPCTGAN"
 
             # Expect to fail: user does have access to dataset
@@ -270,7 +279,7 @@ class TestSmartnoiseSynthEndpoint(
             }
 
     def test_smartnoise_synth_cost(self) -> None:
-        """test_smartnoise_synth_cost"""
+        """Test_smartnoise_synth_cost."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
@@ -281,8 +290,9 @@ class TestSmartnoiseSynthEndpoint(
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] >= 0.1
-            assert response_dict["delta_cost"] >= 1e-5
+            r_model = CostResponse.model_validate(response_dict)
+            assert r_model.epsilon >= 0.1
+            assert r_model.delta >= 1e-5
 
             # Expect to fail: user does have access to dataset
             body = dict(example_smartnoise_synth_cost)
@@ -299,7 +309,7 @@ class TestSmartnoiseSynthEndpoint(
             }
 
     def test_smartnoise_synth_query_datetime(self) -> None:
-        """Test smartnoise synth query on other dataset for datetime columns"""
+        """Test smartnoise synth query on other dataset for datetime columns."""
         with TestClient(app) as client:
 
             # Expect to work
@@ -315,10 +325,11 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=new_headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == new_headers["user-name"]
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
 
@@ -331,15 +342,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=new_headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == new_headers["user-name"]
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
 
     def test_smartnoise_synth_query_aim(self) -> None:
-        """Test smartnoise synth query AIM Synthesizer"""
+        """Test smartnoise synth query AIM Synthesizer."""
         with TestClient(app) as client:
             # Expect to work
             body = dict(example_smartnoise_synth_query)
@@ -354,15 +366,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == body["select_cols"]
 
     def test_smartnoise_synth_query_mwem(self) -> None:
-        """Test smartnoise synth query MWEM Synthesizer"""
+        """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: delta
@@ -390,8 +403,11 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
@@ -402,13 +418,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
     def test_smartnoise_synth_query_mst(self) -> None:
-        """Test smartnoise synth query MST Synthesizer"""
+        """Test smartnoise synth query MST Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to work:
@@ -424,9 +443,11 @@ class TestSmartnoiseSynthEndpoint(
                 headers=self.headers,
             )
 
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            df = pd.DataFrame(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthSamples)
+            df = r_model.result.df_samples
             assert df.shape[0] == body["nb_samples"]
             assert list(df.columns) == body["select_cols"]
 
@@ -444,7 +465,8 @@ class TestSmartnoiseSynthEndpoint(
             )
 
     def test_smartnoise_synth_query_pacsynth(self) -> None:
-        """Test smartnoise synth query PAC-Synth Synthesizer
+        """Test smartnoise synth query PAC-Synth Synthesizer.
+
         TOO UNSTABLE BECAUSE OF RUST PANIC
         """
         with TestClient(app) as client:
@@ -464,7 +486,7 @@ class TestSmartnoiseSynthEndpoint(
             )
 
     def test_smartnoise_synth_query_patectgan(self) -> None:
-        """Test smartnoise synth query PATE-CTGAN Synthesizer"""
+        """Test smartnoise synth query PATE-CTGAN Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: epsilon too small
@@ -491,14 +513,16 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS
 
     def test_smartnoise_synth_query_pategan(self) -> None:
-        """Test smartnoise synth query pategan Synthesizer"""
+        """Test smartnoise synth query pategan Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: penguin dataset is too small
@@ -518,7 +542,7 @@ class TestSmartnoiseSynthEndpoint(
             }
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
-        """Test smartnoise synth query dpgan Synthesizer"""
+        """Test smartnoise synth query dpgan Synthesizer."""
         with TestClient(app) as client:
 
             # Expect to fail: epsilon too small
@@ -545,8 +569,10 @@ class TestSmartnoiseSynthEndpoint(
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            model = get_model(response_dict["query_response"])
+            r_model = validate_response(response)
+            assert r_model.requested_by == self.user_name
+
+            assert isinstance(r_model.result, SmartnoiseSynthModel)
+            model = r_model.result.model
             df = model.sample(1)
             assert list(df.columns) == PENGUIN_COLUMNS

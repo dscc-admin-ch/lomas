@@ -1,16 +1,11 @@
+from lomas_core.constants import SSynthGanSynthesizer
+
 from lomas_server.constants import (
-    DIFFPRIVLIB_PIPELINE,
-    OPENDP_PIPELINE,
-    SSynthGanSynthesizer,
+    DIFFPRIVLIB_VERSION,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    OPENDP_VERSION,
 )
-
-# Dummy queries
-DUMMY_EPSILON = 100.0
-DUMMY_DELTA = 0.99
-
-# Dummy dataset generation
-DUMMY_NB_ROWS = 100
-DUMMY_SEED = 42
 
 # Query constants
 PENGUIN_DATASET = "PENGUIN"
@@ -32,7 +27,7 @@ SNSYNTH_NB_SAMPLES = 200
 
 
 def make_dummy(example_query):
-    """Make dummy example dummy query based on example query"""
+    """Make dummy example dummy query based on example query."""
     example_query_dummy = dict(example_query)
     example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
     example_query_dummy["dummy_seed"] = DUMMY_SEED
@@ -84,11 +79,69 @@ example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
-example_dummy_smartnoise_synth_query = make_dummy(
-    example_smartnoise_synth_query
-)
+example_dummy_smartnoise_synth_query = make_dummy(example_smartnoise_synth_query)
 
 # OpenDP
+
+# Example inputs
+# -----------------------------------------------------------------------------
+OPENDP_PIPELINE = (
+    f'{{"version": "{OPENDP_VERSION}", '
+    '"ast": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "partial_chain", "lhs": {'
+    '"_type": "constructor", '
+    '"func": "make_chain_tt", '
+    '"module": "combinators", '
+    '"args": ['
+    "{"
+    '"_type": "constructor", '
+    '"func": "make_select_column", '
+    '"module": "transformations", '
+    '"kwargs": {"key": "bill_length_mm", "TOA": "String"}'
+    "}, {"
+    '"_type": "constructor", '
+    '"func": "make_split_dataframe", '
+    '"module": "transformations", '
+    '"kwargs": {"separator": ",", "col_names": {"_type": '
+    '"list", "_items": ["species", "island", '
+    '"bill_length_mm", "bill_depth_mm", "flipper_length_'
+    'mm", "body_mass_g", "sex"]}}'
+    "}]}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_cast_default", '
+    '"module": "transformations", '
+    '"kwargs": {"TOA": "f64"}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_clamp", '
+    '"module": "transformations", '
+    '"kwargs": {"bounds": [30.0, 65.0]}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_resize", '
+    '"module": "transformations", '
+    '"kwargs": {"size": 346, "constant": 43.61}'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_variance", '
+    '"module": "transformations"'
+    "}}, "
+    '"rhs": {'
+    '"_type": "constructor", '
+    '"func": "then_laplace", '
+    '"module": "measurements", '
+    '"kwargs": {"scale": 5.0}'
+    "}}}"
+)
+
 example_opendp = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
@@ -97,6 +150,47 @@ example_opendp = {
 example_dummy_opendp = make_dummy(example_opendp)
 
 # DiffPrivLib
+DIFFPRIVLIB_PIPELINE = (
+    '{"module": "diffprivlib", '
+    f'"version": "{DIFFPRIVLIB_VERSION}", '
+    '"pipeline": ['
+    "{"
+    '"type": "_dpl_type:StandardScaler", '
+    '"name": "scaler", '
+    '"params": {'
+    '"with_mean": true, '
+    '"with_std": true, '
+    '"copy": true, '
+    '"epsilon": 0.5, '
+    '"bounds": {'
+    '"_tuple": true, '
+    '"_items": [[30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0]]'
+    "}, "
+    '"random_state": null, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}, "
+    "{"
+    '"type": "_dpl_type:LogisticRegression", '
+    '"name": "classifier", '
+    '"params": {'
+    '"tol": 0.0001, '
+    '"C": 1.0, '
+    '"fit_intercept": true, '
+    '"random_state": null, '
+    '"max_iter": 100, '
+    '"verbose": 0, '
+    '"warm_start": false, '
+    '"n_jobs": null, '
+    '"epsilon": 1.0, '
+    '"data_norm": 83.69469642643347, '
+    '"accountant": "_dpl_instance:BudgetAccountant"'
+    "}"
+    "}"
+    "]"
+    "}"
+)
+
 example_diffprivlib = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_PIPELINE,

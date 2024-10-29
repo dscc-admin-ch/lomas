@@ -1,10 +1,10 @@
-import requests
 import streamlit as st
-from config import get_config
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.constants import AdminDBType
 
-from constants import AdminDBType
-from utils.config import get_config as get_server_config
-from utils.error_handler import InternalServerException
+from lomas_server.administration.dashboard.config import get_config
+from lomas_server.administration.dashboard.utils import get_server_data
+from lomas_server.utils.config import get_config as get_server_config
 
 ###############################################################################
 # BACKEND
@@ -18,18 +18,7 @@ try:
         # Store dashboard config
         st.session_state["dashboard_config"] = get_config()
 except Exception as e:
-    st.error(
-        f"Failed to load server or dashboard config. Initial exception: {e}"
-    )
-
-
-@st.cache_data(ttl=60)  # Cache for 60 seconds
-def get_server_data(fastapi_address, endpoint):
-    """Fast api requests on server and cache the result for 60 seconds"""
-    response = requests.get(f"{fastapi_address}/{endpoint}", timeout=50)
-    if response.status_code == 200:
-        return response.json()
-    return response.raise_for_status()
+    st.error(f"Failed to load server or dashboard config. Initial exception: {e}")
 
 
 ###############################################################################
@@ -42,6 +31,7 @@ st.set_page_config(layout="wide")
 st.title("Lomas configurations")
 
 if "config" in st.session_state and "dashboard_config" in st.session_state:
+    print(st.session_state.dashboard_config)
     st.write(
         "The server is available for requests at the address: "
         + f"https://{st.session_state.dashboard_config.server_url}"
@@ -67,25 +57,25 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
         st.subheader("Server configurations")
 
         st.write(
-            "The host IP of the server is: ",
+            "The host IP of the server is:",
             st.session_state.config.server.host_ip,
         )
         st.write(
-            "The host port of the server is : ",
+            "The host port of the server is:",
             st.session_state.config.server.host_port,
         )
         st.write(
-            "The method against timing attack is: ",
+            "The method against timing attack is:",
             st.session_state.config.server.time_attack.method,
         )
 
     with tab_2:
         st.subheader("Administration Database")
         db_type = st.session_state.config.admin_database.db_type
-        st.write("The administration database type is: ", db_type)
+        st.write("The administration database type is:", db_type)
         if db_type == AdminDBType.YAML:
             st.write(
-                "The database file is: ",
+                "The database file is:",
                 st.session_state.config.admin_database.db_file,
             )
         elif db_type == AdminDBType.MONGODB:
@@ -93,9 +83,7 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
                 "Its address is: ",
                 st.session_state.config.admin_database.address,
             )
-            st.write(
-                "Its port is: ", st.session_state.config.admin_database.port
-            )
+            st.write("Its port is: ", st.session_state.config.admin_database.port)
             st.write(
                 "Its username is: ",
                 st.session_state.config.admin_database.username,

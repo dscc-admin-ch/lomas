@@ -20,24 +20,29 @@ part of the project, refer to:
 
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:
 
-- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
   ```bash
   black .
   ```
 
-- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` , `lomas/client/lomas_client` and `lomas/core/lomas_core`:
  ```bash
   flake8 .
   ```
 
-- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server` and `lomas/client`:
+- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server`, `lomas/client` and `lomas/core`:
  ```bash
   mypy .
   ```
 
-- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server` and `lomas/client/lomas_client`:
+- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
  ```bash
   pylint .
+  ```
+
+- **Automatic docstring linter formatting**: Use pydocstringformatter for automatically formatting docstring following PEP257 recommandations. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
+ ```bash
+  pydocstringformatter .
   ```
 
 To streamline the process, you can use the `run_linter.sh` script in ``lomas`. The first time you run this script, use the following command to install dependencies:
@@ -45,10 +50,15 @@ To streamline the process, you can use the `run_linter.sh` script in ``lomas`. T
 chmod +x run_linter.sh
 ./run_linter.sh  --install-deps
 ```
-For subsequent runs, simply execute:
+For subsequent runs, to run all linters (on server, client and core) simply execute:
 ```bash
 ./run_linter.sh
 ```
+To run the linter in a specific package, the package can be specified as argument:
+```bash
+./run_linter.sh --client
+```
+will only run the linter for the client. And similarly for `./run_linter.sh --core` and `./run_linter.sh --server`.
 
 There should be no error or warning, otherwise the linting github action will fail. All configurations are in `lomas/server/pyproject.toml` and `lomas/client/pyproject.toml`.
 
@@ -70,7 +80,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Client library push**: The 'version' and the 'install_requires' must be set in `client/setup.py` ('install_requires' should match the list of library in requirements.txt).
+* **Client library push**: The 'version' and the 'install_requires' must be set in `core/setup.py`, `server/setup.py` and `client/setup.py` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the generation of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
 
@@ -83,24 +93,24 @@ The following actions must take place in this order when preparing a new release
 
 1. Create a `release/vx.y.z` branch from develop.
 2. Fix remaining issues.
-3. Adjust versions for the client library, the helm charts, as well as for the documentation.
+3. Adjust versions for the client, core and server libraries (in the different setup.py), the helm charts, as well as for the documentation.
 4. Create a GitHub PR from this branch to develop AND master (make sure you are up to date with develop by rebasing on it)
 5. Once merged, manually create a release on GitHub with the tag `vx.y.z`.
 
 The workflows listed in the previous section will take care of building and publishing the different items (docker images, pip packages, etc.).
 
-Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, do not forget to update the chart and app versions of your specific deployment.
+Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, **do not forget** to update the chart and app versions of your specific deployment.
 
 ## Adding a DP Library
 
 It is possible to add DP libraries quite seamlessly. Let's say the new library is named 'NewLibrary'
 Steps:
 0. Add the necessary requirements in `lomas/lomas_server/requirements.txt` and `lomas/lomas_client/requirements.txt`
-1. Add the library the the `DPLibraries` StrEnum class in `lomas/lomas_server/constants.py` (`DPLibraries.NEW_LIBRARY = "new_library"`) and add the `NewLibraryQuerier` option in the `querier_factory` (in  `lomas/lomas_server/dp_queries/dp_libraries/factory.py`).
+1. Add the library the the `DPLibraries` StrEnum class in `lomas/lomas_core/constants.py` (`DPLibraries.NEW_LIBRARY = "new_library"`) and add the `NewLibraryQuerier` option in the `querier_factory` (in  `lomas/lomas_server/dp_queries/dp_libraries/factory.py`).
 2. Create a file for your querier in the folder `lomas/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
 3. Add the three associated API endpoints . 
 - a. Add the endpoint handlers in `lomas/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
-- b. The endpoints should have predefined pydantic BaselModel types. Aadd BaseModel classes of expected input `NewLibraryModel`, `DummyNewLibraryModel`, `NewLibraryCostModel` in  `lomas/lomas_server/utils/query_models.py` and add the link for the archives in the constant dict `MODEL_INPUT_TO_LIB`: `{"NewLibraryModel": DPLibraries.NEW_LIBRARY}`.
+- b. The endpoints should have predefined pydantic BaselModel types. Aadd BaseModel classes of expected input `NewLibraryModel`, `DummyNewLibraryModel`, `NewLibraryCostModel` in  `lomas/lomas_server/utils/query_models.py` and add the request case in the function `model_input_to_lib()`.
 - c. The endpoints should have predefined default values `example_new_library`, `example_dummy_new_library` in  `lomas/lomas_server/utils/query_examples.py`.
 4. Add tests in `lomas/lomas_server/tests/test_new_library.py` to test all functionnalities and options of the new library.
 5. Add the associated method in `lomas-client` library in `lomas/client/lomas_client/client.py`. In this case there should be `new_library_query` for queries on the private and on the dummy datasets and `estimate_new_library_cost` to estimate the cost of a query.

@@ -4,6 +4,9 @@ from enum import StrEnum
 
 import pkg_resources
 
+# Config
+# -----------------------------------------------------------------------------
+
 # Get config and secrets from correct location
 if "LOMAS_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
@@ -17,46 +20,13 @@ else:
     SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
 
-class ConfigKeys(StrEnum):
-    """Keys of the configuration file"""
-
-    RUNTIME_ARGS: str = "runtime_args"
-    SERVER: str = "server"
-    SETTINGS: str = "settings"
-    DEVELOP_MODE: str = "develop_mode"
-    TIME_ATTACK: str = "time_attack"
-    SUBMIT_LIMIT: str = "submit_limit"
-    DB: str = "admin_database"
-    DB_TYPE: str = "db_type"
-    DB_TYPE_MONGODB: str = "mongodb"
-    MONGODB_ADDR: str = "address"
-    MONGODB_PORT: str = "port"
-    DP_LIBRARY: str = "dp_libraries"
-
-
-class AdminDBType(StrEnum):
-    """Types of administration databases"""
-
-    YAML: str = "yaml"
-    MONGODB: str = "mongodb"
-
-
-class TimeAttackMethod(StrEnum):
-    """Possible methods against timing attacks"""
-
-    JITTER = "jitter"
-    STALL = "stall"
-
+# Misc
+# -----------------------------------------------------------------------------
 
 # Server states
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
-
-# Server error messages
-INTERNAL_SERVER_ERROR = (
-    "Internal server error. Please contact the administrator of this service."
-)
 
 # General values
 SECONDS_IN_A_DAY = 60 * 60 * 24
@@ -65,24 +35,18 @@ SECONDS_IN_A_DAY = 60 * 60 * 24
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.01
 
+# Dummy dataset generation
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
-# Supported DP libraries
-class DPLibraries(StrEnum):
-    """Name of DP Library used in the query"""
-
-    SMARTNOISE_SQL = "smartnoise_sql"
-    SMARTNOISE_SYNTH = "smartnoise_synth"
-    OPENDP = "opendp"
-    DIFFPRIVLIB = "diffprivlib"
+# Data preprocessing
+NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 
-# Private Databases
-class PrivateDatabaseType(StrEnum):
-    """Type of Private Database for the private data"""
-
-    PATH = "PATH_DB"
-    S3 = "S3_DB"
-
+# DP Libraries
+# -----------------------------------------------------------------------------
 
 # Smartnoise sql
 SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
@@ -90,33 +54,15 @@ SSQL_MAX_ITERATION = 5
 
 
 # Smartnoise synth
-class SSynthMarginalSynthesizer(StrEnum):
-    """Marginal Synthesizer models for smartnoise synth"""
-
-    AIM = "aim"
-    MWEM = "mwem"
-    MST = "mst"
-    PAC_SYNTH = "pacsynth"
-
-
-class SSynthGanSynthesizer(StrEnum):
-    """GAN Synthesizer models for smartnoise synth"""
-
-    DP_CTGAN = "dpctgan"
-    PATE_CTGAN = "patectgan"
-    PATE_GAN = "pategan"
-    DP_GAN = "dpgan"
-
-
 class SSynthTableTransStyle(StrEnum):
-    """Transformer style for smartnoise synth"""
+    """Transformer style for smartnoise synth."""
 
     GAN = "gan"  # for SSynthGanSynthesizer
     CUBE = "cube"  # for SSynthMarginalSynthesizer
 
 
 class SSynthColumnType(StrEnum):
-    """Type of columns for SmartnoiseSynth transformer pre-processing"""
+    """Type of columns for SmartnoiseSynth transformer pre-processing."""
 
     PRIVATE_ID = "private_id"
     CATEGORICAL = "categorical"
@@ -131,7 +77,8 @@ SSYNTH_MIN_ROWS_PATE_GAN = 1000
 
 # OpenDP
 class OpenDPMeasurement(StrEnum):
-    """Type of divergence for opendp measurement
+    """Type of divergence for opendp measurement.
+
     see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
     """
 
@@ -142,7 +89,8 @@ class OpenDPMeasurement(StrEnum):
 
 
 class OpenDPDatasetInputMetric(StrEnum):
-    """Type of opendp input metric for datasets
+    """Type of opendp input metric for datasets.
+
     see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html
     see https://github.com/opendp/opendp/blob/main/rust/src/metrics/mod.rs
     """
@@ -155,20 +103,12 @@ class OpenDPDatasetInputMetric(StrEnum):
     INT_DISTANCE = "u32"  # opendp type for distance between datasets
 
 
-# Dummy dataset generation
-DUMMY_NB_ROWS = 100
-DUMMY_SEED = 42
-RANDOM_STRINGS = list(
-    string.ascii_lowercase + string.ascii_uppercase + string.digits
-)
-NB_RANDOM_NONE = 5  # if nullable, how many random none to add
-
-
-# Data preprocessing
-NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
-
 # Example pipeline inputs
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
+DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
+
+# Example inputs
+# -----------------------------------------------------------------------------
 OPENDP_PIPELINE = (
     f'{{"version": "{OPENDP_VERSION}", '
     '"ast": {'
@@ -228,7 +168,7 @@ OPENDP_PIPELINE = (
 
 DIFFPRIVLIB_PIPELINE = (
     '{"module": "diffprivlib", '
-    '"version": "0.6.4", '
+    f'"version": "{DIFFPRIVLIB_VERSION}", '
     '"pipeline": ['
     "{"
     '"type": "_dpl_type:StandardScaler", '

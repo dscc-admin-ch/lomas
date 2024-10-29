@@ -1,5 +1,16 @@
 import numpy as np
 import pandas as pd
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import (
+    BooleanMetadata,
+    CategoricalColumnMetadata,
+    DatetimeMetadata,
+    FloatMetadata,
+    IntMetadata,
+    Metadata,
+    StrMetadata,
+)
+from lomas_core.models.requests import DummyQueryModel
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
@@ -9,24 +20,13 @@ from lomas_server.constants import (
     RANDOM_STRINGS,
 )
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
-from lomas_server.utils.collection_models import (
-    BooleanMetadata,
-    CategoricalColumnMetadata,
-    DatetimeMetadata,
-    FloatMetadata,
-    IntMetadata,
-    Metadata,
-    StrMetadata,
-)
-from lomas_server.utils.error_handler import InternalServerException
-from lomas_server.utils.query_models import RequestModel
 
 
 def make_dummy_dataset(  # pylint: disable=too-many-locals
     metadata: Metadata, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
     """
-    Create a dummy dataset based on a metadata dictionnary
+    Create a dummy dataset based on a metadata dictionnary.
 
     Args:
         metadata (Metadata): The metadata model for the real dataset.
@@ -104,7 +104,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
 
 
 def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: RequestModel
+    admin_database: AdminDatabase, query_json: DummyQueryModel
 ) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
@@ -112,7 +112,6 @@ def get_dummy_dataset_for_query(
         admin_database (AdminDatabase): An initialized instance
             of AdminDatabase.
         query_json (RequestModel): The request object for the query.
-
 
     Returns:
         InMemoryConnector: An in memory dummy dataset instance.

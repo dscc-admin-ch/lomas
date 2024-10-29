@@ -80,7 +80,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Client library push**: The 'version' and the 'install_requires' must be set in `client/setup.py` ('install_requires' should match the list of library in requirements.txt).
+* **Client library push**: The 'version' and the 'install_requires' must be set in `core/setup.py`, `server/setup.py` and `client/setup.py` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the generation of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
 
@@ -99,7 +99,7 @@ The following actions must take place in this order when preparing a new release
 
 The workflows listed in the previous section will take care of building and publishing the different items (docker images, pip packages, etc.).
 
-Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, do not forget to update the chart and app versions of your specific deployment.
+Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, **do not forget** to update the chart and app versions of your specific deployment.
 
 ## Adding a DP Library
 

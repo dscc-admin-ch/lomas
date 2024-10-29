@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas_client",
     packages=find_packages(),
-    version="0.3.3",
+    version="0.3.4",
     description="A client to interact with the Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -43,7 +43,7 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=[
-        "lomas-core==0.3.3",
+        "lomas-core==0.3.4",
         "requests==2.32.0",
     ],
 )

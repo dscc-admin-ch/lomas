@@ -10,7 +10,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas-server",
     packages=find_packages(),
-    version="0.3.3",
+    version="0.3.4",
     description="Lomas server.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -37,7 +37,7 @@ setup(
         "httpx==0.27.0",
         "jax==0.4.31",
         "jaxlib==0.4.31",
-        "lomas-core==0.3.3",
+        "lomas-core==0.3.4",
         "packaging==24.1",
         "pyaml==23.9.5",
         "pydantic==2.8.2",

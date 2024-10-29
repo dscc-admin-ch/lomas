@@ -362,6 +362,32 @@
                                             }
                                         }
                                     }
+                                },
+                                "private_db_credentials": {
+                                    "description": "List of credentials to access private dataset",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "db_type": {
+                                                "type": "string",
+                                                "description": "Type of the private database",
+                                                "enum": ["S3_DB"]
+                                            },
+                                            "access_key_id": {
+                                                "type": "string",
+                                                "description": "Access key ID for the private database"
+                                            },
+                                            "secret_access_key": {
+                                                "type": "string",
+                                                "description": "Secret access key for the private database"
+                                            },
+                                            "credentials_name": {
+                                                "type": "string",
+                                                "description": "Unique name for the database credentials"
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

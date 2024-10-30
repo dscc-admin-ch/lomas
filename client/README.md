@@ -6,7 +6,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_darkmode_txt.png"  width="300">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png"  width="300">
-  <img alt="This is what is displayed on Pypi" src="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png">
+  <img alt="Lomas" src="https://github.com/dscc-admin-ch/lomas/blob/wip_322_darkmode-logo/images/lomas_logo_txt.png">
 </picture>
 </h1><br>
 

@@ -121,15 +121,15 @@
             "properties": {
                 "max_pool_size": {
                     "description": "Total number of open connections (active + idle) allowed in the pool.",
-                    "type": "int"
+                    "type": "integer"
                 },
                 "min_pool_size": {
                     "description": "Minimum number of idle connections that will be maintained, even when the application is idle or under low load.",
-                    "type": "int"
+                    "type": "integer"
                 },
                 "max_connecting": {
                     "description": "Controls the number of simultaneous new connection attempts being made.",
-                    "type": "int"
+                    "type": "integer"
                 },
                 "architecture": {
                     "type": "string"
@@ -359,6 +359,32 @@
                                                     "description": "Enable honest-but-curious feature",
                                                     "type": "boolean"
                                                 }
+                                            }
+                                        }
+                                    }
+                                },
+                                "private_db_credentials": {
+                                    "description": "List of credentials to access private dataset",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "db_type": {
+                                                "type": "string",
+                                                "description": "Type of the private database",
+                                                "enum": ["S3_DB"]
+                                            },
+                                            "access_key_id": {
+                                                "type": "string",
+                                                "description": "Access key ID for the private database"
+                                            },
+                                            "secret_access_key": {
+                                                "type": "string",
+                                                "description": "Secret access key for the private database"
+                                            },
+                                            "credentials_name": {
+                                                "type": "string",
+                                                "description": "Unique name for the database credentials"
                                             }
                                         }
                                     }

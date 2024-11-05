@@ -10,12 +10,11 @@ from lomas_core.models.collections import (
     Metadata,
     StrMetadata,
 )
+from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_core.models.requests import DummyQueryModel
 
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
     NB_RANDOM_NONE,
     RANDOM_STRINGS,
 )

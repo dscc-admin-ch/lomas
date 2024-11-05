@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from lomas_core.models.requests import (
     SmartnoiseSynthDummyQueryModel,
@@ -38,6 +38,7 @@ class SmartnoiseSynthClient:
         constraints: dict = {},
     ) -> Optional[CostResponse]:
         """This function estimates the cost of executing a SmartNoise query.
+
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
@@ -113,6 +114,7 @@ class SmartnoiseSynthClient:
         seed: int = DUMMY_SEED,
     ) -> Optional[QueryResponse]:
         """This function executes a SmartNoise Synthetic query.
+
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
@@ -181,6 +183,7 @@ class SmartnoiseSynthClient:
             "condition": condition,
             "nb_samples": nb_samples,
         }
+        request_model: Type[SmartnoiseSynthRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
             body_dict["dummy_nb_rows"] = nb_rows

@@ -1,5 +1,7 @@
 from enum import IntEnum, StrEnum
 
+import pkg_resources
+
 # Field names
 # -----------------------------------------------------------------------------
 
@@ -7,6 +9,17 @@ DB_TYPE_FIELD = "database_type"
 TYPE_FIELD = "type"
 CARDINALITY_FIELD = "cardinality"
 
+JSON_SCHEMA_EXAMPLES = "examples"
+
+
+# Requests
+# -----------------------------------------------------------------------------
+
+DUMMY_NB_ROWS = 100
+DUMMY_SEED = 42
+
+OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
+DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
 
 # Metadata
 # -----------------------------------------------------------------------------
@@ -65,3 +78,19 @@ class PrivateDatabaseType(StrEnum):
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
+
+
+# Exceptions
+# -----------------------------------------------------------------------------
+
+
+class ExceptionType(StrEnum):
+    """Lomas server exception types.
+
+    To be used as discriminator when parsing corresponding models
+    """
+
+    INVALID_QUERY = "InvalidQueryException"
+    EXTERNAL_LIBRARY = "ExternalLibraryException"
+    UNAUTHORIZED_ACCESS = "UnauthorizedAccessException"
+    INTERNAL_SERVER = "InternalServerException"

@@ -1,11 +1,18 @@
-from typing import Type
+from typing import Any, Type
 
 from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
 
-from lomas_core.constants import INTERNAL_SERVER_ERROR
+from lomas_core.constants import DPLibraries
 from lomas_core.logger import LOG
+from lomas_core.models.exceptions import (
+    ExternalLibraryExceptionModel,
+    InternalServerExceptionModel,
+    InvalidQueryExceptionModel,
+    UnauthorizedAccessExceptionModel,
+)
 
 
 class InvalidQueryException(Exception):
@@ -34,7 +41,7 @@ class ExternalLibraryException(Exception):
     external libraries (smartnoise-sql, opendp, diffprivlib)
     """
 
-    def __init__(self, library: str, error_message: str) -> None:
+    def __init__(self, library: DPLibraries, error_message: str) -> None:
         """External Query Exception initialisation.
 
         Args:
@@ -88,7 +95,9 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"InvalidQueryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"InvalidQueryException": exc.error_message},
+            content=jsonable_encoder(
+                InvalidQueryExceptionModel(message=exc.error_message)
+            ),
         )
 
     @app.exception_handler(ExternalLibraryException)
@@ -98,10 +107,11 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={
-                "ExternalLibraryException": exc.error_message,
-                "library": exc.library,
-            },
+            content=jsonable_encoder(
+                ExternalLibraryExceptionModel(
+                    message=exc.error_message, library=exc.library
+                )
+            ),
         )
 
     @app.exception_handler(UnauthorizedAccessException)
@@ -111,7 +121,9 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content={"UnauthorizedAccessException": exc.error_message},
+            content=jsonable_encoder(
+                UnauthorizedAccessExceptionModel(message=exc.error_message)
+            ),
         )
 
     @app.exception_handler(InternalServerException)
@@ -121,5 +133,14 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"InternalServerException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"InternalServerException": INTERNAL_SERVER_ERROR},
+            content=jsonable_encoder(InternalServerExceptionModel()),
         )
+
+
+# Server error responses for DP queries
+SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_400_BAD_REQUEST: {"model": InvalidQueryExceptionModel},
+    status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ExternalLibraryExceptionModel},
+    status.HTTP_403_FORBIDDEN: {"model": UnauthorizedAccessExceptionModel},
+    status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": InternalServerExceptionModel},
+}

@@ -11,7 +11,7 @@ Overview
 The CLI allows data owners to interact with the administrative database directly from the command 
 line. It provides functionalities for managing users, datasets, metatada and queries_archive collections within the MongoDB environment.
 
-NOTE: it is possible to use a :doc:`streamlit app <server_streamlit>` to interact with the database instead.
+NOTE: it is possible to use a :doc:`streamlit app <server_dashboard>` to interact with the database instead.
 
 MongoDB Connection
 ------------------

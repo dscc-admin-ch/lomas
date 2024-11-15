@@ -30,7 +30,7 @@ spec:
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         ports:
           - name: http
-            containerPort: {{ .Values.server.service.port }}
+            containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}
             protocol: TCP
         volumeMounts:
           - name: config-and-secrets

@@ -43,3 +43,7 @@ columns:
     - MALE
     - FEMALE
 rows: 344
+censor_dims: True
+clamp_counts: True
+clamp_columns: True
+use_dpsu: false

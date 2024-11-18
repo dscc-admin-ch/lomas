@@ -3,7 +3,6 @@
       "http://www.w3.org/ns/csvw",
       {
         "@language": "en",
-        "@base": "https://github.com/dscc-admin-ch/lomas/metadata_base_url",
         "lomas-dp": "http://example.org/lomas-dp-terms#"
       }
     ],
@@ -115,12 +114,10 @@
       ],
       "primaryKey": ["species", "island", "bill_depth_mm"],
       "aboutUrl": "http://example.org/penguin/{species}/{island}/{bill_depth_mm}",
-      "rowCount": 344,
       "lomas-dp:annotations": {
+        "lomas-dp:nb_rows": 344,
         "lomas-dp:max_ids": 1,
-        "lomas-dp:row_privacy": true,
-        "lomas-dp:censor_dims": false,
-        "lomas-dp:use_dpsu": false
+        "lomas-dp:row_privacy": true
       },
       "dc:description": "A dataset describing penguin species with measurements and metadata. Includes information on species, location, and physical attributes."
     },

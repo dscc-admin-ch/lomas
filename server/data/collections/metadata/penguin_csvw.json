@@ -1,0 +1,103 @@
+{
+    "@context": "http://www.w3.org/ns/csvw",
+    "url": "example.csv",
+    "tableSchema": {
+        "columns": [
+            {
+                "name": "species",
+                "titles": "species",
+                "datatype": {
+                    "base": "string",
+                    "cardinality": 3
+                },
+                "categories": ["Adelie", "Chinstrap", "Gentoo"],
+                "required": true,
+                "description": "The species of penguins. Possible values are Adelie, Chinstrap, and Gentoo."
+            },
+            {
+                "name": "island",
+                "titles": "island",
+                "datatype": {
+                    "base": "string",
+                    "cardinality": 3
+                },
+                "categories": ["Torgersen", "Biscoe", "Dream"],
+                "required": true,
+                "description": "The island where the penguins were observed. Possible values are Torgersen, Biscoe, and Dream."
+            },
+            {
+                "name": "bill_length_mm",
+                "titles": "bill_length_mm",
+                "datatype": {
+                    "base": "double",
+                    "precision": 64,
+                    "minInclusive": 30.0,
+                    "maxInclusive": 65.0
+                },
+                "required": true,
+                "description": "The length of the penguin's bill in millimeters. Ranges from 30.0 to 65.0 mm."
+            },
+            {
+                "name": "bill_depth_mm",
+                "titles": "bill_depth_mm",
+                "datatype": {
+                    "base": "double",
+                    "precision": 64,
+                    "minInclusive": 13.0,
+                    "maxInclusive": 23.0
+                },
+                "required": true,
+                "description": "The depth of the penguin's bill in millimeters. Ranges from 13.0 to 23.0 mm."
+            },
+            {
+                "name": "flipper_length_mm",
+                "titles": "flipper_length_mm",
+                "datatype": {
+                    "base": "double",
+                    "precision": 64,
+                    "minInclusive": 150.0,
+                    "maxInclusive": 250.0
+                },
+                "required": true,
+                "description": "The length of the penguin's flipper in millimeters. Ranges from 150.0 to 250.0 mm."
+            },
+            {
+                "name": "body_mass_g",
+                "titles": "body_mass_g",
+                "datatype": {
+                    "base": "double",
+                    "precision": 64,
+                    "minInclusive": 2000.0,
+                    "maxInclusive": 7000.0
+                },
+                "required": true,
+                "description": "The body mass of the penguin in grams. Ranges from 2000.0 to 7000.0 g."
+            },
+            {
+                "name": "sex",
+                "titles": "sex",
+                "datatype": {
+                    "base": "string",
+                    "cardinality": 2
+                },
+                "categories": ["MALE", "FEMALE"],
+                "required": true,
+                "null": "UNKNOWN",
+                "description": "The sex of the penguin. Possible values are MALE and FEMALE. Missing values are marked as 'UNKNOWN'."
+            }
+        ],
+        "rowCount": 344,
+        "annotations": {
+            "max_ids": 1,
+            "row_privacy": true,
+            "censor_dims": false,
+            "description": {
+                "max_ids": "An identifier for the data set version.",
+                "row_privacy": "Indicates whether row-level privacy measures are applied.",
+                "censor_dims": "Specifies whether dimensions are censored to protect privacy."
+            }
+        },
+        "description": "A dataset describing penguin species with measurements and metadata. Includes information on species, location, and physical attributes."
+    }
+  }
+  

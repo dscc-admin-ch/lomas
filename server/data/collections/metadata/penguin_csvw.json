@@ -13,15 +13,17 @@
       {"@value": "Dataset Pengouin", "@language": "fr"}
     ],
     "tableSchema": {
+      "@type": "Schema",
       "columns": [
         {
+          "@type": "Column",
           "name": "species",
           "titles": {
-            "en": "species",
-            "fr": "espece"
+            "en": "species", "fr": "espece"
           },
           "datatype": {
-            "base": "string"
+            "base": "string",
+            "format": "^(Adelie|Chinstrap|Gentoo)$" 
           },
           "lomas-dp:cardinality": 3,
           "lomas-dp:categories": ["Adelie", "Chinstrap", "Gentoo"],
@@ -33,13 +35,15 @@
           "aboutUrl": "https://www.wikidata.org/wiki/{species}"
         },
         {
+          "@type": "Column",
           "name": "island",
           "titles": {
             "en": "island",
             "fr": "ile"
           },
           "datatype": {
-            "base": "string"
+            "base": "string",
+            "format": "^(Torgersen|Biscoe|Dream)$" 
           },
           "lomas-dp:cardinality": 3,
           "lomas-dp:categories": ["Torgersen", "Biscoe", "Dream"],
@@ -51,6 +55,7 @@
           "aboutUrl": "http://example.org/island/{island}"
         },
         {
+          "@type": "Column",
           "name": "bill_length_mm",
           "titles": "bill_length_mm",
           "datatype": {
@@ -62,6 +67,7 @@
           "dc:description": "The length of the penguin's bill in millimeters. Ranges from 30.0 to 65.0 mm."
         },
         {
+          "@type": "Column",
           "name": "bill_depth_mm",
           "titles": "bill_depth_mm",
           "datatype": {
@@ -73,6 +79,7 @@
           "dc:description": "The depth of the penguin's bill in millimeters. Ranges from 13.0 to 23.0 mm."
         },
         {
+          "@type": "Column",
           "name": "flipper_length_mm",
           "titles": "flipper_length_mm",
           "datatype": {
@@ -84,6 +91,7 @@
           "dc:description": "The length of the penguin's flipper in millimeters. Ranges from 150.0 to 250.0 mm."
         },
         {
+          "@type": "Column",
           "name": "body_mass_g",
           "titles": "body_mass_g",
           "datatype": {
@@ -96,10 +104,12 @@
           "aboutUrl": "http://example.org/body_mass/{body_mass_g}"
         },
         {
+          "@type": "Column",
           "name": "sex",
           "titles": "sex",
           "datatype": {
-            "base": "string"
+            "base": "string",
+            "format": "^(MALE|FEMALE)$" 
           },
           "lomas-dp:cardinality": 2,
           "lomas-dp:categories": ["MALE", "FEMALE"],
@@ -107,7 +117,7 @@
           "lomas-dp:max_influenced_partitions": 100,
           "lomas-dp:max_partition_contributions": 100,
           "required": true,
-          "null": "UNKNOWN",
+          "null": "NULL",
           "dc:description": "The sex of the penguin. Possible values are MALE and FEMALE. Missing values are marked as 'UNKNOWN'.",
           "aboutUrl": "http://example.org/sex/{sex}"
         }

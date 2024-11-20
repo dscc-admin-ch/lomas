@@ -5,15 +5,15 @@ import streamlit as st
 import yaml
 from lomas_core.models.constants import PrivateDatabaseType
 
-from admin_database.constants import BudgetDBKey
-from admin_database.utils import get_mongodb
-from constants import DELTA_LIMIT, EPSILON_LIMIT
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
 from lomas_server.administration.dashboard.utils import (
     check_dataset_warning,
     check_user_warning,
     warning_field_missing,
 )
-from mongodb_admin import (
+from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
@@ -58,7 +58,7 @@ if "list_datasets" not in st.session_state:
 
 # Initialization
 st.set_page_config(layout="wide")
-
+st.write(st.session_state)
 st.title("Admin Database Management")
 
 user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
@@ -72,8 +72,8 @@ user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
 
 with user_tab:
     st.subheader("Add user")
-    au_username = st.text_input("Username (add user)", value="", key=None)
-    if st.button("Add user"):
+    au_username = st.text_input("Username (add user)", value="", key="au_username_key")
+    if st.button("Add user", key="add_user_button"):
         if au_username:
             au_user_warning = check_user_warning(au_username)
             if not au_user_warning:
@@ -88,7 +88,7 @@ with user_tab:
     st.subheader("Add user with budget")
     auwb_1, auwb_2, auwb_3, auwb_4 = st.columns(4)
     with auwb_1:
-        auwb_username = st.text_input("Username (add user with budget)", None)
+        auwb_username = st.text_input("Username (add user with budget)", key="auwb_username")
         auwb_user_warning = check_user_warning(auwb_username)
     with auwb_2:
         auwb_dataset = st.selectbox(
@@ -103,6 +103,7 @@ with user_tab:
             max_value=EPSILON_LIMIT,
             step=EPSILON_STEP,
             format="%f",
+            key="auwb_epsilon"
         )
     with auwb_4:
         auwb_delta = st.number_input(
@@ -111,9 +112,10 @@ with user_tab:
             max_value=DELTA_LIMIT,
             step=DELTA_STEP,
             format="%f",
+            key="auwb_delta"
         )
 
-    if st.button("Add user with dataset"):
+    if st.button("Add user with dataset", key="add_user_with_budget"):
         if auwb_username and auwb_dataset and auwb_epsilon and auwb_delta:
             add_user_with_budget(
                 st.session_state.admin_db,
@@ -161,6 +163,7 @@ with user_tab:
             max_value=EPSILON_LIMIT,
             step=EPSILON_STEP,
             format="%f",
+            key="adtu_epsilon"
         )
     with adtu_4:
         adtu_delta = st.number_input(
@@ -169,9 +172,10 @@ with user_tab:
             max_value=DELTA_LIMIT,
             step=DELTA_STEP,
             format="%f",
+            key="adtu_delta",
         )
 
-    if st.button("Add dataset to user"):
+    if st.button("Add dataset to user", key="add_dataset_to_user"):
         if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
             add_dataset_to_user(
                 st.session_state.admin_db,

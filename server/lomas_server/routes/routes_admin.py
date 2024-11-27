@@ -7,6 +7,10 @@ from lomas_core.error_handler import (
 )
 from lomas_core.models.collections import Metadata
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
+from lomas_core.models.requests_examples import (
+    example_get_admin_db_data,
+    example_get_dummy_dataset,
+)
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
@@ -17,10 +21,6 @@ from lomas_core.models.responses import (
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.routes.utils import server_live
-from lomas_server.utils.query_examples import (
-    example_get_admin_db_data,
-    example_get_dummy_dataset,
-)
 
 router = APIRouter()
 

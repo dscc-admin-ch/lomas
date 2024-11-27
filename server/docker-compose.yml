@@ -116,7 +116,8 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - ../client/lomas_client:/code/lomas_client
+      - ../client/lomas_client/:/code/lomas_client
+      - ../core/lomas_core/:/code/lomas_core
       - ../client/configs/:/root/.jupyter/
       - ../client/notebooks/:/code/notebooks/
       - ./data/:/data/

@@ -58,7 +58,6 @@ if "list_datasets" not in st.session_state:
 
 # Initialization
 st.set_page_config(layout="wide")
-st.write(st.session_state)
 st.title("Admin Database Management")
 
 user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
@@ -88,7 +87,9 @@ with user_tab:
     st.subheader("Add user with budget")
     auwb_1, auwb_2, auwb_3, auwb_4 = st.columns(4)
     with auwb_1:
-        auwb_username = st.text_input("Username (add user with budget)", key="auwb_username")
+        auwb_username = st.text_input(
+            "Username (add user with budget)", key="auwb_username"
+        )
         auwb_user_warning = check_user_warning(auwb_username)
     with auwb_2:
         auwb_dataset = st.selectbox(
@@ -103,7 +104,7 @@ with user_tab:
             max_value=EPSILON_LIMIT,
             step=EPSILON_STEP,
             format="%f",
-            key="auwb_epsilon"
+            key="auwb_epsilon",
         )
     with auwb_4:
         auwb_delta = st.number_input(
@@ -112,7 +113,7 @@ with user_tab:
             max_value=DELTA_LIMIT,
             step=DELTA_STEP,
             format="%f",
-            key="auwb_delta"
+            key="auwb_delta",
         )
 
     if st.button("Add user with dataset", key="add_user_with_budget"):
@@ -163,7 +164,7 @@ with user_tab:
             max_value=EPSILON_LIMIT,
             step=EPSILON_STEP,
             format="%f",
-            key="adtu_epsilon"
+            key="adtu_epsilon",
         )
     with adtu_4:
         adtu_delta = st.number_input(
@@ -338,33 +339,41 @@ with dataset_tab:
     st.subheader("Add one dataset")
     ad_1, ad_2, ad_3 = st.columns(3)
     with ad_1:
-        ad_dataset = st.text_input("Dataset name (add dataset)", None)
+        ad_dataset = st.text_input("Dataset name (add dataset)", None, key="ad_dataset")
         ad_dataset_warning = check_dataset_warning(ad_dataset)
     with ad_2:
         ad_type = st.selectbox(
             "Dataset type (add dataset)",
             (PrivateDatabaseType.PATH, PrivateDatabaseType.S3),
+            key="ad_type",
         )
     with ad_3:
         ad_meta_type = st.selectbox(
             "Metadata type (add dataset)",
             (PrivateDatabaseType.PATH, PrivateDatabaseType.S3),
+            key="ad_meta_type",
         )
     match ad_type:
         case PrivateDatabaseType.PATH:
-            ad_path = st.text_input("Dataset path (add dataset)", None)
+            ad_path = st.text_input("Dataset path (add dataset)", None, key="ad_path")
         case PrivateDatabaseType.S3:
             ad_s3_1, ad_s3_2, ad_s3_3 = st.columns(3)
             with ad_s3_1:
-                ad_s3_bucket = st.text_input("bucket (add dataset)", None)
+                ad_s3_bucket = st.text_input(
+                    "bucket (add dataset)", None, key="ad_s3_bucket"
+                )
             with ad_s3_2:
-                ad_s3_key = st.text_input("key (add dataset)", None)
+                ad_s3_key = st.text_input("key (add dataset)", None, key="ad_s3_key")
             with ad_s3_3:
-                ad_s3_url = st.text_input("endpoint_url (add dataset)", None)
+                ad_s3_url = st.text_input(
+                    "endpoint_url (add dataset)", None, key="ad_s3_url"
+                )
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
-            uploaded_metadata = st.file_uploader("Import your related metadata file")
+            uploaded_metadata = st.file_uploader(
+                "Import your related metadata file", key="uploaded_metadata"
+            )
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
@@ -384,19 +393,25 @@ with dataset_tab:
                 ad_meta_s3_5,
             ) = st.columns(5)
             with ad_meta_s3_1:
-                ad_meta_s3_bucket = st.text_input("Metadata bucket (add dataset)", None)
+                ad_meta_s3_bucket = st.text_input(
+                    "Metadata bucket (add dataset)", None, key="ad_meta_s3_bucket"
+                )
             with ad_meta_s3_2:
-                ad_meta_s3_key = st.text_input("Metadata key (add dataset)", None)
+                ad_meta_s3_key = st.text_input(
+                    "Metadata key (add dataset)", None, key="ad_meta_s3_key"
+                )
             with ad_meta_s3_3:
                 ad_meta_s3_url = st.text_input(
-                    "Metadata endpoint_url (add dataset)", None
+                    "Metadata endpoint_url (add dataset)", None, key="ad_meta_s3_url"
                 )
             with ad_meta_s3_4:
                 ad_meta_s3_kid = st.text_input(
-                    "Metadata access_key_id (add dataset)", None
+                    "Metadata access_key_id (add dataset)", None, key="ad_meta_s3_kid"
                 )
             with ad_meta_s3_5:
-                ad_meta_s3_sk = st.text_input("Metadata secret_key (add dataset)", None)
+                ad_meta_s3_sk = st.text_input(
+                    "Metadata secret_key (add dataset)", None, key="ad_meta_s3_sk"
+                )
 
     keyword_args = {}
     DATASET_READY = False
@@ -435,7 +450,10 @@ with dataset_tab:
         if ad_dataset is not None:
             st.write("Please, fill all empty fields for the metadata.")
 
-    if st.button(f"Add {ad_type} dataset with {ad_meta_type} metadata"):
+    if st.button(
+        f"Add {ad_type} dataset with {ad_meta_type} metadata",
+        key="add_dataset_with_metadata",
+    ):
         if DATASET_READY and METADATA_READY and not ad_dataset_warning:
             try:
                 add_dataset(
@@ -460,14 +478,16 @@ with dataset_tab:
     st.subheader("Add many datasets via a yaml file")
     amd_1, amd_2, amd_3 = st.columns(3)
     with amd_1:
-        d_clean = st.toggle("Clean: will delete all previous datasets")
+        d_clean = st.toggle("Clean: will delete all previous datasets", key="d_clean")
     with amd_2:
         d_overwrite_datasets = st.toggle(
-            "Overwrite: if dataset already exists, overwrites values"
+            "Overwrite: if dataset already exists, overwrites values",
+            key="d_overwrite_datasets",
         )
     with amd_3:
         d_overwrite_metadata = st.toggle(
-            "Overwrite: if metadata already exists, overwrites values"
+            "Overwrite: if metadata already exists, overwrites values",
+            key="d_overwrite_metadata",
         )
     dataset_collection = st.file_uploader(
         "Select a YAML file for the dataset collection",
@@ -475,7 +495,7 @@ with dataset_tab:
         accept_multiple_files=False,
     )
 
-    if st.button("Add datasets"):
+    if st.button("Add datasets", key="Add datasets"):
         if dataset_collection:
             st.write("Click to add datasets")
             dataset_collection = yaml.safe_load(dataset_collection)

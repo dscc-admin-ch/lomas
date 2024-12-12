@@ -377,8 +377,9 @@ with dataset_tab:
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
+                base_path = "/data" if "data" in os.listdir() else "../data"
                 ad_meta_path = os.path.join(
-                    "/data/collections/metadata", uploaded_metadata.name
+                    f"{base_path}/collections/metadata", uploaded_metadata.name
                 )
                 with open(ad_meta_path, "wb") as f:
                     f.write(uploaded_metadata.getbuffer())

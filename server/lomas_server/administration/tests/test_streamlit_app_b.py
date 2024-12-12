@@ -63,11 +63,7 @@ def test_dataset_tab(mock_mongodb_and_helpers):
     assert at.session_state["list_datasets"] == ["IRIS"]
 
 
-def test_user_tab(mock_mongodb_and_helpers):
-    """Test adding a user via the admin dashboard."""
-
-    # Simulate interaction with the Streamlit app
-    at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
+    ################ Test adding a user via the admin dashboard.##################
 
     ## User tab
     ### Subheader "Add user"
@@ -85,23 +81,25 @@ def test_user_tab(mock_mongodb_and_helpers):
 
     ### Subheader "Add user with budget"
     at.text_input("auwb_username").set_value("Bobby").run()
-    at.selectbox("dataset of add user with budget").set_value("PENGUIN").run()
+    at.selectbox("dataset of add user with budget").set_value("IRIS").run()
     at.number_input("auwb_epsilon").set_value(None).run()
     at.number_input("auwb_delta").set_value(None).run()
     at.button("add_user_with_budget").click().run()
     assert at.warning[0].value == "Please fill all fields."
 
-    # at.text_input("auwb_username").set_value("Bobby").run()
-    # at.selectbox("dataset of add user with budget").set_value("PENGUIN").run()
-    # at.number_input("auwb_epsilon").set_value(10).run()
-    # at.number_input("auwb_delta").set_value(0.5).run()
-    # at.button("add_user_with_budget").click().run()
-    # assert at.markdown[0].value == "User Bobby was added with dataset PENGUIN."
+    at.text_input("auwb_username").set_value("Bobby").run()
+    at.selectbox("dataset of add user with budget").set_value("IRIS").run()
+    at.number_input("auwb_epsilon").set_value(10).run()
+    at.number_input("auwb_delta").set_value(0.5).run()
+    at.button("add_user_with_budget").click().run()
+    assert at.markdown[0].value == "User Bobby was added with dataset IRIS."
 
-    # ### Subheader "Add dataset to user"
-    # at.selectbox("username of add dataset to user").set_value("Bobby").run()
-    # at.selectbox("dataset of add dataset to user").set_value("IRIS").run()
-    # at.number_input("adtu_epsilon").set_value(10).run()
-    # at.number_input("adtu_delta").set_value(0.5).run()
-    # at.button("add_dataset_to_user").click().run()
-    # assert at.markdown[0].value == "User Bobby was added with dataset PENGUIN."
+    ################ Test adding dataset access via the admin dashboard.##############
+    
+    ### Subheader "Add dataset to user" TODO
+    at.selectbox("username of add dataset to user").set_value("test").run()
+    at.selectbox("dataset of add dataset to user").set_value("IRIS").run()
+    at.number_input("adtu_epsilon").set_value(10).run()
+    at.number_input("adtu_delta").set_value(0.5).run()
+    at.button("add_dataset_to_user").click().run()
+    assert at.markdown[0].value == "Dataset IRIS was added to user test with epsilon = 10.0 and delta = 0.5"

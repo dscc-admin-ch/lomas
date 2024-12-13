@@ -1,7 +1,9 @@
 { pkgs, lib, config, inputs, ... }:
 
 let
-inherit (builtins) readFile concatStringsSep;
+  inherit (builtins) readFile concatStringsSep;
+  mongo_port = "27017";
+  minio_port = "9090";
 in
 {
   # https://devenv.sh/basics/
@@ -50,22 +52,56 @@ in
   # processes.cargo-watch.exec = "cargo-watch";
 
   # https://devenv.sh/services/
+
+  ###########
+  # MONGODB #
+  ###########
   services.mongodb = {
     enable = true;
     package = pkgs.mongodb-6_0;
-    additionalArgs = [ "--port" "27017" "--noauth" ];
+    additionalArgs = [ "--port" "${mongo_port}" ];
     initDatabaseUsername = "root";
     initDatabasePassword = "root_pwd";
   };
 
   tasks."mongodb:createdb" = {
-    exec = "${pkgs.mongosh}/bin/mongosh --file ${./server/configs/mongodb_init.js}";
+    exec = "${pkgs.mongosh}/bin/mongosh 127.0.0.1:${mongo_port}/defaultdb --file ${./server/configs/mongodb_init.js}";
+  };
+
+  #########
+  # MINIO #
+  #########
+
+  services.minio = let
+    accessKey = "admin";
+    secretKey = "admin123";
+    listenAddress = "127.0.0.1:${minio_port}";
+  in{
+    enable = true;
+    browser = false;
+    inherit accessKey secretKey listenAddress;
+    buckets = [ "example" ];
+    afterStart = ''
+      mc cp ${./server/lomas_server/tests/test_data/test_penguin.csv} myminio/example/data/test_penguin.csv
+      mc cp ${./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml}  myminio/example/metadata/penguin_metadata.yaml
+      mc ls --recursive --versions myminio/example
+    '';
+    # Configure myminio alias
+    clientConfig = {
+      aliases.myminio = {
+        url = listenAddress;
+        inherit accessKey secretKey;
+        api = "S3v4";
+        path = "auto";
+      };
+    };
   };
 
   # https://devenv.sh/scripts/
   enterShell = ''
     echo hello from $GREET
-    exec zsh
+    echo $env
+    $(which zsh &> /dev/null) && zsh
   '';
 
   scripts.ut.exec = ''

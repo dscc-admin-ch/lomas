@@ -11,6 +11,7 @@ in
   packages = [
     pkgs.git
     pkgs.mongodb-6_0
+    pkgs.mongosh
   ];
 
   # https://devenv.sh/languages/
@@ -34,6 +35,10 @@ in
       mypy==1.10.0
       pylint==3.1.0
       pydocstringformatter==0.7.3
+    '' +
+    # missing ?
+    ''
+      coverage==7.6.9
     '';
   };
 
@@ -45,7 +50,17 @@ in
   # processes.cargo-watch.exec = "cargo-watch";
 
   # https://devenv.sh/services/
-  # services.postgres.enable = true;
+  services.mongodb = {
+    enable = true;
+    package = pkgs.mongodb-6_0;
+    additionalArgs = [ "--port" "27017" "--noauth" ];
+    initDatabaseUsername = "root";
+    initDatabasePassword = "root_pwd";
+  };
+
+  tasks."mongodb:createdb" = {
+    exec = "${pkgs.mongosh}/bin/mongosh --file ${./server/configs/mongodb_init.js}";
+  };
 
   # https://devenv.sh/scripts/
   enterShell = ''
@@ -56,6 +71,19 @@ in
   scripts.ut.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
     python -m unittest discover
+    popd
+  '';
+
+  scripts.ut-coverage.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+
+    # mongodb & s3 minio available
+    LOMAS_TEST_MONGO_INTEGRATION=1 LOMAS_TEST_S3_INTEGRATION=1 coverage run --source=. -m unittest
+
+    # "yaml", "basic", developer mode, "stall"
+    LOMAS_TEST_MONGO_INTEGRATION=0 LOMAS_TEST_S3_INTEGRATION=0 coverage run -a --source=. -m unittest
+
+    coverage report
     popd
   '';
 

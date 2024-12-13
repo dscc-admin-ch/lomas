@@ -1,4 +1,4 @@
-#!/bin/bash
+#!env bash
 
 install_dependencies() {
     pip install isort==5.13.2

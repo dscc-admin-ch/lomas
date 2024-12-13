@@ -6,17 +6,8 @@ from enum import StrEnum
 # -----------------------------------------------------------------------------
 
 # Get config and secrets from correct location
-if "LOMAS_CONFIG_PATH" in os.environ:
-    CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
-else:
-    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-
-if "LOMAS_SECRETS_PATH" in os.environ:
-    SECRETS_PATH = f"""{os.environ.get("LOMAS_SECRETS_PATH")}"""
-else:
-    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
-
+CONFIG_PATH = os.environ.get("LOMAS_CONFIG_PATH", "/usr/lomas_server/runtime.yaml")
+SECRETS_PATH = os.environ.get("LOMAS_SECRETS_PATH", "/usr/lomas_server/secrets.yaml")
 
 # Misc
 # -----------------------------------------------------------------------------

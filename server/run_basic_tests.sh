@@ -1,4 +1,4 @@
-#!/bin/bash
+#!env bash
 
 cd ../core
 export PYTHONPATH=$(pwd):$PYTHONPATH

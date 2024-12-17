@@ -668,10 +668,9 @@ with deletion_tab:
     with d_col_users:
         if st.button(
             "Delete all users",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "users"),
             key="delete_all_users"
         ):
+            drop_collection(st.session_state.admin_db, "users")
             st.session_state["list_users"] = get_list_of_users(
                 st.session_state.admin_db
             )

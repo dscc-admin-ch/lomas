@@ -172,15 +172,14 @@ def test_widgets(mock_mongodb_and_helpers):
     
     
     ### Subheader "Delete full collection"
-    # at.button("delete_all_users").click().run()
-    # breakpoint()
-    # assert at.json[0].value.startswith('[{"user_name": "test"') == True
+    at.button("delete_all_users").click().run()
+    assert at.markdown[4].value == 'Users were all deleted.'
     
-    # at.button("delete_all_datasets").click().run()
-    # assert at.json[0].value.startswith('[{"dataset_name": "IRIS"') == True
+    at.button("delete_all_datasets").click().run()
+    assert at.markdown[4].value == 'Datasets were all deleted.'
     
-    # at.button("delete_all_metadata").click().run()
-    # assert at.json[0].value.startswith('[{"IRIS": {"max_ids": 1') == True
+    at.button("delete_all_metadata").click().run()
+    assert at.markdown[4].value == 'Metadata were all deleted.'
     
-    # at.button("delete_all_archives").click().run()
-    # assert at.json[0].value.startswith('[]') == True
+    at.button("delete_all_archives").click().run()
+    assert at.markdown[4].value == 'Archives were all deleted.'

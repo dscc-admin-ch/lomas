@@ -43,7 +43,7 @@ def mock_mongodb_and_helpers():
         }
 
 
-def test_widgets(mock_mongodb_and_helpers):
+def test_widgets(mock_mongodb_and_helpers): # pylint: disable=W0621, W0613
     """Test the different widgets (add/remove users/datasets/metadata)"""
     
     # Simulate interaction with the Streamlit app
@@ -61,6 +61,8 @@ def test_widgets(mock_mongodb_and_helpers):
     assert at.success[0].value == "File iris_metadata.yaml uploaded successfully!"
     assert at.markdown[0].value == "Dataset IRIS was added."
     assert at.session_state["list_datasets"] == ["IRIS"]
+    
+    # TODO 374: Add tests for upload_file widgets 
 
     ## User tab
     ### Subheader "Add user"
@@ -183,3 +185,44 @@ def test_widgets(mock_mongodb_and_helpers):
     
     at.button("delete_all_archives").click().run()
     assert at.markdown[4].value == 'Archives were all deleted.'
+    
+    
+def test_layout(mock_mongodb_and_helpers): # pylint: disable=W0621, W0613
+    
+    # Simulate interaction with the Streamlit app
+    at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
+    
+    # Check the title
+    assert "Admin Database Management" in at.title[0].value
+    
+    # Check tab "user management"
+    at.tabs[0].label == ":technologist: User Management"
+    assert "Add user" in at.subheader[0].value
+    assert "Add user with budget" in at.subheader[1].value  
+    assert "Add dataset to user" in at.subheader[2].value 
+    assert "Modify user epsilon" in at.subheader[3].value
+    assert "Modify user delta" in at.subheader[4].value
+    assert "Modify user may query" in at.subheader[5].value
+    assert "Add many users via a yaml file" in at.subheader[6].value
+    
+    
+    # Check tab "user management"
+    at.tabs[1].label == ":file_cabinet: Dataset Management"
+    assert "Add one dataset" in at.subheader[7].value 
+    assert "Add many datasets via a yaml file" in at.subheader[8].value 
+    
+    # Check tab "view database content"
+    at.tabs[2].label == ":eyes: View Database Content"
+    assert "Show one element" in at.subheader[9].value
+    assert "Show full collection" in at.subheader[10].value
+    
+    # Check tab "delete content"
+    at.tabs[3].label == ":wastebasket: Delete Content (:red[DANGEROUS])"
+    assert at.markdown[0].value == ":warning: :red[**Danger Zone: deleting is final**] :warning:"
+    
+    assert "Delete one element" in at.subheader[11].value
+    assert at.markdown[1].value == "**Delete one user**"
+    assert at.markdown[2].value == "**Remove dataset from user**"
+    assert at.markdown[3].value == "**Remove dataset and it's associated metadata**"
+    
+    assert "Delete full collection" in at.subheader[12].value

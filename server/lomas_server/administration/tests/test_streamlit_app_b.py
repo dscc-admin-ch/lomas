@@ -46,14 +46,14 @@ def mock_mongodb_and_helpers():
         }
 
 
-def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
+def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915
     """Test the different widgets (add/remove users/datasets/metadata)"""
 
     # Simulate interaction with the Streamlit app
     at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
 
-    ## Dataset tab
-    ### Add dataset (working), PATH/PATH
+    # Dataset tab
+    # Add dataset (working), PATH/PATH
     at.text_input("ad_dataset").set_value("IRIS").run()
     at.selectbox("ad_type").set_value(PrivateDatabaseType.PATH).run()
     at.selectbox("ad_meta_type").set_value(PrivateDatabaseType.PATH).run()
@@ -67,8 +67,8 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
 
     # TODO 374: Add tests for upload_file widgets
 
-    ## User tab
-    ### Subheader "Add user"
+    # User tab
+    # Subheader "Add user"
     at.text_input("au_username_key").set_value("").run()
     at.button("add_user_button").click().run()
     assert at.warning[0].value == "Please fill all fields."
@@ -81,7 +81,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
     at.button("add_user_button").click().run()
     assert at.warning[0].value == "User test is already in the database."
 
-    ### Subheader "Add user with budget"
+    # Subheader "Add user with budget"
     at.text_input("auwb_username").set_value("Bobby").run()
     at.selectbox("dataset of add user with budget").set_value("IRIS").run()
     at.number_input("auwb_epsilon").set_value(None).run()
@@ -96,7 +96,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
     at.button("add_user_with_budget").click().run()
     assert at.markdown[0].value == "User Bobby was added with dataset IRIS."
 
-    ### Subheader "Add dataset to user"
+    # Subheader "Add dataset to user"
     at.selectbox("username of add dataset to user").set_value("test").run()
     at.selectbox("dataset of add dataset to user").set_value("IRIS").run()
     at.number_input("adtu_epsilon").set_value(10).run()
@@ -107,7 +107,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
         == "Dataset IRIS was added to user test with epsilon = 10.0 and delta = 0.5"
     )
 
-    ### Subheader "Modify user epsilon"
+    # Subheader "Modify user epsilon"
     at.selectbox("username of modify user epsilon").set_value("test").run()
     at.selectbox("dataset of modify user epsilon").set_value("IRIS").run()
     at.number_input("sue_epsilon").set_value(1).run()
@@ -117,7 +117,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
         == "User test on dataset IRIS initial epsilon value was modified to 1.0"
     )
 
-    ### Subheader "Modify user delta"
+    # Subheader "Modify user delta"
     at.selectbox("username of modify user delta").set_value("test").run()
     at.selectbox("dataset of modify user delta").set_value("IRIS").run()
     at.number_input("sud_delta").set_value(0.001).run()
@@ -127,14 +127,14 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
         == "User test on dataset IRIS initial delta value was modified to 0.001"
     )
 
-    ### Subheader "Modify user may query"
+    # Subheader "Modify user may query"
     at.selectbox("username of user may query").set_value("test").run()
     at.selectbox("umq_may_query").set_value(False).run()
     at.button("m_u_m_q").click().run()
     assert at.markdown[0].value == "User test may_query is now: `False`"
 
-    ## Content tab
-    ### Subheader "Show one element"
+    # Content tab
+    # Subheader "Show one element"
     at.selectbox("username of user to show").set_value("test").run()
     at.button("content_user_display").click().run()
     assert (
@@ -155,7 +155,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
     at.button("content_metadata_dataset_display").click().run()
     assert at.json[0].value.startswith('{"max_ids": 1, "rows": 150') is True
 
-    ### Subheader "Show full collection"
+    # Subheader "Show full collection"
     at.button("content_show_all_users").click().run()
     assert at.json[0].value.startswith('[{"user_name": "test"') is True
 
@@ -168,8 +168,8 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
     at.button("content_show_archives").click().run()
     assert at.json[0].value.startswith("[]") is True
 
-    ## Deletion tab
-    ### Subheader "Delete one element"
+    # Deletion tab
+    # Subheader "Delete one element"
     # Remove dataset from user
     at.selectbox("rdtu_user").set_value("test").run()
     at.selectbox("rdtu_dataset").set_value("IRIS").run()
@@ -188,7 +188,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
     assert at.session_state["list_users"] == ["Bobby"]
     assert at.markdown[2].value == "User test was deleted."
 
-    ### Subheader "Delete full collection"
+    # Subheader "Delete full collection"
     at.button("delete_all_users").click().run()
     assert at.markdown[4].value == "Users were all deleted."
 

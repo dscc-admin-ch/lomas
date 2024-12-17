@@ -7,12 +7,12 @@ from lomas_core.models.constants import PrivateDatabaseType
 
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.utils import get_mongodb
-from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
 from lomas_server.administration.dashboard.utils import (
     check_dataset_warning,
     check_user_warning,
     warning_field_missing,
 )
+from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
 from lomas_server.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -219,7 +219,7 @@ with user_tab:
             max_value=EPSILON_LIMIT,
             step=EPSILON_STEP,
             format="%f",
-            key="sue_epsilon"
+            key="sue_epsilon",
         )
 
     if st.button("Modify user epsilon", key="modify_user_epsilon"):
@@ -265,7 +265,7 @@ with user_tab:
             max_value=DELTA_LIMIT,
             step=DELTA_STEP,
             format="%f",
-            key="sud_delta"
+            key="sud_delta",
         )
 
     if st.button("Modify user delta", key="modify_user_delta"):
@@ -518,7 +518,7 @@ with dataset_tab:
             warning_field_missing()
 
 with content_tab:
-    st.subheader("Show one element")#
+    st.subheader("Show one element")  #
     elem_users, elem_archives = st.columns(2)
     with elem_users:
         user_selected = st.selectbox(
@@ -526,7 +526,9 @@ with content_tab:
             st.session_state.list_users,
             key="username of user to show",
         )
-        if st.button(f"Displaying information of: {user_selected}", key="content_user_display"):
+        if st.button(
+            f"Displaying information of: {user_selected}", key="content_user_display"
+        ):
             user_to_show = get_user(st.session_state.admin_db, user_selected)
             st.write(user_to_show)
 
@@ -536,7 +538,10 @@ with content_tab:
             st.session_state.list_users,
             key="username of archives from user",
         )
-        if st.button(f"Displaying previous queries of: {user_archives_selected}", key="content_user_archive_display"):
+        if st.button(
+            f"Displaying previous queries of: {user_archives_selected}",
+            key="content_user_archive_display",
+        ):
             user_archives_to_show = get_archives_of_user(
                 st.session_state.admin_db, user_archives_selected
             )
@@ -549,7 +554,9 @@ with content_tab:
             st.session_state.list_datasets,
             key="dataset_to_show",
         )
-        if st.button(f"Displaying dataset: {dataset_selected}", key="content_dataset_display"):
+        if st.button(
+            f"Displaying dataset: {dataset_selected}", key="content_dataset_display"
+        ):
             dataset_to_show = get_dataset(st.session_state.admin_db, dataset_selected)
             st.write(dataset_to_show)
 
@@ -559,7 +566,10 @@ with content_tab:
             st.session_state.list_datasets,
             key="metadata_of_dataset_to_show",
         )
-        if st.button(f"Displaying metadata of: {metadata_selected}", key="content_metadata_dataset_display"):
+        if st.button(
+            f"Displaying metadata of: {metadata_selected}",
+            key="content_metadata_dataset_display",
+        ):
             metadata_to_show = get_metadata_of_dataset(
                 st.session_state.admin_db, metadata_selected
             )
@@ -580,10 +590,7 @@ with content_tab:
             metadatas = get_collection(st.session_state.admin_db, "metadata")
             st.write(metadatas)
     with col_archives:
-        if st.button(
-            "Show archives",
-            key="content_show_archives"
-        ):
+        if st.button("Show archives", key="content_show_archives"):
             archives = get_collection(st.session_state.admin_db, "queries_archives")
             st.write(archives)
 
@@ -601,7 +608,9 @@ with deletion_tab:
         key="du_username",
     )
 
-    if st.button(label=f"Delete user {du_username} from the list of users.", key="delete_user"):
+    if st.button(
+        label=f"Delete user {du_username} from the list of users.", key="delete_user"
+    ):
         if du_username:
             del_user(st.session_state.admin_db, du_username)
             st.session_state["list_users"] = get_list_of_users(
@@ -632,7 +641,10 @@ with deletion_tab:
             key="rdtu_dataset",
         )
 
-    if st.button(label=f"Remove dataset {rdtu_dataset} from user {rdtu_user}.", key="delete_dataset_from_user"):
+    if st.button(
+        label=f"Remove dataset {rdtu_dataset} from user {rdtu_user}.",
+        key="delete_dataset_from_user",
+    ):
         if rdtu_user and rdtu_dataset:
             del_dataset_to_user(st.session_state.admin_db, rdtu_user, rdtu_dataset)
             st.session_state["list_datasets"] = get_list_of_datasets(
@@ -666,10 +678,7 @@ with deletion_tab:
     d_col_users, d_col_datasets, d_col_metadata, d_col_archives = st.columns(4)
 
     with d_col_users:
-        if st.button(
-            "Delete all users",
-            key="delete_all_users"
-        ):
+        if st.button("Delete all users", key="delete_all_users"):
             drop_collection(st.session_state.admin_db, "users")
             st.session_state["list_users"] = get_list_of_users(
                 st.session_state.admin_db
@@ -681,7 +690,7 @@ with deletion_tab:
             "Delete all datasets",
             on_click=drop_collection,
             args=(st.session_state.admin_db, "datasets"),
-            key="delete_all_datasets"
+            key="delete_all_datasets",
         ):
             st.session_state["list_datasets"] = get_list_of_datasets(
                 st.session_state.admin_db
@@ -693,7 +702,7 @@ with deletion_tab:
             "Delete all metadata",
             on_click=drop_collection,
             args=(st.session_state.admin_db, "metadata"),
-            key="delete_all_metadata"
+            key="delete_all_metadata",
         ):
             st.write("Metadata were all deleted.")
 
@@ -702,6 +711,6 @@ with deletion_tab:
             "Delete all archives",
             on_click=drop_collection,
             args=(st.session_state.admin_db, "archives"),
-            key="delete_all_archives"
+            key="delete_all_archives",
         ):
             st.write("Archives were all deleted.")

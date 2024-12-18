@@ -179,7 +179,9 @@ def add_user(db: Database, user: str) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Added user {user}.")
+    # codeQL : py/log-injection
+    user_log = user.replace("\r\n", "").replace("\n", "")
+    LOG.info(f"Added user {user_log}.")
 
 
 @check_user_exists(False)
@@ -220,9 +222,14 @@ def add_user_with_budget(
 
     check_result_acknowledged(res)
 
+    # codeQL : py/log-injection
+    user_log = user.replace("\r\n", "").replace("\n", "")
+    dataset_log = dataset.replace("\r\n", "").replace("\n", "")
+    epsilon_log = str(epsilon).replace("\r\n", "").replace("\n", "")
+    delta_log = str(delta).replace("\r\n", "").replace("\n", "")
     LOG.info(
-        f"Added access to user {user} with dataset {dataset}, "
-        + f"budget epsilon {epsilon} and delta {delta}."
+        f"Added access to user {user_log} with dataset {dataset_log}, "
+        + f"budget epsilon {epsilon_log} and delta {delta_log}."
     )
 
 
@@ -620,9 +627,12 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     res = db.metadata.insert_one({dataset_name: validated_metadata})
     check_result_acknowledged(res)
 
+    # codeQL : py/log-injection
+    dataset_name_log = dataset_name.replace("\r\n", "").replace("\n", "")
+    database_type_log = database_type.replace("\r\n", "").replace("\n", "")
     LOG.info(
-        f"Added dataset {dataset_name} with database "
-        f"{database_type} and associated metadata."
+        f"Added dataset {dataset_name_log} with database "
+        f"{database_type_log} and associated metadata."
     )
 
 

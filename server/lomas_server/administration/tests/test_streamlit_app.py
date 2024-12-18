@@ -90,10 +90,3 @@ def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
         "The database file is: tests/test_data/local_db_file.yaml"
         in at.markdown[7].value
     )
-
-
-def test_b_database_administration_page(mock_configs):  # pylint: disable=W0621, W0613
-    """Test display b_database_administration.py page."""
-
-    # TODO 353
-    # at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()

@@ -45,7 +45,7 @@ in
   };
 
   env = {
-    PYTHONPATH = "${./core}:${./server}";
+    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
   };
 
   # https://devenv.sh/processes/

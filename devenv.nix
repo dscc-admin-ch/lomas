@@ -1,9 +1,58 @@
-{ pkgs, lib, config, inputs, ... }:
+{ pkgs, lib, config, ... }:
 
 let
-  inherit (builtins) readFile concatStringsSep;
+  inherit (builtins) readFile concatStringsSep toJSON;
+
   mongo_port = "27017";
   minio_port = "9090";
+  accessKey = "admin";
+  secretKey = "admin123";
+
+  lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
+    runtime_args = {
+        settings = {
+          develop_mode = true;
+          submit_limit = 300;
+          server = {
+            host_ip = "localhost";
+            host_port = "64080"; # 80 is privileged
+            log_level = "info";
+            reload = true;
+            workers = 1;
+            time_attack = {
+              method = "stall";
+              magnitude = 1;
+            };
+          };
+          admin_database = {
+            db_type = "yaml";
+            db_file = "${./server/lomas_server/tests/test_data/local_db_file.yaml}";
+          };
+          dp_libraries = {
+            opendp = {
+              contrib = true;
+              floating_point = true;
+              honest_but_curious = false;
+            };
+          };
+        };
+      };
+    });
+
+  lomas_secrets = pkgs.writeText "test_secrets.yaml" (toJSON {
+    admin_database = {
+      password = "user_pwd";
+      username = "user";
+    };
+    private_db_credentials = [
+      {
+        credentials_name = "local_minio";
+        db_type = "S3_DB";
+        access_key_id = accessKey;
+        secret_access_key = secretKey;
+      }
+    ];
+  });
 in
 {
   # https://devenv.sh/basics/
@@ -14,6 +63,7 @@ in
     pkgs.git
     pkgs.mongodb-6_0
     pkgs.mongosh
+    pkgs.oauth2-proxy
   ];
 
   # https://devenv.sh/languages/
@@ -46,6 +96,8 @@ in
 
   env = {
     PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
+    LOMAS_CONFIG_PATH = "${lomas_config}";
+    LOMAS_SECRETS_PATH = "${lomas_secrets}";
   };
 
   # https://devenv.sh/processes/
@@ -73,8 +125,6 @@ in
   #########
 
   services.minio = let
-    accessKey = "admin";
-    secretKey = "admin123";
     listenAddress = "127.0.0.1:${minio_port}";
   in{
     enable = true;

@@ -63,6 +63,8 @@
             "minInclusive": 30.0,
             "maxInclusive": 65.0
           },
+          "propertyUrl": "http://purl.org/linked-data/sdmx/2009/dimension#bill_length",
+          "valueUrl": "http://opendata.swiss/def/concept/bill_length/{mm}",
           "required": true,
           "dc:description": "The length of the penguin's bill in millimeters. Ranges from 30.0 to 65.0 mm."
         },
@@ -87,6 +89,8 @@
             "minInclusive": 150.0,
             "maxInclusive": 250.0
           },
+          "propertyUrl": "http://purl.org/linked-data/sdmx/2009/dimension#flipper_length",
+          "valueUrl": "http://opendata.swiss/def/concept/flipper_length/{mm}",
           "required": true,
           "dc:description": "The length of the penguin's flipper in millimeters. Ranges from 150.0 to 250.0 mm."
         },
@@ -117,13 +121,13 @@
           "lomas-dp:max_influenced_partitions": 100,
           "lomas-dp:max_partition_contributions": 100,
           "required": true,
-          "null": "NULL",
+          "null": "UNKNOWN",
           "dc:description": "The sex of the penguin. Possible values are MALE and FEMALE. Missing values are marked as 'UNKNOWN'.",
           "aboutUrl": "http://example.org/sex/{sex}"
         }
       ],
-      "primaryKey": ["species", "island", "bill_depth_mm"],
-      "aboutUrl": "http://example.org/penguin/{species}/{island}/{bill_depth_mm}",
+      "primaryKey": ["species", "island", "bill_length_mm", "bill_depth_mm"],
+      "aboutUrl": "http://example.org/penguin/{species}/{island}/{bill_length_mm}/{bill_depth_mm}",
       "lomas-dp:annotations": {
         "lomas-dp:nb_rows": 344,
         "lomas-dp:max_ids": 1,

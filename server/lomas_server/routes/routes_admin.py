@@ -1,5 +1,9 @@
 from fastapi import APIRouter, Body, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse
+<<<<<<< HEAD
+=======
+from opentelemetry import trace
+>>>>>>> 3d75c0f (add traces everywhere)
 
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
@@ -32,7 +36,9 @@ async def root():
     Returns:
         JSONResponse: The state of the server instance.
     """
-    return RedirectResponse(url="/state")
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("root"):
+        return RedirectResponse(url="/state")
 
 
 # Get server state
@@ -50,14 +56,16 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("state"):
+        app = request.app
 
-    return JSONResponse(
-        content={
-            "requested_by": user_name,
-            "state": app.state.server_state,
-        }
-    )
+        return JSONResponse(
+            content={
+                "requested_by": user_name,
+                "state": app.state.server_state,
+            }
+        )
 
 
 # Metadata query
@@ -89,23 +97,25 @@ def get_dataset_metadata(
         Metadata: The metadata object for the specified
             dataset_name.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_dataset_metadata"):
+        app = request.app
 
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
+        dataset_name = query_json.dataset_name
+        if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
+            raise UnauthorizedAccessException(
+                f"{user_name} does not have access to {dataset_name}.",
+            )
 
-    try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
+        try:
+            ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
 
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+        except KNOWN_EXCEPTIONS as e:
+            raise e
+        except Exception as e:
+            raise InternalServerException(str(e)) from e
 
-    return ds_metadata
+        return ds_metadata
 
 
 # Dummy dataset query
@@ -141,33 +151,39 @@ def get_dummy_dataset(
         JSONResponse: a dict with the dataframe as a dict, the column types
             and the list of datetime columns.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_dummy_dataset"):
+        app = request.app
 
-    dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
+        dataset_name = query_json.dataset_name
+        if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
+            raise UnauthorizedAccessException(
+                f"{user_name} does not have access to {dataset_name}.",
+            )
+
+        try:
+            ds_metadata = app.state.admin_database.get_dataset_metadata(
+                query_json.dataset_name
+            )
+            dtypes, datetime_columns = get_column_dtypes(ds_metadata)
+
+            dummy_df = make_dummy_dataset(
+                ds_metadata,
+                query_json.dummy_nb_rows,
+                query_json.dummy_seed,
+            )
+
+            for col in datetime_columns:
+                dummy_df[col] = dummy_df[col].dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+        except KNOWN_EXCEPTIONS as e:
+            raise e
+        except Exception as e:
+            raise InternalServerException(str(e)) from e
+
+        return DummyDsResponse(
+            dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df
         )
-
-    try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes, datetime_columns = get_column_dtypes(ds_metadata)
-
-        dummy_df = make_dummy_dataset(
-            ds_metadata,
-            query_json.dummy_nb_rows,
-            query_json.dummy_seed,
-        )
-
-        for col in datetime_columns:
-            dummy_df[col] = dummy_df[col].dt.strftime("%Y-%m-%dT%H:%M:%S")
-
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return DummyDsResponse(dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df)
 
 
 # MongoDB get initial budget
@@ -206,7 +222,9 @@ def get_initial_budget(
             - initial_epsilon (float): initial epsilon budget.
             - initial_delta (float): initial delta budget.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_initial_budget"):
+        app = request.app
 
     try:
         (
@@ -257,19 +275,25 @@ def get_total_spent_budget(
             - total_spent_epsilon (float): total spent epsilon budget.
             - total_spent_delta (float): total spent delta budget.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_total_spent_budget"):
+        app = request.app
 
-    try:
-        (
-            total_spent_epsilon,
-            total_spent_delta,
-        ) = app.state.admin_database.get_total_spent_budget(user_name, query_json.dataset_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+        try:
+            (
+                total_spent_epsilon,
+                total_spent_delta,
+            ) = app.state.admin_database.get_total_spent_budget(
+                user_name, query_json.dataset_name
+            )
+        except KNOWN_EXCEPTIONS as e:
+            raise e
+        except Exception as e:
+            raise InternalServerException(str(e)) from e
 
-    return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
+        return SpentBudgetResponse(
+            total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta
+        )
 
 
 # MongoDB get remaining budget
@@ -308,18 +332,22 @@ def get_remaining_budget(
             - remaining_epsilon (float): remaining epsilon budget.
             - remaining_delta (float): remaining delta budget.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_remaining_budget"):
+        app = request.app
 
-    try:
-        rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-            user_name, query_json.dataset_name
+        try:
+            rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
+                user_name, query_json.dataset_name
+            )
+        except KNOWN_EXCEPTIONS as e:
+            raise e
+        except Exception as e:
+            raise InternalServerException(str(e)) from e
+
+        return RemainingBudgetResponse(
+            remaining_epsilon=rem_epsilon, remaining_delta=rem_delta
         )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
 
 # MongoDB get archives
@@ -359,15 +387,17 @@ def get_user_previous_queries(
             - previous_queries (list[dict]): a list of dictionaries
               containing the previous queries.
     """
-    app = request.app
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("get_user_previous_queries"):
+        app = request.app
 
-    try:
-        previous_queries = app.state.admin_database.get_user_previous_queries(
-            user_name, query_json.dataset_name
-        )  # TODO 359 improve on that and return models.
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+        try:
+            previous_queries = app.state.admin_database.get_user_previous_queries(
+                user_name, query_json.dataset_name
+            )  # TODO 359 improve on that and return models.
+        except KNOWN_EXCEPTIONS as e:
+            raise e
+        except Exception as e:
+            raise InternalServerException(str(e)) from e
 
-    return JSONResponse(content={"previous_queries": previous_queries})
+        return JSONResponse(content={"previous_queries": previous_queries})

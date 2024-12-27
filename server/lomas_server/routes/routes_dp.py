@@ -1,8 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Request
-from opentelemetry import trace
-
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
 from lomas_core.models.requests import (
@@ -66,11 +64,9 @@ def smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("smartnoise_sql_handler"):
-        return handle_query_on_private_dataset(
-            request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-        )
+    return handle_query_on_private_dataset(
+        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
@@ -107,11 +103,9 @@ def dummy_smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("dummy_smartnoise_sql_handler"):
-        return handle_query_on_dummy_dataset(
-            request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-        )
+    return handle_query_on_dummy_dataset(
+        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
@@ -147,11 +141,9 @@ def estimate_smartnoise_sql_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("estimate_smartnoise_sql_cost"):
-        return handle_cost_query(
-            request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-        )
+    return handle_cost_query(
+        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 # Smartnoise Synth
@@ -193,11 +185,9 @@ def smartnoise_synth_handler(
         QueryResponse: A query response containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("smartnoise_synth_handler"):
-        return handle_query_on_private_dataset(
-            request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-        )
+    return handle_query_on_private_dataset(
+        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -235,11 +225,9 @@ def dummy_smartnoise_synth_handler(
         QueryResponse: A query response containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("dummy_smartnoise_synth_handler"):
-        return handle_query_on_dummy_dataset(
-            request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-        )
+    return handle_query_on_dummy_dataset(
+        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -276,11 +264,9 @@ def estimate_smartnoise_synth_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("estimate_smartnoise_synth_cost"):
-        return handle_cost_query(
-            request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-        )
+    return handle_cost_query(
+        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 # OpenDP
@@ -320,11 +306,9 @@ def opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("opendp_query_handler"):
-        return handle_query_on_private_dataset(
-            request, opendp_query, user_name, DPLibraries.OPENDP
-        )
+    return handle_query_on_private_dataset(
+        request, opendp_query, user_name, DPLibraries.OPENDP
+    )
 
 
 @router.post(
@@ -360,11 +344,9 @@ def dummy_opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("dummy_opendp_query_handler"):
-        return handle_query_on_dummy_dataset(
-            request, opendp_query, user_name, DPLibraries.OPENDP
-        )
+    return handle_query_on_dummy_dataset(
+        request, opendp_query, user_name, DPLibraries.OPENDP
+    )
 
 
 @router.post(
@@ -400,9 +382,7 @@ def estimate_opendp_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("estimate_opendp_cost"):
-        return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -442,11 +422,9 @@ def diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("diffprivlib_query_handler"):
-        return handle_query_on_private_dataset(
-            request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
-        )
+    return handle_query_on_private_dataset(
+        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
@@ -482,11 +460,9 @@ def dummy_diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("dummy_diffprivlib_query_handler"):
-        return handle_query_on_dummy_dataset(
-            request, query_json, user_name, DPLibraries.DIFFPRIVLIB
-        )
+    return handle_query_on_dummy_dataset(
+        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
@@ -531,8 +507,6 @@ def estimate_diffprivlib_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    tracer = trace.get_tracer(__name__)
-    with tracer.start_as_current_span("estimate_diffprivlib_cost"):
-        return handle_cost_query(
-            request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
-        )
+    return handle_cost_query(
+        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
+    )

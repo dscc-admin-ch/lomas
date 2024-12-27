@@ -2,6 +2,7 @@ boto3==1.34.115
 httpx==0.27.0
 jax==0.4.31
 jaxlib==0.4.31
+opentelemetry-instrumentation-fastapi
 packaging==24.1
 pyaml==23.9.5
 pydantic==2.8.2

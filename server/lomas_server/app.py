@@ -2,6 +2,9 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
@@ -121,3 +124,6 @@ add_exception_handlers(app)
 # Add endpoints
 app.include_router(routes_dp.router)
 app.include_router(routes_admin.router)
+
+# Instrument FastAPI with OpenTelemetry
+FastAPIInstrumentor.instrument_app(app)

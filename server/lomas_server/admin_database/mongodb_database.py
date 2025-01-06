@@ -4,6 +4,8 @@ from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
+from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
+
 
 from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
@@ -28,6 +30,7 @@ class AdminMongoDatabase(AdminDatabase):
             connection_string (str): Connection string to the mongodb
             database_name (str): Mongodb database name.
         """
+        PymongoInstrumentor().instrument()
         self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:

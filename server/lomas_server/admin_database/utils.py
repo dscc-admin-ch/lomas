@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from pymongo.database import Database
+from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 
 from lomas_core.error_handler import InternalServerException
 from lomas_core.logger import LOG
@@ -51,6 +52,8 @@ def get_mongodb() -> Database:
         str: A correctly formatted url for connecting to the
             MongoDB database.
     """
+    PymongoInstrumentor().instrument()
+
     admin_config = get_config().admin_database
     if isinstance(admin_config, MongoDBConfig):
         db_url = get_mongodb_url(admin_config)

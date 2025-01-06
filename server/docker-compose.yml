@@ -93,6 +93,8 @@ services:
     entrypoint: /bin/sh -c "
       sleep 15 && 
       mc alias set myminio http://minio:9000 admin admin123 && 
+      mc mb myminio/loki-data || true &&
+      mc mb myminio/loki-ruler || true &&
       mc mb myminio/example || true && 
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&

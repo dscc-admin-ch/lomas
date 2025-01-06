@@ -6,6 +6,7 @@ from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
 
+
 from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.requests import LomasRequestModel

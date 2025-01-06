@@ -1,0 +1,56 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  otlp:
+    endpoint: "opentelemetry-collector:4317"
+    tls:
+      insecure: true
+
+  loki:
+    endpoint: "http://loki:3100/otlp"
+    tls:
+      insecure: true
+    headers:
+      "X-Scope-OrgID": "tenant1"
+    default_labels_enabled:
+      exporter: true
+      job: true
+      instance: true
+      level: true
+
+processors:
+  batch:
+  attributes:
+    actions:
+      - action: insert
+        key: loki.attribute.labels
+        value: test
+  resource:
+    attributes:
+      - action: insert
+        key: loki.resource.labels
+        value: test
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [loki]

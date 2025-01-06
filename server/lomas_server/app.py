@@ -3,11 +3,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from opentelemetry import trace
+from opentelemetry import trace, metrics
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.logs import LogEmitterProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.metrics_exporter import OTLPMetricsExporter
+from opentelemetry.exporter.otlp.proto.grpc.logs_exporter import OTLPLogsExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -119,22 +126,32 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.admin_database.save_current_database()
 
 
+# Initialize OpenTelemetry Traces
+resource = Resource(attributes={SERVICE_NAME: "lomas_server"})
+tracer_provider = TracerProvider(resource=resource)
+otlp_trace_exporter = OTLPSpanExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
+span_processor = BatchSpanProcessor(otlp_trace_exporter)
+tracer_provider.add_span_processor(span_processor)
+trace.set_tracer_provider(tracer_provider)
+
+# Initialize OpenTelemetry Metrics
+metrics.set_meter_provider(MeterProvider())
+meter = metrics.get_meter(__name__)
+otlp_metrics_exporter = OTLPMetricsExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
+
+# Initialize OpenTelemetry Logs
+log_emitter_provider = LogEmitterProvider()
+otlp_logs_exporter = OTLPLogsExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
+log_emitter_provider.add_log_processor(otlp_logs_exporter)
+LoggingInstrumentor().instrument()
+
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
 
 # Add custom exception handlers
 add_exception_handlers(app)
 
-# Initialize OpenTelemetry
-trace.set_tracer_provider(TracerProvider())
-tracer = trace.get_tracer(__name__)
-
-# Set up OTLP exporter
-otlp_exporter = OTLPSpanExporter(endpoint="your-otlp-endpoint")
-span_processor = BatchExportSpanProcessor(otlp_exporter)
-trace.get_tracer_provider().add_span_processor(span_processor)
-
-# Instrument FastAPI with OpenTelemetry
+# Instrument the FastAPI app for tracing, metrics, and logging
 FastAPIInstrumentor.instrument_app(app)
 
 # Add endpoints

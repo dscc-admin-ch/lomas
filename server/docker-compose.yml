@@ -9,6 +9,8 @@ services:
     ports:
       - 80:80
     restart: always
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT="http://opentelemetry-collector:4317"
     volumes:
       - ./lomas_server:/code/lomas_server
       - ../core/lomas_core:/code/lomas_core
@@ -24,6 +26,8 @@ services:
       mongodb:
         condition: service_started
         restart: true
+      opentelemetry-collector:
+        condition: service_started
     networks:
       - lomas-network
 
@@ -74,6 +78,8 @@ services:
     entrypoint: /bin/sh -c "
       sleep 15 && 
       mc alias set myminio http://minio:9000 admin admin123 && 
+      mc mb myminio/loki-data || true &&
+      mc mb myminio/loki-ruler || true &&
       mc mb myminio/example || true && 
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&
@@ -125,6 +131,102 @@ services:
       - lomas_server
     networks:
       - lomas-network
+  
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/observability/example_prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - prometheus-data:/prometheus
+    restart: always
+    networks:
+      - lomas-network
+
+  # Loki for log collection
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./configs/observability/example_loki.yaml:/etc/loki/config.yaml
+    command: "-config.file=/etc/loki/config.yaml"
+    ports:
+      - "3100:3100"
+      - "7946:7946"
+      - "9095:9095"
+    networks:
+      - lomas-network
+    depends_on:
+      - minio-client
+
+  # # Jaeger for trace collection
+  # jaeger:
+  #   image: jaegertracing/all-in-one:latest
+  #   container_name: jaeger
+  #   ports:
+  #     - "16686:16686"
+  #     - "14268"
+  #     - "14250"
+  #   restart: always
+  #   networks:
+  #     - lomas-network
+
+  # OpenTelemetry Collector for receiving traces, metrics, and logs
+  opentelemetry-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: opentelemetry-collector
+    ports:
+      - "4317:4317"  # OTLP gRPC port
+      - "4381:4318"  # OTLP HTTP port
+      - "9464:9464"  # Prometheus scraping port
+    environment:
+      - OTEL_SERVICE_NAME="lomas_server"
+      - OTEL_SERVICE_VERSION="0.3.5"
+      - OTEL_EXPORTER_OTLP_ENDPOINT="http://opentelemetry-collector:4317"
+      - OTEL_METRICS_EXPORTER="prometheus"
+      - OTEL_EXPORTER_PROMETHEUS_PORT="9464"
+      - OTEL_METRICS_EXPORTER_LABELS="env=dev,app=lomas_server"
+      - OTEL_TRACES_EXPORTER=jaeger
+      - OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14250
+      - OTEL_LOGS_EXPORTER="loki"
+      - OTEL_EXPORTER_LOKI_ENDPOINT=http://loki:3100/loki/api/v1/push
+      - OTEL_LOG_LEVEL="debug"
+      - OTEL_ENVIRONMENT="development"
+      - OTEL_PYTHON_LOG_CORRELATION=true
+    volumes:
+      - ./configs/observability/example_otel_collector_config.yaml:/etc/otel_collector_config.yaml
+    command:
+      ["--config", "/etc/otel_collector_config.yaml"]
+    restart: always
+    networks:
+      - lomas-network
+    depends_on:
+      - prometheus
+      - loki
+      # - jaeger
+
+  # Grafana for dashboarding
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./configs/observability/example_grafana_dashboard.yaml:/etc/grafana/provisioning/datasources/ds.yaml
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    networks:
+      - lomas-network
+    depends_on:
+      - prometheus
+      - loki
+      # - jaeger
 
 networks:
   lomas-network:
@@ -137,3 +239,5 @@ volumes:
     external: true
   minio-data:
     external: true
+  prometheus-data:
+    external: false

@@ -1,22 +1,19 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 from opentelemetry import trace, metrics
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, SimpleLogRecordProcessor, ConsoleLogExporter
-from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
+from starlette.middleware.base import BaseHTTPMiddleware
+
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -127,44 +124,78 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
         lomas_app.state.admin_database.save_current_database()
 
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Get the current span in the context
+        tracer = trace.get_tracer(__name__)
+        span = tracer.start_span("HTTP Request")
+
+        # Attach custom attributes or log information on the span
+        span.set_attribute("http.method", request.method)
+        span.set_attribute("http.url", str(request.url))
+        span.set_attribute("http.client_ip", request.client.host)
+        user_name = request.headers.get("user_name", "unknown")
+        span.set_attribute("user_name", user_name)
+        LOG.info(f"0 Request received: {request.method} {request.url}")
+
+        # Log a message (optional, you can use any logging framework here)
+        print(f"1 Request received: {request.method} {request.url}")
+
+        try:
+            # Call the next middleware or route handler
+            response = await call_next(request)
+        finally:
+            # End the span after the response is returned
+            span.end()
+
+        return response
+
+resource = Resource(attributes={"app.name": "lomas_server"})
 
 # Initialize OpenTelemetry Traces
-resource = Resource(attributes={SERVICE_NAME: "lomas_server"})
+DEBUG_TRACES_OTEL_TO_CONSOLE = False
+DEBUG_TRACES_OTEL_TO_PROVIDER = True
+
 tracer_provider = TracerProvider(resource=resource)
-otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
+
+if DEBUG_TRACES_OTEL_TO_CONSOLE:
+    otlp_trace_exporter = ConsoleSpanExporter()
+
+if DEBUG_TRACES_OTEL_TO_PROVIDER:
+    otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
+
+
 span_processor = BatchSpanProcessor(otlp_trace_exporter)
 tracer_provider.add_span_processor(span_processor)
 trace.set_tracer_provider(tracer_provider)
 
 # Initialize OpenTelemetry Metrics
-metrics.set_meter_provider(MeterProvider())
-meter = metrics.get_meter(__name__)
-otlp_metrics_exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
+DEBUG_METRIC_OTEL_TO_CONSOLE = False
+DEBUG_METRIC_OTEL_TO_PROVIDER = True
 
-# Initialize OpenTelemetry Logs
-import os
-DEBUG_LOG_OTEL_TO_CONSOLE = os.getenv("DEBUG_LOG_OTEL_TO_CONSOLE", 'False').lower() == 'true'
-DEBUG_LOG_OTEL_TO_PROVIDER = os.getenv("DEBUG_LOG_OTEL_TO_PROVIDER", 'False').lower() == 'true'
+if DEBUG_METRIC_OTEL_TO_CONSOLE:
+    exporter = ConsoleMetricExporter()
 
-logger_provider = LoggerProvider(resource=Resource.create({}))
-set_logger_provider(logger_provider)
-if DEBUG_LOG_OTEL_TO_CONSOLE:
-    console_log_exporter = ConsoleLogExporter()
-    logger_provider.add_log_record_processor(SimpleLogRecordProcessor(console_log_exporter))
-if DEBUG_LOG_OTEL_TO_PROVIDER:
-    otlp_log_exporter = OTLPLogExporter(endpoint="http://otel-collector:4317")
-    logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
-LoggingInstrumentor().instrument()
+if DEBUG_METRIC_OTEL_TO_PROVIDER:
+    exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
 
+reader = PeriodicExportingMetricReader(exporter)
+meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
+metrics.set_meter_provider(meter_provider)
+
+LOG.info(f"THIS IS A TEST")
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(LoggingMiddleware)
 
 # Add custom exception handlers
 add_exception_handlers(app)
 
 # Instrument the FastAPI app for tracing, metrics, and logging
-FastAPIInstrumentor.instrument_app(app)
+FastAPIInstrumentor.instrument_app(
+    app, tracer_provider=tracer_provider, meter_provider=meter_provider
+)
 
 # Add endpoints
 app.include_router(routes_dp.router)

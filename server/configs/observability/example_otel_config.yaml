@@ -20,7 +20,7 @@ exporters:
       insecure: true
 
   otlp/tempo:
-    endpoint: http://172.18.0.9:4317
+    endpoint: http://tempo:4317
     tls:
       insecure: true
 

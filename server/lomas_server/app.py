@@ -2,26 +2,20 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-<<<<<<< HEAD
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-=======
+from fastapi import FastAPI, Request
 
 from opentelemetry import trace, metrics
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, SimpleLogRecordProcessor, ConsoleLogExporter
-from opentelemetry.sdk._logs import LoggerProvider
->>>>>>> a1bb9ab0 (Reworked full setup: trace can be seen in grafana)
+
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -131,6 +125,32 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
         lomas_app.state.admin_database.save_current_database()
 
+class LoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Get the current span in the context
+        tracer = trace.get_tracer(__name__)
+        span = tracer.start_span("HTTP Request")
+
+        # Attach custom attributes or log information on the span
+        span.set_attribute("http.method", request.method)
+        span.set_attribute("http.url", str(request.url))
+        span.set_attribute("http.client_ip", request.client.host)
+        user_name = request.headers.get("user_name", "unknown")
+        span.set_attribute("user_name", user_name)
+        LOG.info(f"0 Request received: {request.method} {request.url}")
+
+        # Log a message (optional, you can use any logging framework here)
+        print(f"1 Request received: {request.method} {request.url}")
+
+        try:
+            # Call the next middleware or route handler
+            response = await call_next(request)
+        finally:
+            # End the span after the response is returned
+            span.end()
+
+        return response
+
 
 # Initalise telemetry
 resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
@@ -138,6 +158,7 @@ init_telemetry(resource)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(LoggingMiddleware)
 
 # Setting metrics middleware
 app.add_middleware(FastAPIMetricMiddleware, app_name=SERVER_SERVICE_NAME)

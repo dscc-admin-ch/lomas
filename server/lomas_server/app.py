@@ -7,14 +7,16 @@ from opentelemetry import trace, metrics
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.logs import LogEmitterProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.metrics_exporter import OTLPMetricsExporter
-from opentelemetry.exporter.otlp.proto.grpc.logs_exporter import OTLPLogsExporter
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, SimpleLogRecordProcessor, ConsoleLogExporter
+from opentelemetry.sdk._logs import LoggerProvider
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -122,7 +124,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 # Initialize OpenTelemetry Traces
 resource = Resource(attributes={SERVICE_NAME: "lomas_server"})
 tracer_provider = TracerProvider(resource=resource)
-otlp_trace_exporter = OTLPSpanExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
+otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
 span_processor = BatchSpanProcessor(otlp_trace_exporter)
 tracer_provider.add_span_processor(span_processor)
 trace.set_tracer_provider(tracer_provider)
@@ -130,13 +132,23 @@ trace.set_tracer_provider(tracer_provider)
 # Initialize OpenTelemetry Metrics
 metrics.set_meter_provider(MeterProvider())
 meter = metrics.get_meter(__name__)
-otlp_metrics_exporter = OTLPMetricsExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
+otlp_metrics_exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
 
 # Initialize OpenTelemetry Logs
-log_emitter_provider = LogEmitterProvider()
-otlp_logs_exporter = OTLPLogsExporter(endpoint="http://opentelemetry-collector:4317", insecure=True)
-log_emitter_provider.add_log_processor(otlp_logs_exporter)
+import os
+DEBUG_LOG_OTEL_TO_CONSOLE = os.getenv("DEBUG_LOG_OTEL_TO_CONSOLE", 'False').lower() == 'true'
+DEBUG_LOG_OTEL_TO_PROVIDER = os.getenv("DEBUG_LOG_OTEL_TO_PROVIDER", 'False').lower() == 'true'
+
+logger_provider = LoggerProvider(resource=Resource.create({}))
+set_logger_provider(logger_provider)
+if DEBUG_LOG_OTEL_TO_CONSOLE:
+    console_log_exporter = ConsoleLogExporter()
+    logger_provider.add_log_record_processor(SimpleLogRecordProcessor(console_log_exporter))
+if DEBUG_LOG_OTEL_TO_PROVIDER:
+    otlp_log_exporter = OTLPLogExporter(endpoint="http://otel-collector:4317")
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
 LoggingInstrumentor().instrument()
+
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)

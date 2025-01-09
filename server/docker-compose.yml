@@ -12,6 +12,7 @@ services:
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT="http://otel-collector:4317"
       - OTEL_EXPORTER_OTLP_INSECURE=true
+      - OTEL_PYTHON_LOG_FORMAT=true
     volumes:
       - ./lomas_server:/code/lomas_server
       - ../core/lomas_core:/code/lomas_core
@@ -144,18 +145,6 @@ services:
     networks:
       - lomas-network
 
-  otel-collector:
-    image: otel/opentelemetry-collector:latest
-    container_name: otel-collector
-    expose:
-      - 4317
-      - 4318
-    volumes:
-      - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
-    command: ["--config=/etc/otel/config.yaml"]
-    networks:
-      - lomas-network
-
   tempo:
     image: *tempoImage
     container_name: tempo
@@ -168,6 +157,25 @@ services:
       - 4317
     depends_on:
       - init_tempo
+    networks:
+      - lomas-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    expose:
+      - 4317:4317
+      - 4318:4318
+      - 13133:13133 # health_check extension
+      - 55679:55679 # zpages extension
+    volumes:
+      - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
+    command: ["--config=/etc/otel/config.yaml"]
+    depends_on:
+      tempo:
+        condition: service_started
+      loki:
+        condition: service_started
     networks:
       - lomas-network
 
@@ -207,7 +215,6 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
-      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
     ports:
       - "3000:3000"
     networks:

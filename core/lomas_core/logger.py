@@ -4,13 +4,8 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, SimpleLogRecordProcessor, ConsoleLogExporter
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-
-import os
-DEBUG_LOG_OTEL_TO_CONSOLE =True #= os.getenv("DEBUG_LOG_OTEL_TO_CONSOLE", 'False').lower() == 'true'
-DEBUG_LOG_OTEL_TO_PROVIDER = True # os.getenv("DEBUG_LOG_OTEL_TO_PROVIDER", 'False').lower() == 'true'
-
 
 logger_provider = LoggerProvider(
     resource=Resource.create(
@@ -22,23 +17,17 @@ logger_provider = LoggerProvider(
 )
 set_logger_provider(logger_provider)
 
-# if DEBUG_LOG_OTEL_TO_CONSOLE:
-#     exporter = ConsoleLogExporter()
-#     logger_provider.add_log_record_processor(SimpleLogRecordProcessor(exporter))
-
-if DEBUG_LOG_OTEL_TO_PROVIDER:
-    exporter = OTLPLogExporter(endpoint="http://otel-collector:4317", insecure=True)
-    logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
-
+exporter = OTLPLogExporter(endpoint="http://otel-collector:4317", insecure=True)
+logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
 
 logging.getLogger().setLevel(logging.DEBUG)
 handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
 logging.getLogger().addHandler(handler)
 
 LOG = logging.getLogger()
-LOG.debug("This is a DEBUG log")
-LOG.info("This is an INFO log")
-LOG.warning("This is a WARNING log")
-LOG.error("This is an ERROR log")
-LOG.critical("This is a CRITICAL log")
+LOG.debug("This is a DEBUG log 2")
+LOG.info("This is an INFO log 2")
+LOG.warning("This is a WARNING log 2")
+LOG.error("This is an ERROR log 2")
+LOG.critical("This is a CRITICAL log 2")
 

@@ -158,7 +158,6 @@ init_telemetry(resource)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
-app.add_middleware(LoggingMiddleware)
 
 # Setting metrics middleware
 app.add_middleware(FastAPIMetricMiddleware, app_name=SERVER_SERVICE_NAME)

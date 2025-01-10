@@ -184,6 +184,7 @@ services:
       - "9091:9090" # prometheus 
     volumes:
       - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
+      - loki-data:/tmp/loki
     command: ["--config=/etc/otel/config.yaml"]
     depends_on:
       tempo:

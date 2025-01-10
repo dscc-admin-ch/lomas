@@ -212,7 +212,7 @@ services:
     image: grafana/grafana:11.0.0
     container_name: grafana
     volumes:
-      - ./configs/observability/example_grafana_datasources_config.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./configs/observability/grafana/example_datasources_config.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin

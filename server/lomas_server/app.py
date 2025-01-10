@@ -124,70 +124,27 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
         lomas_app.state.admin_database.save_current_database()
 
-class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Get the current span in the context
-        tracer = trace.get_tracer(__name__)
-        span = tracer.start_span("HTTP Request")
-
-        # Attach custom attributes or log information on the span
-        span.set_attribute("http.method", request.method)
-        span.set_attribute("http.url", str(request.url))
-        span.set_attribute("http.client_ip", request.client.host)
-        user_name = request.headers.get("user_name", "unknown")
-        span.set_attribute("user_name", user_name)
-        LOG.info(f"0 Request received: {request.method} {request.url}")
-
-        # Log a message (optional, you can use any logging framework here)
-        print(f"1 Request received: {request.method} {request.url}")
-
-        try:
-            # Call the next middleware or route handler
-            response = await call_next(request)
-        finally:
-            # End the span after the response is returned
-            span.end()
-
-        return response
-
 resource = Resource(attributes={"app.name": "lomas_server"})
 
 # Initialize OpenTelemetry Traces
-DEBUG_TRACES_OTEL_TO_CONSOLE = False
-DEBUG_TRACES_OTEL_TO_PROVIDER = True
-
 tracer_provider = TracerProvider(resource=resource)
-
-if DEBUG_TRACES_OTEL_TO_CONSOLE:
-    otlp_trace_exporter = ConsoleSpanExporter()
-
-if DEBUG_TRACES_OTEL_TO_PROVIDER:
-    otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
-
-
+otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
 span_processor = BatchSpanProcessor(otlp_trace_exporter)
 tracer_provider.add_span_processor(span_processor)
 trace.set_tracer_provider(tracer_provider)
 
 # Initialize OpenTelemetry Metrics
-DEBUG_METRIC_OTEL_TO_CONSOLE = False
-DEBUG_METRIC_OTEL_TO_PROVIDER = True
-
-if DEBUG_METRIC_OTEL_TO_CONSOLE:
-    exporter = ConsoleMetricExporter()
-
-if DEBUG_METRIC_OTEL_TO_PROVIDER:
-    exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
-
+exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
 reader = PeriodicExportingMetricReader(exporter)
 meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
 metrics.set_meter_provider(meter_provider)
 
-LOG.info(f"THIS IS A TEST")
+meter = metrics.get_meter(__name__)
+counter = meter.create_counter("test_counter", description="My custom counter")
+counter.add(10)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
-app.add_middleware(LoggingMiddleware)
 
 # Add custom exception handlers
 add_exception_handlers(app)

@@ -21,6 +21,10 @@ from lomas_core.models.collections import (
     UserCollection,
 )
 from lomas_core.models.constants import PrivateDatabaseType
+from lomas_core.telemetry import LOG
+from pymongo.database import Database
+from pymongo.results import _WriteResult
+
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,

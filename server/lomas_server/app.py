@@ -23,6 +23,9 @@ from lomas_core.error_handler import (
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
+from lomas_core.telemetry import LOG
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase

@@ -17,6 +17,11 @@ from lomas_core.models.requests import (
     OpenDPRequestModel,
 )
 from lomas_core.models.responses import OpenDPQueryResult
+from lomas_core.telemetry import LOG
+from opendp.metrics import metric_distance_type, metric_type
+from opendp.mod import enable_features
+from opendp_logger import make_load_json
+
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
 

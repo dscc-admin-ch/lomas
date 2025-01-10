@@ -1,26 +1,14 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-
-from opentelemetry import trace, metrics
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
-from starlette.middleware.base import BaseHTTPMiddleware
-
-
+from fastapi import FastAPI
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
-from lomas_core.logger import LOG
 from lomas_core.models.constants import AdminDBType
+from lomas_core.telemetry import LOG
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
@@ -124,24 +112,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
         lomas_app.state.admin_database.save_current_database()
 
-resource = Resource(attributes={"app.name": "lomas_server"})
-
-# Initialize OpenTelemetry Traces
-tracer_provider = TracerProvider(resource=resource)
-otlp_trace_exporter = OTLPSpanExporter(endpoint="http://otel-collector:4317", timeout=10, insecure=True)
-span_processor = BatchSpanProcessor(otlp_trace_exporter)
-tracer_provider.add_span_processor(span_processor)
-trace.set_tracer_provider(tracer_provider)
-
-# Initialize OpenTelemetry Metrics
-exporter = OTLPMetricExporter(endpoint="http://otel-collector:4317", insecure=True)
-reader = PeriodicExportingMetricReader(exporter)
-meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
-metrics.set_meter_provider(meter_provider)
-
-meter = metrics.get_meter(__name__)
-counter = meter.create_counter("test_counter", description="My custom counter")
-counter.add(10)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
@@ -149,10 +119,8 @@ app = FastAPI(lifespan=lifespan)
 # Add custom exception handlers
 add_exception_handlers(app)
 
-# Instrument the FastAPI app for tracing, metrics, and logging
-FastAPIInstrumentor.instrument_app(
-    app, tracer_provider=tracer_provider, meter_provider=meter_provider
-)
+# Instrument the FastAPI app
+FastAPIInstrumentor.instrument_app(app)
 
 # Add endpoints
 app.include_router(routes_dp.router)

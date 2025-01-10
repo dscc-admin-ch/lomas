@@ -28,7 +28,7 @@ def mock_mongodb_and_helpers():
 
 
 def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915
-    """Test the different widgets (add/remove users/datasets/metadata)"""
+    """Test the different widgets (add/remove users/datasets/metadata)."""
 
     # Simulate interaction with the Streamlit app
     at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
@@ -184,7 +184,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
 
 
 def test_layout(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
-    """Test the layout of administration page b"""
+    """Test the layout of administration page b."""
 
     # Simulate interaction with the Streamlit app
     at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()

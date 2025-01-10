@@ -5,7 +5,7 @@ import mongomock
 
 
 def get_mocked_db():
-    """Create a mock mondoDB for testing"""
+    """Create a mock mondoDB for testing."""
     client = mongomock.MongoClient()
     db = client["test_db"]
     return db

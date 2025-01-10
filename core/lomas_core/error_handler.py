@@ -6,13 +6,13 @@ from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
 
 from lomas_core.constants import DPLibraries
-from lomas_core.logger import LOG
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
     InvalidQueryExceptionModel,
     UnauthorizedAccessExceptionModel,
 )
+from lomas_core.telemetry import LOG
 
 
 class InvalidQueryException(Exception):

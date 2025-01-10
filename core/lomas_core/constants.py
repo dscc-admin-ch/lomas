@@ -1,4 +1,11 @@
+import os
 from enum import StrEnum
+
+OTLP_COLLECTOR_ENDPOINT = os.getenv(
+    "OTEL_COLLECTOR_ENDPOINT", "http://otel-collector:4317"
+)
+SERVICE_NAME = os.getenv("SERVICE_NAME", "lomas-server-app")
+SERVICE_ID = os.getenv("HOSTNAME", "unknown-instance")
 
 # Server error messages
 INTERNAL_SERVER_ERROR = (

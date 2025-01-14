@@ -1,7 +1,7 @@
 import logging
 
 import uvicorn
-from lomas_core.telemetry import LOG
+from lomas_core.instrumentation import LOG
 
 from lomas_server.utils.config import get_config
 

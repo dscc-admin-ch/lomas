@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from lomas_core.constants import SERVICE_NAME
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
@@ -23,6 +24,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 )
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.utils.config import get_config
+from lomas_server.utils.metrics import MetricMiddleware
 
 
 @asynccontextmanager
@@ -115,6 +117,9 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
+
+# Setting metrics middleware
+app.add_middleware(MetricMiddleware, app_name=SERVICE_NAME)
 
 # Add custom exception handlers
 add_exception_handlers(app)

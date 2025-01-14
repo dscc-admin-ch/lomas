@@ -141,8 +141,6 @@ services:
       - "chown"
       - "10001:10001"
       - "/var/tempo"
-    volumes:
-      - tempo-data:/var/tempo
     networks:
       - lomas-network
 
@@ -152,7 +150,6 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./configs/observability/example_tempo_config.yaml:/etc/tempo.yaml
-      - tempo-data:/var/tempo
     expose:
       - 3200
       - 4317
@@ -164,15 +161,15 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector:latest
     container_name: otel-collector
-    expose:
-      - 4317:4317
-      - 4318:4318
-      - 13133:13133 # health_check extension
-      - 1777:1777 # pprof extension 
-      - 55679:55679 # zpages extension
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133" # health_check extension
+      - "1777:1777" # pprof extension 
+      - "55679:55679" # zpages extension
+      - "9091:9090" # prometheus 
     volumes:
       - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
-      - loki-data:/tmp/loki
     command: ["--config=/etc/otel/config.yaml"]
     depends_on:
       tempo:
@@ -185,7 +182,7 @@ services:
   loki:
     image: grafana/loki:latest
     container_name: loki
-    expose:
+    ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
@@ -204,8 +201,8 @@ services:
       - --enable-feature=otlp-write-receive
     volumes:
       - ./configs/observability/example_prometheus_config.yaml:/etc/prometheus.yaml
-    expose:
-      - 9090
+    ports:
+      - "9090:9090"
     networks:
       - lomas-network
 
@@ -236,5 +233,3 @@ volumes:
     external: true
   minio-data:
     external: true
-  tempo-data: null
-  loki-data: null

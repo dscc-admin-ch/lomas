@@ -21,7 +21,7 @@ exporters:
 
   prometheus:
     endpoint: "0.0.0.0:9090"
-    namespace: default
+    namespace: lomas_server
 
   otlphttp/loki:
     endpoint: http://loki:3100/otlp

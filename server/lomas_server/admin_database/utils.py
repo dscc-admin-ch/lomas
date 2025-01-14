@@ -1,6 +1,6 @@
 from lomas_core.error_handler import InternalServerException
+from lomas_core.instrumentation import LOG
 from lomas_core.models.config import MongoDBConfig
-from lomas_core.telemetry import LOG
 from pymongo import MongoClient
 from pymongo.database import Database
 

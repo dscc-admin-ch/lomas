@@ -9,13 +9,13 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
+from lomas_core.instrumentation import LOG
 from lomas_core.models.config import OpenDPConfig
 from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )
 from lomas_core.models.responses import OpenDPQueryResult
-from lomas_core.telemetry import LOG
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json

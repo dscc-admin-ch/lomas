@@ -12,13 +12,13 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
+from lomas_core.instrumentation import LOG
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_core.telemetry import LOG
 from opentelemetry.trace import get_tracer
 from starlette.middleware.base import BaseHTTPMiddleware
 

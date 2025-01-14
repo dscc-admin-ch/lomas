@@ -12,7 +12,7 @@ from lomas_core.models.exceptions import (
     InvalidQueryExceptionModel,
     UnauthorizedAccessExceptionModel,
 )
-from lomas_core.telemetry import LOG
+from lomas_core.instrumentation import LOG
 
 
 class InvalidQueryException(Exception):

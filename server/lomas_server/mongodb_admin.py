@@ -6,6 +6,7 @@ from warnings import warn
 import boto3
 import yaml
 from lomas_core.error_handler import InternalServerException
+from lomas_core.instrumentation import LOG
 from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,
@@ -17,7 +18,6 @@ from lomas_core.models.collections import (
     UserCollection,
 )
 from lomas_core.models.constants import PrivateDatabaseType
-from lomas_core.telemetry import LOG
 from pymongo.database import Database
 from pymongo.results import _WriteResult
 

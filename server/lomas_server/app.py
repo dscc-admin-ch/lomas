@@ -7,8 +7,8 @@ from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
+from lomas_core.instrumentation import LOG
 from lomas_core.models.constants import AdminDBType
-from lomas_core.telemetry import LOG
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from lomas_server.admin_database.factory import admin_database_factory

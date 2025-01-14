@@ -23,6 +23,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
 from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.routes.utils import LoggingAndTracingMiddleware
 from lomas_server.utils.config import get_config
 from lomas_server.utils.metrics import MetricMiddleware
 
@@ -120,6 +121,7 @@ app = FastAPI(lifespan=lifespan)
 
 # Setting metrics middleware
 app.add_middleware(MetricMiddleware, app_name=SERVICE_NAME)
+app.add_middleware(LoggingAndTracingMiddleware)
 
 # Add custom exception handlers
 add_exception_handlers(app)

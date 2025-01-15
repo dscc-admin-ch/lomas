@@ -14,10 +14,10 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from lomas_core.constants import OTLP_COLLECTOR_ENDPOINT, SERVICE_ID, SERVICE_NAME
+from lomas_core.constants import OTLP_COLLECTOR_ENDPOINT
 
 
-def get_ressource():
+def get_ressource(service_name: str, host_name: str):
     """
     Creates a Resource object with metadata describing the service.
 
@@ -25,7 +25,7 @@ def get_ressource():
         Resource: The resource object containing service metadata.
     """
     return Resource.create(
-        {"service.name": SERVICE_NAME, "service.instance.id": SERVICE_ID}
+        {"service.name": service_name, "service.instance.id": host_name}
     )
 
 
@@ -73,15 +73,14 @@ def init_logs_exporter(resource: Resource) -> None:
     logging.getLogger().addHandler(handler)
 
 
-def init_telemetry() -> None:
-    """Initializes all OpenTelemetry exporters with a shared resource."""
-    resource = get_ressource()
+def init_telemetry(resource: Resource) -> None:
+    """
+    Initializes all OpenTelemetry exporters with a shared resource.
+
+    Args:
+        resource (Resource): The resource to associate with the app and instance.
+    """
 
     init_traces_exporter(resource)
     init_metrics_exporter(resource)
     init_logs_exporter(resource)
-
-
-# Initialize telemetry and configure the root logger
-init_telemetry()
-LOG = logging.getLogger()

@@ -1,7 +1,6 @@
 import time
 from typing import Tuple
 
-from lomas_core.constants import SERVICE_NAME
 from opentelemetry import metrics
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -9,32 +8,34 @@ from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
+from lomas_server.constants import SERVER_SERVICE_NAME
+
 # Create a meter for the application
 meter = metrics.get_meter(__name__)
 
 # Define the metrics using OpenTelemetry API
-requests_counter = meter.create_counter(
-    "fastapi_requests_total",
+REQUESTS_COUNTER = meter.create_counter(
+    "requests_total",
     description="Total count of requests by method and path",
 )
 
-responses_counter = meter.create_counter(
-    "fastapi_responses_total",
+RESPONSES_COUNTER = meter.create_counter(
+    "responses_total",
     description="Total count of responses by method, path, and status code",
 )
 
-exceptions_counter = meter.create_counter(
-    "fastapi_exceptions_total",
+EXCEPTION_COUNTER = meter.create_counter(
+    "exceptions_total",
     description="Total count of exceptions raised by path and exception type",
 )
 
-requests_processing_histogram = meter.create_histogram(
-    "fastapi_requests_duration_seconds",
+REQUESTS_PROCESSING_HISTOGRAM = meter.create_histogram(
+    "requests_duration_seconds",
     description="Histogram of requests processing time by path",
 )
 
-requests_in_progress_gauge = meter.create_up_down_counter(
-    "fastapi_requests_in_progress",
+REQUESTS_IN_PROGRESS_GAUGE = meter.create_up_down_counter(
+    "requests_in_progress",
     description="Gauge of requests currently being processed",
 )
 
@@ -54,7 +55,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
     to a metrics collector (e.g., Prometheus or any other OTLP-compatible collector).
     """
 
-    def __init__(self, app: ASGIApp, app_name: str = SERVICE_NAME) -> None:
+    def __init__(self, app: ASGIApp, app_name: str = SERVER_SERVICE_NAME) -> None:
         """
         Initializes the MetricMiddleware.
 
@@ -69,9 +70,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         """
-        Processes the incoming HTTP request, records metrics,.
-
-        and returns the HTTP response.
+        Processes HTTP request, records metrics and returns the HTTP response.
 
         This method performs the following steps:
         1. Tracks the current request in progress using the
@@ -103,10 +102,10 @@ class MetricMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Track requests being processed
-        requests_in_progress_gauge.add(
+        REQUESTS_IN_PROGRESS_GAUGE.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
-        requests_counter.add(
+        REQUESTS_COUNTER.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
 
@@ -115,7 +114,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except BaseException as e:
-            exceptions_counter.add(
+            EXCEPTION_COUNTER.add(
                 1,
                 {
                     "method": method,
@@ -130,13 +129,13 @@ class MetricMiddleware(BaseHTTPMiddleware):
             after_time = time.perf_counter()
 
             # Record request processing time
-            requests_processing_histogram.record(
+            REQUESTS_PROCESSING_HISTOGRAM.record(
                 after_time - before_time,
                 {"method": method, "path": path, "app_name": self.app_name},
             )
 
         finally:
-            responses_counter.add(
+            RESPONSES_COUNTER.add(
                 1,
                 {
                     "method": method,
@@ -145,7 +144,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
                     "app_name": self.app_name,
                 },
             )
-            requests_in_progress_gauge.add(
+            REQUESTS_IN_PROGRESS_GAUGE.add(
                 -1, {"method": method, "path": path, "app_name": self.app_name}
             )
 

@@ -1,5 +1,8 @@
+import logging
+
 import requests
 from lomas_core.models.requests import LomasRequestModel
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 
@@ -13,6 +16,8 @@ class LomasHttpClient:
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.headers["user-name"] = user_name
         self.dataset_name = dataset_name
+
+        RequestsInstrumentor().instrument()
 
     def post(
         self,
@@ -35,6 +40,12 @@ class LomasHttpClient:
         Returns:
             requests.Response: The response object resulting from the POST request.
         """
+        logging.info(
+            f"User '{self.headers["user-name"]}' is making a request "
+            + f"to url '{self.url}' "
+            + f"at the endpoint '{endpoint}' "
+            + f"with query params: {body.model_dump()}."
+        )
         r = requests.post(
             self.url + "/" + endpoint,
             json=body.model_dump(),

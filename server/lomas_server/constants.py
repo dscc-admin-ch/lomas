@@ -17,6 +17,9 @@ if "LOMAS_SECRETS_PATH" in os.environ:
 else:
     SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
 
+SERVER_SERVICE_NAME = os.getenv("SERVER_SERVICE_NAME", "lomas-server-app")
+SERVICE_ID = os.getenv("HOSTNAME", "default-host")
+
 
 # Misc
 # -----------------------------------------------------------------------------

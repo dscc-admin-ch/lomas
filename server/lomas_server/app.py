@@ -1,13 +1,13 @@
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from lomas_core.constants import SERVICE_NAME
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
-from lomas_core.instrumentation import LOG
+from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -18,6 +18,8 @@ from lomas_server.constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     SERVER_LIVE,
+    SERVER_SERVICE_NAME,
+    SERVICE_ID,
 )
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -42,7 +44,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     functions, which check the server state.
     """
     # Startup
-    LOG.info("Startup message")
+    logging.info("Startup message")
 
     # Set some app state
     lomas_app.state.admin_database = None
@@ -58,12 +60,12 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     status_ok = True
     # Load config
     try:
-        LOG.info("Loading config")
+        logging.info("Loading config")
         lomas_app.state.server_state["message"].append("Loading config")
         config = get_config()
         lomas_app.state.private_credentials = config.private_db_credentials
     except InternalServerException:
-        LOG.info("Config could not loaded")
+        logging.info("Config could not loaded")
         lomas_app.state.server_state["state"].append(CONFIG_NOT_LOADED)
         lomas_app.state.server_state["message"].append("Server could not be started!")
         lomas_app.state.server_state["LIVE"] = False
@@ -71,10 +73,10 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
     # Fill up user database if in develop mode ONLY
     if status_ok and config.develop_mode:
-        LOG.info("!! Develop mode ON !!")
+        logging.info("!! Develop mode ON !!")
         lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
-            LOG.info("Adding demo data to MongoDB Admin")
+            logging.info("Adding demo data to MongoDB Admin")
             lomas_app.state.server_state["message"].append(
                 "Adding demo data to MongoDB Admin"
             )
@@ -83,13 +85,13 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     # Load admin database
     if status_ok:
         try:
-            LOG.info("Loading admin database")
+            logging.info("Loading admin database")
             lomas_app.state.server_state["message"].append("Loading admin database")
             lomas_app.state.admin_database = admin_database_factory(
                 config.admin_database
             )
         except InternalServerException as e:
-            LOG.exception(f"Failed at startup: {str(e)}")
+            logging.exception(f"Failed at startup: {str(e)}")
             lomas_app.state.server_state["state"].append(DB_NOT_LOADED)
             lomas_app.state.server_state["message"].append(
                 f"Admin database could not be loaded: {str(e)}"
@@ -104,7 +106,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     set_opendp_features_config(config.dp_libraries.opendp)
 
     if status_ok:
-        LOG.info("Server start condition OK")
+        logging.info("Server start condition OK")
         lomas_app.state.server_state["state"].append(SERVER_LIVE)
         lomas_app.state.server_state["message"].append("Server start condition OK")
         lomas_app.state.server_state["LIVE"] = True
@@ -116,11 +118,15 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.admin_database.save_current_database()
 
 
+# Initalise telemetry
+resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
+init_telemetry(resource)
+
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
 
 # Setting metrics middleware
-app.add_middleware(MetricMiddleware, app_name=SERVICE_NAME)
+app.add_middleware(MetricMiddleware, app_name=SERVER_SERVICE_NAME)
 app.add_middleware(LoggingAndTracingMiddleware)
 
 # Add custom exception handlers

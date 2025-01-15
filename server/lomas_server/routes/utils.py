@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import time
 from collections.abc import AsyncGenerator
@@ -11,7 +12,6 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_core.instrumentation import LOG
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -56,11 +56,14 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
         route = request.url.path
 
         query_params = await request.json()
-        for param, value in query_params.items():
-            if isinstance(value, dict):
-                query_params[param] = json.dumps(value)
+        if query_params is not None:
+            for param, value in query_params.items():
+                if value is None:
+                    query_params[param] = ""
+                if isinstance(value, dict):
+                    query_params[param] = json.dumps(value)
 
-        LOG.info(
+        logging.info(
             f"User '{user_name}' is making a request to route '{route}' "
             + f"with query params: {query_params}."
         )

@@ -163,6 +163,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
+    def test_unknown_endpoint(self) -> None:
+        """Test endpoint that does not exist."""
+        with TestClient(app, headers=self.headers) as client:
+            response = client.get("/idonotexist", headers=self.headers)
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+            assert response.json() == {"detail": "Not Found"}
+
     def test_get_dataset_metadata(self) -> None:
         """Test_get_dataset_metadata."""
         with TestClient(app) as client:

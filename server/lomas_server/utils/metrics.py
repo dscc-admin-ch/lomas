@@ -11,37 +11,35 @@ from starlette.types import ASGIApp
 
 from lomas_server.constants import SERVER_SERVICE_NAME
 
-# Create a meter for the application
 meter = metrics.get_meter(__name__)
 
-# Define the metrics using OpenTelemetry API
-REQUESTS_COUNTER = meter.create_counter(
+FAST_API_REQUESTS_COUNTER = meter.create_counter(
     "requests_total",
     description="Total count of requests by method and path",
 )
 
-RESPONSES_COUNTER = meter.create_counter(
+FAST_API_RESPONSES_COUNTER = meter.create_counter(
     "responses_total",
     description="Total count of responses by method, path, and status code",
 )
 
-EXCEPTION_COUNTER = meter.create_counter(
+FAST_API_EXCEPTION_COUNTER = meter.create_counter(
     "exceptions_total",
     description="Total count of exceptions raised by path and exception type",
 )
 
-REQUESTS_PROCESSING_HISTOGRAM = meter.create_histogram(
+FAST_API_REQUESTS_PROCESSING_HISTOGRAM = meter.create_histogram(
     "requests_duration_seconds",
     description="Histogram of requests processing time by path",
 )
 
-REQUESTS_IN_PROGRESS_GAUGE = meter.create_up_down_counter(
+FAST_API_REQUESTS_IN_PROGRESS_GAUGE = meter.create_up_down_counter(
     "requests_in_progress",
     description="Gauge of requests currently being processed",
 )
 
 
-class MetricMiddleware(BaseHTTPMiddleware):
+class FastAPIMetricMiddleware(BaseHTTPMiddleware):
     """
     Middleware to collect and expose Prometheus metrics for a FastAPI application.
 
@@ -103,10 +101,10 @@ class MetricMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Track requests being processed
-        REQUESTS_IN_PROGRESS_GAUGE.add(
+        FAST_API_REQUESTS_IN_PROGRESS_GAUGE.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
-        REQUESTS_COUNTER.add(
+        FAST_API_REQUESTS_COUNTER.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
 
@@ -115,7 +113,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except KNOWN_EXCEPTIONS as e:
-            EXCEPTION_COUNTER.add(
+            FAST_API_EXCEPTION_COUNTER.add(
                 1,
                 {
                     "method": method,
@@ -130,13 +128,13 @@ class MetricMiddleware(BaseHTTPMiddleware):
             after_time = time.perf_counter()
 
             # Record request processing time
-            REQUESTS_PROCESSING_HISTOGRAM.record(
+            FAST_API_REQUESTS_PROCESSING_HISTOGRAM.record(
                 after_time - before_time,
                 {"method": method, "path": path, "app_name": self.app_name},
             )
 
         finally:
-            RESPONSES_COUNTER.add(
+            FAST_API_RESPONSES_COUNTER.add(
                 1,
                 {
                     "method": method,
@@ -145,7 +143,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
                     "app_name": self.app_name,
                 },
             )
-            REQUESTS_IN_PROGRESS_GAUGE.add(
+            FAST_API_REQUESTS_IN_PROGRESS_GAUGE.add(
                 -1, {"method": method, "path": path, "app_name": self.app_name}
             )
 

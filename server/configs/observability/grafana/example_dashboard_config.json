@@ -375,7 +375,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "lomas_server_fastapi_requests_total{method=\"POST\"}",
+          "expr": "lomas_server_requests_total{method=\"POST\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": true,
@@ -471,7 +471,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "lomas_server_fastapi_requests_duration_seconds_sum{}",
+          "expr": "lomas_server_requests_duration_seconds_sum{}",
           "instant": true,
           "legendFormat": "__auto",
           "range": true,
@@ -514,6 +514,6 @@
   "timezone": "browser",
   "title": "Lomas Dashboard",
   "uid": "ae9kn98ku2n7ka",
-  "version": 4,
+  "version": 3,
   "weekStart": ""
 }

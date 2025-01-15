@@ -1,3 +1,5 @@
+import logging
+
 import opendp as dp
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
@@ -9,7 +11,6 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.instrumentation import LOG
 from lomas_core.models.config import OpenDPConfig
 from lomas_core.models.requests import (
     OpenDPQueryModel,
@@ -59,8 +60,10 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
         except Exception as e:
-            LOG.exception(e)
-            raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
+            logging.exception(e)
+            raise ExternalLibraryException(
+                DPLibraries.OPENDP, "Error obtaining cost:" + str(e)
+            ) from e
 
         # Cost interpretation
         match measurement_type:
@@ -101,7 +104,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         try:
             release_data = opendp_pipe(input_data)
         except Exception as e:
-            LOG.exception(e)
+            logging.exception(e)
             raise ExternalLibraryException(
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
@@ -121,7 +124,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
     """
     if not isinstance(pipeline, dp.Measurement):
         e = "The pipeline provided is not a measurement. It cannot be processed in this server."
-        LOG.exception(e)
+        logging.exception(e)
         raise InvalidQueryException(e)
 
 
@@ -142,7 +145,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             + f" but {distance_type} which is not a valid distance type for datasets."
             + " It cannot be processed in this server."
         )
-        LOG.exception(e)
+        logging.exception(e)
         raise InvalidQueryException(e)
 
     dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
@@ -151,7 +154,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             f"The input distance metric {pipeline.input_metric} is not a dataset"
             + " input metric. It cannot be processed in this server."
         )
-        LOG.exception(e)
+        logging.exception(e)
         raise InvalidQueryException(e)
 
 

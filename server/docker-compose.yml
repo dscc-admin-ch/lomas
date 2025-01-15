@@ -10,7 +10,7 @@ services:
       - 80:80
     restart: always
     environment:
-      - SERVICE_NAME=lomas-server-app
+      - SERVER_SERVICE_NAME=lomas-server-app
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
       - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
@@ -120,6 +120,8 @@ services:
       target: lomas_client_dev
       context: ../
     container_name: lomas_client
+    environment:
+      - CLIENT_SERVICE_NAME=lomas-client
     ports:
       - 8888:8888
     volumes:

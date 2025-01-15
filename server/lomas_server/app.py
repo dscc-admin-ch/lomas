@@ -2,6 +2,7 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+<<<<<<< HEAD
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from fastapi import FastAPI, Request
 
@@ -11,6 +12,9 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
 from starlette.middleware.base import BaseHTTPMiddleware
 
+=======
+from fastapi import FastAPI
+>>>>>>> cc77eaf6 (add requirements version, replace LOG by logging, fix logging middleware, fix dashboard)
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
@@ -88,7 +92,13 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             logging.info("Adding demo data to MongoDB Admin")
+<<<<<<< HEAD
             lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
+=======
+            lomas_app.state.server_state["message"].append(
+                "Adding demo data to MongoDB Admin"
+            )
+>>>>>>> cc77eaf6 (add requirements version, replace LOG by logging, fix logging middleware, fix dashboard)
             add_demo_data_to_mongodb_admin()
 
     # Load admin database
@@ -148,6 +158,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         return response
 
+
+# Initalise telemetry
+resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
+init_telemetry(resource)
 
 # Initalise telemetry
 resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)

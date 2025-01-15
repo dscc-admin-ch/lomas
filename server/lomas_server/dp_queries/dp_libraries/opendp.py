@@ -11,7 +11,6 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.instrumentation import LOG
 from lomas_core.models.config import OpenDPConfig
 from lomas_core.models.requests import (
     OpenDPQueryModel,

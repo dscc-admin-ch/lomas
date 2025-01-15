@@ -10,7 +10,6 @@ from pymongo.database import Database
 from pymongo.results import _WriteResult
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.instrumentation import LOG
 from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,

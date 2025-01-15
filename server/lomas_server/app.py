@@ -27,7 +27,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.routes.utils import LoggingAndTracingMiddleware
 from lomas_server.utils.config import get_config
-from lomas_server.utils.metrics import MetricMiddleware
+from lomas_server.utils.metrics import FastAPIMetricMiddleware
 
 
 @asynccontextmanager
@@ -122,7 +122,7 @@ init_telemetry(resource)
 app = FastAPI(lifespan=lifespan)
 
 # Setting metrics middleware
-app.add_middleware(MetricMiddleware, app_name=SERVER_SERVICE_NAME)
+app.add_middleware(FastAPIMetricMiddleware, app_name=SERVER_SERVICE_NAME)
 app.add_middleware(LoggingAndTracingMiddleware)
 
 # Add custom exception handlers

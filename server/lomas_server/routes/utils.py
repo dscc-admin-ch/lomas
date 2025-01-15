@@ -56,13 +56,15 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
         user_name = request.headers.get("user-name")
         route = request.url.path
 
-        query_params = await request.json()
-        if query_params is not None:
-            for param, value in query_params.items():
-                if value is None:
-                    query_params[param] = ""
-                if isinstance(value, dict):
-                    query_params[param] = json.dumps(value)
+        try:
+            query_params = await request.json()
+        except (json.JSONDecodeError, ValueError):
+            query_params = {}
+        for param, value in query_params.items():
+            if value is None:
+                query_params[param] = ""
+            if isinstance(value, dict):
+                query_params[param] = json.dumps(value)
 
         logging.info(
             f"User '{user_name}' is making a request to route '{route}' "

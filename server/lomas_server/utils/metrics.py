@@ -1,6 +1,7 @@
 import time
 from typing import Tuple
 
+from lomas_core.error_handler import KNOWN_EXCEPTIONS
 from opentelemetry import metrics
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -113,7 +114,7 @@ class MetricMiddleware(BaseHTTPMiddleware):
 
         try:
             response = await call_next(request)
-        except BaseException as e:
+        except KNOWN_EXCEPTIONS as e:
             EXCEPTION_COUNTER.add(
                 1,
                 {

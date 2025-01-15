@@ -215,7 +215,7 @@
           "refId": "A"
         }
       ],
-      "title": "Lomas Logs",
+      "title": "Lomas Warn, Error and Fatal Logs",
       "type": "logs"
     },
     {
@@ -514,6 +514,6 @@
   "timezone": "browser",
   "title": "Lomas Dashboard",
   "uid": "ae9kn98ku2n7ka",
-  "version": 3,
+  "version": 2,
   "weekStart": ""
 }

@@ -1,12 +1,12 @@
 name: Server Tests
 
-on: 
+on:
   pull_request:
   push:
     branches:
       - master
   workflow_dispatch:
-  
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -20,16 +20,16 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
-    - uses: actions/setup-python@v5
+      uses: actions/checkout@v4
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: '3.12'
+        python-version: 3.12
     - name: Install dependencies
       run: |
-        pip install -r core/requirements_core.txt
-        pip install -r server/requirements_server.txt
-        pip install -r server/requirements_streamlit.txt
-        pip install coverage==7.5.3
+        uv pip install -r core/requirements_core.txt
+        uv pip install -r server/requirements_server.txt
+        uv pip install -r server/requirements_streamlit.txt
+        uv pip install coverage==7.5.3
     - name: Run test script
       run: |
         cd server

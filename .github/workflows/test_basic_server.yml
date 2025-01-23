@@ -1,9 +1,9 @@
 name: Server Testing
 
-on: 
+on:
   pull_request:
   workflow_dispatch:
-  
+
 jobs:
   tests:
     name: Run tests on Python ${{ matrix.python-version }}
@@ -14,18 +14,18 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
-        pip install -r core/requirements_core.txt
-        pip install -r server/requirements_server.txt
-        pip install -r server/requirements_streamlit.txt
+        uv pip install -r core/requirements_core.txt
+        uv pip install -r server/requirements_server.txt
+        uv pip install -r server/requirements_streamlit.txt
     - name: Run test script
       run: |
         cd server

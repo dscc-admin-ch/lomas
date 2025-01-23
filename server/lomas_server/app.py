@@ -42,7 +42,6 @@ from lomas_server.routes.middlewares import (
     LoggingAndTracingMiddleware,
 )
 from lomas_server.utils.config import get_config
-from lomas_server.utils.metrics import FastAPIMetricMiddleware
 
 
 @asynccontextmanager

@@ -1,12 +1,12 @@
 name: Generate docs and push to dedicated repo for publishing
 
-on: 
-  push: 
+on:
+  push:
     branches:
       - develop
       - master
   release:
-    types: 
+    types:
       - published
 
 jobs:
@@ -16,21 +16,21 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Python 12
-      uses: actions/setup-python@v5
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: "3.12"
+        python-version: 3.12
     - name: Install dependencies
       run: |
-        pip install -r core/requirements_core.txt
-        pip install -r client/requirements_client.txt
-        pip install -r server/requirements_server.txt
+        uv pip install -r core/requirements_core.txt
+        uv pip install -r client/requirements_client.txt
+        uv pip install -r server/requirements_server.txt
 
     - name: Build with sphinx
       run: |
         sudo apt-get install pandoc
-        pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser        
+        uv pip install sphinx nbsphinx sphinx-rtd-theme sphinxcontrib.napoleon myst-parser
         cd docs
         python3.12 build_docs.py
         cd ../pages/
@@ -45,4 +45,4 @@ jobs:
         destination-repository-name: 'lomas-docs'
         target-branch: main
         target-directory: html
-   
+

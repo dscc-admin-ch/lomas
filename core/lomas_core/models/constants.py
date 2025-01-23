@@ -54,15 +54,15 @@ class Precision(IntEnum):
 class ConfigKeys(StrEnum):
     """Keys of the configuration file."""
 
-    RUNTIME_ARGS: str = "runtime_args"
-    SETTINGS: str = "settings"
+    RUNTIME_ARGS = "runtime_args"
+    SETTINGS = "settings"
 
 
 class AdminDBType(StrEnum):
     """Types of administration databases."""
 
-    YAML: str = "yaml"
-    MONGODB: str = "mongodb"
+    YAML = "yaml"
+    MONGODB = "mongodb"
 
 
 class TimeAttackMethod(StrEnum):

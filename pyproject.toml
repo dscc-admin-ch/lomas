@@ -17,7 +17,6 @@ max-line-length = 110
 
 [tool.mypy]
 disable_error_code = ["import-untyped", "import-not-found"]
-mypy_path = "core/"
 
 [[tool.mypy.overrides]]
 module = "lomas_server.tests.*"
@@ -32,7 +31,7 @@ disable = [
     "W0102",  # dangerous-default-value
     "R0801",  # duplicate-code
     "R0913",  # too-many-arguments
-    "R0914"   # too-many-locals
+    "R0914",   # too-many-locals
     "E0401",  # import-error
     "C0114",  # missing-module-docstring
     "R0903",  # too-few-public-methods

@@ -22,24 +22,23 @@ disable_error_code = ["import-untyped", "import-not-found"]
 module = "lomas_server.tests.*"
 disable_error_code = ["arg-type", "attr-defined"]
 
-[tool.pylint.MASTER]
+[tool.pylint.main]
 ignore-patterns = "test_*.py"
 max-line-length = 110
 
-[tool.pylint."MESSAGES CONTROL"]
+[tool.pylint."messages control"]
 disable = [
-    "W0102",  # dangerous-default-value
-    "R0801",  # duplicate-code
-    "R0913",  # too-many-arguments
-    "R0914",   # too-many-locals
-    "E0401",  # import-error
-    "C0114",  # missing-module-docstring
-    "R0903",  # too-few-public-methods
-    "E0611",  # no-name-in-module
-    "W0511",  # fixme
-    "C0302",  # too-many-lines
-    "W1203",  # use lazy % formatting in logging functions
-    "duplicate-code"  # duplicate-code
+    "fixme",
+    "import-error",
+    "duplicate-code",
+    "too-many-lines",
+    "too-many-locals",
+    "no-name-in-module",
+    "too-many-arguments",
+    "too-few-public-methods",
+    "dangerous-default-value",
+    "missing-module-docstring",
+    "logging-fstring-interpolation",
 ]
 
 [tool.pydocstringformatter]

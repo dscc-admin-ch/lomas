@@ -4,7 +4,6 @@ from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
-from opentelemetry import metrics
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
@@ -22,31 +21,11 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
-
-meter = metrics.get_meter(__name__)
-
-MONGO_QUERY_COUNTER = meter.create_counter(
-    name="mongodb_query_count",
-    description="Number of MongoDB queries executed",
-    unit="queries",
-)
-
-MONGO_INSERT_COUNTER = meter.create_counter(
-    name="mongodb_insert_count",
-    description="Number of MongoDB insert operations executed",
-    unit="inserts",
-)
-
-MONGO_UPDATE_COUNTER = meter.create_counter(
-    name="mongodb_update_count",
-    description="Number of MongoDB update operations executed",
-    unit="updates",
-)
-
-MONGO_ERROR_COUNTER = meter.create_counter(
-    name="mongodb_error_count",
-    description="Number of MongoDB errors encountered",
-    unit="errors",
+from lomas_server.utils.metrics import (
+    MONGO_ERROR_COUNTER,
+    MONGO_INSERT_COUNTER,
+    MONGO_QUERY_COUNTER,
+    MONGO_UPDATE_COUNTER,
 )
 
 

@@ -25,9 +25,11 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
 from lomas_server.routes import routes_admin, routes_dp
-from lomas_server.routes.utils import LoggingAndTracingMiddleware
+from lomas_server.routes.middlewares import (
+    FastAPIMetricMiddleware,
+    LoggingAndTracingMiddleware,
+)
 from lomas_server.utils.config import get_config
-from lomas_server.utils.metrics import FastAPIMetricMiddleware
 
 
 @asynccontextmanager

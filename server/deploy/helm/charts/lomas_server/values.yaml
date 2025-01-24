@@ -175,274 +175,21 @@ dashboard:
   tolerations: []
   affinity: {}
 
-
-# Grafana
-##########################################################################
-grafana:
-  adminPassword: "admin"  # Set a secure password
-  service:
-    type: LoadBalancer  # Expose Grafana externally
-  persistence:
-    enabled: true
-  datasources: 
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          uid: prometheus
-          access: proxy
-          orgId: 1
-          url: http://prometheus:9090
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: false
-          jsonData:
-            httpMethod: GET
-        - name: Tempo
-          type: tempo
-          access: proxy
-          orgId: 1
-          url: http://tempo:3200
-          basicAuth: false
-          isDefault: true
-          version: 1
-          editable: false
-          apiVersion: 1
-          uid: tempo
-          jsonData:
-            httpMethod: GET
-            serviceMap:
-              datasourceUid: prometheus
-            streamingEnabled:
-              search: true
-        - name: Loki
-          type: loki
-          access: proxy
-          url: http://loki:3100
-          jsonData:
-            httpHeaderName1: "X-Scope-OrgID"
-          secureJsonData:
-            httpHeaderValue1: "tenant1"
-  dashboards:
-    default:
-      prometheus-overview:
-        gnetId: 3662   # Example Prometheus dashboard from Grafana Labs
-        revision: 2
-        datasource: Prometheus
-  env:
-    GF_SECURITY_ADMIN_USER: admin
-    GF_SECURITY_ADMIN_PASSWORD: admin
-  serviceMonitor:
-    enabled: true  # Enable if using Prometheus Operator
-
-# Prometheus
-##########################################################################
-prometheus:
-  global:
-    scrape_interval: 10s
-    evaluation_interval: 10s
-
-  scrape_configs:
-    - job_name: 'prometheus'
-      static_configs:
-        - targets: ['localhost:9090']
-
-    - job_name: 'tempo'
-      static_configs:
-        - targets: ['tempo:3200']
-
-    - job_name: 'otel-collector'
-      static_configs:
-        - targets: ['otel-collector:9090']
-
-  server:
-    service:
-      type: ClusterIP  # Use LoadBalancer if external access is required
-      ports:
-        - name: web
-          port: 9090
-          targetPort: 9090
-          
-  persistence:
-    enabled: true
-    size: 8Gi  # Adjust this depending on your data retention needs
-    storageClass: standard  # Set your desired storage class
-  
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 250m
-      memory: 512Mi
-
-  alerting:
-    alertmanagers:
-      - namespace: monitoring
-        name: alertmanager
-        port: 9093
-
-# Loki
-##########################################################################
-loki:
-  auth_enabled: false
-
-  limits_config:
-    allow_structured_metadata: true
-    volume_enabled: true
-
-  server:
-    http_listen_port: 3100
-
-  commonConfig:
-    replication_factor: 1
-    path_prefix: /tmp/loki
-    ring:
-      instance_addr: 0.0.0.0
-      kvstore:
-        store: inmemory
-
-  schemaConfig:
-    configs:
-      - from: "2025-01-10"
-        store: tsdb
-        object_store: filesystem
-        schema: v13
-        index:
-          prefix: index_
-          period: 24h
-
-  storageConfig:
-    tsdb_shipper:
-      active_index_directory: /tmp/loki/index
-      cache_location: /tmp/loki/index_cache
-    filesystem:
-      directory: /tmp/loki/chunks
-
-  pattern_ingester:
-    enabled: true
-
-  persistence:
-    enabled: true  # Enable persistence for Loki data
-    size: 10Gi     # Adjust size as needed
-    storageClass: standard  # Use appropriate storage class for your cluster
-
-  service:
-    type: ClusterIP  # Use LoadBalancer if external access is needed
-    ports:
-      - name: http
-        port: 3100
-        targetPort: 3100
-
-# Tempo
-##########################################################################
-tempo:
-  stream_over_http_enabled: true
-
-  server:
-    http_listen_port: 3200
-    log_level: info
-
-  query_frontend:
-    search:
-      duration_slo: 5s
-      throughput_bytes_slo: 1.073741824e+09
-      metadata_slo:
-        duration_slo: 5s
-        throughput_bytes_slo: 1.073741824e+09
-    trace_by_id:
-      duration_slo: 5s
-
-  distributor:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: "tempo:4317"
-
-  ingester:
-    max_block_duration: 5m
-
-  compactor:
-    compaction:
-      block_retention: 1h
-
-  metrics_generator:
-    registry:
-      external_labels:
-        source: tempo
-    storage:
-      path: /var/tempo/generator/wal
-      remote_write:
-        - url: http://prometheus:9090/api/v1/write
-          send_exemplars: true
-    traces_storage:
-      path: /var/tempo/generator/traces
-
-  storage:
-    trace:
-      backend: local
-      wal:
-        path: /var/tempo/wal
-      local:
-        path: /var/tempo/blocks
-
-  overrides:
-    defaults:
-      metrics_generator:
-        processors: [service-graphs, span-metrics, local-blocks]
-        generate_native_histograms: both
-
-  persistence:
-    enabled: true
-    size: 10Gi  # Adjust as needed
-    storageClass: standard  # Adjust as per your Kubernetes setup
-
-  resources:
-    limits:
-      cpu: 500m
-      memory: 1Gi
-    requests:
-      cpu: 250m
-      memory: 512Mi
-
-  service:
-    type: ClusterIP  # Change to LoadBalancer if needed
-    ports:
-      - name: http
-        port: 3200
-        targetPort: 3200
-
-
 # Opentelemetry-collector
 ##########################################################################
 opentelemetry-collector:
-  mode: deployment
-
   service:
     enabled: true
-    type: ClusterIP  # Change to LoadBalancer if external access is required
-    ports:
-      - name: otlp-grpc
-        port: 4317
-        targetPort: 4317
-      - name: otlp-http
-        port: 4318
-        targetPort: 4318
-      - name: prometheus
-        port: 9090
-        targetPort: 9090
-      - name: health
-        port: 13133
-        targetPort: 13133
-      - name: pprof
-        port: 1777
-        targetPort: 1777
-      - name: zpages
-        port: 55679
-        targetPort: 55679
+    type: ClusterIP
+
+  fullnameOverride: "lomas-otel-collector"
+  mode: deployment
+
+  image:
+    repository: otel/opentelemetry-collector
+
+  command:
+    name: otelcol
 
   config:
     receivers:
@@ -501,10 +248,156 @@ opentelemetry-collector:
           processors: [batch]
           exporters: [debug, otlphttp/loki]
 
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
+
+# Grafana
+##########################################################################
+grafana:
+  service:
+    type: LoadBalancer  # Expose Grafana externally
+
+  fullnameOverride: "lomas-grafana-dashboard"
+  adminPassword: "admin"
+  persistence:
+    enabled: true
+  datasources: 
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          access: proxy
+          orgId: 1
+          url: http://prometheus:9090
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: false
+          jsonData:
+            httpMethod: GET
+        - name: Tempo
+          type: tempo
+          access: proxy
+          orgId: 1
+          url: http://tempo:3200
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+          apiVersion: 1
+          uid: tempo
+          jsonData:
+            httpMethod: GET
+            serviceMap:
+              datasourceUid: prometheus
+            streamingEnabled:
+              search: true
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki:3100
+          jsonData:
+            httpHeaderName1: "X-Scope-OrgID"
+          secureJsonData:
+            httpHeaderValue1: "tenant1"
+  dashboards:
+    default:
+      custom-dashboard:
+        file: "../../../../configs/observability/grafana/example_dashboard_config.json"
+  env:
+    GF_SECURITY_ADMIN_USER: admin
+    GF_SECURITY_ADMIN_PASSWORD: admin
+
+# Prometheus
+##########################################################################
+prometheus:
+  service:
+    type: ClusterIP
+
+  fullnameOverride: "lomas-prometheus"
+  global:
+    scrape_interval: 10s
+    evaluation_interval: 10s
+
+  scrape_configs:
+    - job_name: 'prometheus'
+      static_configs:
+        - targets: ['localhost:9090']
+
+    - job_name: 'tempo'
+      static_configs:
+        - targets: ['tempo:3200']
+
+    - job_name: 'otel-collector'
+      static_configs:
+        - targets: ['otel-collector:9090']
+
+
+# Loki
+##########################################################################
+loki:
+  service:
+    type: ClusterIP
+
+  fullnameOverride: "lomas-loki"
+  auth_enabled: false
+
+  server:
+    http_listen_port: 3100
+
+  schema_config:
+    configs:
+    - from: 2025-01-10
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: loki_index_
+        period: 24h
+
+  storage:
+    type: filesystem
+    bucketNames:
+      chunks: loki-chunks
+      ruler: loki-ruler
+      admin: loki-admin
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
+      admin_api_directory: /var/loki/admin
+
+# Tempo
+##########################################################################
+tempo:
+  service:
+    type: ClusterIP
+
+  fullnameOverride: "lomas-tempo"
+
+  server:
+    http_listen_port: 3200
+
+  distributor:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "tempo:4317"
+
+  ingester:
+    max_block_duration: 5m
+
+  metrics_generator:
+    registry:
+      external_labels:
+        source: tempo
+    storage:
+      path: /var/tempo/generator/wal
+      remote_write:
+        - url: http://prometheus:9090/api/v1/write
+          send_exemplars: true
+    traces_storage:
+      path: /var/tempo/generator/traces
+
+  persistence:
+    enabled: true

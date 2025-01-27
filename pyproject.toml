@@ -10,7 +10,8 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 110
 split_on_trailing_comma = true
-src_paths = ["core/lomas_core", "server/lomas_server"]
+known_first_party = ["lomas_core", "lomas_server" , "lomas_client"]
+skip = [".gitignore", ".devenv"]
 
 [tool.flake8]
 max-line-length = 110

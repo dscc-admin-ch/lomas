@@ -22,13 +22,13 @@ jobs:
         python-version: 3.12
     - name: Install dependencies
       run: |
-        uv pip install -r requirements_doc.txt
+        sudo apt-get install pandoc
+        uv pip install -r requirements-docs.txt
     - name: Build with sphinx
       run: |
         cd docs
         python3.12 build_docs.py
-        cd ../pages/
-        ls
+        ls -l ../pages
     - name: Pushes to another repository
       uses: cpina/github-action-push-to-another-repository@main
       env:
@@ -39,4 +39,3 @@ jobs:
         destination-repository-name: 'lomas-docs'
         target-branch: main
         target-directory: html
-

@@ -1,0 +1,7 @@
+isort==5.13.2
+black==24.4.2
+flake8-pyproject==1.2.3
+mypy==1.10.0
+pylint==3.1.0
+pydocstringformatter==0.7.3
+coverage==7.5.3

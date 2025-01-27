@@ -28,6 +28,11 @@ datasources:
     httpMethod: GET
     serviceMap:
       datasourceUid: prometheus
+    traceToLogs:
+      datasourceUid: loki
+      query: '{service_name="lomas-server-app"} | trace_id=`$${__trace.traceId}`'
+    lokiSearch:
+      datasourceUid: 'loki'
     streamingEnabled:
       search: true
 - name: Loki

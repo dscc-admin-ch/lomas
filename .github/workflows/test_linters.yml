@@ -18,9 +18,7 @@ jobs:
           python-version: 3.12
       - name: Install dependencies
         run: |
-          uv pip install flake8-pyproject==1.2.3
-          uv pip install mypy==1.10.0
-          uv pip install pylint==3.1.0
+          uv pip install -r requirements-dev.txt
       - name: flake8
         run: |
           flake8 core/lomas_core

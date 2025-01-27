@@ -27,10 +27,7 @@ jobs:
         python-version: 3.12
     - name: Install dependencies
       run: |
-        uv pip install -r core/requirements_core.txt
-        uv pip install -r server/requirements_server.txt
-        uv pip install -r server/requirements_streamlit.txt
-        uv pip install coverage==7.5.3
+        uv pip install -r requirements-test.txt
     - name: Run test script
       run: |
         cd server

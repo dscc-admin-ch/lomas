@@ -57,6 +57,18 @@ services:
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
+  mongodb-exporter:
+    image: bitnami/mongodb-exporter:latest
+    container_name: mongodb-exporter
+    ports:
+      - 9216:9216
+    networks:
+      - lomas-network
+    environment:
+      - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017 
+    depends_on:
+      - mongodb
+
   minio:
     container_name: minio
     image: minio/minio

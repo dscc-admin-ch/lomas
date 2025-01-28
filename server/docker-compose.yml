@@ -186,7 +186,8 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: 
+      - "-config.file=/etc/loki/local-config.yaml"
     volumes:
       - ./configs/observability/example_loki_config.yaml:/etc/loki/local-config.yaml
     networks:

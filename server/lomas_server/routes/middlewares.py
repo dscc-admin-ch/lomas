@@ -5,7 +5,7 @@ from typing import Tuple
 
 from fastapi import Request
 from lomas_core.error_handler import KNOWN_EXCEPTIONS
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, format_trace_id
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 from starlette.routing import Match
@@ -59,16 +59,17 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
             if isinstance(value, dict):
                 query_params[param] = json.dumps(value)
 
-        logging.info(
-            f"User '{user_name}' is making a request to route '{route}' "
-            + f"with query params: {query_params}."
-        )
-
         tracer = get_tracer(__name__)
         with tracer.start_as_current_span("user_request_span") as span:
             span.set_attribute("user_name", user_name)
             for param, value in query_params.items():
                 span.set_attribute(f"query_param.{param}", value)
+
+            logging.info(
+                f"User '{user_name}' is making a request to route '{route}' "
+                + f"with query params: {query_params}. "
+                + f"trace_id={format_trace_id(span.get_span_context().trace_id)}"
+            )
 
             response = await call_next(request)
 

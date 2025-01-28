@@ -30,11 +30,7 @@ datasources:
       datasourceUid: prometheus
     traceToLogs:
       datasourceUid: loki
-      spanEndTimeShift: 30m
-      spanStartTimeShift: “-30m”
-      filterByTraceID: true
-      filterBySpanID: true
-      tags: [{ key: ‘service.name’, value: service_name }]
+      query: '{service_name="lomas-server-app"} | trace_id="$${__trace.traceId}"'
     streamingEnabled:
       search: true
 - name: Loki
@@ -43,5 +39,10 @@ datasources:
   url: http://loki:3100
   jsonData:
     httpHeaderName1: "X-Scope-OrgID"
+    derivedFields:
+    - name: trace_id
+      datasourceUid: tempo
+      matcherRegex: trace_id=(\\w+)
+      url: '${__value.raw}'
   secureJsonData:
     httpHeaderValue1: "tenant1"

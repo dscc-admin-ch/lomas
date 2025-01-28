@@ -78,12 +78,8 @@ class DSInfo(BaseModel):
     """BaseModel for a dataset."""
 
     dataset_name: str
-    dataset_access: Annotated[
-        Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)
-    ]
-    metadata_access: Annotated[
-        Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)
-    ]
+    dataset_access: Annotated[Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)]
+    metadata_access: Annotated[Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)]
 
 
 class DatasetsCollection(BaseModel):
@@ -139,11 +135,7 @@ class BoundedColumnMetadata(ColumnMetadata):
     @model_validator(mode="after")
     def validate_bounds(self):
         """Validates column bounds."""
-        if (
-            self.lower is not None
-            and self.upper is not None
-            and self.lower > self.upper
-        ):
+        if self.lower is not None and self.upper is not None and self.lower > self.upper:
             raise ValueError("Lower bound cannot be larger than upper bound.")
 
         return self
@@ -213,10 +205,7 @@ def get_column_metadata_discriminator(v: Any) -> str:
             MetadataColumnType.STRING,
             MetadataColumnType.INT,
         )
-    ) and (
-        ((isinstance(v, dict)) and CARDINALITY_FIELD in v)
-        or (hasattr(v, CARDINALITY_FIELD))
-    ):
+    ) and (((isinstance(v, dict)) and CARDINALITY_FIELD in v) or (hasattr(v, CARDINALITY_FIELD))):
         col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
 
     if not isinstance(col_type, str):

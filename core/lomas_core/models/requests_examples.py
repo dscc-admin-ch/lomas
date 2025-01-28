@@ -83,16 +83,12 @@ example_smartnoise_synth_cost: Dict[str, JsonValue] = {
     "nullable": True,
     "constraints": "",
 }
-example_smartnoise_synth_query: Dict[str, JsonValue] = dict(
-    example_smartnoise_synth_cost
-)
+example_smartnoise_synth_query: Dict[str, JsonValue] = dict(example_smartnoise_synth_cost)
 example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
-example_dummy_smartnoise_synth_query: Dict[str, JsonValue] = make_dummy(
-    example_smartnoise_synth_query
-)
+example_dummy_smartnoise_synth_query: Dict[str, JsonValue] = make_dummy(example_smartnoise_synth_query)
 
 # OpenDP
 # -----------------------------------------------------------------------------

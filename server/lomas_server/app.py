@@ -2,13 +2,13 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
 from lomas_core.logger import LOG
 from lomas_core.models.constants import AdminDBType
-
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
@@ -71,9 +71,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             LOG.info("Adding demo data to MongoDB Admin")
-            lomas_app.state.server_state["message"].append(
-                "Adding demo data to MongoDB Admin"
-            )
+            lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
             add_demo_data_to_mongodb_admin()
 
     # Load admin database
@@ -81,15 +79,11 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         try:
             LOG.info("Loading admin database")
             lomas_app.state.server_state["message"].append("Loading admin database")
-            lomas_app.state.admin_database = admin_database_factory(
-                config.admin_database
-            )
+            lomas_app.state.admin_database = admin_database_factory(config.admin_database)
         except InternalServerException as e:
             LOG.exception(f"Failed at startup: {str(e)}")
             lomas_app.state.server_state["state"].append(DB_NOT_LOADED)
-            lomas_app.state.server_state["message"].append(
-                f"Admin database could not be loaded: {str(e)}"
-            )
+            lomas_app.state.server_state["message"].append(f"Admin database could not be loaded: {str(e)}")
             lomas_app.state.server_state["LIVE"] = False
             status_ok = False
 

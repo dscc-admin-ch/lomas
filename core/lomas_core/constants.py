@@ -1,9 +1,7 @@
 from enum import StrEnum
 
 # Server error messages
-INTERNAL_SERVER_ERROR = (
-    "Internal server error. Please contact the administrator of this service."
-)
+INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
 
 
 class DPLibraries(StrEnum):

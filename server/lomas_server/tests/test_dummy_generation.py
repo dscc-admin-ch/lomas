@@ -3,7 +3,6 @@ from typing import Any
 
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
-
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 
 

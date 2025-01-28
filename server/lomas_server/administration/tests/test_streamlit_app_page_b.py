@@ -1,20 +1,20 @@
 from unittest.mock import patch
 
 import pytest
+from streamlit.testing.v1 import AppTest
+
 from lomas_core.models.constants import (
     PrivateDatabaseType,
 )
-from streamlit.testing.v1 import AppTest
-
 from lomas_server.administration.tests.utils import get_mocked_db, load_mock_file
 
 
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
-    with patch(
-        "lomas_server.admin_database.utils.get_mongodb"
-    ) as mock_get_mongodb, patch("streamlit.file_uploader") as mock_file_uploader:
+    with patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb, patch(
+        "streamlit.file_uploader"
+    ) as mock_file_uploader:
 
         mock_get_mongodb.return_value = get_mocked_db()
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"
@@ -28,7 +28,7 @@ def mock_mongodb_and_helpers():
 
 
 def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915
-    """Test the different widgets (add/remove users/datasets/metadata)"""
+    """Test the different widgets (add/remove users/datasets/metadata)."""
 
     # Simulate interaction with the Streamlit app
     at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
@@ -83,30 +83,21 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
     at.number_input("adtu_epsilon").set_value(10).run()
     at.number_input("adtu_delta").set_value(0.5).run()
     at.button("add_dataset_to_user").click().run()
-    assert (
-        at.markdown[0].value
-        == "Dataset IRIS was added to user test with epsilon = 10.0 and delta = 0.5"
-    )
+    assert at.markdown[0].value == "Dataset IRIS was added to user test with epsilon = 10.0 and delta = 0.5"
 
     # Subheader "Modify user epsilon"
     at.selectbox("username of modify user epsilon").set_value("test").run()
     at.selectbox("dataset of modify user epsilon").set_value("IRIS").run()
     at.number_input("sue_epsilon").set_value(1).run()
     at.button("modify_user_epsilon").click().run()
-    assert (
-        at.markdown[0].value
-        == "User test on dataset IRIS initial epsilon value was modified to 1.0"
-    )
+    assert at.markdown[0].value == "User test on dataset IRIS initial epsilon value was modified to 1.0"
 
     # Subheader "Modify user delta"
     at.selectbox("username of modify user delta").set_value("test").run()
     at.selectbox("dataset of modify user delta").set_value("IRIS").run()
     at.number_input("sud_delta").set_value(0.001).run()
     at.button("modify_user_delta").click().run()
-    assert (
-        at.markdown[0].value
-        == "User test on dataset IRIS initial delta value was modified to 0.001"
-    )
+    assert at.markdown[0].value == "User test on dataset IRIS initial delta value was modified to 0.001"
 
     # Subheader "Modify user may query"
     at.selectbox("username of user may query").set_value("test").run()
@@ -118,9 +109,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
     # Subheader "Show one element"
     at.selectbox("username of user to show").set_value("test").run()
     at.button("content_user_display").click().run()
-    assert (
-        at.json[0].value.startswith('{"user_name": "test", "may_query": false')
-    ) is True
+    assert (at.json[0].value.startswith('{"user_name": "test", "may_query": false')) is True
 
     at.selectbox("username of archives from user").set_value("test").run()
     at.button("content_user_archive_display").click().run()
@@ -128,9 +117,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
 
     at.selectbox("dataset_to_show").set_value("IRIS").run()
     at.button("content_dataset_display").click().run()
-    assert (
-        at.json[0].value.startswith('{"dataset_name": "IRIS", "dataset_access"')
-    ) is True
+    assert (at.json[0].value.startswith('{"dataset_name": "IRIS", "dataset_access"')) is True
 
     at.selectbox("metadata_of_dataset_to_show").set_value("IRIS").run()
     at.button("content_metadata_dataset_display").click().run()
@@ -184,7 +171,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
 
 
 def test_layout(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
-    """Test the layout of administration page b"""
+    """Test the layout of administration page b."""
 
     # Simulate interaction with the Streamlit app
     at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
@@ -214,10 +201,7 @@ def test_layout(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
 
     # Check tab "delete content"
     assert at.tabs[3].label == ":wastebasket: Delete Content (:red[DANGEROUS])"
-    assert (
-        at.markdown[0].value
-        == ":warning: :red[**Danger Zone: deleting is final**] :warning:"
-    )
+    assert at.markdown[0].value == ":warning: :red[**Danger Zone: deleting is final**] :warning:"
 
     assert "Delete one element" in at.subheader[11].value
     assert at.markdown[1].value == "**Delete one user**"

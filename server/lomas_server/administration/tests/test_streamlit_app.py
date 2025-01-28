@@ -33,9 +33,7 @@ def test_about_page():
 @pytest.fixture
 def mock_configs():
     """Fixture to mock server and dashboard configs."""
-    with patch(
-        "lomas_server.administration.dashboard.config.get_config"
-    ) as mock_get_config, patch(
+    with patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config, patch(
         "lomas_server.administration.dashboard.utils.get_server_data"
     ) as mock_get_server_data:
 
@@ -53,9 +51,7 @@ def mock_configs():
         mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
 
         # Mock get server data request
-        mock_get_server_data.return_value = {
-            "state": {"LIVE": True, "message": "Server is live"}
-        }
+        mock_get_server_data.return_value = {"state": {"LIVE": True, "message": "Server is live"}}
 
         yield
 
@@ -69,9 +65,7 @@ def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
     assert "Lomas configurations" in at.title[0].value
 
     # Check server URL
-    assert (
-        "The server is available for requests at the address:" in at.markdown[0].value
-    )
+    assert "The server is available for requests at the address:" in at.markdown[0].value
     assert "https://example.com" in at.markdown[0].value
 
     # Server state messages
@@ -86,7 +80,4 @@ def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
     # Check Administration Database information
     assert "Administration Database" in at.subheader[1].value
     assert "The administration database type is: yaml" in at.markdown[6].value
-    assert (
-        "The database file is: tests/test_data/local_db_file.yaml"
-        in at.markdown[7].value
-    )
+    assert "The database file is: tests/test_data/local_db_file.yaml" in at.markdown[7].value

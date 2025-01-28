@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from functools import wraps
 
 from fastapi import Request
+
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
@@ -16,7 +17,6 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
@@ -41,9 +41,7 @@ def timing_protection(func):
                         time.sleep(config.server.time_attack.magnitude - process_time)
                 case "jitter":
                     # Adds some time between 0 and magnitude secs
-                    time.sleep(
-                        config.server.time_attack.magnitude * random.uniform(0, 1)
-                    )
+                    time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
                 case _:
                     raise InternalServerException("Time attack method not supported.")
         return response
@@ -66,8 +64,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     """
     if not request.app.state.server_state["LIVE"]:
         raise InternalServerException(
-            "Woops, the server did not start correctly."
-            + "Contact the administrator of this service.",
+            "Woops, the server did not start correctly. Contact the administrator of this service.",
         )
     yield
 
@@ -162,9 +159,7 @@ def handle_query_on_dummy_dataset(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
-    ds_data_connector = get_dummy_dataset_for_query(
-        app.state.admin_database, query_model
-    )
+    ds_data_connector = get_dummy_dataset_for_query(app.state.admin_database, query_model)
     dummy_querier = querier_factory(
         dp_library,
         data_connector=ds_data_connector,
@@ -174,9 +169,7 @@ def handle_query_on_dummy_dataset(
     try:
         eps_cost, delta_cost = dummy_querier.cost(query_model)
         result = dummy_querier.query(query_model)
-        response = QueryResponse(
-            requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
-        )
+        response = QueryResponse(requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

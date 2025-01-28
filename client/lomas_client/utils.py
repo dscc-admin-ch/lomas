@@ -3,6 +3,7 @@ from typing import Any
 
 import requests
 from fastapi import status
+
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
 from lomas_core.error_handler import (
     ExternalLibraryException,
@@ -67,10 +68,7 @@ def validate_synthesizer(synth_name: str, return_model: bool = False):
             + "Please, change synthesizer or set `return_model=False`."
         )
     if synth_name == SSynthMarginalSynthesizer.PAC_SYNTH:
-        raise ValueError(
-            f"{synth_name} synthesizer not supported. "
-            + "Please choose another synthesizer."
-        )
+        raise ValueError(f"{synth_name} synthesizer not supported. Please choose another synthesizer.")
 
 
 def validate_model_response(response: requests.Response, response_model: Any) -> Any:

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Request
+
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
 from lomas_core.models.requests import (
@@ -18,7 +19,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -104,9 +104,7 @@ def dummy_smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_dummy_dataset(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return handle_query_on_dummy_dataset(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -142,9 +140,7 @@ def estimate_smartnoise_sql_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -265,9 +261,7 @@ def estimate_smartnoise_synth_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -307,9 +301,7 @@ def opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_private_dataset(
-        request, opendp_query, user_name, DPLibraries.OPENDP
-    )
+    return handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -345,9 +337,7 @@ def dummy_opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_dummy_dataset(
-        request, opendp_query, user_name, DPLibraries.OPENDP
-    )
+    return handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -423,9 +413,7 @@ def diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_private_dataset(
-        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
-    )
+    return handle_query_on_private_dataset(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -461,9 +449,7 @@ def dummy_diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_dummy_dataset(
-        request, query_json, user_name, DPLibraries.DIFFPRIVLIB
-    )
+    return handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -508,6 +494,4 @@ def estimate_diffprivlib_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(
-        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
-    )
+    return handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)

@@ -1,5 +1,7 @@
 from typing import List, Optional, Type
 
+from smartnoise_synth_logger import serialise_constraints
+
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -17,7 +19,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from smartnoise_synth_logger import serialise_constraints
 
 
 class SmartnoiseSynthClient:

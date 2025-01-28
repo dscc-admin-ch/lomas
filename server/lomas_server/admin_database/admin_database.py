@@ -36,7 +36,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
         user_name = args[0]
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
-                f"User {user_name} does not exist. " + "Please, verify the client object initialisation.",
+                f"User {user_name} does not exist. Please, verify the client object initialisation.",
             )
         return func(self, *args, **kwargs)
 

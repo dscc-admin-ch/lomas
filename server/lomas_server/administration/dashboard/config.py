@@ -60,7 +60,7 @@ class ConfigLoader:
 
         except Exception as e:
             raise InternalServerException(
-                f"Could not read config from disk at {config_path}" + f" or missing fields: {e}"
+                f"Could not read config from disk at {config_path} or missing fields: {e}"
             ) from e
 
     def set_config(self, config: Config) -> None:

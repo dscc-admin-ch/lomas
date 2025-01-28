@@ -116,7 +116,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
         InvalidQueryException: If the pipeline is not a measurement.
     """
     if not isinstance(pipeline, dp.Measurement):
-        e = "The pipeline provided is not a measurement. " + "It cannot be processed in this server."
+        e = "The pipeline provided is not a measurement. It cannot be processed in this server."
         LOG.exception(e)
         raise InvalidQueryException(e)
 
@@ -193,7 +193,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
             output_type = output_type.args[0]
         else:
             raise InternalServerException(
-                f"Cannot process output measure: {output_measure}" + f"with output type {output_type}."
+                f"Cannot process output measure: {output_measure} with output type {output_type}."
             )
 
     if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):

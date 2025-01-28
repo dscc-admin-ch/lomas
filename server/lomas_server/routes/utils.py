@@ -64,7 +64,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     """
     if not request.app.state.server_state["LIVE"]:
         raise InternalServerException(
-            "Woops, the server did not start correctly." + "Contact the administrator of this service.",
+            "Woops, the server did not start correctly. Contact the administrator of this service.",
         )
     yield
 

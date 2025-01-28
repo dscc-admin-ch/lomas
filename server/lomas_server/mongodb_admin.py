@@ -709,7 +709,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
             case _:
                 raise InternalServerException(
-                    "Unknown metadata_db_type PrivateDatabaseType:" + f"{metadata_access.database_type}"
+                    f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                 )
 
         # Overwrite or not depending on config if metadata already exists

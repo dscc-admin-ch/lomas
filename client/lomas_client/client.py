@@ -196,7 +196,7 @@ class Client:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError("Cannot deserialise unknown query type:" + f"{query['dp_librairy']}")
+                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_librairy']}")
 
                 deserialised_queries.append(query)
 

@@ -1,7 +1,7 @@
 import requests
-from lomas_core.models.requests import LomasRequestModel
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
+from lomas_core.models.requests import LomasRequestModel
 
 
 # pylint: disable=R0903

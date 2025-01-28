@@ -2,13 +2,13 @@ from datetime import datetime, timezone
 from typing import List
 
 import yaml
+
 from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
-
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
     dataset_must_exist,
@@ -154,9 +154,7 @@ class AdminYamlDatabase(AdminDatabase):
                         return True
         return False
 
-    def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
-    ) -> float:
+    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
         """Get total spent epsilon or delta by user on dataset.
 
         Args:
@@ -239,9 +237,7 @@ class AdminYamlDatabase(AdminDatabase):
                 previous_queries.append(q)
         return previous_queries
 
-    def save_query(
-        self, user_name: str, query: LomasRequestModel, response: QueryResponse
-    ) -> None:
+    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         """Save queries of user on datasets in a separate collection (table).
 
         Args:

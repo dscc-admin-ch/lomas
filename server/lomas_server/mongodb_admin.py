@@ -5,6 +5,9 @@ from warnings import warn
 
 import boto3
 import yaml
+from pymongo.database import Database
+from pymongo.results import _WriteResult
+
 from lomas_core.error_handler import InternalServerException
 from lomas_core.logger import LOG
 from lomas_core.models.collections import (
@@ -18,9 +21,6 @@ from lomas_core.models.collections import (
     UserCollection,
 )
 from lomas_core.models.constants import PrivateDatabaseType
-from pymongo.database import Database
-from pymongo.results import _WriteResult
-
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
@@ -42,9 +42,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
             (or absence) before calling the suplied function.
     """
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -80,9 +78,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
             to the provided dataset.
     """
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -111,9 +107,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
     """Rises a ValueError if the user does not already exist in the user collection."""
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -122,26 +116,16 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             dataset_count = db.datasets.count_documents({"dataset_name": dataset})
 
             if enforce_true and dataset_count == 0:
-                raise ValueError(
-                    f"Dataset {dataset} does not exist in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} does not exist in dataset collection")
             if not enforce_true and dataset_count > 0:
-                raise ValueError(
-                    f"Dataset {dataset} already exists in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} already exists in dataset collection")
 
             metadata_count = db.metadata.count_documents({dataset: {"$exists": True}})
 
             if enforce_true and metadata_count == 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} does"
-                    " not exist in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} does" " not exist in metadata collection")
             if not enforce_true and metadata_count > 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} already"
-                    " exists in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} already" " exists in metadata collection")
 
             return function(*arguments, **kwargs)  # type: ignore
 
@@ -185,9 +169,7 @@ def add_user(db: Database, user: str) -> None:
 
 
 @check_user_exists(False)
-def add_user_with_budget(
-    db: Database, user: str, dataset: str, epsilon: float, delta: float
-) -> None:
+def add_user_with_budget(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add new user in users collection with default values for all fields.
 
     Args:
@@ -252,9 +234,7 @@ def del_user(db: Database, user: str) -> None:
 
 @check_user_exists(True)
 @check_user_has_dataset(False)
-def add_dataset_to_user(
-    db: Database, user: str, dataset: str, epsilon: float, delta: float
-) -> None:
+def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add dataset to user with initialized budget values.
 
     Adds to list of datasets, that the user has access to.
@@ -326,9 +306,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 
 @check_user_exists(True)
 @check_user_has_dataset(True)
-def set_budget_field(
-    db: Database, user: str, dataset: str, field: str, value: float
-) -> None:
+def set_budget_field(db: Database, user: str, dataset: str, field: str, value: float) -> None:
     """Set (for some reason) a budget field to a given value.
 
     (Only) If given user exists and has access to given dataset.
@@ -631,8 +609,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     dataset_name_log = dataset_name.replace("\r\n", "").replace("\n", "")
     database_type_log = database_type.replace("\r\n", "").replace("\n", "")
     LOG.info(
-        f"Added dataset {dataset_name_log} with database "
-        f"{database_type_log} and associated metadata."
+        f"Added dataset {dataset_name_log} with database " f"{database_type_log} and associated metadata."
     )
 
 
@@ -691,16 +668,11 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d.dataset_name}
                 update_operation = {"$set": d.model_dump()}
-                res: _WriteResult = db.datasets.update_many(
-                    dataset_filter, update_operation
-                )
+                res: _WriteResult = db.datasets.update_many(dataset_filter, update_operation)
                 check_result_acknowledged(res)
             LOG.info("Existing datasets updated with new collection")
         else:
-            warn(
-                "Some datasets already present in database."
-                "Overwrite is set to False."
-            )
+            warn("Some datasets already present in database." "Overwrite is set to False.")
 
     # Add dataset collection
     if new_datasets:
@@ -737,8 +709,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
             case _:
                 raise InternalServerException(
-                    "Unknown metadata_db_type PrivateDatabaseType:"
-                    + f"{metadata_access.database_type}"
+                    "Unknown metadata_db_type PrivateDatabaseType:" + f"{metadata_access.database_type}"
                 )
 
         # Overwrite or not depending on config if metadata already exists
@@ -747,15 +718,10 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
         if metadata and overwrite_metadata:
             LOG.info(f"Metadata updated for dataset : {dataset_name}.")
-            res = db.metadata.update_one(
-                metadata_filter, {"$set": {dataset_name: metadata_dict}}
-            )
+            res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            LOG.info(
-                "Metadata already exist. "
-                "Use the command -om to overwrite with new values."
-            )
+            LOG.info("Metadata already exist. " "Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)

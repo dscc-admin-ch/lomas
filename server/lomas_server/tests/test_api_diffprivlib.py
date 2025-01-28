@@ -9,6 +9,8 @@ from diffprivlib.utils import (
 from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from fastapi.testclient import TestClient
+from sklearn.pipeline import Pipeline
+
 from lomas_core.constants import DPLibraries
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
@@ -24,8 +26,6 @@ from lomas_core.models.responses import (
     DiffPrivLibQueryResult,
     QueryResponse,
 )
-from sklearn.pipeline import Pipeline
-
 from lomas_server.app import app
 from lomas_server.tests.test_api import TestRootAPIEndpoint
 
@@ -208,9 +208,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                     (
                         "gaussian",
-                        models.GaussianNB(
-                            epsilon=1.0, bounds=bounds, priors=(0.3, 0.3, 0.4)
-                        ),
+                        models.GaussianNB(epsilon=1.0, bounds=bounds, priors=(0.3, 0.3, 0.4)),
                     ),
                 ]
             )

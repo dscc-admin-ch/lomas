@@ -4,7 +4,6 @@ from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import DSPathAccess, DSS3Access
 from lomas_core.models.config import PrivateDBCredentials, S3CredentialsConfig
 from lomas_core.models.constants import PrivateDatabaseType
-
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
@@ -54,9 +53,7 @@ def data_connector_factory(
 
             return S3Connector(ds_metadata, ds_access)
         case _:
-            raise InternalServerException(
-                f"Unknown database type: {ds_access.database_type}"
-            )
+            raise InternalServerException(f"Unknown database type: {ds_access.database_type}")
 
 
 def get_dataset_credentials(
@@ -84,12 +81,9 @@ def get_dataset_credentials(
 
     if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials:
-            if isinstance(c, S3CredentialsConfig) and (
-                credentials_name == c.credentials_name
-            ):
+            if isinstance(c, S3CredentialsConfig) and (credentials_name == c.credentials_name):
                 return c
 
     raise InternalServerException(
-        "Could not find credentials for private dataset."
-        "Please contact server administrator."
+        "Could not find credentials for private dataset." "Please contact server administrator."
     )

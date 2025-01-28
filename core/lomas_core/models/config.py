@@ -93,12 +93,8 @@ class Config(BaseModel):
     # A limit on the rate which users can submit answers
     submit_limit: float
 
-    admin_database: Annotated[
-        Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")
-    ]
+    admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
 
-    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(
-        ..., discriminator="db_type"
-    )
+    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(..., discriminator="db_type")
 
     dp_libraries: DPLibraryConfig

@@ -2,6 +2,14 @@ import json
 
 from fastapi import status
 from fastapi.testclient import TestClient
+from smartnoise_synth_logger import serialise_constraints
+from snsynth.transform import (
+    ChainTransformer,
+    LabelTransformer,
+    MinMaxTransformer,
+    OneHotEncoder,
+)
+
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     UnauthorizedAccessExceptionModel,
@@ -17,14 +25,6 @@ from lomas_core.models.responses import (
     SmartnoiseSynthModel,
     SmartnoiseSynthSamples,
 )
-from smartnoise_synth_logger import serialise_constraints
-from snsynth.transform import (
-    ChainTransformer,
-    LabelTransformer,
-    MinMaxTransformer,
-    OneHotEncoder,
-)
-
 from lomas_server.app import app
 from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from lomas_server.tests.test_api import TestRootAPIEndpoint
@@ -161,36 +161,20 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["message"].startswith(
-                "Error while selecting provided select_cols: "
-            )
+            assert response.json()["message"].startswith("Error while selecting provided select_cols: ")
 
     def test_smartnoise_synth_query_constraints(self) -> None:
         """Test smartnoise synth query constraints."""
         with TestClient(app, headers=self.headers) as client:
 
             constraints = {
-                "species": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
-                "island": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
-                "bill_length_mm": MinMaxTransformer(
-                    lower=30.0, upper=65.0, nullable=True
-                ),
-                "bill_depth_mm": MinMaxTransformer(
-                    lower=13.0, upper=23.0, nullable=True
-                ),
-                "flipper_length_mm": MinMaxTransformer(
-                    lower=150.0, upper=250.0, nullable=True
-                ),
-                "body_mass_g": MinMaxTransformer(
-                    lower=2000.0, upper=7000.0, nullable=True
-                ),
-                "sex": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
+                "species": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
+                "island": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
+                "bill_length_mm": MinMaxTransformer(lower=30.0, upper=65.0, nullable=True),
+                "bill_depth_mm": MinMaxTransformer(lower=13.0, upper=23.0, nullable=True),
+                "flipper_length_mm": MinMaxTransformer(lower=150.0, upper=250.0, nullable=True),
+                "body_mass_g": MinMaxTransformer(lower=2000.0, upper=7000.0, nullable=True),
+                "sex": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
             }
 
             body = dict(example_smartnoise_synth_query)

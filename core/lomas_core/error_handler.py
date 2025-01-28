@@ -89,28 +89,20 @@ def add_exception_handlers(app: FastAPI) -> None:
     """
 
     @app.exception_handler(InvalidQueryException)
-    async def invalid_query_exception_handler(
-        _: Request, exc: InvalidQueryException
-    ) -> JSONResponse:
+    async def invalid_query_exception_handler(_: Request, exc: InvalidQueryException) -> JSONResponse:
         LOG.info(f"InvalidQueryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=jsonable_encoder(
-                InvalidQueryExceptionModel(message=exc.error_message)
-            ),
+            content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
         )
 
     @app.exception_handler(ExternalLibraryException)
-    async def external_library_exception_handler(
-        _: Request, exc: ExternalLibraryException
-    ) -> JSONResponse:
+    async def external_library_exception_handler(_: Request, exc: ExternalLibraryException) -> JSONResponse:
         LOG.info(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=jsonable_encoder(
-                ExternalLibraryExceptionModel(
-                    message=exc.error_message, library=exc.library
-                )
+                ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
             ),
         )
 
@@ -121,15 +113,11 @@ def add_exception_handlers(app: FastAPI) -> None:
         LOG.info(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
-            content=jsonable_encoder(
-                UnauthorizedAccessExceptionModel(message=exc.error_message)
-            ),
+            content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
         )
 
     @app.exception_handler(InternalServerException)
-    async def internal_server_exception_handler(
-        _: Request, exc: InternalServerException
-    ) -> JSONResponse:
+    async def internal_server_exception_handler(_: Request, exc: InternalServerException) -> JSONResponse:
         LOG.info(f"InternalServerException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

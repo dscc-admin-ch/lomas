@@ -3,8 +3,8 @@ import os
 
 import streamlit as st
 import yaml
-from lomas_core.models.constants import PrivateDatabaseType
 
+from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.administration.dashboard.utils import (
@@ -77,9 +77,7 @@ with user_tab:
             au_user_warning = check_user_warning(au_username)
             if not au_user_warning:
                 add_user(st.session_state.admin_db, au_username)
-                st.session_state["list_users"] = get_list_of_users(
-                    st.session_state.admin_db
-                )
+                st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
                 st.write(f"User {au_username} was added.")
         else:
             warning_field_missing()
@@ -87,9 +85,7 @@ with user_tab:
     st.subheader("Add user with budget")
     auwb_1, auwb_2, auwb_3, auwb_4 = st.columns(4)
     with auwb_1:
-        auwb_username = st.text_input(
-            "Username (add user with budget)", key="auwb_username"
-        )
+        auwb_username = st.text_input("Username (add user with budget)", key="auwb_username")
         auwb_user_warning = check_user_warning(auwb_username)
     with auwb_2:
         auwb_dataset = st.selectbox(
@@ -125,9 +121,7 @@ with user_tab:
                 auwb_epsilon,
                 auwb_delta,
             )
-            st.session_state["list_users"] = get_list_of_users(
-                st.session_state.admin_db
-            )
+            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
             st.write(f"User {auwb_username} was added with dataset {auwb_dataset}.")
         else:
             warning_field_missing()
@@ -142,9 +136,7 @@ with user_tab:
         )
     with adtu_2:
         if adtu_username:
-            adtu_datasets_from_user = get_list_of_datasets_from_user(
-                st.session_state.admin_db, adtu_username
-            )
+            adtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, adtu_username)
             adtu_dataset_available = [
                 dataset
                 for dataset in st.session_state.list_datasets
@@ -202,9 +194,7 @@ with user_tab:
         )
     with sue_2:
         if sue_username:
-            sue_datasets_from_user = get_list_of_datasets_from_user(
-                st.session_state.admin_db, sue_username
-            )
+            sue_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, sue_username)
         else:
             sue_datasets_from_user = st.session_state.list_datasets
         sue_dataset = st.selectbox(
@@ -248,9 +238,7 @@ with user_tab:
         )
     with sud_2:
         if sud_username:
-            sud_datasets_from_user = get_list_of_datasets_from_user(
-                st.session_state.admin_db, sud_username
-            )
+            sud_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, sud_username)
         else:
             sud_datasets_from_user = st.session_state.list_datasets
         sud_dataset = st.selectbox(
@@ -304,10 +292,7 @@ with user_tab:
     st.subheader("Add many users via a yaml file")
     amu_1, amu_2 = st.columns(2)
     with amu_1:
-        u_clean = st.toggle(
-            "Clean: recreate collection from scratch "
-            + "(will delete all previous users)"
-        )
+        u_clean = st.toggle("Clean: recreate collection from scratch " + "(will delete all previous users)")
     with amu_2:
         u_overwrite = st.toggle("Overwrite: if user already exists, overwrites values")
     u_uploaded_file = st.file_uploader(
@@ -326,9 +311,7 @@ with user_tab:
                     u_clean,
                     u_overwrite,
                 )
-                st.session_state["list_users"] = get_list_of_users(
-                    st.session_state.admin_db
-                )
+                st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
                 st.write("Users were added.")
             except Exception as e:
                 st.error(f"Failed to import collection because {e}")
@@ -361,28 +344,20 @@ with dataset_tab:
         case PrivateDatabaseType.S3:
             ad_s3_1, ad_s3_2, ad_s3_3 = st.columns(3)
             with ad_s3_1:
-                ad_s3_bucket = st.text_input(
-                    "bucket (add dataset)", None, key="ad_s3_bucket"
-                )
+                ad_s3_bucket = st.text_input("bucket (add dataset)", None, key="ad_s3_bucket")
             with ad_s3_2:
                 ad_s3_key = st.text_input("key (add dataset)", None, key="ad_s3_key")
             with ad_s3_3:
-                ad_s3_url = st.text_input(
-                    "endpoint_url (add dataset)", None, key="ad_s3_url"
-                )
+                ad_s3_url = st.text_input("endpoint_url (add dataset)", None, key="ad_s3_url")
 
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
-            uploaded_metadata = st.file_uploader(
-                "Import your related metadata file", key="uploaded_metadata"
-            )
+            uploaded_metadata = st.file_uploader("Import your related metadata file", key="uploaded_metadata")
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
                 base_path = "/data" if "data" in os.listdir() else "../data"
-                ad_meta_path = os.path.join(
-                    f"{base_path}/collections/metadata", uploaded_metadata.name
-                )
+                ad_meta_path = os.path.join(f"{base_path}/collections/metadata", uploaded_metadata.name)
                 with open(ad_meta_path, "wb") as f:
                     f.write(uploaded_metadata.getbuffer())
 
@@ -400,9 +375,7 @@ with dataset_tab:
                     "Metadata bucket (add dataset)", None, key="ad_meta_s3_bucket"
                 )
             with ad_meta_s3_2:
-                ad_meta_s3_key = st.text_input(
-                    "Metadata key (add dataset)", None, key="ad_meta_s3_key"
-                )
+                ad_meta_s3_key = st.text_input("Metadata key (add dataset)", None, key="ad_meta_s3_key")
             with ad_meta_s3_3:
                 ad_meta_s3_url = st.text_input(
                     "Metadata endpoint_url (add dataset)", None, key="ad_meta_s3_url"
@@ -412,9 +385,7 @@ with dataset_tab:
                     "Metadata access_key_id (add dataset)", None, key="ad_meta_s3_kid"
                 )
             with ad_meta_s3_5:
-                ad_meta_s3_sk = st.text_input(
-                    "Metadata secret_key (add dataset)", None, key="ad_meta_s3_sk"
-                )
+                ad_meta_s3_sk = st.text_input("Metadata secret_key (add dataset)", None, key="ad_meta_s3_sk")
 
     keyword_args = {}
     DATASET_READY = False
@@ -471,9 +442,7 @@ with dataset_tab:
 
             DATASET_READY = False
             METADATA_READY = False
-            st.session_state["list_datasets"] = get_list_of_datasets(
-                st.session_state.admin_db
-            )
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
             st.write("Dataset", ad_dataset, "was added.")
         else:
             warning_field_missing()
@@ -510,9 +479,7 @@ with dataset_tab:
                 d_overwrite_datasets,
                 d_overwrite_metadata,
             )
-            st.session_state["list_datasets"] = get_list_of_datasets(
-                st.session_state.admin_db
-            )
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
             st.write(f"Datasets imported: {st.session_state.list_datasets}")
         else:
             warning_field_missing()
@@ -526,9 +493,7 @@ with content_tab:
             st.session_state.list_users,
             key="username of user to show",
         )
-        if st.button(
-            f"Displaying information of: {user_selected}", key="content_user_display"
-        ):
+        if st.button(f"Displaying information of: {user_selected}", key="content_user_display"):
             user_to_show = get_user(st.session_state.admin_db, user_selected)
             st.write(user_to_show)
 
@@ -542,9 +507,7 @@ with content_tab:
             f"Displaying previous queries of: {user_archives_selected}",
             key="content_user_archive_display",
         ):
-            user_archives_to_show = get_archives_of_user(
-                st.session_state.admin_db, user_archives_selected
-            )
+            user_archives_to_show = get_archives_of_user(st.session_state.admin_db, user_archives_selected)
             st.write(user_archives_to_show)
 
     elem_datasets, elem_metadata = st.columns(2)
@@ -554,9 +517,7 @@ with content_tab:
             st.session_state.list_datasets,
             key="dataset_to_show",
         )
-        if st.button(
-            f"Displaying dataset: {dataset_selected}", key="content_dataset_display"
-        ):
+        if st.button(f"Displaying dataset: {dataset_selected}", key="content_dataset_display"):
             dataset_to_show = get_dataset(st.session_state.admin_db, dataset_selected)
             st.write(dataset_to_show)
 
@@ -570,9 +531,7 @@ with content_tab:
             f"Displaying metadata of: {metadata_selected}",
             key="content_metadata_dataset_display",
         ):
-            metadata_to_show = get_metadata_of_dataset(
-                st.session_state.admin_db, metadata_selected
-            )
+            metadata_to_show = get_metadata_of_dataset(st.session_state.admin_db, metadata_selected)
             st.write(metadata_to_show)
 
     st.subheader("Show full collection")
@@ -608,14 +567,10 @@ with deletion_tab:
         key="du_username",
     )
 
-    if st.button(
-        label=f"Delete user {du_username} from the list of users.", key="delete_user"
-    ):
+    if st.button(label=f"Delete user {du_username} from the list of users.", key="delete_user"):
         if du_username:
             del_user(st.session_state.admin_db, du_username)
-            st.session_state["list_users"] = get_list_of_users(
-                st.session_state.admin_db
-            )
+            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
             st.write(f"User {du_username} was deleted.")
         else:
             warning_field_missing()
@@ -630,9 +585,7 @@ with deletion_tab:
         )
     with rdtu_2:
         if rdtu_user:
-            rdtu_datasets_from_user = get_list_of_datasets_from_user(
-                st.session_state.admin_db, rdtu_user
-            )
+            rdtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, rdtu_user)
         else:
             rdtu_datasets_from_user = st.session_state.list_datasets
         rdtu_dataset = st.selectbox(
@@ -647,9 +600,7 @@ with deletion_tab:
     ):
         if rdtu_user and rdtu_dataset:
             del_dataset_to_user(st.session_state.admin_db, rdtu_user, rdtu_dataset)
-            st.session_state["list_datasets"] = get_list_of_datasets(
-                st.session_state.admin_db
-            )
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
             st.write(f"Dataset {rdtu_dataset} was removed from user {rdtu_user}.")
         else:
             warning_field_missing()
@@ -667,9 +618,7 @@ with deletion_tab:
     ):
         if rd_dataset:
             del_dataset(st.session_state.admin_db, rd_dataset)
-            st.session_state["list_datasets"] = get_list_of_datasets(
-                st.session_state.admin_db
-            )
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
             st.write(f"Dataset {rd_dataset} was deleted.")
         else:
             warning_field_missing()
@@ -680,9 +629,7 @@ with deletion_tab:
     with d_col_users:
         if st.button("Delete all users", key="delete_all_users"):
             drop_collection(st.session_state.admin_db, "users")
-            st.session_state["list_users"] = get_list_of_users(
-                st.session_state.admin_db
-            )
+            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
             st.write("Users were all deleted.")
 
     with d_col_datasets:
@@ -692,9 +639,7 @@ with deletion_tab:
             args=(st.session_state.admin_db, "datasets"),
             key="delete_all_datasets",
         ):
-            st.session_state["list_datasets"] = get_list_of_datasets(
-                st.session_state.admin_db
-            )
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
             st.write("Datasets were all deleted.")
 
     with d_col_metadata:

@@ -73,9 +73,7 @@ class DummyQueryModel(QueryModel):
 class SmartnoiseSQLRequestModel(LomasRequestModel):
     """Base input model for a smarnoise-sql request."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql_cost]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql_cost]})
 
     query_str: str
     """The SQL query to execute.
@@ -98,9 +96,7 @@ class SmartnoiseSQLRequestModel(LomasRequestModel):
 class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
     """Base input model for a smartnoise-sql query."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql]})
 
     postprocess: bool
     """
@@ -114,9 +110,7 @@ class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
 class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
     """Input model for a smartnoise-sql query on a dummy dataset."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_sql]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_sql]})
 
 
 # SmartnoiseSynth
@@ -124,9 +118,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 class SmartnoiseSynthRequestModel(LomasRequestModel):
     """Base input model for a SmartnoiseSynth request."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]})
 
     synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
     """Name of the synthesizer model to use."""
@@ -156,9 +148,7 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
 class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
     """Base input model for a smarnoise-synth query."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_query]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_query]})
 
     return_model: bool
     """True to get Synthesizer model, False to get samples."""
@@ -205,17 +195,13 @@ class OpenDPRequestModel(LomasRequestModel):
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]})
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
     """Input model for an opendp query on a dummy dataset."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]})
 
 
 # DiffPrivLib
@@ -223,9 +209,7 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 class DiffPrivLibRequestModel(LomasRequestModel):
     """Base input model for a diffprivlib request."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
 
     diffprivlib_json: str
     """The DiffPrivLib pipeline for the query (See diffprivlib_logger package.)."""
@@ -244,17 +228,13 @@ class DiffPrivLibRequestModel(LomasRequestModel):
 class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
     """Base input model for a diffprivlib query."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
 
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
     """Input model for a DiffPrivLib query on a dummy dataset."""
 
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_diffprivlib]}
-    )
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_diffprivlib]})
 
 
 # Utils

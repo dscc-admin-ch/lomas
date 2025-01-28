@@ -1,9 +1,9 @@
-from lomas_core.error_handler import InternalServerException
-from lomas_core.logger import LOG
-from lomas_core.models.config import MongoDBConfig
 from pymongo import MongoClient
 from pymongo.database import Database
 
+from lomas_core.error_handler import InternalServerException
+from lomas_core.logger import LOG
+from lomas_core.models.config import MongoDBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
@@ -55,9 +55,7 @@ def get_mongodb() -> Database:
     if isinstance(admin_config, MongoDBConfig):
         db_url = get_mongodb_url(admin_config)
     else:
-        raise InternalServerException(
-            "Expected MongoDBConfig, found {type(admin_config)}."
-        )
+        raise InternalServerException("Expected MongoDBConfig, found {type(admin_config)}.")
 
     return MongoClient(db_url)[admin_config.db_name]
 

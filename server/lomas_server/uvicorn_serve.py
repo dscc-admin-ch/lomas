@@ -1,6 +1,6 @@
 import uvicorn
-from lomas_core.logger import LOG
 
+from lomas_core.logger import LOG
 from lomas_server.utils.config import get_config
 
 if __name__ == "__main__":

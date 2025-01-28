@@ -79,13 +79,9 @@ def main():
 if __name__ == "__main__":
     # We add the src directory to the python search path
     # Required if the code is not installed as a package via pip/setuptools
-    admin_dir = os.path.abspath(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-    )
+    admin_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
     sys.path.append(admin_dir)
-    src_dir = os.path.abspath(
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../")
-    )
+    src_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
     sys.path.append(src_dir)
 
     main()

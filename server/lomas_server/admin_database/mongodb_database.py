@@ -1,14 +1,14 @@
 from typing import List
 
-from lomas_core.error_handler import InvalidQueryException
-from lomas_core.models.collections import DSInfo, Metadata
-from lomas_core.models.requests import LomasRequestModel
-from lomas_core.models.responses import QueryResponse
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
 from pymongo.results import _WriteResult
 
+from lomas_core.error_handler import InvalidQueryException
+from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.requests import LomasRequestModel
+from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
     dataset_must_exist,
@@ -149,9 +149,7 @@ class AdminMongoDatabase(AdminDatabase):
         )
         return doc_count > 0
 
-    def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
-    ) -> float:
+    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
         """Get total spent epsilon or delta by a user on dataset.
 
         Args:
@@ -249,9 +247,7 @@ class AdminMongoDatabase(AdminDatabase):
         )
         return list(queries)
 
-    def save_query(
-        self, user_name: str, query: LomasRequestModel, response: QueryResponse
-    ) -> None:
+    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 

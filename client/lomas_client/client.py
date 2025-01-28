@@ -5,17 +5,6 @@ from typing import List, Optional
 
 import pandas as pd
 from fastapi import status
-from lomas_core.constants import DPLibraries
-from lomas_core.models.requests import (
-    GetDummyDataset,
-    LomasRequestModel,
-)
-from lomas_core.models.responses import (
-    DummyDsResponse,
-    InitialBudgetResponse,
-    RemainingBudgetResponse,
-    SpentBudgetResponse,
-)
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 
@@ -29,6 +18,17 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.utils import raise_error, validate_model_response
+from lomas_core.constants import DPLibraries
+from lomas_core.models.requests import (
+    GetDummyDataset,
+    LomasRequestModel,
+)
+from lomas_core.models.responses import (
+    DummyDsResponse,
+    InitialBudgetResponse,
+    RemainingBudgetResponse,
+    SpentBudgetResponse,
+)
 
 # Opendp_logger
 enable_logging()
@@ -186,24 +186,17 @@ class Client:
                         return_model = query["client_input"]["return_model"]
                         res = query["response"]["result"]
                         if return_model:
-                            query["response"]["result"] = pickle.loads(
-                                base64.b64decode(res)
-                            )
+                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
                         else:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
-                        opdp_query = make_load_json(
-                            query["client_input"]["opendp_json"]
-                        )
+                        opdp_query = make_load_json(query["client_input"]["opendp_json"])
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(
-                            "Cannot deserialise unknown query type:"
-                            + f"{query['dp_librairy']}"
-                        )
+                        raise ValueError("Cannot deserialise unknown query type:" + f"{query['dp_librairy']}")
 
                 deserialised_queries.append(query)
 

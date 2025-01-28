@@ -15,7 +15,6 @@ from lomas_core.models.responses import (  # pylint: disable=W0611
     QueryResponse,
     QueryResultTypeAlias,
 )
-
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 
@@ -24,9 +23,7 @@ QueryModelGeneric = TypeVar("QueryModelGeneric", bound="QueryModel")
 QueryResultGeneric = TypeVar("QueryResultGeneric", bound="QueryResultTypeAlias")
 
 
-class DPQuerier(
-    ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]
-):
+class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]):
     """
     Abstract Base Class for Queriers to external DP library.
 
@@ -111,8 +108,7 @@ class DPQuerier(
         # Block access to other queries to user
         if not self.admin_database.get_and_set_may_user_query(user_name, False):
             raise UnauthorizedAccessException(
-                f"User {user_name} is trying to query"
-                + " before end of previous query."
+                f"User {user_name} is trying to query" + " before end of previous query."
             )
 
         try:
@@ -124,9 +120,7 @@ class DPQuerier(
                 (
                     eps_remain,
                     delta_remain,
-                ) = self.admin_database.get_remaining_budget(
-                    user_name, query_json.dataset_name
-                )
+                ) = self.admin_database.get_remaining_budget(user_name, query_json.dataset_name)
             except UnauthorizedAccessException as e:
                 raise e
 
@@ -145,9 +139,7 @@ class DPQuerier(
                 raise InternalServerException(str(e)) from e
 
             # Deduce budget from user
-            self.admin_database.update_budget(
-                user_name, query_json.dataset_name, eps_cost, delta_cost
-            )
+            self.admin_database.update_budget(user_name, query_json.dataset_name, eps_cost, delta_cost)
 
             response = QueryResponse(
                 requested_by=user_name,
@@ -157,9 +149,7 @@ class DPQuerier(
             )
 
             # Add query to db (for archive)
-            self.admin_database.save_query(
-                user_name, query_json, response
-            )  # TODO 359 here
+            self.admin_database.save_query(user_name, query_json, response)  # TODO 359 here
 
         except Exception as e:
             self.admin_database.set_may_user_query(user_name, True)

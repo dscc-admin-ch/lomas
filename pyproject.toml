@@ -36,7 +36,6 @@ disable = [
     "too-many-locals",
     "no-name-in-module",
     "too-many-arguments",
-    "implicit-str-concat",
     "too-few-public-methods",
     "dangerous-default-value",
     "missing-module-docstring",

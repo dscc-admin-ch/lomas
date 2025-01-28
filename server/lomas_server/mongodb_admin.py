@@ -672,7 +672,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
                 check_result_acknowledged(res)
             LOG.info("Existing datasets updated with new collection")
         else:
-            warn("Some datasets already present in database." "Overwrite is set to False.")
+            warn("Some datasets already present in database. Overwrite is set to False.")
 
     # Add dataset collection
     if new_datasets:
@@ -721,7 +721,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            LOG.info("Metadata already exist. " "Use the command -om to overwrite with new values.")
+            LOG.info("Metadata already exist. Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)

@@ -85,5 +85,5 @@ def get_dataset_credentials(
                 return c
 
     raise InternalServerException(
-        "Could not find credentials for private dataset." "Please contact server administrator."
+        "Could not find credentials for private dataset. Please contact server administrator."
     )

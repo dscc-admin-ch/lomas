@@ -52,7 +52,7 @@ class PathConnector(DataConnector):
                     ) from err
             else:
                 return InvalidQueryException(
-                    "File type other than .csv not supported for" "loading into pandas DataFrame."
+                    "File type other than .csv not supported for loading into pandas DataFrame."
                 )
 
         return self.df

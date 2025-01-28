@@ -313,9 +313,7 @@ class SmartnoiseSynthQuerier(
                 nullable=query_json.nullable,
             )
         except ValueError as e:  # Improve snsynth error messages
-            pattern = (
-                r"sample_rate=[\d\.]+ is not a valid value\. " r"Please provide a float between 0 and 1\."
-            )
+            pattern = r"sample_rate=[\d\.]+ is not a valid value\. Please provide a float between 0 and 1\."
             if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN and re.match(pattern, str(e)):
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,

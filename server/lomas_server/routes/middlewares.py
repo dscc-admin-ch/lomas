@@ -4,13 +4,13 @@ import time
 from typing import Tuple
 
 from fastapi import Request
-from lomas_core.error_handler import KNOWN_EXCEPTIONS
-from opentelemetry.trace import get_tracer, format_trace_id
+from opentelemetry.trace import format_trace_id, get_tracer
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
+from lomas_core.error_handler import KNOWN_EXCEPTIONS
 from lomas_server.constants import SERVER_SERVICE_NAME
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
@@ -102,9 +102,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.app_name = app_name
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """
         Processes HTTP request, records metrics and returns the HTTP response.
 
@@ -141,9 +139,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         FAST_API_REQUESTS_IN_PROGRESS_GAUGE.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
-        FAST_API_REQUESTS_COUNTER.add(
-            1, {"method": method, "path": path, "app_name": self.app_name}
-        )
+        FAST_API_REQUESTS_COUNTER.add(1, {"method": method, "path": path, "app_name": self.app_name})
 
         before_time = time.perf_counter()
 

@@ -17,10 +17,6 @@ from lomas_core.models.requests import (
     OpenDPRequestModel,
 )
 from lomas_core.models.responses import OpenDPQueryResult
-from opendp.metrics import metric_distance_type, metric_type
-from opendp.mod import enable_features
-from opendp_logger import make_load_json
-
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -61,9 +57,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             cost = opendp_pipe.map(d_in=int(max_ids))
         except Exception as e:
             logging.exception(e)
-            raise ExternalLibraryException(
-                DPLibraries.OPENDP, "Error obtaining cost:" + str(e)
-            ) from e
+            raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
 
         # Cost interpretation
         match measurement_type:

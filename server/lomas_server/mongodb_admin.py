@@ -21,9 +21,6 @@ from lomas_core.models.collections import (
     UserCollection,
 )
 from lomas_core.models.constants import PrivateDatabaseType
-from pymongo.database import Database
-from pymongo.results import _WriteResult
-
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
@@ -334,9 +331,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
 
     check_result_acknowledged(res)
 
-    logging.info(
-        f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}."
-    )
+    logging.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
 
 
 @check_user_exists(True)
@@ -723,14 +718,10 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
         if metadata and overwrite_metadata:
             logging.info(f"Metadata updated for dataset : {dataset_name}.")
-            res = db.metadata.update_one(
-                metadata_filter, {"$set": {dataset_name: metadata_dict}}
-            )
+            res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            logging.info(
-                "Metadata already exist. Use the command -om to overwrite with new values."
-            )
+            logging.info("Metadata already exist. Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)

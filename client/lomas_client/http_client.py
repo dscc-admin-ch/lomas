@@ -1,7 +1,6 @@
 import logging
 
 import requests
-from lomas_core.models.requests import LomasRequestModel
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT

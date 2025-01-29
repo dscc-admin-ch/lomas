@@ -24,9 +24,7 @@ def get_ressource(service_name: str, host_name: str):
     Returns:
         Resource: The resource object containing service metadata.
     """
-    return Resource.create(
-        {"service.name": service_name, "service.instance.id": host_name}
-    )
+    return Resource.create({"service.name": service_name, "service.instance.id": host_name})
 
 
 def init_traces_exporter(resource: Resource) -> None:

@@ -150,9 +150,7 @@ def get_dummy_dataset(
         )
 
     try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(
-            query_json.dataset_name
-        )
+        ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
         dtypes, datetime_columns = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
@@ -169,9 +167,7 @@ def get_dummy_dataset(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return DummyDsResponse(
-        dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df
-    )
+    return DummyDsResponse(dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df)
 
 
 # MongoDB get initial budget
@@ -267,17 +263,13 @@ def get_total_spent_budget(
         (
             total_spent_epsilon,
             total_spent_delta,
-        ) = app.state.admin_database.get_total_spent_budget(
-            user_name, query_json.dataset_name
-        )
+        ) = app.state.admin_database.get_total_spent_budget(user_name, query_json.dataset_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return SpentBudgetResponse(
-        total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta
-    )
+    return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
 
 
 # MongoDB get remaining budget
@@ -327,9 +319,7 @@ def get_remaining_budget(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return RemainingBudgetResponse(
-        remaining_epsilon=rem_epsilon, remaining_delta=rem_delta
-    )
+    return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
 
 # MongoDB get archives

@@ -3,14 +3,14 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
@@ -79,9 +79,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             logging.info("Adding demo data to MongoDB Admin")
-            lomas_app.state.server_state["message"].append(
-                "Adding demo data to MongoDB Admin"
-            )
+            lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
             add_demo_data_to_mongodb_admin()
 
     # Load admin database

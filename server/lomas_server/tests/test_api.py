@@ -94,11 +94,14 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
         self.user_name = "Dr. Antartica"
+        self.bearer = (
+            'Bearer {"user_name": "Dr. Antartica", "user_email": "dr.antartica@penguin_research.org"}'
+        )
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
         }
-        self.headers["user-name"] = self.user_name
+        self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
@@ -299,9 +302,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
-            fake_user = "fake_user"
+            fake_user_token = (
+                'Bearer {"user_name": "fake_user", "user_email": "fake_user@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json=example_get_dummy_dataset,
@@ -311,15 +316,17 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert (
                 response.json()
                 == UnauthorizedAccessExceptionModel(
-                    message=f"User {fake_user} does not "
+                    message="User fake_user does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
             )
 
             # Expect to work with datetimes and another user
-            fake_user = "BirthdayGirl"
+            fake_user_token = (
+                'Bearer {"user_name": "BirthdayGirl", "user_email": "BirthdayGirl@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json={
@@ -451,8 +458,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
+            fake_user_token = (
+                'Bearer {"user_name": "I_do_not_exist", "user_email": "I_do_not_exist@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = "I_do_not_exist"
+            new_headers["Authorization"] = fake_user_token
+
             response = client.post(
                 "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
@@ -515,8 +526,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # Will be solved in issue 340
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
+        #     fake_user_token =
+        #       'Bearer {"user_name": "BirthdayGirl", "user_email": "BirthdayGirl@penguin_research.org"}'
         #     new_headers = self.headers
-        #     new_headers["user-name"] = "BirthdayGirl"
+        #     new_headers["Authorization"] = fake_user_token
         #     body = dict(example_smartnoise_sql)
         #     body["dataset_name"] = "BIRTHDAYS"
         # body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
@@ -574,10 +587,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "/dummy_smartnoise_sql_query",
                 json=example_dummy_smartnoise_sql,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            response_dict = json.loads(response.content.decode("utf8"))["detail"]
-            assert response_dict[0]["type"] == "missing"
-            assert response_dict[0]["loc"] == ["header", "user-name"]
+
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            response_content = json.loads(response.content.decode("utf8"))["detail"]
+            assert response_content == "Not authenticated"
 
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_smartnoise_sql)

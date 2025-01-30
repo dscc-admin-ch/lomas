@@ -31,6 +31,14 @@ class DatasetOfUser(BaseModel):
 # -----------------------------------------------------------------------------
 
 
+class UserId(BaseModel):
+    """BaseModel for a user identification."""
+
+    # TODO integrate this into User model.
+    user_name: str
+    user_email: str
+
+
 class User(BaseModel):
     """BaseModel for a user in a user collection."""
 

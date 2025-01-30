@@ -14,6 +14,7 @@ from lomas_core.models.constants import AdminDBType
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
+from lomas_server.auth.auth import FreePassAuthenticator
 from lomas_server.constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -100,6 +101,9 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
+
+    # Set up authentication dependency
+    lomas_app.state.authenticator = FreePassAuthenticator()
 
     if status_ok:
         logging.info("Server start condition OK")

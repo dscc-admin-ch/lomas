@@ -2,8 +2,10 @@ import random
 import time
 from collections.abc import AsyncGenerator
 from functools import wraps
+from typing import Annotated
 
-from fastapi import Request
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -11,6 +13,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -67,6 +70,24 @@ async def server_live(request: Request) -> AsyncGenerator:
             "Woops, the server did not start correctly. Contact the administrator of this service.",
         )
     yield
+
+
+def get_user_id_from_authenticator(
+    request: Request,
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+) -> UserId:
+    """Extracts the authenticator from the app state.
+
+    and calls its get_user_id method.
+
+    Args:
+        request (Request): The request to access the app and state.
+        auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP bearer token.
+
+    Returns:
+        UserId: A UserId instance extracted from the token.
+    """
+    return request.app.state.authenticator.get_user_id(auth_creds)
 
 
 @timing_protection

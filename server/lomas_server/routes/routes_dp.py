@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Request, Security
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
+from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
@@ -20,6 +21,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.routes.utils import (
+    get_user_id_from_authenticator,
     handle_cost_query,
     handle_query_on_dummy_dataset,
     handle_query_on_private_dataset,
@@ -40,7 +42,7 @@ router = APIRouter()
     tags=["USER_QUERY"],
 )
 def smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
 ) -> QueryResponse:
@@ -49,7 +51,7 @@ def smartnoise_sql_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLQueryModel): The smartnoise_sql query body.
 
@@ -66,7 +68,7 @@ def smartnoise_sql_handler(
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
     return handle_query_on_private_dataset(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+        request, smartnoise_sql_query, user_id.user_name, DPLibraries.SMARTNOISE_SQL
     )
 
 
@@ -78,7 +80,7 @@ def smartnoise_sql_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
 ) -> QueryResponse:
@@ -87,7 +89,7 @@ def dummy_smartnoise_sql_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLDummyQueryModel):
             The smartnoise_sql query body.
@@ -104,7 +106,9 @@ def dummy_smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return handle_query_on_dummy_dataset(
+        request, smartnoise_sql_query, user_id.user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
@@ -115,7 +119,7 @@ def dummy_smartnoise_sql_handler(
     tags=["USER_QUERY"],
 )
 def estimate_smartnoise_sql_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
 ) -> CostResponse:
@@ -124,7 +128,7 @@ def estimate_smartnoise_sql_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLRequestModel):
             The smartnoise_sql request body.
@@ -140,7 +144,7 @@ def estimate_smartnoise_sql_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return handle_cost_query(request, smartnoise_sql_query, user_id.user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -155,7 +159,7 @@ def estimate_smartnoise_sql_cost(
     tags=["USER_QUERY"],
 )
 def smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
 ) -> QueryResponse:
@@ -164,7 +168,7 @@ def smartnoise_synth_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthQueryModel):
             The smartnoise_synth query body.
@@ -183,7 +187,7 @@ def smartnoise_synth_handler(
         or SmartnoiseSynthSamples.
     """
     return handle_query_on_private_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+        request, smartnoise_synth_query, user_id.user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
@@ -195,7 +199,7 @@ def smartnoise_synth_handler(
     tags=["USER_QUERY"],
 )
 def dummy_smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
 ) -> QueryResponse:
@@ -204,7 +208,7 @@ def dummy_smartnoise_synth_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthDummyQueryModel):
             The smartnoise_synth query body.
@@ -223,7 +227,7 @@ def dummy_smartnoise_synth_handler(
         or SmartnoiseSynthSamples.
     """
     return handle_query_on_dummy_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+        request, smartnoise_synth_query, user_id.user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
@@ -235,7 +239,7 @@ def dummy_smartnoise_synth_handler(
     tags=["USER_QUERY"],
 )
 def estimate_smartnoise_synth_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
 ) -> CostResponse:
@@ -244,7 +248,7 @@ def estimate_smartnoise_synth_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthRequestModel):
             The smartnoise_synth query body.
@@ -261,7 +265,7 @@ def estimate_smartnoise_synth_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return handle_cost_query(request, smartnoise_synth_query, user_id.user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -276,7 +280,7 @@ def estimate_smartnoise_synth_cost(
     tags=["USER_QUERY"],
 )
 def opendp_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPQueryModel,
 ) -> QueryResponse:
@@ -285,7 +289,7 @@ def opendp_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -301,7 +305,7 @@ def opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return handle_query_on_private_dataset(request, opendp_query, user_id.user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -312,7 +316,7 @@ def opendp_query_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_opendp_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
 ) -> QueryResponse:
@@ -321,7 +325,7 @@ def dummy_opendp_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -337,7 +341,7 @@ def dummy_opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return handle_query_on_dummy_dataset(request, opendp_query, user_id.user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -348,7 +352,7 @@ def dummy_opendp_query_handler(
     tags=["USER_QUERY"],
 )
 def estimate_opendp_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPRequestModel,
 ) -> CostResponse:
@@ -357,7 +361,7 @@ def estimate_opendp_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPRequestModel): The opendp query object.
 
@@ -373,7 +377,7 @@ def estimate_opendp_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return handle_cost_query(request, opendp_query, user_id.user_name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -388,7 +392,7 @@ def estimate_opendp_cost(
     tags=["USER_QUERY"],
 )
 def diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
 ):
@@ -397,7 +401,7 @@ def diffprivlib_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibQueryModel): The diffprivlib query body.
 
@@ -413,7 +417,9 @@ def diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_private_dataset(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return handle_query_on_private_dataset(
+        request, diffprivlib_query, user_id.user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
@@ -424,7 +430,7 @@ def diffprivlib_query_handler(
     tags=["USER_DUMMY"],
 )
 def dummy_diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
 ) -> QueryResponse:
@@ -433,7 +439,7 @@ def dummy_diffprivlib_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibDummyQueryModel): The diffprivlib query body.
 
@@ -449,7 +455,7 @@ def dummy_diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return handle_query_on_dummy_dataset(request, query_json, user_id.user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -460,7 +466,7 @@ def dummy_diffprivlib_query_handler(
     tags=["USER_QUERY"],
 )
 def estimate_diffprivlib_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
 ) -> CostResponse:
@@ -469,7 +475,7 @@ def estimate_diffprivlib_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibRequestModel): The diffprivlib query body.
         A JSON object containing the following:
@@ -494,4 +500,4 @@ def estimate_diffprivlib_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return handle_cost_query(request, diffprivlib_query, user_id.user_name, DPLibraries.DIFFPRIVLIB)

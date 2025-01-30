@@ -8,6 +8,8 @@ version: 0.3.5
 
 appVersion: "0.3.5"
 
+icon: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/images/lomas_logo.svg"
+
 dependencies:
   - name: mongodb
     version: "13.18.1"
@@ -24,6 +26,6 @@ dependencies:
   # - name: loki
   #   version: "5.43.0"
   #   repository: https://grafana.github.io/helm-charts
-  # - name: grafana
-  #   version: "8.8.5"
-  #   repository: https://grafana.github.io/helm-charts
+  - name: grafana
+    version: "8.8.5"
+    repository: https://grafana.github.io/helm-charts

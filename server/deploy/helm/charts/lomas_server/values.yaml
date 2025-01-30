@@ -253,9 +253,19 @@ opentelemetry-collector:
 ##########################################################################
 grafana:
   service:
-    type: LoadBalancer  # Expose Grafana externally
+    type: LoadBalancer
 
   fullnameOverride: "lomas-grafana-dashboard"
+
+  rbac:
+    create: false
+    namespaced: true
+    extraRoleRules:
+    - apiGroups: [""]
+      resources: ["pods", "services"]
+      verbs: ["get", "watch", "list"]
+    extraClusterRoleRules: []
+
   adminPassword: "admin"
   persistence:
     enabled: true
@@ -315,22 +325,39 @@ prometheus:
     type: ClusterIP
 
   fullnameOverride: "lomas-prometheus"
+
+  kube-state-metrics:
+    enabled: false
+  
+  # prometheus-node-exporter:
+  #   enabled: false
+  
+  # prometheus-pushgateway:
+  #   enabled: false
+
+  server:
+    name: server
+    releaseNamespace: true
+    namespaces:
+      - user-paulineml
+
   global:
     scrape_interval: 10s
     evaluation_interval: 10s
 
-  scrape_configs:
-    - job_name: 'prometheus'
-      static_configs:
-        - targets: ['localhost:9090']
+  prometheus.yml:
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
 
-    - job_name: 'tempo'
-      static_configs:
-        - targets: ['tempo:3200']
+      - job_name: 'tempo'
+        static_configs:
+          - targets: ['tempo:3200']
 
-    - job_name: 'otel-collector'
-      static_configs:
-        - targets: ['otel-collector:9090']
+      - job_name: 'otel-collector'
+        static_configs:
+          - targets: ['otel-collector:9090']
 
 
 # Loki
@@ -340,6 +367,21 @@ loki:
     type: ClusterIP
 
   fullnameOverride: "lomas-loki"
+
+  rbac:
+    create: true
+    pspEnabled: false
+    namespaced: true 
+
+  monitoring:
+    dashboards:
+      enabled: false
+    selfMonitoring:
+      enabled: true
+      grafanaAgent:
+        installOperator: false
+      lokiCanary:
+        enabled: false
   auth_enabled: false
 
   server:

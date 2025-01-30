@@ -21,7 +21,7 @@ spec:
       serviceAccountName: {{ include "lomas.server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
-      
+
       containers:
       - name: {{ .Chart.Name }}
         securityContext:
@@ -74,6 +74,20 @@ spec:
             readOnly: True
             mountPath: /etc/loki
 
+      - name: tempo-sidecar
+        image: grafana/tempo:latest
+        args: 
+          - "-config.file=/etc/tempo/tempo.yaml"
+        ports:
+          - containerPort: 3200
+          - containerPort: 4317
+          - containerPort: 9096
+        volumeMounts:
+          - name: tempo-config
+            mountPath: /etc/tempo
+          - name: tempo-data
+            mountPath: /var/tempo
+
       volumes:
         - name: config-and-secrets
           projected:
@@ -91,6 +105,12 @@ spec:
         - name: loki-config
           configMap:
             name: loki-config
+        - name: tempo-config
+          configMap:
+            name: tempo-config
+        - name: tempo-data
+          emptyDir: {}  # This is for temporary storage, change if you need persistent storage
+
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

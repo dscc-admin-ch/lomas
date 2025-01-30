@@ -20,7 +20,7 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: http://lomas-tempo:4317
+            endpoint: http://localhost:4317
             tls:
 
         prometheus:
@@ -28,7 +28,7 @@ data:
             namespace: lomas_server
 
         otlphttp/loki:
-            endpoint: http://loki:3100/otlp
+            endpoint: http://localhost:3100/otlp
             tls:
 
     service:

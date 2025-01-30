@@ -3,6 +3,7 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from opendp_logger import enable_logging
+from opendp.mod import enable_features
 
 from lomas_core.constants import OpenDpPipelineType
 from lomas_core.models.exceptions import (
@@ -27,7 +28,6 @@ from lomas_server.tests.utils import submit_job_wait
 class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """Test OpenDP Endpoint."""
 
-    enable_logging()
 
     @pytest.mark.long
     def test_opendp_query(self) -> None:  # pylint: disable=R0915

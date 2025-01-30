@@ -12,7 +12,7 @@ users:
     initial_delta: 0.0005
     total_spent_epsilon: 0.2
     total_spent_delta: 0.0000001
-- user_name: Dr. Antartica
+- user_name: Dr.Antartica
   may_query: True
   datasets_list:
   - dataset_name: "PENGUIN"

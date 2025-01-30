@@ -63,17 +63,16 @@ spec:
           - name: prometheus-config
             mountPath: /conf
       
-      # - name: loki-sidecar
-      #   image: grafana/loki:latest
-      #   ports:
-      #     - containerPort: 3100
-      #   env:
-      #     - name: LOKI_CONFIG_FILE
-      #       value: "/etc/loki/config.yaml"
-      #   volumeMounts:
-      #     - name: loki-config
-      #       readOnly: True
-      #       mountPath: /etc/loki
+      - name: loki-sidecar
+        image: grafana/loki:latest
+        ports:
+          - containerPort: 3100
+        args:
+          - "-config.file=/etc/loki/loki-config.yaml"
+        volumeMounts:
+          - name: loki-config
+            readOnly: True
+            mountPath: /etc/loki
 
       volumes:
         - name: config-and-secrets
@@ -89,9 +88,9 @@ spec:
         - name: prometheus-config
           configMap:
             name: prometheus-config
-        # - name: loki-config
-        #   configMap:
-        #     name: loki-config
+        - name: loki-config
+          configMap:
+            name: loki-config
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

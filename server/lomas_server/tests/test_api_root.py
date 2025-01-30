@@ -28,7 +28,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     """
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(cls) -> None:
         # Read correct config depending on the database we test against
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
@@ -41,12 +41,16 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
+
         self.user_name = "Dr. Antartica"
+        self.bearer = (
+            'Bearer {"user_name": "Dr. Antartica", "user_email": "dr.antartica@penguin_research.org"}'
+        )
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
         }
-        self.headers["user-name"] = self.user_name
+        self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
         self.db: Database = get_mongodb()

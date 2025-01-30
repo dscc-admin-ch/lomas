@@ -1,6 +1,7 @@
 import warnings
 from typing import Any
 
+from pydantic import ValidationError
 import requests
 from fastapi import status
 
@@ -19,7 +20,10 @@ def raise_error(response: requests.Response) -> None:
     Raise:
         Server Error
     """
-    error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    try:
+        error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    except ValidationError:
+        raise Exception(response.content)
     raise_error_from_model(error_model)
 
 

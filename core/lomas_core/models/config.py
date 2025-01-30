@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.models.constants import (
     AdminDBType,
+    AuthenticationType,
     PrivateDatabaseType,
     TimeAttackMethod,
 )
@@ -81,6 +82,26 @@ class DPLibraryConfig(BaseModel):
     opendp: OpenDPConfig
 
 
+class AuthenticatorConfig(BaseModel):
+    """BaseModel for Authenticator configs."""
+
+
+class FreePassAuthenticatorConfig(AuthenticatorConfig):
+    """BaseModel for FreePassAuthenticator config."""
+
+    authentication_type: Literal[AuthenticationType.FREE_PASS]  # type: ignore
+
+
+class JWTAuthenticatorConfig(AuthenticatorConfig):
+    """BaseModel for JWTAuthenticatorConfig."""
+
+    authentication_type: Literal[AuthenticationType.JWT]  # type: ignore
+
+    keycloak_address: str
+    keycloak_port: int
+    realm: str
+
+
 class Config(BaseModel):
     """Server runtime config."""
 
@@ -92,6 +113,10 @@ class Config(BaseModel):
 
     # A limit on the rate which users can submit answers
     submit_limit: float
+
+    authenticator: Annotated[
+        Union[FreePassAuthenticatorConfig, JWTAuthenticatorConfig], Field(discriminator="authentication_type")
+    ]
 
     admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
 

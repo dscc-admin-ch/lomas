@@ -175,79 +175,41 @@ dashboard:
   tolerations: []
   affinity: {}
 
-# Opentelemetry-collector
+# Tempo
 ##########################################################################
-opentelemetry-collector:
+tempo:
   service:
-    enabled: true
     type: ClusterIP
 
-  fullnameOverride: "lomas-otel-collector"
-  mode: deployment
+  fullnameOverride: "lomas-tempo"
 
-  image:
-    repository: otel/opentelemetry-collector
+  server:
+    http_listen_port: 3200
 
-  command:
-    name: otelcol
-
-  config:
+  distributor:
     receivers:
       otlp:
         protocols:
           grpc:
-            endpoint: 0.0.0.0:4317
-          http:
-            endpoint: 0.0.0.0:4318
+            endpoint: "tempo:4317"
 
-    processors:
-      batch:
-        timeout: 5s
+  ingester:
+    max_block_duration: 5m
 
-    exporters:
-      debug:
-        verbosity: detailed
+  metrics_generator:
+    registry:
+      external_labels:
+        source: tempo
+    storage:
+      path: /var/tempo/generator/wal
+      remote_write:
+        - url: http://prometheus:9090/api/v1/write
+          send_exemplars: true
+    traces_storage:
+      path: /var/tempo/generator/traces
 
-      otlp/tempo:
-        endpoint: http://tempo:4317
-        tls:
-          insecure: true
-
-      prometheus:
-        endpoint: "0.0.0.0:9090"
-        namespace: lomas_server
-
-      otlphttp/loki:
-        endpoint: http://loki:3100/otlp
-        tls:
-          insecure: true
-
-    extensions:
-      health_check:
-        endpoint: "0.0.0.0:13133"
-      pprof:
-        endpoint: "0.0.0.0:1777"
-      zpages:
-        endpoint: "0.0.0.0:55679"
-
-    service:
-      extensions: [health_check, pprof, zpages]
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [debug, otlp/tempo]
-
-        metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [debug, prometheus]
-
-        logs:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [debug, otlphttp/loki]
-
+  persistence:
+    enabled: true
 
 # Grafana
 ##########################################################################
@@ -317,129 +279,3 @@ grafana:
   env:
     GF_SECURITY_ADMIN_USER: admin
     GF_SECURITY_ADMIN_PASSWORD: admin
-
-# Prometheus
-##########################################################################
-prometheus:
-  service:
-    type: ClusterIP
-
-  fullnameOverride: "lomas-prometheus"
-
-  kube-state-metrics:
-    enabled: false
-  
-  # prometheus-node-exporter:
-  #   enabled: false
-  
-  # prometheus-pushgateway:
-  #   enabled: false
-
-  server:
-    name: server
-    releaseNamespace: true
-    namespaces:
-      - user-paulineml
-
-  global:
-    scrape_interval: 10s
-    evaluation_interval: 10s
-
-  prometheus.yml:
-    scrape_configs:
-      - job_name: 'prometheus'
-        static_configs:
-          - targets: ['localhost:9090']
-
-      - job_name: 'tempo'
-        static_configs:
-          - targets: ['tempo:3200']
-
-      - job_name: 'otel-collector'
-        static_configs:
-          - targets: ['otel-collector:9090']
-
-
-# Loki
-##########################################################################
-loki:
-  service:
-    type: ClusterIP
-
-  fullnameOverride: "lomas-loki"
-
-  rbac:
-    create: true
-    pspEnabled: false
-    namespaced: true 
-
-  monitoring:
-    dashboards:
-      enabled: false
-    selfMonitoring:
-      enabled: true
-      grafanaAgent:
-        installOperator: false
-      lokiCanary:
-        enabled: false
-  auth_enabled: false
-
-  server:
-    http_listen_port: 3100
-
-  schema_config:
-    configs:
-    - from: 2025-01-10
-      store: tsdb
-      object_store: filesystem
-      schema: v13
-      index:
-        prefix: loki_index_
-        period: 24h
-
-  storage:
-    type: filesystem
-    bucketNames:
-      chunks: loki-chunks
-      ruler: loki-ruler
-      admin: loki-admin
-    filesystem:
-      chunks_directory: /var/loki/chunks
-      rules_directory: /var/loki/rules
-      admin_api_directory: /var/loki/admin
-
-# Tempo
-##########################################################################
-tempo:
-  service:
-    type: ClusterIP
-
-  fullnameOverride: "lomas-tempo"
-
-  server:
-    http_listen_port: 3200
-
-  distributor:
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: "tempo:4317"
-
-  ingester:
-    max_block_duration: 5m
-
-  metrics_generator:
-    registry:
-      external_labels:
-        source: tempo
-    storage:
-      path: /var/tempo/generator/wal
-      remote_write:
-        - url: http://prometheus:9090/api/v1/write
-          send_exemplars: true
-    traces_storage:
-      path: /var/tempo/generator/traces
-
-  persistence:
-    enabled: true

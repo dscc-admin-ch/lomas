@@ -23,6 +23,7 @@ from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import get_ressource, init_telemetry
+from lomas_core.models.constants import AuthenticationType
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -45,19 +46,57 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
-        """Initializes the Client with the specified URL, user name, and dataset name.
+    def __init__(
+        self,
+        url: str,
+        dataset_name: str,
+        auth_method: AuthenticationType = AuthenticationType.JWT,
+        user_name: Optional[str] = None,
+        user_email: Optional[str] = None,
+        keycloak_address: Optional[str] = None,
+        keycloak_port: Optional[int] = None,
+        realm: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+    ) -> None:
+        """Initializes the Client with the specified URL, dataset name and authentication parameters.
 
         Args:
             url (str): The base URL for the API server.
-            user_name (str): The name of the user allowed to perform queries.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
+            auth_method (AuthenticationType, optional): The authentication method to use
+                with the lomas server, one of AuthenticationType. Defaults to AuthenticationType.JWT.
+            user_name (str, optional): The name of the user allowed to perform queries, if using
+                free pass authentication. Defaults to None.
+            user_email (str, optional): The email of the user, if using free passauthentication.
+                Defaults to None.
+            keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
+                environment variable), if using jwt authentication. Defaults to None.
+            keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
+                environment variable), if using jwt authentication. Defaults to None.
+            realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
+                if using jwt authentication. Defaults to None.
+            client_id (str, optional): Overwrites the client id of the user's associated service account
+                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
+            client_secret (str, optional): Overwrites the client id of the user's associated service account
+                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
         """
 
         resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
         init_telemetry(resource)
 
-        self.http_client = LomasHttpClient(url, user_name, dataset_name)
+        self.http_client = LomasHttpClient(
+            url,
+            dataset_name,
+            auth_method,
+            user_name,
+            user_email,
+            keycloak_address,
+            keycloak_port,
+            realm,
+            client_id,
+            client_secret,
+        )
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)

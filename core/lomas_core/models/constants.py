@@ -80,6 +80,13 @@ class PrivateDatabaseType(StrEnum):
     S3 = "S3_DB"
 
 
+class AuthenticationType(StrEnum):
+    """Type of Authenticator to identify users."""
+
+    FREE_PASS = "free_pass"
+    JWT = "jwt"
+
+
 # Exceptions
 # -----------------------------------------------------------------------------
 

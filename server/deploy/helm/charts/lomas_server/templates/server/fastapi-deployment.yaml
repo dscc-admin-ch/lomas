@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.server.fullname" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.server.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.server.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.server.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+            {{- toYaml .Values.server.securityContext | nindent 12 }}
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}
+            protocol: TCP
+        env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://localhost:4317"
+        volumeMounts:
+          - name: config-and-secrets
+            readOnly: True
+            mountPath: "/usr/lomas_server/"
+        resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+
+      - name: otel-collector-sidecar
+        image: otel/opentelemetry-collector-contrib:latest
+        args: 
+          - "--config=/conf/otel-collector-config.yaml"
+        ports:
+          - containerPort: 4317
+        volumeMounts:
+          - name: otel-config
+            readOnly: True
+            mountPath: /conf
+
+      - name: prometheus-sidecar
+        image: prom/prometheus:latest
+        args:
+          - "--config.file=/conf/prometheus.yaml"
+        ports:
+          - containerPort: 9091
+        volumeMounts:
+          - name: prometheus-config
+            mountPath: /conf
+      
+      # - name: loki-sidecar
+      #   image: grafana/loki:latest
+      #   ports:
+      #     - containerPort: 3100
+      #   env:
+      #     - name: LOKI_CONFIG_FILE
+      #       value: "/etc/loki/config.yaml"
+      #   volumeMounts:
+      #     - name: loki-config
+      #       readOnly: True
+      #       mountPath: /etc/loki
+
+      volumes:
+        - name: config-and-secrets
+          projected:
+            sources:
+            - secret:
+                name: {{ include "lomas.server.fullname" . }}
+            - configMap:
+                name: {{ include "lomas.server.fullname" . }}
+        - name: otel-config
+          configMap:
+            name: otel-config
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        # - name: loki-config
+        #   configMap:
+        #     name: loki-config
+      {{- with .Values.server.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

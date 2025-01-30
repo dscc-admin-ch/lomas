@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.server.fullname" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.server.service.type }}
+  ports:
+  - port: {{ .Values.server.service.port}}
+    targetPort: {{ .Values.server.runtime_args.settings.server.host_port }}
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "lomas.server.selectorLabels" . | nindent 4 }}

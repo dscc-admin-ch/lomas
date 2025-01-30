@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-config
+data:
+  otel-collector-config.yaml: |
+    receivers:
+        otlp:
+            protocols:
+                grpc:
+                    endpoint: 0.0.0.0:4317
+                http:
+                    endpoint: 0.0.0.0:4318
+    processors:
+        batch:
+            timeout: 5s
+    
+    exporters:
+        debug:
+            verbosity: detailed
+
+        otlp/tempo:
+            endpoint: http://lomas-tempo:4317
+            tls:
+
+        prometheus:
+            endpoint: "0.0.0.0:9091"
+            namespace: lomas_server
+
+        otlphttp/loki:
+            endpoint: http://loki:3100/otlp
+            tls:
+
+    service:
+        pipelines:
+            traces:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, otlp/tempo]
+            metrics:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, prometheus]
+            logs:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, otlphttp/loki]

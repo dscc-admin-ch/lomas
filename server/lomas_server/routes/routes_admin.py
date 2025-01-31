@@ -56,7 +56,7 @@ async def get_state(
 
     return JSONResponse(
         content={
-            "requested_by": user_id.user_name,
+            "requested_by": user_id.name,
             "state": app.state.server_state,
         }
     )
@@ -95,9 +95,9 @@ def get_dataset_metadata(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_id.user_name, dataset_name):
+    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
-            f"{user_id.user_name} does not have access to {dataset_name}.",
+            f"{user_id.name} does not have access to {dataset_name}.",
         )
 
     try:
@@ -148,9 +148,9 @@ def get_dummy_dataset(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_id.user_name, dataset_name):
+    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
-            f"{user_id.user_name} does not have access to {dataset_name}.",
+            f"{user_id.name} does not have access to {dataset_name}.",
         )
 
     try:
@@ -214,7 +214,7 @@ def get_initial_budget(
         (
             initial_epsilon,
             initial_delta,
-        ) = app.state.admin_database.get_initial_budget(user_id.user_name, query_json.dataset_name)
+        ) = app.state.admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -263,7 +263,7 @@ def get_total_spent_budget(
         (
             total_spent_epsilon,
             total_spent_delta,
-        ) = app.state.admin_database.get_total_spent_budget(user_id.user_name, query_json.dataset_name)
+        ) = app.state.admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -310,7 +310,7 @@ def get_remaining_budget(
 
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-            user_id.user_name, query_json.dataset_name
+            user_id.name, query_json.dataset_name
         )
     except KNOWN_EXCEPTIONS as e:
         raise e
@@ -359,7 +359,7 @@ def get_user_previous_queries(
 
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
-            user_id.user_name, query_json.dataset_name
+            user_id.name, query_json.dataset_name
         )  # TODO 359 improve on that and return models.
     except KNOWN_EXCEPTIONS as e:
         raise e

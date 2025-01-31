@@ -1,10 +1,13 @@
 from abc import ABC
 from typing import Annotated
 
+import jwt
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
+from lomas_core.models.config import AuthenticatorConfig, FreePassAuthenticatorConfig, JWTAuthenticatorConfig
 
 
 class UserAuthenticator(ABC):
@@ -45,4 +48,74 @@ class FreePassAuthenticator(UserAuthenticator):
         Returns:
             UserId: The parsed UserId.
         """
-        return UserId.model_validate_json(auth_creds.credentials)
+        try:
+            user = UserId.model_validate_json(auth_creds.credentials)
+        except Exception:
+            raise UnauthorizedAccessException("Failed bearer token verification.")
+
+        return user
+
+
+class JWTAuthenticator(UserAuthenticator):
+    """Authenticator class that identifies users by validating the provided JWT token."""
+
+    def __init__(self, keycloak_url: str, realm: str):
+        """Constructor method.
+
+        Initializes instance PyJWKClient with caching.
+
+        Args:
+            keycloak_url (str): The keycloak url for this app instance.
+            realm (str): The realm name for this app instance.
+        """
+        self.jwk_client = jwt.PyJWKClient(
+            f"{keycloak_url}/realms/{realm}/protocol/openid-connect/certs", cache_keys=True
+        )
+
+    def get_user_id(
+        self,
+        auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+    ) -> UserId:
+        """Parses the JWT bearer token to construct a UserId.
+
+        The JWT is verified against the certificates provided by the Id Provider.
+
+        Args:
+            auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP credentials.
+
+        Returns:
+            UserId: The parsed UserId.
+        """
+        try:
+            # Extracts kid from JWT and fetches corresponding key from keycloak (or cache).
+            key = self.jwk_client.get_signing_key_from_jwt(auth_creds.credentials)
+            # Decodes and validates JWT
+            token_content = jwt.decode(auth_creds.credentials, key=key)
+
+            user = UserId(user_name=token_content["user_name"], user_email=token_content["user_email"])
+
+        except Exception:
+            raise UnauthorizedAccessException("Failed bearer token verification.")
+
+        return user
+
+
+def authenticator_factory(auth_config: AuthenticatorConfig) -> UserAuthenticator:
+    """Creates an instance of a UserAuthenticator from the provided config.
+
+    Args:
+        auth_config (AuthenticatorConfig): The configuration to create the authenticator.
+
+    Raises:
+        InternalServerException: If it cannot create the authenticator.
+
+    Returns:
+        UserAuthenticator: The correct authenticator instance.
+    """
+    match auth_config:
+        case FreePassAuthenticatorConfig():
+            return FreePassAuthenticator()
+        case JWTAuthenticatorConfig():
+            return JWTAuthenticator(auth_config.keycloak_url, auth_config.realm)
+        case _:
+            raise InternalServerException("Authenticator type not supported.")

@@ -35,8 +35,8 @@ class UserId(BaseModel):
     """BaseModel for a user identification."""
 
     # TODO integrate this into User model.
-    user_name: str
-    user_email: str
+    name: str
+    email: str
 
 
 class User(BaseModel):

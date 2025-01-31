@@ -85,7 +85,7 @@ spec:
       #   restartPolicy: Always
       #   expose:
       #     - containerPort: 3200
-      #     - containerPort: 4317
+      #     - containerPort: 4320
       #   volumeMounts:
       #     - name: tempo-config
       #       mountPath: /etc/tempo

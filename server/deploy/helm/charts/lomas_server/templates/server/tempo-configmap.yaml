@@ -8,15 +8,19 @@ data:
 
     server:
       http_listen_port: 3200
-      grpc_listen_port: 4317
+      grpc_listen_port: 4320
       log_level: info
+
+    querier:
+      frontend_worker:
+        frontend_address: query-frontend-discovery.default.svc.cluster.local:9096
 
     distributor:
       receivers:
         otlp:
           protocols:
             grpc:
-              endpoint: "localhost:4317"
+              endpoint: "localhost:4320"
 
     ingester:
       max_block_duration: 5m

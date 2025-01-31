@@ -20,8 +20,9 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: http://lomas-tempo:4317
+            endpoint: http://localhost:4317
             tls:
+                insecure: true
 
         prometheus:
             endpoint: "0.0.0.0:9091"

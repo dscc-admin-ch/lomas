@@ -180,17 +180,29 @@ dashboard:
 tempo:
   service:
     type: ClusterIP
+    ports:
+      - name: grpc
+        port: 4317
+        targetPort: 4317
+      - name: http
+        port: 4318
+        targetPort: 4318
+
   fullnameOverride: "lomas-tempo"
+
   server:
     http_listen_port: 3100
+
   distributor:
     receivers:
       otlp:
         protocols:
           grpc:
             endpoint: "tempo:4317"
+
   ingester:
     max_block_duration: 5m
+
   metrics_generator:
     registry:
       external_labels:
@@ -202,6 +214,7 @@ tempo:
           send_exemplars: true
     traces_storage:
       path: /var/tempo/generator/traces
+
   persistence:
     enabled: true
 

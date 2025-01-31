@@ -38,6 +38,28 @@ spec:
             mountPath: "/usr/lomas_server/"
         resources:
             {{- toYaml .Values.server.resources | nindent 12 }}
+      
+      - name: prometheus-sidecar
+        image: prom/prometheus:latest
+        args:
+          - "--config.file=/conf/prometheus.yaml"
+        ports:
+          - containerPort: 9091
+        volumeMounts:
+          - name: prometheus-config
+            mountPath: /conf
+
+      - name: loki-sidecar
+        image: grafana/loki:latest
+        args:
+          - "-config.file=/etc/loki/loki-config.yaml"
+        ports:
+          - containerPort: 3100
+        volumeMounts:
+          - name: loki-config
+            readOnly: True
+            mountPath: /etc/loki
+
       volumes:
         - name: config-and-secrets
           projected:
@@ -46,6 +68,12 @@ spec:
                 name: {{ include "lomas.server.fullname" . }}
             - configMap:
                 name: {{ include "lomas.server.fullname" . }}
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: loki-config
+          configMap:
+            name: loki-config
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

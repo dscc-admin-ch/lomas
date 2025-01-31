@@ -42,10 +42,12 @@ spec:
         resources:
             {{- toYaml .Values.server.resources | nindent 12 }}
 
+      initContainers:
       - name: otel-collector-sidecar
         image: otel/opentelemetry-collector-contrib:latest
         args: 
           - "--config=/conf/otel-collector-config.yaml"
+        restartPolicy: Always
         ports:
           - containerPort: 4317
         volumeMounts:
@@ -57,6 +59,7 @@ spec:
         image: prom/prometheus:latest
         args:
           - "--config.file=/conf/prometheus.yaml"
+        restartPolicy: Always
         ports:
           - containerPort: 9091
         volumeMounts:
@@ -65,28 +68,29 @@ spec:
       
       - name: loki-sidecar
         image: grafana/loki:latest
-        ports:
-          - containerPort: 3100
         args:
           - "-config.file=/etc/loki/loki-config.yaml"
+        restartPolicy: Always
+        ports:
+          - containerPort: 3100
         volumeMounts:
           - name: loki-config
             readOnly: True
             mountPath: /etc/loki
 
-      - name: tempo-sidecar
-        image: grafana/tempo:latest
-        args: 
-          - "-config.file=/etc/tempo/tempo.yaml"
-        ports:
-          - containerPort: 3200
-          - containerPort: 4317
-          - containerPort: 9096
-        volumeMounts:
-          - name: tempo-config
-            mountPath: /etc/tempo
-          - name: tempo-data
-            mountPath: /var/tempo
+      # - name: tempo-sidecar
+      #   image: grafana/tempo:latest
+      #   args: 
+      #     - "-config.file=/etc/tempo/tempo.yaml"
+      #   restartPolicy: Always
+      #   expose:
+      #     - containerPort: 3200
+      #     - containerPort: 4317
+      #   volumeMounts:
+      #     - name: tempo-config
+      #       mountPath: /etc/tempo
+      #     - name: tempo-data
+      #       mountPath: /var/tempo
 
       volumes:
         - name: config-and-secrets
@@ -105,11 +109,11 @@ spec:
         - name: loki-config
           configMap:
             name: loki-config
-        - name: tempo-config
-          configMap:
-            name: tempo-config
-        - name: tempo-data
-          emptyDir: {}  # This is for temporary storage, change if you need persistent storage
+        # - name: tempo-config
+        #   configMap:
+        #     name: tempo-config
+        # - name: tempo-data
+        #   emptyDir: {}  # This is for temporary storage, change if you need persistent storage
 
       {{- with .Values.server.nodeSelector }}
       nodeSelector:

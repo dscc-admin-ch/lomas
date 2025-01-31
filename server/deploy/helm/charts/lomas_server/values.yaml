@@ -175,6 +175,36 @@ dashboard:
   tolerations: []
   affinity: {}
 
+# Tempo
+##########################################################################
+tempo:
+  service:
+    type: ClusterIP
+  fullnameOverride: "lomas-tempo"
+  server:
+    http_listen_port: 3100
+  distributor:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "tempo:4317"
+  ingester:
+    max_block_duration: 5m
+  metrics_generator:
+    registry:
+      external_labels:
+        source: tempo
+    storage:
+      path: /var/tempo/generator/wal
+      remote_write:
+        - url: http://prometheus:9091/api/v1/write
+          send_exemplars: true
+    traces_storage:
+      path: /var/tempo/generator/traces
+  persistence:
+    enabled: true
+
 # Grafana
 ##########################################################################
 grafana:

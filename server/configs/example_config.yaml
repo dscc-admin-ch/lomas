@@ -21,7 +21,8 @@ runtime_args:
       max_connecting: 2
     authenticator:
       authentication_type: "jwt"
-      keycloak_url: "http://keycloak:8080"
+      keycloak_address: "keycloak"
+      keycloak_port: 8080
       realm: "lomas"
     dp_libraries:
       opendp:

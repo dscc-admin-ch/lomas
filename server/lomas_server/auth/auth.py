@@ -50,8 +50,8 @@ class FreePassAuthenticator(UserAuthenticator):
         """
         try:
             user = UserId.model_validate_json(auth_creds.credentials)
-        except Exception:
-            raise UnauthorizedAccessException("Failed bearer token verification.")
+        except Exception as e:
+            raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
         return user
 
@@ -59,17 +59,18 @@ class FreePassAuthenticator(UserAuthenticator):
 class JWTAuthenticator(UserAuthenticator):
     """Authenticator class that identifies users by validating the provided JWT token."""
 
-    def __init__(self, keycloak_url: str, realm: str):
+    def __init__(self, keycloak_address: str, keycloak_port: int, realm: str):
         """Constructor method.
 
         Initializes instance PyJWKClient with caching.
 
         Args:
-            keycloak_url (str): The keycloak url for this app instance.
+            keycloak_address (str): The keycloak address for this app instance.
             realm (str): The realm name for this app instance.
         """
         self.jwk_client = jwt.PyJWKClient(
-            f"{keycloak_url}/realms/{realm}/protocol/openid-connect/certs", cache_keys=True
+            f"http://{keycloak_address}:{keycloak_port}/realms/{realm}/protocol/openid-connect/certs",
+            cache_keys=True,
         )
 
     def get_user_id(
@@ -92,10 +93,11 @@ class JWTAuthenticator(UserAuthenticator):
             # Decodes and validates JWT
             token_content = jwt.decode(auth_creds.credentials, key=key)
 
-            user = UserId(user_name=token_content["user_name"], user_email=token_content["user_email"])
+            user = UserId(name=token_content["user_name"], email=token_content["user_email"])
 
-        except Exception:
-            raise UnauthorizedAccessException("Failed bearer token verification.")
+        except Exception as e:
+            # TODO problematic to add e into error message to client?
+            raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
         return user
 
@@ -116,6 +118,8 @@ def authenticator_factory(auth_config: AuthenticatorConfig) -> UserAuthenticator
         case FreePassAuthenticatorConfig():
             return FreePassAuthenticator()
         case JWTAuthenticatorConfig():
-            return JWTAuthenticator(auth_config.keycloak_url, auth_config.realm)
+            return JWTAuthenticator(
+                auth_config.keycloak_address, auth_config.keycloak_port, auth_config.realm
+            )
         case _:
             raise InternalServerException("Authenticator type not supported.")

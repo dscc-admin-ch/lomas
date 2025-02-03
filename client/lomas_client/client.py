@@ -52,7 +52,8 @@ class Client:
         auth_method: AuthenticationType = AuthenticationType.JWT,
         user_name: Optional[str] = None,
         user_email: Optional[str] = None,
-        keycloak_url: Optional[str] = None,
+        keycloak_address: Optional[str] = None,
+        keycloak_port: Optional[int] = None,
         realm: Optional[str] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
@@ -68,7 +69,9 @@ class Client:
                 free pass authentication. Defaults to None.
             user_email (str, optional): The email of the user, if using free passauthentication.
                 Defaults to None.
-            keycloak_url (str, optional): Overwrites the keycloak url (otherwise passed by
+            keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
+                environment variable), if using jwt authentication. Defaults to None.
+            keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
                 environment variable), if using jwt authentication. Defaults to None.
             realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
                 if using jwt authentication. Defaults to None.
@@ -82,7 +85,16 @@ class Client:
         init_telemetry(resource)
 
         self.http_client = LomasHttpClient(
-            url, dataset_name, auth_method, user_name, user_email, client_id, client_secret
+            url,
+            dataset_name,
+            auth_method,
+            user_name,
+            user_email,
+            keycloak_address,
+            keycloak_port,
+            realm,
+            client_id,
+            client_secret,
         )
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)

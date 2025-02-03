@@ -97,7 +97,8 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
 
     authentication_type: Literal[AuthenticationType.JWT]  # type: ignore
 
-    keycloak_url: str
+    keycloak_address: str
+    keycloak_port: int
     realm: str
 
 

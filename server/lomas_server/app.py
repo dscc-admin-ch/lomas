@@ -97,7 +97,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
             lomas_app.state.server_state["LIVE"] = False
             status_ok = False
 
-    # Load admin database
+    # Create Authenticator
     if status_ok:
         try:
             logging.info("Configuring Authenticator")

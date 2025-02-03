@@ -14,7 +14,8 @@ class Config(BaseSettings):
         case_sensitive=False
     )
 
-    keycloak_url: str
+    keycloak_address: str
+    keycloak_port: int
     keycloak_authentication_realm: str
     keycloak_admin_client_id: str
     keycloak_admin_user: str
@@ -40,7 +41,7 @@ def get_admin_session(config: Config) -> KeycloakAdmin:
     """
     
     return KeycloakAdmin.from_username_password(
-        server_url=config.keycloak_url,
+        server_url=f"http://{config.keycloak_address}:{config.keycloak_port}",
         realm_name=config.keycloak_authentication_realm,
         client_id=config.keycloak_admin_client_id,
         username=config.keycloak_admin_user,

@@ -112,7 +112,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
 
             # Expect to fail: user does not exist
             fake_user_token = (
-                'Bearer {"user_name": "I_do_not_exist", "user_email": "I_do_not_exist@penguin_research.org"}'
+                'Bearer {"name": "I_do_not_exist", "email": "I_do_not_exist@penguin_research.org"}'
             )
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
@@ -164,7 +164,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
         #     fake_user_token =
-        #       'Bearer {"user_name": "BirthdayGirl", "user_email": "BirthdayGirl@penguin_research.org"}'
+        #       'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
         #     new_headers = self.headers
         #     new_headers["Authorization"] = fake_user_token
         #     body = dict(example_smartnoise_sql)

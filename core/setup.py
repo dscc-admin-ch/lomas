@@ -46,6 +46,8 @@ setup(
         "pandas>=2.2.2",
         "polars==1.12.0",
         "pyarrow==16.1.0",
+        "pydantic==2.8.2",
+        "pydantic-settings==2.7.1",
         "pymongo>=4.6.3",
         "scikit-learn>=1.4.2",
         "smartnoise-sql==1.0.6",

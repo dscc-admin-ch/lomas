@@ -32,9 +32,8 @@ class DatasetOfUser(BaseModel):
 
 
 class UserId(BaseModel):
-    """BaseModel for a user identification."""
+    """BaseModel for user identification."""
 
-    # TODO integrate this into User model.
     name: str
     email: str
 
@@ -42,7 +41,7 @@ class UserId(BaseModel):
 class User(BaseModel):
     """BaseModel for a user in a user collection."""
 
-    user_name: str
+    id: UserId
     may_query: bool
     datasets_list: List[DatasetOfUser]
 

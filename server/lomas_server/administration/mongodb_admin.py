@@ -48,7 +48,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
             db = arguments[0]
             user = arguments[1]
 
-            user_count = db.users.count_documents({"user_name": user})
+            user_count = db.users.count_documents({"id": {"name": user}})
 
             if enforce_true and user_count == 0:
                 raise ValueError(f"User {user} does not exist in user collection")
@@ -87,7 +87,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
             user_and_ds_count = db.users.count_documents(
                 {
-                    "user_name": user,
+                    "id": {"name": user},
                     "datasets_list": {"$elemMatch": {"dataset_name": dataset}},
                 }
             )
@@ -136,12 +136,13 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 
 ##########################  USERS  ########################## # noqa: E266
 @check_user_exists(False)
-def add_user(db: Database, user: str) -> None:
+def add_user(db: Database, user: str, email: str) -> None:
     """Add new user in users collection with default values for all fields.
 
     Args:
         db (Database): mongo database object
         user (str): username to be added
+        email (str): email to be added
 
     Raises:
         ValueError: If the user already exists.
@@ -153,7 +154,7 @@ def add_user(db: Database, user: str) -> None:
 
     validated_user = User.model_validate(
         {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [],
         }
@@ -169,12 +170,15 @@ def add_user(db: Database, user: str) -> None:
 
 
 @check_user_exists(False)
-def add_user_with_budget(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
+def add_user_with_budget(
+    db: Database, user: str, email: str, dataset: str, epsilon: float, delta: float
+) -> None:
     """Add new user in users collection with default values for all fields.
 
     Args:
         db (Database): mongo database object
         user (str): username to be added
+        email (str): email to be added
         dataset (str): name of the dataset to add to user
         epsilon (float): epsilon value for initial budget of user
         delta (float): delta value for initial budget of user
@@ -187,7 +191,7 @@ def add_user_with_budget(db: Database, user: str, dataset: str, epsilon: float, 
     """
     validated_user = User.model_validate(
         {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
                 {
@@ -226,7 +230,7 @@ def del_user(db: Database, user: str) -> None:
     Returns:
         None
     """
-    res = db.users.delete_many({"user_name": user})
+    res = db.users.delete_many({"id": {"name": user}})
     check_result_acknowledged(res)
 
     logging.info(f"Deleted user {user}.")
@@ -265,7 +269,7 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
 
     res = db.users.update_one(
         {
-            "user_name": user,
+            "id": {"name": user},
             "datasets_list.dataset_name": {"$ne": dataset},
         },
         {"$push": {"datasets_list": validated_budget}},
@@ -295,7 +299,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
         None
     """
     res = db.users.update_one(
-        {"user_name": user},
+        {"id": {"name": user}},
         {"$pull": {"datasets_list": {"dataset_name": {"$eq": dataset}}}},
     )
 
@@ -323,7 +327,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
     """
     res = db.users.update_one(
         {
-            "user_name": user,
+            "id": {"name": user},
             "datasets_list.dataset_name": dataset,
         },
         {"$set": {f"datasets_list.$.{field}": value}},
@@ -349,7 +353,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
         None
     """
     res = db.users.update_one(
-        {"user_name": user},
+        {"id": {"name": user}},
         {"$set": {"may_query": (value == "True")}},
     )
 
@@ -369,7 +373,7 @@ def get_user(db: Database, user: str) -> dict:
     Returns:
         user (dict): all information of user from 'users' collection
     """
-    user_info = list(db.users.find({"user_name": user}))[0]
+    user_info = list(db.users.find({"id": {"name": user}}))[0]
     user_info.pop("_id", None)
     logging.info(user_info)
     return user_info
@@ -415,7 +419,7 @@ def add_users_via_yaml(
     new_users = []
     existing_users = []
     for user in user_dict.users:
-        if not db.users.find_one({"user_name": user.user_name}):
+        if not db.users.find_one({"id": {"name": user}}):
             new_users.append(user)
         else:
             existing_users.append(user)
@@ -424,7 +428,7 @@ def add_users_via_yaml(
     if existing_users:
         if overwrite:
             for user in existing_users:
-                user_filter = {"user_name": user.user_name}
+                user_filter = {"id": {"name": user}}
                 update_operation = {"$set": user.model_dump()}
                 res: _WriteResult = db.users.update_many(user_filter, update_operation)
                 check_result_acknowledged(res)
@@ -453,7 +457,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.queries_archives.find({"user_name": user}))
+    archives_infos: List[dict] = list(db.queries_archives.find({"id": {"name": user}}))
     logging.info(archives_infos)
     return archives_infos
 
@@ -485,7 +489,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     Returns:
         user_datasets (list): list of names of all users
     """
-    user_data = db.users.find_one({"user_name": user})
+    user_data = db.users.find_one({"id": {"name": user}})
     assert user_data is not None, "User must exist"
     logging.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]

@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from pymongo import MongoClient
 from pymongo.database import Database
@@ -6,7 +7,14 @@ from pymongo.database import Database
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import AdminDBType
 from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.keycloak_admin import (
+    KeycloakAccessConfig,
+    add_kc_user,
+    add_kc_users_via_yaml,
+    del_all_kc_users,
+    del_kc_user,
+)
+from lomas_server.administration.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
@@ -28,6 +36,28 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
+
+
+def add_kc_admin_args(arg_parser: argparse.ArgumentParser) -> None:
+    """Adds all keycloak admin parameters to the argument parser.
+
+    Args:
+        arg_parser (argparse.ArgumentParser): The argument parser to add to.
+    """
+    arg_parser.add_argument("--kc_skip", default=bool(os.getenv("lomas_kc_skip", "False")), type=bool)
+    arg_parser.add_argument("-kc_a", "--kc_address", default=os.getenv("lomas_kc_addr", "keycloak"), type=str)
+    arg_parser.add_argument("-kc_p", "--kc_port", default=int(os.getenv("lomas_kc_port", "8080")), type=int)
+    arg_parser.add_argument("-kc_r", "--kc_realm", default=os.getenv("lomas_kc_realm", "lomas"), type=str)
+    arg_parser.add_argument(
+        "-kc_cl", "--kc_client_id", default=os.getenv("lomas_kc_client_id", "lomas_admin"), type=str
+    )
+    arg_parser.add_argument(
+        "-kc_s", "--kc_client_secret", default=os.getenv("lomas_kc_client_secret", "lomas_admin"), type=str
+    )
+    arg_parser.add_argument(
+        "-kc_tls", "--kc_use_tls", default=bool(os.getenv("lomas_kc_use_tls", "True")), type=bool
+    )
+
 
 if __name__ == "__main__":
     ########################################################################
@@ -57,6 +87,7 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     add_user_parser.add_argument("-u", "--user", required=True, type=str)
+    add_kc_admin_args(add_user_parser)
     add_user_parser.set_defaults(func=add_user)
 
     # Create the parser for the "add_user_with_budget" command
@@ -66,9 +97,11 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
+    add_user_wb_parser.add_argument("-m", "--email", required=True, type=str)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
     add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
     add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
+    add_kc_admin_args(add_user_wb_parser)
     add_user_wb_parser.set_defaults(func=add_user_with_budget)
 
     # Create the parser for the "del_user" command
@@ -78,6 +111,7 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     del_user_parser.add_argument("-u", "--user", required=True, type=str)
+    add_kc_admin_args(del_user_parser)
     del_user_parser.set_defaults(func=del_user)
 
     # Create the parser for the "add_dataset" command
@@ -161,6 +195,7 @@ if __name__ == "__main__":
         default=False,
     )
     users_collection_from_yaml_parser.add_argument("-yf", "--yaml_file", required=True, type=str)
+    add_kc_admin_args(users_collection_from_yaml_parser)
     users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
     # Function: Show Archives of User
@@ -320,6 +355,7 @@ if __name__ == "__main__":
         required=True,
         choices=["users", "datasets", "metadata", "queries_archives"],
     )
+    add_kc_admin_args(drop_collection_parser)
     drop_collection_parser.set_defaults(func=drop_collection)
 
     # Create the parser for the "get_users_collection" command
@@ -355,11 +391,18 @@ if __name__ == "__main__":
     mongo_db: Database = MongoClient(db_url)[args.db_name]
 
     function_map = {
-        "add_user": lambda args: add_user(mongo_db, args.user),
-        "add_user_with_budget": lambda args: add_user_with_budget(
-            mongo_db, args.user, args.dataset, args.epsilon, args.delta
+        "add_user": lambda args: (
+            add_user(mongo_db, args.user, args.email),
+            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email),
         ),
-        "del_user": lambda args: del_user(mongo_db, args.user),
+        "add_user_with_budget": lambda args: (
+            add_user_with_budget(mongo_db, args.user, args.email, args.dataset, args.epsilon, args.delta),
+            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email),
+        ),
+        "del_user": lambda args: (
+            del_user(mongo_db, args.user),
+            del_kc_user(KeycloakAccessConfig(**args), args.user),
+        ),
         "add_dataset_to_user": lambda args: add_dataset_to_user(
             mongo_db, args.user, args.dataset, args.epsilon, args.delta
         ),
@@ -369,8 +412,9 @@ if __name__ == "__main__":
         ),
         "set_may_query": lambda args: set_may_query(mongo_db, args.user, args.value),
         "get_user": lambda args: get_user(mongo_db, args.user),
-        "add_users_via_yaml": lambda args: add_users_via_yaml(
-            mongo_db, args.yaml_file, args.clean, args.overwrite
+        "add_users_via_yaml": lambda args: (
+            add_users_via_yaml(mongo_db, args.yaml_file, args.clean, args.overwrite),  # type: ignore
+            add_kc_users_via_yaml(KeycloakAccessConfig(**args), args.yaml_file, args.clean, args.overwrite),
         ),
         "get_archives_of_user": lambda args: get_archives_of_user(mongo_db, args.user),
         "get_list_of_users": lambda args: get_list_of_users(mongo_db),
@@ -404,7 +448,10 @@ if __name__ == "__main__":
         "get_dataset": lambda args: get_dataset(mongo_db, args.dataset),
         "get_metadata_of_dataset": lambda args: get_metadata_of_dataset(mongo_db, args.dataset),
         "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
-        "drop_collection": lambda args: drop_collection(mongo_db, args.collection),
+        "drop_collection": lambda args: (
+            drop_collection(mongo_db, args.collection),  # type: ignore
+            (del_all_kc_users(KeycloakAccessConfig(**args)) if args.collection == "users" else None),
+        ),
         "get_collection": lambda args: get_collection(mongo_db, args.collection),
     }
     function_map[args.func.__name__](args)

@@ -45,5 +45,16 @@ setup(
         "pydantic==2.8.2",
         "smartnoise-sql==1.0.4",
         "uvicorn==0.29.0"
-    ]
+    ],
+    extras_require={
+        "admin": [ # will be install if doing pip install lomas-server[admin]
+            "mantelo==2.2.0",
+            "mongomock==4.3.0",
+            "pydantic-settings==2.7.1",
+            "pytest==8.3.3",
+            "requests==2.32.0",
+            "streamlit==1.39.0",
+            "st-pages==0.5.0"
+        ]
+    }
 )

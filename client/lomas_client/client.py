@@ -54,6 +54,7 @@ class Client:
         user_email: Optional[str] = None,
         keycloak_address: Optional[str] = None,
         keycloak_port: Optional[int] = None,
+        keycloak_use_tls: Optional[bool] = None,
         realm: Optional[str] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
@@ -72,6 +73,8 @@ class Client:
             keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
                 environment variable), if using jwt authentication. Defaults to None.
             keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
+                environment variable), if using jwt authentication. Defaults to None.
+            keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
                 environment variable), if using jwt authentication. Defaults to None.
             realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
                 if using jwt authentication. Defaults to None.
@@ -92,6 +95,7 @@ class Client:
             user_email,
             keycloak_address,
             keycloak_port,
+            keycloak_use_tls,
             realm,
             client_id,
             client_secret,

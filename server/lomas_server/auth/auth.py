@@ -59,17 +59,24 @@ class FreePassAuthenticator(UserAuthenticator):
 class JWTAuthenticator(UserAuthenticator):
     """Authenticator class that identifies users by validating the provided JWT token."""
 
-    def __init__(self, keycloak_address: str, keycloak_port: int, realm: str):
+    def __init__(self, keycloak_address: str, keycloak_port: int, keycloak_use_tls: bool, realm: str):
         """Constructor method.
 
         Initializes instance PyJWKClient with caching.
 
         Args:
             keycloak_address (str): The keycloak address for this app instance.
+            keycloak_port (int): The keycloak port
+            keycloak_verify_tls (str): Whether to use tls or not for interacting with keycloak.
             realm (str): The realm name for this app instance.
         """
+        url_protocol = "https" if keycloak_use_tls else "http"
+
         self.jwk_client = jwt.PyJWKClient(
-            f"http://{keycloak_address}:{keycloak_port}/realms/{realm}/protocol/openid-connect/certs",
+            (
+                f"{url_protocol}://{keycloak_address}:{keycloak_port}/"
+                f"realms/{realm}/protocol/openid-connect/certs"
+            ),
             cache_keys=True,
         )
 
@@ -119,7 +126,10 @@ def authenticator_factory(auth_config: AuthenticatorConfig) -> UserAuthenticator
             return FreePassAuthenticator()
         case JWTAuthenticatorConfig():
             return JWTAuthenticator(
-                auth_config.keycloak_address, auth_config.keycloak_port, auth_config.realm
+                auth_config.keycloak_address,
+                auth_config.keycloak_port,
+                auth_config.keycloak_use_tls,
+                auth_config.realm,
             )
         case _:
             raise InternalServerException("Authenticator type not supported.")

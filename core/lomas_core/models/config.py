@@ -99,6 +99,7 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
 
     keycloak_address: str
     keycloak_port: int
+    keycloak_use_tls: bool
     realm: str
 
 

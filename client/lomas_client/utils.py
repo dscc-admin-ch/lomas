@@ -1,9 +1,9 @@
 import warnings
 from typing import Any
 
-from pydantic import ValidationError
 import requests
 from fastapi import status
+from pydantic import ValidationError
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer

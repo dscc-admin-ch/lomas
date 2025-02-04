@@ -45,14 +45,14 @@ COPY ./server/LICENSE /code/LICENSE
 COPY ./server/data/ /data/
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
-FROM lomas_server_base AS lomas_admin_dashboard_base
+FROM lomas_server_base AS lomas_admin_base
 RUN uv sync --no-cache --no-install-project --extra all
 
-FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
+FROM lomas_admin_base AS lomas_admin_dev
 ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
 
-FROM lomas_admin_dashboard_base AS lomas_admin_dashboard
+FROM lomas_admin_base AS lomas_admin
 COPY ./server/lomas_server/ /code/lomas_server/
 COPY ./server/LICENSE /code/LICENSE
 COPY ./server/data/ /data/

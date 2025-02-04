@@ -28,6 +28,7 @@ class LomasHttpClient:
         user_email: Optional[str] = None,
         keycloak_address: Optional[str] = None,
         keycloak_port: Optional[int] = None,
+        keycloak_use_tls: Optional[bool] = None,
         realm: Optional[str] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
@@ -46,6 +47,8 @@ class LomasHttpClient:
             keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
                 environment variable), if using jwt authentication. Defaults to None.
             keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
+                environment variable), if using jwt authentication. Defaults to None.
+            keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
                 environment variable), if using jwt authentication. Defaults to None.
             realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
                 if using jwt authentication. Defaults to None.
@@ -78,7 +81,10 @@ class LomasHttpClient:
                     "LOMAS_KEYCLOAK_ADDRESS"
                 )  # TODO define const
                 env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
-                keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None) # TODO define const
+                keycloak_port = keycloak_port or (
+                    int(env_keycloak_port) if env_keycloak_port else None
+                )  # TODO define const
+                keycloak_use_tls = keycloak_use_tls or bool(os.getenv("LOMAS_KEYCLOAL_USE_TLS"))
                 realm = realm or os.getenv("LOMAS_REALM")  # TODO define const
 
                 if (
@@ -86,19 +92,25 @@ class LomasHttpClient:
                     or client_secret is None
                     or keycloak_address is None
                     or keycloak_port is None
+                    or keycloak_use_tls is None
                     or realm is None
                 ):
                     raise Exception(
-                        "Missing one of client_id, client_secret, keycloak_address, keycloak_port or "
-                        "realm when using jwt authentication method."
+                        "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
+                        "keycloak_protocol or realm when using jwt authentication method."
                     )
 
+                if not keycloak_use_tls:
+                    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+                    
                 self._client_id = client_id
                 self._client_secret = client_secret
                 oauth_client = BackendApplicationClient(client_id=self._client_id)
                 self._oauth2_session = OAuth2Session(client=oauth_client)
+                url_protocol = "https" if keycloak_use_tls else "http"
                 self._token_endpoint = (
-                    f"http://{keycloak_address}:{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
+                    f"{url_protocol}://{keycloak_address}:"
+                    f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
                 )
 
             case _:

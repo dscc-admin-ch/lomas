@@ -26,6 +26,7 @@ services:
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
     networks:
       - test-network
+  
   minio:
     container_name: minio
     image: minio/minio

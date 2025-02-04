@@ -3,8 +3,9 @@ from typing import Annotated
 
 import jwt
 from fastapi import Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
+from lomas_core.constants import Scopes
 from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import AuthenticatorConfig, FreePassAuthenticatorConfig, JWTAuthenticatorConfig
@@ -36,20 +37,26 @@ class FreePassAuthenticator(UserAuthenticator):
 
     def get_user_id(
         self,
-        auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+        security_scopes: SecurityScopes,
+        auth_creds: HTTPAuthorizationCredentials #Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
     ) -> UserId:
         """Parses the HTTP bearer token as a json string to construct a UserId.
 
         !Does NOT perform any verification!
 
         Args:
+            security_scopes (SecurityScopes): The required scopes for the endpoint.
             auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP credentials.
 
         Returns:
             UserId: The parsed UserId.
         """
         try:
-            user = UserId.model_validate_json(auth_creds.credentials)
+            if Scopes.ADMIN in security_scopes.scopes:
+                # Admins don't come with proper user id, so we create a dummy one.
+                user = UserId(name="admin", email="admin@example.com")
+            else:
+                user = UserId.model_validate_json(auth_creds.credentials)
         except Exception as e:
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
@@ -59,29 +66,40 @@ class FreePassAuthenticator(UserAuthenticator):
 class JWTAuthenticator(UserAuthenticator):
     """Authenticator class that identifies users by validating the provided JWT token."""
 
-    def __init__(self, keycloak_address: str, keycloak_port: int, realm: str):
+    def __init__(self, keycloak_address: str, keycloak_port: int, keycloak_use_tls: bool, realm: str):
         """Constructor method.
 
         Initializes instance PyJWKClient with caching.
 
         Args:
             keycloak_address (str): The keycloak address for this app instance.
+            keycloak_port (int): The keycloak port
+            keycloak_verify_tls (str): Whether to use tls or not for interacting with keycloak.
             realm (str): The realm name for this app instance.
         """
+        url_protocol = "https" if keycloak_use_tls else "http"
+
         self.jwk_client = jwt.PyJWKClient(
-            f"http://{keycloak_address}:{keycloak_port}/realms/{realm}/protocol/openid-connect/certs",
+            (
+                f"{url_protocol}://{keycloak_address}:{keycloak_port}/"
+                f"realms/{realm}/protocol/openid-connect/certs"
+            ),
             cache_keys=True,
         )
 
     def get_user_id(
         self,
-        auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+        security_scopes: SecurityScopes,
+        auth_creds: HTTPAuthorizationCredentials #Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
     ) -> UserId:
         """Parses the JWT bearer token to construct a UserId.
 
         The JWT is verified against the certificates provided by the Id Provider.
 
+        ! Does not verify scopes yet !
+
         Args:
+            security_scopes (SecurityScopes): The required scopes for the endpoint.
             auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP credentials.
 
         Returns:
@@ -92,11 +110,18 @@ class JWTAuthenticator(UserAuthenticator):
             key = self.jwk_client.get_signing_key_from_jwt(auth_creds.credentials)
             # Decodes and validates JWT
             token_content = jwt.decode(auth_creds.credentials, key=key)
-
-            user = UserId(name=token_content["user_name"], email=token_content["user_email"])
+            print(token_content)
+            if Scopes.ADMIN in security_scopes.scopes:
+                # We use only one generic admin for now
+                if token_content["client_id"] != "lomas_admin": # TODO need to add admin role/scope see issue 399
+                    raise UnauthorizedAccessException("Only admin user can query this endpoint.")
+                user = UserId(name="admin", email="noemailexample.com")
+            else:
+                user = UserId(name=token_content["user_name"], email=token_content["user_email@example.com"])
 
         except Exception as e:
             # TODO problematic to add e into error message to client?
+            print(e)
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
         return user
@@ -119,7 +144,10 @@ def authenticator_factory(auth_config: AuthenticatorConfig) -> UserAuthenticator
             return FreePassAuthenticator()
         case JWTAuthenticatorConfig():
             return JWTAuthenticator(
-                auth_config.keycloak_address, auth_config.keycloak_port, auth_config.realm
+                auth_config.keycloak_address,
+                auth_config.keycloak_port,
+                auth_config.keycloak_use_tls,
+                auth_config.realm,
             )
         case _:
             raise InternalServerException("Authenticator type not supported.")

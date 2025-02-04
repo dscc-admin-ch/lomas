@@ -43,6 +43,10 @@ spec:
             {{- toYaml .Values.server.resources | nindent 12 }}
 
       initContainers:
+      - name: wait-for-tempo
+        image: busybox
+        command: ['sh', '-c', 'until nc -z lomas-tempo 4317; do echo waiting for tempo; sleep 5; done']
+
       - name: otel-collector-sidecar
         image: otel/opentelemetry-collector-contrib:latest
         args: 

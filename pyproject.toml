@@ -19,6 +19,7 @@ max-line-length = 110
 extend_exclude = [".devenv", "docs"]
 
 [tool.mypy]
+plugins = ['pydantic.mypy']
 disable_error_code = ["import-untyped", "import-not-found"]
 exclude = [ 'setup\.py', 'docs' ]
 no_site_packages = true

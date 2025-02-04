@@ -1,4 +1,5 @@
 # type: ignore
+# pylint: skip-file
 import os
 
 import streamlit as st
@@ -7,23 +8,26 @@ import yaml
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.administration.dashboard.config import get_config
 from lomas_server.administration.dashboard.utils import (
     check_dataset_warning,
     check_user_warning,
     warning_field_missing,
 )
-from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.keycloak_admin import get_kc_user_client_secret, set_kc_user_client_secret
+from lomas_server.administration.lomas_admin import (
+    add_lomas_user,
+    add_lomas_user_with_budget,
+    add_lomas_users_via_yaml,
+    del_lomas_user,
+    drop_lomas_collection
+)
+from lomas_server.administration.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
-    add_user,
-    add_user_with_budget,
-    add_users_via_yaml,
     del_dataset,
     del_dataset_to_user,
-    del_user,
-    drop_collection,
     get_archives_of_user,
     get_collection,
     get_dataset,
@@ -35,6 +39,8 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
+from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
+from lomas_server.utils.config import get_config as get_server_config
 
 EPSILON_STEP = 0.01
 DELTA_STEP = 0.00001
@@ -42,14 +48,18 @@ DELTA_STEP = 0.00001
 ###############################################################################
 # BACKEND
 ###############################################################################
-if "admin_db" not in st.session_state:
-    st.session_state["admin_db"] = get_mongodb()
+try:
+    if "dashboard_config" not in st.session_state:
+        # Store dashboard config
+        st.session_state["dashboard_config"] = get_config()
+except InternalServerException as e:
+    st.error(f"Failed to load server or dashboard config. Initial exception: {e}")
 
 if "list_users" not in st.session_state:
-    st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+    st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
 
 if "list_datasets" not in st.session_state:
-    st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+    st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
 
 
 ###############################################################################
@@ -71,29 +81,41 @@ user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
 
 with user_tab:
     st.subheader("Add user")
-    au_username = st.text_input("Username (add user)", value="", key="au_username_key")
+    au_1, au_2, au_3 = st.columns(3)
+    with au_1:
+        au_username = st.text_input("Username (add user)", value="", key="au_username_key")
+    with au_2:
+        au_email = st.text_input("Email (add user)", value="", key="au_email_key")
+    with au_3:
+        au_client_secret = st.text_input("Client secret (add user), can be left empty.", value="", key="au_client_secret_key", type="password")
     if st.button("Add user", key="add_user_button"):
-        if au_username:
+        if au_username and au_email:
             au_user_warning = check_user_warning(au_username)
             if not au_user_warning:
-                add_user(st.session_state.admin_db, au_username)
-                st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+                add_lomas_user(st.session_state.dashboard_config, au_username, au_email, au_client_secret)
+                st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
                 st.write(f"User {au_username} was added.")
         else:
             warning_field_missing()
 
     st.subheader("Add user with budget")
-    auwb_1, auwb_2, auwb_3, auwb_4 = st.columns(4)
+    auwb_1, auwb_2, auwb_3 = st.columns(3)
     with auwb_1:
         auwb_username = st.text_input("Username (add user with budget)", key="auwb_username")
         auwb_user_warning = check_user_warning(auwb_username)
     with auwb_2:
+        auwb_email = st.text_input("Email (add user)", value="", key="auwb_email_key")
+    with auwb_3:
+        auwb_client_secret = st.text_input("Client secret (add user), can be left empty.", value="", key="auwb_client_secret_key", type="password")
+    
+    auwb_4, auwb_5, auwb_6 = st.columns(3)
+    with auwb_4:
         auwb_dataset = st.selectbox(
             "Dataset (add user with budget)",
             st.session_state.list_datasets,
             key="dataset of add user with budget",
         )
-    with auwb_3:
+    with auwb_5:
         auwb_epsilon = st.number_input(
             "Epsilon (add user with budget)",
             min_value=0.0,
@@ -102,7 +124,7 @@ with user_tab:
             format="%f",
             key="auwb_epsilon",
         )
-    with auwb_4:
+    with auwb_6:
         auwb_delta = st.number_input(
             "Delta (add user with budget)",
             min_value=0.0,
@@ -113,15 +135,17 @@ with user_tab:
         )
 
     if st.button("Add user with dataset", key="add_user_with_budget"):
-        if auwb_username and auwb_dataset and auwb_epsilon and auwb_delta:
-            add_user_with_budget(
-                st.session_state.admin_db,
+        if auwb_username and auwb_email and auwb_dataset and auwb_epsilon and auwb_delta:
+            add_lomas_user_with_budget(
+                st.session_state.dashboard_config,
                 auwb_username,
+                auwb_email,
                 auwb_dataset,
                 auwb_epsilon,
                 auwb_delta,
+                auwb_client_secret,
             )
-            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+            st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
             st.write(f"User {auwb_username} was added with dataset {auwb_dataset}.")
         else:
             warning_field_missing()
@@ -136,7 +160,7 @@ with user_tab:
         )
     with adtu_2:
         if adtu_username:
-            adtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, adtu_username)
+            adtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.dashboard_config.mg_config, adtu_username)
             adtu_dataset_available = [
                 dataset
                 for dataset in st.session_state.list_datasets
@@ -171,7 +195,7 @@ with user_tab:
     if st.button("Add dataset to user", key="add_dataset_to_user"):
         if adtu_username and adtu_dataset and adtu_epsilon and adtu_delta:
             add_dataset_to_user(
-                st.session_state.admin_db,
+                st.session_state.dashboard_config.mg_config,
                 adtu_username,
                 adtu_dataset,
                 adtu_epsilon,
@@ -181,6 +205,32 @@ with user_tab:
                 f"Dataset {adtu_dataset} was added to user {adtu_username}"
                 + f" with epsilon = {adtu_epsilon} and delta = {adtu_delta}"
             )
+        else:
+            warning_field_missing()
+
+    st.subheader("Set user client secret")
+    sucs_1, sucs_2 = st.columns(2)
+    with sucs_1:
+        sucs_username = st.selectbox(
+            "Username (set user client_secret)",
+            st.session_state.list_users,
+            key="sucs_username",
+        )
+    with sucs_2:
+        sucs_client_secret = st.text_input(
+            "Client secret (set user client_secret)",
+            key="sucs_client_secret",
+            type="password"
+        )
+
+    if st.button("Set user client secret", key="set_user_client_secret"):
+        if sucs_username and sucs_client_secret:
+            set_kc_user_client_secret(
+                st.session_state.dashboard_config.kc_config,
+                sucs_username,
+                sucs_client_secret
+            )
+            st.write(f"Set new client secret for user {sucs_username}")
         else:
             warning_field_missing()
 
@@ -194,7 +244,7 @@ with user_tab:
         )
     with sue_2:
         if sue_username:
-            sue_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, sue_username)
+            sue_datasets_from_user = get_list_of_datasets_from_user(st.session_state.dashboard_config.mg_config, sue_username)
         else:
             sue_datasets_from_user = st.session_state.list_datasets
         sue_dataset = st.selectbox(
@@ -215,7 +265,7 @@ with user_tab:
     if st.button("Modify user epsilon", key="modify_user_epsilon"):
         if sue_username and sue_dataset and sue_epsilon:
             set_budget_field(
-                st.session_state.admin_db,
+                st.session_state.dashboard_config.mg_config,
                 sue_username,
                 sue_dataset,
                 BudgetDBKey.EPSILON_INIT,
@@ -238,7 +288,7 @@ with user_tab:
         )
     with sud_2:
         if sud_username:
-            sud_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, sud_username)
+            sud_datasets_from_user = get_list_of_datasets_from_user(st.session_state.dashboard_config.mg_config, sud_username)
         else:
             sud_datasets_from_user = st.session_state.list_datasets
         sud_dataset = st.selectbox(
@@ -259,7 +309,7 @@ with user_tab:
     if st.button("Modify user delta", key="modify_user_delta"):
         if sud_username and sud_dataset and sud_delta:
             set_budget_field(
-                st.session_state.admin_db,
+                st.session_state.dashboard_config.mg_config,
                 sud_username,
                 sud_dataset,
                 BudgetDBKey.DELTA_INIT,
@@ -284,7 +334,7 @@ with user_tab:
         umq_may_query = st.selectbox("May query", (True, False), key="umq_may_query")
     if st.button("Modify user may query", key="m_u_m_q"):
         if umq_username:
-            set_may_query(st.session_state.admin_db, umq_username, umq_may_query)
+            set_may_query(st.session_state.dashboard_config.mg_config, umq_username, umq_may_query)
             st.write("User", umq_username, "may_query is now:", umq_may_query)
         else:
             warning_field_missing()
@@ -305,13 +355,13 @@ with user_tab:
             st.write("Click to add users")
             user_collection = yaml.safe_load(u_uploaded_file)
             try:
-                add_users_via_yaml(
-                    st.session_state.admin_db,
+                add_lomas_users_via_yaml(
+                    st.session_state.dashboard_config,
                     user_collection,
                     u_clean,
                     u_overwrite,
                 )
-                st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+                st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
                 st.write("Users were added.")
             except Exception as e:
                 st.error(f"Failed to import collection because {e}")
@@ -431,7 +481,7 @@ with dataset_tab:
         if DATASET_READY and METADATA_READY and not ad_dataset_warning:
             try:
                 add_dataset(
-                    st.session_state.admin_db,
+                    st.session_state.dashboard_config.mg_config,
                     ad_dataset,
                     ad_type,
                     ad_meta_type,
@@ -442,7 +492,7 @@ with dataset_tab:
 
             DATASET_READY = False
             METADATA_READY = False
-            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
             st.write("Dataset", ad_dataset, "was added.")
         else:
             warning_field_missing()
@@ -473,13 +523,13 @@ with dataset_tab:
             dataset_collection = yaml.safe_load(dataset_collection)
 
             add_datasets_via_yaml(
-                st.session_state.admin_db,
+                st.session_state.dashboard_config.mg_config,
                 dataset_collection,
                 d_clean,
                 d_overwrite_datasets,
                 d_overwrite_metadata,
             )
-            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
             st.write(f"Datasets imported: {st.session_state.list_datasets}")
         else:
             warning_field_missing()
@@ -494,7 +544,7 @@ with content_tab:
             key="username of user to show",
         )
         if st.button(f"Displaying information of: {user_selected}", key="content_user_display"):
-            user_to_show = get_user(st.session_state.admin_db, user_selected)
+            user_to_show = get_user(st.session_state.dashboard_config.mg_config, user_selected)
             st.write(user_to_show)
 
     with elem_archives:
@@ -507,8 +557,17 @@ with content_tab:
             f"Displaying previous queries of: {user_archives_selected}",
             key="content_user_archive_display",
         ):
-            user_archives_to_show = get_archives_of_user(st.session_state.admin_db, user_archives_selected)
+            user_archives_to_show = get_archives_of_user(st.session_state.dashboard_config.mg_config, user_archives_selected)
             st.write(user_archives_to_show)
+
+    user_client_secret_selected = st.selectbox(
+        "Client secret for user",
+        st.session_state.list_users,
+        key="user_to_show_client_secret"
+    )
+    if st.button(f"Display client secret for user: {user_client_secret_selected}", key="user_to_show_client_secret_display"):
+        user_client_secret = get_kc_user_client_secret(st.session_state.dashboard_config.kc_config, user_client_secret_selected)
+        st.write(f"Client secret for user {user_client_secret_selected}:", user_client_secret)
 
     elem_datasets, elem_metadata = st.columns(2)
     with elem_datasets:
@@ -518,7 +577,7 @@ with content_tab:
             key="dataset_to_show",
         )
         if st.button(f"Displaying dataset: {dataset_selected}", key="content_dataset_display"):
-            dataset_to_show = get_dataset(st.session_state.admin_db, dataset_selected)
+            dataset_to_show = get_dataset(st.session_state.dashboard_config.mg_config, dataset_selected)
             st.write(dataset_to_show)
 
     with elem_metadata:
@@ -531,26 +590,26 @@ with content_tab:
             f"Displaying metadata of: {metadata_selected}",
             key="content_metadata_dataset_display",
         ):
-            metadata_to_show = get_metadata_of_dataset(st.session_state.admin_db, metadata_selected)
+            metadata_to_show = get_metadata_of_dataset(st.session_state.dashboard_config.mg_config, metadata_selected)
             st.write(metadata_to_show)
 
     st.subheader("Show full collection")
     col_users, col_datasets, col_metadata, col_archives = st.columns(4)
     with col_users:
         if st.button("Show all users", key="content_show_all_users"):
-            users = get_collection(st.session_state.admin_db, "users")
+            users = get_collection(st.session_state.dashboard_config.mg_config, "users")
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets", key="content_show_all_datasets"):
-            datasets = get_collection(st.session_state.admin_db, "datasets")
+            datasets = get_collection(st.session_state.dashboard_config.mg_config, "datasets")
             st.write(datasets)
     with col_metadata:
         if st.button("Show all metadata", key="content_show_all_metadata"):
-            metadatas = get_collection(st.session_state.admin_db, "metadata")
+            metadatas = get_collection(st.session_state.dashboard_config.mg_config, "metadata")
             st.write(metadatas)
     with col_archives:
         if st.button("Show archives", key="content_show_archives"):
-            archives = get_collection(st.session_state.admin_db, "queries_archives")
+            archives = get_collection(st.session_state.dashboard_config.mg_config, "queries_archives")
             st.write(archives)
 
 
@@ -569,8 +628,8 @@ with deletion_tab:
 
     if st.button(label=f"Delete user {du_username} from the list of users.", key="delete_user"):
         if du_username:
-            del_user(st.session_state.admin_db, du_username)
-            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+            del_lomas_user(st.session_state.dashboard_config, du_username)
+            st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
             st.write(f"User {du_username} was deleted.")
         else:
             warning_field_missing()
@@ -585,7 +644,7 @@ with deletion_tab:
         )
     with rdtu_2:
         if rdtu_user:
-            rdtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.admin_db, rdtu_user)
+            rdtu_datasets_from_user = get_list_of_datasets_from_user(st.session_state.dashboard_config.mg_config, rdtu_user)
         else:
             rdtu_datasets_from_user = st.session_state.list_datasets
         rdtu_dataset = st.selectbox(
@@ -599,8 +658,8 @@ with deletion_tab:
         key="delete_dataset_from_user",
     ):
         if rdtu_user and rdtu_dataset:
-            del_dataset_to_user(st.session_state.admin_db, rdtu_user, rdtu_dataset)
-            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+            del_dataset_to_user(st.session_state.dashboard_config.mg_config, rdtu_user, rdtu_dataset)
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
             st.write(f"Dataset {rdtu_dataset} was removed from user {rdtu_user}.")
         else:
             warning_field_missing()
@@ -617,8 +676,8 @@ with deletion_tab:
         key="delete_dataset_and_metadata",
     ):
         if rd_dataset:
-            del_dataset(st.session_state.admin_db, rd_dataset)
-            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+            del_dataset(st.session_state.dashboard_config.mg_config, rd_dataset)
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
             st.write(f"Dataset {rd_dataset} was deleted.")
         else:
             warning_field_missing()
@@ -628,25 +687,25 @@ with deletion_tab:
 
     with d_col_users:
         if st.button("Delete all users", key="delete_all_users"):
-            drop_collection(st.session_state.admin_db, "users")
-            st.session_state["list_users"] = get_list_of_users(st.session_state.admin_db)
+            drop_lomas_collection(st.session_state.dashboard_config, "users")
+            st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
             st.write("Users were all deleted.")
 
     with d_col_datasets:
         if st.button(
             "Delete all datasets",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "datasets"),
+            on_click=drop_lomas_collection,
+            args=(st.session_state.dashboard_config, "datasets"),
             key="delete_all_datasets",
         ):
-            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.admin_db)
+            st.session_state["list_datasets"] = get_list_of_datasets(st.session_state.dashboard_config.mg_config)
             st.write("Datasets were all deleted.")
 
     with d_col_metadata:
         if st.button(
             "Delete all metadata",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "metadata"),
+            on_click=drop_lomas_collection,
+            args=(st.session_state.dashboard_config, "metadata"),
             key="delete_all_metadata",
         ):
             st.write("Metadata were all deleted.")
@@ -654,8 +713,8 @@ with deletion_tab:
     with d_col_archives:
         if st.button(
             "Delete all archives",
-            on_click=drop_collection,
-            args=(st.session_state.admin_db, "archives"),
+            on_click=drop_lomas_collection,
+            args=(st.session_state.dashboard_config, "archives"),
             key="delete_all_archives",
         ):
             st.write("Archives were all deleted.")

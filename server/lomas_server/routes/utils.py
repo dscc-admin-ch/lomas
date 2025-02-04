@@ -8,7 +8,7 @@ from typing import Annotated
 
 import aio_pika
 from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
@@ -109,11 +109,12 @@ def timing_protection(func):
 
 def get_user_id_from_authenticator(
     request: Request,
+    security_scopes: SecurityScopes,
     auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
 ) -> UserId:
-    """Extracts the authenticator from the app state.
+    """Extracts the authenticator from the app state and calls its get_user_id method.
 
-    and calls its get_user_id method.
+    Also adds the user_name to the request state to annotate the telemetry request span.
 
     Args:
         request (Request): The request to access the app and state.
@@ -122,7 +123,10 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    return request.app.state.authenticator.get_user_id(auth_creds)
+    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
+    request.state.user_name = user_id.name
+    
+    return user_id
 
 
 @timing_protection

@@ -1,6 +1,7 @@
-from typing import Annotated, List, Literal, Union
+from typing import Annotated, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.constants import (
     AdminDBType,
@@ -42,7 +43,7 @@ class YamlDBConfig(DBConfig):
 class MongoDBConfig(DBConfig):
     """BaseModel for dataset store configs  in case of a  MongoDB database."""
 
-    db_type: Literal[AdminDBType.MONGODB]  # type: ignore
+    db_type: Literal[AdminDBType.MONGODB] = AdminDBType.MONGODB  # type: ignore
     address: str
     port: int
     username: str
@@ -99,6 +100,7 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
 
     keycloak_address: str
     keycloak_port: int
+    keycloak_use_tls: bool
     realm: str
 
 
@@ -123,3 +125,28 @@ class Config(BaseModel):
     private_db_credentials: List[Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]]
 
     dp_libraries: DPLibraryConfig
+
+
+class KeycloakClientConfig(BaseModel):
+    """Base model for Keycloak client config."""
+
+    address: str
+    port: int
+    use_tls: bool
+    realm: str
+    client_id: str
+    client_secret: str
+
+
+class AdminConfig(BaseSettings):
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_prefix="lomas_adm_",
+        env_file="lomas_admin.env",
+        env_nested_delimiter="__",
+        case_sensitive=False,
+    )
+
+    mg_config: MongoDBConfig
+    kc_config: Annotated[Optional[KeycloakClientConfig], Field(default=None)]

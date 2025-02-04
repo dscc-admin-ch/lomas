@@ -1,6 +1,6 @@
 runtime_args:
   settings:
-    develop_mode: False
+    develop_mode: True
     submit_limit: 300
     server:
       host_ip: "0.0.0.0"
@@ -9,20 +9,15 @@ runtime_args:
       reload: True
       workers: 1 # Will be overwritten to one anyway for now.
       time_attack:
-        method: "jitter" # or "stall"
+        method: "stall"
         magnitude: 1
     admin_database:
-      db_type: "mongodb"
-      address: "127.0.0.1"
-      port: 27017
-      db_name: "defaultdb"
-      max_pool_size: 100
-      min_pool_size: 2
-      max_connecting: 2
+      db_type: "yaml"
+      db_file: "tests/test_data/local_db_file.yaml"
     authenticator:
       authentication_type: "free_pass"
     dp_libraries:
       opendp:
         contrib: True
         floating_point: True
-        honest_but_curious: True
+        honest_but_curious: False

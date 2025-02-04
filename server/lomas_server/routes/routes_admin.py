@@ -4,18 +4,21 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Request, Response, Security
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from lomas_core.constants import Scopes
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import Metadata, UserId
+from lomas_core.models.config import Config
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
 from lomas_core.models.responses import (
+    ConfigResponse,
     DummyDsResponse,
     InitialBudgetResponse,
     RemainingBudgetResponse,
@@ -24,6 +27,7 @@ from lomas_core.models.responses import (
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.routes.utils import get_user_id_from_authenticator
+from lomas_server.utils.config import get_config
 
 router = APIRouter()
 
@@ -65,7 +69,7 @@ async def status_handler(request: Request, uid: UUID, response: Response):
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
 
@@ -79,10 +83,31 @@ async def get_state(
 
     return JSONResponse(
         content={
-            "requested_by": user_id.name,
             "state": "live",
         }
     )
+
+# Get server config
+@router.get("/config",
+            tags=["ADMIN_USER"],
+            response_model=ConfigResponse,
+)
+async def get_server_config(
+    request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+) -> ConfigResponse:
+    """Returns the config of this server instance.
+
+    Args:
+        request (Request): Raw request object
+        user_id (UserId): A UserId object identifying the user.
+
+    Returns:
+        ConfigResponse: The server config.
+    """
+    config = get_config()
+
+    return ConfigResponse(config=config)
 
 
 # Metadata query

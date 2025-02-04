@@ -1,15 +1,47 @@
+import os
+from oauthlib.oauth2 import BackendApplicationClient
 import requests
+from requests_oauthlib import OAuth2Session
 import streamlit as st
+
+from lomas_core.models.config import KeycloakClientConfig
+from lomas_core.models.config import Config as ServerConfig
+from lomas_server.administration.dashboard.config import Config
 
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds
-def get_server_data(fastapi_address, endpoint):
+def get_server_data(_config: Config, endpoint):
     """Fast api requests on server and cache the result for 60 seconds."""
-    response = requests.get(f"{fastapi_address}/{endpoint}", timeout=50)
+    # Disable tls checks if needed
+    if not _config.kc_config.use_tls:
+        os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        
+    # Get JWT token
+    oauth_client = BackendApplicationClient(_config.kc_config.client_id)
+    oauth2_session = OAuth2Session(client=oauth_client)
+    url_protocol = "https" if _config.kc_config.use_tls else "http"
+    token_url = (
+        f"{url_protocol}://{_config.kc_config.address}:"
+        f"{_config.kc_config.port}/realms/{_config.kc_config.realm}/protocol/openid-connect/token"
+    )
+    oauth2_session.fetch_token(
+        token_url, client_id=_config.kc_config.client_id, client_secret=_config.kc_config.client_secret
+    )
+
+    # Perform request
+    response = oauth2_session.get(f"{_config.server_service}/{endpoint}", timeout=50)
     if response.status_code == 200:
         return response.json()
     return response.raise_for_status()
 
+
+def get_server_config(config: Config):
+    """Fetches the server config.
+
+    Args:
+        config (Config): The dashboard config.
+    """
+    return ServerConfig.model_validate(get_server_data(config, "config")["config"])
 
 def check_user_warning(user: str) -> bool:
     """Verify if user already present and warning if it is.

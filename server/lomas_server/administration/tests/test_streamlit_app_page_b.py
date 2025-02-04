@@ -6,15 +6,19 @@ from streamlit.testing.v1 import AppTest
 from lomas_core.models.constants import (
     PrivateDatabaseType,
 )
+from lomas_server.administration.dashboard.config import Config as DashboardConfig
 from lomas_server.administration.tests.utils import get_mocked_db, load_mock_file
+from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import get_config as get_server_config
+
 
 
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
     with patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb, patch(
-        "streamlit.file_uploader"
-    ) as mock_file_uploader:
+        "streamlit.file_uploader") as mock_file_uploader, patch(
+        "lomas_server.administration.dashboard.config.get_config") as mock_get_config:
 
         mock_get_mongodb.return_value = get_mocked_db()
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"
@@ -25,6 +29,22 @@ def mock_mongodb_and_helpers():
             "mock_get_mongodb": mock_get_mongodb,
             "mock_file_uploader": mock_file_uploader,
         }
+
+        # Overwrite server config
+        CONFIG_LOADER.load_config(
+            config_path="tests/test_configs/test_config_mongo.yaml",
+            secrets_path="tests/test_configs/test_secrets.yaml",
+        )
+
+        # Mock dashboard config
+        dashboard_config = {
+            "mg_config": get_server_config().admin_database,
+            "kc_config": None,
+            "server_url": "example.com",
+            "server_service": "http://localhost:8000",
+        }
+        mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
+
 
 
 def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915

@@ -1,22 +1,20 @@
 import argparse
+import os
 
-from pymongo import MongoClient
-from pymongo.database import Database
-
-from lomas_core.models.config import MongoDBConfig
-from lomas_core.models.constants import AdminDBType
-from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.mongodb_admin import (
+from lomas_core.models.config import AdminConfig
+from lomas_server.administration.lomas_admin import (
+    add_lomas_user,
+    add_lomas_user_with_budget,
+    add_lomas_users_via_yaml,
+    del_lomas_user,
+    drop_lomas_collection,
+)
+from lomas_server.administration.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
-    add_user,
-    add_user_with_budget,
-    add_users_via_yaml,
     del_dataset,
     del_dataset_to_user,
-    del_user,
-    drop_collection,
     get_archives_of_user,
     get_collection,
     get_dataset,
@@ -29,19 +27,32 @@ from lomas_server.mongodb_admin import (
     set_may_query,
 )
 
+
+def add_kc_admin_args(arg_parser: argparse.ArgumentParser) -> None:
+    """Adds all keycloak admin parameters to the argument parser.
+
+    Args:
+        arg_parser (argparse.ArgumentParser): The argument parser to add to.
+    """
+    arg_parser.add_argument("--kc_skip", default=bool(os.getenv("lomas_kc_skip", "False")), type=bool)
+    arg_parser.add_argument("-kc_a", "--kc_address", default=os.getenv("lomas_kc_addr", "keycloak"), type=str)
+    arg_parser.add_argument("-kc_p", "--kc_port", default=int(os.getenv("lomas_kc_port", "8080")), type=int)
+    arg_parser.add_argument("-kc_r", "--kc_realm", default=os.getenv("lomas_kc_realm", "lomas"), type=str)
+    arg_parser.add_argument(
+        "-kc_cl", "--kc_client_id", default=os.getenv("lomas_kc_client_id", "lomas_admin"), type=str
+    )
+    arg_parser.add_argument(
+        "-kc_s", "--kc_client_secret", default=os.getenv("lomas_kc_client_secret", "lomas_admin"), type=str
+    )
+    arg_parser.add_argument(
+        "-kc_tls", "--kc_use_tls", default=bool(os.getenv("lomas_kc_use_tls", "True")), type=bool
+    )
+
+
 if __name__ == "__main__":
-    ########################################################################
-    ########################## MongoDB Connection ############# # noqa: E266
-    ########################################################################
-    connection_parser = argparse.ArgumentParser(add_help=False)
-    connection_parser.add_argument("-db_u", "--username", default="user")
-    connection_parser.add_argument("-db_pwd", "--password", default="user_pwd")
-    connection_parser.add_argument("-db_a", "--address", default="mongodb")
-    connection_parser.add_argument("-db_p", "--port", default=27017)
-    connection_parser.add_argument("-db_n", "--db_name", default="defaultdb")
-    connection_parser.add_argument("-db_max_ps", "--db_max_pool_size", default=100)
-    connection_parser.add_argument("-db_min_ps", "--db_min_pool_size", default=0)
-    connection_parser.add_argument("-db_max_conn", "--db_max_connecting", default=2)
+
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument("--env_file", required=False, default="lomas_admin.env")
 
     ########################################################################
     ######################## MongoDB Administration ############ # noqa: E266
@@ -54,59 +65,58 @@ if __name__ == "__main__":
     add_user_parser = subparsers.add_parser(
         "add_user",
         help="add user to users collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     add_user_parser.add_argument("-u", "--user", required=True, type=str)
-    add_user_parser.set_defaults(func=add_user)
+    add_user_parser.add_argument("-m", "--email", required=True, type=str)
+    add_user_parser.add_argument("-s", "--client_secret", required=False, type=str, default=None)
 
     # Create the parser for the "add_user_with_budget" command
     add_user_wb_parser = subparsers.add_parser(
         "add_user_with_budget",
         help="add user with budget to users collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
+    add_user_wb_parser.add_argument("-m", "--email", required=True, type=str)
+    add_user_wb_parser.add_argument("-s", "--client_secret", required=False, type=str, default=None)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
     add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
     add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
-    add_user_wb_parser.set_defaults(func=add_user_with_budget)
 
     # Create the parser for the "del_user" command
     del_user_parser = subparsers.add_parser(
         "del_user",
         help="delete user from users collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     del_user_parser.add_argument("-u", "--user", required=True, type=str)
-    del_user_parser.set_defaults(func=del_user)
 
     # Create the parser for the "add_dataset" command
     add_dataset_to_user_parser = subparsers.add_parser(
         "add_dataset_to_user",
         help="add dataset with initialized budget values for a user",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     add_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
     add_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
     add_dataset_to_user_parser.add_argument("-e", "--epsilon", required=True, type=float)
     add_dataset_to_user_parser.add_argument("-del", "--delta", required=True, type=float)
-    add_dataset_to_user_parser.set_defaults(func=add_dataset_to_user)
 
     # Create the parser for the "del_dataset" command
     del_dataset_to_user_parser = subparsers.add_parser(
         "del_dataset_to_user",
         help="delete dataset for user in users collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     del_dataset_to_user_parser.add_argument("-u", "--user", required=True, type=str)
     del_dataset_to_user_parser.add_argument("-d", "--dataset", required=True, type=str)
-    del_dataset_to_user_parser.set_defaults(func=del_dataset_to_user)
 
     # Create the parser for the "set_budget_field" command
     set_budget_field_parser = subparsers.add_parser(
         "set_budget_field",
         help="set budget field to given value for given user and dataset",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     set_budget_field_parser.add_argument("-u", "--user", required=True, type=str)
     set_budget_field_parser.add_argument("-d", "--dataset", required=True, type=str)
@@ -117,32 +127,29 @@ if __name__ == "__main__":
         choices=["initial_epsilon", "initial_delta"],
     )
     set_budget_field_parser.add_argument("-v", "--value", required=True, type=float)
-    set_budget_field_parser.set_defaults(func=set_budget_field)
 
     # Create the parser for the "set_may_query" command
     set_may_query_parser = subparsers.add_parser(
         "set_may_query",
         help="set may query field to given value for given user",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     set_may_query_parser.add_argument("-u", "--user", required=True, type=str)
     set_may_query_parser.add_argument("-v", "--value", required=True, choices=["False", "True"])
-    set_may_query_parser.set_defaults(func=set_may_query)
 
     # Show the user
     get_user_parser = subparsers.add_parser(
         "get_user",
         help="show all metadata of user",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_user_parser.add_argument("-u", "--user", required=True, type=str)
-    get_user_parser.set_defaults(func=get_user)
 
     # Create the parser for the "create_example_users" command
     users_collection_from_yaml_parser = subparsers.add_parser(
         "add_users_via_yaml",
         help="create users collection from yaml file",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     users_collection_from_yaml_parser.add_argument(
         "-c",
@@ -161,13 +168,12 @@ if __name__ == "__main__":
         default=False,
     )
     users_collection_from_yaml_parser.add_argument("-yf", "--yaml_file", required=True, type=str)
-    users_collection_from_yaml_parser.set_defaults(func=add_users_via_yaml)
 
     # Function: Show Archives of User
     get_archives_parser = subparsers.add_parser(
         "get_archives_of_user",
         help="show all previous queries from a user",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_archives_parser.add_argument(
         "-u",
@@ -176,21 +182,19 @@ if __name__ == "__main__":
         type=str,
         help="username of the user to show archives",
     )
-    get_archives_parser.set_defaults(func=get_archives_of_user)
 
     # Function: Get List of Users
     get_users_parser = subparsers.add_parser(
         "get_list_of_users",
         help="get the list of all users in 'users' collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
-    get_users_parser.set_defaults(func=get_list_of_users)
 
     # Function: Get List of Datasets from User
     get_user_datasets_parser = subparsers.add_parser(
         "get_list_of_datasets_from_user",
         help="get the list of all datasets from a user",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_user_datasets_parser.add_argument(
         "-u",
@@ -199,14 +203,13 @@ if __name__ == "__main__":
         type=str,
         help="username of the user to show datasets",
     )
-    get_user_datasets_parser.set_defaults(func=get_list_of_datasets_from_user)
 
     #######################  DATASETS  ####################### # noqa: E266
     # Create parser for dataset private database
     add_dataset_parser = subparsers.add_parser(
         "add_dataset",
         help="set in which database the dataset is stored",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     # Dataset location
     add_dataset_parser.add_argument("-d", "--dataset_name", required=True)
@@ -225,13 +228,12 @@ if __name__ == "__main__":
     add_dataset_parser.add_argument("-m_s3_ak", "--metadata_access_key_id", required=False)
     add_dataset_parser.add_argument("-m_s3_sak", "--metadata_secret_access_key", required=False)
     add_dataset_parser.add_argument("-m_cred_n", "--metadata_credentials_name", required=False)
-    add_dataset_parser.set_defaults(func=add_dataset)
 
     # Create the parser for the "add_datasets_via_yaml" command
     add_datasets_via_yaml_parser = subparsers.add_parser(
         "add_datasets_via_yaml",
         help="create dataset to database type collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     add_datasets_via_yaml_parser.add_argument("-yf", "--yaml_file", required=True, type=str)
     add_datasets_via_yaml_parser.add_argument(
@@ -258,22 +260,20 @@ if __name__ == "__main__":
         const=True,
         default=False,
     )
-    add_datasets_via_yaml_parser.set_defaults(func=add_datasets_via_yaml)
 
     # Create the parser for the "del_dataset" command
     del_dataset_parser = subparsers.add_parser(
         "del_dataset",
         help="delete dataset and metadata from " "datasets and metadata collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     del_dataset_parser.add_argument("-d", "--dataset", required=True, type=str)
-    del_dataset_parser.set_defaults(func=del_dataset)
 
     # Function: Show Dataset
     get_dataset_parser = subparsers.add_parser(
         "get_dataset",
         help="show a dataset from the dataset collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_dataset_parser.add_argument(
         "-d",
@@ -282,13 +282,12 @@ if __name__ == "__main__":
         type=str,
         help="name of the dataset to show",
     )
-    get_dataset_parser.set_defaults(func=get_dataset)
 
     # Function: Show Metadata of Dataset
     get_metadata_parser = subparsers.add_parser(
         "get_metadata_of_dataset",
         help="show metadata from the metadata collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_metadata_parser.add_argument(
         "-d",
@@ -297,22 +296,20 @@ if __name__ == "__main__":
         type=str,
         help="name of the dataset of the metadata to show",
     )
-    get_metadata_parser.set_defaults(func=get_metadata_of_dataset)
 
     # Function: Get List of Datasets
     get_datasets_parser = subparsers.add_parser(
         "get_list_of_datasets",
         help="get the list of all datasets in 'datasets' collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
-    get_datasets_parser.set_defaults(func=get_list_of_datasets)
 
     #######################  COLLECTIONS  ####################### # noqa: E266
     # Create the parser for the "drop_collection" command
     drop_collection_parser = subparsers.add_parser(
         "drop_collection",
         help="delete collection from database",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     drop_collection_parser.add_argument(
         "-c",
@@ -320,13 +317,12 @@ if __name__ == "__main__":
         required=True,
         choices=["users", "datasets", "metadata", "queries_archives"],
     )
-    drop_collection_parser.set_defaults(func=drop_collection)
 
     # Create the parser for the "get_users_collection" command
     get_collection_parser = subparsers.add_parser(
         "get_collection",
         help="print a collection",
-        parents=[connection_parser],
+        parents=[parent_parser],
     )
     get_collection_parser.add_argument(
         "-c",
@@ -334,49 +330,40 @@ if __name__ == "__main__":
         required=True,
         choices=["users", "datasets", "metadata", "queries_archives"],
     )
-    get_collection_parser.set_defaults(func=get_collection)
 
     args = parser.parse_args()
 
     #######################  FUNCTION CALL  ###################### # noqa: E266
-    # Get MongoDB
-    mongo_config = MongoDBConfig(
-        db_type=AdminDBType.MONGODB,
-        address=args.address,
-        port=args.port,
-        username=args.username,
-        password=args.password,
-        db_name=args.db_name,
-        max_pool_size=args.db_max_pool_size,
-        min_pool_size=args.db_min_pool_size,
-        max_connecting=args.db_max_connecting,
-    )
-    DB_URL = get_mongodb_url(mongo_config)
-    mongo_db: Database = MongoClient(DB_URL)[args.db_name]
+
+    admin_config = AdminConfig(_env_file=args.env_file)
 
     function_map = {
-        "add_user": lambda args: add_user(mongo_db, args.user),
-        "add_user_with_budget": lambda args: add_user_with_budget(
-            mongo_db, args.user, args.dataset, args.epsilon, args.delta
+        "add_user": lambda args: add_lomas_user(admin_config, args.user, args.email, args.client_secret),
+        "add_user_with_budget": lambda args: add_lomas_user_with_budget(
+            admin_config, args.user, args.email, args.dataset, args.epsilon, args.delta
         ),
-        "del_user": lambda args: del_user(mongo_db, args.user),
+        "del_user": lambda args: del_lomas_user(admin_config, args.user),
         "add_dataset_to_user": lambda args: add_dataset_to_user(
-            mongo_db, args.user, args.dataset, args.epsilon, args.delta
+            admin_config.mongo_config, args.user, args.dataset, args.epsilon, args.delta
         ),
-        "del_dataset_to_user": lambda args: del_dataset_to_user(mongo_db, args.user, args.dataset),
+        "del_dataset_to_user": lambda args: del_dataset_to_user(
+            admin_config.mongo_config, args.user, args.dataset
+        ),
         "set_budget_field": lambda args: set_budget_field(
-            mongo_db, args.user, args.dataset, args.field, args.value
+            admin_config.mongo_config, args.user, args.dataset, args.field, args.value
         ),
-        "set_may_query": lambda args: set_may_query(mongo_db, args.user, args.value),
-        "get_user": lambda args: get_user(mongo_db, args.user),
-        "add_users_via_yaml": lambda args: add_users_via_yaml(
-            mongo_db, args.yaml_file, args.clean, args.overwrite
+        "set_may_query": lambda args: set_may_query(admin_config.mongo_config, args.user, args.value),
+        "get_user": lambda args: get_user(admin_config.mongo_config, args.user),
+        "add_users_via_yaml": lambda args: add_lomas_users_via_yaml(
+            admin_config, args.yaml_file, args.clean, args.overwrite
         ),
-        "get_archives_of_user": lambda args: get_archives_of_user(mongo_db, args.user),
-        "get_list_of_users": lambda args: get_list_of_users(mongo_db),
-        "get_list_of_datasets_from_user": lambda args: get_list_of_datasets_from_user(mongo_db, args.user),
+        "get_archives_of_user": lambda args: get_archives_of_user(admin_config.mongo_config, args.user),
+        "get_list_of_users": lambda args: get_list_of_users(admin_config.mongo_config),
+        "get_list_of_datasets_from_user": lambda args: get_list_of_datasets_from_user(
+            admin_config.mongo_config, args.user
+        ),
         "add_dataset": lambda args: add_dataset(
-            mongo_db,
+            admin_config.mongo_config,
             args.dataset_name,
             args.database_type,
             args.metadata_database_type,
@@ -394,17 +381,19 @@ if __name__ == "__main__":
             args.metadata_credentials_name,
         ),
         "add_datasets_via_yaml": lambda args: add_datasets_via_yaml(
-            mongo_db,
+            admin_config.mongo_config,
             args.yaml_file,
             args.clean,
             args.overwrite_datasets,
             args.overwrite_metadata,
         ),
-        "del_dataset": lambda args: del_dataset(mongo_db, args.dataset),
-        "get_dataset": lambda args: get_dataset(mongo_db, args.dataset),
-        "get_metadata_of_dataset": lambda args: get_metadata_of_dataset(mongo_db, args.dataset),
-        "get_list_of_datasets": lambda args: get_list_of_datasets(mongo_db),
-        "drop_collection": lambda args: drop_collection(mongo_db, args.collection),
-        "get_collection": lambda args: get_collection(mongo_db, args.collection),
+        "del_dataset": lambda args: del_dataset(admin_config.mongo_config, args.dataset),
+        "get_dataset": lambda args: get_dataset(admin_config.mongo_config, args.dataset),
+        "get_metadata_of_dataset": lambda args: get_metadata_of_dataset(
+            admin_config.mongo_config, args.dataset
+        ),
+        "get_list_of_datasets": lambda args: get_list_of_datasets(admin_config.mongo_config),
+        "drop_collection": lambda args: drop_lomas_collection(admin_config, args.collection),
+        "get_collection": lambda args: get_collection(admin_config.mongo_config, args.collection),
     }
     function_map[args.func.__name__](args)

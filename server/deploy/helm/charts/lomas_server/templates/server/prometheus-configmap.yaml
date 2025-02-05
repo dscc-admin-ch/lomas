@@ -11,3 +11,6 @@ data:
       - job_name: 'otel-collector'
         static_configs:
           - targets: [ 'localhost:9090' ]
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: [ 'localhost:9091' ]

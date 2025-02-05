@@ -256,12 +256,7 @@ grafana:
           editable: true
           apiVersion: 1
           uid: tempo
-          jsonData:
-            httpMethod: GET
-            serviceMap:
-              datasourceUid: prometheus
-            streamingEnabled:
-              search: true
+          stream_over_http_enabled: false
         - name: Loki
           type: loki
           access: proxy

@@ -190,6 +190,10 @@ class OpenDPRequestModel(LomasRequestModel):
     https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
     In that case a "fixed_delta" must be provided by the user.
     """
+    pipeline_type: str
+    """The type of pipeline (polars should be specified when used)"""
+    mechanism: Optional[str] = None
+    """The noise mechanism (Laplace, Gaussian). Need to be specified when using polars"""
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):

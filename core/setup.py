@@ -38,7 +38,7 @@ setup(
         "diffprivlib_logger>=0.0.3",
         "fastapi>=0.111.1",
         "numpy>=1.26.4",
-        "opendp==0.10.0",
+        "opendp==0.12.0",
         "opendp_logger>=0.3.0",
         "opentelemetry-api>=1.29.0",
         "opentelemetry-exporter-otlp>=1.29.0",

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+import polars as pl
 
 from lomas_core.models.collections import DatetimeMetadata, Metadata
 
@@ -30,6 +31,15 @@ class DataConnector(ABC):
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
+        
+    def get_polars_lf(
+        self,
+    ) -> pl.LazyFrame:
+        """Get the data in polars lazyframe format.
+        Returns:
+            pl.LazyFrame: The polars lazyframe for this dataset.
+        """
+        return pl.from_pandas(self.get_pandas_df()).lazy()
 
     def get_metadata(self) -> Metadata:
         """Get the metadata for this dataset.
@@ -58,6 +68,8 @@ def get_column_dtypes(metadata: Metadata) -> Tuple[Dict[str, str], List[str]]:
         if isinstance(data, DatetimeMetadata):
             dtypes[col_name] = "string"
             datetime_columns.append(col_name)
+        elif "precision" in data:
+            dtypes[col_name] = f'{data["type"]}{data["precision"]}'
         else:
             dtypes[col_name] = data.type
     return dtypes, datetime_columns

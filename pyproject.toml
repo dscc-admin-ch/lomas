@@ -1,6 +1,7 @@
 [tool.black]
 line-length = 110
 include = '\.pyi?$'
+extend_exclude = '\.ipynb'
 
 [tool.isort]
 multi_line_output = 3
@@ -15,17 +16,22 @@ skip = [".gitignore", ".devenv"]
 
 [tool.flake8]
 max-line-length = 110
+extend_exclude = [".devenv", "docs"]
 
 [tool.mypy]
 disable_error_code = ["import-untyped", "import-not-found"]
+exclude = [ 'setup\.py', 'docs' ]
+no_site_packages = true
 
 [[tool.mypy.overrides]]
 module = "lomas_server.tests.*"
 disable_error_code = ["arg-type", "attr-defined"]
 
 [tool.pylint.main]
-ignore-patterns = "test_*.py"
 max-line-length = 110
+ignore-patterns = "test_*.py"
+recursive = "yes"
+ignore-paths = ".devenv,docs"
 
 [tool.pylint."messages control"]
 disable = [
@@ -43,5 +49,6 @@ disable = [
 ]
 
 [tool.pydocstringformatter]
-write = true
 max-line-length = 110
+write = true
+exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob

@@ -1,5 +1,4 @@
-import json
-
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from smartnoise_synth_logger import serialise_constraints
@@ -28,17 +27,23 @@ from lomas_core.models.responses import (
 from lomas_server.app import app
 from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
+from lomas_server.tests.utils import (
+    submit_job_wait,
+    wait_for_job,
+)
 
 
-def validate_response(response) -> QueryResponse:
+def validate_response(client, response) -> QueryResponse:
     """Validate that the pipeline ran successfully.
 
     Returns a model and a score.
     """
-    assert response.status_code == status.HTTP_200_OK
-    response_dict = json.loads(response.content.decode("utf8"))
+    assert response.status_code == status.HTTP_202_ACCEPTED
 
-    r_model = QueryResponse.model_validate(response_dict)
+    job_uid = response.json()["uid"]
+    job = wait_for_job(client, f"/status/{job_uid}")
+
+    r_model = QueryResponse.model_validate(job.result)
     assert isinstance(r_model.result, SmartnoiseSynthModel | SmartnoiseSynthSamples)
 
     return r_model
@@ -47,6 +52,7 @@ def validate_response(response) -> QueryResponse:
 class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """Test Smartnoise Synth Endpoints with different Synthesizers."""
 
+    @pytest.mark.long
     def test_smartnoise_synth_query(self) -> None:
         """Test smartnoise synth query."""
         with TestClient(app, headers=self.headers) as client:
@@ -56,9 +62,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=example_smartnoise_synth_query,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
 
             assert r_model.requested_by == self.user_name
             assert r_model.epsilon >= 0.1
@@ -74,24 +78,24 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             # Expect to fail due to parameters
             body = dict(example_smartnoise_synth_query)
             body["synth_params"] = {}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error fitting model: "
-                    + "sample_rate=1.4534883720930232 is not a valid value. "
-                    + "Please provide a float between 0 and 1. "
-                    + "Try decreasing batch_size in "
-                    + "synth_params (default batch_size=500).",
-                    library="smartnoise_synth",
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error fitting model: "
+                + "sample_rate=1.4534883720930232 is not a valid value. "
+                + "Please provide a float between 0 and 1. "
+                + "Try decreasing batch_size in "
+                + "synth_params (default batch_size=500).",
+                library="smartnoise_synth",
             )
 
+    @pytest.mark.long
     def test_smartnoise_synth_query_samples(self) -> None:
         """Test smartnoise synth query return samples."""
         with TestClient(app, headers=self.headers) as client:
@@ -107,7 +111,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -122,7 +126,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -144,7 +148,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -155,13 +159,17 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             # Expect to fail
             body = dict(example_smartnoise_synth_query)
             body["select_cols"] = ["species", "idonotexist"]
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["message"].startswith("Error while selecting provided select_cols: ")
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error is not None and job.error.message.startswith(
+                "Error while selecting provided select_cols: "
+            )
 
     def test_smartnoise_synth_query_constraints(self) -> None:
         """Test smartnoise synth query constraints."""
@@ -186,7 +194,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -209,7 +217,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -226,13 +234,15 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body["dataset_name"] = "PUMS"
             body["delta"] = None
             body["synth_params"] = {"batch_size": 2, "epochs": 5}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/dummy_smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
 
-            r_model = validate_response(response)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -244,12 +254,14 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         """Test_dummy_smartnoise_synth_query."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/dummy_smartnoise_synth_query",
                 json=example_dummy_smartnoise_synth_query,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -276,15 +288,14 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         """Test_smartnoise_synth_cost."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/estimate_smartnoise_synth_cost",
                 json=example_smartnoise_synth_cost,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = CostResponse.model_validate(response_dict)
+            assert job is not None
+            r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon >= 0.1
             assert r_model.delta >= 1e-5
 
@@ -321,7 +332,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=new_headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == new_headers["user-name"]
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -338,7 +349,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=new_headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == new_headers["user-name"]
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -346,6 +357,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             df = model.sample(1)
             assert list(df.columns) == ["birthday"]
 
+    @pytest.mark.long
     def test_smartnoise_synth_query_aim(self) -> None:
         """Test smartnoise synth query AIM Synthesizer."""
         with TestClient(app) as client:
@@ -362,7 +374,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -370,6 +382,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             df = model.sample(1)
             assert list(df.columns) == body["select_cols"]
 
+    @pytest.mark.long
     def test_smartnoise_synth_query_mwem(self) -> None:
         """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:
@@ -379,20 +392,19 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body["synth_name"] = "mwem"
             body["synth_params"] = {}
             body["select_cols"] = ["species", "island"]
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error creating model: "
-                    + "MWEMSynthesizer.__init__() got an "
-                    + "unexpected keyword argument 'delta'",
-                    library="smartnoise_synth",
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error creating model: "
+                + "MWEMSynthesizer.__init__() got an "
+                + "unexpected keyword argument 'delta'",
+                library="smartnoise_synth",
             )
 
             # Expected to work: limited columns and delta None
@@ -402,7 +414,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -417,7 +429,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -425,6 +437,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             df = model.sample(1)
             assert list(df.columns) == ["species", "island"]
 
+    @pytest.mark.long
     def test_smartnoise_synth_query_mst(self) -> None:
         """Test smartnoise synth query MST Synthesizer."""
         with TestClient(app) as client:
@@ -442,7 +455,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 headers=self.headers,
             )
 
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -452,13 +465,15 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
 
             # Espect to fail: MST cannot return model
             body["return_model"] = True
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["message"].startswith(
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error is not None and job.error.message.startswith(
                 "mst synthesizer cannot be returned, only samples. "
                 + "Please, change model or set `return_model=False`"
             )
@@ -473,17 +488,20 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "pacsynth"
             body["synth_params"] = {}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["message"].startswith(
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error is not None and job.error.message.startswith(
                 "pacsynth synthesizer not supported due to Rust panic. "
                 + "Please select another Synthesizer."
             )
 
+    @pytest.mark.long
     def test_smartnoise_synth_query_patectgan(self) -> None:
         """Test smartnoise synth query PATE-CTGAN Synthesizer."""
         with TestClient(app) as client:
@@ -492,20 +510,19 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "patectgan"
             body["synth_params"] = {}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error fitting model: "
-                    + "Inputted epsilon parameter is too small to create a private"
-                    + " dataset. Try increasing epsilon and rerunning.",
-                    library="smartnoise_synth",
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error fitting model: "
+                + "Inputted epsilon parameter is too small to create a private"
+                + " dataset. Try increasing epsilon and rerunning.",
+                library="smartnoise_synth",
             )
 
             # Expect to work
@@ -515,7 +532,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -532,18 +549,17 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "pategan"
             body["synth_params"] = {}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="pategan not reliable with this dataset.",
-                    library="smartnoise_synth",
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="pategan not reliable with this dataset.",
+                library="smartnoise_synth",
             )
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
@@ -554,21 +570,20 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "dpgan"
             body["synth_params"] = {}
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error fitting model: "
-                    + "Inputted epsilon and sigma parameters "
-                    + "are too small to create a private dataset. "
-                    + "Try increasing either parameter and rerunning.",
-                    library="smartnoise_synth",
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error fitting model: "
+                + "Inputted epsilon and sigma parameters "
+                + "are too small to create a private dataset. "
+                + "Try increasing either parameter and rerunning.",
+                library="smartnoise_synth",
             )
 
             body["epsilon"] = 1.0
@@ -577,7 +592,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(response)
+            r_model = validate_response(client, response)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)

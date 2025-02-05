@@ -1,4 +1,10 @@
 services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:4.0-management
+    ports:
+      - 127.0.0.1:5672:5672
+      - 127.0.0.1:15672:15672
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -30,8 +36,8 @@ services:
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
-      - MINIO_CONSOLE_ADDRESS=:19001
       - MINIO_ADDRESS=:19000
+      - MINIO_CONSOLE_ADDRESS=:19001
     volumes:
       - minio-data:/data
     networks:

@@ -1,4 +1,3 @@
-import os
 import unittest
 from typing import Dict
 
@@ -35,29 +34,15 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
-from lomas_server.tests.constants import (
-    ENV_MONGO_INTEGRATION,
-    ENV_S3_INTEGRATION,
-    FALSE_VALUES,
-    TRUE_VALUES,
-)
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
-@unittest.skipIf(
-    ENV_MONGO_INTEGRATION not in os.environ and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in FALSE_VALUES,
-    f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
-        environment variable not set to True.""",
-)
 class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     """
     Tests for the functions in mongodb_admin.py.
 
     This is an integration test and requires a mongodb database
     to be started before being executed.
-
-    The test is only executed if the LOMAS_TEST_MONGO_INTEGRATION
-    environment variable is set to True.
     """
 
     @classmethod
@@ -590,11 +575,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 metadata_path=metadata_path,
             )
 
-    @unittest.skipIf(
-        ENV_S3_INTEGRATION not in os.environ and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
-        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-            environment variable not set to True.""",
-    )
     def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
         """Test adding a dataset stored on S3."""
         dataset = "TINTIN_S3_TEST"
@@ -736,11 +716,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         verify_datasets()
 
-    @unittest.skipIf(
-        ENV_S3_INTEGRATION not in os.environ and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
-        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-            environment variable not set to True.""",
-    )
     def test_add_s3_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file."""
         # Load reference data
@@ -936,14 +911,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db."""
 
-        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
-            dataset_yaml = "tests/test_data/test_datasets_with_s3.yaml"
-        else:
-            dataset_yaml = "tests/test_data/test_datasets.yaml"
-
         add_demo_data_to_mongodb_admin(
-            user_yaml="./tests/test_data/test_user_collection.yaml",
-            dataset_yaml=dataset_yaml,
+            user_yaml="tests/test_data/test_user_collection.yaml",
+            dataset_yaml="tests/test_data/test_datasets_with_s3.yaml",
         )
 
         users_list = get_list_of_users(self.db)
@@ -951,18 +921,15 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         list_datasets = get_list_of_datasets(self.db)
 
-        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
-            self.assertEqual(
-                list_datasets,
-                [
-                    "PENGUIN",
-                    "IRIS",
-                    "PUMS",
-                    "TINTIN_S3_TEST",
-                    "BIRTHDAYS",
-                    "FSO_INCOME_SYNTHETIC",
-                    "COVID_SYNTHETIC",
-                ],
-            )
-        else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])
+        self.assertEqual(
+            list_datasets,
+            [
+                "PENGUIN",
+                "IRIS",
+                "PUMS",
+                "TINTIN_S3_TEST",
+                "BIRTHDAYS",
+                "FSO_INCOME_SYNTHETIC",
+                "COVID_SYNTHETIC",
+            ],
+        )

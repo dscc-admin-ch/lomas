@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Header, Request, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
@@ -18,12 +18,11 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import CostResponse, QueryResponse
+from lomas_core.models.responses import Job
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
     handle_query_on_private_dataset,
-    server_live,
 )
 
 router = APIRouter()
@@ -34,16 +33,16 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_sql_handler(
+async def smartnoise_sql_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -63,25 +62,25 @@ def smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_private_dataset(
+    return await handle_query_on_private_dataset(
         request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
     )
 
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_sql_handler(
+async def dummy_smartnoise_sql_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
@@ -102,23 +101,25 @@ def dummy_smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_on_dummy_dataset(
+        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_sql_cost(
+async def estimate_smartnoise_sql_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
@@ -138,9 +139,9 @@ def estimate_smartnoise_sql_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -149,16 +150,16 @@ def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_synth_handler(
+async def smartnoise_synth_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the SmartNoiseSynth library.
 
@@ -179,26 +180,26 @@ def smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_private_dataset(
+    return await handle_query_on_private_dataset(
         request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_synth_handler(
+async def dummy_smartnoise_synth_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSynth library.
 
@@ -219,26 +220,26 @@ def dummy_smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_dummy_dataset(
+    return await handle_query_on_dummy_dataset(
         request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_synth_cost(
+async def estimate_smartnoise_synth_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Computes the privacy loss budget cost of a SmartNoiseSynth query.
 
@@ -259,9 +260,9 @@ def estimate_smartnoise_synth_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -270,16 +271,16 @@ def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def opendp_query_handler(
+async def opendp_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the OpenDP Library.
 
@@ -299,23 +300,23 @@ def opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
     "/dummy_opendp_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_opendp_query_handler(
+async def dummy_opendp_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the OpenDP library.
 
@@ -335,23 +336,23 @@ def dummy_opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
     "/estimate_opendp_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_opendp_cost(
+async def estimate_opendp_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
 
@@ -371,9 +372,9 @@ def estimate_opendp_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -382,16 +383,16 @@ def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def diffprivlib_query_handler(
+async def diffprivlib_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
-):
+) -> Job:
     """
     Handles queries for the DiffPrivLib Library.
 
@@ -411,23 +412,25 @@ def diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_private_dataset(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_on_private_dataset(
+        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
     "/dummy_diffprivlib_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_diffprivlib_query_handler(
+async def dummy_diffprivlib_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the DiffPrivLib library.
 
@@ -447,23 +450,23 @@ def dummy_diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_diffprivlib_cost(
+async def estimate_diffprivlib_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.
 
@@ -492,6 +495,6 @@ def estimate_diffprivlib_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)

@@ -12,6 +12,7 @@
 #
 import os
 import sys
+
 import yaml
 
 sys.path.insert(0, os.path.abspath("../../server"))
@@ -79,37 +80,36 @@ pages_root = os.environ.get("pages_root", "")
 
 # if not there, we dont call this
 if build_all_docs is not None:
-  # we get the current language and version
-  current_language = os.environ.get("current_language")
-  current_version = os.environ.get("current_version")
+    # we get the current language and version
+    current_language = os.environ.get("current_language")
+    current_version = os.environ.get("current_version")
 
-  # we set the html_context wit current language and version 
-  # and empty languages and versions for now
-  html_context = {
-    'current_language' : current_language,
-    'languages' : [],
-    'current_version' : current_version,
-    'versions' : [],
-  }
+    # we set the html_context wit current language and version
+    # and empty languages and versions for now
+    html_context = {
+        "current_language": current_language,
+        "languages": [],
+        "current_version": current_version,
+        "versions": [],
+    }
 
+    # and we append all versions and languages accordingly
+    # we treat the master branch as stable
+    if current_version == "stable":
+        html_context["languages"].append(["en", pages_root])
 
-  # and we append all versions and languages accordingly 
-  # we treat the master branch as stable 
-  if (current_version == 'stable'):
-    html_context['languages'].append(['en', pages_root])
+    if current_language == "en":
+        html_context["versions"].append(["stable", pages_root])
 
-  if (current_language == 'en'):
-    html_context['versions'].append(['stable', pages_root])
+    # and loop over all other versions from our yaml file
+    # to set versions and languages
+    with open("../versions.yaml", "r") as yaml_file:
+        docs = yaml.safe_load(yaml_file)
 
-  # and loop over all other versions from our yaml file
-  # to set versions and languages
-  with open("../versions.yaml", "r") as yaml_file:
-    docs = yaml.safe_load(yaml_file)
+    if current_version != "stable":
+        for language in docs[current_version].get("languages", []):
+            html_context["languages"].append([language, pages_root + "/" + current_version + "/" + language])
 
-  if (current_version != 'stable'):
-    for language in docs[current_version].get('languages', []):
-      html_context['languages'].append([language, pages_root+'/'+current_version+'/'+language])
-
-  for version, details in docs.items():
-    if version != "stable":
-      html_context['versions'].append([version, pages_root+'/'+version+'/'+current_language])
+    for version, details in docs.items():
+        if version != "stable":
+            html_context["versions"].append([version, pages_root + "/" + version + "/" + current_language])

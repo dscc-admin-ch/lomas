@@ -16,6 +16,29 @@ part of the project, refer to:
 * **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.
 
+## Devenv
+
+Settings up the environment with [devenv](https://devenv.sh/):
+
+1. `sh <(curl -L https://nixos.org/nix/install) --daemon --no-channel-add --nix-extra-conf-file <(echo -e "experimental-features = nix-command flakes \ntrusted-users = root ${USER:-}")`
+2. `nix profile install nixpkgs#devenv`
+3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
+    1. Vscode: [direnv extension](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
+
+
+Once in lomas repo: `devenv shell`
+
+To spin-up necessary services: `devenv processes up`
+
+Some utilities are provided inside the environment such as:
+
+- `run-linter` will run all the Linting suit (isort/black/flake8/pylint/pydocstringformatter/mypy)
+- `ut` runs the server pytest suit
+- `ut-coverage` runs the server coverage & report generation
+
+Note that some of them (fast enough) are integrated as git pre-commit hook (namely isort/black/flake8/pylint)
+
+
 ## Linting and Other Checks
 
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:

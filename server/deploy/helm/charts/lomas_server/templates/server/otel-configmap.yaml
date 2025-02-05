@@ -25,7 +25,7 @@ data:
                 insecure: true
 
         prometheus:
-            endpoint: "0.0.0.0:9091"
+            endpoint: "0.0.0.0:9090"
 
         otlphttp/loki:
             endpoint: http://localhost:3100/otlp

@@ -138,7 +138,7 @@ dashboard:
     className: "nginx"
     annotations: 
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.example.com"
+    hostname: "lomas-admin-dashboard.lab.sspcloud.fr"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -238,22 +238,22 @@ grafana:
           uid: prometheus
           access: proxy
           orgId: 1
-          url: http://prometheus.user-paulineml.svc.cluster.local:9091
+          url: http://lomas-prometheus:9091
           basicAuth: false
           isDefault: false
           version: 1
-          editable: false
+          editable: true
           jsonData:
             httpMethod: GET
         - name: Tempo
           type: tempo
           access: proxy
           orgId: 1
-          url: http://tempo.user-paulineml.svc.cluster.local:3200
+          url: http://lomas-tempo:3100
           basicAuth: false
           isDefault: true
           version: 1
-          editable: false
+          editable: true
           apiVersion: 1
           uid: tempo
           jsonData:
@@ -265,7 +265,8 @@ grafana:
         - name: Loki
           type: loki
           access: proxy
-          url: http://loki.user-paulineml.svc.cluster.local:3100
+          url: http://lomas-loki:3100
+          editable: true
           jsonData:
             httpHeaderName1: "X-Scope-OrgID"
           secureJsonData:
@@ -277,3 +278,28 @@ grafana:
   env:
     GF_SECURITY_ADMIN_USER: admin
     GF_SECURITY_ADMIN_PASSWORD: admin
+  
+  ingress:
+    enabled: true
+    hosts: 
+      - "lomas-monitoring-dashboard.lab.sspcloud.fr"
+    paths:
+      - /grafana
+
+  server:
+    root_url: "%(protocol)s://%(domain)s/grafana"
+  
+  grafana.ini:
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"

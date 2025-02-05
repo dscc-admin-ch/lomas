@@ -63,6 +63,7 @@ spec:
         image: prom/prometheus:latest
         args:
           - "--config.file=/conf/prometheus.yaml"
+          - "--web.listen-address=:9091"
         restartPolicy: Always
         ports:
           - containerPort: 9091
@@ -82,20 +83,6 @@ spec:
             readOnly: True
             mountPath: /etc/loki
 
-      # - name: tempo-sidecar
-      #   image: grafana/tempo:latest
-      #   args: 
-      #     - "-config.file=/etc/tempo/tempo.yaml"
-      #   restartPolicy: Always
-      #   expose:
-      #     - containerPort: 3200
-      #     - containerPort: 4320
-      #   volumeMounts:
-      #     - name: tempo-config
-      #       mountPath: /etc/tempo
-      #     - name: tempo-data
-      #       mountPath: /var/tempo
-
       volumes:
         - name: config-and-secrets
           projected:
@@ -113,11 +100,6 @@ spec:
         - name: loki-config
           configMap:
             name: loki-config
-        # - name: tempo-config
-        #   configMap:
-        #     name: tempo-config
-        # - name: tempo-data
-        #   emptyDir: {}  # This is for temporary storage, change if you need persistent storage
 
       {{- with .Values.server.nodeSelector }}
       nodeSelector:

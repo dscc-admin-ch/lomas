@@ -41,8 +41,8 @@ mongodb:
 server:  
   image:
     repository: dsccadminch/lomas_server
-    pullPolicy: Always
-    tag: latest
+    imagePullPolicy: Always
+    tag: sha-9ff59ad
   imagePullSecrets: []
 
   # Runtime args for server

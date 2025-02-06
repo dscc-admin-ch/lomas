@@ -33,8 +33,14 @@ spec:
             containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}
             protocol: TCP
         env:
+          - name: SERVER_SERVICE_NAME
+            value: lomas-server-app
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: "http://localhost:4317"
+          - name: OTEL_COLLECTOR_ENDPOINT
+            value: "http://localhost:4317"
+          - name: OTEL_LOG_LEVEL
+            value: debug
         volumeMounts:
           - name: config-and-secrets
             readOnly: True
@@ -46,18 +52,6 @@ spec:
       - name: wait-for-tempo
         image: busybox
         command: ['sh', '-c', 'until nc -z lomas-tempo 4317; do echo waiting for tempo; sleep 5; done']
-
-      - name: otel-collector-sidecar
-        image: otel/opentelemetry-collector-contrib:latest
-        args: 
-          - "--config=/conf/otel-collector-config.yaml"
-        restartPolicy: Always
-        ports:
-          - containerPort: 4317
-        volumeMounts:
-          - name: otel-config
-            readOnly: True
-            mountPath: /conf
 
       - name: prometheus-sidecar
         image: prom/prometheus:latest
@@ -82,6 +76,21 @@ spec:
           - name: loki-config
             readOnly: True
             mountPath: /etc/loki
+      
+      - name: otel-collector-sidecar
+        image: otel/opentelemetry-collector:latest
+        args: 
+          - "--config=/conf/otel-collector-config.yaml"
+        restartPolicy: Always
+        ports:
+          - containerPort: 4317
+            name: otlp-grpc
+          - containerPort: 4318
+            name: otlp-http
+        volumeMounts:
+          - name: otel-config
+            readOnly: True
+            mountPath: /conf
 
       volumes:
         - name: config-and-secrets
@@ -91,15 +100,15 @@ spec:
                 name: {{ include "lomas.server.fullname" . }}
             - configMap:
                 name: {{ include "lomas.server.fullname" . }}
-        - name: otel-config
-          configMap:
-            name: otel-config
         - name: prometheus-config
           configMap:
             name: prometheus-config
         - name: loki-config
           configMap:
             name: loki-config
+        - name: otel-config
+          configMap:
+            name: otel-config
 
       {{- with .Values.server.nodeSelector }}
       nodeSelector:

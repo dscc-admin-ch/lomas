@@ -14,3 +14,9 @@ data:
       - job_name: 'prometheus'
         static_configs:
           - targets: [ 'localhost:9091' ]
+      - job_name: 'loki'
+        static_configs:
+          - targets: [ 'localhost:3100' ]
+      - job_name: 'tempo'
+        static_configs:
+          - targets: [ 'lomas-tempo:4317' ]

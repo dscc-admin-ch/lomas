@@ -112,6 +112,7 @@ server:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  monitoring: true
 
 # Lomas Administration Dashboard
 ##########################################################################
@@ -138,7 +139,7 @@ dashboard:
     className: "nginx"
     annotations: 
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.lab.sspcloud.fr"
+    hostname: "lomas-admin-dashboard.example.com"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -267,6 +268,11 @@ tempo:
           endpoint: "0.0.0.0:4317"
         http:
           endpoint: "0.0.0.0:4318"
+  overrides:
+    defaults:
+      metrics_generator:
+        processors: [service-graphs, span-metrics, local-blocks]
+        generate_native_histograms: both
   persistence:
     enabled: false
 

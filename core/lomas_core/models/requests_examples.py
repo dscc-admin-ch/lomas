@@ -211,7 +211,7 @@ example_opendp_polars: Dict[str, JsonValue] = {
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": OPENDP_POLARS_PIPELINE,
     "pipeline_type": "polars",  # TODO set constant
-    "delta": QUERY_DELTA,
+    "fixed_delta": QUERY_DELTA,
     "mechanism": "laplace",
 }
 
@@ -219,7 +219,7 @@ example_opendp_polars_datetime: Dict[str, JsonValue] = {
     "dataset_name": COVID_DATASET,
     "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
     "pipeline_type": "polars",  # TODO set constant
-    "delta": QUERY_DELTA,
+    "fixed_delta": QUERY_DELTA,
     "mechanism": "laplace",
 }
 

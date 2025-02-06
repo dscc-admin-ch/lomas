@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - wip_376_opentelemetry
   release:
     types:
       - published

@@ -8,36 +8,35 @@ data:
         otlp:
             protocols:
                 grpc:
-                    endpoint: 0.0.0.0:4317
+                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.grpc_port }}
                 http:
-                    endpoint: 0.0.0.0:4318
+                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.http_port }}
     processors:
         batch:
-            timeout: 5s
+            timeout: {{ .Values.otel.config.processors.batch.timeout }}
     
     exporters:
         debug:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: lomas-tempo:4317
+            endpoint: {{ .Values.otel.config.exporter.tempo_endpoint }}
             tls:
                 insecure: true
 
         prometheus:
-            endpoint: "0.0.0.0:9090"
+            endpoint: "{{ .Values.otel.config.exporter.prometheus_endpoint }}"
 
         otlphttp/loki:
-            endpoint: http://localhost:3100/otlp
-            tls:
+            endpoint: {{ .Values.otel.config.exporter.loki_endpoint }}
 
     extensions:
         health_check:
-            endpoint: "0.0.0.0:13133"
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.health_check_port }}"
         pprof:
-            endpoint: "0.0.0.0:1777"
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.pprof_port }}"
         zpages:
-            endpoint: "0.0.0.0:55679"
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.zpages_port }}"
 
     service:
         extensions: [health_check, pprof, zpages]

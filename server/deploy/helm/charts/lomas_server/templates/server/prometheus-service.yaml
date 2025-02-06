@@ -7,5 +7,5 @@ spec:
     {{- include "lomas.server.selectorLabels" . | nindent 8 }}
   ports:
     - protocol: TCP
-      port: 9091       # External service port to access Prometheus
-      targetPort: 9091  # Prometheus sidecar container port
+      port: {{ .Values.prometheus.service.port}}
+      targetPort: {{ .Values.prometheus.service.target_port}}

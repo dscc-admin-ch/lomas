@@ -7,5 +7,5 @@ spec:
     {{- include "lomas.server.selectorLabels" . | nindent 8 }}
   ports:
     - protocol: TCP
-      port: 3100       # External service port to access Loki
-      targetPort: 3100  # Loki sidecar container port
+      port: {{ .Values.loki.service.port}}
+      targetPort: {{ .Values.loki.service.target_port}}

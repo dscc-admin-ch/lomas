@@ -36,9 +36,9 @@ spec:
           - name: SERVER_SERVICE_NAME
             value: lomas-server-app
           - name: OTEL_COLLECTOR_ENDPOINT
-            value: "http://localhost:4317"
+            value: "http://localhost:{{ .Values.otel.config.receiver.grpc_port }}"
           - name: OTEL_LOG_LEVEL
-            value: debug
+            value: {{ .Values.otel.config.log_level }}
         volumeMounts:
           - name: config-and-secrets
             readOnly: True
@@ -49,16 +49,16 @@ spec:
       initContainers:
       - name: wait-for-tempo
         image: busybox
-        command: ['sh', '-c', 'until nc -z lomas-tempo 4317; do echo waiting for tempo; sleep 5; done']
+        command: ['sh', '-c', 'until nc -z lomas-tempo {{ .Values.otel.config.receiver.grpc_port }}; do echo waiting for tempo; sleep 5; done']
 
       - name: prometheus-sidecar
         image: prom/prometheus:latest
         args:
           - "--config.file=/conf/prometheus.yaml"
-          - "--web.listen-address=:9091"
+          - "--web.listen-address=:{{ .Values.prometheus.service.port}}"
         restartPolicy: Always
         ports:
-          - containerPort: 9091
+          - containerPort: {{ .Values.prometheus.service.port}}
         volumeMounts:
           - name: prometheus-config
             mountPath: /conf
@@ -69,7 +69,7 @@ spec:
           - "-config.file=/etc/loki/loki-config.yaml"
         restartPolicy: Always
         ports:
-          - containerPort: 3100
+          - containerPort: {{ .Values.loki.service.port}}
         volumeMounts:
           - name: loki-config
             readOnly: True
@@ -81,9 +81,9 @@ spec:
           - "--config=/conf/otel-collector-config.yaml"
         restartPolicy: Always
         ports:
-          - containerPort: 4317
+          - containerPort: {{ .Values.otel.config.receiver.grpc_port }}
             name: otlp-grpc
-          - containerPort: 4318
+          - containerPort: {{ .Values.otel.config.receiver.http_port }}
             name: otlp-http
         volumeMounts:
           - name: otel-config

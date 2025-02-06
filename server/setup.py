@@ -44,7 +44,7 @@ setup(
         "packaging==24.1",
         "pyaml==23.9.5",
         "pydantic==2.8.2",
-        "smartnoise-sql==1.0.4",
+        "smartnoise-sql==1.0.6",
         "uvicorn==0.29.0"
     ]
 )

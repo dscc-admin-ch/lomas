@@ -191,9 +191,9 @@ class OpenDPRequestModel(LomasRequestModel):
     In that case a "fixed_delta" must be provided by the user.
     """
     pipeline_type: str
-    """The type of pipeline (polars should be specified when used)"""
+    """The type of pipeline ('legacy' or 'polars')"""
     mechanism: Optional[str] = None
-    """The noise mechanism (Laplace, Gaussian). Need to be specified when using polars"""
+    """The noise mechanism ('laplace' or 'gaussian'). Need to be specified when using polars"""
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):

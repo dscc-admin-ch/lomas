@@ -9,8 +9,9 @@ from opendp._lib import lib_path
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
-from data_connector.data_connector import DataConnector
 
+from lomas_server.data_connector.data_connector import DataConnector
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
@@ -254,13 +255,14 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
     def __init__(
         self,
         data_connector: DataConnector,
+        admin_database: AdminDatabase,
     ) -> None:
         """Initializer.
         Args:
             data_connector (DataConnector): DataConnector for the dataset
                 to query.
         """
-        super().__init__(data_connector)
+        super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
         self.metadata = dict(self.data_connector.get_metadata())
@@ -431,7 +433,7 @@ def extract_group_by_columns(plan: str) -> list | None:
     return None
 
 def reconstruct_measurement_pipeline(
-    query_json: OpenDPModel, metadata: dict
+    query_json: OpenDPQueryModel, metadata: dict
 ) -> dp.Measurement:
     """Reconstruct OpenDP pipeline from json representation.
 
@@ -510,13 +512,13 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
                 f"Cannot process output measure: {output_measure} with output type {output_type}."
             )
 
-    if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):
+    if output_measure == dp.measures.fixed_smoothed_max_divergence():
         measurement = OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.max_divergence(T=output_type):
+    elif output_measure == dp.measures.max_divergence():
         measurement = OpenDPMeasurement.MAX_DIVERGENCE
-    elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
+    elif output_measure == dp.measures.smoothed_max_divergence():
         measurement = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.zero_concentrated_divergence(T=output_type):
+    elif output_measure == dp.measures.zero_concentrated_divergence():
         measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
         raise InternalServerException(f"Unknown type of output measure divergence: {output_measure}")

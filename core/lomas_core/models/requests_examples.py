@@ -29,7 +29,7 @@ SPLIT_SEED: int = 4
 TEST_SIZE: float = 0.2
 IMPUTER_STRATEGY: str = "drop"
 SNSYNTH_NB_SAMPLES: int = 200
-
+OPENDP_PIPELINE_TYPE = "legacy"
 
 def make_dummy(example_query: Dict[str, JsonValue]) -> Dict[str, JsonValue]:
     """Make dummy example dummy query based on example query."""
@@ -156,6 +156,7 @@ example_opendp: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
+    "pipeline_type": OPENDP_PIPELINE_TYPE
 }
 example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
 

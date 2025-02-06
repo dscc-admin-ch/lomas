@@ -27,7 +27,7 @@ from lomas_core.models.responses import (
     QueryResponse,
 )
 from lomas_server.app import app
-from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 
 
 def validate_pipeline(response) -> QueryResponse:
@@ -44,7 +44,7 @@ def validate_pipeline(response) -> QueryResponse:
     return r_model
 
 
-class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """Test DiffPrivLib Endpoint with different models."""
 
     def test_diffprivlib_query(self) -> None:

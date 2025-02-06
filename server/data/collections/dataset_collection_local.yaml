@@ -42,6 +42,13 @@ datasets:
   metadata_access:
     database_type: "PATH_DB"
     path: "../data/collections/metadata/fso_income_synthetic_metadata.yaml"
+- dataset_name: "COVID_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "../data/datasets/covid_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "../data/collections/metadata/covid_synthetic_metadata.yaml"
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"

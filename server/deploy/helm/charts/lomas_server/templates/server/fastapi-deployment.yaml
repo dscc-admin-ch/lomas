@@ -47,10 +47,6 @@ spec:
             {{- toYaml .Values.server.resources | nindent 12 }}
 
       initContainers:
-      - name: wait-for-tempo
-        image: busybox
-        command: ['sh', '-c', 'until nc -z lomas-tempo {{ .Values.otel.config.receiver.grpc_port }}; do echo waiting for tempo; sleep 5; done']
-
       - name: prometheus-sidecar
         image: prom/prometheus:latest
         args:

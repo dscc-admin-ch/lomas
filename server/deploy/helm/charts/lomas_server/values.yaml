@@ -226,9 +226,7 @@ otel:
       batch:
         timeout: 5s
     exporter:
-      tempo_endpoint: lomas-tempo:4317
-      prometheus_endpoint: 0.0.0.0:9090
-      loki_endpoint: http://localhost:3100/otlp
+      prometheus_endpoint: 9090
     extension:
       health_check_port: 13133
       pprof_port: 1777

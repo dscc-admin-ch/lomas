@@ -20,15 +20,15 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: {{ .Values.otel.config.exporter.tempo_endpoint }}
+            endpoint: lomas-tempo:{{ .Values.otel.config.receiver.grpc_port }}
             tls:
                 insecure: true
 
         prometheus:
-            endpoint: "{{ .Values.otel.config.exporter.prometheus_endpoint }}"
+            endpoint: "0.0.0.0:{{ .Values.otel.config.exporter.prometheus_endpoint }}"
 
         otlphttp/loki:
-            endpoint: {{ .Values.otel.config.exporter.loki_endpoint }}
+            endpoint: http://localhost:{{ .Values.loki.service.target_port }}/otlp
 
     extensions:
         health_check:

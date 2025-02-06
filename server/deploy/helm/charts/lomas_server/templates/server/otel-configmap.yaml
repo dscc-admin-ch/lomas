@@ -20,7 +20,7 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: lomas-tempo:{{ .Values.otel.config.receiver.grpc_port }}
+            endpoint: {{ .Values.tempo.fullnameOverride }}:{{ .Values.otel.config.receiver.grpc_port }}
             tls:
                 insecure: true
 

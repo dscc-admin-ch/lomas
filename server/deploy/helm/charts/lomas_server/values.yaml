@@ -220,15 +220,7 @@ grafana:
   rbac:
     create: false
     namespaced: true
-    extraRoleRules:
-    - apiGroups: [""]
-      resources: ["pods", "services"]
-      verbs: ["get", "watch", "list"]
-    extraClusterRoleRules: []
 
-  adminPassword: "admin"
-  persistence:
-    enabled: false
   datasources: 
     datasources.yaml:
       apiVersion: 1
@@ -247,6 +239,7 @@ grafana:
             httpMethod: GET
         - name: Tempo
           type: tempo
+          uid: tempo
           access: proxy
           orgId: 1
           url: http://lomas-tempo:3100
@@ -255,21 +248,22 @@ grafana:
           version: 1
           editable: true
           apiVersion: 1
-          uid: tempo
           stream_over_http_enabled: false
         - name: Loki
           type: loki
+          uid: loki
           access: proxy
+          orgId: 1
           url: http://lomas-loki:3100
+          basicAuth: false
+          isDefault: false
+          version: 1
           editable: true
           jsonData:
             httpHeaderName1: "X-Scope-OrgID"
           secureJsonData:
             httpHeaderValue1: "tenant1"
-  dashboards:
-    default:
-      custom-dashboard:
-        file: "../../../../configs/observability/grafana/example_dashboard_config.json"
+
   env:
     GF_SECURITY_ADMIN_USER: admin
     GF_SECURITY_ADMIN_PASSWORD: admin
@@ -278,23 +272,6 @@ grafana:
     enabled: true
     hosts: 
       - "lomas-monitoring-dashboard.lab.sspcloud.fr"
-    paths:
-      - /grafana
-
-  server:
-    root_url: "%(protocol)s://%(domain)s/grafana"
   
-  grafana.ini:
-    paths:
-      data: /var/lib/grafana/
-      logs: /var/log/grafana
-      plugins: /var/lib/grafana/plugins
-      provisioning: /etc/grafana/provisioning
-    analytics:
-      check_for_updates: true
-    log:
-      mode: console
-    grafana_net:
-      url: https://grafana.net
-    server:
-      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+  persistence:
+    enabled: true

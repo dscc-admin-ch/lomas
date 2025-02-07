@@ -2,6 +2,7 @@ users:
 - id:
     name: Alice
     email: "alice@example.com"
+    client_secret: alice
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
@@ -17,6 +18,7 @@ users:
 - id:
     name: Dr.Antartica
     email: "dr.antartica@example.com"
+    client_secret: dr.antartica
   may_query: True
   datasets_list:
   - dataset_name: "PENGUIN"
@@ -37,6 +39,7 @@ users:
 - id:
     name: Dr.FSO
     email: "dr.fso@example.com"
+    client_secret: dr.fso
   may_query: True
   datasets_list:
   - dataset_name: "FSO_INCOME_SYNTHETIC"
@@ -47,6 +50,7 @@ users:
 - id:
     name: Bob
     email: bob@example.com
+    client_secret: bob
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
@@ -57,6 +61,7 @@ users:
 - id:
     name: Jack
     email: jack@example.com
+    client_secret: jack
   may_query: True
   datasets_list:
   - dataset_name: "TITANIC"

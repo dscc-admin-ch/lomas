@@ -66,7 +66,9 @@ def get_kc_admin(kc_config: KeycloakAccessConfig) -> KeycloakAdmin:
 
 
 @check_skip_keycloak
-def add_kc_user(kc_config: KeycloakAccessConfig, user_name: str, user_email: str) -> None:
+def add_kc_user(
+    kc_config: KeycloakAccessConfig, user_name: str, user_email: str, client_secret: str | None = None
+) -> None:
     """Adds a new lomas user to keycloak.
 
     Also creates corresponding client with same email attribute for authenticating
@@ -76,6 +78,8 @@ def add_kc_user(kc_config: KeycloakAccessConfig, user_name: str, user_email: str
         kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
         user_name (str): The name of the user to add.
         user_email (str): The email of the user to add.
+        client_secret (str | NoneType): Optional, the client secret for authenticating with the
+            lomas client library.
 
     Raises:
         HTTPException: If any of the calls to keycloak fails
@@ -87,23 +91,26 @@ def add_kc_user(kc_config: KeycloakAccessConfig, user_name: str, user_email: str
         kc_admin.users.post({"username": user_name, "email": user_email, "enabled": True})
 
         # Create client for user
-        kc_admin.clients.post(
-            {
-                "clientId": user_name,
-                "name": user_name,
-                "clientAuthenticatorType": "client-secret",
-                "standardFlowEnabled": False,
-                "directAccessGrantsEnabled": False,
-                "serviceAccountsEnabled": True,
-                "publicClient": False,
-                "protocol": "openid-connect",
-                "defaultClientScopes": [],
-                "optionalClientScopes": [],
-                "attributes": {
-                    "lomas_user_client": True  # flag to indicate this client is linked to a lomas user.
-                },
-            }
-        )
+        client_dict = {
+            "clientId": user_name,
+            "name": user_name,
+            "clientAuthenticatorType": "client-secret",
+            "standardFlowEnabled": False,
+            "directAccessGrantsEnabled": False,
+            "serviceAccountsEnabled": True,
+            "publicClient": False,
+            "protocol": "openid-connect",
+            "defaultClientScopes": [],
+            "optionalClientScopes": [],
+            "attributes": {
+                "lomas_user_client": True  # flag to indicate this client is linked to a lomas user.
+            },
+        }
+
+        if client_secret is not None:
+            client_dict["secret"] = client_secret
+
+        kc_admin.clients.post(client_dict)
 
         # Add attributes to linked service account user
         user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
@@ -199,7 +206,10 @@ def del_all_kc_users(kc_config: KeycloakAccessConfig) -> None:
 
     clients = kc_admin.clients.get()
     for client in clients:
-        if "lomas_user_client" in client["attributes"] and client["attributes"]["lomas_user_client"]:  # type: ignore
+        if (
+            "lomas_user_client" in client["attributes"]  # type: ignore
+            and client["attributes"]["lomas_user_client"]  # type: ignore
+        ):
             client_id = client["id"]  # type: ignore
             kc_admin.clients(client_id).delete()
 
@@ -208,7 +218,7 @@ def del_all_kc_users(kc_config: KeycloakAccessConfig) -> None:
 
 @check_skip_keycloak
 def add_kc_users_via_yaml(
-    kc_config: KeycloakAccessConfig, yaml_file: str, clean: bool, overwrite: bool
+    kc_config: KeycloakAccessConfig, yaml_file: str | dict, clean: bool, overwrite: bool
 ) -> None:
     """Adds new lomas users to keycloak.
 
@@ -217,7 +227,8 @@ def add_kc_users_via_yaml(
 
     Args:
         kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
-        yaml_file (str): File name to load the users from.
+        yaml_file (str, dict): File name to load the users from if a string.
+            Otherwise dict representing a UserCollection.
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
 
@@ -233,10 +244,10 @@ def add_kc_users_via_yaml(
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
-            yaml_dict: dict = yaml.safe_load(f)
+            raw_dict: dict = yaml.safe_load(f)
     else:
-        yaml_dict = yaml_file
-    user_list = UserCollection(**yaml_dict)
+        raw_dict = yaml_file
+    user_list = UserCollection(**raw_dict)
 
     for user in user_list.users:
         # Remove user with same name if it already exists.
@@ -248,11 +259,47 @@ def add_kc_users_via_yaml(
 
             kc_clients = kc_admin.clients.get(userId=user.id.name)
             for kc_client in kc_clients:
-                kc_client_id = kc_client["id"]  # type: ignore
-                kc_admin.users(kc_client_id).delete()
+                if (
+                    "lomas_user_client" in kc_client["attributes"]  # type: ignore
+                    and kc_client["attributes"]["lomas_user_client"]  # type: ignore
+                ):  # type: ignore
+                    kc_client_id = kc_client["id"]  # type: ignore
+                    kc_admin.clients(kc_client_id).delete()
 
             LOG.info(f"Overwriting user {user.id.name}. \n")
 
-        add_kc_user(kc_config, user.id.name, user.id.email)
+        add_kc_user(kc_config, user.id.name, user.id.email, user.id.client_secret)
 
     LOG.info("Added keycloak users from yaml file.")
+
+
+def get_kc_user_client_secret(kc_config: KeycloakAccessConfig, user_name: str) -> str:
+    """Gets the client secret for making api calls with the client library for a given user.
+
+    Args:
+        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        user_name (str): The user name.
+
+    Returns:
+        str: The requested client secret
+    """
+    kc_admin = get_kc_admin(kc_config)
+
+    user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
+    user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()["value"]  # type: ignore
+
+    return user_client_secret
+
+
+def set_kc_user_client_secret(kc_config: KeycloakAccessConfig, user_name: str, client_secret: str) -> None:
+    """Sets a (new) client secret for making api calls with the client libary for a given user.
+
+    Args:
+        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        user_name (str): The user name.
+        client_secret (str): The client secret.
+    """
+    kc_admin = get_kc_admin(kc_config)
+
+    user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
+    kc_admin.clients(user_client_uid).client_secret.put({"value": client_secret})

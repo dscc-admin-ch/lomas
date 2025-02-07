@@ -36,6 +36,10 @@ class UserId(BaseModel):
 
     name: str
     email: str
+    client_secret: Annotated[
+        Optional[str],
+        Field(default=None, exclude=True),  # exclude the field at serialization for security reasons
+    ]
 
 
 class User(BaseModel):

@@ -87,6 +87,8 @@ if __name__ == "__main__":
         parents=[connection_parser],
     )
     add_user_parser.add_argument("-u", "--user", required=True, type=str)
+    add_user_parser.add_argument("-m", "--email", required=True, type=str)
+    add_user_parser.add_argument("-s", "--client_secret", required=False, type=str)
     add_kc_admin_args(add_user_parser)
     add_user_parser.set_defaults(func=add_user)
 
@@ -98,6 +100,7 @@ if __name__ == "__main__":
     )
     add_user_wb_parser.add_argument("-u", "--user", required=True, type=str)
     add_user_wb_parser.add_argument("-m", "--email", required=True, type=str)
+    add_user_wb_parser.add_argument("-s", "--client_secret", required=False, type=str)
     add_user_wb_parser.add_argument("-d", "--dataset", required=True, type=str)
     add_user_wb_parser.add_argument("-e", "--epsilon", required=True, type=float)
     add_user_wb_parser.add_argument("-del", "--delta", required=True, type=float)
@@ -393,11 +396,11 @@ if __name__ == "__main__":
     function_map = {
         "add_user": lambda args: (
             add_user(mongo_db, args.user, args.email),
-            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email),
+            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email, args.client_secret),
         ),
         "add_user_with_budget": lambda args: (
             add_user_with_budget(mongo_db, args.user, args.email, args.dataset, args.epsilon, args.delta),
-            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email),
+            add_kc_user(KeycloakAccessConfig(**args), args.user, args.email, args.client_secret),
         ),
         "del_user": lambda args: (
             del_user(mongo_db, args.user),

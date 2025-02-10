@@ -2,27 +2,15 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-<<<<<<< HEAD
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from fastapi import FastAPI, Request
-
-from opentelemetry import trace, metrics
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
-from starlette.middleware.base import BaseHTTPMiddleware
-
-=======
 from fastapi import FastAPI
->>>>>>> cc77eaf6 (add requirements version, replace LOG by logging, fix logging middleware, fix dashboard)
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
@@ -91,13 +79,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             logging.info("Adding demo data to MongoDB Admin")
-<<<<<<< HEAD
             lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
-=======
-            lomas_app.state.server_state["message"].append(
-                "Adding demo data to MongoDB Admin"
-            )
->>>>>>> cc77eaf6 (add requirements version, replace LOG by logging, fix logging middleware, fix dashboard)
             add_demo_data_to_mongodb_admin()
 
     # Load admin database
@@ -131,36 +113,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
         lomas_app.state.admin_database.save_current_database()
 
-class LoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        # Get the current span in the context
-        tracer = trace.get_tracer(__name__)
-        span = tracer.start_span("HTTP Request")
-
-        # Attach custom attributes or log information on the span
-        span.set_attribute("http.method", request.method)
-        span.set_attribute("http.url", str(request.url))
-        span.set_attribute("http.client_ip", request.client.host)
-        user_name = request.headers.get("user_name", "unknown")
-        span.set_attribute("user_name", user_name)
-        LOG.info(f"0 Request received: {request.method} {request.url}")
-
-        # Log a message (optional, you can use any logging framework here)
-        print(f"1 Request received: {request.method} {request.url}")
-
-        try:
-            # Call the next middleware or route handler
-            response = await call_next(request)
-        finally:
-            # End the span after the response is returned
-            span.end()
-
-        return response
-
-
-# Initalise telemetry
-resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
-init_telemetry(resource)
 
 # Initalise telemetry
 resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)

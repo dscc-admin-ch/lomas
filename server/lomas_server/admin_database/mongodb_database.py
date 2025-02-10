@@ -24,32 +24,6 @@ from lomas_server.utils.metrics import (
     MONGO_UPDATE_COUNTER,
 )
 
-meter = metrics.get_meter(__name__)
-
-MONGO_QUERY_COUNTER = meter.create_counter(
-    name="mongodb_query_count",
-    description="Number of MongoDB queries executed",
-    unit="queries",
-)
-
-MONGO_INSERT_COUNTER = meter.create_counter(
-    name="mongodb_insert_count",
-    description="Number of MongoDB insert operations executed",
-    unit="inserts",
-)
-
-MONGO_UPDATE_COUNTER = meter.create_counter(
-    name="mongodb_update_count",
-    description="Number of MongoDB update operations executed",
-    unit="updates",
-)
-
-MONGO_ERROR_COUNTER = meter.create_counter(
-    name="mongodb_error_count",
-    description="Number of MongoDB errors encountered",
-    unit="errors",
-)
-
 
 class AdminMongoDatabase(AdminDatabase):
     """Overall MongoDB database management for server state."""

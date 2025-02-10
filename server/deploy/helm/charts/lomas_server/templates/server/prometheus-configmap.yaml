@@ -17,4 +17,3 @@ data:
       - job_name: 'loki'
         static_configs:
           - targets: [ 'localhost:{{ .Values.loki.service.port }}' ]
-

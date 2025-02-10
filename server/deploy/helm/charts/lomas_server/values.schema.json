@@ -544,16 +544,6 @@
                             },
                             "required": ["batch"]
                         },
-                        "exporter": {
-                            "type": "object",
-                            "properties": {
-                                "prometheus_endpoint": {
-                                "type": "integer",
-                                "default": 9090
-                                }
-                            },
-                            "required": ["prometheus_endpoint"]
-                        },
                         "extension": {
                             "type": "object",
                             "properties": {
@@ -570,14 +560,9 @@
                                     "default": 55679
                                 }
                             }
-                        },
-                        "log_level": {
-                            "type": "string",
-                            "enum": ["debug", "info", "warn", "error", "fatal"],
-                            "default": "debug"
                         }
                     },
-                    "required": ["receiver", "processors", "exporter", "extension", "log_level"]
+                    "required": ["receiver", "processors", "extension"]
                 }
             },
             "required": ["service", "config"]

@@ -25,7 +25,7 @@ data:
                 insecure: true
 
         prometheus:
-            endpoint: "0.0.0.0:{{ .Values.otel.config.exporter.prometheus_endpoint }}"
+            endpoint: "0.0.0.0:{{ .Values.otel.service.port }}"
 
         otlphttp/loki:
             endpoint: http://localhost:{{ .Values.loki.service.target_port }}/otlp

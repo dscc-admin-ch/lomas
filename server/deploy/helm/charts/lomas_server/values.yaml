@@ -226,13 +226,10 @@ otel:
     processors:
       batch:
         timeout: 5s
-    exporter:
-      prometheus_endpoint: 9090
     extension:
       health_check_port: 13133
       pprof_port: 1777
       zpages_port: 55679
-    log_level: debug
 
 # Prometheus
 ##########################################################################
@@ -269,10 +266,9 @@ tempo:
         http:
           endpoint: "0.0.0.0:4318"
   overrides:
-    defaults:
-      metrics_generator:
-        processors: [service-graphs, span-metrics, local-blocks]
-        generate_native_histograms: both
+    metrics_generator_processors:
+      - 'service-graphs'
+      - 'span-metrics'
   persistence:
     enabled: false
 

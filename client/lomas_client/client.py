@@ -9,8 +9,10 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
 
 from lomas_client.constants import (
+    CLIENT_SERVICE_NAME,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
+    SERVICE_ID,
 )
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
@@ -19,6 +21,7 @@ from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.utils import raise_error, validate_model_response
 from lomas_core.constants import DPLibraries
+from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -49,6 +52,9 @@ class Client:
             user_name (str): The name of the user allowed to perform queries.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
         """
+
+        resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
+        init_telemetry(resource)
 
         self.http_client = LomasHttpClient(url, user_name, dataset_name)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)

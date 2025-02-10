@@ -1,8 +1,9 @@
+import logging
+
 from pymongo import MongoClient
 from pymongo.database import Database
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.logger import LOG
 from lomas_core.models.config import MongoDBConfig
 from lomas_server.mongodb_admin import (
     add_datasets_via_yaml,
@@ -73,10 +74,10 @@ def add_demo_data_to_mongodb_admin(
         user_yaml (str): path to user collection yaml file
         dataset_yaml (str): path to dataset collection yaml file
     """
-    LOG.info("Creating example user collection")
+    logging.info("Creating example user collection")
     mongo_db: Database = get_mongodb()
 
-    LOG.info("Creating user collection")
+    logging.info("Creating user collection")
     add_users_via_yaml(
         mongo_db,
         clean=True,
@@ -84,7 +85,7 @@ def add_demo_data_to_mongodb_admin(
         yaml_file=user_yaml,
     )
 
-    LOG.info("Creating datasets and metadata collection")
+    logging.info("Creating datasets and metadata collection")
     add_datasets_via_yaml(
         mongo_db,
         clean=True,
@@ -93,5 +94,5 @@ def add_demo_data_to_mongodb_admin(
         yaml_file=dataset_yaml,
     )
 
-    LOG.info("Empty archives")
+    logging.info("Empty archives")
     drop_collection(mongo_db, collection="queries_archives")

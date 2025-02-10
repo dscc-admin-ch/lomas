@@ -1,5 +1,6 @@
 from typing import List
 
+from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
 from pymongo.errors import WriteConcernError
@@ -16,6 +17,12 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
+from lomas_server.utils.metrics import (
+    MONGO_ERROR_COUNTER,
+    MONGO_INSERT_COUNTER,
+    MONGO_QUERY_COUNTER,
+    MONGO_UPDATE_COUNTER,
+)
 
 
 class AdminMongoDatabase(AdminDatabase):
@@ -28,6 +35,7 @@ class AdminMongoDatabase(AdminDatabase):
             connection_string (str): Connection string to the mongodb
             database_name (str): Mongodb database name.
         """
+        PymongoInstrumentor().instrument()
         self.db: Database = MongoClient(connection_string)[database_name]
 
     def does_user_exist(self, user_name: str) -> bool:
@@ -39,6 +47,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the user exists, False otherwise.
         """
+        MONGO_QUERY_COUNTER.add(1, {"operation": "does_user_exist"})
         doc_count = self.db.users.count_documents({"user_name": f"{user_name}"})
         return doc_count > 0
 
@@ -51,6 +60,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the dataset exists, False otherwise.
         """
+        MONGO_QUERY_COUNTER.add(1, {"operation": "does_dataset_exist"})
         collection_query = self.db.datasets.find({})
         for document in collection_query:
             if document["dataset_name"] == dataset_name:
@@ -70,6 +80,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             Metadata: The metadata model.
         """
+        MONGO_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
         metadatas = self.db.metadata.find_one({dataset_name: {"$exists": True}})
         return Metadata.model_validate(metadatas[dataset_name])  # type: ignore
 
@@ -88,6 +99,7 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
+        MONGO_UPDATE_COUNTER.add(1, {"operation": "set_may_user_query"})
         res = self.db.users.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).update_one(
@@ -112,6 +124,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: The may_query status of the user before the update.
         """
+        MONGO_UPDATE_COUNTER.add(1, {"operation": "get_and_set_may_user_query"})
         res = self.db.users.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).find_one_and_update(
@@ -136,6 +149,7 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             bool: True if the user has access, False otherwise.
         """
+        MONGO_QUERY_COUNTER.add(1, {"operation": "has_user_access_to_dataset"})
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
                 f"Dataset {dataset_name} does not exist. "
@@ -259,6 +273,7 @@ class AdminMongoDatabase(AdminDatabase):
         Raises:
             WriteConcernError: If the result is not acknowledged.
         """
+        MONGO_INSERT_COUNTER.add(1, {"operation": "save_query"})
         to_archive = super().prepare_save_query(user_name, query, response)
         res = self.db.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
@@ -276,6 +291,7 @@ def check_result_acknowledged(res: _WriteResult) -> None:
         WriteConcernError: If the result is not acknowledged.
     """
     if not res.acknowledged:
+        MONGO_ERROR_COUNTER.add(1, {"operation": "write_error"})
         raise WriteConcernError(
             "Write request not acknowledged by MongoDB database."
             + " Please contact the administrator of the server."

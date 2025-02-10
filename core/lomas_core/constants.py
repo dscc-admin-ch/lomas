@@ -1,4 +1,7 @@
+import os
 from enum import StrEnum
+
+OTLP_COLLECTOR_ENDPOINT = os.getenv("OTEL_COLLECTOR_ENDPOINT", "http://otel-collector:4317")
 
 # Server error messages
 INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."

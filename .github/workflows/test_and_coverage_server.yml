@@ -21,18 +21,24 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Set up Python 12
-      uses: astral-sh/setup-uv@v5
+    - uses: cachix/install-nix-action@v26
+    - uses: cachix/cachix-action@v14
       with:
-        python-version: 3.12
-    - name: Install dependencies
+        name: devenv
+
+    - name: Install devenv.sh
+      run: nix profile install nixpkgs#devenv
+
+    - name: Build the devenv shell
+      run: devenv shell
+
+    - name: Run all test with coverage
+      shell: devenv shell bash -- -e {0}
       run: |
-        uv pip install -r requirements-test.txt
-    - name: Run test script
-      run: |
-        cd server
-        chmod +x run_tests_and_coverage.sh
-        ./run_tests_and_coverage.sh
+        devenv processes up --detach
+        sleep 15  # I know ...
+        ut-coverage
+
     - name: Coverage comment
       uses: py-cov-action/python-coverage-comment-action@v3
       with:

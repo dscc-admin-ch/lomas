@@ -1,4 +1,4 @@
-name: "Devenv Tests"
+name: Devenv Tests
 
 on:
   # pull_request:

@@ -62,6 +62,8 @@ in
 {
   env.GREET = "Lomas env";
 
+  devcontainer.enable = true;
+
   packages = [
     pkgs.git
     pkgs.mongosh
@@ -250,10 +252,12 @@ in
     # mongodb & s3 minio available
     LOMAS_TEST_MONGO_INTEGRATION=1 LOMAS_TEST_S3_INTEGRATION=1 coverage run --source=. -m unittest
 
-    # "yaml", "basic", developer mode, "stall"
-    LOMAS_TEST_MONGO_INTEGRATION=0 LOMAS_TEST_S3_INTEGRATION=0 coverage run -a --source=. -m unittest
+    # "basic", developer mode, "stall"
+    LOMAS_TEST_MONGO_INTEGRATION=1 LOMAS_TEST_S3_INTEGRATION=0 coverage run -a --source=. -m unittest
 
     coverage report
+    coverage xml -o coverage.xml
+
     popd
   '';
 

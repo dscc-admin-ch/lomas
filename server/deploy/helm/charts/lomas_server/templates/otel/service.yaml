@@ -14,4 +14,7 @@ spec:
       protocol: TCP
       port: {{ .Values.otel.config.receiver.grpc_port }}
       targetPort: {{ .Values.otel.config.receiver.grpc_port }}
+    - name: metrics
+      port: {{ .Values.otel.config.exporters.prometheus.port }}
+      targetPort: {{ .Values.otel.config.exporters.prometheus.port }}
 {{- end }}

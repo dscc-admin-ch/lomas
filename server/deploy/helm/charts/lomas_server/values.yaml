@@ -112,7 +112,6 @@ server:
   nodeSelector: {}
   tolerations: []
   affinity: {}
-  monitoring: true
 
 # Lomas Administration Dashboard
 ##########################################################################
@@ -121,7 +120,7 @@ dashboard:
 
   image:
     repository: dsccadminch/lomas_admin_dashboard
-    pullPolicy: IfNotPresent #Always
+    pullPolicy: Always
     tag: latest
   imagePullSecrets: []
 
@@ -234,6 +233,9 @@ otel:
     processors:
       batch:
         timeout: 5s
+    exporters:
+      prometheus:
+        port: 8889
     extension:
       health_check_port: 13133
       pprof_port: 1777
@@ -249,8 +251,8 @@ prometheus:
     type: ClusterIP
   fullnameOverride: "lomas-prometheus"
   config:
-    scrape_interval: 10s
-    evaluation_interval: 10s
+    scrape_interval: 5s
+    evaluation_interval: 5s
 
 # Tempo
 ##########################################################################
@@ -286,6 +288,7 @@ tempo:
 # Grafana
 ##########################################################################
 grafana:
+  create: true
   service:
     type: ClusterIP
     port: 3000

@@ -32,6 +32,8 @@ spec:
             name: otlp-grpc
           - containerPort: {{ .Values.otel.config.receiver.http_port }}
             name: otlp-http
+          - containerPort: {{ .Values.otel.config.exporters.prometheus.port }}
+            name: metrics
         volumeMounts:
           - name: otel-config
             readOnly: True

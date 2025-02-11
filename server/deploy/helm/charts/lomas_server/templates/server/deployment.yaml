@@ -21,6 +21,7 @@ spec:
       serviceAccountName: {{ include "lomas.server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+
       containers:
       - name: {{ .Chart.Name }}
         securityContext:

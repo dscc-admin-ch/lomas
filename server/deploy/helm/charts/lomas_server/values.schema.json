@@ -501,14 +501,7 @@
             "type": "object",
             "properties": {
                 "service": {
-                    "type": "object",
-                    "properties": {
-                        "port": {
-                            "type": "integer",
-                            "default": 9090
-                        }
-                    },
-                    "required": ["port"]
+                    "type": "object"
                 },
                 "config": {
                     "type": "object",

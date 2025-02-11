@@ -121,7 +121,7 @@ dashboard:
 
   image:
     repository: dsccadminch/lomas_admin_dashboard
-    pullPolicy: Always
+    pullPolicy: IfNotPresent #Always
     tag: latest
   imagePullSecrets: []
 
@@ -225,7 +225,8 @@ loki:
 otel:
   create: true
   service:
-    port: 9090
+    type: ClusterIP
+  fullnameOverride: "lomas-otel"
   config:
     receiver:
       grpc_port: 4317

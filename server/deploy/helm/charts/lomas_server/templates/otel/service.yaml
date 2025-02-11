@@ -1,0 +1,17 @@
+{{- if .Values.otel.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.otel.fullname" . }}
+  labels:
+    {{- include "lomas.otel.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.otel.service.type }}
+  selector:
+    {{- include "lomas.otel.selectorLabels" . | nindent 8 }}
+  ports:
+    - name: otel-grpc
+      protocol: TCP
+      port: {{ .Values.otel.config.receiver.grpc_port }}
+      targetPort: {{ .Values.otel.config.receiver.grpc_port }}
+{{- end }}

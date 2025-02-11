@@ -1,0 +1,28 @@
+name: "Devenv Test"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - nix
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v26
+    - name: Install devenv.sh
+      run: nix profile install nixpkgs#devenv
+    - name: Build the devenv shell
+      run: devenv shell
+    - name: Test
+      # run: devenv test
+      shell: devenv shell bash -- -e {0}
+      run: |
+        env
+        devenv processes up --detach
+        sleep 15
+        ut

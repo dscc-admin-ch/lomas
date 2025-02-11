@@ -3,6 +3,7 @@ import time
 from collections.abc import AsyncGenerator
 from functools import wraps
 
+import aio_pika
 from fastapi import Request
 
 from lomas_core.constants import DPLibraries
@@ -16,7 +17,7 @@ from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import CostResponse, QueryResponse
+from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
@@ -62,7 +63,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     Returns:
         AsyncGenerator
     """
-    if not request.app.state.server_state["LIVE"]:
+    if not request.app.state.live:
         raise InternalServerException(
             "Woops, the server did not start correctly. Contact the administrator of this service.",
         )
@@ -70,12 +71,12 @@ async def server_live(request: Request) -> AsyncGenerator:
 
 
 @timing_protection
-def handle_query_on_private_dataset(
+async def handle_query_on_private_dataset(
     request: Request,
     query_json: QueryModel,
     user_name: str,
     dp_library: DPLibraries,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on private datasets for all supported libraries.
 
@@ -101,24 +102,20 @@ def handle_query_on_private_dataset(
     """
     app = request.app
 
-    data_connector = data_connector_factory(
-        query_json.dataset_name,
-        app.state.admin_database,
-        app.state.private_credentials,
-    )
-    dp_querier = querier_factory(
-        dp_library,
-        data_connector=data_connector,
-        admin_database=app.state.admin_database,
-    )
-    try:
-        response = dp_querier.handle_query(query_json, user_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    new_task = Job()
 
-    return response
+    jobs = app.state.jobs_var.get()
+    jobs[str(new_task.uid)] = new_task
+    app.state.jobs_var.set(jobs)
+
+    await app.state.task_queue_channel.default_exchange.publish(
+        aio_pika.Message(
+            body=f"{user_name}:{dp_library}:{query_json.json()}".encode(), correlation_id=new_task.uid
+        ),
+        routing_key="task_queue",
+    )
+
+    return new_task
 
 
 def handle_query_on_dummy_dataset(

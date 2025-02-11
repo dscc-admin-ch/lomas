@@ -27,7 +27,6 @@ SERVICE_ID = os.getenv("HOSTNAME", "default-host")
 # Server states
 DB_NOT_LOADED = "User database not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
-SERVER_LIVE = "LIVE"
 
 # General values
 SECONDS_IN_A_DAY = 60 * 60 * 24

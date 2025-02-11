@@ -362,6 +362,7 @@ def get_user_previous_queries(
     app = request.app
 
     try:
+        print(app.state.admin_database)
         previous_queries = app.state.admin_database.get_user_previous_queries(
             user_name, query_json.dataset_name
         )  # TODO 359 improve on that and return models.

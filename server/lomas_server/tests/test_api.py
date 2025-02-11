@@ -1,10 +1,10 @@
 import glob
-import json
 import os
 import unittest
 
 import numpy as np
 import opendp.prelude as dp_p
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
@@ -51,9 +51,9 @@ from lomas_server.mongodb_admin import (
     drop_collection,
 )
 from lomas_server.tests.constants import (
-    ENV_MONGO_INTEGRATION,
-    ENV_S3_INTEGRATION,
-    TRUE_VALUES,
+    mongo_integration_enabled,
+    s3_integration_enabled,
+    submit_job_wait,
 )
 from lomas_server.utils.config import CONFIG_LOADER
 
@@ -61,6 +61,8 @@ INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
 
 enable_features("floating-point")
+
+pytestmark = pytest.mark.anyio
 
 
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
@@ -76,7 +78,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     @classmethod
     def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
+        if mongo_integration_enabled():
             CONFIG_LOADER.load_config(
                 config_path="tests/test_configs/test_config_mongo.yaml",
                 secrets_path="tests/test_configs/test_secrets.yaml",
@@ -87,10 +89,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 secrets_path="tests/test_configs/test_secrets.yaml",
             )
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        pass
-
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
         self.user_name = "Dr. Antartica"
@@ -100,8 +98,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         }
         self.headers["user-name"] = self.user_name
 
+        assert (
+            not s3_integration_enabled()
+        ) or mongo_integration_enabled(), "S3 integration is only valid together with MongoDB"
+
         # Fill up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
+        if mongo_integration_enabled():
             self.db: Database = get_mongodb()
 
             add_users_via_yaml(
@@ -111,7 +113,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 overwrite=True,
             )
 
-            if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
+            if s3_integration_enabled():
                 yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
             else:
                 yaml_file = "tests/test_data/test_datasets.yaml"
@@ -126,7 +128,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def tearDown(self) -> None:
         # Clean up database if needed
-        if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
+        if mongo_integration_enabled():
             drop_collection(self.db, "metadata")
             drop_collection(self.db, "datasets")
             drop_collection(self.db, "users")
@@ -146,22 +148,22 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint."""
         with TestClient(app, headers=self.headers) as client:
-            response_root = client.get("/", headers=self.headers)
-            response_state = client.get("/state", headers=self.headers)
+            response_root = client.get("/")
+            response_state = client.get("/state")
             assert response_root.status_code == response_state.status_code
-            assert json.loads(response_root.content.decode("utf8")) == json.loads(
-                response_state.content.decode("utf8")
-            )
+            assert response_root.json() == response_state.json()
 
     def test_state(self) -> None:
         """Test state endpoint."""
         with TestClient(app, headers=self.headers) as client:
-            response = client.get("/state", headers=self.headers)
+            response = client.get("/state")
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             assert response_dict["requested_by"] == self.user_name
-            assert response_dict["state"]["LIVE"]
+
+            response = client.get("/health/live")
+            assert response.status_code == status.HTTP_200_OK
 
     def test_unknown_endpoint(self) -> None:
         """Test endpoint that does not exist."""
@@ -172,16 +174,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_get_dataset_metadata(self) -> None:
         """Test_get_dataset_metadata."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/get_dataset_metadata",
-                json=example_get_admin_db_data,
-                headers=self.headers,
-            )
+            response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
-            metadata = json.loads(response.content.decode("utf8"))
+            metadata = response.json()
             assert isinstance(metadata, dict), "metadata should be a dict"
             assert "max_ids" in metadata, "max_ids should be in metadata"
             assert "row_privacy" in metadata, "max_ids should be in metadata"
@@ -189,11 +187,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
-            response = client.post(
-                "/get_dataset_metadata",
-                json={"dataset_name": fake_dataset},
-                headers=self.headers,
-            )
+            response = client.post("/get_dataset_metadata", json={"dataset_name": fake_dataset})
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert (
                 response.json()
@@ -205,11 +199,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to fail: user does have access to dataset
             other_dataset = "IRIS"
-            response = client.post(
-                "/get_dataset_metadata",
-                json={"dataset_name": other_dataset},
-                headers=self.headers,
-            )
+            response = client.post("/get_dataset_metadata", json={"dataset_name": other_dataset})
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
@@ -220,15 +210,14 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_get_dummy_dataset(self) -> None:
         """Test_get_dummy_dataset."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/get_dummy_dataset",
                 json=example_get_dummy_dataset,
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             r_model = DummyDsResponse.model_validate(response_dict)
 
             assert (
@@ -258,7 +247,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                     "dummy_nb_rows": DUMMY_NB_ROWS,
                     "dummy_seed": 0,
                 },
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert (
@@ -275,7 +263,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 json={
                     "dataset_name": PENGUIN_DATASET,
                 },
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -288,7 +275,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                     "dummy_nb_rows": DUMMY_NB_ROWS,
                     "dummy_seed": 0,
                 },
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
@@ -330,8 +316,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=new_headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = DummyDsResponse.model_validate(response_dict)
+            r_model = DummyDsResponse.model_validate(response.json())
 
             assert r_model.dummy_df.shape[0] == 10, "Dummy pd.DataFrame does not have expected number of rows"
 
@@ -344,15 +329,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test smartnoise-sql query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = QueryResponse.model_validate(response_dict)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name
             assert "NB_ROW" in r_model.result.df.columns
@@ -369,11 +349,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                     "epsilon": QUERY_EPSILON,
                     "postprocess": True,
                 },
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-            response_dict = json.loads(response.content.decode("utf8"))["detail"]
+            response_dict = response.json()["detail"]
             assert response_dict[0]["type"] == "missing"
             assert response_dict[0]["loc"] == ["body", "delta"]
             assert response_dict[1]["type"] == "missing"
@@ -382,90 +361,62 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # Expect to fail: not enough budget
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["epsilon"] = 0.000000001
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=input_smartnoise,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error obtaining cost: "
-                    + "Noise scale is too large using epsilon=1e-09 "
-                    + "and bounds (0, 1) with Mechanism.gaussian.  "
-                    + "Try preprocessing to reduce senstivity, "
-                    + "or try different privacy parameters.",
-                    library="smartnoise_sql",
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error obtaining cost: "
+                + "Noise scale is too large using epsilon=1e-09 "
+                + "and bounds (0, 1) with Mechanism.gaussian.  "
+                + "Try preprocessing to reduce senstivity, "
+                + "or try different privacy parameters.",
+                library="smartnoise_sql",
+            ).model_dump(mode="json")
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["query_str"] = "SELECT AVG(bill) FROM df"  # no 'bill' column
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=input_smartnoise,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="Error obtaining cost: " + "Column cannot be found bill",
-                    library="smartnoise_sql",
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="Error obtaining cost: " + "Column cannot be found bill",
+                library="smartnoise_sql",
+            ).model_dump(mode="json")
 
             # Expect to fail: dataset without access
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "IRIS"
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=input_smartnoise,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message="Dr. Antartica does not have access to IRIS."
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_403_FORBIDDEN
+            assert job.error == UnauthorizedAccessExceptionModel(
+                message="Dr. Antartica does not have access to IRIS."
+            ).model_dump(mode="json")
 
             # Expect to fail: dataset does not exist
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "I_do_not_exist"
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=input_smartnoise,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="Dataset I_do_not_exist does not exist. "
-                    + "Please, verify the client object initialisation."
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="Dataset I_do_not_exist does not exist."
+                + " Please, verify the client object initialisation."
+            ).model_dump(mode="json")
 
             # Expect to fail: user does not exist
             new_headers = self.headers
             new_headers["user-name"] = "I_do_not_exist"
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=new_headers,
+            _, job = submit_job_wait(
+                client, "/smartnoise_sql_query", json=example_smartnoise_sql, headers=new_headers
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message="User I_do_not_exist does not exist. "
-                    + "Please, verify the client object initialisation."
-                ).model_dump()
-            )
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_403_FORBIDDEN
+            assert job.error == UnauthorizedAccessExceptionModel(
+                message="User I_do_not_exist does not exist. "
+                + "Please, verify the client object initialisation."
+            ).model_dump(mode="json")
 
     def test_smartnoise_sql_query_parameters(self) -> None:
         """Test smartnoise-sql query parameters."""
@@ -473,40 +424,28 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # Change the Query
             body = dict(example_smartnoise_sql)
             body["query_str"] = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["avg_bill_length_mm"].iloc[0] > 0.0
 
             # Change the mechanism
             body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["avg_bill_length_mm"].iloc[0] > 0.0
 
             # Try postprocess False
             body["postprocess"] = False
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df.shape[1] == 2
 
@@ -525,88 +464,70 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         #         json=body,
         #         headers=new_headers,
         #     )
-        #     data = response.content.decode("utf8")
+        #     data = response
         # assert data ==
         # df = pd.read_csv(StringIO(data))
         # assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
 
+    @unittest.skipUnless(s3_integration_enabled(), "S3 Integration disabled")
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset."""
-        if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
-            with TestClient(app, headers=self.headers) as client:
-                # Expect to work
-                input_smartnoise = dict(example_smartnoise_sql)
-                input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
-                response = client.post(
-                    "/smartnoise_sql_query",
-                    json=input_smartnoise,
-                    headers=self.headers,
-                )
-                assert response.status_code == status.HTTP_200_OK
-
-                response_dict = json.loads(response.content.decode("utf8"))
-                r_model = QueryResponse.model_validate(response_dict)
-                assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
-                assert r_model.requested_by == self.user_name
-                assert "NB_ROW" in r_model.result.df.columns
-                assert r_model.epsilon == QUERY_EPSILON
-                assert r_model.delta >= QUERY_DELTA
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
+            _, job = submit_job_wait(
+                client,
+                "/smartnoise_sql_query",
+                json=input_smartnoise,
+            )
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            r_model = QueryResponse.model_validate(job.result)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.requested_by == self.user_name
+            assert "NB_ROW" in r_model.result.df.columns
+            assert r_model.epsilon == QUERY_EPSILON
+            assert r_model.delta >= QUERY_DELTA
 
     def test_dummy_smartnoise_sql_query(self) -> None:
         """Test_dummy_smartnoise_sql_query."""
         with TestClient(app) as client:
             # Expect to work
             response = client.post(
-                "/dummy_smartnoise_sql_query",
-                json=example_dummy_smartnoise_sql,
-                headers=self.headers,
+                "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql, headers=self.headers
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = QueryResponse.model_validate(response_dict)
+            r_model = QueryResponse.model_validate(response.json())
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["NB_ROW"][0] > 0
             assert r_model.result.df["NB_ROW"][0] < 250
 
             # Should fail: no header
-            response = client.post(
-                "/dummy_smartnoise_sql_query",
-                json=example_dummy_smartnoise_sql,
-            )
+            response = client.post("/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql)
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            response_dict = json.loads(response.content.decode("utf8"))["detail"]
+            response_dict = response.json()["detail"]
             assert response_dict[0]["type"] == "missing"
             assert response_dict[0]["loc"] == ["header", "user-name"]
 
             # Should fail: user does not have access to dataset
-            body = dict(example_dummy_smartnoise_sql)
-            body["dataset_name"] = "IRIS"
             response = client.post(
-                "/dummy_smartnoise_sql_query",
-                json=body,
-                headers=self.headers,
+                "/dummy_smartnoise_sql_query", json={"dataset_name": "IRIS"}, headers=self.headers
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message=f"{self.user_name} does not have access to IRIS."
-                ).model_dump()
-            )
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def test_smartnoise_sql_cost(self) -> None:
         """Test_smartnoise_sql_cost."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/estimate_smartnoise_sql_cost",
                 json=example_smartnoise_sql_cost,
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             r_model = CostResponse.model_validate(response_dict)
             assert r_model.epsilon == QUERY_EPSILON
             assert r_model.delta > QUERY_DELTA
@@ -617,7 +538,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post(
                 "/estimate_smartnoise_sql_cost",
                 json=body,
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert UnauthorizedAccessExceptionModel(message=f"{self.user_name} does not have access to IRIS.")
@@ -628,14 +548,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)
-            response = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            assert response.status_code == status.HTTP_200_OK
+            _, job = submit_job_wait(client, "/opendp_query", json=example_opendp)
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -663,7 +579,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Expect to fail: transormation instead of measurement
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
@@ -671,18 +588,16 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                     "opendp_json": transformation_pipeline.to_json(),
                 },
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="The pipeline provided is not a "
-                    + "measurement. It cannot be processed in this server."
-                ).model_dump()
-            )
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="The pipeline provided is not a measurement. It cannot be processed in this server."
+            ).model_dump(mode="json")
 
             # Test MAX_DIVERGENCE (pure DP)
             md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(scale=5.0)
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
@@ -690,10 +605,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                     "opendp_json": md_pipeline.to_json(),
                 },
             )
-            assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -709,22 +623,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "fixed_delta": None,
             }
             # Should error because missing fixed_delta
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="fixed_delta must be set for smooth max divergence"
-                    + " and zero concentrated divergence."
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
+            ).model_dump(mode="json")
+
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -740,22 +651,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "fixed_delta": None,
             }
             # Should error because missing fixed_delta
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="fixed_delta must be set for smooth max divergence"
-                    + " and zero concentrated divergence."
-                ).model_dump()
-            )
+            _, job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
+            ).model_dump(mode="json")
 
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -779,7 +687,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # # Should error because missing fixed_delta
             # response = client.post("/opendp_query", json=json_obj)
             # assert response.status_code == status.HTTP_200_OK
-            # response_dict = json.loads(response.content.decode("utf8"))
+            # response_dict = response.json()
             # assert response_dict["requested_by"] == self.user_name
             # assert isinstance(response_dict["query_response"], dict)
             # assert response_dict["spent_epsilon"] > 0.1
@@ -787,15 +695,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_dummy_opendp_query(self) -> None:
         """Test_dummy_opendp_query."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/dummy_opendp_query",
-                json=example_dummy_opendp,
-                headers=self.headers,
-            )
+            response = client.post("/dummy_opendp_query", json=example_dummy_opendp)
             assert response.status_code == status.HTTP_200_OK
-            response_model = QueryResponse.model_validate_json(response.content.decode("utf8"))
+            response_model = QueryResponse.model_validate(response.json())
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -804,11 +708,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_opendp)
             body["dataset_name"] = "IRIS"
-            response = client.post(
-                "/dummy_opendp_query",
-                json=body,
-                headers=self.headers,
-            )
+            response = client.post("/dummy_opendp_query", json=body)
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
@@ -819,16 +719,15 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def test_opendp_cost(self) -> None:
         """Test_opendp_cost."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
                 "/estimate_opendp_cost",
                 json=example_opendp,
-                headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             response_model = CostResponse.model_validate(response_dict)
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0
@@ -836,11 +735,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             # Should fail: user does not have access to dataset
             body = dict(example_opendp)
             body["dataset_name"] = "IRIS"
-            response = client.post(
-                "/estimate_opendp_cost",
-                json=body,
-                headers=self.headers,
-            )
+            response = client.post("/estimate_opendp_cost", json=body)
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
@@ -856,23 +751,17 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post("/get_initial_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = InitialBudgetResponse.model_validate(response_dict)
+            response_model = InitialBudgetResponse.model_validate(response.json())
             assert response_model.initial_epsilon == INITAL_EPSILON
             assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget
-            _ = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should stay the same
             response_2 = client.post("/get_initial_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert response_dict_2 == response_dict
+            assert response_2.json() == response.json()
 
     def test_get_total_spent_budget(self) -> None:
         """Test_get_total_spent_budget."""
@@ -881,23 +770,19 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             response_model = SpentBudgetResponse.model_validate(response_dict)
             assert response_model.total_spent_epsilon == 0
             assert response_model.total_spent_delta == 0
 
             # Query to spend budget
-            _ = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should have updated spent budget
             response_2 = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            response_dict_2 = response_2.json()
             response_model_2 = SpentBudgetResponse.model_validate(response_dict_2)
 
             assert response_dict_2 != response_dict
@@ -911,24 +796,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post("/get_remaining_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             response_model = RemainingBudgetResponse.model_validate(response_dict)
 
             assert response_model.remaining_epsilon == INITAL_EPSILON
             assert response_model.remaining_delta == INITIAL_DELTA
 
             # Query to spend budget
-            _ = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should have removed spent budget
             response_2 = client.post("/get_remaining_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
+            response_dict_2 = response_2.json()
             response_model_2 = RemainingBudgetResponse.model_validate(response_dict_2)
             assert response_dict_2 != response_dict
             assert response_model_2.remaining_epsilon == INITAL_EPSILON - QUERY_EPSILON
@@ -941,44 +822,40 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
+            response_dict = response.json()
             assert response_dict["previous_queries"] == []
 
             # Query to archive 1 (smartnoise)
-            query_res = client.post(
-                "/smartnoise_sql_query",
-                json=example_smartnoise_sql,
-                headers=self.headers,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+            _, job_smnoise = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            assert job_smnoise is not None and job_smnoise.result is not None
 
             # Response should have one element in list
             response_2 = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
-            response_dict_2 = json.loads(response_2.content.decode("utf8"))
-            assert len(response_dict_2["previous_queries"]) == 1
-            assert response_dict_2["previous_queries"][0]["dp_librairy"] == DPLibraries.SMARTNOISE_SQL
-            assert response_dict_2["previous_queries"][0]["client_input"] == example_smartnoise_sql
-            assert response_dict_2["previous_queries"][0]["response"] == query_res
+            response_dict_2 = response_2.json()
+            assert response_dict_2["previous_queries"] != []
+            previous_query = response_dict_2["previous_queries"][0]
+            assert previous_query["dp_librairy"] == DPLibraries.SMARTNOISE_SQL
+            assert previous_query["client_input"] == example_smartnoise_sql
+            assert previous_query["response"] == job_smnoise.result.model_dump(mode="json")
 
             # Query to archive 2 (opendp)
-            query_res = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            query_res = json.loads(query_res.content.decode("utf8"))
+            _, job_opendp = submit_job_wait(client, "/opendp_query", json=example_opendp)
+            assert job_opendp is not None and job_opendp.result is not None
 
             # Response should have two elements in list
             response_3 = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response_3.status_code == status.HTTP_200_OK
+            response_dict_3 = response_3.json()
 
-            response_dict_3 = json.loads(response_3.content.decode("utf8"))
             assert len(response_dict_3["previous_queries"]) == 2
             assert response_dict_3["previous_queries"][0] == response_dict_2["previous_queries"][0]
             assert response_dict_3["previous_queries"][1]["dp_librairy"] == DPLibraries.OPENDP
             assert response_dict_3["previous_queries"][1]["client_input"] == example_opendp
-            assert response_dict_3["previous_queries"][1]["response"] == query_res
+            assert response_dict_3["previous_queries"][1]["response"] == job_opendp.result.model_dump(
+                mode="json"
+            )
 
     def test_subsequent_budget_limit_logic(self) -> None:
         """Test_subsequent_budget_limit_logic."""
@@ -988,36 +865,25 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             smartnoise_body["epsilon"] = 4.0
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
+            assert job is not None and job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
-            response = client.post(
-                "/smartnoise_sql_query",
-                json=smartnoise_body,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert (
-                response.json()
+                job.error
                 == InvalidQueryExceptionModel(
                     message="Not enough budget for this query "
                     + "epsilon remaining 2.0, "

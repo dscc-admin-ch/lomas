@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header, Request, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
@@ -18,7 +18,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import CostResponse, QueryResponse
+from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -26,7 +26,7 @@ from lomas_server.routes.utils import (
     server_live,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(server_live)])
 
 # Smartnoise SQL
 # -----------------------------------------------------------------------------
@@ -34,16 +34,16 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=QueryResponse | Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_sql_handler(
+async def smartnoise_sql_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
-) -> QueryResponse:
+) -> QueryResponse | Job:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -65,14 +65,13 @@ def smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_private_dataset(
+    return await handle_query_on_private_dataset(
         request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
     )
 
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
     response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
@@ -109,7 +108,6 @@ def dummy_smartnoise_sql_handler(
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    dependencies=[Depends(server_live)],
     response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
@@ -149,16 +147,16 @@ def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=QueryResponse | Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_synth_handler(
+async def smartnoise_synth_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
-) -> QueryResponse:
+) -> QueryResponse | Job:
     """
     Handles queries for the SmartNoiseSynth library.
 
@@ -182,14 +180,13 @@ def smartnoise_synth_handler(
         QueryResponse: A query response containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_private_dataset(
+    return await handle_query_on_private_dataset(
         request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
     response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
@@ -229,7 +226,6 @@ def dummy_smartnoise_synth_handler(
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    dependencies=[Depends(server_live)],
     response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
@@ -270,16 +266,16 @@ def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=QueryResponse | Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def opendp_query_handler(
+async def opendp_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPQueryModel,
-) -> QueryResponse:
+) -> QueryResponse | Job:
     """
     Handles queries for the OpenDP Library.
 
@@ -301,12 +297,11 @@ def opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
     "/dummy_opendp_query",
-    dependencies=[Depends(server_live)],
     response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
@@ -342,7 +337,6 @@ def dummy_opendp_query_handler(
 
 @router.post(
     "/estimate_opendp_cost",
-    dependencies=[Depends(server_live)],
     response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
@@ -382,16 +376,16 @@ def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
+    response_model=QueryResponse | Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def diffprivlib_query_handler(
+async def diffprivlib_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
-):
+) -> QueryResponse | Job:
     """
     Handles queries for the DiffPrivLib Library.
 
@@ -413,12 +407,13 @@ def diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_private_dataset(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_on_private_dataset(
+        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
+    )
 
 
 @router.post(
     "/dummy_diffprivlib_query",
-    dependencies=[Depends(server_live)],
     response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
@@ -454,7 +449,6 @@ def dummy_diffprivlib_query_handler(
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    dependencies=[Depends(server_live)],
     response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],

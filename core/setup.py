@@ -47,6 +47,6 @@ setup(
         "pymongo>=4.6.3",
         "scikit-learn>=1.4.2",
         "smartnoise-synth>=1.0.4",
-        "smartnoise_synth_logger>=0.0.3"
-    ]
+        "smartnoise_synth_logger>=0.0.3",
+    ],
 )

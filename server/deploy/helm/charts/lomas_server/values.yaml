@@ -245,6 +245,7 @@ prometheus:
   service:
     port: 9091
     target_port: 9091
+    type: ClusterIP
   fullnameOverride: "lomas-prometheus"
   config:
     scrape_interval: 10s

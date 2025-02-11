@@ -46,17 +46,17 @@ spec:
             {{- toYaml .Values.server.resources | nindent 12 }}
 
       initContainers:
-      - name: prometheus-sidecar
-        image: prom/prometheus:latest
-        args:
-          - "--config.file=/conf/prometheus.yaml"
-          - "--web.listen-address=:{{ .Values.prometheus.service.port}}"
-        restartPolicy: Always
-        ports:
-          - containerPort: {{ .Values.prometheus.service.port}}
-        volumeMounts:
-          - name: prometheus-config
-            mountPath: /conf
+      # - name: prometheus-sidecar
+      #   image: prom/prometheus:latest
+      #   args:
+      #     - "--config.file=/conf/prometheus.yaml"
+      #     - "--web.listen-address=:{{ .Values.prometheus.service.port}}"
+      #   restartPolicy: Always
+      #   ports:
+      #     - containerPort: {{ .Values.prometheus.service.port}}
+      #   volumeMounts:
+      #     - name: prometheus-config
+      #       mountPath: /conf
       
       - name: otel-collector-sidecar
         image: otel/opentelemetry-collector:latest
@@ -81,9 +81,9 @@ spec:
                 name: {{ include "lomas.server.fullname" . }}
             - configMap:
                 name: {{ include "lomas.server.fullname" . }}
-        - name: prometheus-config
-          configMap:
-            name: prometheus-config
+        # - name: prometheus-config
+        #   configMap:
+        #     name: prometheus-config
         - name: otel-config
           configMap:
             name: otel-config

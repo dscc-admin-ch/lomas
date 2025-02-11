@@ -1,73 +1,35 @@
-import functools
-from typing import Any, Callable, Dict
-
 import yaml
 from mantelo import HttpException, KeycloakAdmin
-from pydantic import BaseModel, ConfigDict
 
 from lomas_core.logger import LOG
 from lomas_core.models.collections import UserCollection
+from lomas_core.models.config import KeycloakClientConfig
 
 
-class KeycloakAccessConfig(BaseModel):
-    """Small model to group keycloak admin access information."""
-
-    model_config = ConfigDict(extra="ignore")
-
-    kc_skip: bool
-    kc_address: str
-    kc_port: int
-    kc_realm: str
-    kc_client_id: str
-    kc_client_secret: str
-    kc_use_tls: bool
-
-
-def check_skip_keycloak(function: Callable) -> Callable:
-    """Checks the kc_skip property of the KeycloakAccessConfig.
-
-    If set to True, the decorated function is skiped.
-
-    Returns:
-        Callable: The wrapper function that enforces user presence
-            (or absence) before calling the suplied function.
-    """
-
-    @functools.wraps(function)
-    def wrapper_decorator(kc_config: KeycloakAccessConfig, *arguments: Any, **kwargs: Dict) -> None:
-        if kc_config.kc_skip:
-            return None
-
-        return function(kc_config, *arguments, **kwargs)  # type: ignore
-
-    return wrapper_decorator
-
-
-def get_kc_admin(kc_config: KeycloakAccessConfig) -> KeycloakAdmin:
+def get_kc_admin(kc_config: KeycloakClientConfig) -> KeycloakAdmin:
     """Builds the Keycloak Admin from the provided config.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
 
     Returns:
         KeycloakAdmin: The built keycloak admin instance.
     """
-    url_protocol = "https" if kc_config.kc_use_tls else "http"
+    url_protocol = "https" if kc_config.use_tls else "http"
 
     kc_admin = KeycloakAdmin.from_client_credentials(
-        server_url=f"{url_protocol}://{kc_config.kc_address}:{kc_config.kc_port}",
-        realm_name=kc_config.kc_realm,
-        client_id=kc_config.kc_client_id,
-        client_secret=kc_config.kc_client_secret,
-        authentication_realm_name=kc_config.kc_realm,
+        server_url=f"{url_protocol}://{kc_config.address}:{kc_config.port}",
+        realm_name=kc_config.realm,
+        client_id=kc_config.client_id,
+        client_secret=kc_config.client_secret,
+        authentication_realm_name=kc_config.realm,
     )
 
     return kc_admin
 
 
-@check_skip_keycloak
 def add_kc_user(
-    kc_config: KeycloakAccessConfig, user_name: str, user_email: str, client_secret: str | None = None
+    kc_config: KeycloakClientConfig, user_name: str, user_email: str, client_secret: str | None = None
 ) -> None:
     """Adds a new lomas user to keycloak.
 
@@ -75,10 +37,10 @@ def add_kc_user(
     when using the lomas library.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
         user_name (str): The name of the user to add.
         user_email (str): The email of the user to add.
-        client_secret (str | NoneType): Optional, the client secret for authenticating with the
+        client_secret (str | None): Optional, the client secret for authenticating with the
             lomas client library.
 
     Raises:
@@ -164,12 +126,11 @@ def add_kc_user(
         raise RuntimeError("Could not add user to keycloak. Please contact the service adminstrator.") from e
 
 
-@check_skip_keycloak
-def del_kc_user(kc_config: KeycloakAccessConfig, user: str) -> None:
+def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     """Removes the keycloak user and client associated to the user name.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
         user (str): The name of the user to remove.
 
     Raises:
@@ -185,12 +146,11 @@ def del_kc_user(kc_config: KeycloakAccessConfig, user: str) -> None:
     kc_admin.clients(user_client_uid).delete()
 
 
-@check_skip_keycloak
-def del_all_kc_users(kc_config: KeycloakAccessConfig) -> None:
+def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
     """Removes all keycloak users and clients associated to lomas users.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
 
     Raises:
         HTTPException: If any of the calls to keycloak fails
@@ -216,9 +176,8 @@ def del_all_kc_users(kc_config: KeycloakAccessConfig) -> None:
     LOG.info("Removed all keycloak clients associated to users. \n")
 
 
-@check_skip_keycloak
 def add_kc_users_via_yaml(
-    kc_config: KeycloakAccessConfig, yaml_file: str | dict, clean: bool, overwrite: bool
+    kc_config: KeycloakClientConfig, yaml_file: str | dict, clean: bool, overwrite: bool
 ) -> None:
     """Adds new lomas users to keycloak.
 
@@ -226,7 +185,7 @@ def add_kc_users_via_yaml(
     when using the lomas library.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
         yaml_file (str, dict): File name to load the users from if a string.
             Otherwise dict representing a UserCollection.
         clean (bool): Whether to remove existing users and start with a clean state.
@@ -273,11 +232,11 @@ def add_kc_users_via_yaml(
     LOG.info("Added keycloak users from yaml file.")
 
 
-def get_kc_user_client_secret(kc_config: KeycloakAccessConfig, user_name: str) -> str:
+def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -> str:
     """Gets the client secret for making api calls with the client library for a given user.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
         user_name (str): The user name.
 
     Returns:
@@ -291,11 +250,11 @@ def get_kc_user_client_secret(kc_config: KeycloakAccessConfig, user_name: str) -
     return user_client_secret
 
 
-def set_kc_user_client_secret(kc_config: KeycloakAccessConfig, user_name: str, client_secret: str) -> None:
+def set_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str, client_secret: str) -> None:
     """Sets a (new) client secret for making api calls with the client libary for a given user.
 
     Args:
-        kc_config (KeycloakAccessConfig): A KeycloakAccessConfig
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
         user_name (str): The user name.
         client_secret (str): The client secret.
     """

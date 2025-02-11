@@ -20,11 +20,13 @@ from lomas_core.models.collections import (
     User,
     UserCollection,
 )
+from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
 )
+from lomas_server.admin_database.utils import get_mongodb
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
@@ -48,7 +50,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
             db = arguments[0]
             user = arguments[1]
 
-            user_count = db.users.count_documents({"id": {"name": user}})
+            user_count = db.users.count_documents({"id.name": user})
 
             if enforce_true and user_count == 0:
                 raise ValueError(f"User {user} does not exist in user collection")
@@ -87,7 +89,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
             user_and_ds_count = db.users.count_documents(
                 {
-                    "id": {"name": user},
+                    "id.name": user,
                     "datasets_list": {"$elemMatch": {"dataset_name": dataset}},
                 }
             )
@@ -134,8 +136,20 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
     return inner_func
 
 
+def with_mongodb(func: Callable) -> Callable:
+    """Decorator that replaces the config with a database instance."""
+
+    @functools.wraps(func)
+    def wrapper(config: MongoDBConfig, *args: Any, **kwargs: Dict) -> None:
+        db = get_mongodb(config)
+        return func(db, *args, **kwargs)
+
+    return wrapper
+
+
 ##########################  USERS  ########################## # noqa: E266
 @check_user_exists(False)
+@with_mongodb
 def add_user(db: Database, user: str, email: str) -> None:
     """Add new user in users collection with default values for all fields.
 
@@ -170,6 +184,7 @@ def add_user(db: Database, user: str, email: str) -> None:
 
 
 @check_user_exists(False)
+@with_mongodb
 def add_user_with_budget(
     db: Database, user: str, email: str, dataset: str, epsilon: float, delta: float
 ) -> None:
@@ -220,6 +235,7 @@ def add_user_with_budget(
 
 
 @check_user_exists(True)
+@with_mongodb
 def del_user(db: Database, user: str) -> None:
     """Delete all related information for user from the users collection.
 
@@ -230,7 +246,7 @@ def del_user(db: Database, user: str) -> None:
     Returns:
         None
     """
-    res = db.users.delete_many({"id": {"name": user}})
+    res = db.users.delete_many({"id.name": user})
     check_result_acknowledged(res)
 
     logging.info(f"Deleted user {user}.")
@@ -238,6 +254,7 @@ def del_user(db: Database, user: str) -> None:
 
 @check_user_exists(True)
 @check_user_has_dataset(False)
+@with_mongodb
 def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add dataset to user with initialized budget values.
 
@@ -269,7 +286,7 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
 
     res = db.users.update_one(
         {
-            "id": {"name": user},
+            "id.name": user,
             "datasets_list.dataset_name": {"$ne": dataset},
         },
         {"$push": {"datasets_list": validated_budget}},
@@ -287,6 +304,7 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
 
 @check_user_exists(True)
 @check_user_has_dataset(True)
+@with_mongodb
 def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
     """Remove access from user to dataset(and all related budget info).
 
@@ -299,7 +317,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
         None
     """
     res = db.users.update_one(
-        {"id": {"name": user}},
+        {"id.name": user},
         {"$pull": {"datasets_list": {"dataset_name": {"$eq": dataset}}}},
     )
 
@@ -310,6 +328,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 
 @check_user_exists(True)
 @check_user_has_dataset(True)
+@with_mongodb
 def set_budget_field(db: Database, user: str, dataset: str, field: str, value: float) -> None:
     """Set (for some reason) a budget field to a given value.
 
@@ -327,7 +346,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
     """
     res = db.users.update_one(
         {
-            "id": {"name": user},
+            "id.name": user,
             "datasets_list.dataset_name": dataset,
         },
         {"$set": {f"datasets_list.$.{field}": value}},
@@ -339,6 +358,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
 
 
 @check_user_exists(True)
+@with_mongodb
 def set_may_query(db: Database, user: str, value: bool) -> None:
     """Set (for some reason) the 'may query' field to a given value.
 
@@ -353,7 +373,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
         None
     """
     res = db.users.update_one(
-        {"id": {"name": user}},
+        {"id.name": user},
         {"$set": {"may_query": (value == "True")}},
     )
 
@@ -363,6 +383,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
 
 @check_user_exists(True)
+@with_mongodb
 def get_user(db: Database, user: str) -> dict:
     """Show a user.
 
@@ -373,12 +394,13 @@ def get_user(db: Database, user: str) -> dict:
     Returns:
         user (dict): all information of user from 'users' collection
     """
-    user_info = list(db.users.find({"id": {"name": user}}))[0]
+    user_info = list(db.users.find({"id.name": user}))[0]
     user_info.pop("_id", None)
     logging.info(user_info)
     return user_info
 
 
+@with_mongodb
 def add_users_via_yaml(
     db: Database,
     yaml_file: Union[str, Dict],
@@ -419,7 +441,8 @@ def add_users_via_yaml(
     new_users = []
     existing_users = []
     for user in user_dict.users:
-        if not db.users.find_one({"id": {"name": user}}):
+        print(f"user: {user.id.name}")
+        if not db.users.find_one({"id.name": user.id.name}):
             new_users.append(user)
         else:
             existing_users.append(user)
@@ -428,7 +451,7 @@ def add_users_via_yaml(
     if existing_users:
         if overwrite:
             for user in existing_users:
-                user_filter = {"id": {"name": user}}
+                user_filter = {"id.name": user.id.name}
                 update_operation = {"$set": user.model_dump()}
                 res: _WriteResult = db.users.update_many(user_filter, update_operation)
                 check_result_acknowledged(res)
@@ -447,6 +470,7 @@ def add_users_via_yaml(
 
 
 @check_user_exists(True)
+@with_mongodb
 def get_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user.
 
@@ -457,11 +481,12 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.queries_archives.find({"id": {"name": user}}))
+    archives_infos: List[dict] = list(db.queries_archives.find({"id.name": user}))
     logging.info(archives_infos)
     return archives_infos
 
 
+@with_mongodb
 def get_list_of_users(db: Database) -> list:
     """Get the list of all users is 'users' collection.
 
@@ -479,6 +504,7 @@ def get_list_of_users(db: Database) -> list:
 
 
 @check_user_exists(True)
+@with_mongodb
 def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """Get the list of all datasets from the user.
 
@@ -489,7 +515,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     Returns:
         user_datasets (list): list of names of all users
     """
-    user_data = db.users.find_one({"id": {"name": user}})
+    user_data = db.users.find_one({"id.name": user})
     assert user_data is not None, "User must exist"
     logging.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
@@ -497,6 +523,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
 @check_dataset_and_metadata_exist(False)
+@with_mongodb
 def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     db: Database,
     dataset_name: str,
@@ -617,6 +644,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     )
 
 
+@with_mongodb
 def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     db: Database,
     yaml_file: Union[str, Dict],
@@ -733,6 +761,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
 
 @check_dataset_and_metadata_exist(True)
+@with_mongodb
 def del_dataset(db: Database, dataset: str) -> None:
     """Delete dataset from dataset collection.
 
@@ -751,6 +780,7 @@ def del_dataset(db: Database, dataset: str) -> None:
 
 
 @check_dataset_and_metadata_exist(True)
+@with_mongodb
 def get_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
@@ -768,6 +798,7 @@ def get_dataset(db: Database, dataset: str) -> dict:
 
 
 @check_dataset_and_metadata_exist(True)
+@with_mongodb
 def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 
@@ -788,6 +819,7 @@ def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
     return metadata_info
 
 
+@with_mongodb
 def get_list_of_datasets(db: Database) -> list:
     """Get the list of all dataset is 'datasets' collection.
 
@@ -805,6 +837,7 @@ def get_list_of_datasets(db: Database) -> list:
 
 
 #######################  COLLECTIONS  ####################### # noqa: E266
+@with_mongodb
 def drop_collection(db: Database, collection: str) -> None:
     """Delete collection.
 
@@ -819,6 +852,7 @@ def drop_collection(db: Database, collection: str) -> None:
     logging.info(f"Deleted collection {collection}.")
 
 
+@with_mongodb
 def get_collection(db: Database, collection: str) -> list:
     """Show a collection.
 

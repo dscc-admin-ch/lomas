@@ -1,3 +1,5 @@
+# pylint: skip-file
+# type: ignore
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException
@@ -17,7 +19,7 @@ try:
     if "dashboard_config" not in st.session_state:
         # Store dashboard config
         st.session_state["dashboard_config"] = get_config()
-except Exception as e:
+except InternalServerException as e:
     st.error(f"Failed to load server or dashboard config. Initial exception: {e}")
 
 

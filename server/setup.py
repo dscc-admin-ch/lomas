@@ -42,7 +42,6 @@ setup(
         "opentelemetry-instrumentation-pymongo>=0.50b0",
         "packaging==24.1",
         "pyaml==23.9.5",
-        "pydantic==2.8.2",
         "smartnoise-sql==1.0.4",
         "uvicorn==0.29.0"
     ],
@@ -50,7 +49,6 @@ setup(
         "admin": [ # will be install if doing pip install lomas-server[admin]
             "mantelo==2.2.0",
             "mongomock==4.3.0",
-            "pydantic-settings==2.7.1",
             "pytest==8.3.3",
             "requests==2.32.0",
             "streamlit==1.39.0",

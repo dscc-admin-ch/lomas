@@ -48,7 +48,7 @@ class AdminMongoDatabase(AdminDatabase):
             bool: True if the user exists, False otherwise.
         """
         MONGO_QUERY_COUNTER.add(1, {"operation": "does_user_exist"})
-        doc_count = self.db.users.count_documents({"user_name": f"{user_name}"})
+        doc_count = self.db.users.count_documents({"id.name": user_name})
         return doc_count > 0
 
     def does_dataset_exist(self, dataset_name: str) -> bool:
@@ -103,7 +103,7 @@ class AdminMongoDatabase(AdminDatabase):
         res = self.db.users.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).update_one(
-            {"user_name": f"{user_name}"},
+            {"id.name": user_name},
             {"$set": {"may_query": may_query}},
         )
         check_result_acknowledged(res)
@@ -128,7 +128,7 @@ class AdminMongoDatabase(AdminDatabase):
         res = self.db.users.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).find_one_and_update(
-            {"user_name": user_name},
+            {"id.name": user_name},
             {"$set": {"may_query": may_query}},
             projection={"may_query": 1},
             return_document=ReturnDocument.BEFORE,
@@ -157,7 +157,7 @@ class AdminMongoDatabase(AdminDatabase):
             )
         doc_count = self.db.users.count_documents(
             {
-                "user_name": f"{user_name}",
+                "id.name": user_name,
                 "datasets_list.dataset_name": f"{dataset_name}",
             }
         )
@@ -180,7 +180,7 @@ class AdminMongoDatabase(AdminDatabase):
                     {"$unwind": "$datasets_list"},
                     {
                         "$match": {
-                            "user_name": f"{user_name}",
+                            "id.name": user_name,
                             "datasets_list.dataset_name": f"{dataset_name}",
                         }
                     },
@@ -210,7 +210,7 @@ class AdminMongoDatabase(AdminDatabase):
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).update_one(
             {
-                "user_name": user_name,
+                "id.name": user_name,
                 "datasets_list.dataset_name": dataset_name,
             },
             {"$inc": {f"datasets_list.$.{parameter}": spent_value}},
@@ -254,7 +254,7 @@ class AdminMongoDatabase(AdminDatabase):
         """
         queries = self.db.queries_archives.find(
             {
-                "user_name": f"{user_name}",
+                "id.name": user_name,
                 "dataset_name": f"{dataset_name}",
             },
             {"_id": 0},

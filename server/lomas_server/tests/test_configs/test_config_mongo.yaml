@@ -19,6 +19,8 @@ runtime_args:
       max_pool_size: 100
       min_pool_size: 2
       max_connecting: 2
+    authenticator:
+      authentication_type: "free_pass"
     dp_libraries:
       opendp:
         contrib: True

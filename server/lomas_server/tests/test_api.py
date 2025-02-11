@@ -9,7 +9,6 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
-from pymongo.database import Database
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
@@ -43,19 +42,18 @@ from lomas_core.models.responses import (
     SpentBudgetResponse,
 )
 from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import get_mongodb
-from lomas_server.app import app
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
+from lomas_server.app import app
 from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -95,7 +93,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Set Up Header and DB for test."""
         self.user_name = "Dr. Antartica"
         self.bearer = (
-            'Bearer {"user_name": "Dr. Antartica", "user_email": "dr.antartica@penguin_research.org"}'
+            'Bearer {"name": "Dr. Antartica", "email": "dr.antartica@example.com"}'
         )
         self.headers = {
             "Content-type": "application/json",
@@ -105,10 +103,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            self.db: Database = get_mongodb()
+            self.mongo_config = get_config().admin_database
 
             add_users_via_yaml(
-                self.db,
+                self.mongo_config,
                 yaml_file="tests/test_data/test_user_collection.yaml",
                 clean=True,
                 overwrite=True,
@@ -120,7 +118,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 yaml_file = "tests/test_data/test_datasets.yaml"
 
             add_datasets_via_yaml(
-                self.db,
+                self.mongo_config,
                 yaml_file=yaml_file,
                 clean=True,
                 overwrite_datasets=True,
@@ -130,10 +128,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def tearDown(self) -> None:
         # Clean up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            drop_collection(self.db, "metadata")
-            drop_collection(self.db, "datasets")
-            drop_collection(self.db, "users")
-            drop_collection(self.db, "queries_archives")
+            drop_collection(self.mongo_config, "metadata")
+            drop_collection(self.mongo_config, "datasets")
+            drop_collection(self.mongo_config, "users")
+            drop_collection(self.mongo_config, "queries_archives")
         else:
             for file in glob.glob("tests/test_data/local_db_file_*.yaml"):
                 os.remove(file)
@@ -303,7 +301,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to fail: user does not exist
             fake_user_token = (
-                'Bearer {"user_name": "fake_user", "user_email": "fake_user@penguin_research.org"}'
+                'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
             )
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
@@ -323,7 +321,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to work with datetimes and another user
             fake_user_token = (
-                'Bearer {"user_name": "BirthdayGirl", "user_email": "BirthdayGirl@penguin_research.org"}'
+                'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             )
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
@@ -459,7 +457,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
             # Expect to fail: user does not exist
             fake_user_token = (
-                'Bearer {"user_name": "I_do_not_exist", "user_email": "I_do_not_exist@penguin_research.org"}'
+                'Bearer {"name": "I_do_not_exist", "email": "I_do_not_exist@penguin_research.org"}'
             )
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
@@ -527,7 +525,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
         #     fake_user_token =
-        #       'Bearer {"user_name": "BirthdayGirl", "user_email": "BirthdayGirl@penguin_research.org"}'
+        #       'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
         #     new_headers = self.headers
         #     new_headers["Authorization"] = fake_user_token
         #     body = dict(example_smartnoise_sql)

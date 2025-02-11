@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Config(BaseSettings):
 
     model_config = SettingsConfigDict(
-        env_prefix="keycloak_setup_", env_file="lomas_keycloak_setup.env", case_sensitive=False
+        env_prefix="lomas_kc_setup_", env_file="lomas_keycloak_setup.env", case_sensitive=False
     )
 
     keycloak_address: str

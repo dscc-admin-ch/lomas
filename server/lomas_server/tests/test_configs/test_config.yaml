@@ -14,6 +14,8 @@ runtime_args:
     admin_database:
       db_type: "yaml"
       db_file: "tests/test_data/local_db_file.yaml"
+    authenticator:
+      authentication_type: "free_pass"
     dp_libraries:
       opendp:
         contrib: True

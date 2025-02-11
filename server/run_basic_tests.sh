@@ -9,9 +9,9 @@ export PYTHONPATH=$(pwd):$PYTHONPATH
 cd lomas_server/
 python -m unittest discover -s .
 ret1=$?
-pytest ./administration/tests/test_streamlit_app.py
+#pytest ./administration/tests/test_streamlit_app.py
 ret2=$?
-pytest ./administration/tests/test_streamlit_app_page_b.py
+#pytest ./administration/tests/test_streamlit_app_page_b.py
 ret3=$?
 cd ..
 

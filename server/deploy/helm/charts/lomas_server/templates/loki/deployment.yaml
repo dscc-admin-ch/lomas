@@ -1,0 +1,44 @@
+{{- if .Values.loki.create -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.loki.fullname" . }}
+  labels:
+    {{- include "lomas.loki.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.loki.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.loki.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.loki.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
+      
+      containers:
+      - name: loki-container
+        image: grafana/loki:latest
+        args:
+          - "-config.file=/etc/loki/loki-config.yaml"
+        ports:
+          - containerPort: {{ .Values.loki.service.port}}
+        volumeMounts:
+          - name: loki-config
+            readOnly: True
+            mountPath: /etc/loki
+
+      volumes:
+      {{- $fullname := include "lomas.loki.fullname" . }}
+      - name: loki-config
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-loki-config" $fullname }}
+{{- end }}

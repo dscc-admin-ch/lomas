@@ -1,7 +1,11 @@
+{{- if .Values.loki.create -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: loki-config
+{{- $fullname := include "lomas.loki.fullname" . }}
+  name: {{ printf "%s-loki-config" $fullname }}
+  labels:
+    {{- include "lomas.loki.labels" . | nindent 4 }}
 data:
   loki-config.yaml: |
     auth_enabled: {{ .Values.loki.config.auth_enabled }}
@@ -40,3 +44,4 @@ data:
 
     pattern_ingester:
       enabled: {{ .Values.loki.config.pattern_ingester.enabled }}
+{{- end }}

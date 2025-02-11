@@ -58,18 +58,6 @@ spec:
           - name: prometheus-config
             mountPath: /conf
       
-      - name: loki-sidecar
-        image: grafana/loki:latest
-        args:
-          - "-config.file=/etc/loki/loki-config.yaml"
-        restartPolicy: Always
-        ports:
-          - containerPort: {{ .Values.loki.service.port}}
-        volumeMounts:
-          - name: loki-config
-            readOnly: True
-            mountPath: /etc/loki
-      
       - name: otel-collector-sidecar
         image: otel/opentelemetry-collector:latest
         args: 
@@ -96,9 +84,6 @@ spec:
         - name: prometheus-config
           configMap:
             name: prometheus-config
-        - name: loki-config
-          configMap:
-            name: loki-config
         - name: otel-config
           configMap:
             name: otel-config

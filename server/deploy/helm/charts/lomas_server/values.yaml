@@ -42,7 +42,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-9ff59ad
+    tag: sha-3e4984c
   imagePullSecrets: []
 
   # Runtime args for server
@@ -179,9 +179,15 @@ dashboard:
 # Loki
 ##########################################################################
 loki:
+  create: true
+
   service:
     port: 3100
     target_port: 3100
+    type: ClusterIP
+    
+  fullnameOverride: "lomas-loki"
+
   config:
     auth_enabled: false
     limits_config:
@@ -217,6 +223,7 @@ loki:
 # Opentelemtry-Collector
 ##########################################################################
 otel:
+  create: true
   service:
     port: 9090
   config:
@@ -234,9 +241,11 @@ otel:
 # Prometheus
 ##########################################################################
 prometheus:
+  create: true
   service:
     port: 9091
     target_port: 9091
+  fullnameOverride: "lomas-prometheus"
   config:
     scrape_interval: 10s
     evaluation_interval: 10s

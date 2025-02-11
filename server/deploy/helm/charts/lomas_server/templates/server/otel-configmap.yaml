@@ -28,7 +28,7 @@ data:
             endpoint: "0.0.0.0:{{ .Values.otel.service.port }}"
 
         otlphttp/loki:
-            endpoint: http://localhost:{{ .Values.loki.service.target_port }}/otlp
+            endpoint: "http://{{ .Values.loki.fullnameOverride }}:{{ .Values.loki.service.target_port }}/otlp"
 
     extensions:
         health_check:

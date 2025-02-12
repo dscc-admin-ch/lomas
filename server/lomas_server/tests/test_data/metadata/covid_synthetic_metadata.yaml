@@ -1,9 +1,12 @@
 max_ids: 3
+row_privacy: true
 columns:
   patient_id:
     type: int
     precision: 32
     private_id: True
+    lower: 0
+    upper: 50_047
   id:
     type: int
     precision: 32
@@ -18,7 +21,7 @@ columns:
   temporal:
     type: int
     precision: 32
-    categories: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,41,42,43,44,45,46,47,48,49,50,51,52]
+    categories: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52]
     cardinality: 52
     max_partition_length: 2_002
   georegion:

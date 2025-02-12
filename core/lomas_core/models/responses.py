@@ -172,7 +172,7 @@ class OpenDPQueryResult(BaseModel):
 
     res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
-    value: Union[int, float, List[Union[int, float]]]
+    value: Union[int, float, List[Union[int, float]], str]
     """The result value of the query."""
 
 

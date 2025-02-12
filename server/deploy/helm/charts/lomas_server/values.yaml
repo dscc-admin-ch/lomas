@@ -42,7 +42,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-3e4984c
+    tag: latest
   imagePullSecrets: []
 
   # Runtime args for server
@@ -349,7 +349,7 @@ grafana:
   ingress:
     enabled: true
     hosts:
-      - "lomas-monitoring-dashboard.lab.sspcloud.fr"
+      - "lomas-monitoring-dashboard.example.com"
 
   persistence:
     enabled: false

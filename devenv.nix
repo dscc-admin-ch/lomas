@@ -90,7 +90,6 @@ in
     PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
     # LOMAS_CONFIG_PATH = "${lomas_config}";
     # LOMAS_SECRETS_PATH = "${lomas_secrets}";
-    LOMAS_TEST_MONGO_INTEGRATION = 1;
   };
 
   ############
@@ -107,7 +106,7 @@ in
   processes.worker = {
     exec = ''
       pushd $DEVENV_ROOT/server/lomas_server
-      LOMAS_TEST_MONGO_INTEGRATION=1 $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
       popd
     '';
     process-compose.depends_on = {
@@ -242,18 +241,18 @@ in
 
   scripts.ut.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    LOMAS_TEST_MONGO_INTEGRATION=1 pytest .
+    pytest .
     popd
   '';
 
   scripts.ut-coverage.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
 
-    # mongodb & s3 minio available
-    LOMAS_TEST_MONGO_INTEGRATION=1 LOMAS_TEST_S3_INTEGRATION=1 coverage run --source=. -m unittest
-
     # "basic", developer mode, "stall"
-    LOMAS_TEST_MONGO_INTEGRATION=1 LOMAS_TEST_S3_INTEGRATION=0 coverage run -a --source=. -m unittest
+    LOMAS_TEST_S3_INTEGRATION=0 coverage run --source=. -m unittest
+
+    # s3 minio available
+    LOMAS_TEST_S3_INTEGRATION=1 coverage run -a --source=. -m unittest
 
     coverage report
     coverage xml -o coverage.xml

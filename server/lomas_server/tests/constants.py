@@ -8,7 +8,6 @@ from httpx import Response
 
 from lomas_core.models.responses import Job
 
-ENV_MONGO_INTEGRATION = "LOMAS_TEST_MONGO_INTEGRATION"
 ENV_S3_INTEGRATION = "LOMAS_TEST_S3_INTEGRATION"
 TRUE_VALUES = ("true", "1", "t")
 
@@ -23,10 +22,6 @@ PENGUIN_COLUMNS = [
 ]
 
 PUMS_COLUMNS = ["age", "sex", "educ", "race", "income", "married"]
-
-
-def mongo_integration_enabled():
-    return os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES
 
 
 def s3_integration_enabled():

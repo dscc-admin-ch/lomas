@@ -1,5 +1,3 @@
-import glob
-import os
 import unittest
 
 import numpy as np
@@ -51,7 +49,6 @@ from lomas_server.mongodb_admin import (
     drop_collection,
 )
 from lomas_server.tests.constants import (
-    mongo_integration_enabled,
     s3_integration_enabled,
     submit_job_wait,
 )
@@ -68,26 +65,15 @@ pytestmark = pytest.mark.anyio
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     """
     End-to-end tests of the api endpoints.
-
-    This test can be both executed as an integration test
-    (enabled by setting LOMAS_TEST_MONGO_INTEGRATION to True),
-    or a standard test. The first requires a mongodb to be started
-    before running while the latter will use a local YamlDatabase.
     """
 
     @classmethod
     def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
-        if mongo_integration_enabled():
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config_mongo.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
-        else:
-            CONFIG_LOADER.load_config(
-                config_path="tests/test_configs/test_config.yaml",
-                secrets_path="tests/test_configs/test_secrets.yaml",
-            )
+        CONFIG_LOADER.load_config(
+            config_path="tests/test_configs/test_config_mongo.yaml",
+            secrets_path="tests/test_configs/test_secrets.yaml",
+        )
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
@@ -98,44 +84,35 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         }
         self.headers["user-name"] = self.user_name
 
-        assert (
-            not s3_integration_enabled()
-        ) or mongo_integration_enabled(), "S3 integration is only valid together with MongoDB"
+        # Fill up database
+        self.db: Database = get_mongodb()
 
-        # Fill up database if needed
-        if mongo_integration_enabled():
-            self.db: Database = get_mongodb()
+        add_users_via_yaml(
+            self.db,
+            yaml_file="tests/test_data/test_user_collection.yaml",
+            clean=True,
+            overwrite=True,
+        )
 
-            add_users_via_yaml(
-                self.db,
-                yaml_file="tests/test_data/test_user_collection.yaml",
-                clean=True,
-                overwrite=True,
-            )
+        if s3_integration_enabled():
+            yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
+        else:
+            yaml_file = "tests/test_data/test_datasets.yaml"
 
-            if s3_integration_enabled():
-                yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
-            else:
-                yaml_file = "tests/test_data/test_datasets.yaml"
-
-            add_datasets_via_yaml(
-                self.db,
-                yaml_file=yaml_file,
-                clean=True,
-                overwrite_datasets=True,
-                overwrite_metadata=True,
-            )
+        add_datasets_via_yaml(
+            self.db,
+            yaml_file=yaml_file,
+            clean=True,
+            overwrite_datasets=True,
+            overwrite_metadata=True,
+        )
 
     def tearDown(self) -> None:
-        # Clean up database if needed
-        if mongo_integration_enabled():
-            drop_collection(self.db, "metadata")
-            drop_collection(self.db, "datasets")
-            drop_collection(self.db, "users")
-            drop_collection(self.db, "queries_archives")
-        else:
-            for file in glob.glob("tests/test_data/local_db_file_*.yaml"):
-                os.remove(file)
+        # Clean up database
+        drop_collection(self.db, "metadata")
+        drop_collection(self.db, "datasets")
+        drop_collection(self.db, "users")
+        drop_collection(self.db, "queries_archives")
 
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration."""

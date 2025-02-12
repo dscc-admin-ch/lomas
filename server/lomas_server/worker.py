@@ -31,22 +31,12 @@ from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
-from lomas_server.tests.constants import (
-    mongo_integration_enabled,
-)
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
-if mongo_integration_enabled():
-    CONFIG_LOADER.load_config(
-        config_path="tests/test_configs/test_config_mongo.yaml",
-        secrets_path="tests/test_configs/test_secrets.yaml",
-    )
-else:
-    CONFIG_LOADER.load_config(
-        config_path="tests/test_configs/test_config.yaml",
-        secrets_path="tests/test_configs/test_secrets.yaml",
-    )
-
+CONFIG_LOADER.load_config(
+    config_path="tests/test_configs/test_config_mongo.yaml",
+    secrets_path="tests/test_configs/test_secrets.yaml",
+)
 
 config = get_config()
 admin_database = admin_database_factory(config.admin_database)

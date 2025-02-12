@@ -35,28 +35,18 @@ from lomas_server.mongodb_admin import (
     set_may_query,
 )
 from lomas_server.tests.constants import (
-    ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
-    mongo_integration_enabled,
     s3_integration_enabled,
 )
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
-@unittest.skipUnless(
-    mongo_integration_enabled(),
-    f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
-        environment variable not set to True.""",
-)
 class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     """
     Tests for the functions in mongodb_admin.py.
 
     This is an integration test and requires a mongodb database
     to be started before being executed.
-
-    The test is only executed if the LOMAS_TEST_MONGO_INTEGRATION
-    environment variable is set to True.
     """
 
     @classmethod

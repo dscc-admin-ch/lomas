@@ -21,7 +21,6 @@ from lomas_core.models.constants import AdminDBType
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
-from lomas_server.admin_database.yaml_database import AdminYamlDatabase
 from lomas_server.constants import (
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
@@ -166,10 +165,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     await connection.close()
 
     app.state.executor.shutdown()
-
-    # Shutdown event
-    if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
-        lomas_app.state.admin_database.save_current_database()
 
 
 # Initalise telemetry

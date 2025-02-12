@@ -1,0 +1,49 @@
+{{- if .Values.otel.create -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.otel.fullname" . }}
+  labels:
+    {{- include "lomas.otel.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.otel.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.otel.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.otel.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.otel.podSecurityContext | nindent 8 }}
+
+      containers:
+      - name: otel-container
+        image: otel/opentelemetry-collector:latest
+        args:
+          - "--config=/conf/otel-collector-config.yaml"
+        ports:
+          - containerPort: {{ .Values.otel.config.receiver.grpc_port }}
+            name: otlp-grpc
+          - containerPort: {{ .Values.otel.config.receiver.http_port }}
+            name: otlp-http
+          - containerPort: {{ .Values.otel.config.exporters.prometheus.port }}
+            name: metrics
+        volumeMounts:
+          - name: otel-config
+            readOnly: True
+            mountPath: /conf
+
+      volumes:
+      {{- $fullname := include "lomas.otel.fullname" . }}
+      - name: otel-config
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-otel-config" $fullname }}
+{{- end }}

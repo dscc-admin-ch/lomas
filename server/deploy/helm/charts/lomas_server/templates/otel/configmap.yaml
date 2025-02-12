@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+{{- $fullname := include "lomas.otel.fullname" . }}
+  name: {{ printf "%s-otel-config" $fullname }}
+  labels:
+    {{- include "lomas.otel.labels" . | nindent 4 }}
+data:
+  otel-collector-config.yaml: |
+    receivers:
+        otlp:
+            protocols:
+                grpc:
+                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.grpc_port }}
+                http:
+                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.http_port }}
+    processors:
+        batch:
+            timeout: {{ .Values.otel.config.processors.batch.timeout }}
+
+    exporters:
+        debug:
+            verbosity: detailed
+
+        otlp/tempo:
+            endpoint: {{ .Values.tempo.fullnameOverride }}:{{ .Values.otel.config.receiver.grpc_port }}
+            tls:
+                insecure: true
+
+        prometheus:
+            endpoint: "0.0.0.0:{{ .Values.otel.config.exporters.prometheus.port }}"
+
+        otlphttp/loki:
+            endpoint: "http://{{ .Values.loki.fullnameOverride }}:{{ .Values.loki.service.target_port }}/otlp"
+
+    extensions:
+        health_check:
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.health_check_port }}"
+        pprof:
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.pprof_port }}"
+        zpages:
+            endpoint: "0.0.0.0:{{ .Values.otel.config.extension.zpages_port }}"
+
+    service:
+        extensions: [health_check, pprof, zpages]
+        pipelines:
+            traces:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, otlp/tempo]
+            metrics:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, prometheus]
+            logs:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [debug, otlphttp/loki]

@@ -425,6 +425,378 @@
                     "type": "array"
                 }
             }
+        },
+        "loki": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "type": "integer",
+                            "default": 3100
+                        },
+                        "target_port": {
+                            "type": "integer",
+                            "default": 3100
+                        }
+                    },
+                    "required": ["port", "target_port"]
+                },
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "auth_enabled": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "limits_config": {
+                        "type": "object",
+                        "properties": {
+                            "allow_structured_metadata": {
+                                "type": "boolean",
+                                "default": true
+                            },
+                            "volume_enabled": {
+                                "type": "boolean",
+                                "default": true
+                            }
+                        },
+                        "required": ["allow_structured_metadata", "volume_enabled"]
+                        },
+                        "server": {
+                        "type": "object",
+                            "properties": {
+                                "http_listen_port": {
+                                    "type": "integer",
+                                    "default": 3100
+                                }
+                            },
+                            "required": ["http_listen_port"]
+                        },
+                        "common": {
+                            "type": "object"
+                        },
+                        "schema_config": {
+                            "type": "object"
+                        },
+                        "storage_config": {
+                            "type": "object"
+                        },
+                        "pattern_ingester": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true
+                                }
+                            },
+                            "required": ["enabled"]
+                        }
+                    }
+                }
+            }
+        },
+        "otel": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "object"
+                },
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "receiver": {
+                            "type": "object",
+                            "properties": {
+                                "grpc_port": {
+                                "type": "integer",
+                                "default": 4317
+                                },
+                                "http_port": {
+                                "type": "integer",
+                                "default": 4318
+                                }
+                            },
+                            "required": ["grpc_port", "http_port"]
+                        },
+                        "processors": {
+                            "type": "object",
+                            "properties": {
+                                "batch": {
+                                "type": "object",
+                                "properties": {
+                                    "timeout": {
+                                    "type": "string",
+                                    "pattern": "^[0-9]+[smhd]$",
+                                    "default": "5s"
+                                    }
+                                },
+                                "required": ["timeout"]
+                                }
+                            },
+                            "required": ["batch"]
+                        },
+                        "extension": {
+                            "type": "object",
+                            "properties": {
+                                "health_check_port": {
+                                    "type": "integer",
+                                    "default": 13133
+                                },
+                                "pprof_port": {
+                                    "type": "integer",
+                                    "default": 1777
+                                },
+                                "zpages_port": {
+                                    "type": "integer",
+                                    "default": 55679
+                                }
+                            }
+                        }
+                    },
+                    "required": ["receiver", "processors", "extension"]
+                }
+            },
+            "required": ["service", "config"]
+        },
+        "prometheus": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "type": "integer",
+                            "default": 9091
+                        },
+                        "target_port": {
+                            "type": "integer",
+                            "default": 9091
+                        }
+                    },
+                    "required": ["port", "target_port"]
+                },
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "scrape_interval": {
+                            "type": "string",
+                            "pattern": "^[0-9]+[smhd]$",
+                            "default": "10s"
+                        },
+                        "evaluation_interval": {
+                            "type": "string",
+                            "pattern": "^[0-9]+[smhd]$",
+                            "default": "10s"
+                        }
+                    },
+                    "required": ["scrape_interval", "evaluation_interval"]
+                }
+            },
+            "required": ["service", "config"]
+        },
+        "tempo": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "type": { "type": "string" }
+                    },
+                    "required": ["type"]
+                },
+                "fullnameOverride": { "type": "string" },
+                "server": {
+                    "type": "object",
+                    "properties": {
+                        "http_listen_port": { "type": "integer" }
+                    },
+                    "required": ["http_listen_port"]
+                },
+                "ingester": {
+                    "type": "object",
+                    "properties": {
+                        "max_block_duration": { "type": "string" }
+                    },
+                    "required": ["max_block_duration"]
+                },
+                "storage": {
+                    "type": "object"
+                },
+                "receivers": {
+                    "type": "object",
+                    "properties": {
+                        "otlp": {
+                        "type": "object",
+                        "properties": {
+                            "protocols": {
+                            "type": "object",
+                            "properties": {
+                                "grpc": {
+                                    "type": "object",
+                                    "properties": {
+                                        "endpoint": { "type": "string" }
+                                    },
+                                    "required": ["endpoint"]
+                                },
+                                "http": {
+                                    "type": "object",
+                                    "properties": {
+                                        "endpoint": { "type": "string" }
+                                    },
+                                    "required": ["endpoint"]
+                                }
+                            },
+                            "required": ["grpc", "http"]
+                            }
+                        },
+                        "required": ["protocols"]
+                        }
+                    },
+                    "required": ["otlp"]
+                },
+                "persistence": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": { "type": "boolean" }
+                    },
+                    "required": ["enabled"]
+                }
+            },
+            "required": ["service", "server", "ingester", "storage", "receivers", "persistence"]
+        },
+        "grafana": {
+            "type": "object",
+            "properties": {
+                "service": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+                    },
+                    "port": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 65535
+                    }
+                },
+                "required": ["type", "port"]
+                },
+                "fullnameOverride": {
+                    "type": "string"
+                },
+                "rbac": {
+                    "type": "object",
+                    "properties": {
+                        "create": {
+                            "type": "boolean"
+                        },
+                        "namespaced": {
+                            "type": "boolean"
+                        }
+                    },
+                    "required": ["create", "namespaced"]
+                },
+                "datasources": {
+                "type": "object",
+                "properties": {
+                    "datasources.yaml": {
+                        "type": "object",
+                        "properties": {
+                            "apiVersion": {
+                                "type": "integer"
+                            },
+                            "datasources": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "access": {
+                                    "type": "string",
+                                    "enum": ["proxy", "direct"]
+                                },
+                                "orgId": {
+                                    "type": "integer"
+                                },
+                                "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "editable": {
+                                    "type": "boolean"
+                                },
+                                "jsonData": {
+                                    "type": "object"
+                                },
+                                "secureJsonData": {
+                                    "type": "object"
+                                }
+                                },
+                                "required": ["name", "type", "uid", "access", "orgId", "url", "basicAuth", "isDefault", "version", "editable"]
+                            }
+                            }
+                        },
+                        "required": ["apiVersion", "datasources"]
+                        }
+                    },
+                    "required": ["datasources.yaml"]
+                },
+                "env": {
+                "type": "object",
+                "properties": {
+                    "GF_SECURITY_ADMIN_USER": {
+                        "type": "string"
+                    },
+                    "GF_SECURITY_ADMIN_PASSWORD": {
+                        "type": "string"
+                    }
+                },
+                "required": ["GF_SECURITY_ADMIN_USER", "GF_SECURITY_ADMIN_PASSWORD"]
+                },
+                "ingress": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "hosts": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "hostname"
+                            }
+                        },
+                        "paths": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": ["enabled", "hosts"]
+                },
+                "persistence": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        }
+                    },
+                    "required": ["enabled"]
+                }
+            },
+            "required": ["service", "fullnameOverride", "rbac", "datasources", "env", "ingress", "persistence"]
         }
     }
 }

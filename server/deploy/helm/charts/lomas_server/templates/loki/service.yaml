@@ -1,0 +1,16 @@
+{{- if .Values.loki.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.loki.fullname" . }}
+  labels:
+    {{- include "lomas.loki.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.loki.service.type }}
+  selector:
+    {{- include "lomas.loki.selectorLabels" . | nindent 8 }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.loki.service.port}}
+      targetPort: {{ .Values.loki.service.target_port}}
+{{- end }}

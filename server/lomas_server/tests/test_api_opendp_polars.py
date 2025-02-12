@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app import app
 from tests.test_api_root import TestSetupRootAPIEndpoint
-from utils.query_examples import (
+from lomas_core.models.requests_examples import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
     OPENDP_POLARS_PIPELINE,
@@ -42,7 +42,7 @@ def mean_query_serialized(lf: pl.LazyFrame):
         dict: The serialized plan of the mean query in JSON format.
     """
     plan = lf.select(
-        pl.col("income").dp.mean(bounds=(1000, 100000), scale=1000.0)
+        pl.col("income").fill_null(0).dp.mean(bounds=(1000, 100000), scale=(1000.0, 1))
     )
 
     return plan.serialize(format="json")
@@ -61,7 +61,7 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     """
     plan = (
         lf.group_by("sex")
-        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=100.0)])
+        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, None))])
         .sort("income")
     )
 
@@ -83,7 +83,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
     """
     plan = (
         lf.group_by(["sex", "region"])
-        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=100.0)])
+        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, None))])
         .sort("income")
     )
 
@@ -125,7 +125,7 @@ class TestOpenDpPolarsEndpoint(
         with TestClient(app, headers=self.headers) as client:
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
             json_plan = lf.select(
-                pl.col("temporal").dp.mean(bounds=(1, 52), scale=100.0)
+                pl.col("temporal").dp.mean(bounds=(1, 52), scale=(100.0, 1))
             ).serialize(format="json")
             example_opendp_polars_datetime["opendp_json"] = json_plan
 
@@ -146,8 +146,7 @@ class TestOpenDpPolarsEndpoint(
 
             json_plan = (
                 lf.group_by("date")
-                .agg([pl.col("temporal").dp.mean(bounds=(1, 52), scale=10.0)])
-                .sort("temporal")
+                .agg([pl.col("temporal").dp.mean(bounds=(1, 52), scale=(10.0,1))])
             ).serialize(format="json")
 
             example_opendp_polars_datetime["opendp_json"] = json_plan
@@ -172,8 +171,8 @@ class TestOpenDpPolarsEndpoint(
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] > 0.0
-            assert response_dict["delta_cost"] == 0
+            assert response_dict["epsilon"] > 0.0
+            assert response_dict["delta"] == 0
 
             # Check estimation works for Gaussian mechanism
             example_opendp_polars["mechanism"] = "gaussian"
@@ -182,8 +181,8 @@ class TestOpenDpPolarsEndpoint(
                 json=example_opendp_polars,
             )
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["epsilon_cost"] > 0.0
-            assert response_dict["delta_cost"] > 0.0
+            assert response_dict["epsilon"] > 0.0
+            assert response_dict["delta"] > 0.0
 
     def test_dummy_opendp_polars_query(self) -> None:
         """test_dummy_opendp_polars_query"""
@@ -203,7 +202,7 @@ class TestOpenDpPolarsEndpoint(
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
 
-            assert response_dict["query_response"]
+            assert response_dict["result"]
 
             # Test dummy query with Gaussian mechanism
             example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
@@ -215,7 +214,7 @@ class TestOpenDpPolarsEndpoint(
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["query_response"]
+            assert response_dict["result"]
 
     def test_grouping_query(self) -> None:
         """test_dummy_opendp_polars_query with grouing"""

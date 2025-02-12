@@ -71,7 +71,7 @@ class OpenDPClient:
 
     def query(
         self,
-        opendp_pipeline: dp.Measurement | dp.LazyFrame,
+        opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: Optional[float] = None,
         mechanism: Optional[str] = "laplace",
         dummy: bool = False,

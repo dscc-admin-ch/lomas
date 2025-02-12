@@ -26,7 +26,7 @@ from lomas_core.models.requests import (
 from lomas_core.models.responses import OpenDPQueryResult
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
-
+dp.mod.enable_features("contrib")
 
 def get_lf_domain(metadata, by_config):
     """
@@ -42,13 +42,13 @@ def get_lf_domain(metadata, by_config):
     series_domains = []
     # Series domains
     for name, series_info in metadata["columns"].items():
-        if series_info["type"] in ["float", "int"]:
-            series_type = f"{series_info['type']}{series_info['precision']}"
+        if series_info.type in ["float", "int"]:
+            series_type = f"{series_info.type}{series_info.precision}"
         # TODO: release opendp 0.12 (adapt with type date)
-        elif series_info["type"] == "datetime":
+        elif series_info.type == "datetime":
             series_type = "string"
         else:
-            series_type = series_info["type"]
+            series_type = series_info.type
 
         # TODO should this be a constant? leave here
         opendp_type_mapping = {
@@ -73,8 +73,8 @@ def get_lf_domain(metadata, by_config):
         series_nullable = "nullable" in series_info
 
         series_bounds = None
-        if "lower" in series_info and "upper" in series_info:
-            series_bounds = (series_info["lower"], series_info["upper"])
+        if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
+            series_bounds = (series_info.lower, series_info.upper)
 
         series_domain = dp.domains.series_domain(
             name,
@@ -154,33 +154,35 @@ def single_group_update_params(metadata, series_info, margin_params):
     # Max_partition_length logic:
     # Must be specified at least at the dataset level (global)
     # if none are specified at the partition, we use the global
-    margin_params["max_partition_length"] = min(
-        metadata["rows"],
-        series_info.get("max_partition_length", metadata["rows"]),
-    )
-
+    max_partition_length = metadata["rows"]
+    if series_info.max_partition_length:
+        max_partition_length = series_info.max_partition_length
+    margin_params["max_partition_length"] = min(metadata["rows"], max_partition_length)
+    
     # If none is given for the partition, None is used (allowed)
-    margin_params["max_num_partitions"] = series_info.get("cardinality")
+    margin_params["max_num_partitions"] = None
+    if hasattr(series_info, "cardinality"):
+        margin_params["max_num_partitions"] = series_info.cardinality
 
     # max_influenced partitions logic:
     # "Greatest number of partitions any one
     # individual may contribute to."
     # If max_influenced_partitions is bigger than max_ids
     # we fix it at max_ids (should not happen)
-    if "max_influenced_partitions" in series_info:
+    if series_info.max_influenced_partitions:
         margin_params["max_influenced_partitions"] = min(
             metadata["max_ids"],
-            series_info.get("max_influenced_partitions"),
+            series_info.max_influenced_partitions,
         )
     # max_influenced partitins logic:
     # "The greatest number of records an individual
     # may contribute to any one partition."
     # If max_influenced_partitions is bigger than max_ids
     # we fix it at max_ids (should not happen)
-    if "max_partition_contributions" in series_info:
+    if series_info.max_partition_contributions:
         margin_params["max_partition_contributions"] = min(
             metadata["max_ids"],
-            series_info.get("max_partition_contributions"),
+            series_info.max_partition_contributions,
         )
 
 
@@ -205,33 +207,31 @@ def multiple_group_update_params(metadata, by_config, margin_params):
         # at the column level. If None are defined, dataset length is used.
         margin_params["max_partition_length"] = min(
             margin_params["max_partition_length"],
-            series_info.get("max_partition_length", metadata["rows"]),
+            getattr(series_info, "max_partition_length", metadata["rows"]),
         )
 
         # max_partitions_length logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
-        if "cardinality" in series_info:
-            margin_params["max_num_partitions"] *= series_info.get(
-                "cardinality"
-            )
+        if series_info.cardinality:
+            margin_params["max_num_partitions"] *= series_info.cardinality
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
         # If None are defined, max_influenced_partitions is equal to None
-        if "max_influenced_partitions" in series_info:
+        if series_info.max_influenced_partitions:
             margin_params["max_influenced_partitions"] = (
                 margin_params.get("max_influenced_partitions", 1)
-                * series_info["max_influenced_partitions"]
+                * series_info.max_influenced_partitions
             )
 
         # max_partition_contributions logic:
         # We multiply the max_partition_contributions defined in each column
         # If None are defined, max_partition_contributions is equal to None
-        if "max_partition_contributions" in series_info:
+        if series_info.max_partition_contributions:
             margin_params["max_partition_contributions"] = (
                 margin_params.get("max_partition_contributions", 1)
-                * series_info["max_partition_contributions"]
+                * series_info.max_partition_contributions
             )
 
     # If max_influenced_partitions > max_ids:
@@ -461,9 +461,8 @@ def reconstruct_measurement_pipeline(
         groups = extract_group_by_columns(plan.explain())
         output_measure = {
             "laplace": dp.measures.max_divergence(
-                T="float",
             ),
-            "gaussian": dp.measures.zero_concentrated_divergence(T="float"),
+            "gaussian": dp.measures.zero_concentrated_divergence(),
         }[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata, groups)

@@ -163,48 +163,11 @@ example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
 # OpenDP Polars
 # -----------------------------------------------------------------------------
 OPENDP_POLARS_PIPELINE: str = (
-    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32",'
-    '"bit_settings":"","values":[6,5,4,2,3,1,1,1,2,6]},{"name":"eco_branch",'
-    '"datatype":"Int32","bit_settings":"","values":[66,90,55,63,94,73,65,59,'
-    '60,92]},{"name":"profession","datatype":"Int32","bit_settings":"","values":'
-    '[32,81,71,10,42,91,53,10,74,73]},{"name":"education","datatype":"Int32",'
-    '"bit_settings":"","values":[7,2,1,7,1,5,1,3,4,4]},{"name":"age","datatype":'
-    '"Int32","bit_settings":"","values":[36,19,18,23,18,49,42,48,30,46]},{"name":'
-    '"sex","datatype":"Int32","bit_settings":"","values":[2,1,1,2,2,2,1,2,2,2]},'
-    '{"name":"income","datatype":"Float64","bit_settings":"","values":[69156.22632'
-    "652307,39503.22097393128,14374.55399721871,72427.3456792141,53010.07792509686,"
-    "31713.94568033661,49097.70052434712,89059.29560055102,93470.30807966871,36421."
-    '72447419795]}]},"schema":{"inner":{"region":"Int32","eco_branch":"Int32",'
-    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":'
-    '"Float64"}},"output_schema":null,"filter":null}}'
-)
+'{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32","bit_settings":"","values":[1,6,5,4,4]},{"name":"eco_branch","datatype":"Int32","bit_settings":"","values":[85,16,71,25,16]},{"name":"profession","datatype":"Int32","bit_settings":"","values":[52,94,73,74,73]},{"name":"education","datatype":"Int32","bit_settings":"","values":[7,5,2,7,4]},{"name":"age","datatype":"Int32","bit_settings":"","values":[60,44,22,112,94]},{"name":"sex","datatype":"Int32","bit_settings":"","values":[1,0,1,1,0]},{"name":"income","datatype":"Float64","bit_settings":"","values":[23496.63345669291,55903.89391456765,7317.908354313357,82935.48602726562,63534.775513084416]}]},"schema":{"fields":{"region":"Int32","eco_branch":"Int32","profession":"Int32","education":"Int32","age":"Int32","sex":"Int32","income":"Float64"}}}}')
 
 OPENDP_POLARS_PIPELINE_COVID: str = (
-    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
-    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
-    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
-    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
-    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
-    '"bit_settings":"","values":["BS","VS"]},'
-    '{"name":"agegroup","datatype":"String",'
-    '"bit_settings":"","values":["70 - 79","unknown"]},'
-    '{"name":"sex","datatype":"String",'
-    '"bit_settings":"","values":["other","other"]},'
-    '{"name":"testType","datatype":"String",'
-    '"bit_settings":"","values":["rapid_antigen_test",'
-    '"rapid_antigen_test"]},{"name":"testResult",'
-    '"datatype":"String","bit_settings":"",'
-    '"values":["other","other"]},{"name":"country",'
-    '"datatype":"String","bit_settings":"","values":["other","unknown"]},'
-    '{"name":"subType","datatype":"String",'
-    '"bit_settings":"","values":["BA.2.75","XBB"]},'
-    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"",'
-    '"values":[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"",'
-    '"values":[true,false]}]},"schema":{"inner":{"patient_id":"Int32","id":"Int32",'
-    '"date":"String","temporal":"Int32","georegion":"String","agegroup":"String",'
-    '"sex":"String","testType":"String","testResult":"String","country":"String",'
-    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}},'
-    '"output_schema":null,"filter":null}}'
+'{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32","bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32","bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String","bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32","bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String","bit_settings":"","values":["BS","VS"]},{"name":"agegroup","datatype":"String","bit_settings":"","values":["70 - 79","unknown"]},{"name":"sex","datatype":"String","bit_settings":"","values":["other","other"]},{"name":"testType","datatype":"String","bit_settings":"","values":["rapid_antigen_test","rapid_antigen_test"]},{"name":"testResult","datatype":"String","bit_settings":"","values":["other","other"]},{"name":"country","datatype":"String","bit_settings":"","values":["other","unknown"]},{"name":"subType","datatype":"String","bit_settings":"","values":["BA.2.75","XBB"]},{"name":"hospitalization","datatype":"Boolean","bit_settings":"","values":[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"","values":[true,false]}]},"schema":{"fields":{"patient_id":"Int32","id":"Int32","date":"String","temporal":"Int32","georegion":"String","agegroup":"String","sex":"String","testType":"String","testResult":"String","country":"String","subType":"String","hospitalization":"Boolean","death":"Boolean"}}}}'
+
 )
 
 example_opendp_polars: Dict[str, JsonValue] = {

@@ -1,4 +1,5 @@
 max_ids: 1
+row_privacy: true
 columns:
   region:
     type: int

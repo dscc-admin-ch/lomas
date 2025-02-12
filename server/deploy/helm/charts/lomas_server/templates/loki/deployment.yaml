@@ -21,7 +21,7 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
-      
+
       containers:
       - name: loki-container
         image: grafana/loki:latest

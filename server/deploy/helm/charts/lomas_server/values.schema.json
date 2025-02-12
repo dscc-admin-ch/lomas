@@ -798,5 +798,5 @@
             },
             "required": ["service", "fullnameOverride", "rbac", "datasources", "env", "ingress", "persistence"]
         }
-    }   
+    }
 }

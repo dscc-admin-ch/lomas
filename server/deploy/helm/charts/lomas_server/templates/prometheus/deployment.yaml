@@ -21,7 +21,7 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
-      
+
       containers:
       - name: prometheus-container
         image: prom/prometheus:latest

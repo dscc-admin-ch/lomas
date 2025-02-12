@@ -65,7 +65,7 @@ services:
     networks:
       - lomas-network
     environment:
-      - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017 
+      - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017
     depends_on:
       - mongodb
 
@@ -91,9 +91,9 @@ services:
     depends_on:
       - minio
     entrypoint: /bin/sh -c "
-      sleep 15 && 
-      mc alias set myminio http://minio:9000 admin admin123 && 
-      mc mb myminio/example || true && 
+      sleep 15 &&
+      mc alias set myminio http://minio:9000 admin admin123 &&
+      mc mb myminio/example || true &&
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&
       mc ls --recursive --versions myminio/example"
@@ -146,7 +146,7 @@ services:
       - lomas_server
     networks:
       - lomas-network
-  
+
   init_tempo:
     image: &tempoImage grafana/tempo:latest
     container_name: init_tempo
@@ -179,9 +179,9 @@ services:
       - "4317:4317"
       - "4318:4318"
       - "13133:13133" # health_check extension
-      - "1777:1777" # pprof extension 
+      - "1777:1777" # pprof extension
       - "55679:55679" # zpages extension
-      - "9091:9090" # prometheus 
+      - "9091:9090" # prometheus
     volumes:
       - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
     command: ["--config=/etc/otel/config.yaml"]
@@ -198,7 +198,7 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: 
+    command:
       - "-config.file=/etc/loki/local-config.yaml"
     volumes:
       - ./configs/observability/example_loki_config.yaml:/etc/loki/local-config.yaml

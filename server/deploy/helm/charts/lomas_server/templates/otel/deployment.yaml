@@ -21,11 +21,11 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.otel.podSecurityContext | nindent 8 }}
-      
+
       containers:
       - name: otel-container
         image: otel/opentelemetry-collector:latest
-        args: 
+        args:
           - "--config=/conf/otel-collector-config.yaml"
         ports:
           - containerPort: {{ .Values.otel.config.receiver.grpc_port }}

@@ -17,7 +17,7 @@ data:
     processors:
         batch:
             timeout: {{ .Values.otel.config.processors.batch.timeout }}
-    
+
     exporters:
         debug:
             verbosity: detailed

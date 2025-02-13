@@ -1,10 +1,10 @@
 import json
+
 import numpy as np
 from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 
-from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import DBConfig
@@ -31,6 +31,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.app import app
+from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005

@@ -2,16 +2,15 @@ import io
 from collections.abc import AsyncGenerator
 
 import pandas as pd
+from admin_database.utils import get_mongodb
 from fastapi import Request
 from fastapi.responses import StreamingResponse
-from pymongo.database import Database
-
-from admin_database.utils import get_mongodb
 from mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
+from pymongo.database import Database
 from utils.error_handler import InternalServerException
 from utils.loggr import LOG
 
@@ -28,8 +27,7 @@ async def server_live(request: Request) -> AsyncGenerator:
     """
     if not request.app.state.server_state["LIVE"]:
         raise InternalServerException(
-            "Woops, the server did not start correctly."
-            + "Contact the administrator of this service.",
+            "Woops, the server did not start correctly." + "Contact the administrator of this service.",
         )
     yield
 
@@ -47,9 +45,7 @@ def stream_dataframe(df: pd.DataFrame) -> StreamingResponse:
     # CSV creation
     df.to_csv(stream, index=False)
 
-    response = StreamingResponse(
-        iter([stream.getvalue()]), media_type="text/csv"
-    )
+    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=data.csv"
     return response
 

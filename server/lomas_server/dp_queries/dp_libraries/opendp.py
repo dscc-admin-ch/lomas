@@ -205,9 +205,16 @@ def multiple_group_update_params(metadata, by_config, margin_params):
         # When two columns in the grouping
         # We use as max_partition_length the smaller value
         # at the column level. If None are defined, dataset length is used.
+        
+        # Get max_partition_length from series_info, defaulting to metadata["rows"] if not set
+        series_max_partition_length = (
+            series_info.max_partition_length if series_info.max_partition_length is not None else metadata["rows"]
+        )
+        
+        # Update the max_partition_length
         margin_params["max_partition_length"] = min(
             margin_params["max_partition_length"],
-            getattr(series_info, "max_partition_length", metadata["rows"]),
+            series_max_partition_length
         )
 
         # max_partitions_length logic:

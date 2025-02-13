@@ -61,8 +61,7 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     """
     plan = (
         lf.group_by("sex")
-        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, None))])
-        .sort("income")
+        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, 1))])
     )
 
     return plan.serialize(format="json")
@@ -83,8 +82,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
     """
     plan = (
         lf.group_by(["sex", "region"])
-        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, None))])
-        .sort("income")
+        .agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, 1.0))])
     )
 
     return plan.serialize(format="json")

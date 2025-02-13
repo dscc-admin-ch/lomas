@@ -10,8 +10,6 @@ from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 from opendp_logger import make_load_json
 
-from lomas_server.data_connector.data_connector import DataConnector
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
@@ -24,9 +22,13 @@ from lomas_core.models.requests import (
     OpenDPRequestModel,
 )
 from lomas_core.models.responses import OpenDPQueryResult
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
+from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
+
 dp.mod.enable_features("contrib")
+
 
 def get_lf_domain(metadata, by_config):
     """
@@ -78,9 +80,7 @@ def get_lf_domain(metadata, by_config):
 
         series_domain = dp.domains.series_domain(
             name,
-            dp.domains.atom_domain(
-                T=series_type, nullable=series_nullable, bounds=series_bounds
-            ),
+            dp.domains.atom_domain(T=series_type, nullable=series_nullable, bounds=series_bounds),
         )
         series_domains.append(series_domain)
 
@@ -92,9 +92,7 @@ def get_lf_domain(metadata, by_config):
 
     # If grouping in the query, we update the margin params
     if by_config:
-        margin_params = update_params_by_grouping(
-            metadata, by_config, margin_params
-        )
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
     else:
         by_config = []
 
@@ -158,7 +156,7 @@ def single_group_update_params(metadata, series_info, margin_params):
     if series_info.max_partition_length:
         max_partition_length = series_info.max_partition_length
     margin_params["max_partition_length"] = min(metadata["rows"], max_partition_length)
-    
+
     # If none is given for the partition, None is used (allowed)
     margin_params["max_num_partitions"] = None
     if hasattr(series_info, "cardinality"):
@@ -205,16 +203,17 @@ def multiple_group_update_params(metadata, by_config, margin_params):
         # When two columns in the grouping
         # We use as max_partition_length the smaller value
         # at the column level. If None are defined, dataset length is used.
-        
+
         # Get max_partition_length from series_info, defaulting to metadata["rows"] if not set
         series_max_partition_length = (
-            series_info.max_partition_length if series_info.max_partition_length is not None else metadata["rows"]
+            series_info.max_partition_length
+            if series_info.max_partition_length is not None
+            else metadata["rows"]
         )
-        
+
         # Update the max_partition_length
         margin_params["max_partition_length"] = min(
-            margin_params["max_partition_length"],
-            series_max_partition_length
+            margin_params["max_partition_length"], series_max_partition_length
         )
 
         # max_partitions_length logic:
@@ -228,8 +227,7 @@ def multiple_group_update_params(metadata, by_config, margin_params):
         # If None are defined, max_influenced_partitions is equal to None
         if series_info.max_influenced_partitions:
             margin_params["max_influenced_partitions"] = (
-                margin_params.get("max_influenced_partitions", 1)
-                * series_info.max_influenced_partitions
+                margin_params.get("max_influenced_partitions", 1) * series_info.max_influenced_partitions
             )
 
         # max_partition_contributions logic:
@@ -237,8 +235,7 @@ def multiple_group_update_params(metadata, by_config, margin_params):
         # If None are defined, max_partition_contributions is equal to None
         if series_info.max_partition_contributions:
             margin_params["max_partition_contributions"] = (
-                margin_params.get("max_partition_contributions", 1)
-                * series_info.max_partition_contributions
+                margin_params.get("max_partition_contributions", 1) * series_info.max_partition_contributions
             )
 
     # If max_influenced_partitions > max_ids:
@@ -256,9 +253,10 @@ def multiple_group_update_params(metadata, by_config, margin_params):
             margin_params.get("max_partition_contributions"),
         )
 
+
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
     """Concrete implementation of the DPQuerier ABC for the OpenDP library."""
-    
+
     def __init__(
         self,
         data_connector: DataConnector,
@@ -273,7 +271,6 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
         # Get metadata once and for all
         self.metadata = dict(self.data_connector.get_metadata())
-
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -294,9 +291,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        opendp_pipe = reconstruct_measurement_pipeline(
-            query_json, self.metadata
-        )
+        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
 
         measurement_type = get_output_measure(opendp_pipe)
         # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
@@ -344,19 +339,14 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        opendp_pipe = reconstruct_measurement_pipeline(
-            query_json, self.metadata
-        )
+        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
 
         if query_json.pipeline_type == "legacy":
-            input_data = self.data_connector.get_pandas_df().to_csv(
-                header=False, index=False
-            )
+            input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
         elif query_json.pipeline_type == "polars":
             input_data = self.data_connector.get_polars_lf()
         else:  # TODO validate input in json model instead of with if-else statements
             raise InvalidQueryException("invalid pipeline type")
-
 
         try:
             release_data = opendp_pipe(input_data)
@@ -366,7 +356,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
             ) from e
-            
+
         if isinstance(release_data, dp.extras.polars.OnceFrame):
             release_data = release_data.collect().write_json()
 
@@ -417,6 +407,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
         logging.exception(e)
         raise InvalidQueryException(e)
 
+
 def extract_group_by_columns(plan: str) -> list | None:
     """
     Extract column names used in the BY operation from the plan string.
@@ -439,9 +430,8 @@ def extract_group_by_columns(plan: str) -> list | None:
         return column_names
     return None
 
-def reconstruct_measurement_pipeline(
-    query_json: OpenDPQueryModel, metadata: dict
-) -> dp.Measurement:
+
+def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dict) -> dp.Measurement:
     """Reconstruct OpenDP pipeline from json representation.
 
     Args:
@@ -461,14 +451,11 @@ def reconstruct_measurement_pipeline(
         opendp_pipe = make_load_json(query_json.opendp_json)
     elif query_json.pipeline_type == "polars":
         # TODO Might pickle, huge security implications!!
-        plan = pl.LazyFrame.deserialize(
-            io.StringIO(query_json.opendp_json), format="json"
-        )
+        plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
 
         groups = extract_group_by_columns(plan.explain())
         output_measure = {
-            "laplace": dp.measures.max_divergence(
-            ),
+            "laplace": dp.measures.max_divergence(),
             "gaussian": dp.measures.zero_concentrated_divergence(),
         }[query_json.mechanism]
 
@@ -484,9 +471,7 @@ def reconstruct_measurement_pipeline(
             lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
         )
     else:
-        raise InvalidQueryException(
-            f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}"
-        )
+        raise InvalidQueryException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")
 
     # Verify that the pipeline is safe and valid
     is_measurement(opendp_pipe)
@@ -535,7 +520,7 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
     """Enable opendp features based on config.
 
     See https://github.com/opendp/opendp/discussions/304
-    
+
     Also sets the "OPENDP_POLARS_LIB_PATH" environment variable
     for correctly creating private lazyframes from deserialized
     polars plans.
@@ -552,6 +537,6 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
 
     if opendp_config.honest_but_curious:
         enable_features("honest-but-curious")
-        
+
     # Set DP Libraries config
     os.environ["OPENDP_LIB_PATH"] = str(lib_path)

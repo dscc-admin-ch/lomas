@@ -5,14 +5,15 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
+from tests.test_api_root import TestSetupRootAPIEndpoint
 
 from lomas_core.models.exceptions import (
     InvalidQueryExceptionModel,
     UnauthorizedAccessExceptionModel,
 )
 from lomas_core.models.requests_examples import (
-    PENGUIN_DATASET,
     OPENDP_PIPELINE_TYPE,
+    PENGUIN_DATASET,
     example_dummy_opendp,
     example_opendp,
 )
@@ -22,21 +23,20 @@ from lomas_core.models.responses import (
     QueryResponse,
 )
 from lomas_server.app import app
-from tests.test_api_root import TestSetupRootAPIEndpoint
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
 
 enable_features("floating-point")
 
-class TestOpenDpEndpoint(
-    TestSetupRootAPIEndpoint
-):  # pylint: disable=R0904
+
+class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """
     Test OpenDP Endpoint.
     """
+
     enable_logging()
-    
+
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """Test_opendp_query."""
 
@@ -75,7 +75,7 @@ class TestOpenDpEndpoint(
                 >> dp_p.t.then_resize(size=346, constant=43.61)
                 >> dp_p.t.then_variance()
             )
-            
+
             # Expect to fail: transormation instead of measurement
             response = client.post(
                 "/opendp_query",

@@ -36,13 +36,11 @@ INITIAL_DELTA = 0.005
 enable_features("floating-point")
 
 
-class TestSmartnoiseSqlEndpoint(
-    TestSetupRootAPIEndpoint
-):  # pylint: disable=R0904
+class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """
     Test Smartnoise-sql Endpoint.
     """
-    
+
     def test_smartnoise_sql_query(self) -> None:
         """Test smartnoise-sql query."""
         with TestClient(app, headers=self.headers) as client:

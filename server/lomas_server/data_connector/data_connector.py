@@ -31,7 +31,7 @@ class DataConnector(ABC):
         Returns:
             pd.DataFrame: The pandas dataframe for this dataset.
         """
-        
+
     def get_polars_lf(
         self,
     ) -> pl.LazyFrame:

@@ -4,11 +4,19 @@ description: Lomas deployment chart
 
 type: application
 
-version: 0.3.5
+version: 0.4.0
 
-appVersion: "0.3.5"
+appVersion: "0.4.0"
+
+icon: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/images/lomas_logo.svg"
 
 dependencies:
   - name: mongodb
     version: "13.18.1"
     repository: https://charts.bitnami.com/bitnami
+  - name: tempo
+    version: "1.18.0"
+    repository: https://grafana.github.io/helm-charts
+  - name: grafana
+    version: "8.8.5"
+    repository: https://grafana.github.io/helm-charts

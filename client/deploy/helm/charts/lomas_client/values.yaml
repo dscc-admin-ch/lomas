@@ -50,7 +50,7 @@ service:
 ingress:
   enabled: true
   className: "nginx"
-  annotations: 
+  annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   hosts:
     - host: lomas-client.lab.sspcloud.fr
@@ -63,7 +63,7 @@ ingress:
   #  - secretName: chart-example-tls
   # Does not take secretName into account at all!
   # => no secret field for this cluster's ingress controller
-    
+
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

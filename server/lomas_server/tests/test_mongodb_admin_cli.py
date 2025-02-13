@@ -4,11 +4,11 @@ import unittest
 from typing import List
 
 import yaml
+from pymongo import MongoClient
+
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
-from pymongo import MongoClient
-
 from lomas_server.admin_database.utils import get_mongodb_url
 from lomas_server.tests.constants import ENV_MONGO_INTEGRATION
 from lomas_server.utils.config import CONFIG_LOADER, get_config
@@ -88,11 +88,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """
         str_args = [str(arg) for arg in args]
 
-        cli_command = (
-            ["python", "mongodb_admin_cli.py", command]
-            + self.db_connection_cli
-            + str_args
-        )
+        cli_command = ["python", "mongodb_admin_cli.py", command] + self.db_connection_cli + str_args
         try:
             subprocess.run(cli_command, capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError as e:
@@ -485,9 +481,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         del dataset_found["_id"]
         self.assertEqual(dataset_found, expected_dataset)
 
-        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[
-            dataset
-        ]
+        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets_via_yaml_cli(self) -> None:
@@ -513,18 +507,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             del penguin_found["_id"]
             self.assertEqual(penguin_found, penguin)
 
-            metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})[
-                "PENGUIN"
-            ]
+            metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})["PENGUIN"]
             self.assertEqual(metadata_found, penguin_metadata)
 
             iris_found = self.db.datasets.find_one({"dataset_name": "IRIS"})
             del iris_found["_id"]
             self.assertEqual(iris_found, iris)
 
-            metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})[
-                "IRIS"
-            ]
+            metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})["IRIS"]
             self.assertEqual(metadata_found, penguin_metadata)
 
         path = "./tests/test_data/test_datasets.yaml"

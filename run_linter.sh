@@ -1,14 +1,5 @@
 #!/bin/bash
 
-install_dependencies() {
-    pip install isort==5.13.2
-    pip install black==24.4.2
-    pip install flake8-pyproject==1.2.3
-    pip install mypy==1.10.0
-    pip install pylint==3.1.0
-    pip install pydocstringformatter==0.7.3
-}
-
 # Parse command line arguments
 INSTALL_DEPS=false
 RUN_CLIENT=false
@@ -35,7 +26,7 @@ done
 
 # Install dependencies if flag is set
 if [ "$INSTALL_DEPS" == true ]; then
-    install_dependencies
+    pip install -r requirements-dev.txt
 fi
 
 # If none selected, then run all
@@ -47,45 +38,30 @@ fi
 
 if [ "$RUN_SERVER" == true ]; then
     echo "Running linting and type checking for server..."
-    cd server/lomas_server
-    isort .
-    black .
-    flake8 --toml-config=../pyproject.toml .
-    pylint .
-    pydocstringformatter -w .
-
-    cd ..
-    mypy .
-
-    cd ..
+    isort server/lomas_server
+    black server/lomas_server
+    flake8 --toml-config=./pyproject.toml server/lomas_server
+    mypy server/lomas_server
+    pylint server/lomas_server
+    pydocstringformatter -w server/lomas_server
 fi
 
 if [ "$RUN_CLIENT" == true ]; then
     echo "Running linting and type checking for client..."
-    cd client/lomas_client
-    isort .
-    black .
-    flake8 --toml-config=../pyproject.toml .
-    pylint .
-    pydocstringformatter -w .
-
-    cd ..
-    mypy .
-
-    cd ..
+    isort client/lomas_client
+    black client/lomas_client
+    flake8 --toml-config=./pyproject.toml client/lomas_client
+    mypy client/lomas_client
+    pylint client/lomas_client
+    pydocstringformatter -w client/lomas_client
 fi
 
 if [ "$RUN_CORE" == true ]; then
     echo "Running linting and type checking for core..."
-    cd core/lomas_core
-    isort .
-    black .
-    flake8 --toml-config=../pyproject.toml .
-    pylint .
-    pydocstringformatter -w .
-
-    cd ..
-    mypy .
-
-    cd ..
+    isort core/lomas_core
+    black core/lomas_core
+    flake8 --toml-config=./pyproject.toml core/lomas_core
+    mypy core/lomas_core
+    pylint core/lomas_core
+    pydocstringformatter -w core/lomas_core
 fi

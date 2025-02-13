@@ -7,9 +7,31 @@ import numpy as np
 import opendp.prelude as dp_p
 from fastapi import status
 from fastapi.testclient import TestClient
+from opendp.mod import enable_features
+from opendp_logger import enable_logging
+from pymongo.database import Database
+
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import DBConfig
+from lomas_core.models.exceptions import (
+    ExternalLibraryExceptionModel,
+    InvalidQueryExceptionModel,
+    UnauthorizedAccessExceptionModel,
+)
+from lomas_core.models.requests_examples import (
+    DUMMY_NB_ROWS,
+    PENGUIN_DATASET,
+    QUERY_DELTA,
+    QUERY_EPSILON,
+    example_dummy_opendp,
+    example_dummy_smartnoise_sql,
+    example_get_admin_db_data,
+    example_get_dummy_dataset,
+    example_opendp,
+    example_smartnoise_sql,
+    example_smartnoise_sql_cost,
+)
 from lomas_core.models.responses import (
     CostResponse,
     DummyDsResponse,
@@ -20,10 +42,6 @@ from lomas_core.models.responses import (
     SmartnoiseSQLQueryResult,
     SpentBudgetResponse,
 )
-from opendp.mod import enable_features
-from opendp_logger import enable_logging
-from pymongo.database import Database
-
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
@@ -38,19 +56,6 @@ from lomas_server.tests.constants import (
     TRUE_VALUES,
 )
 from lomas_server.utils.config import CONFIG_LOADER
-from lomas_server.utils.query_examples import (
-    DUMMY_NB_ROWS,
-    PENGUIN_DATASET,
-    QUERY_DELTA,
-    QUERY_EPSILON,
-    example_dummy_opendp,
-    example_dummy_smartnoise_sql,
-    example_get_admin_db_data,
-    example_get_dummy_dataset,
-    example_opendp,
-    example_smartnoise_sql,
-    example_smartnoise_sql_cost,
-)
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -158,6 +163,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
+    def test_unknown_endpoint(self) -> None:
+        """Test endpoint that does not exist."""
+        with TestClient(app, headers=self.headers) as client:
+            response = client.get("/idonotexist", headers=self.headers)
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+            assert response.json() == {"detail": "Not Found"}
+
     def test_get_dataset_metadata(self) -> None:
         """Test_get_dataset_metadata."""
         with TestClient(app) as client:
@@ -183,10 +195,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exist. Please, verify the client object initialisation."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message=f"Dataset {fake_dataset} does not "
+                    + "exist. Please, verify the client object initialisation."
+                ).model_dump()
+            )
 
             # Expect to fail: user does have access to dataset
             other_dataset = "IRIS"
@@ -196,10 +211,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to {other_dataset}."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to {other_dataset}."
+                ).model_dump()
+            )
 
     def test_get_dummy_dataset(self) -> None:
         """Test_get_dummy_dataset."""
@@ -230,9 +247,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             ]
             assert (
                 r_model.dummy_df.dtypes.values == expected_dtypes
-            ).all(), (
-                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
-            )
+            ).all(), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -246,10 +261,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": f"Dataset {fake_dataset} does not "
-                + "exist. Please, verify the client object initialisation."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message=f"Dataset {fake_dataset} does not "
+                    + "exist. Please, verify the client object initialisation."
+                ).model_dump()
+            )
 
             # Expect to fail: missing argument dummy_nb_rows
             response = client.post(
@@ -273,10 +291,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to {other_dataset}."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to {other_dataset}."
+                ).model_dump()
+            )
 
             # Expect to fail: user does not exist
             fake_user = "fake_user"
@@ -288,10 +308,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=new_headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": f"User {fake_user} does not "
-                + "exist. Please, verify the client object initialisation."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"User {fake_user} does not "
+                    + "exist. Please, verify the client object initialisation."
+                ).model_dump()
+            )
 
             # Expect to work with datetimes and another user
             fake_user = "BirthdayGirl"
@@ -310,9 +333,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             response_dict = json.loads(response.content.decode("utf8"))
             r_model = DummyDsResponse.model_validate(response_dict)
 
-            assert (
-                r_model.dummy_df.shape[0] == 10
-            ), "Dummy pd.DataFrame does not have expected number of rows"
+            assert r_model.dummy_df.shape[0] == 10, "Dummy pd.DataFrame does not have expected number of rows"
 
             expected_dtype = np.dtype("<M8[ns]")
             assert (
@@ -367,31 +388,34 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error obtaining cost: "
-                + "Noise scale is too large using epsilon=1e-09 "
-                + "and bounds (0, 1) with Mechanism.gaussian.  "
-                + "Try preprocessing to reduce senstivity, "
-                + "or try different privacy parameters.",
-                "library": "smartnoise_sql",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error obtaining cost: "
+                    + "Noise scale is too large using epsilon=1e-09 "
+                    + "and bounds (0, 1) with Mechanism.gaussian.  "
+                    + "Try preprocessing to reduce senstivity, "
+                    + "or try different privacy parameters.",
+                    library="smartnoise_sql",
+                ).model_dump()
+            )
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
-            input_smartnoise["query_str"] = (
-                "SELECT AVG(bill) FROM df"  # no 'bill' column
-            )
+            input_smartnoise["query_str"] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             response = client.post(
                 "/smartnoise_sql_query",
                 json=input_smartnoise,
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error obtaining cost: "
-                + "Column cannot be found bill",
-                "library": "smartnoise_sql",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error obtaining cost: " + "Column cannot be found bill",
+                    library="smartnoise_sql",
+                ).model_dump()
+            )
 
             # Expect to fail: dataset without access
             input_smartnoise = dict(example_smartnoise_sql)
@@ -402,10 +426,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + "Dr. Antartica does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message="Dr. Antartica does not have access to IRIS."
+                ).model_dump()
+            )
 
             # Expect to fail: dataset does not exist
             input_smartnoise = dict(example_smartnoise_sql)
@@ -416,11 +442,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": ""
-                + "Dataset I_do_not_exist does not exist. "
-                + "Please, verify the client object initialisation."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="Dataset I_do_not_exist does not exist. "
+                    + "Please, verify the client object initialisation."
+                ).model_dump()
+            )
 
             # Expect to fail: user does not exist
             new_headers = self.headers
@@ -431,20 +459,20 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=new_headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + "User I_do_not_exist does not exist. "
-                + "Please, verify the client object initialisation."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message="User I_do_not_exist does not exist. "
+                    + "Please, verify the client object initialisation."
+                ).model_dump()
+            )
 
     def test_smartnoise_sql_query_parameters(self) -> None:
         """Test smartnoise-sql query parameters."""
         with TestClient(app, headers=self.headers) as client:
             # Change the Query
             body = dict(example_smartnoise_sql)
-            body["query_str"] = (
-                "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
-            )
+            body["query_str"] = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
             response = client.post(
                 "/smartnoise_sql_query",
                 json=body,
@@ -546,11 +574,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "/dummy_smartnoise_sql_query",
                 json=example_dummy_smartnoise_sql,
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": "User None does not exist."
-                + " Please, verify the client object initialisation."
-            }
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            response_dict = json.loads(response.content.decode("utf8"))["detail"]
+            assert response_dict[0]["type"] == "missing"
+            assert response_dict[0]["loc"] == ["header", "user-name"]
 
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_smartnoise_sql)
@@ -561,10 +588,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_smartnoise_sql_cost(self) -> None:
         """Test_smartnoise_sql_cost."""
@@ -591,10 +620,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert UnauthorizedAccessExceptionModel(message=f"{self.user_name} does not have access to IRIS.")
 
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """Test_opendp_query."""
@@ -641,14 +667,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
+                    "fixed_delta": None,
                     "opendp_json": transformation_pipeline.to_json(),
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": "The pipeline provided is not a "
-                + "measurement. It cannot be processed in this server."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="The pipeline provided is not a "
+                    + "measurement. It cannot be processed in this server."
+                ).model_dump()
+            )
 
             # Test MAX_DIVERGENCE (pure DP)
             md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(scale=5.0)
@@ -656,6 +686,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
+                    "fixed_delta": None,
                     "opendp_json": md_pipeline.to_json(),
                 },
             )
@@ -675,15 +706,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
+                "fixed_delta": None,
             }
             # Should error because missing fixed_delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
-                + " and zero concentrated divergence."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="fixed_delta must be set for smooth max divergence"
+                    + " and zero concentrated divergence."
+                ).model_dump()
+            )
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
             response = client.post("/opendp_query", json=json_obj)
@@ -703,15 +737,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             json_obj = {
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
+                "fixed_delta": None,
             }
             # Should error because missing fixed_delta
             response = client.post("/opendp_query", json=json_obj)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": ""
-                + "fixed_delta must be set for smooth max divergence"
-                + " and zero concentrated divergence."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="fixed_delta must be set for smooth max divergence"
+                    + " and zero concentrated divergence."
+                ).model_dump()
+            )
 
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
@@ -758,9 +795,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_200_OK
-            response_model = QueryResponse.model_validate_json(
-                response.content.decode("utf8")
-            )
+            response_model = QueryResponse.model_validate_json(response.content.decode("utf8"))
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -775,10 +810,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_opendp_cost(self) -> None:
         """Test_opendp_cost."""
@@ -805,18 +842,18 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_get_initial_budget(self) -> None:
         """Test_get_initial_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/get_initial_budget", json=example_get_admin_db_data
-            )
+            response = client.post("/get_initial_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
@@ -832,9 +869,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Response should stay the same
-            response_2 = client.post(
-                "/get_initial_budget", json=example_get_admin_db_data
-            )
+            response_2 = client.post("/get_initial_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert response_dict_2 == response_dict
@@ -843,9 +878,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_get_total_spent_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/get_total_spent_budget", json=example_get_admin_db_data
-            )
+            response = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
@@ -861,9 +894,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Response should have updated spent budget
-            response_2 = client.post(
-                "/get_total_spent_budget", json=example_get_admin_db_data
-            )
+            response_2 = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
@@ -877,9 +908,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_get_remaining_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/get_remaining_budget", json=example_get_admin_db_data
-            )
+            response = client.post("/get_remaining_budget", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
@@ -896,9 +925,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Response should have removed spent budget
-            response_2 = client.post(
-                "/get_remaining_budget", json=example_get_admin_db_data
-            )
+            response_2 = client.post("/get_remaining_budget", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
@@ -911,9 +938,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_get_previous_queries."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
+            response = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
@@ -928,21 +953,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             query_res = json.loads(query_res.content.decode("utf8"))
 
             # Response should have one element in list
-            response_2 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
+            response_2 = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = json.loads(response_2.content.decode("utf8"))
             assert len(response_dict_2["previous_queries"]) == 1
-            assert (
-                response_dict_2["previous_queries"][0]["dp_librairy"]
-                == DPLibraries.SMARTNOISE_SQL
-            )
-            assert (
-                response_dict_2["previous_queries"][0]["client_input"]
-                == example_smartnoise_sql
-            )
+            assert response_dict_2["previous_queries"][0]["dp_librairy"] == DPLibraries.SMARTNOISE_SQL
+            assert response_dict_2["previous_queries"][0]["client_input"] == example_smartnoise_sql
             assert response_dict_2["previous_queries"][0]["response"] == query_res
 
             # Query to archive 2 (opendp)
@@ -953,24 +970,14 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             query_res = json.loads(query_res.content.decode("utf8"))
 
             # Response should have two elements in list
-            response_3 = client.post(
-                "/get_previous_queries", json=example_get_admin_db_data
-            )
+            response_3 = client.post("/get_previous_queries", json=example_get_admin_db_data)
             assert response_3.status_code == status.HTTP_200_OK
 
             response_dict_3 = json.loads(response_3.content.decode("utf8"))
             assert len(response_dict_3["previous_queries"]) == 2
-            assert (
-                response_dict_3["previous_queries"][0]
-                == response_dict_2["previous_queries"][0]
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["dp_librairy"]
-                == DPLibraries.OPENDP
-            )
-            assert (
-                response_dict_3["previous_queries"][1]["client_input"] == example_opendp
-            )
+            assert response_dict_3["previous_queries"][0] == response_dict_2["previous_queries"][0]
+            assert response_dict_3["previous_queries"][1]["dp_librairy"] == DPLibraries.OPENDP
+            assert response_dict_3["previous_queries"][1]["client_input"] == example_opendp
             assert response_dict_3["previous_queries"][1]["response"] == query_res
 
     def test_subsequent_budget_limit_logic(self) -> None:
@@ -1009,8 +1016,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": "Not enough budget for this query "
-                + "epsilon remaining 2.0, "
-                + "delta remaining 0.004970000100000034."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="Not enough budget for this query "
+                    + "epsilon remaining 2.0, "
+                    + "delta remaining 0.004970000100000034."
+                ).model_dump()
+            )

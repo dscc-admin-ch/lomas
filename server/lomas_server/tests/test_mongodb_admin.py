@@ -4,11 +4,11 @@ from typing import Dict
 
 import boto3
 import yaml
+from pymongo import MongoClient
+
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
-from pymongo import MongoClient
-
 from lomas_server.admin_database.utils import (
     add_demo_data_to_mongodb_admin,
     get_mongodb_url,
@@ -45,8 +45,7 @@ from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
 @unittest.skipIf(
-    ENV_MONGO_INTEGRATION not in os.environ
-    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in FALSE_VALUES,
+    ENV_MONGO_INTEGRATION not in os.environ and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in FALSE_VALUES,
     f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
         environment variable not set to True.""",
 )
@@ -539,9 +538,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         del dataset_found["_id"]
         self.assertEqual(dataset_found, expected_dataset)
 
-        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[
-            dataset
-        ]
+        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
         # Add already present dataset
@@ -594,8 +591,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
     @unittest.skipIf(
-        ENV_S3_INTEGRATION not in os.environ
-        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
+        ENV_S3_INTEGRATION not in os.environ and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
         f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
             environment variable not set to True.""",
     )
@@ -664,9 +660,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         expected_metadata = yaml.safe_load(response["Body"])
         expected_metadata = Metadata.model_validate(expected_metadata).model_dump()
 
-        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[
-            dataset
-        ]
+        metadata_found = self.db.metadata.find_one({dataset: {"$exists": True}})[dataset]
         self.assertEqual(metadata_found, expected_metadata)
 
     def test_add_datasets_via_yaml(self) -> None:
@@ -692,18 +686,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             del penguin_found["_id"]
             self.assertEqual(penguin_found, penguin)
 
-            metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})[
-                "PENGUIN"
-            ]
+            metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})["PENGUIN"]
             self.assertEqual(metadata_found, penguin_metadata)
 
             iris_found = self.db.datasets.find_one({"dataset_name": "IRIS"})
             del iris_found["_id"]
             self.assertEqual(iris_found, iris)
 
-            metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})[
-                "IRIS"
-            ]
+            metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})["IRIS"]
             self.assertEqual(metadata_found, penguin_metadata)
 
         path = "./tests/test_data/test_datasets.yaml"
@@ -711,9 +701,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(
-            self.db, path, clean, overwrite_datasets, overwrite_metadata
-        )
+        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
 
         verify_datasets()
 
@@ -723,27 +711,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.db.datasets.insert_one({"dataset_name": "Les aventures de Tintin"})
 
         clean = True
-        add_datasets_via_yaml(
-            self.db, path, clean, overwrite_datasets, overwrite_metadata
-        )
+        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
         verify_datasets()
 
         # Check no overwrite triggers warning
         clean = False
         with self.assertWarns(UserWarning):
-            add_datasets_via_yaml(
-                self.db, path, clean, overwrite_datasets, overwrite_metadata
-            )
+            add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
 
         # Check overwrite works
-        self.db.datasets.update_one(
-            {"dataset_name": "IRIS"}, {"$set": {"dataset_name": "IRIS"}}
-        )
+        self.db.datasets.update_one({"dataset_name": "IRIS"}, {"$set": {"dataset_name": "IRIS"}})
 
         overwrite_datasets = True
-        add_datasets_via_yaml(
-            self.db, path, clean, overwrite_datasets, overwrite_metadata
-        )
+        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
         verify_datasets()
 
         # Check no clean and overwrite metadata
@@ -757,8 +737,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         verify_datasets()
 
     @unittest.skipIf(
-        ENV_S3_INTEGRATION not in os.environ
-        and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
+        ENV_S3_INTEGRATION not in os.environ and os.getenv(ENV_S3_INTEGRATION, "0").lower() in FALSE_VALUES,
         f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
             environment variable not set to True.""",
     )
@@ -797,9 +776,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         print(tintin)
         self.assertEqual(tintin_found, tintin)
 
-        metadata_found = self.db.metadata.find_one(
-            {"TINTIN_S3_TEST": {"$exists": True}}
-        )["TINTIN_S3_TEST"]
+        metadata_found = self.db.metadata.find_one({"TINTIN_S3_TEST": {"$exists": True}})["TINTIN_S3_TEST"]
         self.assertEqual(metadata_found, tintin_metadata)
 
     def test_del_dataset(self) -> None:
@@ -912,9 +889,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(
-            self.db, path, clean, overwrite_datasets, overwrite_metadata
-        )
+        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
         list_datasets = get_list_of_datasets(self.db)
         self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])
 
@@ -952,9 +927,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         clean = False
         overwrite_datasets = False
         overwrite_metadata = False
-        add_datasets_via_yaml(
-            self.db, path, clean, overwrite_datasets, overwrite_metadata
-        )
+        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
         with open(path, encoding="utf-8") as f:
             expected_dataset_collection = yaml.safe_load(f)
         dataset_collection = get_collection(self.db, "datasets")
@@ -974,9 +947,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         users_list = get_list_of_users(self.db)
-        self.assertEqual(
-            users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"]
-        )
+        self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"])
 
         list_datasets = get_list_of_datasets(self.db)
 

@@ -21,7 +21,7 @@ spec:
       serviceAccountName: {{ include "lomas.server.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
-      
+
       containers:
       - name: {{ .Chart.Name }}
         securityContext:
@@ -30,8 +30,15 @@ spec:
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         ports:
           - name: http
-            containerPort: {{ .Values.server.service.port }}
+            containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}
             protocol: TCP
+        env:
+          - name: SERVER_SERVICE_NAME
+            value: lomas-server-app
+          - name: OTEL_COLLECTOR_ENDPOINT
+            value: "http://{{ .Values.otel.fullnameOverride }}:{{ .Values.otel.config.receiver.grpc_port }}"
+          - name: OTEL_LOG_LEVEL
+            value: {{ .Values.server.runtime_args.settings.server.log_level }}
         volumeMounts:
           - name: config-and-secrets
             readOnly: True
@@ -57,4 +64,4 @@ spec:
       {{- with .Values.server.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-      {{- end }} 
+      {{- end }}

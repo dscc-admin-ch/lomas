@@ -1,6 +1,9 @@
-from lomas_core.constants import SSynthGanSynthesizer
+from typing import Dict
 
-from lomas_server.constants import (
+from pydantic import JsonValue
+
+from lomas_core.constants import SSynthGanSynthesizer
+from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -8,25 +11,25 @@ from lomas_server.constants import (
 )
 
 # Query constants
-PENGUIN_DATASET = "PENGUIN"
-QUERY_EPSILON = 0.1
-QUERY_DELTA = 0.00001
-SQL_QUERY = "SELECT COUNT(*) AS NB_ROW FROM df"
-DP_MECHANISM = {"count": "gaussian"}
-FEATURE_COLUMNS = [
+PENGUIN_DATASET: str = "PENGUIN"
+QUERY_EPSILON: float = 0.1
+QUERY_DELTA: float = 0.00001
+SQL_QUERY: str = "SELECT COUNT(*) AS NB_ROW FROM df"
+DP_MECHANISM: JsonValue = {"count": "gaussian"}
+FEATURE_COLUMNS: JsonValue = [
     "bill_length_mm",
     "bill_depth_mm",
     "flipper_length_mm",
     "body_mass_g",
 ]
-TARGET_COLUMNS = ["species"]
-SPLIT_SEED = 4
-TEST_SIZE = 0.2
-IMPUTER_STRATEGY = "drop"
-SNSYNTH_NB_SAMPLES = 200
+TARGET_COLUMNS: JsonValue = ["species"]
+SPLIT_SEED: int = 4
+TEST_SIZE: float = 0.2
+IMPUTER_STRATEGY: str = "drop"
+SNSYNTH_NB_SAMPLES: int = 200
 
 
-def make_dummy(example_query):
+def make_dummy(example_query: Dict[str, JsonValue]) -> Dict[str, JsonValue]:
     """Make dummy example dummy query based on example query."""
     example_query_dummy = dict(example_query)
     example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
@@ -35,18 +38,22 @@ def make_dummy(example_query):
 
 
 # Lomas logic
-example_get_admin_db_data = {
+# -----------------------------------------------------------------------------
+
+example_get_admin_db_data: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
 }
 
-example_get_dummy_dataset = {
+example_get_dummy_dataset: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
 }
 
 # Smartnoise-SQL
-example_smartnoise_sql_cost = {
+# -----------------------------------------------------------------------------
+
+example_smartnoise_sql_cost: Dict[str, JsonValue] = {
     "query_str": SQL_QUERY,
     "dataset_name": PENGUIN_DATASET,
     "epsilon": QUERY_EPSILON,
@@ -54,13 +61,15 @@ example_smartnoise_sql_cost = {
     "mechanisms": DP_MECHANISM,
 }
 
-example_smartnoise_sql = dict(example_smartnoise_sql_cost)
+example_smartnoise_sql: Dict[str, JsonValue] = dict(example_smartnoise_sql_cost)
 example_smartnoise_sql["postprocess"] = True
 
-example_dummy_smartnoise_sql = make_dummy(example_smartnoise_sql)
+example_dummy_smartnoise_sql: Dict[str, JsonValue] = make_dummy(example_smartnoise_sql)
 
 # Smartnoise-Synth
-example_smartnoise_synth_cost = {
+# -----------------------------------------------------------------------------
+
+example_smartnoise_synth_cost: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "synth_name": SSynthGanSynthesizer.DP_CTGAN,
     "epsilon": QUERY_EPSILON,
@@ -74,18 +83,17 @@ example_smartnoise_synth_cost = {
     "nullable": True,
     "constraints": "",
 }
-example_smartnoise_synth_query = dict(example_smartnoise_synth_cost)
+example_smartnoise_synth_query: Dict[str, JsonValue] = dict(example_smartnoise_synth_cost)
 example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
-example_dummy_smartnoise_synth_query = make_dummy(example_smartnoise_synth_query)
+example_dummy_smartnoise_synth_query: Dict[str, JsonValue] = make_dummy(example_smartnoise_synth_query)
 
 # OpenDP
-
-# Example inputs
 # -----------------------------------------------------------------------------
-OPENDP_PIPELINE = (
+
+OPENDP_PIPELINE: str = (
     f'{{"version": "{OPENDP_VERSION}", '
     '"ast": {'
     '"_type": "partial_chain", "lhs": {'
@@ -142,15 +150,17 @@ OPENDP_PIPELINE = (
     "}}}"
 )
 
-example_opendp = {
+example_opendp: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
 }
-example_dummy_opendp = make_dummy(example_opendp)
+example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
 
 # DiffPrivLib
-DIFFPRIVLIB_PIPELINE = (
+# -----------------------------------------------------------------------------
+
+DIFFPRIVLIB_PIPELINE: str = (
     '{"module": "diffprivlib", '
     f'"version": "{DIFFPRIVLIB_VERSION}", '
     '"pipeline": ['
@@ -191,7 +201,7 @@ DIFFPRIVLIB_PIPELINE = (
     "}"
 )
 
-example_diffprivlib = {
+example_diffprivlib: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_PIPELINE,
     "feature_columns": FEATURE_COLUMNS,
@@ -200,4 +210,4 @@ example_diffprivlib = {
     "test_train_split_seed": SPLIT_SEED,
     "imputer_strategy": IMPUTER_STRATEGY,
 }
-example_dummy_diffprivlib = make_dummy(example_diffprivlib)
+example_dummy_diffprivlib: Dict[str, JsonValue] = make_dummy(example_diffprivlib)

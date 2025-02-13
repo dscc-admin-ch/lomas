@@ -1,9 +1,9 @@
 from typing import Optional
 
 import pandas as pd
+
 from lomas_core.error_handler import InternalServerException, InvalidQueryException
 from lomas_core.models.collections import Metadata
-
 from lomas_server.data_connector.data_connector import DataConnector
 
 
@@ -52,8 +52,7 @@ class PathConnector(DataConnector):
                     ) from err
             else:
                 return InvalidQueryException(
-                    "File type other than .csv not supported for"
-                    "loading into pandas DataFrame."
+                    "File type other than .csv not supported for loading into pandas DataFrame."
                 )
 
         return self.df

@@ -3,6 +3,19 @@ from datetime import datetime
 from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
 
 import pandas as pd
+from smartnoise_synth_logger import deserialise_constraints
+from snsynth import Synthesizer
+from snsynth.transform import (
+    AnonymizationTransformer,
+    BinTransformer,
+    ChainTransformer,
+    LabelTransformer,
+    MinMaxTransformer,
+    OneHotEncoder,
+)
+from snsynth.transform.datetime import DateTimeTransformer
+from snsynth.transform.table import TableTransformer
+
 from lomas_core.constants import (
     DPLibraries,
     SSynthGanSynthesizer,
@@ -29,19 +42,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import SmartnoiseSynthModel, SmartnoiseSynthSamples
-from smartnoise_synth_logger import deserialise_constraints
-from snsynth import Synthesizer
-from snsynth.transform import (
-    AnonymizationTransformer,
-    BinTransformer,
-    ChainTransformer,
-    LabelTransformer,
-    MinMaxTransformer,
-    OneHotEncoder,
-)
-from snsynth.transform.datetime import DateTimeTransformer
-from snsynth.transform.table import TableTransformer
-
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
     SECONDS_IN_A_DAY,
@@ -101,9 +101,7 @@ class SmartnoiseSynthQuerier(
 
     def _is_categorical(
         self, col_metadata: ColumnMetadata
-    ) -> TypeGuard[
-        StrMetadata | StrCategoricalMetadata | BooleanMetadata | IntCategoricalMetadata
-    ]:
+    ) -> TypeGuard[StrMetadata | StrCategoricalMetadata | BooleanMetadata | IntCategoricalMetadata]:
         """
         Checks if the column type is categorical.
 
@@ -125,9 +123,7 @@ class SmartnoiseSynthQuerier(
             ),
         )
 
-    def _is_continuous(
-        self, col_metadata: ColumnMetadata
-    ) -> TypeGuard[IntMetadata | FloatMetadata]:
+    def _is_continuous(self, col_metadata: ColumnMetadata) -> TypeGuard[IntMetadata | FloatMetadata]:
         """Checks if the column type is continuous.
 
         Args:
@@ -177,9 +173,7 @@ class SmartnoiseSynthQuerier(
                 continue
 
             if not isinstance(data, SSynthColumnType):  # type: ignore[misc, arg-type]
-                raise InternalServerException(
-                    f"Column type {data.type} not supported for SmartnoiseSynth"
-                )
+                raise InternalServerException(f"Column type {data.type} not supported for SmartnoiseSynth")
 
             columns[col_name] = data
 
@@ -208,9 +202,7 @@ class SmartnoiseSynthQuerier(
         Returns:
             table_tranformer (TableTransformer) to pre and post-process the data
         """
-        columns = self._get_and_check_valid_column_types(
-            metadata, query_json.select_cols
-        )
+        columns = self._get_and_check_valid_column_types(metadata, query_json.select_cols)
 
         constraints = {}
         nullable = query_json.nullable
@@ -321,13 +313,8 @@ class SmartnoiseSynthQuerier(
                 nullable=query_json.nullable,
             )
         except ValueError as e:  # Improve snsynth error messages
-            pattern = (
-                r"sample_rate=[\d\.]+ is not a valid value\. "
-                r"Please provide a float between 0 and 1\."
-            )
-            if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN and re.match(
-                pattern, str(e)
-            ):
+            pattern = r"sample_rate=[\d\.]+ is not a valid value\. Please provide a float between 0 and 1\."
+            if query_json.synth_name == SSynthGanSynthesizer.DP_CTGAN and re.match(pattern, str(e)):
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
                     f"Error fitting model: {e} Try decreasing batch_size in "
@@ -378,22 +365,17 @@ class SmartnoiseSynthQuerier(
             if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(
                     DPLibraries.SMARTNOISE_SYNTH,
-                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable "
-                    + "with this dataset.",
+                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable " + "with this dataset.",
                 )
 
-        constraints = self._get_default_constraints(
-            metadata, query_json, table_transformer_style
-        )
+        constraints = self._get_default_constraints(metadata, query_json, table_transformer_style)
 
         # Overwrite default constraint with custom constraint (if any)
         constraints_json = query_json.constraints
         if constraints_json:
             custom_constraints = deserialise_constraints(constraints_json)
             custom_constraints = {
-                key: custom_constraints[key]
-                for key in query_json.select_cols
-                if key in custom_constraints
+                key: custom_constraints[key] for key in query_json.select_cols if key in custom_constraints
             }
             constraints.update(custom_constraints)
 
@@ -403,9 +385,7 @@ class SmartnoiseSynthQuerier(
             try:
                 private_data = private_data[query_json.select_cols]
             except KeyError as e:
-                raise InvalidQueryException(
-                    "Error while selecting provided select_cols: " + str(e)
-                ) from e
+                raise InvalidQueryException("Error while selecting provided select_cols: " + str(e)) from e
 
         # Get transformer
         transformer = TableTransformer.create(
@@ -459,15 +439,11 @@ class SmartnoiseSynthQuerier(
             pd.DataFrame: The resulting pd.DataFrame samples.
         """
         if self.model is None:
-            raise InternalServerException(
-                "Smartnoise Synth `query` method called before `cost` method"
-            )
+            raise InternalServerException("Smartnoise Synth `query` method called before `cost` method")
         if not query_json.return_model:
             # Sample
             df_samples = (
-                self.model.sample_conditional(
-                    query_json.nb_samples, query_json.condition
-                )
+                self.model.sample_conditional(query_json.nb_samples, query_json.condition)
                 if query_json.condition
                 else self.model.sample(query_json.nb_samples)
             )

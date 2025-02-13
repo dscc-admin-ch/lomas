@@ -1,10 +1,10 @@
 from typing import Dict
 
 import yaml
+
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import Config
 from lomas_core.models.constants import ConfigKeys
-
 from lomas_server.constants import CONFIG_PATH, SECRETS_PATH
 
 
@@ -26,9 +26,7 @@ class ConfigLoader:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def load_config(
-        self, config_path: str = CONFIG_PATH, secrets_path: str = SECRETS_PATH
-    ) -> None:
+    def load_config(self, config_path: str = CONFIG_PATH, secrets_path: str = SECRETS_PATH) -> None:
         """
         Loads the config and the secret data from disk,.
 
@@ -46,9 +44,7 @@ class ConfigLoader:
         """
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                config_data = yaml.safe_load(f)[ConfigKeys.RUNTIME_ARGS][
-                    ConfigKeys.SETTINGS
-                ]
+                config_data = yaml.safe_load(f)[ConfigKeys.RUNTIME_ARGS][ConfigKeys.SETTINGS]
 
             # Merge secret data into config data
             with open(secrets_path, "r", encoding="utf-8") as f:
@@ -59,8 +55,7 @@ class ConfigLoader:
 
         except Exception as e:
             raise InternalServerException(
-                f"Could not read config from disk at {config_path}"
-                + f" or missing fields: {e}"
+                f"Could not read config from disk at {config_path}" + f" or missing fields: {e}"
             ) from e
 
     def _merge_dicts(self, d: Dict, u: Dict) -> Dict:

@@ -11,6 +11,9 @@ cd ../server/
 export PYTHONPATH=$(pwd):$PYTHONPATH
 
 cd lomas_server/
+
+python ./worker.py &
+
 # "mongodb", "LRU_cache", production mode, "jitter"
 export LOMAS_TEST_S3_INTEGRATION=1 # tests with s3 minio available
 coverage run --source=. -m unittest discover -s .

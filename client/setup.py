@@ -44,6 +44,7 @@ setup(
     python_requires=">=3.11, <3.13",
     install_requires=[
         "lomas-core==0.4.0",
+        "opentelemetry-instrumentation-requests==0.50b0",
         "requests==2.32.0",
     ],
 )

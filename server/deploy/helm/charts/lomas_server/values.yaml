@@ -138,7 +138,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.example.com"
+    hostname: "lomas-admin-dashboard.lab.sspcloud.fr"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -289,67 +289,66 @@ tempo:
 ##########################################################################
 grafana:
   create: true
+
   service:
     type: ClusterIP
     port: 3000
+    target_port: 3000
 
   fullnameOverride: "lomas-grafana-dashboard"
 
-  rbac:
-    create: false
-    namespaced: true
-
+  apiVersion: 1
   datasources:
-    datasources.yaml:
+    prometheus:
+      name: Prometheus
+      type: prometheus
+      uid: prometheus
+      access: proxy
+      orgId: 1
+      basicAuth: false
+      isDefault: false
+      version: 1
+      editable: true
+      jsonData:
+        httpMethod: GET
+    tempo:
+      name: Tempo
+      type: tempo
+      uid: tempo
+      access: proxy
+      orgId: 1
+      basicAuth: false
+      isDefault: true
+      version: 1
+      editable: true
       apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          uid: prometheus
-          access: proxy
-          orgId: 1
-          url: http://lomas-prometheus:9091
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: true
-          jsonData:
-            httpMethod: GET
-        - name: Tempo
-          type: tempo
-          uid: tempo
-          access: proxy
-          orgId: 1
-          url: http://lomas-tempo:3100
-          basicAuth: false
-          isDefault: true
-          version: 1
-          editable: true
-          apiVersion: 1
-          stream_over_http_enabled: false
-        - name: Loki
-          type: loki
-          uid: loki
-          access: proxy
-          orgId: 1
-          url: http://lomas-loki:3100
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: true
-          jsonData:
-            httpHeaderName1: "X-Scope-OrgID"
-          secureJsonData:
-            httpHeaderValue1: "tenant1"
+      stream_over_http_enabled: false
+    loki:
+      name: Loki
+      type: loki
+      uid: loki
+      access: proxy
+      orgId: 1
+      basicAuth: false
+      isDefault: false
+      version: 1
+      editable: true
+      jsonData:
+        httpHeaderName1: "X-Scope-OrgID"
+      secureJsonData:
+        httpHeaderValue1: "tenant1"
+  
+  security:
+    adminUser: admin
+    adminPassword: admin
 
-  env:
-    GF_SECURITY_ADMIN_USER: admin
-    GF_SECURITY_ADMIN_PASSWORD: admin
+  auth:
+    disableLoginForm: false
 
   ingress:
     enabled: true
-    hosts:
-      - "lomas-monitoring-dashboard.example.com"
-
-  persistence:
-    enabled: false
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    hostname: "lomas-grafana-dashboard.lab.sspcloud.fr"
+  replicaCount: 1

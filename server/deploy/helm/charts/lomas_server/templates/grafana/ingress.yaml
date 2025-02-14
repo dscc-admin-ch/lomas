@@ -1,0 +1,57 @@
+{{- if .Values.grafana.create -}}
+{{- if .Values.grafana.ingress.enabled -}}
+{{/*
+  These two are defined as such because calling . within a range loop
+  is shortcut for path (see https://stackoverflow.com/questions/72484286/ingress-variables-syntax-from-values-yaml)
+*/}}
+{{ "\n" }}
+{{- $fullName := include "lomas.grafana.fullname" . -}}
+{{- $svcPort := .Values.grafana.service.port -}}
+{{- if and .Values.grafana.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.grafana.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.grafana.ingress.annotations "kubernetes.io/ingress.class" .Values.grafana.ingress.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "lomas.grafana.labels" . | nindent 4 }}
+  {{- with .Values.grafana.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.grafana.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.grafana.ingress.className }}
+  {{- end }}
+  {{- if .Values.grafana.ingress.tls }}
+  tls:
+  - hosts:
+      - {{ .Values.grafana.ingress.hostname | quote }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.grafana.ingress.hostname | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ $svcPort }}
+              {{- end }}
+{{- end}}
+{{- end }}

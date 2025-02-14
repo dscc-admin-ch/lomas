@@ -37,6 +37,6 @@ Since dashboard ingress was enabled, the administration dashboard is also reacha
 
 Since grafana dashboard ingress was enabled, the administration dashboard is also reachable from the internet at
   
-  https://{{ index .Values.grafana.ingress.hosts 0}}
+  https://{{ .Values.grafana.ingress.hostname }}
 {{- end }}
 {{- end }}

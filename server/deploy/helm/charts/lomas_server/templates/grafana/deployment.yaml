@@ -1,0 +1,52 @@
+{{- if .Values.grafana.create -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.grafana.fullname" . }}
+  labels:
+    {{- include "lomas.grafana.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.grafana.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.grafana.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.grafana.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.grafana.podSecurityContext | nindent 8 }}
+
+      containers:
+      - name: grafana-container
+        image: grafana/grafana:11.0.0
+        ports:
+          - containerPort: {{ .Values.grafana.service.port}}
+        volumeMounts:
+          - name: grafana-config
+            readOnly: True
+            mountPath: /etc/grafana/provisioning/datasources/grafana-config.yaml
+            subPath: grafana-config.yaml
+          - name: grafana-ini
+            mountPath: /etc/grafana/grafana.ini
+            subPath: grafana.ini
+            readOnly: true
+
+      volumes:
+      {{- $fullname := include "lomas.grafana.fullname" . }}
+      - name: grafana-config
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-grafana-config" $fullname }}
+      - name: grafana-ini
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-grafana-config" $fullname }}
+{{- end }}

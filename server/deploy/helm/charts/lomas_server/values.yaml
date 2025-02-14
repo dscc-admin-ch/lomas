@@ -337,13 +337,10 @@ grafana:
         httpHeaderName1: "X-Scope-OrgID"
       secureJsonData:
         httpHeaderValue1: "tenant1"
-  
-  security:
-    adminUser: admin
-    adminPassword: admin
 
-  auth:
-    disableLoginForm: false
+  security:
+    admin_user: "admin"
+    admin_password: "admin"
 
   ingress:
     enabled: true

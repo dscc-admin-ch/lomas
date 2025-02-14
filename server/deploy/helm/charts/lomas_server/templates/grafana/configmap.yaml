@@ -58,9 +58,7 @@ data:
       http_port = {{ .Values.grafana.service.port }}
 
       [security]
-      admin_user = {{ .Values.grafana.security.adminUser }}
-      admin_password = {{ .Values.grafana.security.adminPassword }}
+      admin_user = {{ .Values.grafana.security.admin_user }}
+      admin_password = {{ .Values.grafana.security.admin_password }}
 
-      [auth]
-      disable_login_form = {{ .Values.grafana.auth.disableLoginForm }}
 {{- end }}

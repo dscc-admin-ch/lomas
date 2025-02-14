@@ -1,7 +1,7 @@
+import logging
 import yaml
 from mantelo import HttpException, KeycloakAdmin
 
-from lomas_core.logger import LOG
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.config import KeycloakClientConfig
 
@@ -162,7 +162,7 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
         user_id = user["id"]  # type: ignore
         kc_admin.users(user_id).delete()
 
-    LOG.info("Removed all keycloak users. \n")
+    logging.info("Removed all keycloak users. \n")
 
     clients = kc_admin.clients.get()
     for client in clients:
@@ -173,7 +173,7 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
             client_id = client["id"]  # type: ignore
             kc_admin.clients(client_id).delete()
 
-    LOG.info("Removed all keycloak clients associated to users. \n")
+    logging.info("Removed all keycloak clients associated to users. \n")
 
 
 def add_kc_users_via_yaml(
@@ -225,11 +225,11 @@ def add_kc_users_via_yaml(
                     kc_client_id = kc_client["id"]  # type: ignore
                     kc_admin.clients(kc_client_id).delete()
 
-            LOG.info(f"Overwriting user {user.id.name}. \n")
+            logging.info(f"Overwriting user {user.id.name}. \n")
 
         add_kc_user(kc_config, user.id.name, user.id.email, user.id.client_secret)
 
-    LOG.info("Added keycloak users from yaml file.")
+    logging.info("Added keycloak users from yaml file.")
 
 
 def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -> str:

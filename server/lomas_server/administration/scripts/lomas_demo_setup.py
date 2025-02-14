@@ -1,6 +1,6 @@
+import logging
 from pydantic_settings import SettingsConfigDict
 
-from lomas_core.logger import LOG
 from lomas_core.models.config import AdminConfig
 from lomas_server.administration.lomas_admin import add_lomas_users_via_yaml
 from lomas_server.administration.mongodb_admin import (
@@ -35,7 +35,7 @@ def add_lomas_demo_data(
     Args:
         config (AdminConfig): The administration config.
     """
-    LOG.info("Creating user collection")
+    logging.info("Creating user collection")
     add_lomas_users_via_yaml(
         config,
         clean=True,
@@ -43,7 +43,7 @@ def add_lomas_demo_data(
         yaml_file=config.user_yaml,
     )
 
-    LOG.info("Creating datasets and metadata collection")
+    logging.info("Creating datasets and metadata collection")
     add_datasets_via_yaml(
         config.mg_config,
         clean=True,
@@ -52,7 +52,7 @@ def add_lomas_demo_data(
         yaml_file=config.dataset_yaml,
     )
 
-    LOG.info("Empty archives")
+    logging.info("Empty archives")
     drop_collection(config.mg_config, collection="queries_archives")
 
 

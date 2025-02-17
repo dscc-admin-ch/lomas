@@ -290,7 +290,6 @@ grafana:
 
   fullnameOverride: "lomas-grafana-dashboard"
 
-  config:
   apiVersion: 1
   datasources:
     prometheus:

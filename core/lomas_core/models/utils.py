@@ -3,6 +3,8 @@ from base64 import b64decode, b64encode
 from typing import Any
 
 import pandas as pd
+import polars as pl
+import json
 
 PANDAS_SERIALIZATION_ORIENT = "tight"
 
@@ -36,6 +38,18 @@ def dataframe_from_dict(serialized_df: pd.DataFrame | dict) -> pd.DataFrame:
 
     return pd.DataFrame.from_dict(serialized_df, orient=PANDAS_SERIALIZATION_ORIENT)
 
+def polars_df_to_str(df_pl: pl.DataFrame) -> str:
+    """Convert a Polars DataFrame to a JSON string."""
+    return df_pl.write_json()
+
+def polars_df_from_str(serialized_pl: str | pl.DataFrame) -> pl.DataFrame:
+    """Convert a Polars DataFrame to a JSON string."""
+    
+    if isinstance(serialized_pl, pl.DataFrame):
+        return serialized_pl
+    
+    df_pl = json.loads(serialized_pl)
+    return pl.DataFrame(df_pl)
 
 def serialize_model(model: Any) -> str:
     """

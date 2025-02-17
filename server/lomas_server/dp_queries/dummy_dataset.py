@@ -4,12 +4,13 @@ import pandas as pd
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import (
     BooleanMetadata,
-    CategoricalColumnMetadata,
+    StrCategoricalMetadata,
     DatetimeMetadata,
     FloatMetadata,
     IntMetadata,
     Metadata,
     StrMetadata,
+    IntCategoricalMetadata,
 )
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_core.models.requests import DummyQueryModel
@@ -46,7 +47,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
     for col_name, data in metadata.columns.items():
         # Create a random serie based on the data type
         match data:
-            case CategoricalColumnMetadata():
+            case StrCategoricalMetadata():
                 categories = data.categories
                 serie = pd.Series(rng.choice(categories, size=nb_rows))
             case StrMetadata():
@@ -66,6 +67,10 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     ),
                     dtype=np.dtype(dtype),
                 )
+            case IntCategoricalMetadata():
+                dtype = f"{data.type}{data.precision}"
+                categories = data.categories
+                serie = pd.Series(rng.choice(categories, size=nb_rows),dtype=np.dtype(dtype))
             case FloatMetadata():
                 dtype = f"{data.type}{data.precision}"
                 serie = pd.Series(

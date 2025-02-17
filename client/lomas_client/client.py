@@ -118,10 +118,8 @@ class Client:
 
         raise_error(res)
         return None
-    
-    def get_dummy_lf(
-        self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
-    ) -> Optional[pl.LazyFrame]:
+
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> Optional[pl.LazyFrame]:
         """
         Returns the polars LazyFrame for the dummy dataset with
         optional parameters.

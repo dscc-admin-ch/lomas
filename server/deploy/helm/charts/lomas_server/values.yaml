@@ -138,7 +138,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.lab.sspcloud.fr"
+    hostname: "lomas-admin-dashboard.example.ch"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -341,5 +341,5 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboard.lab.sspcloud.fr"
+    hostname: "lomas-grafana-dashboard.example.ch"
   replicaCount: 1

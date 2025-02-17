@@ -498,14 +498,13 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_smartnoise_sql_cost."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/estimate_smartnoise_sql_cost",
                 json=example_smartnoise_sql_cost,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = response.json()
-            r_model = CostResponse.model_validate(response_dict)
+            assert job is not None
+            r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon == QUERY_EPSILON
             assert r_model.delta > QUERY_DELTA
 
@@ -698,14 +697,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_opendp_cost."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/estimate_opendp_cost",
-                json=example_opendp,
-            )
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = response.json()
-            response_model = CostResponse.model_validate(response_dict)
+            _, job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp)
+            assert job is not None
+            response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0
 
@@ -733,7 +727,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget
-            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should stay the same
             response_2 = client.post("/get_initial_budget", json=example_get_admin_db_data)
@@ -753,7 +747,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_model.total_spent_delta == 0
 
             # Query to spend budget
-            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should have updated spent budget
             response_2 = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
@@ -780,7 +774,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response_model.remaining_delta == INITIAL_DELTA
 
             # Query to spend budget
-            _, job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
             # Response should have removed spent budget
             response_2 = client.post("/get_remaining_budget", json=example_get_admin_db_data)

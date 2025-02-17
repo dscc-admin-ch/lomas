@@ -18,7 +18,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -34,7 +34,7 @@ router = APIRouter(dependencies=[Depends(server_live)])
 
 @router.post(
     "/smartnoise_sql_query",
-    response_model=QueryResponse | Job,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -43,7 +43,7 @@ async def smartnoise_sql_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
-) -> QueryResponse | Job:
+) -> Job:
     """
     Handles queries for the SmartNoiseSQL library.
 
@@ -108,15 +108,16 @@ def dummy_smartnoise_sql_handler(
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_sql_cost(
+async def estimate_smartnoise_sql_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
@@ -138,7 +139,7 @@ def estimate_smartnoise_sql_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -147,7 +148,7 @@ def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    response_model=QueryResponse | Job,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -156,7 +157,7 @@ async def smartnoise_synth_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
-) -> QueryResponse | Job:
+) -> Job:
     """
     Handles queries for the SmartNoiseSynth library.
 
@@ -226,15 +227,16 @@ def dummy_smartnoise_synth_handler(
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_synth_cost(
+async def estimate_smartnoise_synth_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Computes the privacy loss budget cost of a SmartNoiseSynth query.
 
@@ -257,7 +259,7 @@ def estimate_smartnoise_synth_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -266,7 +268,7 @@ def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    response_model=QueryResponse | Job,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -275,7 +277,7 @@ async def opendp_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPQueryModel,
-) -> QueryResponse | Job:
+) -> Job:
     """
     Handles queries for the OpenDP Library.
 
@@ -337,15 +339,16 @@ def dummy_opendp_query_handler(
 
 @router.post(
     "/estimate_opendp_cost",
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_opendp_cost(
+async def estimate_opendp_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
 
@@ -367,7 +370,7 @@ def estimate_opendp_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -376,7 +379,7 @@ def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    response_model=QueryResponse | Job,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -385,7 +388,7 @@ async def diffprivlib_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
-) -> QueryResponse | Job:
+) -> Job:
     """
     Handles queries for the DiffPrivLib Library.
 
@@ -449,15 +452,16 @@ def dummy_diffprivlib_query_handler(
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    response_model=CostResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_diffprivlib_cost(
+async def estimate_diffprivlib_cost(
     user_name: Annotated[str, Header()],
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.
 
@@ -488,4 +492,4 @@ def estimate_diffprivlib_cost(
     Returns:
         CostResponse: The privacy loss cost of the input query.
     """
-    return handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)

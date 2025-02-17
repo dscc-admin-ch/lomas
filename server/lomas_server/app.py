@@ -18,7 +18,10 @@ from lomas_core.error_handler import (
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
-from lomas_core.models.responses import QueryResponse
+from lomas_core.models.responses import (
+    CostResponse,
+    QueryResponse,
+)
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.constants import (
@@ -45,7 +48,7 @@ amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
 amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
 
 
-async def process_task_response(queue):
+async def process_response(queue, cls):
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process():
@@ -57,22 +60,14 @@ async def process_task_response(queue):
                     case {"type": "exception", "status_code": status_code}:
                         exc = message.body.decode()
                         print(exc)
+                        jobs[message.correlation_id].error = message.body.decode()
                         jobs[message.correlation_id].status = "failed"
                         jobs[message.correlation_id].result = None
-                        jobs[message.correlation_id].error = message.body.decode()
                         jobs[message.correlation_id].status_code = status_code
 
-                    case {"type": "exception"}:
-                        exc = message.body.decode()
-                        print(exc)
-                        jobs[message.correlation_id].status = "failed"
-                        jobs[message.correlation_id].result = None
-
                     case _:
+                        jobs[message.correlation_id].result = cls.model_validate_json(message.body.decode())
                         jobs[message.correlation_id].status = "complete"
-                        jobs[message.correlation_id].result = QueryResponse.model_validate_json(
-                            message.body.decode()
-                        )
 
                 print(jobs)
                 jobs_var.set(jobs)
@@ -158,7 +153,12 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     await channel.declare_queue("task_queue", auto_delete=True)
     app.state.task_queue_channel = channel
     queue = await channel.declare_queue("task_response", auto_delete=True)
-    asyncio.create_task(process_task_response(queue))
+    asyncio.create_task(process_response(queue, QueryResponse))
+
+    await channel.declare_queue("cost_queue", auto_delete=True)
+    app.state.cost_queue_channel = channel
+    queue = await channel.declare_queue("cost_response", auto_delete=True)
+    asyncio.create_task(process_response(queue, CostResponse))
 
     yield  # lomas_app is handling requests
 

@@ -1,5 +1,7 @@
 import asyncio
+import functools
 import os
+import signal
 import time
 
 import aio_pika
@@ -23,10 +25,15 @@ from lomas_core.models.exceptions import (
 )
 from lomas_core.models.requests import (
     DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
     OpenDPQueryModel,
+    OpenDPRequestModel,
     SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
     SmartnoiseSynthQueryModel,
+    SmartnoiseSynthRequestModel,
 )
+from lomas_core.models.responses import CostResponse
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
@@ -74,7 +81,50 @@ def handle_known_exceptions(exc):
             )
 
 
-def process_query(body):
+def handle_cost_query(body):
+    print(f" [x] Received CostQuery {body.decode()}")
+    start_sec = time.time()
+    message = body.decode()
+    user_name, dp_library, request_model = message.split(":", 2)
+
+    match dp_library:
+        case DPLibraries.SMARTNOISE_SQL:
+            request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model)
+
+        case DPLibraries.SMARTNOISE_SYNTH:
+            request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model)
+
+        case DPLibraries.OPENDP:
+            request_model = OpenDPRequestModel.model_validate_json(request_model)
+
+        case DPLibraries.DIFFPRIVLIB:
+            request_model = DiffPrivLibRequestModel.model_validate_json(request_model)
+    try:
+        data_connector = data_connector_factory(
+            request_model.dataset_name,
+            admin_database,
+            private_credentials,
+        )
+
+        dp_querier = querier_factory(
+            dp_library,
+            data_connector=data_connector,
+            admin_database=admin_database,
+        )
+
+        eps_cost, delta_cost = dp_querier.cost(request_model)
+        elapsed = time.time() - start_sec
+        print(f" [x] Done ({elapsed:.2f})")
+        return CostResponse(epsilon=eps_cost, delta=delta_cost)
+    except KNOWN_EXCEPTIONS as exc:
+        known_exc = handle_known_exceptions(exc)
+        print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        return known_exc.body, known_exc.status_code
+    except Exception as e:
+        return e
+
+
+def handle_query(body):
     print(f" [x] Received {body.decode()}")
     start_sec = time.time()
     message = body.decode()
@@ -92,9 +142,6 @@ def process_query(body):
 
         case DPLibraries.DIFFPRIVLIB:
             query_json = DiffPrivLibQueryModel.model_validate_json(query_json)
-
-        case _:
-            raise "wtf is this"
 
     try:
         data_connector = data_connector_factory(
@@ -120,46 +167,62 @@ def process_query(body):
         return e
 
 
+async def process_message(channel, in_queue, out_queue, message_handler):
+    queue = await channel.declare_queue(in_queue, auto_delete=True)
+    await channel.declare_queue(out_queue, auto_delete=True)
+
+    async with queue.iterator() as queue_iter:
+        async for message in queue_iter:
+            async with message.process():
+                headers = None
+                body = bytes()
+
+                match query_response := message_handler(message.body):
+                    case Exception():
+                        print(f"Exception: {query_response}")
+                        headers = {"type": "exception"}
+                        body = str(query_response).encode()
+
+                    case (bytes(exc_body), int(status_code)):
+                        headers = {"type": "exception", "status_code": status_code}
+                        body = exc_body
+
+                    case None:
+                        break
+
+                    case _:
+                        print("Response length:", len(query_response.json()), message.correlation_id)
+                        body = query_response.json().encode()
+
+                # print(headers, body)
+                await channel.default_exchange.publish(
+                    aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
+                    routing_key=out_queue,
+                )
+
+                if queue.name in message.body.decode():
+                    break
+
+
+def ask_exit(signame, loop):
+    print(f"got signal {signame}: exit")
+    loop.stop()
+
+
 async def main():
+    loop = asyncio.get_running_loop()
+    for signame in ["SIGINT", "SIGTERM"]:
+        loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, loop))
+
     connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
 
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
-        queue = await channel.declare_queue("task_queue", auto_delete=True)
-        await channel.declare_queue("task_response", auto_delete=True)
 
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-                async with message.process():
-                    headers = None
-                    body = bytes()
-
-                    match query_response := process_query(message.body):
-                        case Exception():
-                            print(f"Exception: {query_response}")
-                            headers = {"type": "exception"}
-                            body = str(query_response).encode()
-
-                        case (bytes(body), int(status_code)):
-                            headers = {"type": "exception", "status_code": status_code}
-                            body = body
-
-                        case None:
-                            break
-
-                        case _:
-                            print("Response length:", len(query_response.json()), message.correlation_id)
-                            body = query_response.json().encode()
-
-                    # print(headers, body)
-                    await channel.default_exchange.publish(
-                        aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
-                        routing_key="task_response",
-                    )
-
-                    if queue.name in message.body.decode():
-                        break
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
+            tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
 
 
 if __name__ == "__main__":

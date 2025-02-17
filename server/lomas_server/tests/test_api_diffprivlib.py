@@ -361,14 +361,14 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test_diffprivlib_cost."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/estimate_diffprivlib_cost",
                 json=example_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = CostResponse.model_validate(response.json())
+            assert job is not None
+            r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon == 1.5
             assert r_model.delta == 0
 

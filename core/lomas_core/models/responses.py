@@ -203,6 +203,6 @@ class QueryResponse(CostResponse):
 class Job(ResponseModel):
     uid: UUID = Field(default_factory=uuid4)
     status: str = "in_progress"
-    result: QueryResponse | None = None
+    result: QueryResponse | CostResponse | None = None
     error: dict | None = None
     status_code: int = 200

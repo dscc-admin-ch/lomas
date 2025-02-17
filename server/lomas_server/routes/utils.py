@@ -17,8 +17,7 @@ from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.data_connector.factory import data_connector_factory
+from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.config import get_config
@@ -176,12 +175,12 @@ def handle_query_on_dummy_dataset(
 
 
 @timing_protection
-def handle_cost_query(
+async def handle_cost_query(
     request: Request,
     request_model: LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
-) -> CostResponse:
+) -> Job:
     """
     Handles cost queries for DP libraries.
 
@@ -213,21 +212,17 @@ def handle_cost_query(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
-    data_connector = data_connector_factory(
-        request_model.dataset_name,
-        app.state.admin_database,
-        app.state.private_credentials,
-    )
-    dp_querier = querier_factory(
-        dp_library,
-        data_connector=data_connector,
-        admin_database=app.state.admin_database,
-    )
-    try:
-        eps_cost, delta_cost = dp_querier.cost(request_model)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    new_task = Job()
 
-    return CostResponse(epsilon=eps_cost, delta=delta_cost)
+    jobs = app.state.jobs_var.get()
+    jobs[str(new_task.uid)] = new_task
+    app.state.jobs_var.set(jobs)
+
+    await app.state.cost_queue_channel.default_exchange.publish(
+        aio_pika.Message(
+            body=f"{user_name}:{dp_library}:{request_model.json()}".encode(), correlation_id=new_task.uid
+        ),
+        routing_key="cost_queue",
+    )
+
+    return new_task

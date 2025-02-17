@@ -291,14 +291,14 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test_smartnoise_synth_cost."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/estimate_smartnoise_synth_cost",
                 json=example_smartnoise_synth_cost,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = CostResponse.model_validate(response.json())
+            assert job is not None
+            r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon >= 0.1
             assert r_model.delta >= 1e-5
 

@@ -36,7 +36,7 @@ spec:
           - name: SERVER_SERVICE_NAME
             value: lomas-server-app
           - name: OTEL_COLLECTOR_ENDPOINT
-            value: "http://{{ .Values.otel.fullnameOverride }}:{{ .Values.otel.config.receiver.grpc_port }}"
+            value: "http://{{ .Values.otel.fullnameOverride }}:{{ .Values.otel.service.port }}"
           - name: OTEL_LOG_LEVEL
             value: {{ .Values.server.runtime_args.settings.server.log_level }}
         volumeMounts:

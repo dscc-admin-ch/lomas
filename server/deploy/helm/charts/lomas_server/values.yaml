@@ -138,7 +138,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.example.com"
+    hostname: "lomas-admin-dashboard.lab.sspcloud.fr"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -217,17 +217,16 @@ loki:
     pattern_ingester:
       enabled: true
 
-# Opentelemetry-Collector
+# Opentelemtry-Collector
 ##########################################################################
 otel:
   create: true
   service:
     type: ClusterIP
+    port: 4317
+    target_port: 4317
   fullnameOverride: "lomas-otel"
   config:
-    receiver:
-      grpc_port: 4317
-      http_port: 4318
     processors:
       batch:
         timeout: 5s
@@ -264,28 +263,20 @@ tempo:
 
   fullnameOverride: "lomas-tempo"
 
-  ingester:
-    max_block_duration: 5m
-  storage:
-    trace:
-      backend: local
-      local:
-        path: /var/tempo/traces
-      wal:
-        path: /var/tempo/wal
-  receivers:
-    otlp:
-      protocols:
-        grpc:
-          endpoint: "0.0.0.0:4317"
-        http:
-          endpoint: "0.0.0.0:4318"
-  overrides:
-    metrics_generator_processors:
-      - 'service-graphs'
-      - 'span-metrics'
-  persistence:
-    enabled: false
+  config:
+    stream_over_http_enabled: true
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
 
 # Grafana
 ##########################################################################
@@ -299,6 +290,7 @@ grafana:
 
   fullnameOverride: "lomas-grafana-dashboard"
 
+  config:
   apiVersion: 1
   datasources:
     prometheus:
@@ -349,5 +341,5 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboard.example.com"
+    hostname: "lomas-grafana-dashboard.lab.sspcloud.fr"
   replicaCount: 1

@@ -9,14 +9,14 @@
 | admin\_database/admin\_database.py             |       89 |        0 |    100% |           |
 | admin\_database/constants.py                   |        7 |        0 |    100% |           |
 | admin\_database/factory.py                     |       15 |        0 |    100% |           |
-| admin\_database/mongodb\_database.py           |       74 |        2 |     97% |   294-295 |
+| admin\_database/mongodb\_database.py           |       63 |        1 |     98% |       283 |
 | admin\_database/utils.py                       |       32 |        0 |    100% |           |
-| admin\_database/yaml\_database.py              |       96 |        1 |     99% |       173 |
+| admin\_database/yaml\_database.py              |       96 |        1 |     99% |       175 |
 | administration/\_\_init\_\_.py                 |        0 |        0 |    100% |           |
-| administration/dashboard/config.py             |       32 |       11 |     66% |10-11, 55-59, 73, 82-84, 97 |
+| administration/dashboard/config.py             |       32 |       11 |     66% |9-10, 54-58, 73, 82-84, 97 |
 | administration/tests/\_\_init\_\_.py           |        0 |        0 |    100% |           |
-| app.py                                         |       60 |        3 |     95% |     81-83 |
-| constants.py                                   |       45 |        3 |     93% | 10-11, 16 |
+| app.py                                         |       52 |        3 |     94% |     73-77 |
+| constants.py                                   |       50 |        3 |     94% | 12-13, 18 |
 | data\_connector/\_\_init\_\_.py                |        0 |        0 |    100% |           |
 | data\_connector/data\_connector.py             |       24 |        0 |    100% |           |
 | data\_connector/factory.py                     |       27 |        0 |    100% |           |
@@ -27,31 +27,30 @@
 | dp\_queries/dp\_libraries/\_\_init\_\_.py      |        0 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/diffprivlib.py       |       54 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/factory.py           |       20 |        0 |    100% |           |
-| dp\_queries/dp\_libraries/opendp.py            |       82 |        8 |     90% |65, 137-143, 147-152, 201 |
-| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       57 |        5 |     91% |124, 135-139 |
+| dp\_queries/dp\_libraries/opendp.py            |       82 |        8 |     90% |68, 147-153, 157-162, 212 |
+| dp\_queries/dp\_libraries/smartnoise\_sql.py   |       57 |        5 |     91% |130, 141-145 |
 | dp\_queries/dp\_libraries/smartnoise\_synth.py |      118 |        0 |    100% |           |
 | dp\_queries/dp\_libraries/utils.py             |       27 |        0 |    100% |           |
-| dp\_queries/dp\_querier.py                     |       36 |        1 |     97% |       110 |
-| dp\_queries/dummy\_dataset.py                  |       41 |        1 |     98% |        53 |
-| mongodb\_admin.py                              |      290 |        2 |     99% |  411, 652 |
+| dp\_queries/dp\_querier.py                     |       36 |        1 |     97% |       113 |
+| dp\_queries/dummy\_dataset.py                  |       40 |        1 |     98% |        54 |
+| mongodb\_admin.py                              |      283 |        2 |     99% |  426, 665 |
 | routes/\_\_init\_\_.py                         |        0 |        0 |    100% |           |
-| routes/middlewares.py                          |       61 |        0 |    100% |           |
 | routes/routes\_admin.py                        |       64 |        0 |    100% |           |
-| routes/routes\_dp.py                           |       44 |        0 |    100% |           |
+| routes/routes\_dp.py                           |       43 |        0 |    100% |           |
 | routes/utils.py                                |       63 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                          |        0 |        0 |    100% |           |
 | tests/constants.py                             |        6 |        0 |    100% |           |
-| tests/test\_api.py                             |      419 |        1 |     99% |       117 |
-| tests/test\_api\_diffprivlib.py                |      138 |        0 |    100% |           |
-| tests/test\_api\_smartnoise\_synth.py          |      265 |        0 |    100% |           |
+| tests/test\_api.py                             |      411 |        1 |     99% |       112 |
+| tests/test\_api\_diffprivlib.py                |      137 |        0 |    100% |           |
+| tests/test\_api\_smartnoise\_synth.py          |      264 |        0 |    100% |           |
 | tests/test\_collection\_models.py              |       85 |        0 |    100% |           |
 | tests/test\_dummy\_generation.py               |       63 |        0 |    100% |           |
-| tests/test\_mongodb\_admin.py                  |      426 |        1 |     99% |        76 |
+| tests/test\_mongodb\_admin.py                  |      426 |        1 |     99% |        77 |
 | tests/test\_mongodb\_admin\_cli.py             |      247 |        1 |     99% |        47 |
 | utils/\_\_init\_\_.py                          |        0 |        0 |    100% |           |
-| utils/config.py                                |       37 |        2 |     95% |    85, 95 |
-| utils/metrics.py                               |       11 |        0 |    100% |           |
-|                                      **TOTAL** | **3200** |   **43** | **99%** |           |
+| utils/config.py                                |       37 |        2 |     95% |   90, 100 |
+| utils/query\_examples.py                       |       36 |        0 |    100% |           |
+|                                      **TOTAL** | **3131** |   **42** | **99%** |           |
 
 
 ## Setup coverage badge

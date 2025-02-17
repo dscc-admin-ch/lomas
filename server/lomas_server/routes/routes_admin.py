@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Body, Depends, Header, Request
+from uuid import UUID
+
+from fastapi import APIRouter, Body, Depends, Header, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.error_handler import (
@@ -18,6 +20,7 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
+from lomas_server.constants import jobs_var
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.routes.utils import server_live
@@ -33,6 +36,19 @@ async def root():
         JSONResponse: The state of the server instance.
     """
     return RedirectResponse(url="/state")
+
+
+@router.get("/health/live")
+async def health_handler(dependencies=[Depends(server_live)]):
+    return
+
+
+@router.get("/status/{uid}")
+async def status_handler(uid: UUID, response: Response):
+    if (job := jobs_var.get().get(str(uid))) is not None:
+        if job.status == "failed":
+            response.status_code = job.status_code
+        return job
 
 
 # Get server state

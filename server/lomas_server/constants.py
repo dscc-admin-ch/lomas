@@ -1,6 +1,9 @@
 import os
 import string
+from contextvars import ContextVar
 from enum import StrEnum
+
+jobs_var: ContextVar = ContextVar("jobs", default={})
 
 # Config
 # -----------------------------------------------------------------------------

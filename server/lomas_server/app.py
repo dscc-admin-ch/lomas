@@ -4,11 +4,9 @@ import os
 from collections.abc import AsyncGenerator
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-from contextvars import ContextVar
-from uuid import UUID
 
 import aio_pika
-from fastapi import Depends, FastAPI, Response
+from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
@@ -24,12 +22,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
-from lomas_server.constants import (
-    CONFIG_NOT_LOADED,
-    DB_NOT_LOADED,
-    SERVER_SERVICE_NAME,
-    SERVICE_ID,
-)
+from lomas_server.constants import CONFIG_NOT_LOADED, DB_NOT_LOADED, SERVER_SERVICE_NAME, SERVICE_ID, jobs_var
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -38,10 +31,7 @@ from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.routes.utils import server_live
 from lomas_server.utils.config import get_config
-
-jobs_var: ContextVar = ContextVar("jobs", default={})
 
 # TODO: merge in pydantic-settings
 amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
@@ -188,16 +178,3 @@ FastAPIInstrumentor.instrument_app(app)
 # Add endpoints
 app.include_router(routes_dp.router)
 app.include_router(routes_admin.router)
-
-
-@app.get("/status/{uid}")
-async def status_handler(uid: UUID, response: Response):
-    if (job := jobs_var.get().get(str(uid))) is not None:
-        if job.status == "failed":
-            response.status_code = job.status_code
-        return job
-
-
-@app.get("/health/live")
-async def health_handler(dependencies=[Depends(server_live)]):
-    return

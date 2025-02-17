@@ -95,6 +95,6 @@ class Config(BaseModel):
 
     admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
 
-    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(..., discriminator="db_type")
+    private_db_credentials: List[Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]]
 
     dp_libraries: DPLibraryConfig

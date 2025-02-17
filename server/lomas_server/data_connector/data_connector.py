@@ -69,7 +69,7 @@ def get_column_dtypes(metadata: Metadata) -> Tuple[Dict[str, str], List[str]]:
             dtypes[col_name] = "string"
             datetime_columns.append(col_name)
         elif hasattr(data, "precision"):
-            dtypes[col_name] = f'{data.type}{data.precision}'
+            dtypes[col_name] = f"{data.type}{data.precision}"
         else:
             dtypes[col_name] = data.type
     return dtypes, datetime_columns

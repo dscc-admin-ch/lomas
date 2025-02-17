@@ -15,7 +15,7 @@ data:
       volume_enabled: {{ .Values.loki.config.limits_config.volume_enabled }}
 
     server:
-      http_listen_port: {{ .Values.loki.config.server.http_listen_port }}
+      http_listen_port: {{ .Values.loki.service.port }}
 
     common:
       ring:

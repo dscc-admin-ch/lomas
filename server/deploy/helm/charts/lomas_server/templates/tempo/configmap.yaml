@@ -1,0 +1,29 @@
+{{- if .Values.tempo.create -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+{{- $fullname := include "lomas.tempo.fullname" . }}
+  name: {{ printf "%s-tempo-config" $fullname }}
+  labels:
+    {{- include "lomas.tempo.labels" . | nindent 4 }}
+data:
+    tempo.yaml: |
+      stream_over_http_enabled: {{ .Values.tempo.config.stream_over_http_enabled }}
+
+      server:
+        http_listen_port: {{ .Values.tempo.service.port }}
+
+      distributor:
+        receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: "0.0.0.0:{{ .Values.otel.service.port }}"
+      storage:
+        trace:
+          backend: {{ .Values.tempo.config.storage.trace.backend }}
+          wal:
+            path: {{ .Values.tempo.config.storage.trace.wal.path }}
+          local:
+            path: {{ .Values.tempo.config.storage.trace.local.path }}
+{{- end }}

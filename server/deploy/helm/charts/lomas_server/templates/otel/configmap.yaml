@@ -11,9 +11,7 @@ data:
         otlp:
             protocols:
                 grpc:
-                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.grpc_port }}
-                http:
-                    endpoint: 0.0.0.0:{{ .Values.otel.config.receiver.http_port }}
+                    endpoint: "0.0.0.0:{{ .Values.otel.service.port }}"
     processors:
         batch:
             timeout: {{ .Values.otel.config.processors.batch.timeout }}
@@ -23,7 +21,7 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: {{ .Values.tempo.fullnameOverride }}:{{ .Values.otel.config.receiver.grpc_port }}
+            endpoint: {{ .Values.tempo.fullnameOverride }}:{{ .Values.otel.service.port }}
             tls:
                 insecure: true
 

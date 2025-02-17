@@ -12,8 +12,8 @@ spec:
   ports:
     - name: otel-grpc
       protocol: TCP
-      port: {{ .Values.otel.config.receiver.grpc_port }}
-      targetPort: {{ .Values.otel.config.receiver.grpc_port }}
+      port: {{ .Values.otel.service.port }}
+      targetPort: {{ .Values.otel.service.target_port }}
     - name: metrics
       port: {{ .Values.otel.config.exporters.prometheus.port }}
       targetPort: {{ .Values.otel.config.exporters.prometheus.port }}

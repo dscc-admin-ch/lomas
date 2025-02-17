@@ -8,10 +8,12 @@
 let
   inherit (builtins) readFile concatStringsSep toJSON;
 
-  mongo_port = "27017";
-  minio_port = "9000";
+  mongo_port = 27017;
+  minio_port = 9000;
   accessKey = "admin";
   secretKey = "admin123";
+  rabbitmq_port = 5672;
+  rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
 
   lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
     runtime_args = {
@@ -99,8 +101,12 @@ in
   services.rabbitmq = {
     enable = true;
     listenAddress = "127.0.0.1";
-    port = 5672;
+    port = rabbitmq_port;
     nodeName = "rabbit@localhost";
+    managementPlugin = {
+      enable = true;
+      port = rabbitmq_mgmt_port;
+    };
   };
 
   processes.worker = {
@@ -124,7 +130,7 @@ in
     enable = true;
     additionalArgs = [
       "--port"
-      "${mongo_port}"
+      (toString mongo_port)
     ];
     initDatabaseUsername = "root";
     initDatabasePassword = "root_pwd";
@@ -133,9 +139,9 @@ in
   processes.mongodb.process-compose = {
     readiness_probe = {
       exec.command = ''
-        ${pkgs.mongosh}/bin/mongosh --quiet --eval "{ ping: 1 }" --port ${mongo_port} 2>&1 >/dev/null
+        ${pkgs.mongosh}/bin/mongosh --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} 2>&1 >/dev/null
       '';
-      initial_delay_seconds = 5;
+      initial_delay_seconds = 3;
       period_seconds = 10;
       timeout_seconds = 5;
       success_threshold = 1;
@@ -145,7 +151,7 @@ in
 
   processes.mongodb-init-lomas = {
     exec = ''
-      ${pkgs.mongosh}/bin/mongosh 127.0.0.1:${mongo_port}/defaultdb --file ${./server/configs/mongodb_init.js};
+      ${pkgs.mongosh}/bin/mongosh 127.0.0.1:${toString mongo_port}/defaultdb --file ${./server/configs/mongodb_init.js};
       tail -f /dev/null
     '';
     process-compose.depends_on."mongodb".condition = "process_healthy";
@@ -212,7 +218,7 @@ in
 
   services.minio =
     let
-      listenAddress = "127.0.0.1:${minio_port}";
+      listenAddress = "127.0.0.1:${toString minio_port}";
     in
     {
       enable = true;

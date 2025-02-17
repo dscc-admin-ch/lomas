@@ -217,7 +217,7 @@ loki:
     pattern_ingester:
       enabled: true
 
-# Opentelemtry-Collector
+# Opentelemetry-Collector
 ##########################################################################
 otel:
   create: true

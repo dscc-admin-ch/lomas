@@ -92,7 +92,7 @@ services:
 
   keycloak_setup:
     container_name: keycloak_setup
-    image: dscc_admin_ch/lomas_admin_dev
+    image: dsccadminch/lomas_admin_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_admin_dev
@@ -110,7 +110,7 @@ services:
 
   lomas_demo_setup:
     container_name: demo_setu
-    image: dscc_admin_ch/lomas_admin_dev
+    image: dsccadminch/lomas_admin_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_admin_dev

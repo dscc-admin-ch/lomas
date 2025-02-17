@@ -5,7 +5,8 @@ from functools import wraps
 from typing import Annotated
 
 from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -74,6 +75,7 @@ async def server_live(request: Request) -> AsyncGenerator:
 
 def get_user_id_from_authenticator(
     request: Request,
+    security_scopes: SecurityScopes,
     auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
 ) -> UserId:
     """Extracts the authenticator from the app state and calls its get_user_id method.
@@ -87,7 +89,7 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    user_id = request.app.state.authenticator.get_user_id(auth_creds)
+    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
     request.state.user_name = user_id.name
     
     return user_id

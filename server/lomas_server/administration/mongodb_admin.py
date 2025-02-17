@@ -148,8 +148,8 @@ def with_mongodb(func: Callable) -> Callable:
 
 
 ##########################  USERS  ########################## # noqa: E266
-@check_user_exists(False)
 @with_mongodb
+@check_user_exists(False)
 def add_user(db: Database, user: str, email: str) -> None:
     """Add new user in users collection with default values for all fields.
 
@@ -183,8 +183,8 @@ def add_user(db: Database, user: str, email: str) -> None:
     logging.info(f"Added user {user_log}.")
 
 
-@check_user_exists(False)
 @with_mongodb
+@check_user_exists(False)
 def add_user_with_budget(
     db: Database, user: str, email: str, dataset: str, epsilon: float, delta: float
 ) -> None:
@@ -252,9 +252,9 @@ def del_user(db: Database, user: str) -> None:
     logging.info(f"Deleted user {user}.")
 
 
+@with_mongodb
 @check_user_exists(True)
 @check_user_has_dataset(False)
-@with_mongodb
 def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add dataset to user with initialized budget values.
 
@@ -302,9 +302,9 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
     )
 
 
+@with_mongodb
 @check_user_exists(True)
 @check_user_has_dataset(True)
-@with_mongodb
 def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
     """Remove access from user to dataset(and all related budget info).
 
@@ -326,9 +326,9 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
     logging.info(f"Remove access to dataset {dataset}" + f" from user {user}.")
 
 
+@with_mongodb
 @check_user_exists(True)
 @check_user_has_dataset(True)
-@with_mongodb
 def set_budget_field(db: Database, user: str, dataset: str, field: str, value: float) -> None:
     """Set (for some reason) a budget field to a given value.
 
@@ -357,8 +357,8 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
     logging.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
 
 
-@check_user_exists(True)
 @with_mongodb
+@check_user_exists(True)
 def set_may_query(db: Database, user: str, value: bool) -> None:
     """Set (for some reason) the 'may query' field to a given value.
 
@@ -382,8 +382,8 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
     logging.info(f"Set user {user} may query to {value}.")
 
 
-@check_user_exists(True)
 @with_mongodb
+@check_user_exists(True)
 def get_user(db: Database, user: str) -> dict:
     """Show a user.
 
@@ -469,8 +469,8 @@ def add_users_via_yaml(
         logging.info("No new users added, they already exist in the server")
 
 
-@check_user_exists(True)
 @with_mongodb
+@check_user_exists(True)
 def get_archives_of_user(db: Database, user: str) -> List[dict]:
     """Show all previous queries from a user.
 
@@ -498,13 +498,13 @@ def get_list_of_users(db: Database) -> list:
     """
     user_names = []
     for elem in db.users.find():
-        user_names.append(elem["user_name"])
+        user_names.append(elem["id"]["name"])
     logging.info(user_names)
     return user_names
 
 
-@check_user_exists(True)
 @with_mongodb
+@check_user_exists(True)
 def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """Get the list of all datasets from the user.
 
@@ -522,8 +522,8 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
 
 
 ###################  DATASET TO DATABASE  ################### # noqa: E266
-@check_dataset_and_metadata_exist(False)
 @with_mongodb
+@check_dataset_and_metadata_exist(False)
 def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     db: Database,
     dataset_name: str,
@@ -760,8 +760,8 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             logging.info(f"Added metadata of {dataset_name} dataset. ")
 
 
-@check_dataset_and_metadata_exist(True)
 @with_mongodb
+@check_dataset_and_metadata_exist(True)
 def del_dataset(db: Database, dataset: str) -> None:
     """Delete dataset from dataset collection.
 
@@ -779,8 +779,8 @@ def del_dataset(db: Database, dataset: str) -> None:
     logging.info(f"Deleted dataset and metadata for {dataset}.")
 
 
-@check_dataset_and_metadata_exist(True)
 @with_mongodb
+@check_dataset_and_metadata_exist(True)
 def get_dataset(db: Database, dataset: str) -> dict:
     """Show a dataset from dataset collection.
 
@@ -797,8 +797,8 @@ def get_dataset(db: Database, dataset: str) -> dict:
     return dataset_info
 
 
-@check_dataset_and_metadata_exist(True)
 @with_mongodb
+@check_dataset_and_metadata_exist(True)
 def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
     """Show a metadata from metadata collection.
 

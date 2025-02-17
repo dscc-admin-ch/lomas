@@ -48,10 +48,7 @@ from lomas_server.mongodb_admin import (
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.tests.constants import (
-    s3_integration_enabled,
-    submit_job_wait,
-)
+from lomas_server.tests.constants import submit_job_wait
 from lomas_server.utils.config import CONFIG_LOADER
 
 INITAL_EPSILON = 10
@@ -94,14 +91,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             overwrite=True,
         )
 
-        if s3_integration_enabled():
-            yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
-        else:
-            yaml_file = "tests/test_data/test_datasets.yaml"
-
         add_datasets_via_yaml(
             self.db,
-            yaml_file=yaml_file,
+            yaml_file="tests/test_data/test_datasets_with_s3.yaml",
             clean=True,
             overwrite_datasets=True,
             overwrite_metadata=True,
@@ -440,7 +432,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # df = pd.read_csv(StringIO(data))
         # assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
 
-    @unittest.skipUnless(s3_integration_enabled(), "S3 Integration disabled")
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset."""
         with TestClient(app, headers=self.headers) as client:

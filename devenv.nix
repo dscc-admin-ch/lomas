@@ -9,37 +9,43 @@ let
   inherit (builtins) readFile concatStringsSep toJSON;
 
   mongo_port = 27017;
-  minio_port = 9000;
+  minio_port = 19000;
   accessKey = "admin";
   secretKey = "admin123";
   rabbitmq_port = 5672;
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
+  mongo_db_name = "defaultdb";
 
   lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
     runtime_args = {
       settings = {
-        develop_mode = true;
+        develop_mode = false;
         submit_limit = 300;
         server = {
-          host_ip = "localhost";
-          host_port = "64080"; # 80 is privileged
+          host_ip = "0.0.0.0";
+          host_port = 80; # 80 is privileged
           log_level = "info";
           reload = true;
           workers = 1;
           time_attack = {
-            method = "stall";
+            method = "jitter";
             magnitude = 1;
           };
         };
         admin_database = {
-          db_type = "yaml";
-          db_file = "${./server/lomas_server/tests/test_data/local_db_file.yaml}";
+          db_type = "mongo";
+          address = "127.0.0.1";
+          port = mongo_port;
+          db_name = mongo_db_name;
+          max_pool_size = 100;
+          min_pool_size = 2;
+          max_connecting = 2;
         };
         dp_libraries = {
           opendp = {
             contrib = true;
             floating_point = true;
-            honest_but_curious = false;
+            honest_but_curious = true;
           };
         };
       };
@@ -90,8 +96,8 @@ in
 
   env = {
     PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
-    # LOMAS_CONFIG_PATH = "${lomas_config}";
-    # LOMAS_SECRETS_PATH = "${lomas_secrets}";
+    LOMAS_CONFIG_PATH = "${lomas_config}";
+    LOMAS_SECRETS_PATH = "${lomas_secrets}";
   };
 
   ############
@@ -149,13 +155,23 @@ in
     };
   };
 
-  processes.mongodb-init-lomas = {
-    exec = ''
-      ${pkgs.mongosh}/bin/mongosh 127.0.0.1:${toString mongo_port}/defaultdb --file ${./server/configs/mongodb_init.js};
-      tail -f /dev/null
-    '';
-    process-compose.depends_on."mongodb".condition = "process_healthy";
-  };
+  processes.mongodb-init-lomas =
+    let
+      mongo_init_script = pkgs.writeText "mongodb_init.js" ''
+        db.createUser({
+          user: "user",
+          pwd: "user_pwd",
+          roles: [{role: "readWrite", db: "${mongo_db_name}" }]
+        });
+      '';
+    in
+    {
+      exec = ''
+        ${pkgs.mongosh}/bin/mongosh 127.0.0.1:${toString mongo_port}/${mongo_db_name} --file ${mongo_init_script};
+        tail -f /dev/null
+      '';
+      process-compose.depends_on."mongodb".condition = "process_healthy";
+    };
 
   #############
   # GIT HOOKS #
@@ -253,16 +269,9 @@ in
 
   scripts.ut-coverage.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-
-    # "basic", developer mode, "stall"
-    LOMAS_TEST_S3_INTEGRATION=0 coverage run --source=. -m unittest
-
-    # s3 minio available
-    LOMAS_TEST_S3_INTEGRATION=1 coverage run -a --source=. -m unittest
-
+    coverage run --source=. -m unittest
     coverage report
     coverage xml -o coverage.xml
-
     popd
   '';
 

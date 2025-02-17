@@ -34,10 +34,6 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
-from lomas_server.tests.constants import (
-    ENV_S3_INTEGRATION,
-    s3_integration_enabled,
-)
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
@@ -579,18 +575,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 metadata_path=metadata_path,
             )
 
-    @unittest.skipIf(
-        s3_integration_enabled(),
-        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-            environment variable not set to True.""",
-    )
     def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
         """Test adding a dataset stored on S3."""
         dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
         bucket = "example"
-        endpoint_url = "http://localhost:9000"
+        endpoint_url = "http://localhost:19000"
         access_key_id = "admin"
         secret_access_key = "admin123"
         credentials_name = "local_minio"
@@ -725,11 +716,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         verify_datasets()
 
-    @unittest.skipUnless(
-        s3_integration_enabled(),
-        f"""Not an S3 integration test: {ENV_S3_INTEGRATION}
-            environment variable not set to True.""",
-    )
     def test_add_s3_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file."""
         # Load reference data
@@ -925,25 +911,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db."""
 
-        if s3_integration_enabled():
-            dataset_yaml = "tests/test_data/test_datasets_with_s3.yaml"
-        else:
-            dataset_yaml = "tests/test_data/test_datasets.yaml"
-
         add_demo_data_to_mongodb_admin(
-            user_yaml="./tests/test_data/test_user_collection.yaml",
-            dataset_yaml=dataset_yaml,
+            user_yaml="tests/test_data/test_user_collection.yaml",
+            dataset_yaml="tests/test_data/test_datasets_with_s3.yaml",
         )
 
         users_list = get_list_of_users(self.db)
         self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"])
 
         list_datasets = get_list_of_datasets(self.db)
-
-        if s3_integration_enabled():
-            self.assertEqual(
-                list_datasets,
-                ["PENGUIN", "IRIS", "PUMS", "TINTIN_S3_TEST", "BIRTHDAYS"],
-            )
-        else:
-            self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])
+        self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "PUMS", "TINTIN_S3_TEST", "BIRTHDAYS"])

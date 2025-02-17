@@ -21,7 +21,7 @@ from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )
-from lomas_core.models.responses import OpenDPQueryResult
+from lomas_core.models.responses import OpenDPQueryResult, OpenDPPolarsQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
@@ -326,7 +326,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
         return epsilon, delta
 
-    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult:
+    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -358,8 +358,8 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             ) from e
 
         if isinstance(release_data, dp.extras.polars.OnceFrame):
-            release_data = release_data.collect().write_json()
-
+            release_data = release_data.collect()
+            return OpenDPPolarsQueryResult(value=release_data)
         return OpenDPQueryResult(value=release_data)
 
 

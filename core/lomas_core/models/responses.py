@@ -1,5 +1,5 @@
-from typing import Annotated, Dict, List, Literal, Union
-
+from typing import Annotated, Dict, List, Literal, Union, Any
+import polars as pl
 import pandas as pd
 from diffprivlib.validation import DiffprivlibMixin
 from pydantic import (
@@ -19,6 +19,8 @@ from lomas_core.models.utils import (
     dataframe_to_dict,
     deserialize_model,
     serialize_model,
+    polars_df_from_str,
+    polars_df_to_str,
 )
 
 
@@ -58,7 +60,7 @@ class DummyDsResponse(ResponseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    dtypes: Dict[str, str]
+    dtypes: Any
     """The dummy_df column data types."""
     datetime_columns: List[str]
     """The list of columns with datetime type."""
@@ -172,7 +174,20 @@ class OpenDPQueryResult(BaseModel):
 
     res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
-    value: Union[int, float, List[Union[int, float]], str]
+    value: Union[int, float, List[Union[int, float]]]
+    """The result value of the query."""
+    
+class OpenDPPolarsQueryResult(BaseModel):
+    """Type for opendp Polars result."""
+
+    res_type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
+    """Result type description."""
+    # order of PlainValidator and PlainSerializer matters in that case:
+    # https://github.com/pydantic/pydantic/issues/8512
+    value: Annotated[pl.DataFrame, 
+                     PlainValidator(polars_df_from_str),
+                     PlainSerializer(polars_df_to_str), 
+                     ]
     """The result value of the query."""
 
 
@@ -183,6 +198,7 @@ QueryResultTypeAlias = Union[
     SmartnoiseSynthModel,
     SmartnoiseSynthSamples,
     OpenDPQueryResult,
+    OpenDPPolarsQueryResult,
 ]
 
 

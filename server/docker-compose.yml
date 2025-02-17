@@ -20,9 +20,7 @@ services:
       - ../core/lomas_core:/code/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
-      - ./data/collections/metadata:/data/collections/metadata/
-      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
-      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+      - ./data/:/data/
     depends_on:
       minio-client:
         condition: service_completed_successfully

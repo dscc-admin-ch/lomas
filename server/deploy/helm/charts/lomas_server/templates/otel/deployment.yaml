@@ -28,10 +28,8 @@ spec:
         args:
           - "--config=/conf/otel-collector-config.yaml"
         ports:
-          - containerPort: {{ .Values.otel.config.receiver.grpc_port }}
+          - containerPort: {{ .Values.otel.service.port }}
             name: otlp-grpc
-          - containerPort: {{ .Values.otel.config.receiver.http_port }}
-            name: otlp-http
           - containerPort: {{ .Values.otel.config.exporters.prometheus.port }}
             name: metrics
         volumeMounts:

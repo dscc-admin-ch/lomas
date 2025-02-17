@@ -1,0 +1,45 @@
+{{- if .Values.tempo.create -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.tempo.fullname" . }}
+  labels:
+    {{- include "lomas.tempo.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.tempo.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.tempo.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.tempo.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.tempo.podSecurityContext | nindent 8 }}
+
+      containers:
+      - name: tempo-container
+        image: grafana/tempo:latest
+        args:
+          - "--config.file=/etc/tempo.yaml"
+        ports:
+          - containerPort: {{ .Values.tempo.service.port}}
+        volumeMounts:
+          - name: tempo-config
+            mountPath: /etc/tempo.yaml
+            subPath: tempo.yaml
+            readOnly: true
+
+      volumes:
+      {{- $fullname := include "lomas.tempo.fullname" . }}
+      - name: tempo-config
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-tempo-config" $fullname }}
+{{- end }}

@@ -71,7 +71,13 @@ MongoDB database) and a client development environment in a Kubernetes cluster.
 For extensive informations about how to deploy, please refer to :doc:`Deployment <server_deployment>`
 documentation.
 
-## Disclaimer
+Core
+========
+The ``lomas_core`` library serves as a base for both the ``lomas_client`` and ``lomas_server`` libraries.
+It contains code that both these libraries rely on such as request and response models.
+
+Disclaimer
+========
 Lomas is a Proof of Concept that is still under development. 
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
@@ -110,14 +116,19 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
 .. toctree::
    :maxdepth: 2
+   :caption: Observability
+   :hidden:
+
+   observability
+
+.. toctree::
+   :maxdepth: 2
    :caption: Contributing
    :hidden:
 
    CONTRIBUTING.md
    CONTRIBUTING_CLIENT.md
    CONTRIBUTING_SERVER.md
-
-   poster
 
 .. toctree::
    :maxdepth: 2

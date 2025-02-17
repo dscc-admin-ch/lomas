@@ -1,21 +1,22 @@
+import logging
+
 import opendp as dp
+from opendp.metrics import metric_distance_type, metric_type
+from opendp.mod import enable_features
+from opendp_logger import make_load_json
+
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.logger import LOG
 from lomas_core.models.config import OpenDPConfig
 from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )
 from lomas_core.models.responses import OpenDPQueryResult
-from opendp.metrics import metric_distance_type, metric_type
-from opendp.mod import enable_features
-from opendp_logger import make_load_json
-
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -55,16 +56,12 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
         except Exception as e:
-            LOG.exception(e)
-            raise ExternalLibraryException(
-                DPLibraries.OPENDP, "Error obtaining cost:" + str(e)
-            ) from e
+            logging.exception(e)
+            raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
 
         # Cost interpretation
         match measurement_type:
-            case (
-                OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
-            ):  # Approximate DP with fix delta
+            case OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE:  # Approximate DP with fix delta
                 epsilon, delta = cost
             case OpenDPMeasurement.MAX_DIVERGENCE:  # Pure DP
                 epsilon, delta = cost, 0
@@ -77,9 +74,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 epsilon = cost.epsilon(delta=query_json.fixed_delta)
                 delta = query_json.fixed_delta
             case _:
-                raise InternalServerException(
-                    f"Invalid measurement type: {measurement_type}"
-                )
+                raise InternalServerException(f"Invalid measurement type: {measurement_type}")
 
         return epsilon, delta
 
@@ -98,14 +93,12 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         """
         opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
 
-        input_data = self.data_connector.get_pandas_df().to_csv(
-            header=False, index=False
-        )
+        input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
 
         try:
             release_data = opendp_pipe(input_data)
         except Exception as e:
-            LOG.exception(e)
+            logging.exception(e)
             raise ExternalLibraryException(
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
@@ -124,11 +117,8 @@ def is_measurement(pipeline: dp.Measurement) -> None:
         InvalidQueryException: If the pipeline is not a measurement.
     """
     if not isinstance(pipeline, dp.Measurement):
-        e = (
-            "The pipeline provided is not a measurement. "
-            + "It cannot be processed in this server."
-        )
-        LOG.exception(e)
+        e = "The pipeline provided is not a measurement. It cannot be processed in this server."
+        logging.exception(e)
         raise InvalidQueryException(e)
 
 
@@ -149,7 +139,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             + f" but {distance_type} which is not a valid distance type for datasets."
             + " It cannot be processed in this server."
         )
-        LOG.exception(e)
+        logging.exception(e)
         raise InvalidQueryException(e)
 
     dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
@@ -158,7 +148,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             f"The input distance metric {pipeline.input_metric} is not a dataset"
             + " input metric. It cannot be processed in this server."
         )
-        LOG.exception(e)
+        logging.exception(e)
         raise InvalidQueryException(e)
 
 
@@ -204,8 +194,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
             output_type = output_type.args[0]
         else:
             raise InternalServerException(
-                f"Cannot process output measure: {output_measure}"
-                + f"with output type {output_type}."
+                f"Cannot process output measure: {output_measure} with output type {output_type}."
             )
 
     if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):
@@ -217,9 +206,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     elif output_measure == dp.measures.zero_concentrated_divergence(T=output_type):
         measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
     else:
-        raise InternalServerException(
-            f"Unknown type of output measure divergence: {output_measure}"
-        )
+        raise InternalServerException(f"Unknown type of output measure divergence: {output_measure}")
     return measurement
 
 

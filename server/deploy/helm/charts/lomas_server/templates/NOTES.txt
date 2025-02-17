@@ -26,3 +26,17 @@ Since dashboard ingress was enabled, the administration dashboard is also reacha
 {{- end }}
 {{- end }}
 
+
+{{- if .Values.grafana.create }}
+
+3. From within your namespace, the grafana monitoring dashboard is available at
+  
+  {{ .Values.grafana.fullnameOverride }}:{{ .Values.grafana.service.port }}
+
+{{- if .Values.grafana.ingress.enabled }}
+
+Since grafana dashboard ingress was enabled, the administration dashboard is also reachable from the internet at
+  
+  https://{{ .Values.grafana.ingress.hostname }}
+{{- end }}
+{{- end }}

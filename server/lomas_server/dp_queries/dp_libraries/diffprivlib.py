@@ -4,6 +4,9 @@ from typing import Optional
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
@@ -14,9 +17,6 @@ from lomas_core.models.requests import (
     DiffPrivLibRequestModel,
 )
 from lomas_core.models.responses import DiffPrivLibQueryResult
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
@@ -25,9 +25,7 @@ from lomas_server.dp_queries.dp_libraries.utils import (
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-class DiffPrivLibQuerier(
-    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]
-):
+class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]):
     """Concrete implementation of the DPQuerier ABC for the DiffPrivLib library."""
 
     def __init__(
@@ -129,9 +127,7 @@ class DiffPrivLibQuerier(
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
         if self.dpl_pipeline is None:
-            raise InternalServerException(
-                "DiffPrivLib `query` method called before `cost` method"
-            )
+            raise InternalServerException("DiffPrivLib `query` method called before `cost` method")
 
         # Model accuracy
         score = self.dpl_pipeline.score(self.x_test, self.y_test)

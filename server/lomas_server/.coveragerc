@@ -4,6 +4,8 @@ omit =
     mongodb_admin_cli.py
     uvicorn_serve.py
     administration/tests/test_streamlit_app.py
+    administration/tests/test_streamlit_app_page_b.py
+    administration/tests/utils.py
 
 [report]
 exclude_lines =

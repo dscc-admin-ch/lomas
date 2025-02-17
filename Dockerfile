@@ -32,7 +32,7 @@ CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 FROM lomas_core AS lomas_server_base
 
 COPY ./server/requirements_server.txt /code/requirements_server.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements_server.txt 
+RUN pip install --no-cache-dir --upgrade -r /code/requirements_server.txt
 
 FROM lomas_server_base AS lomas_server_dev
 ENV PYTHONDONTWRITEBYTECODE=1

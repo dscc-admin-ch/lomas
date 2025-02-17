@@ -9,20 +9,25 @@ from diffprivlib.utils import (
 from diffprivlib_logger import serialise_pipeline
 from fastapi import status
 from fastapi.testclient import TestClient
+from sklearn.pipeline import Pipeline
+
 from lomas_core.constants import DPLibraries
+from lomas_core.models.exceptions import (
+    ExternalLibraryExceptionModel,
+    InvalidQueryExceptionModel,
+    UnauthorizedAccessExceptionModel,
+)
+from lomas_core.models.requests_examples import (
+    example_diffprivlib,
+    example_dummy_diffprivlib,
+)
 from lomas_core.models.responses import (
     CostResponse,
     DiffPrivLibQueryResult,
     QueryResponse,
 )
-from sklearn.pipeline import Pipeline
-
 from lomas_server.app import app
 from lomas_server.tests.test_api import TestRootAPIEndpoint
-from lomas_server.utils.query_examples import (
-    example_diffprivlib,
-    example_dummy_diffprivlib,
-)
 
 
 def validate_pipeline(response) -> QueryResponse:
@@ -83,10 +88,12 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             # Should not work unknow imputation strategy
             response = test_imputation(example_diffprivlib, "i_do_not_exist")
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {
-                "InvalidQueryException": ""
-                + "Imputation strategy i_do_not_exist not supported."
-            }
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="Imputation strategy i_do_not_exist not supported."
+                ).model_dump()
+            )
 
             # Should not work: Privacy Leak Warning
             warnings.simplefilter("error", PrivacyLeakWarning)
@@ -105,18 +112,21 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "PrivacyLeakWarning: "
-                + "Bounds parameter hasn't been specified, so falling back to "
-                + "determining bounds from the data.\n "
-                + "This will result in additional privacy leakage.  "
-                + "To ensure differential privacy with no additional privacy "
-                + "loss, specify `bounds` for each valued returned by "
-                + "np.mean().. "
-                + "Lomas server cannot fit pipeline on data, "
-                + "PrivacyLeakWarning is a blocker.",
-                "library": DPLibraries.DIFFPRIVLIB,
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="PrivacyLeakWarning: "
+                    + "Bounds parameter hasn't been specified, so falling back to "
+                    + "determining bounds from the data.\n "
+                    + "This will result in additional privacy leakage.  "
+                    + "To ensure differential privacy with no additional privacy "
+                    + "loss, specify `bounds` for each valued returned by "
+                    + "np.mean().. "
+                    + "Lomas server cannot fit pipeline on data, "
+                    + "PrivacyLeakWarning is a blocker.",
+                    library=DPLibraries.DIFFPRIVLIB,
+                ).model_dump()
+            )
 
             # Should not work: Compatibility Warning
             warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
@@ -198,9 +208,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                     ),
                     (
                         "gaussian",
-                        models.GaussianNB(
-                            epsilon=1.0, bounds=bounds, priors=(0.3, 0.3, 0.4)
-                        ),
+                        models.GaussianNB(epsilon=1.0, bounds=bounds, priors=(0.3, 0.3, 0.4)),
                     ),
                 ]
             )
@@ -345,10 +353,12 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_diffprivlib_cost(self) -> None:
         """Test_diffprivlib_cost."""
@@ -375,7 +385,9 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )

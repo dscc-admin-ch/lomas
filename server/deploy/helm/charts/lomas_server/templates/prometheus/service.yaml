@@ -1,0 +1,16 @@
+{{- if .Values.prometheus.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.prometheus.fullname" . }}
+  labels:
+    {{- include "lomas.prometheus.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.prometheus.service.type }}
+  selector:
+    {{- include "lomas.prometheus.selectorLabels" . | nindent 8 }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.prometheus.service.port}}
+      targetPort: {{ .Values.prometheus.service.target_port}}
+{{- end }}

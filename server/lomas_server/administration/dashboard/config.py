@@ -1,8 +1,9 @@
 import os
 
 import yaml
-from lomas_core.error_handler import InternalServerException
 from pydantic import BaseModel
+
+from lomas_core.error_handler import InternalServerException
 
 # Get config and secrets from correct location
 if "LOMAS_DASHBOARD_CONFIG_PATH" in os.environ:
@@ -59,8 +60,7 @@ class ConfigLoader:
 
         except Exception as e:
             raise InternalServerException(
-                f"Could not read config from disk at {config_path}"
-                + f" or missing fields: {e}"
+                f"Could not read config from disk at {config_path} or missing fields: {e}"
             ) from e
 
     def set_config(self, config: Config) -> None:

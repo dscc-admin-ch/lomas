@@ -5,7 +5,23 @@ from typing import List, Optional
 
 import pandas as pd
 from fastapi import status
+from opendp.mod import enable_features
+from opendp_logger import enable_logging, make_load_json
+
+from lomas_client.constants import (
+    CLIENT_SERVICE_NAME,
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+    SERVICE_ID,
+)
+from lomas_client.http_client import LomasHttpClient
+from lomas_client.libraries.diffprivlib import DiffPrivLibClient
+from lomas_client.libraries.opendp import OpenDPClient
+from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
+from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
+from lomas_client.utils import raise_error, validate_model_response
 from lomas_core.constants import DPLibraries
+from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -16,19 +32,6 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from opendp.mod import enable_features
-from opendp_logger import enable_logging, make_load_json
-
-from lomas_client.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-)
-from lomas_client.http_client import LomasHttpClient
-from lomas_client.libraries.diffprivlib import DiffPrivLibClient
-from lomas_client.libraries.opendp import OpenDPClient
-from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
-from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
-from lomas_client.utils import raise_error, validate_model_response
 
 # Opendp_logger
 enable_logging()
@@ -49,6 +52,9 @@ class Client:
             user_name (str): The name of the user allowed to perform queries.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
         """
+
+        resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
+        init_telemetry(resource)
 
         self.http_client = LomasHttpClient(url, user_name, dataset_name)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
@@ -186,24 +192,17 @@ class Client:
                         return_model = query["client_input"]["return_model"]
                         res = query["response"]["result"]
                         if return_model:
-                            query["response"]["result"] = pickle.loads(
-                                base64.b64decode(res)
-                            )
+                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
                         else:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
-                        opdp_query = make_load_json(
-                            query["client_input"]["opendp_json"]
-                        )
+                        opdp_query = make_load_json(query["client_input"]["opendp_json"])
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(
-                            "Cannot deserialise unknown query type:"
-                            + f"{query['dp_librairy']}"
-                        )
+                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_librairy']}")
 
                 deserialised_queries.append(query)
 

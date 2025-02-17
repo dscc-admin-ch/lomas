@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="lomas-core",
     packages=find_packages(),
-    version="0.3.5",
+    version="0.4.1",
     description="Lomas core.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -40,6 +40,9 @@ setup(
         "numpy>=1.26.4",
         "opendp==0.10.0",
         "opendp_logger>=0.3.0",
+        "opentelemetry-api>=1.29.0",
+        "opentelemetry-exporter-otlp>=1.29.0",
+        "opentelemetry-sdk>=1.29.0",
         "pandas>=2.2.2",
         "pymongo>=4.6.3",
         "scikit-learn>=1.4.2",

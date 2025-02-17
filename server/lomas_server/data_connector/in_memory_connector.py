@@ -1,6 +1,6 @@
 import pandas as pd
-from lomas_core.models.collections import Metadata
 
+from lomas_core.models.collections import Metadata
 from lomas_server.data_connector.data_connector import DataConnector
 
 

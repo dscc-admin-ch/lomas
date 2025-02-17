@@ -2,12 +2,6 @@ import json
 
 from fastapi import status
 from fastapi.testclient import TestClient
-from lomas_core.models.responses import (
-    CostResponse,
-    QueryResponse,
-    SmartnoiseSynthModel,
-    SmartnoiseSynthSamples,
-)
 from smartnoise_synth_logger import serialise_constraints
 from snsynth.transform import (
     ChainTransformer,
@@ -16,14 +10,24 @@ from snsynth.transform import (
     OneHotEncoder,
 )
 
-from lomas_server.app import app
-from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
-from lomas_server.tests.test_api import TestRootAPIEndpoint
-from lomas_server.utils.query_examples import (
+from lomas_core.models.exceptions import (
+    ExternalLibraryExceptionModel,
+    UnauthorizedAccessExceptionModel,
+)
+from lomas_core.models.requests_examples import (
     example_dummy_smartnoise_synth_query,
     example_smartnoise_synth_cost,
     example_smartnoise_synth_query,
 )
+from lomas_core.models.responses import (
+    CostResponse,
+    QueryResponse,
+    SmartnoiseSynthModel,
+    SmartnoiseSynthSamples,
+)
+from lomas_server.app import app
+from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
+from lomas_server.tests.test_api import TestRootAPIEndpoint
 
 
 def validate_response(response) -> QueryResponse:
@@ -76,14 +80,17 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error fitting model: "
-                + "sample_rate=1.4534883720930232 is not a valid value. "
-                + "Please provide a float between 0 and 1. "
-                + "Try decreasing batch_size in "
-                + "synth_params (default batch_size=500).",
-                "library": "smartnoise_synth",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error fitting model: "
+                    + "sample_rate=1.4534883720930232 is not a valid value. "
+                    + "Please provide a float between 0 and 1. "
+                    + "Try decreasing batch_size in "
+                    + "synth_params (default batch_size=500).",
+                    library="smartnoise_synth",
+                ).model_dump()
+            )
 
     def test_smartnoise_synth_query_samples(self) -> None:
         """Test smartnoise synth query return samples."""
@@ -154,36 +161,20 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["InvalidQueryException"].startswith(
-                "Error while selecting provided select_cols: "
-            )
+            assert response.json()["message"].startswith("Error while selecting provided select_cols: ")
 
     def test_smartnoise_synth_query_constraints(self) -> None:
         """Test smartnoise synth query constraints."""
         with TestClient(app, headers=self.headers) as client:
 
             constraints = {
-                "species": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
-                "island": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
-                "bill_length_mm": MinMaxTransformer(
-                    lower=30.0, upper=65.0, nullable=True
-                ),
-                "bill_depth_mm": MinMaxTransformer(
-                    lower=13.0, upper=23.0, nullable=True
-                ),
-                "flipper_length_mm": MinMaxTransformer(
-                    lower=150.0, upper=250.0, nullable=True
-                ),
-                "body_mass_g": MinMaxTransformer(
-                    lower=2000.0, upper=7000.0, nullable=True
-                ),
-                "sex": ChainTransformer(
-                    [LabelTransformer(nullable=True), OneHotEncoder()]
-                ),
+                "species": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
+                "island": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
+                "bill_length_mm": MinMaxTransformer(lower=30.0, upper=65.0, nullable=True),
+                "bill_depth_mm": MinMaxTransformer(lower=13.0, upper=23.0, nullable=True),
+                "flipper_length_mm": MinMaxTransformer(lower=150.0, upper=250.0, nullable=True),
+                "body_mass_g": MinMaxTransformer(lower=2000.0, upper=7000.0, nullable=True),
+                "sex": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
             }
 
             body = dict(example_smartnoise_synth_query)
@@ -240,6 +231,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 json=body,
                 headers=self.headers,
             )
+
             r_model = validate_response(response)
             assert r_model.requested_by == self.user_name
 
@@ -273,10 +265,12 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_smartnoise_synth_cost(self) -> None:
         """Test_smartnoise_synth_cost."""
@@ -303,10 +297,12 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert response.json() == {
-                "UnauthorizedAccessException": ""
-                + f"{self.user_name} does not have access to IRIS."
-            }
+            assert (
+                response.json()
+                == UnauthorizedAccessExceptionModel(
+                    message=f"{self.user_name} does not have access to IRIS."
+                ).model_dump()
+            )
 
     def test_smartnoise_synth_query_datetime(self) -> None:
         """Test smartnoise synth query on other dataset for datetime columns."""
@@ -378,7 +374,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:
 
-            # Expect to fail: delta
+            # Expected to fail: delta
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mwem"
             body["synth_params"] = {}
@@ -389,14 +385,17 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error creating model: "
-                + "MWEMSynthesizer.__init__() got an "
-                + "unexpected keyword argument 'delta'",
-                "library": "smartnoise_synth",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error creating model: "
+                    + "MWEMSynthesizer.__init__() got an "
+                    + "unexpected keyword argument 'delta'",
+                    library="smartnoise_synth",
+                ).model_dump()
+            )
 
-            # Expect to work: limited columns and delta None
+            # Expected to work: limited columns and delta None
             body["delta"] = None
             response = client.post(
                 "/smartnoise_synth_query",
@@ -459,7 +458,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["InvalidQueryException"].startswith(
+            assert response.json()["message"].startswith(
                 "mst synthesizer cannot be returned, only samples. "
                 + "Please, change model or set `return_model=False`"
             )
@@ -480,7 +479,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json()["InvalidQueryException"].startswith(
+            assert response.json()["message"].startswith(
                 "pacsynth synthesizer not supported due to Rust panic. "
                 + "Please select another Synthesizer."
             )
@@ -499,12 +498,15 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error fitting model: "
-                + "Inputted epsilon parameter is too small to create a private"
-                + " dataset. Try increasing epsilon and rerunning.",
-                "library": "smartnoise_synth",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error fitting model: "
+                    + "Inputted epsilon parameter is too small to create a private"
+                    + " dataset. Try increasing epsilon and rerunning.",
+                    library="smartnoise_synth",
+                ).model_dump()
+            )
 
             # Expect to work
             body["epsilon"] = 1.0
@@ -536,10 +538,13 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "pategan not reliable with this dataset.",
-                "library": "smartnoise_synth",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="pategan not reliable with this dataset.",
+                    library="smartnoise_synth",
+                ).model_dump()
+            )
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
         """Test smartnoise synth query dpgan Synthesizer."""
@@ -555,13 +560,16 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert response.json() == {
-                "ExternalLibraryException": "Error fitting model: "
-                + "Inputted epsilon and sigma parameters "
-                + "are too small to create a private dataset. "
-                + "Try increasing either parameter and rerunning.",
-                "library": "smartnoise_synth",
-            }
+            assert (
+                response.json()
+                == ExternalLibraryExceptionModel(
+                    message="Error fitting model: "
+                    + "Inputted epsilon and sigma parameters "
+                    + "are too small to create a private dataset. "
+                    + "Try increasing either parameter and rerunning.",
+                    library="smartnoise_synth",
+                ).model_dump()
+            )
 
             body["epsilon"] = 1.0
             response = client.post(

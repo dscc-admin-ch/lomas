@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-from lomas_core.error_handler import InvalidQueryException
 from sklearn.impute import SimpleImputer
 
+from lomas_core.error_handler import InvalidQueryException
 from lomas_server.constants import NUMERICAL_DTYPES
 
 
@@ -56,9 +56,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
         df[df.columns] = df[df.columns].replace({pd.NA: np.nan})
         df = pd.DataFrame(imp_most_frequent.fit_transform(df), columns=df.columns)
     else:
-        raise InvalidQueryException(
-            f"Imputation strategy {imputer_strategy} not supported."
-        )
+        raise InvalidQueryException(f"Imputation strategy {imputer_strategy} not supported.")
 
     df = df.astype(dtype=dtypes)
     return df

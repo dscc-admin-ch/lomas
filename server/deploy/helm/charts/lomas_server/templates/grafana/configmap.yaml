@@ -1,0 +1,64 @@
+{{- if .Values.grafana.create -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+{{- $fullname := include "lomas.grafana.fullname" . }}
+  name: {{ printf "%s-grafana-config" $fullname }}
+  labels:
+    {{- include "lomas.grafana.labels" . | nindent 4 }}
+data:
+    grafana-config.yaml: |
+      apiVersion: {{ .Values.grafana.apiVersion }}
+
+      datasources:
+      - name: {{ .Values.grafana.datasources.prometheus.name }}
+        type: {{ .Values.grafana.datasources.prometheus.type }}
+        uid: {{ .Values.grafana.datasources.prometheus.uid }}
+        access: {{ .Values.grafana.datasources.prometheus.access }}
+        orgId: {{ .Values.grafana.datasources.prometheus.orgId }}
+        url: 'http://{{ .Values.prometheus.fullnameOverride }}:{{ .Values.prometheus.service.port }}'
+        basicAuth: {{ .Values.grafana.datasources.prometheus.basicAuth }}
+        isDefault: {{ .Values.grafana.datasources.prometheus.isDefault }}
+        version: {{ .Values.grafana.datasources.prometheus.version }}
+        editable: {{ .Values.grafana.datasources.prometheus.editable }}
+        jsonData:
+          httpMethod: {{ .Values.grafana.datasources.prometheus.jsonData.httpMethod }}
+
+      - name: {{ .Values.grafana.datasources.tempo.name }}
+        type: {{ .Values.grafana.datasources.tempo.type }}
+        uid: {{ .Values.grafana.datasources.tempo.uid }}
+        access: {{ .Values.grafana.datasources.tempo.access }}
+        orgId: {{ .Values.grafana.datasources.tempo.orgId }}
+        url: 'http://{{ .Values.tempo.fullnameOverride }}:{{ .Values.tempo.service.port }}'
+        basicAuth: {{ .Values.grafana.datasources.tempo.basicAuth }}
+        isDefault: {{ .Values.grafana.datasources.tempo.isDefault }}
+        version: {{ .Values.grafana.datasources.tempo.version }}
+        editable: {{ .Values.grafana.datasources.tempo.editable }}
+        apiVersion: {{ .Values.grafana.datasources.tempo.apiVersion }}
+        stream_over_http_enabled: {{ .Values.grafana.datasources.tempo.stream_over_http_enabled }}
+
+      - name: {{ .Values.grafana.datasources.loki.name }}
+        type: {{ .Values.grafana.datasources.loki.type }}
+        uid: {{ .Values.grafana.datasources.loki.uid }}
+        access: {{ .Values.grafana.datasources.loki.access }}
+        orgId: {{ .Values.grafana.datasources.loki.orgId }}
+        url: 'http://{{ .Values.loki.fullnameOverride }}:{{ .Values.loki.service.port }}'
+        basicAuth: {{ .Values.grafana.datasources.loki.basicAuth }}
+        isDefault: {{ .Values.grafana.datasources.loki.isDefault }}
+        version: {{ .Values.grafana.datasources.loki.version }}
+        editable: {{ .Values.grafana.datasources.loki.editable }}
+        jsonData:
+          httpHeaderName1: {{ .Values.grafana.datasources.loki.jsonData.httpHeaderName1 }}
+        secureJsonData:
+          httpHeaderValue1: {{ .Values.grafana.datasources.loki.secureJsonData.httpHeaderValue1 }}
+    
+    grafana.ini: |
+      [server]
+      domain = {{ .Values.grafana.ingress.hostname }}
+      http_port = {{ .Values.grafana.service.port }}
+
+      [security]
+      admin_user = {{ .Values.grafana.security.admin_user }}
+      admin_password = {{ .Values.grafana.security.admin_password }}
+
+{{- end }}

@@ -11,6 +11,7 @@ as environment variables.
 The Sphinx templates are configured such that they render the correct
 hmtl to create links between versions.
 """
+import argparse
 import os
 import subprocess
 import yaml
@@ -51,6 +52,7 @@ def git_ref_exists(git_ref: str) -> bool:
 def build_doc(version: str, 
               language: str, 
               tag: str,
+              local: bool = False
               ):
   """
   Builds the documention for the given tag (git ref).
@@ -65,6 +67,7 @@ def build_doc(version: str,
       version (str): Version to display
       language (str): Language (for formatting)
       tag (str): git ref
+      local (bool): whether to build on the local branch only
   """
   start_branch_cmd = subprocess.run("git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True)
   start_branch = start_branch_cmd.stdout.strip()
@@ -73,19 +76,20 @@ def build_doc(version: str,
   os.environ["current_version"] = version
   os.environ["current_language"] = language
 
-  if not git_ref_exists(tag):
+  if not local and not git_ref_exists(tag):
     # Replace index if tag does not exist
     subprocess.run("mv source/index.rst source/index.rst.old", shell=True)
     subprocess.run("mv source/index_under_construction.rst source/index.rst", shell=True)
 
   else:
-    # Fetch and checkout branch to document
-    subprocess.run(f"git fetch origin {tag}:{tag}", shell=True)
-    subprocess.run(f"git checkout {tag}", shell=True)
-    
-    # Versions and conf.py always from calling branch
-    subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True)
-    subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True)
+    if not local:
+      # Fetch and checkout branch to document
+      subprocess.run(f"git fetch origin {tag}:{tag}", shell=True)
+      subprocess.run(f"git checkout {tag}", shell=True)
+      
+      # Versions and conf.py always from calling branch
+      subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True)
+      subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True)
     
     # Copy relevant sources and generate code docs rsts.
     subprocess.run("mkdir -p ./source/_static", shell=True)
@@ -94,6 +98,7 @@ def build_doc(version: str,
     subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
     subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
     subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
+    subprocess.run("sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True)
     subprocess.run("sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True)
     subprocess.run("mkdir -p ./source/notebooks", shell=True)
@@ -110,11 +115,12 @@ def build_doc(version: str,
   subprocess.run("make html", shell=True)
 
   # Make things as they were before
-  if not git_ref_exists(tag):
-    subprocess.run("git reset --hard && git clean -f -d", shell=True)
-  else:
-    # Go back to calling branch
-    subprocess.run(f"git checkout {start_branch}", shell=True)
+  if not local:
+    if not git_ref_exists(tag):
+      subprocess.run("git reset --hard && git clean -f -d", shell=True)
+    else:
+      # Go back to calling branch
+      subprocess.run(f"git checkout {start_branch}", shell=True)
 
   return
     
@@ -135,28 +141,43 @@ def move_dir(src: str, dst: str) -> None:
 
 if __name__ == "__main__":
 
-  # Set arguments to conf.py
-  # to separate a single local build from all builds we have a flag, see conf.py
-  os.environ["build_all_docs"] = str(True)
-  os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-l", "--local", action="store_true", help="local build on current branch")
 
-  # manually build the master branch
-  build_doc("stable", "en", "master")
-  move_dir("./build/html/", "../pages/")
-  r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
-  print(r.stdout)
+  args = parser.parse_args()
+  
+  if args.local:
+    # Set arguments to conf.py
+    # to separate a single local build from all builds we have a flag, see conf.py
+    os.environ["build_all_docs"] = str(False)
+    os.environ["pages_root"] = "./build/html"
+    start_branch_cmd = subprocess.run("git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True)
+    start_branch = start_branch_cmd.stdout.strip()
+    build_doc("stable", "en", "", True)
 
-  # reading the yaml file
-  with open("versions.yaml", "r") as yaml_file:
-    docs = yaml.safe_load(yaml_file)
+  else:
+    # Set arguments to conf.py
+    # to separate a single local build from all builds we have a flag, see conf.py
+    os.environ["build_all_docs"] = str(True)
+    os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
-  # and looping over all values to call our build with version, language and its tag
-  for version, details in docs.items():
-    if version == "stable":
-      continue
-    tag = details.get('tag', '')
-    for language in details.get('languages', []): 
-        build_doc(version, language, tag)
-        move_dir("./build/html/", "../pages/"+version+'/'+language+'/')
-        r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
-        print(r.stdout)
+    # manually build the master branch
+    build_doc("stable", "en", "master")
+    move_dir("./build/html/", "../pages/")
+    r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
+    print(r.stdout)
+
+    # reading the yaml file
+    with open("versions.yaml", "r") as yaml_file:
+      docs = yaml.safe_load(yaml_file)
+
+    # and looping over all values to call our build with version, language and its tag
+    for version, details in docs.items():
+      if version == "stable":
+        continue
+      tag = details.get('tag', '')
+      for language in details.get('languages', []): 
+          build_doc(version, language, tag)
+          move_dir("./build/html/", "../pages/"+version+'/'+language+'/')
+          r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
+          print(r.stdout)

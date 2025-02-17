@@ -9,6 +9,11 @@ services:
     ports:
       - 80:80
     restart: always
+    environment:
+      - SERVER_SERVICE_NAME=lomas-server-app
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_INSECURE=true
+      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
     volumes:
       - ./lomas_server:/code/lomas_server
       - ../core/lomas_core:/code/lomas_core
@@ -24,6 +29,8 @@ services:
       mongodb:
         condition: service_started
         restart: true
+      otel-collector:
+        condition: service_started
     networks:
       - lomas-network
 
@@ -50,6 +57,18 @@ services:
       - MONGODB_INITDB_DATABASE=defaultdb
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
+  mongodb-exporter:
+    image: bitnami/mongodb-exporter:latest
+    container_name: mongodb-exporter
+    ports:
+      - 9216:9216
+    networks:
+      - lomas-network
+    environment:
+      - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017
+    depends_on:
+      - mongodb
+
   minio:
     container_name: minio
     image: minio/minio
@@ -72,9 +91,9 @@ services:
     depends_on:
       - minio
     entrypoint: /bin/sh -c "
-      sleep 15 && 
-      mc alias set myminio http://minio:9000 admin admin123 && 
-      mc mb myminio/example || true && 
+      sleep 15 &&
+      mc alias set myminio http://minio:9000 admin admin123 &&
+      mc mb myminio/example || true &&
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&
       mc ls --recursive --versions myminio/example"
@@ -113,10 +132,13 @@ services:
       target: lomas_client_dev
       context: ../
     container_name: lomas_client
+    environment:
+      - CLIENT_SERVICE_NAME=lomas-client
     ports:
       - 8888:8888
     volumes:
-      - ../client/lomas_client:/code/lomas_client
+      - ../client/lomas_client/:/code/lomas_client
+      - ../core/lomas_core/:/code/lomas_core
       - ../client/configs/:/root/.jupyter/
       - ../client/notebooks/:/code/notebooks/
       - ./data/:/data/
@@ -125,9 +147,99 @@ services:
     networks:
       - lomas-network
 
+  init_tempo:
+    image: &tempoImage grafana/tempo:latest
+    container_name: init_tempo
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    networks:
+      - lomas-network
+
+  tempo:
+    image: *tempoImage
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./configs/observability/example_tempo_config.yaml:/etc/tempo.yaml
+    expose:
+      - 3200
+      - 4317
+    depends_on:
+      - init_tempo
+    networks:
+      - lomas-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133" # health_check extension
+      - "1777:1777" # pprof extension
+      - "55679:55679" # zpages extension
+      - "9091:9090" # prometheus
+    volumes:
+      - ./configs/observability/example_otel_config.yaml:/etc/otel/config.yaml
+    command: ["--config=/etc/otel/config.yaml"]
+    depends_on:
+      tempo:
+        condition: service_started
+      loki:
+        condition: service_started
+    networks:
+      - lomas-network
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    volumes:
+      - ./configs/observability/example_loki_config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - lomas-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+      - --enable-feature=otlp-write-receive
+    volumes:
+      - ./configs/observability/example_prometheus_config.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+    networks:
+      - lomas-network
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    volumes:
+      - ./configs/observability/grafana/example_datasources_config.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
+    ports:
+      - "3000:3000"
+    networks:
+      - lomas-network
+
 networks:
   lomas-network:
     driver: bridge
+    name: lomas-network
 
 volumes:
   # These volumes needs to be setup only once with "docker volume create <volume_name>"

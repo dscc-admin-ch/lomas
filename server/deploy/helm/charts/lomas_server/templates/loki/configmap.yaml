@@ -1,0 +1,47 @@
+{{- if .Values.loki.create -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+{{- $fullname := include "lomas.loki.fullname" . }}
+  name: {{ printf "%s-loki-config" $fullname }}
+  labels:
+    {{- include "lomas.loki.labels" . | nindent 4 }}
+data:
+  loki-config.yaml: |
+    auth_enabled: {{ .Values.loki.config.auth_enabled }}
+
+    limits_config:
+      allow_structured_metadata: {{ .Values.loki.config.limits_config.allow_structured_metadata }}
+      volume_enabled: {{ .Values.loki.config.limits_config.volume_enabled }}
+
+    server:
+      http_listen_port: {{ .Values.loki.service.port }}
+
+    common:
+      ring:
+        instance_addr: {{ .Values.loki.config.common.ring.instance_addr }}
+        kvstore:
+          store: {{ .Values.loki.config.common.ring.kvstore.store }}
+      replication_factor: {{ .Values.loki.config.common.replication_factor }}
+      path_prefix: {{ .Values.loki.config.common.path_prefix }}
+
+    schema_config:
+      configs:
+        - from: {{ index .Values.loki.config.schema_config.configs 0 "from" }}
+          store: {{ index .Values.loki.config.schema_config.configs 0 "store" }}
+          object_store: {{ index .Values.loki.config.schema_config.configs 0 "object_store" }}
+          schema: {{ index .Values.loki.config.schema_config.configs 0 "schema" }}
+          index:
+            prefix: {{ index .Values.loki.config.schema_config.configs 0 "index" "prefix" }}
+            period: {{ index .Values.loki.config.schema_config.configs 0 "index" "period" }}
+
+    storage_config:
+      tsdb_shipper:
+        active_index_directory: {{ .Values.loki.config.storage_config.tsdb_shipper.active_index_directory }}
+        cache_location: {{ .Values.loki.config.storage_config.tsdb_shipper.cache_location }}
+      filesystem:
+        directory: {{ .Values.loki.config.storage_config.filesystem.directory }}
+
+    pattern_ingester:
+      enabled: {{ .Values.loki.config.pattern_ingester.enabled }}
+{{- end }}

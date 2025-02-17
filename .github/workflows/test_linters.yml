@@ -1,47 +1,36 @@
 name: Linter checks
 
-on: 
+on:
   pull_request:
     branches: [ develop, master]
   workflow_dispatch:
-  
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     name: Lint
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v3
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
+        uses: actions/checkout@v4
+      - name: Install the latest version of uv and set the python version to 3.12
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
+          python-version: 3.12
       - name: Install dependencies
         run: |
-          pip install flake8-pyproject==1.2.3
-          pip install mypy==1.10.0
-          pip install pylint==3.1.0
+          uv pip install -r requirements-dev.txt
       - name: flake8
         run: |
-          cd client/lomas_client
-          flake8 --toml-config=../pyproject.toml .
-          cd ../../core/lomas_core
-          flake8 --toml-config=../pyproject.toml .
-          cd ../../server/lomas_server
-          flake8 --toml-config=../pyproject.toml .
+          flake8 core/lomas_core
+          flake8 client/lomas_client
+          flake8 server/lomas_server
       - name: mypy
         run: |
-          cd client
-          mypy --config-file pyproject.toml .
-          cd ../core
-          mypy --config-file pyproject.toml .
-          cd ../server
-          mypy --config-file pyproject.toml .
+          mypy core/lomas_core
+          mypy client/lomas_client
+          mypy server/lomas_server
       - name: pylint
         run: |
-          cd client/lomas_client
-          pylint .
-          cd ../../core/lomas_core
-          pylint .
-          cd ../../server/lomas_server
-          pylint .
+          pylint core/lomas_core
+          pylint client/lomas_client
+          pylint server/lomas_server

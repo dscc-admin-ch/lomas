@@ -1,12 +1,6 @@
 from typing import List, Optional, Type
 
 from diffprivlib_logger import serialise_pipeline
-from lomas_core.models.requests import (
-    DiffPrivLibDummyQueryModel,
-    DiffPrivLibQueryModel,
-    DiffPrivLibRequestModel,
-)
-from lomas_core.models.responses import CostResponse, QueryResponse
 from sklearn.pipeline import Pipeline
 
 from lomas_client.constants import (
@@ -15,6 +9,12 @@ from lomas_client.constants import (
 )
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
+from lomas_core.models.requests import (
+    DiffPrivLibDummyQueryModel,
+    DiffPrivLibQueryModel,
+    DiffPrivLibRequestModel,
+)
+from lomas_core.models.responses import CostResponse, QueryResponse
 
 
 class DiffPrivLibClient:

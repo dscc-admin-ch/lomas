@@ -1,12 +1,15 @@
 import argparse
 import functools
+import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import boto3
 import yaml
+from pymongo.database import Database
+from pymongo.results import _WriteResult
+
 from lomas_core.error_handler import InternalServerException
-from lomas_core.logger import LOG
 from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,
@@ -18,9 +21,6 @@ from lomas_core.models.collections import (
     UserCollection,
 )
 from lomas_core.models.constants import PrivateDatabaseType
-from pymongo.database import Database
-from pymongo.results import _WriteResult
-
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
@@ -42,9 +42,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
             (or absence) before calling the suplied function.
     """
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -80,9 +78,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
             to the provided dataset.
     """
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -111,9 +107,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
     """Rises a ValueError if the user does not already exist in the user collection."""
 
-    def inner_func(
-        function: Callable[[Database, argparse.Namespace], None]
-    ) -> Callable:
+    def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
         def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
             db = arguments[0]
@@ -122,26 +116,16 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             dataset_count = db.datasets.count_documents({"dataset_name": dataset})
 
             if enforce_true and dataset_count == 0:
-                raise ValueError(
-                    f"Dataset {dataset} does not exist in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} does not exist in dataset collection")
             if not enforce_true and dataset_count > 0:
-                raise ValueError(
-                    f"Dataset {dataset} already exists in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} already exists in dataset collection")
 
             metadata_count = db.metadata.count_documents({dataset: {"$exists": True}})
 
             if enforce_true and metadata_count == 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} does"
-                    " not exist in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} does" " not exist in metadata collection")
             if not enforce_true and metadata_count > 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} already"
-                    " exists in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} already" " exists in metadata collection")
 
             return function(*arguments, **kwargs)  # type: ignore
 
@@ -179,13 +163,13 @@ def add_user(db: Database, user: str) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Added user {user}.")
+    # codeQL : py/log-injection
+    user_log = user.replace("\r\n", "").replace("\n", "")
+    logging.info(f"Added user {user_log}.")
 
 
 @check_user_exists(False)
-def add_user_with_budget(
-    db: Database, user: str, dataset: str, epsilon: float, delta: float
-) -> None:
+def add_user_with_budget(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add new user in users collection with default values for all fields.
 
     Args:
@@ -220,9 +204,14 @@ def add_user_with_budget(
 
     check_result_acknowledged(res)
 
-    LOG.info(
-        f"Added access to user {user} with dataset {dataset}, "
-        + f"budget epsilon {epsilon} and delta {delta}."
+    # codeQL : py/log-injection
+    user_log = user.replace("\r\n", "").replace("\n", "")
+    dataset_log = dataset.replace("\r\n", "").replace("\n", "")
+    epsilon_log = str(epsilon).replace("\r\n", "").replace("\n", "")
+    delta_log = str(delta).replace("\r\n", "").replace("\n", "")
+    logging.info(
+        f"Added access to user {user_log} with dataset {dataset_log}, "
+        + f"budget epsilon {epsilon_log} and delta {delta_log}."
     )
 
 
@@ -240,14 +229,12 @@ def del_user(db: Database, user: str) -> None:
     res = db.users.delete_many({"user_name": user})
     check_result_acknowledged(res)
 
-    LOG.info(f"Deleted user {user}.")
+    logging.info(f"Deleted user {user}.")
 
 
 @check_user_exists(True)
 @check_user_has_dataset(False)
-def add_dataset_to_user(
-    db: Database, user: str, dataset: str, epsilon: float, delta: float
-) -> None:
+def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add dataset to user with initialized budget values.
 
     Adds to list of datasets, that the user has access to.
@@ -286,7 +273,7 @@ def add_dataset_to_user(
 
     check_result_acknowledged(res)
 
-    LOG.info(
+    logging.info(
         f"Added access to dataset {dataset}"
         f" to user {user}"
         f" with budget epsilon {epsilon}"
@@ -314,14 +301,12 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Remove access to dataset {dataset}" + f" from user {user}.")
+    logging.info(f"Remove access to dataset {dataset}" + f" from user {user}.")
 
 
 @check_user_exists(True)
 @check_user_has_dataset(True)
-def set_budget_field(
-    db: Database, user: str, dataset: str, field: str, value: float
-) -> None:
+def set_budget_field(db: Database, user: str, dataset: str, field: str, value: float) -> None:
     """Set (for some reason) a budget field to a given value.
 
     (Only) If given user exists and has access to given dataset.
@@ -346,7 +331,7 @@ def set_budget_field(
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
+    logging.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
 
 
 @check_user_exists(True)
@@ -370,7 +355,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
     check_result_acknowledged(res)
 
-    LOG.info(f"Set user {user} may query to {value}.")
+    logging.info(f"Set user {user} may query to {value}.")
 
 
 @check_user_exists(True)
@@ -386,7 +371,7 @@ def get_user(db: Database, user: str) -> dict:
     """
     user_info = list(db.users.find({"user_name": user}))[0]
     user_info.pop("_id", None)
-    LOG.info(user_info)
+    logging.info(user_info)
     return user_info
 
 
@@ -416,7 +401,7 @@ def add_users_via_yaml(
     if clean:
         # Collection created from scratch
         db.users.drop()
-        LOG.info("Cleaning done. \n")
+        logging.info("Cleaning done. \n")
 
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
@@ -443,7 +428,7 @@ def add_users_via_yaml(
                 update_operation = {"$set": user.model_dump()}
                 res: _WriteResult = db.users.update_many(user_filter, update_operation)
                 check_result_acknowledged(res)
-            LOG.info("Existing users updated. ")
+            logging.info("Existing users updated. ")
         else:
             warn("Some users already present in database. Overwrite is set to False.")
 
@@ -452,9 +437,9 @@ def add_users_via_yaml(
         new_users_dicts = [user.model_dump() for user in new_users]
         res = db.users.insert_many(new_users_dicts)
         check_result_acknowledged(res)
-        LOG.info("Added user data from yaml.")
+        logging.info("Added user data from yaml.")
     else:
-        LOG.info("No new users added, they already exist in the server")
+        logging.info("No new users added, they already exist in the server")
 
 
 @check_user_exists(True)
@@ -469,7 +454,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
         archives (List): list of previous queries from the user
     """
     archives_infos: List[dict] = list(db.queries_archives.find({"user_name": user}))
-    LOG.info(archives_infos)
+    logging.info(archives_infos)
     return archives_infos
 
 
@@ -485,7 +470,7 @@ def get_list_of_users(db: Database) -> list:
     user_names = []
     for elem in db.users.find():
         user_names.append(elem["user_name"])
-    LOG.info(user_names)
+    logging.info(user_names)
     return user_names
 
 
@@ -502,7 +487,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """
     user_data = db.users.find_one({"user_name": user})
     assert user_data is not None, "User must exist"
-    LOG.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
+    logging.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 
@@ -620,9 +605,11 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     res = db.metadata.insert_one({dataset_name: validated_metadata})
     check_result_acknowledged(res)
 
-    LOG.info(
-        f"Added dataset {dataset_name} with database "
-        f"{database_type} and associated metadata."
+    # codeQL : py/log-injection
+    dataset_name_log = dataset_name.replace("\r\n", "").replace("\n", "")
+    database_type_log = database_type.replace("\r\n", "").replace("\n", "")
+    logging.info(
+        f"Added dataset {dataset_name_log} with database {database_type_log} and associated metadata."
     )
 
 
@@ -656,7 +643,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         # Collection created from scratch
         db.datasets.drop()
         db.metadata.drop()
-        LOG.info("Cleaning done. \n")
+        logging.info("Cleaning done. \n")
 
     if isinstance(yaml_file, str):
         with open(yaml_file, encoding="utf-8") as f:
@@ -681,23 +668,18 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d.dataset_name}
                 update_operation = {"$set": d.model_dump()}
-                res: _WriteResult = db.datasets.update_many(
-                    dataset_filter, update_operation
-                )
+                res: _WriteResult = db.datasets.update_many(dataset_filter, update_operation)
                 check_result_acknowledged(res)
-            LOG.info("Existing datasets updated with new collection")
+            logging.info("Existing datasets updated with new collection")
         else:
-            warn(
-                "Some datasets already present in database."
-                "Overwrite is set to False."
-            )
+            warn("Some datasets already present in database. Overwrite is set to False.")
 
     # Add dataset collection
     if new_datasets:
         new_datasets_dicts = [d.model_dump() for d in new_datasets]
         res = db.datasets.insert_many(new_datasets_dicts)
         check_result_acknowledged(res)
-        LOG.info("Added datasets collection from yaml.")
+        logging.info("Added datasets collection from yaml.")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict.datasets:
@@ -727,8 +709,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
             case _:
                 raise InternalServerException(
-                    "Unknown metadata_db_type PrivateDatabaseType:"
-                    + f"{metadata_access.database_type}"
+                    f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                 )
 
         # Overwrite or not depending on config if metadata already exists
@@ -736,20 +717,15 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         metadata = db.metadata.find_one(metadata_filter)
 
         if metadata and overwrite_metadata:
-            LOG.info(f"Metadata updated for dataset : {dataset_name}.")
-            res = db.metadata.update_one(
-                metadata_filter, {"$set": {dataset_name: metadata_dict}}
-            )
+            logging.info(f"Metadata updated for dataset : {dataset_name}.")
+            res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            LOG.info(
-                "Metadata already exist. "
-                "Use the command -om to overwrite with new values."
-            )
+            logging.info("Metadata already exist. Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)
-            LOG.info(f"Added metadata of {dataset_name} dataset. ")
+            logging.info(f"Added metadata of {dataset_name} dataset. ")
 
 
 @check_dataset_and_metadata_exist(True)
@@ -767,7 +743,7 @@ def del_dataset(db: Database, dataset: str) -> None:
     check_result_acknowledged(res)
     res = db.metadata.delete_many({dataset: {"$exists": True}})
     check_result_acknowledged(res)
-    LOG.info(f"Deleted dataset and metadata for {dataset}.")
+    logging.info(f"Deleted dataset and metadata for {dataset}.")
 
 
 @check_dataset_and_metadata_exist(True)
@@ -783,7 +759,7 @@ def get_dataset(db: Database, dataset: str) -> dict:
     """
     dataset_info = list(db.datasets.find({"dataset_name": dataset}))[0]
     dataset_info.pop("_id", None)
-    LOG.info(dataset_info)
+    logging.info(dataset_info)
     return dataset_info
 
 
@@ -804,7 +780,7 @@ def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
 
     # Extract metadata for the specified dataset
     metadata_info = metadata_document[dataset]
-    LOG.info(metadata_info)
+    logging.info(metadata_info)
     return metadata_info
 
 
@@ -820,7 +796,7 @@ def get_list_of_datasets(db: Database) -> list:
     dataset_names = []
     for elem in db.datasets.find():
         dataset_names.append(elem["dataset_name"])
-    LOG.info(dataset_names)
+    logging.info(dataset_names)
     return dataset_names
 
 
@@ -836,7 +812,7 @@ def drop_collection(db: Database, collection: str) -> None:
         None
     """
     db.drop_collection(collection)
-    LOG.info(f"Deleted collection {collection}.")
+    logging.info(f"Deleted collection {collection}.")
 
 
 def get_collection(db: Database, collection: str) -> list:
@@ -854,5 +830,5 @@ def get_collection(db: Database, collection: str) -> list:
     for document in collection_query:
         document.pop("_id", None)
         collections.append(document)
-    LOG.info(collections)
+    logging.info(collections)
     return collections

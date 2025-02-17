@@ -11,7 +11,6 @@ from lomas_core.error_handler import (
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
-
 from lomas_server.admin_database.constants import BudgetDBKey
 
 
@@ -33,14 +32,11 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(
-        self, *args: argparse.Namespace, **kwargs: Dict[str, str]
-    ) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
         user_name = args[0]
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
-                f"User {user_name} does not exist. "
-                + "Please, verify the client object initialisation.",
+                f"User {user_name} does not exist. Please, verify the client object initialisation.",
             )
         return func(self, *args, **kwargs)
 
@@ -65,9 +61,7 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(
-        self, *args: argparse.Namespace, **kwargs: Dict[str, str]
-    ) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
         dataset_name = args[0]
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
@@ -101,9 +95,7 @@ def user_must_have_access_to_dataset(
     """
 
     @wraps(func)
-    def wrapper_decorator(
-        self, *args: argparse.Namespace, **kwargs: Dict[str, str]
-    ) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
         user_name = args[0]
         dataset_name = args[1]
         if not self.has_user_access_to_dataset(user_name, dataset_name):
@@ -218,9 +210,7 @@ class AdminDatabase(ABC):
         """
 
     @abstractmethod
-    def get_epsilon_or_delta(
-        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
-    ) -> float:
+    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
         """
         Get the total spent epsilon or delta by user on dataset.
 
@@ -249,9 +239,7 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, BudgetDBKey.EPSILON_SPENT
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT),
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
         ]
 
@@ -271,9 +259,7 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(
-                user_name, dataset_name, BudgetDBKey.EPSILON_INIT
-            ),
+            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_INIT),
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
         ]
 
@@ -314,9 +300,7 @@ class AdminDatabase(ABC):
             spent_value (float): spending of epsilon or delta on last query
         """
 
-    def update_epsilon(
-        self, user_name: str, dataset_name: str, spent_epsilon: float
-    ) -> None:
+    def update_epsilon(self, user_name: str, dataset_name: str, spent_epsilon: float) -> None:
         """
         Update spent epsilon by user with total spent epsilon.
 
@@ -325,13 +309,9 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
             spent_epsilon (float): value of epsilon spent on last query
         """
-        return self.update_epsilon_or_delta(
-            user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon
-        )
+        return self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon)
 
-    def update_delta(
-        self, user_name: str, dataset_name: str, spent_delta: float
-    ) -> None:
+    def update_delta(self, user_name: str, dataset_name: str, spent_delta: float) -> None:
         """
         Update spent delta spent by user with spent delta of the user.
 
@@ -340,9 +320,7 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
             spent_delta (float): value of delta spent on last query
         """
-        self.update_epsilon_or_delta(
-            user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta
-        )
+        self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta)
 
     @user_must_have_access_to_dataset
     def update_budget(
@@ -401,9 +379,7 @@ class AdminDatabase(ABC):
             List[dict]: List of previous queries.
         """
 
-    def prepare_save_query(
-        self, user_name: str, query: LomasRequestModel, response: QueryResponse
-    ) -> dict:
+    def prepare_save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> dict:
         """
         Prepare the query to save in archives.
 
@@ -430,9 +406,7 @@ class AdminDatabase(ABC):
         return to_archive
 
     @abstractmethod
-    def save_query(
-        self, user_name: str, query: LomasRequestModel, response: QueryResponse
-    ) -> None:
+    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 

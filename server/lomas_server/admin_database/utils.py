@@ -46,4 +46,5 @@ def get_mongodb(mongo_config: MongoDBConfig) -> Database:
             MongoDB database.
     """
     db_url = get_mongodb_url(mongo_config)
+    print(mongo_config.db_name)
     return MongoClient(db_url)[mongo_config.db_name]

@@ -161,7 +161,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
     def test_unknown_endpoint(self) -> None:

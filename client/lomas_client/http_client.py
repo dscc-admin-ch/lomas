@@ -97,6 +97,9 @@ class LomasHttpClient:
                         "keycloak_protocol or realm when using jwt authentication method."
                     )
 
+                if not keycloak_use_tls:
+                    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+                    
                 self._client_id = client_id
                 self._client_secret = client_secret
                 oauth_client = BackendApplicationClient(client_id=self._client_id)

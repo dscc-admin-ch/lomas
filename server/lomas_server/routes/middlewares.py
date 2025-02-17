@@ -3,7 +3,6 @@ import logging
 import time
 from typing import Tuple
 
-from attr import has
 from fastapi import Request
 from opentelemetry.trace import format_trace_id, get_tracer
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint

@@ -21,7 +21,7 @@ from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
 )
-from lomas_core.models.responses import OpenDPQueryResult, OpenDPPolarsQueryResult
+from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector

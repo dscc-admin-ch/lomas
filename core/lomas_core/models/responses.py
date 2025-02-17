@@ -1,6 +1,7 @@
-from typing import Annotated, Dict, List, Literal, Union, Any
-import polars as pl
+from typing import Annotated, Any, List, Literal, Union
+
 import pandas as pd
+import polars as pl
 from diffprivlib.validation import DiffprivlibMixin
 from pydantic import (
     BaseModel,
@@ -18,9 +19,9 @@ from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
     deserialize_model,
-    serialize_model,
     polars_df_from_str,
     polars_df_to_str,
+    serialize_model,
 )
 
 
@@ -176,7 +177,8 @@ class OpenDPQueryResult(BaseModel):
     """Result type description."""
     value: Union[int, float, List[Union[int, float]]]
     """The result value of the query."""
-    
+
+
 class OpenDPPolarsQueryResult(BaseModel):
     """Type for opendp Polars result."""
 
@@ -184,10 +186,11 @@ class OpenDPPolarsQueryResult(BaseModel):
     """Result type description."""
     # order of PlainValidator and PlainSerializer matters in that case:
     # https://github.com/pydantic/pydantic/issues/8512
-    value: Annotated[pl.DataFrame, 
-                     PlainValidator(polars_df_from_str),
-                     PlainSerializer(polars_df_to_str), 
-                     ]
+    value: Annotated[
+        pl.DataFrame,
+        PlainValidator(polars_df_from_str),
+        PlainSerializer(polars_df_to_str),
+    ]
     """The result value of the query."""
 
 

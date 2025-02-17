@@ -19,7 +19,7 @@ class OpenDPClient:
 
     def __init__(self, http_client: LomasHttpClient):
         self.http_client = http_client
-        
+
     def _get_opendp_request_body(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
@@ -50,7 +50,7 @@ class OpenDPClient:
             "fixed_delta": fixed_delta,
             "mechanism": mechanism,
         }
-        
+
         if isinstance(opendp_pipeline, dp.Measurement):
             body_json["opendp_json"] = opendp_pipeline.to_json()
             body_json["pipeline_type"] = "legacy"
@@ -91,7 +91,7 @@ class OpenDPClient:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        
+
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
             fixed_delta=fixed_delta,
@@ -159,6 +159,7 @@ class OpenDPClient:
         res = self.http_client.post(endpoint, body)
 
         return validate_model_response(res, QueryResponse)
+
 
 def get_lf_seed(self):
     """

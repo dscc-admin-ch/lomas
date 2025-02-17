@@ -1,0 +1,16 @@
+{{- if .Values.tempo.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lomas.tempo.fullname" . }}
+  labels:
+    {{- include "lomas.tempo.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.tempo.service.type }}
+  selector:
+    {{- include "lomas.tempo.selectorLabels" . | nindent 8 }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.tempo.service.port}}
+      targetPort: {{ .Values.tempo.service.target_port}}
+{{- end }}

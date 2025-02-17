@@ -29,7 +29,7 @@ data:
         uid: {{ .Values.grafana.datasources.tempo.uid }}
         access: {{ .Values.grafana.datasources.tempo.access }}
         orgId: {{ .Values.grafana.datasources.tempo.orgId }}
-        url: 'http://{{ .Values.tempo.fullnameOverride }}:{{ .Values.tempo.server.http_listen_port }}'
+        url: 'http://{{ .Values.tempo.fullnameOverride }}:{{ .Values.tempo.service.port }}'
         basicAuth: {{ .Values.grafana.datasources.tempo.basicAuth }}
         isDefault: {{ .Values.grafana.datasources.tempo.isDefault }}
         version: {{ .Values.grafana.datasources.tempo.version }}

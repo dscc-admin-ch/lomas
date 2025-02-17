@@ -192,8 +192,6 @@ loki:
     limits_config:
       allow_structured_metadata: true
       volume_enabled: true
-    server:
-      http_listen_port: 3100
     common:
       ring:
         instance_addr: 0.0.0.0
@@ -257,11 +255,15 @@ prometheus:
 # Tempo
 ##########################################################################
 tempo:
+  create: true
+  
   service:
     type: ClusterIP
+    port: 3000
+    target_port: 3000
+
   fullnameOverride: "lomas-tempo"
-  server:
-    http_listen_port: 3100
+
   ingester:
     max_block_duration: 5m
   storage:

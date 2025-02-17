@@ -23,7 +23,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
+from lomas_server.constants import OPENDP_TYPE_MAPPING, OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -46,30 +46,20 @@ def get_lf_domain(metadata, by_config):
     for name, series_info in metadata["columns"].items():
         if series_info.type in ["float", "int"]:
             series_type = f"{series_info.type}{series_info.precision}"
-        # TODO: release opendp 0.12 (adapt with type date)
+        # TODO 392: release opendp 0.12 (adapt with type date)
         elif series_info.type == "datetime":
             series_type = "string"
         else:
             series_type = series_info.type
 
-        # TODO should this be a constant? leave here
-        opendp_type_mapping = {
-            "int32": dp.typing.i32,
-            "float32": dp.typing.f32,
-            "int64": dp.typing.i64,
-            "float64": dp.typing.f64,
-            "string": dp.typing.String,
-            "boolean": bool,
-        }
-
-        if series_type not in opendp_type_mapping:
+        if series_type not in OPENDP_TYPE_MAPPING:
             # For valid metadata, only datetime would fail here
             raise InvalidQueryException(
                 f"Column type {series_type} not supported by OpenDP. "
-                f"Type must be in {opendp_type_mapping.keys()}"
+                f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
             )
 
-        series_type = opendp_type_mapping[series_type]
+        series_type = OPENDP_TYPE_MAPPING[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
         series_nullable = "nullable" in series_info

@@ -27,13 +27,6 @@ SERVICE_ID = os.getenv("HOSTNAME", "default-host")
 # Misc
 # -----------------------------------------------------------------------------
 
-# Server states
-DB_NOT_LOADED = "User database not loaded"
-CONFIG_NOT_LOADED = "Config not loaded"
-
-# General values
-SECONDS_IN_A_DAY = 60 * 60 * 24
-
 # DP constants (max budget per user per dataset)
 EPSILON_LIMIT: float = 10.0
 DELTA_LIMIT: float = 0.01

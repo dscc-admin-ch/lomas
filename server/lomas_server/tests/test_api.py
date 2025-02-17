@@ -133,12 +133,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def test_state(self) -> None:
         """Test state endpoint."""
         with TestClient(app, headers=self.headers) as client:
-            response = client.get("/state")
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = response.json()
-            assert response_dict["requested_by"] == self.user_name
-
             response = client.get("/health/live")
             assert response.status_code == status.HTTP_200_OK
 

@@ -1,11 +1,7 @@
-import asyncio
 import logging
-import os
 from collections.abc import AsyncGenerator
-from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
-import aio_pika
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
@@ -16,13 +12,9 @@ from lomas_core.error_handler import (
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
-from lomas_core.models.responses import (
-    CostResponse,
-    QueryResponse,
-)
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
-from lomas_server.constants import CONFIG_NOT_LOADED, DB_NOT_LOADED, SERVER_SERVICE_NAME, SERVICE_ID, jobs_var
+from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -31,36 +23,8 @@ from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
+from lomas_server.routes.utils import rabbitmq_ctx
 from lomas_server.utils.config import get_config
-
-# TODO: merge in pydantic-settings
-amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
-amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
-
-
-async def process_response(queue, cls):
-    async with queue.iterator() as queue_iter:
-        async for message in queue_iter:
-            async with message.process():
-                print(f"message: {message.body} | HEADERS: {message.headers}")
-                jobs = jobs_var.get()
-
-                match message.headers:
-
-                    case {"type": "exception", "status_code": status_code}:
-                        exc = message.body.decode()
-                        print(exc)
-                        jobs[message.correlation_id].error = message.body.decode()
-                        jobs[message.correlation_id].status = "failed"
-                        jobs[message.correlation_id].result = None
-                        jobs[message.correlation_id].status_code = status_code
-
-                    case _:
-                        jobs[message.correlation_id].result = cls.model_validate_json(message.body.decode())
-                        jobs[message.correlation_id].status = "complete"
-
-                print(jobs)
-                jobs_var.set(jobs)
 
 
 @asynccontextmanager
@@ -82,79 +46,34 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     # Set some app state
     lomas_app.state.admin_database = None
 
-    # General server state, can add fields if need be.
-    lomas_app.state.server_state = {
-        "state": [],
-        "message": [],
-    }
-    lomas_app.state.server_state["state"].append("Startup event")
-
-    status_ok = True
     # Load config
     try:
         logging.info("Loading config")
-        lomas_app.state.server_state["message"].append("Loading config")
         config = get_config()
         lomas_app.state.private_credentials = config.private_db_credentials
     except InternalServerException:
         logging.info("Config could not loaded")
-        lomas_app.state.server_state["state"].append(CONFIG_NOT_LOADED)
-        lomas_app.state.server_state["message"].append("Server could not be started!")
-        lomas_app.state.live = False
-        status_ok = False
 
     # Fill up user database if in develop mode ONLY
-    if status_ok and config.develop_mode:
+    if config.develop_mode:
         logging.info("!! Develop mode ON !!")
-        lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
         if config.admin_database.db_type == AdminDBType.MONGODB:
             logging.info("Adding demo data to MongoDB Admin")
-            lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
             add_demo_data_to_mongodb_admin()
 
     # Load admin database
-    if status_ok:
-        try:
-            logging.info("Loading admin database")
-            lomas_app.state.server_state["message"].append("Loading admin database")
-            lomas_app.state.admin_database = admin_database_factory(config.admin_database)
-        except InternalServerException as e:
-            logging.exception(f"Failed at startup: {str(e)}")
-            lomas_app.state.server_state["state"].append(DB_NOT_LOADED)
-            lomas_app.state.server_state["message"].append(f"Admin database could not be loaded: {str(e)}")
-            lomas_app.state.live = False
-            status_ok = False
-
-        lomas_app.state.server_state["state"].append("Startup completed")
-        lomas_app.state.server_state["message"].append("Startup completed")
+    try:
+        logging.info("Loading admin database")
+        lomas_app.state.admin_database = admin_database_factory(config.admin_database)
+    except InternalServerException as e:
+        logging.exception(f"Failed at startup: {str(e)}")
 
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
 
-    if status_ok:
-        lomas_app.state.server_state["message"].append("Server start condition OK")
-        lomas_app.state.live = True
+    async with rabbitmq_ctx(app):
 
-    app.state.executor = ThreadPoolExecutor()
-    app.state.jobs_var = jobs_var
-
-    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
-    channel = await connection.channel()
-    await channel.declare_queue("task_queue", auto_delete=True)
-    app.state.task_queue_channel = channel
-    queue = await channel.declare_queue("task_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, QueryResponse))
-
-    await channel.declare_queue("cost_queue", auto_delete=True)
-    app.state.cost_queue_channel = channel
-    queue = await channel.declare_queue("cost_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, CostResponse))
-
-    yield  # lomas_app is handling requests
-
-    await connection.close()
-
-    app.state.executor.shutdown()
+        yield  # lomas_app is handling requests
 
 
 # Initalise telemetry

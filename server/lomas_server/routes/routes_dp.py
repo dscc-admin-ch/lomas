@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request, status
+from fastapi import APIRouter, Header, Request, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
@@ -23,10 +23,9 @@ from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
     handle_query_on_private_dataset,
-    server_live,
 )
 
-router = APIRouter(dependencies=[Depends(server_live)])
+router = APIRouter()
 
 # Smartnoise SQL
 # -----------------------------------------------------------------------------

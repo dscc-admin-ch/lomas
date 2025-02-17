@@ -1,6 +1,8 @@
+import asyncio
+import os
 import random
 import time
-from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from functools import wraps
 
 import aio_pika
@@ -17,10 +19,59 @@ from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import Job, QueryResponse
+from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_server.constants import jobs_var
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.config import get_config
+
+# TODO: merge in pydantic-settings
+amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
+amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
+
+
+async def process_response(queue, cls):
+    async with queue.iterator() as queue_iter:
+        async for message in queue_iter:
+            async with message.process():
+                print(f"message: {message.body} | HEADERS: {message.headers}")
+                jobs = jobs_var.get()
+
+                match message.headers:
+                    case {"type": "exception", "status_code": status_code}:
+                        exc = message.body.decode()
+                        print(exc)
+                        jobs[message.correlation_id].error = message.body.decode()
+                        jobs[message.correlation_id].status = "failed"
+                        jobs[message.correlation_id].result = None
+                        jobs[message.correlation_id].status_code = status_code
+                    case _:
+                        jobs[message.correlation_id].result = cls.model_validate_json(message.body.decode())
+                        jobs[message.correlation_id].status = "complete"
+
+                jobs_var.set(jobs)
+
+
+@asynccontextmanager
+async def rabbitmq_ctx(app):
+    app.state.jobs_var = jobs_var
+
+    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
+    channel = await connection.channel()
+
+    await channel.declare_queue("task_queue", auto_delete=True)
+    app.state.task_queue_channel = channel
+    queue = await channel.declare_queue("task_response", auto_delete=True)
+    asyncio.create_task(process_response(queue, QueryResponse))
+
+    await channel.declare_queue("cost_queue", auto_delete=True)
+    app.state.cost_queue_channel = channel
+    queue = await channel.declare_queue("cost_response", auto_delete=True)
+    asyncio.create_task(process_response(queue, CostResponse))
+
+    yield  # lomas_app is handling requests
+
+    await connection.close()
 
 
 def timing_protection(func):
@@ -47,26 +98,6 @@ def timing_protection(func):
         return response
 
     return wrapper
-
-
-async def server_live(request: Request) -> AsyncGenerator:
-    """
-    Checks the server is live and throws an exception otherwise.
-
-    Args:
-        request (Request): Raw request
-
-    Raises:
-        InternalServerException: If the server is not live.
-
-    Returns:
-        AsyncGenerator
-    """
-    if not request.app.state.live:
-        raise InternalServerException(
-            "Woops, the server did not start correctly. Contact the administrator of this service.",
-        )
-    yield
 
 
 @timing_protection

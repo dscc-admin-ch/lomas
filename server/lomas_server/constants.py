@@ -2,6 +2,8 @@ import os
 import string
 from enum import StrEnum
 
+import opendp as dp
+
 # Config
 # -----------------------------------------------------------------------------
 
@@ -100,3 +102,13 @@ class OpenDPDatasetInputMetric(StrEnum):
     HAMMING_DISTANCE = "HammingDistance"
 
     INT_DISTANCE = "u32"  # opendp type for distance between datasets
+
+
+OPENDP_TYPE_MAPPING = {
+    "int32": dp.typing.i32,
+    "float32": dp.typing.f32,
+    "int64": dp.typing.i64,
+    "float64": dp.typing.f64,
+    "string": dp.typing.String,
+    "boolean": bool,
+}

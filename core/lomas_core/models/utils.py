@@ -55,6 +55,7 @@ def serialize_model(model: Any) -> str:
 
 def deserialize_model(serialized_model: Any) -> Any:
     """Deserialize a base64 encoded byte string into a python object.
+    SHOULD ONLY BE USED FROM SERVER TO CLIENT.
 
     Args:
         serialized_model (Any): Encoded python object.
@@ -64,6 +65,6 @@ def deserialize_model(serialized_model: Any) -> Any:
     """
     if isinstance(serialized_model, str):
         raw_bytes = b64decode(serialized_model)
-        return pickle.loads(raw_bytes)
+        return pickle.loads(raw_bytes)  # nosec: only used in client
 
     return serialized_model

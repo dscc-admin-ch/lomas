@@ -45,3 +45,6 @@ disable = [
 [tool.pydocstringformatter]
 write = true
 max-line-length = 110
+
+[tool.bandit]
+exclude_dirs = ["docs"]

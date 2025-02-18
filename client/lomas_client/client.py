@@ -192,7 +192,7 @@ class Client:
                         return_model = query["client_input"]["return_model"]
                         res = query["response"]["result"]
                         if return_model:
-                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
+                            query["response"]["result"] = pickle.loads(base64.b64decode(res))  # nosec
                         else:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
@@ -200,7 +200,7 @@ class Client:
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
-                        query["response"]["result"]["model"] = pickle.loads(model)
+                        query["response"]["result"]["model"] = pickle.loads(model)  # nosec
                     case _:
                         raise ValueError(f"Cannot deserialise unknown query type: {query['dp_librairy']}")
 

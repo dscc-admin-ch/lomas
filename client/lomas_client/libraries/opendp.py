@@ -84,7 +84,6 @@ class OpenDPClient:
                 Defaults to None.
             mechanism: (str, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
-                
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
 

@@ -13,6 +13,7 @@ services:
       - SERVER_SERVICE_NAME=lomas-server-app
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
+      - OTEL_PYTHON_LOG_CORRELATION=true
       - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
     volumes:
       - ./lomas_server:/code/lomas_server

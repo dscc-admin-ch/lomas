@@ -42,6 +42,7 @@ setup(
         "opendp_logger>=0.3.0",
         "opentelemetry-api>=1.29.0",
         "opentelemetry-exporter-otlp>=1.29.0",
+        "opentelemetry-instrumentation-logging>=0.50b0",
         "opentelemetry-sdk>=1.29.0",
         "pandas>=2.2.2",
         "pymongo>=4.6.3",

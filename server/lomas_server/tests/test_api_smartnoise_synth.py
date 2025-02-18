@@ -33,15 +33,6 @@ from lomas_server.tests.constants import (
 from lomas_server.tests.test_api import TestRootAPIEndpoint
 
 
-def dummy_validate_response(client, response) -> QueryResponse:
-    assert response.status_code == status.HTTP_200_OK
-
-    r_model = QueryResponse.model_validate(response.json())
-    assert isinstance(r_model.result, SmartnoiseSynthModel | SmartnoiseSynthSamples)
-
-    return r_model
-
-
 def validate_response(client, response) -> QueryResponse:
     """Validate that the pipeline ran successfully.
 
@@ -241,13 +232,15 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             body["dataset_name"] = "PUMS"
             body["delta"] = None
             body["synth_params"] = {"batch_size": 2, "epochs": 5}
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/dummy_smartnoise_synth_query",
                 json=body,
                 headers=self.headers,
             )
 
-            r_model = dummy_validate_response(client, response)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -259,12 +252,14 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test_dummy_smartnoise_synth_query."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/dummy_smartnoise_synth_query",
                 json=example_dummy_smartnoise_synth_query,
                 headers=self.headers,
             )
-            r_model = dummy_validate_response(client, response)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)

@@ -20,7 +20,7 @@ PENGUIN_COLUMNS = [
 PUMS_COLUMNS = ["age", "sex", "educ", "race", "income", "married"]
 
 
-def wait_for_job(client, endpoint, n_retry=50, sleep_sec=0.5) -> Job:
+def wait_for_job(client, endpoint, n_retry=100, sleep_sec=0.5) -> Job:
     """Periodically query the job endpoint sleeping in between until it completes / times-out."""
     for _ in range(n_retry):
         job_query = client.get(endpoint).json()

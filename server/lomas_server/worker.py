@@ -24,20 +24,25 @@ from lomas_core.models.exceptions import (
     UnauthorizedAccessExceptionModel,
 )
 from lomas_core.models.requests import (
+    DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
+    OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
+    SmartnoiseSQLDummyQueryModel,
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
+    SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import CostResponse
+from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
+from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 CONFIG_LOADER.load_config(
@@ -82,7 +87,6 @@ def handle_known_exceptions(exc):
 
 
 def handle_cost_query(body):
-    print(f" [x] Received CostQuery {body.decode()}")
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, request_model = message.split(":", 2)
@@ -125,7 +129,6 @@ def handle_cost_query(body):
 
 
 def handle_query(body):
-    print(f" [x] Received {body.decode()}")
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, query_json = message.split(":", 2)
@@ -159,6 +162,44 @@ def handle_query(body):
         elapsed = time.time() - start_sec
         print(f" [x] Done ({elapsed:.2f})")
         return query_response
+    except KNOWN_EXCEPTIONS as exc:
+        known_exc = handle_known_exceptions(exc)
+        print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        return known_exc.body, known_exc.status_code
+    except Exception as e:
+        return e
+
+
+def handle_dummy_query(body):
+    start_sec = time.time()
+    message = body.decode()
+    user_name, dp_library, query_model = message.split(":", 2)
+
+    match dp_library:
+        case DPLibraries.SMARTNOISE_SQL:
+            query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model)
+        case DPLibraries.SMARTNOISE_SYNTH:
+            query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model)
+        case DPLibraries.OPENDP:
+            query_model = OpenDPDummyQueryModel.model_validate_json(query_model)
+        case DPLibraries.DIFFPRIVLIB:
+            query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model)
+
+    try:
+        data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+        dummy_querier = querier_factory(
+            dp_library,
+            data_connector=data_connector,
+            admin_database=admin_database,
+        )
+        eps_cost, delta_cost = dummy_querier.cost(query_model)
+        result = dummy_querier.query(query_model)
+        dummy_query_response = QueryResponse(
+            requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
+        )
+        elapsed = time.time() - start_sec
+        print(f" [x] Done ({elapsed:.2f})")
+        return dummy_query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
         print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
@@ -223,6 +264,7 @@ async def main():
         async with asyncio.TaskGroup() as tg:
             tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
             tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
+            tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import Job, QueryResponse
+from lomas_core.models.responses import Job
 from lomas_server.routes.utils import (
     handle_cost_query,
     handle_query_on_dummy_dataset,
@@ -71,15 +71,16 @@ async def smartnoise_sql_handler(
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_sql_handler(
+async def dummy_smartnoise_sql_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
@@ -102,7 +103,9 @@ def dummy_smartnoise_sql_handler(
     Returns:
         QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_on_dummy_dataset(
+        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
+    )
 
 
 @router.post(
@@ -187,15 +190,16 @@ async def smartnoise_synth_handler(
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_synth_handler(
+async def dummy_smartnoise_synth_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSynth library.
 
@@ -219,7 +223,7 @@ def dummy_smartnoise_synth_handler(
         QueryResponse: A query response containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_dummy_dataset(
+    return await handle_query_on_dummy_dataset(
         request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
     )
 
@@ -303,15 +307,16 @@ async def opendp_query_handler(
 
 @router.post(
     "/dummy_opendp_query",
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_opendp_query_handler(
+async def dummy_opendp_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the OpenDP library.
 
@@ -333,7 +338,7 @@ def dummy_opendp_query_handler(
     Returns:
         QueryResponse: A query response containing an OpenDPQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -416,15 +421,16 @@ async def diffprivlib_query_handler(
 
 @router.post(
     "/dummy_diffprivlib_query",
-    response_model=QueryResponse,
+    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_diffprivlib_query_handler(
+async def dummy_diffprivlib_query_handler(
     user_name: Annotated[str, Header()],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the DiffPrivLib library.
 
@@ -446,7 +452,7 @@ def dummy_diffprivlib_query_handler(
     Returns:
         QueryResponse: A query response containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(

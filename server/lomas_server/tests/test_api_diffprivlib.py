@@ -331,13 +331,14 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
         """Test_dummy_diffprivlib_query."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            _, job = submit_job_wait(
+                client,
                 "/dummy_diffprivlib_query",
                 json=example_dummy_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-            r_model = QueryResponse.model_validate(response.json())
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)
             assert r_model.result.score > 0
 

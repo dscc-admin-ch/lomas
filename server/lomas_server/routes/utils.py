@@ -10,7 +10,6 @@ from fastapi import Request
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
     InternalServerException,
     UnauthorizedAccessException,
 )
@@ -21,8 +20,6 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.constants import jobs_var
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.config import get_config
 
 # TODO: merge in pydantic-settings
@@ -34,13 +31,11 @@ async def process_response(queue, cls):
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process():
-                print(f"message: {message.body} | HEADERS: {message.headers}")
+                # print(f"message: {message.body} | HEADERS: {message.headers}")
                 jobs = jobs_var.get()
 
                 match message.headers:
                     case {"type": "exception", "status_code": status_code}:
-                        exc = message.body.decode()
-                        print(exc)
                         jobs[message.correlation_id].error = message.body.decode()
                         jobs[message.correlation_id].status = "failed"
                         jobs[message.correlation_id].result = None
@@ -68,6 +63,11 @@ async def rabbitmq_ctx(app):
     app.state.cost_queue_channel = channel
     queue = await channel.declare_queue("cost_response", auto_delete=True)
     asyncio.create_task(process_response(queue, CostResponse))
+
+    await channel.declare_queue("dummy_queue", auto_delete=True)
+    app.state.dummy_queue_channel = channel
+    queue = await channel.declare_queue("dummy_response", auto_delete=True)
+    asyncio.create_task(process_response(queue, QueryResponse))
 
     yield  # lomas_app is handling requests
 
@@ -148,12 +148,12 @@ async def handle_query_on_private_dataset(
     return new_task
 
 
-def handle_query_on_dummy_dataset(
+async def handle_query_on_dummy_dataset(
     request: Request,
     query_model: DummyQueryModel,
     user_name: str,
     dp_library: DPLibraries,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for all supported libraries.
 
@@ -186,23 +186,20 @@ def handle_query_on_dummy_dataset(
             f"{user_name} does not have access to {dataset_name}.",
         )
 
-    ds_data_connector = get_dummy_dataset_for_query(app.state.admin_database, query_model)
-    dummy_querier = querier_factory(
-        dp_library,
-        data_connector=ds_data_connector,
-        admin_database=app.state.admin_database,
+    new_task = Job()
+
+    jobs = app.state.jobs_var.get()
+    jobs[str(new_task.uid)] = new_task
+    app.state.jobs_var.set(jobs)
+
+    await app.state.dummy_queue_channel.default_exchange.publish(
+        aio_pika.Message(
+            body=f"{user_name}:{dp_library}:{query_model.json()}".encode(), correlation_id=new_task.uid
+        ),
+        routing_key="dummy_queue",
     )
 
-    try:
-        eps_cost, delta_cost = dummy_querier.cost(query_model)
-        result = dummy_querier.query(query_model)
-        response = QueryResponse(requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return response
+    return new_task
 
 
 @timing_protection

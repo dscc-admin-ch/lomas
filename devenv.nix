@@ -16,6 +16,19 @@ let
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   mongo_db_name = "defaultdb";
 
+  worker_process_config = {
+    exec = ''
+      pushd $DEVENV_ROOT/server/lomas_server
+      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+      popd
+    '';
+    process-compose.depends_on = {
+      rabbitmq.condition = "process_healthy";
+      mongodb.condition = "process_healthy";
+      mongodb-init-lomas.condition = "process_started";
+    };
+  };
+
   lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
     runtime_args = {
       settings = {
@@ -33,7 +46,7 @@ let
           };
         };
         admin_database = {
-          db_type = "mongo";
+          db_type = "mongodb";
           address = "127.0.0.1";
           port = mongo_port;
           db_name = mongo_db_name;
@@ -115,18 +128,8 @@ in
     };
   };
 
-  processes.worker = {
-    exec = ''
-      pushd $DEVENV_ROOT/server/lomas_server
-      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
-      popd
-    '';
-    process-compose.depends_on = {
-      rabbitmq.condition = "process_healthy";
-      mongodb.condition = "process_healthy";
-      mongodb-init-lomas.condition = "process_started";
-    };
-  };
+  processes.worker1 = worker_process_config;
+  processes.worker2 = worker_process_config;
 
   ###########
   # MONGODB #
@@ -283,6 +286,12 @@ in
     pylint .
     pydocstringformatter .
     mypy .
+    popd
+  '';
+
+  scripts.run-jupyter.exec = ''
+    pushd $DEVENV_ROOT/client
+    jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
     popd
   '';
 

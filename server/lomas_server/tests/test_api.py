@@ -456,12 +456,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_dummy_smartnoise_sql_query."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
-                "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql, headers=self.headers
+            _, job = submit_job_wait(
+                client, "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql, headers=self.headers
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = QueryResponse.model_validate(response.json())
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["NB_ROW"][0] > 0
             assert r_model.result.df["NB_ROW"][0] < 250
@@ -658,9 +657,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         """Test_dummy_opendp_query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/dummy_opendp_query", json=example_dummy_opendp)
-            assert response.status_code == status.HTTP_200_OK
-            response_model = QueryResponse.model_validate(response.json())
+            _, job = submit_job_wait(client, "/dummy_opendp_query", json=example_dummy_opendp)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)

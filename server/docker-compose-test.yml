@@ -23,12 +23,15 @@ services:
   minio:
     container_name: minio
     image: minio/minio
+    ports:
+      - 10000:10000
+      - 10001:10001
     command: server /data
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
-    ports:
-      - "9000:9000"
+      - MINIO_CONSOLE_ADDRESS=:10001
+      - MINIO_ADDRESS=:10000
     volumes:
       - minio-data:/data
     networks:
@@ -40,7 +43,7 @@ services:
       - minio
     entrypoint: /bin/sh -c "
       sleep 15 &&
-      mc alias set myminio http://minio:9000 admin admin123 &&
+      mc alias set myminio http://minio:10000 admin admin123 &&
       mc mb myminio/example || true &&
       mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv &&
       mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml &&

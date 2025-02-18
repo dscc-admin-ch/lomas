@@ -217,7 +217,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars,
             )
-
             assert response.status_code == status.HTTP_200_OK
 
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)

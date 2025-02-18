@@ -1,5 +1,5 @@
-import logging
 import io
+import logging
 import os
 import re
 
@@ -451,12 +451,6 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
 
         lf_domain = get_lf_domain(metadata, groups)
 
-        LOG.info(
-            "NOTE: IF THERE IS AN ERROR HERE."
-            "Make private lazyframe relies on OPENDP_LIB_PATH variable."
-            "This will change shortly to OPENDP_POLARS_LIB_PATH when "
-            "https://github.com/opendp/opendp/pull/1839f gets merged."
-        )
         opendp_pipe = dp.measurements.make_private_lazyframe(
             lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
         )

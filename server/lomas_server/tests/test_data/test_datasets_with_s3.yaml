@@ -42,3 +42,17 @@ datasets:
   metadata_access:
     database_type: "PATH_DB"
     path: "tests/test_data/metadata/birthday_metadata.yaml"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/income_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/fso_income_synthetic_metadata.yaml"
+- dataset_name: "COVID_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/covid_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/covid_synthetic_metadata.yaml"

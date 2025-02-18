@@ -158,6 +158,7 @@ example_opendp: Dict[str, JsonValue] = {
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
     "pipeline_type": OPENDP_PIPELINE_TYPE,
+    "mechanism": None,
 }
 example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
 

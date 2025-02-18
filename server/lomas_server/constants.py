@@ -2,7 +2,7 @@ import os
 import string
 from enum import StrEnum
 
-import opendp as dp
+from opendp import typing as tp
 
 # Config
 # -----------------------------------------------------------------------------
@@ -105,10 +105,10 @@ class OpenDPDatasetInputMetric(StrEnum):
 
 
 OPENDP_TYPE_MAPPING = {
-    "int32": dp.typing.i32,
-    "float32": dp.typing.f32,
-    "int64": dp.typing.i64,
-    "float64": dp.typing.f64,
-    "string": dp.typing.String,
+    "int32": tp.i32,
+    "float32": tp.f32,
+    "int64": tp.i64,
+    "float64": tp.f64,
+    "string": tp.String,
     "boolean": bool,
 }

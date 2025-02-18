@@ -954,7 +954,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
                 list_datasets,
-                ["PENGUIN", "IRIS", "PUMS", "TINTIN_S3_TEST", "BIRTHDAYS"],
+                ['PENGUIN', 'IRIS', 'PUMS', 'TINTIN_S3_TEST', 'BIRTHDAYS',
+                    'FSO_INCOME_SYNTHETIC', 'COVID_SYNTHETIC'],
             )
         else:
             self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])

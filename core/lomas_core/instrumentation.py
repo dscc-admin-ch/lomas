@@ -61,7 +61,6 @@ def init_logs_exporter(resource: Resource) -> None:
     Args:
         resource (Resource): The resource to associate with the log telemetry.
     """
-
     exporter = OTLPLogExporter(endpoint=OTLP_COLLECTOR_ENDPOINT, insecure=True)
     logger_provider = LoggerProvider(resource=resource)
     set_logger_provider(logger_provider)

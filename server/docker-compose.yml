@@ -59,7 +59,7 @@ services:
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
   mongodb-exporter:
-    image: bitnami/mongodb-exporter:latest
+    image: bitnami/mongodb-exporter:0.43.1
     container_name: mongodb-exporter
     ports:
       - 9216:9216
@@ -150,7 +150,7 @@ services:
       - lomas-network
 
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:main-265ca32
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
@@ -162,7 +162,7 @@ services:
       - lomas-network
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector:0.119.0
     container_name: otel-collector
     ports:
       - "4317:4317"
@@ -183,7 +183,7 @@ services:
       - lomas-network
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4
     container_name: loki
     ports:
       - "3100:3100"
@@ -195,7 +195,7 @@ services:
       - lomas-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.2.0
     container_name: prometheus
     command:
       - --config.file=/etc/prometheus.yaml

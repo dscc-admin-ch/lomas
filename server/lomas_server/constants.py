@@ -26,6 +26,7 @@ SERVICE_ID = os.getenv("HOSTNAME", "default-host")
 
 # Server states
 DB_NOT_LOADED = "User database not loaded"
+AUTH_NOT_LOADED = "Authenticator not loaded"
 CONFIG_NOT_LOADED = "Config not loaded"
 SERVER_LIVE = "LIVE"
 

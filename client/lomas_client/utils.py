@@ -3,6 +3,7 @@ from typing import Any
 
 import requests
 from fastapi import status
+from pydantic import ValidationError
 
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
 from lomas_core.error_handler import (
@@ -29,7 +30,12 @@ def raise_error(response: requests.Response) -> str:
     Raise:
         Server Error
     """
-    error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    print(response.content)
+    try:
+        error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    except ValidationError:
+        raise Exception(response.content)
+
     match error_model:
         case InvalidQueryExceptionModel():
             raise InvalidQueryException(error_model.message)

@@ -20,6 +20,7 @@ services:
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
     networks:
       - test-network
+  
   minio:
     container_name: minio
     image: minio/minio
@@ -28,7 +29,7 @@ services:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
     ports:
-      - "9000:9000"
+      - "10000:10000"
     volumes:
       - minio-data:/data
     networks:
@@ -39,9 +40,9 @@ services:
     depends_on:
       - minio
     entrypoint: /bin/sh -c "
-      sleep 15 &&
-      mc alias set myminio http://minio:9000 admin admin123 &&
-      mc mb myminio/example || true &&
+      sleep 15 && 
+      mc alias set myminio http://minio:10000 admin admin123 && 
+      mc mb myminio/example || true && 
       mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv &&
       mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml &&
       mc ls --recursive --versions myminio/example"

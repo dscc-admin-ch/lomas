@@ -1,6 +1,9 @@
+# pylint: skip-file
+# type: ignore
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.config import Config as ServerConfig
 from lomas_core.models.constants import AdminDBType
 from lomas_server.administration.dashboard.config import get_config
 from lomas_server.administration.dashboard.utils import get_server_data
@@ -11,13 +14,18 @@ from lomas_server.utils.config import get_config as get_server_config
 ###############################################################################
 
 try:
-    if "config" not in st.session_state:
-        # Store config
-        st.session_state["config"] = get_server_config()
     if "dashboard_config" not in st.session_state:
         # Store dashboard config
         st.session_state["dashboard_config"] = get_config()
-except Exception as e:
+    if "config" not in st.session_state:
+        # Store config
+        server_config = ServerConfig.model_validate(
+            get_server_data(
+                st.session_state.dashboard_config.server_service, "config", st.session_state.dashboard_config.kc_config
+            )["config"]
+        )
+        st.session_state["config"] = server_config
+except InternalServerException as e:
     st.error(f"Failed to load server or dashboard config. Initial exception: {e}")
 
 
@@ -37,7 +45,7 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
         + f"https://{st.session_state.dashboard_config.server_url}"
     )
 
-    state_response = get_server_data(st.session_state.dashboard_config.server_service, "state")
+    state_response = get_server_data(st.session_state.dashboard_config.server_service, "state", st.session_state.dashboard_config.kc_config)
     if state_response["state"]["LIVE"]:
         st.write("The server is live and ready!")
     else:

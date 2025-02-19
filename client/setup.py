@@ -46,5 +46,6 @@ setup(
         "lomas-core==0.4.1",
         "opentelemetry-instrumentation-requests==0.50b0",
         "requests==2.32.0",
+        "requests-oauthlib==2.0.0"
     ],
 )

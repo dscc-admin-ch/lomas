@@ -9,6 +9,8 @@ opentelemetry-api==1.29.0
 opentelemetry-exporter-otlp==1.29.0
 opentelemetry-sdk==1.29.0
 pandas==2.2.2
+pydantic==2.8.2
+pydantic-settings==2.7.1
 pymongo==4.6.3
 scikit-learn==1.4.2
 smartnoise-synth==1.0.4

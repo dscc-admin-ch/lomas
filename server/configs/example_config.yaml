@@ -19,6 +19,12 @@ runtime_args:
       max_pool_size: 100
       min_pool_size: 2
       max_connecting: 2
+    authenticator:
+      authentication_type: "jwt"
+      keycloak_address: "keycloak"
+      keycloak_port: 8080
+      keycloak_use_tls: False
+      realm: "lomas"
     dp_libraries:
       opendp:
         contrib: True

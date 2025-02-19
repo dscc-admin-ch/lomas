@@ -12,9 +12,10 @@ from lomas_core.error_handler import (
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.constants import AdminDBType
 from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
 from lomas_server.admin_database.yaml_database import AdminYamlDatabase
+from lomas_server.auth.auth import authenticator_factory
 from lomas_server.constants import (
+    AUTH_NOT_LOADED,
     CONFIG_NOT_LOADED,
     DB_NOT_LOADED,
     SERVER_LIVE,
@@ -73,15 +74,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.server_state["LIVE"] = False
         status_ok = False
 
-    # Fill up user database if in develop mode ONLY
-    if status_ok and config.develop_mode:
-        logging.info("!! Develop mode ON !!")
-        lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
-        if config.admin_database.db_type == AdminDBType.MONGODB:
-            logging.info("Adding demo data to MongoDB Admin")
-            lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
-            add_demo_data_to_mongodb_admin()
-
     # Load admin database
     if status_ok:
         try:
@@ -95,17 +87,30 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
             lomas_app.state.server_state["LIVE"] = False
             status_ok = False
 
-        lomas_app.state.server_state["state"].append("Startup completed")
-        lomas_app.state.server_state["message"].append("Startup completed")
-
-    # Set DP Libraries config
-    set_opendp_features_config(config.dp_libraries.opendp)
+    # Create Authenticator
+    if status_ok:
+        try:
+            logging.info("Configuring Authenticator")
+            lomas_app.state.server_state["message"].append("Configuring authenticator")
+            lomas_app.state.authenticator = authenticator_factory(config.authenticator)
+        except InternalServerException as e:
+            logging.exception(f"Failed at startup: {str(e)}")
+            lomas_app.state.server_state["state"].append(AUTH_NOT_LOADED)
+            lomas_app.state.server_state["message"].append(f"Authenticator could not be loaded: {str(e)}")
+            lomas_app.state.server_state["LIVE"] = False
+            status_ok = False
 
     if status_ok:
+        # Set DP Libraries config
+        set_opendp_features_config(config.dp_libraries.opendp)
+
         logging.info("Server start condition OK")
         lomas_app.state.server_state["state"].append(SERVER_LIVE)
         lomas_app.state.server_state["message"].append("Server start condition OK")
         lomas_app.state.server_state["LIVE"] = True
+
+        lomas_app.state.server_state["state"].append("Startup completed")
+        lomas_app.state.server_state["message"].append("Startup completed")
 
     yield  # lomas_app is handling requests
 

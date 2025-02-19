@@ -1,5 +1,8 @@
 users:
-- user_name: Alice
+- id:
+    name: Alice
+    email: "alice@example.com"
+    client_secret: alice
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
@@ -12,7 +15,10 @@ users:
     initial_delta: 0.0005
     total_spent_epsilon: 0.2
     total_spent_delta: 0.0000001
-- user_name: Dr. Antartica
+- id:
+    name: Dr.Antartica
+    email: "dr.antartica@example.com"
+    client_secret: dr.antartica
   may_query: True
   datasets_list:
   - dataset_name: "PENGUIN"
@@ -30,7 +36,10 @@ users:
     initial_delta: 0.0005
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: Dr. FSO
+- id:
+    name: Dr.FSO
+    email: "dr.fso@example.com"
+    client_secret: dr.fso
   may_query: True
   datasets_list:
   - dataset_name: "FSO_INCOME_SYNTHETIC"
@@ -38,7 +47,10 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: Bob
+- id:
+    name: Bob
+    email: bob@example.com
+    client_secret: bob
   may_query: True
   datasets_list:
   - dataset_name: "IRIS"
@@ -46,7 +58,10 @@ users:
     initial_delta: 0.0001
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: Jack
+- id:
+    name: Jack
+    email: jack@example.com
+    client_secret: jack
   may_query: True
   datasets_list:
   - dataset_name: "TITANIC"

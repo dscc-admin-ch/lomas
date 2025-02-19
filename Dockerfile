@@ -26,7 +26,7 @@ COPY ./client/README.md /code/README.md
 COPY ./client/notebooks/images/ /code/notebooks/images/
 COPY ./client/notebooks/Demo_Client_Notebook.ipynb /code/notebooks/Demo_Client_Notebook.ipynb
 COPY ./client/LICENSE /code/LICENSE
-CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--debug", ">", "log.file"]
+CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 ### SERVER
 FROM lomas_core AS lomas_server_base

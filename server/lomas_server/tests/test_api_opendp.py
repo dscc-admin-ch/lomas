@@ -7,12 +7,12 @@ from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from tests.test_api_root import TestSetupRootAPIEndpoint
 
+from lomas_core.constants import OpenDpPipelineType
 from lomas_core.models.exceptions import (
     InvalidQueryExceptionModel,
     UnauthorizedAccessExceptionModel,
 )
 from lomas_core.models.requests_examples import (
-    OPENDP_PIPELINE_TYPE,
     PENGUIN_DATASET,
     example_dummy_opendp,
     example_opendp,
@@ -83,7 +83,8 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "dataset_name": PENGUIN_DATASET,
                     "fixed_delta": None,
                     "opendp_json": transformation_pipeline.to_json(),
-                    "pipeline_type": OPENDP_PIPELINE_TYPE,
+                    "pipeline_type": OpenDpPipelineType.LEGACY,
+                    "mechanism": None,
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -103,7 +104,8 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "dataset_name": PENGUIN_DATASET,
                     "fixed_delta": None,
                     "opendp_json": md_pipeline.to_json(),
-                    "pipeline_type": OPENDP_PIPELINE_TYPE,
+                    "pipeline_type": OpenDpPipelineType.LEGACY,
+                    "mechanism": None,
                 },
             )
             assert response.status_code == status.HTTP_200_OK
@@ -123,7 +125,8 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": zcd_pipeline.to_json(),
                 "fixed_delta": None,
-                "pipeline_type": OPENDP_PIPELINE_TYPE,
+                "pipeline_type": OpenDpPipelineType.LEGACY,
+                "mechanism": None,
             }
             # Should error because missing fixed_delta
             response = client.post("/opendp_query", json=json_obj)
@@ -155,7 +158,8 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "dataset_name": PENGUIN_DATASET,
                 "opendp_json": sm_pipeline.to_json(),
                 "fixed_delta": None,
-                "pipeline_type": OPENDP_PIPELINE_TYPE,
+                "pipeline_type": OpenDpPipelineType.LEGACY,
+                "mechanism": None,
             }
             # Should error because missing fixed_delta
             response = client.post("/opendp_query", json=json_obj)

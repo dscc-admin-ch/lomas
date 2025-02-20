@@ -1,4 +1,4 @@
-from typing import Optional, OrderedDict, Type
+from typing import Optional, Type
 
 import opendp as dp
 import polars as pl
@@ -6,6 +6,7 @@ import polars as pl
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
+from lomas_core.constants import OpenDpMechanism
 from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
@@ -24,7 +25,7 @@ class OpenDPClient:
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: Optional[float] = None,
-        mechanism: Optional[str] = "laplace",
+        mechanism: Optional[OpenDpMechanism] = "laplace",
     ):
         """This function executes an OpenDP query.
         Args:
@@ -158,39 +159,3 @@ class OpenDPClient:
         res = self.http_client.post(endpoint, body)
 
         return validate_model_response(res, QueryResponse)
-
-
-def get_lf_seed(self):
-    """
-        Get the LazyFrame seed for OpenDP polars pipelines
-        Raises:
-            Exception: If some column type is not supported by polars or\
-                if some information is missing from the metadata.
-        Returns:
-            pl.LazyFrame: The polars LazyFrame seed for an OpenDP polars pipeline.
-        """
-    metadata = self.get_dataset_metadata()
-    schema = OrderedDict()
-    for name, series_info in metadata["columns"].items():
-        if "type" not in series_info:
-            raise KeyError("Missing type info in metadata")
-        try:
-            if series_info["type"] in ["float", "int"]:
-                dtype = f"{series_info['type']}{series_info['precision']}"
-            else:
-                dtype = series_info["type"]
-
-            series_type = {
-                "int32": pl.datatypes.Int32,
-                "float32": pl.datatypes.Float32,
-                "int64": pl.datatypes.Int64,
-                "float64": pl.datatypes.Float64,
-                "string": pl.datatypes.String,
-                "boolean": pl.datatypes.Boolean,
-            }[dtype]
-        except Exception as e:
-            raise ValueError(f"Type {series_info['type']} not supported by OpenDP.") from e
-
-        schema[name] = series_type
-
-    return pl.DataFrame(None, schema, orient="row").lazy()

@@ -1,5 +1,6 @@
 import io
 import json
+import unittest
 
 import polars as pl
 from app import app
@@ -7,6 +8,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from tests.test_api_root import TestSetupRootAPIEndpoint
 
+from lomas_core.models.collections import Metadata
 from lomas_core.models.requests_examples import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -15,6 +17,25 @@ from lomas_core.models.requests_examples import (
     example_opendp_polars,
     example_opendp_polars_datetime,
 )
+from lomas_server.dp_queries.dp_libraries.opendp import (
+    get_global_params,
+    update_params_by_grouping,
+)
+
+RAW_METADATA = {
+    "max_ids": 1,
+    "rows": 1,
+    "censor_dims": False,
+    "row_privacy": True,
+    "columns": {
+        "column_int": {
+            "type": "int",
+            "precision": 32,
+            "cardinality": 4,
+            "categories": [5, 6, 7, 8],
+        }
+    },
+}
 
 
 def get_lf_from_json(pipeline) -> pl.LazyFrame:
@@ -228,3 +249,99 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 json=example_opendp_polars,
             )
             assert response.status_code == status.HTTP_200_OK
+
+
+class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
+    """
+    Test OpenDP Polars functions.
+    """
+
+    def test_margin(self) -> None:
+        """Test margins created"""
+
+        RAW_METADATA["rows"] = 100
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        by_config = ["column_int"]
+        margin_params = get_global_params(metadata)
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+
+        # Since no max_partition length: rows is taken
+        # Since no max_num_partitions: cardinality is taken
+        expected_margin = {"max_num_partitions": 4, "max_partition_length": 100}
+        self.assertEqual(margin_params, expected_margin)
+
+        # max_partition_length is given: then we use it instead of rows
+        metadata["columns"]["column_int"].max_partition_length = 50
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_length"] = 50
+        self.assertEqual(margin_params, expected_margin)
+
+        metadata["columns"]["column_int"].max_influenced_partitions = 1
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_influenced_partitions"] = 1
+        self.assertEqual(margin_params, expected_margin)
+
+        metadata["columns"]["column_int"].max_partition_contributions = 1
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_contributions"] = 1
+        self.assertEqual(margin_params, expected_margin)
+
+        # Minimum between max_ids and max_partition_contributions should be taken
+        metadata["columns"]["column_int"].max_partition_contributions = 4
+        metadata["max_ids"] = 2
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_contributions"] = 2
+        self.assertEqual(margin_params, expected_margin)
+
+    def test_margin_grouping(self) -> None:
+        """Test margins with grouping"""
+        RAW_METADATA["rows"] = 100
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        margin_params = get_global_params(metadata)
+
+        # Test multi grouping
+        new_col = {"type": "int", "precision": 32, "upper": 100, "lower": 1}
+        RAW_METADATA["columns"]["new_col"] = new_col  # type: ignore[index]
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        by_config = ["column_int", "new_col"]
+        metadata["columns"]["column_int"].max_partition_length = None
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin = {
+            "max_num_partitions": 4,  # from col_int cardinality
+            "max_partition_length": 100,  # since all are none, rows taken
+        }  # from max_ids
+        self.assertEqual(margin_params, expected_margin)
+
+        metadata["columns"]["column_int"].max_partition_length = 30
+        metadata["columns"]["new_col"].max_partition_length = 50
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_length"] = 30  # min between two col
+        self.assertEqual(margin_params, expected_margin)
+
+        # Check max_influenced_partitions (max should be multiple of each group)
+        metadata["max_ids"] = 20
+        metadata["columns"]["column_int"].max_influenced_partitions = 3
+        metadata["columns"]["new_col"].max_influenced_partitions = 5
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_influenced_partitions"] = 15
+        self.assertEqual(margin_params, expected_margin)
+
+        # Should never be bigger than max_ids global
+        metadata["max_ids"] = 10
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_influenced_partitions"] = 10
+        self.assertEqual(margin_params, expected_margin)
+
+        # Test multi grouping (cardinality)
+        new_col_str = {"type": "string", "cardinality": 2, "categories": ["a", "b"]}
+        RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        by_config = ["column_int", "new_col_str"]
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        # Since card1 = 4 and card2 = 2, card_tot = 8
+        expected_margin = {
+            "max_num_partitions": 8,
+            "max_partition_length": 100,  # Since none for col_str
+            "max_influenced_partitions": 1,  # max_ids
+        }
+        self.assertEqual(margin_params, expected_margin)

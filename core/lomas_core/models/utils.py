@@ -45,7 +45,7 @@ def polars_df_to_str(df_pl: pl.DataFrame) -> str:
 
 
 def polars_df_from_str(serialized_pl: str | pl.DataFrame) -> pl.DataFrame:
-    """Convert a Polars DataFrame to a JSON string."""
+    """Convert a Polars DataFrame from a JSON string."""
 
     if isinstance(serialized_pl, pl.DataFrame):
         return serialized_pl

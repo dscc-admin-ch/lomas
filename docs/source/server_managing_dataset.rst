@@ -45,7 +45,7 @@ Note that if your dataset is stored on a S3 bucket, other parameters should be u
      crendentials_name: your_credentials
 Metadata
 -----------
-Each dataset should be added with its related metadata. This is requires by the platform in order
+Each dataset should be added with its related metadata. This is required by the platform in order
 to create the dummy dataset and to apply the different DP mechanisms correctly during the processing
 of the queries sent by the user.
 
@@ -86,6 +86,7 @@ Column options:
 * `max_partition_length`: Optional. Default is set to 1. An upper bound on the number of records in any one partition. (in %). (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
 * `max_influenced_partitions:` Optional. The greatest number of partitions any one individual can contribute to. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
 * `max_partition_contributions`: Optional. The greatest number of records an individual may contribute to any one partition. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
+* `max_num_partitions`: Optional. The greatest number of distinct partitions (similar to cardinality) (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
 
 
 

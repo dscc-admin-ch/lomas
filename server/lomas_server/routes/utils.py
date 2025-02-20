@@ -31,7 +31,6 @@ async def process_response(queue, cls):
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process():
-                # print(f"message: {message.body} | HEADERS: {message.headers}")
                 jobs = jobs_var.get()
 
                 match message.headers:

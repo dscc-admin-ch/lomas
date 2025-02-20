@@ -33,7 +33,6 @@ def wait_for_job(client, endpoint, n_retry=100, sleep_sec=0.5) -> Job:
 
         sleep(sleep_sec)
 
-    # return Job.model_validate(job_query | {"error": "What the Cinnamon Toast Fuck Is This"})
     raise TimeoutError(f"Job {endpoint} didn't complete in time ({sleep_sec * n_retry})")
 
 

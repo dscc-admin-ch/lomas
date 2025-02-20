@@ -235,7 +235,6 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                         print("Response length:", len(query_response.json()), message.correlation_id)
                         body = query_response.json().encode()
 
-                # print(headers, body)
                 await channel.default_exchange.publish(
                     aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
                     routing_key=out_queue,

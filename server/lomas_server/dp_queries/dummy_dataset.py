@@ -69,8 +69,8 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                 )
             case IntCategoricalMetadata():
                 dtype = f"{data.type}{data.precision}"
-                categories = data.categories
-                serie = pd.Series(rng.choice(categories, size=nb_rows), dtype=np.dtype(dtype))
+                int_categories = data.categories
+                serie = pd.Series(rng.choice(int_categories, size=nb_rows), dtype=np.dtype(dtype))
             case FloatMetadata():
                 dtype = f"{data.type}{data.precision}"
                 serie = pd.Series(

@@ -44,8 +44,11 @@ setup(
         "opentelemetry-exporter-otlp>=1.29.0",
         "opentelemetry-sdk>=1.29.0",
         "pandas>=2.2.2",
+        "polars==1.12.0",
+        "pyarrow==16.1.0",
         "pymongo>=4.6.3",
         "scikit-learn>=1.4.2",
+        "smartnoise-sql==1.0.6",
         "smartnoise-synth>=1.0.4",
         "smartnoise_synth_logger>=0.0.3"
     ]

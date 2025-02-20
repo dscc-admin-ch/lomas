@@ -23,7 +23,12 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import OPENDP_TYPE_MAPPING, OpenDPDatasetInputMetric, OpenDPMeasurement
+from lomas_server.constants import (
+    OPENDP_OUTPUT_MEASURE,
+    OPENDP_TYPE_MAPPING,
+    OpenDPDatasetInputMetric,
+    OpenDPMeasurement,
+)
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -35,7 +40,7 @@ def get_lf_domain(metadata, by_config):
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
     Args:
         metadata (dict): The metadata dictionary
-        by_config (list): Configuration for grouping.
+        by_config (list): List of the column names used for grouping
     Raises:
         Exception: If there is missing information in the metadata.
     Returns:
@@ -75,7 +80,8 @@ def get_lf_domain(metadata, by_config):
         series_domains.append(series_domain)
 
     # Margins
-    # TODO Check lengths vs. keys for public info -> not in doc anymore.
+    # TODO 400: Check lengths vs. keys for public info
+    # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
 
     # Global margin parameters
     margin_params = get_global_params(metadata)
@@ -86,7 +92,7 @@ def get_lf_domain(metadata, by_config):
     else:
         by_config = []
 
-    # TODO: Multiple margins?
+    # TODO 323: Multiple margins?
     # What if two group_by's in one query?
     lf_domain = dp.domains.with_margin(
         dp.domains.lazyframe_domain(series_domains),
@@ -124,14 +130,13 @@ def update_params_by_grouping(metadata, by_config, margin_params):
         dict: Updated parameters dictionary.
     """
     if len(by_config) == 1:
-        series_info = metadata["columns"].get(by_config[0])
-        single_group_update_params(metadata, series_info, margin_params)
+        single_group_update_params(metadata, by_config, margin_params)
     else:
         multiple_group_update_params(metadata, by_config, margin_params)
     return margin_params
 
 
-def single_group_update_params(metadata, series_info, margin_params):
+def single_group_update_params(metadata, by_config, margin_params):
     """
     Updates parameters for single-column grouping configuration.
     Args:
@@ -139,6 +144,7 @@ def single_group_update_params(metadata, series_info, margin_params):
         series_info (dict): Metadata for the series (column).
         params (dict): Current parameters dictionary to update.
     """
+    series_info = metadata["columns"].get(by_config[0])
     # Max_partition_length logic:
     # Must be specified at least at the dataset level (global)
     # if none are specified at the partition, we use the global
@@ -162,10 +168,10 @@ def single_group_update_params(metadata, series_info, margin_params):
             metadata["max_ids"],
             series_info.max_influenced_partitions,
         )
-    # max_influenced partitins logic:
+    # max_partition_contributions logic:
     # "The greatest number of records an individual
     # may contribute to any one partition."
-    # If max_influenced_partitions is bigger than max_ids
+    # If max_partition_contributions is bigger than max_ids
     # we fix it at max_ids (should not happen)
     if series_info.max_partition_contributions:
         margin_params["max_partition_contributions"] = min(
@@ -206,11 +212,12 @@ def multiple_group_update_params(metadata, by_config, margin_params):
             margin_params["max_partition_length"], series_max_partition_length
         )
 
-        # max_partitions_length logic:
+        # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
-        if series_info.cardinality:
-            margin_params["max_num_partitions"] *= series_info.cardinality
+        if hasattr(series_info, "cardinality"):
+            if series_info.cardinality:
+                margin_params["max_num_partitions"] *= series_info.cardinality
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
@@ -335,8 +342,11 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
         elif query_json.pipeline_type == "polars":
             input_data = self.data_connector.get_polars_lf()
-        else:  # TODO validate input in json model instead of with if-else statements
-            raise InvalidQueryException("invalid pipeline type")
+        else:  # TODO 401 validate input in json model instead of with if-else statements
+            raise InternalServerException(
+                f"""Invalid pipeline type: '{query_json.pipeline_type}.'
+                                        Should be legacy or polars"""
+            )
 
         try:
             release_data = opendp_pipe(input_data)
@@ -440,14 +450,13 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
     if query_json.pipeline_type == "legacy":
         opendp_pipe = make_load_json(query_json.opendp_json)
     elif query_json.pipeline_type == "polars":
-        # TODO Might pickle, huge security implications!!
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
 
         groups = extract_group_by_columns(plan.explain())
-        output_measure = {
-            "laplace": dp.measures.max_divergence(),
-            "gaussian": dp.measures.zero_concentrated_divergence(),
-        }[query_json.mechanism]
+        if query_json.mechanism in OPENDP_OUTPUT_MEASURE:
+            output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
+        else:
+            raise ValueError("Invalid or missing mechanism")
 
         lf_domain = get_lf_domain(metadata, groups)
 
@@ -455,7 +464,7 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
             lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
         )
     else:
-        raise InvalidQueryException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")
+        raise InternalServerException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")
 
     # Verify that the pipeline is safe and valid
     is_measurement(opendp_pipe)

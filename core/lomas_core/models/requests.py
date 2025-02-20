@@ -4,6 +4,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
     DPLibraries,
+    OpenDpMechanism,
+    OpenDpPipelineType,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
@@ -190,9 +192,9 @@ class OpenDPRequestModel(LomasRequestModel):
     https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
     In that case a "fixed_delta" must be provided by the user.
     """
-    pipeline_type: str
+    pipeline_type: OpenDpPipelineType
     """The type of pipeline ('legacy' or 'polars')"""
-    mechanism: Optional[str] = None
+    mechanism: Optional[OpenDpMechanism]
     """The noise mechanism ('laplace' or 'gaussian'). Need to be specified when using polars"""
 
 

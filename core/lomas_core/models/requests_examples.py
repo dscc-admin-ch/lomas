@@ -2,7 +2,11 @@ from typing import Dict
 
 from pydantic import JsonValue
 
-from lomas_core.constants import SSynthGanSynthesizer
+from lomas_core.constants import (
+    OpenDpMechanism,
+    OpenDpPipelineType,
+    SSynthGanSynthesizer,
+)
 from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
     DUMMY_NB_ROWS,
@@ -29,7 +33,6 @@ SPLIT_SEED: int = 4
 TEST_SIZE: float = 0.2
 IMPUTER_STRATEGY: str = "drop"
 SNSYNTH_NB_SAMPLES: int = 200
-OPENDP_PIPELINE_TYPE = "legacy"
 
 
 def make_dummy(example_query: Dict[str, JsonValue]) -> Dict[str, JsonValue]:
@@ -157,7 +160,7 @@ example_opendp: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
-    "pipeline_type": OPENDP_PIPELINE_TYPE,
+    "pipeline_type": OpenDpPipelineType.LEGACY,
     "mechanism": None,
 }
 example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
@@ -203,17 +206,17 @@ OPENDP_POLARS_PIPELINE_COVID: str = (
 example_opendp_polars: Dict[str, JsonValue] = {
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": OPENDP_POLARS_PIPELINE,
-    "pipeline_type": "polars",  # TODO set constant
+    "pipeline_type": OpenDpPipelineType.POLARS,
     "fixed_delta": QUERY_DELTA,
-    "mechanism": "laplace",
+    "mechanism": OpenDpMechanism.LAPLACE,
 }
 
 example_opendp_polars_datetime: Dict[str, JsonValue] = {
     "dataset_name": COVID_DATASET,
     "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
-    "pipeline_type": "polars",  # TODO set constant
+    "pipeline_type": OpenDpPipelineType.POLARS,
     "fixed_delta": QUERY_DELTA,
-    "mechanism": "laplace",
+    "mechanism": OpenDpMechanism.LAPLACE,
 }
 
 

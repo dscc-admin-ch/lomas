@@ -2,6 +2,7 @@ import os
 import string
 from enum import StrEnum
 
+from opendp import measures as ms
 from opendp import typing as tp
 
 # Config
@@ -111,4 +112,9 @@ OPENDP_TYPE_MAPPING = {
     "float64": tp.f64,
     "string": tp.String,
     "boolean": bool,
+}
+
+OPENDP_OUTPUT_MEASURE = {
+    "laplace": ms.max_divergence(),
+    "gaussian": ms.zero_concentrated_divergence(),
 }

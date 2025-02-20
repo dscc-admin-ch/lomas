@@ -17,6 +17,21 @@ class DPLibraries(StrEnum):
     DIFFPRIVLIB = "diffprivlib"
 
 
+# OpenDP
+class OpenDpMechanism(StrEnum):
+    """Name of OpenDP mechanisms"""
+
+    LAPLACE = "laplace"
+    GAUSSIAN = "gaussian"
+
+
+class OpenDpPipelineType(StrEnum):
+    """Name of OpenDP pipelines"""
+
+    LEGACY = "legacy"
+    POLARS = "polars"
+
+
 # Smartnoise synth
 class SSynthMarginalSynthesizer(StrEnum):
     """Marginal Synthesizer models for smartnoise synth."""

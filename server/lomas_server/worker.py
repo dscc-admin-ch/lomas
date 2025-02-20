@@ -8,6 +8,7 @@ import aio_pika
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -44,6 +45,8 @@ from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.utils.config import CONFIG_LOADER, get_config
+
+AioPikaInstrumentor().instrument()
 
 CONFIG_LOADER.load_config(
     config_path="tests/test_configs/test_config_mongo.yaml",

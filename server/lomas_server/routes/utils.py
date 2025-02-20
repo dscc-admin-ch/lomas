@@ -7,6 +7,7 @@ from functools import wraps
 
 import aio_pika
 from fastapi import Request
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -21,6 +22,8 @@ from lomas_core.models.requests import (
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.constants import jobs_var
 from lomas_server.utils.config import get_config
+
+AioPikaInstrumentor().instrument()
 
 # TODO: merge in pydantic-settings
 amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")

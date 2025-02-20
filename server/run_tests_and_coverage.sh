@@ -15,7 +15,7 @@ cd lomas_server/
 python ./worker.py &
 
 # "mongodb", "LRU_cache", production mode, "jitter"
-coverage run --source=. -m unittest discover -s .
+pytest --cov .
 ret=$?
 
 coverage report

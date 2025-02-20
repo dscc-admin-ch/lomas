@@ -272,7 +272,7 @@ in
 
   scripts.ut-coverage.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    coverage run --source=. -m unittest
+    pytest --cov .
     coverage report
     coverage xml -o coverage.xml
     popd

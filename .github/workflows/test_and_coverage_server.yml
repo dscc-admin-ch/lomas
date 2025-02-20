@@ -9,7 +9,11 @@ on:
 
 jobs:
   tests:
+    name: Run tests on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
     permissions:
       # Gives the action the necessary permissions for publishing new
       # comments in pull requests.
@@ -18,9 +22,9 @@ jobs:
       # python-coverage-comment-action branch, and for editing existing
       # comments (to avoid publishing multiple comments in the same PR)
       contents: write
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v26
     - uses: cachix/cachix-action@v14
       with:
@@ -28,6 +32,12 @@ jobs:
 
     - name: Install devenv.sh
       run: nix profile install nixpkgs#devenv
+
+    - name: Set Python package
+      run: |
+        cat > devenv.local.nix <<EOF
+        { pkgs, ... }: { languages.python.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
+        EOF
 
     - name: Build the devenv shell
       run: devenv shell

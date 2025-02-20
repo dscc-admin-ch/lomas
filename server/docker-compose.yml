@@ -11,8 +11,9 @@ services:
     restart: always
     environment:
       - SERVER_SERVICE_NAME=lomas-server-app
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:4317
       - OTEL_EXPORTER_OTLP_INSECURE=true
+      - OTEL_PYTHON_LOG_CORRELATION=true
       - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
     volumes:
       - ./lomas_server:/code/lomas_server
@@ -58,7 +59,7 @@ services:
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
   mongodb-exporter:
-    image: bitnami/mongodb-exporter:latest
+    image: bitnami/mongodb-exporter:0.43.1
     container_name: mongodb-exporter
     ports:
       - 9216:9216
@@ -134,6 +135,7 @@ services:
     container_name: lomas_client
     environment:
       - CLIENT_SERVICE_NAME=lomas-client
+      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:4317
     ports:
       - 8888:8888
     volumes:
@@ -147,19 +149,8 @@ services:
     networks:
       - lomas-network
 
-  init_tempo:
-    image: &tempoImage grafana/tempo:latest
-    container_name: init_tempo
-    user: root
-    entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
-    networks:
-      - lomas-network
-
   tempo:
-    image: *tempoImage
+    image: grafana/tempo:main-265ca32
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
@@ -167,13 +158,11 @@ services:
     expose:
       - 3200
       - 4317
-    depends_on:
-      - init_tempo
     networks:
       - lomas-network
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector:0.119.0
     container_name: otel-collector
     ports:
       - "4317:4317"
@@ -194,7 +183,7 @@ services:
       - lomas-network
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4
     container_name: loki
     ports:
       - "3100:3100"
@@ -206,14 +195,10 @@ services:
       - lomas-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.2.0
     container_name: prometheus
     command:
       - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
-      - --enable-feature=native-histograms
-      - --enable-feature=otlp-write-receive
     volumes:
       - ./configs/observability/example_prometheus_config.yaml:/etc/prometheus.yaml
     ports:
@@ -230,7 +215,6 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
     ports:
       - "3000:3000"
     networks:

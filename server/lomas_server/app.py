@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -115,6 +116,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
 
 # Initalise telemetry
+LoggingInstrumentor().instrument(set_logging_format=True)
 resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
 init_telemetry(resource)
 

@@ -39,6 +39,7 @@ setup(
         "jaxlib==0.4.31",
         "lomas-core==0.4.1",
         "opentelemetry-instrumentation-fastapi>=0.50b0",
+        "opentelemetry-instrumentation-logging>=0.50b0",
         "opentelemetry-instrumentation-pymongo>=0.50b0",
         "packaging==24.1",
         "pyaml==23.9.5",

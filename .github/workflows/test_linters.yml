@@ -31,6 +31,6 @@ jobs:
           mypy server/lomas_server
       - name: pylint
         run: |
-          pylint --fail-under 9.5 core/lomas_core
-          pylint --fail-under 9.5 client/lomas_client
-          pylint --fail-under 9.5 server/lomas_server
+          pylint core/lomas_core
+          pylint client/lomas_client
+          pylint server/lomas_server

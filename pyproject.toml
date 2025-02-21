@@ -40,12 +40,14 @@ disable = [
     "duplicate-code",
     "too-many-lines",
     "too-many-locals",
+    "logging-not-lazy",
     "no-name-in-module",
     "too-many-arguments",
     "too-few-public-methods",
     "dangerous-default-value",
     "missing-module-docstring",
     "logging-fstring-interpolation",
+    "too-many-positional-arguments",
 ]
 
 [tool.pydocstringformatter]

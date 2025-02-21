@@ -31,6 +31,8 @@ amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
 
 
 async def process_response(queue, cls):
+    """Process responses queue into Jobs."""
+
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process():
@@ -51,6 +53,8 @@ async def process_response(queue, cls):
 
 @asynccontextmanager
 async def rabbitmq_ctx(app):
+    """RabbitMQ queue context to connect and register callbacks."""
+
     app.state.jobs_var = jobs_var
 
     connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")

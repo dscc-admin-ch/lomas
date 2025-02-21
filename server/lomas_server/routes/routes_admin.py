@@ -37,13 +37,23 @@ async def root():
     return RedirectResponse(url="/state")
 
 
-@router.get("/health/live")
+@router.get("/live")
 async def health_handler():
-    return
+    """HealthCheck endpoint: server alive.
+
+    Returns:
+        JSONResponse: "live"
+    """
+    return JSONResponse(content={"status": "alive"})
 
 
 @router.get("/status/{uid}")
 async def status_handler(uid: UUID, response: Response):
+    """Job Status endpoint.
+
+    Returns:
+        Job
+    """
     if (job := jobs_var.get().get(str(uid))) is not None:
         if job.status == "failed":
             response.status_code = job.status_code
@@ -53,7 +63,6 @@ async def status_handler(uid: UUID, response: Response):
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    request: Request,
     user_name: str = Header(None),
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.

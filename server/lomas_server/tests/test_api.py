@@ -48,7 +48,7 @@ from lomas_server.mongodb_admin import (
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.tests.constants import submit_job_wait
+from lomas_server.tests.utils import submit_job_wait
 from lomas_server.utils.config import CONFIG_LOADER
 
 INITAL_EPSILON = 10
@@ -60,9 +60,7 @@ pytestmark = pytest.mark.anyio
 
 
 class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
-    """
-    End-to-end tests of the api endpoints.
-    """
+    """End-to-end tests of the api endpoints."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -125,8 +123,9 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def test_state(self) -> None:
         """Test state endpoint."""
         with TestClient(app, headers=self.headers) as client:
-            response = client.get("/health/live")
+            response = client.get("/live")
             assert response.status_code == status.HTTP_200_OK
+            assert response.json() == {"status": "alive"}
 
     def test_unknown_endpoint(self) -> None:
         """Test endpoint that does not exist."""

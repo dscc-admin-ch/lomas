@@ -26,8 +26,8 @@ from lomas_core.models.responses import (
     QueryResponse,
 )
 from lomas_server.app import app
-from lomas_server.tests.constants import submit_job_wait, wait_for_job
 from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.tests.utils import submit_job_wait, wait_for_job
 
 
 def validate_pipeline(client, response) -> QueryResponse:

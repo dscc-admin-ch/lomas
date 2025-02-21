@@ -351,8 +351,8 @@ if __name__ == "__main__":
         min_pool_size=args.db_min_pool_size,
         max_connecting=args.db_max_connecting,
     )
-    db_url = get_mongodb_url(mongo_config)
-    mongo_db: Database = MongoClient(db_url)[args.db_name]
+    DB_URL = get_mongodb_url(mongo_config)
+    mongo_db: Database = MongoClient(DB_URL)[args.db_name]
 
     function_map = {
         "add_user": lambda args: add_user(mongo_db, args.user),

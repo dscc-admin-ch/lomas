@@ -64,6 +64,8 @@ amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
 
 
 def handle_known_exceptions(exc):
+    """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization."""
+
     match exc:
         case ExternalLibraryException():
             return JSONResponse(
@@ -90,9 +92,11 @@ def handle_known_exceptions(exc):
 
 
 def handle_cost_query(body):
+    """Handle Cost query into CostResponse."""
+
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, request_model = message.split(":", 2)
+    _, dp_library, request_model = message.split(":", 2)
 
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
@@ -127,11 +131,11 @@ def handle_cost_query(body):
         known_exc = handle_known_exceptions(exc)
         print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        return e
 
 
 def handle_query(body):
+    """Handle DP query into QueryResponse."""
+
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, query_json = message.split(":", 2)
@@ -169,11 +173,11 @@ def handle_query(body):
         known_exc = handle_known_exceptions(exc)
         print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        return e
 
 
 def handle_dummy_query(body):
+    """Handle DP-dummy query into QueryResponse."""
+
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, query_model = message.split(":", 2)
@@ -207,11 +211,11 @@ def handle_dummy_query(body):
         known_exc = handle_known_exceptions(exc)
         print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        return e
 
 
 async def process_message(channel, in_queue, out_queue, message_handler):
+    """General RabbitMQ Message handler -> processing -> response."""
+
     queue = await channel.declare_queue(in_queue, auto_delete=True)
     await channel.declare_queue(out_queue, auto_delete=True)
 
@@ -221,12 +225,7 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                 headers = None
                 body = bytes()
 
-                match query_response := message_handler(message.body):
-                    case Exception():
-                        print(f"Exception: {query_response}")
-                        headers = {"type": "exception"}
-                        body = str(query_response).encode()
-
+                match message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
                         headers = {"type": "exception", "status_code": status_code}
                         body = exc_body
@@ -234,7 +233,7 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                     case None:
                         break
 
-                    case _:
+                    case query_response:
                         print("Response length:", len(query_response.json()), message.correlation_id)
                         body = query_response.json().encode()
 
@@ -247,28 +246,51 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                     break
 
 
-def ask_exit(signame, loop):
+class TerminateTaskGroup(Exception):
+    """Exception raised to terminate a task group."""
+
+
+async def force_terminate_task_group():
+    """Used to force termination of a task group."""
+    raise TerminateTaskGroup()
+
+
+def ask_exit(signame, tg):
+    """Signal handler for TaskGroup termination."""
+
     print(f"got signal {signame}: exit")
-    loop.stop()
+    tg.create_task(force_terminate_task_group())
 
 
-async def main():
+async def process_all_queues():
+    """Handle & await all pika processing queues."""
+
     loop = asyncio.get_running_loop()
-    for signame in ["SIGINT", "SIGTERM"]:
-        loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, loop))
-
     connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
 
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
 
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
-            tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
-            tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
+        try:
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
+                tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
+                tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
+
+                # register signal for polite TaskGroup termination
+                for signame in ["SIGINT", "SIGTERM"]:
+                    loop.add_signal_handler(
+                        getattr(signal, signame), functools.partial(ask_exit, signame, tg)
+                    )
+            # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
+        except* TerminateTaskGroup:
+            print("Terminated")
+        finally:
+            await channel.close()
+            await connection.close()
 
 
 if __name__ == "__main__":
     print(" [*] Waiting for messages. To exit press CTRL+C")
-    asyncio.run(main())
+    asyncio.run(process_all_queues())

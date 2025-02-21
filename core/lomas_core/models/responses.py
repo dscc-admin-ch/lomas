@@ -1,4 +1,5 @@
 from typing import Annotated, Dict, List, Literal, Union
+from uuid import UUID, uuid4
 
 import pandas as pd
 from diffprivlib.validation import DiffprivlibMixin
@@ -6,6 +7,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
+    Field,
     PlainSerializer,
     PlainValidator,
     ValidationInfo,
@@ -196,3 +198,13 @@ class QueryResponse(CostResponse):
         Discriminator("res_type"),
     ]
     """The query result object."""
+
+
+class Job(ResponseModel):
+    """Schduled Job Response."""
+
+    uid: UUID = Field(default_factory=uuid4)
+    status: str = "in_progress"
+    result: QueryResponse | CostResponse | None = None
+    error: dict | None = None
+    status_code: int = 200

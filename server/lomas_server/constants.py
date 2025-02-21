@@ -1,6 +1,9 @@
 import os
 import string
+from contextvars import ContextVar
 from enum import StrEnum
+
+jobs_var: ContextVar = ContextVar("jobs", default={})
 
 # Config
 # -----------------------------------------------------------------------------
@@ -23,14 +26,6 @@ SERVICE_ID = os.getenv("HOSTNAME", "default-host")
 
 # Misc
 # -----------------------------------------------------------------------------
-
-# Server states
-DB_NOT_LOADED = "User database not loaded"
-CONFIG_NOT_LOADED = "Config not loaded"
-SERVER_LIVE = "LIVE"
-
-# General values
-SECONDS_IN_A_DAY = 60 * 60 * 24
 
 # DP constants (max budget per user per dataset)
 EPSILON_LIMIT: float = 10.0

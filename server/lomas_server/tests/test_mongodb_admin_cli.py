@@ -1,4 +1,3 @@
-import os
 import subprocess
 import unittest
 from typing import List
@@ -10,25 +9,15 @@ from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.utils import get_mongodb_url
-from lomas_server.tests.constants import ENV_MONGO_INTEGRATION
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
-@unittest.skipIf(
-    ENV_MONGO_INTEGRATION not in os.environ
-    and os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in ("false", "0", "f"),
-    f"""Not an MongoDB integration test: {ENV_MONGO_INTEGRATION}
-        environment variable not set to True.""",
-)
 class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     """
     Tests for the functions in mongodb_admin.py.
 
     This is an integration test and requires a mongodb database
     to be started before being executed.
-
-    The test is only executed if the LOMAS_TEST_MONGO_INTEGRATION
-    environment variable is set to True.
     """
 
     @classmethod

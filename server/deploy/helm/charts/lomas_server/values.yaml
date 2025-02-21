@@ -255,7 +255,7 @@ prometheus:
 ##########################################################################
 tempo:
   create: true
-  
+
   service:
     type: ClusterIP
     port: 3000

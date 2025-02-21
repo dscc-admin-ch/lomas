@@ -397,7 +397,7 @@ class AdminDatabase(ABC):
         to_archive = {
             "user_name": user_name,
             "dataset_name": query.dataset_name,
-            "dp_librairy": model_input_to_lib(query),
+            "dp_library": model_input_to_lib(query),
             "client_input": query.model_dump(),
             "response": response.model_dump(),
             "timestamp": time.time(),

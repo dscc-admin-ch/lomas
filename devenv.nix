@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  inputs,
   ...
 }:
 
@@ -135,15 +136,26 @@ in
   # MONGODB #
   ###########
 
-  services.mongodb = {
-    enable = true;
-    additionalArgs = [
-      "--port"
-      (toString mongo_port)
-    ];
-    initDatabaseUsername = "root";
-    initDatabasePassword = "root_pwd";
-  };
+  # Current SSPL license of MongoDB is, debatably, not tagged as 'free' in upstream nixpkgs
+  services.mongodb =
+    let
+      pkgs_sspl = import inputs.nixpkgs {
+        inherit (pkgs.stdenv) system;
+        config = pkgs.config // {
+          allowlistedLicenses = [ lib.licenses.sspl ];
+        };
+      };
+    in
+    {
+      enable = true;
+      package = pkgs_sspl.mongodb-ce;
+      additionalArgs = [
+        "--port"
+        (toString mongo_port)
+      ];
+      initDatabaseUsername = "root";
+      initDatabasePassword = "root_pwd";
+    };
 
   processes.mongodb.process-compose = {
     readiness_probe = {

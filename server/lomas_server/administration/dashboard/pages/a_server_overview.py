@@ -38,12 +38,10 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
     )
 
     state_response = get_server_data(st.session_state.dashboard_config.server_service, "state")
-    if state_response["state"]["LIVE"]:
+    if state_response["state"] == "live":
         st.write("The server is live and ready!")
     else:
-        st.write("The server is NOT live:")
-        st.write("Server state:", state_response["state"]["state"])
-        st.write("Server messages:", state_response["state"]["message"])
+        st.write("The server is NOT live")
 
     if st.session_state.config.develop_mode:
         st.write(":red[The server is in DEVELOPMENT mode.]")

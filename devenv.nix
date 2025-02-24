@@ -16,6 +16,7 @@ let
   rabbitmq_port = 5672;
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   mongo_db_name = "defaultdb";
+  lomas_port = 48080;
 
   worker_process_config = {
     exec = ''
@@ -37,7 +38,7 @@ let
         submit_limit = 300;
         server = {
           host_ip = "0.0.0.0";
-          host_port = 80; # 80 is privileged
+          host_port = lomas_port;
           log_level = "info";
           reload = true;
           workers = 1;
@@ -80,6 +81,11 @@ let
       }
     ];
   });
+
+  lomas_dashboard = pkgs.writeText "dashboard.yaml" (toJSON {
+    server_service = "http://localhost:${toString lomas_port}";
+    server_url = "CakeMightBeALie.ch";
+  });
 in
 {
   env.GREET = "Lomas env";
@@ -112,6 +118,7 @@ in
     PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
+    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
   };
 
   ############
@@ -304,6 +311,18 @@ in
   scripts.run-jupyter.exec = ''
     pushd $DEVENV_ROOT/client
     jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
+    popd
+  '';
+
+  scripts.run-fastapi.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+    fastapi dev --port ${toString lomas_port} app.py
+    popd
+  '';
+
+  scripts.run-streamlit.exec = ''
+    pushd $DEVENV_ROOT/server
+    streamlit run lomas_server/administration/dashboard/about.py
     popd
   '';
 

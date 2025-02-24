@@ -12,6 +12,7 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
+  mongo_addr = "localhost";
   mongo_port = 27017;
   minio_port = 19000;
   minio_console_port = 19001;
@@ -78,9 +79,15 @@ let
   tempo_host = "localhost";
   tempo_http_port = 13200;
   tempo_grpc_port = 19095;
-  tempo_port = 4317;
+  tempo_otlp_grpc_port = 14317;
   loki_http_port = 13100;
   loki_grpc_port = 19096;
+  otlp_host = "localhost";
+  otlp_grpc_port = 4317;
+  otlp_http_port = 4318;
+  otlp_metrics_port = 29090;
+  mongodb_exporter_addr = "localhost";
+  mongodb_exporter_port = 19216;
 
   lomas_config = writeYAML "test_config.yaml" {
     runtime_args = {
@@ -100,7 +107,7 @@ let
         };
         admin_database = {
           db_type = "mongodb";
-          address = "127.0.0.1";
+          address = mongo_addr;
           port = mongo_port;
           db_name = mongo_db_name;
           max_pool_size = mongo_max_pool_size;
@@ -381,6 +388,122 @@ in
     inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
   };
 
+  ########
+  # OTLP #
+  ########
+
+  services.opentelemetry-collector = {
+    enable = true;
+    settings = {
+      receivers.otlp.protocols = {
+        grpc.endpoint = "localhost:${toString otlp_grpc_port}";
+        http.endpoint = "localhost:${toString otlp_http_port}";
+      };
+
+      processors.batch.timeout = "5s";
+
+      exporters = {
+        debug.verbosity = "detailed";
+
+        prometheus = {
+          endpoint = "localhost:${toString otlp_metrics_port}";
+          namespace = "lomas_server";
+        };
+
+        "otlp/tempo" = {
+          endpoint = "http://localhost:${toString tempo_otlp_grpc_port}";
+          tls.insecure = true;
+        };
+
+        "otlphttp/loki" = {
+          endpoint = "http://localhost:${toString loki_http_port}/otlp";
+          tls.insecure = true;
+        };
+      };
+
+      extensions = {
+        health_check.endpoint = "localhost:13133";
+        pprof.endpoint = "localhost:1777";
+        zpages.endpoint = "localhost:55679";
+      };
+
+      service = {
+        extensions = [
+          "health_check"
+          "pprof"
+          "zpages"
+        ];
+        pipelines = {
+          traces = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "otlp/tempo"
+            ];
+          };
+          metrics = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "prometheus"
+            ];
+          };
+          logs = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "otlphttp/loki"
+            ];
+          };
+        };
+      };
+
+    };
+  };
+
+  processes.opentelemetry-collector.process-compose = {
+    depends_on = {
+      tempo.condition = "process_started";
+      loki.condition = "process_started";
+      prometheus.condition = "process_started";
+    };
+  };
+
+  services.prometheus = {
+    enable = true;
+    port = prometheus_port;
+    globalConfig = {
+      evaluation_interval = "10s";
+      scrape_interval = "10s";
+      scrape_timeout = "10s";
+    };
+    scrapeConfigs = [
+      {
+        job_name = "prometheus";
+        static_configs = [ { targets = [ "localhost:${toString prometheus_port}" ]; } ];
+      }
+      {
+        job_name = "tempo";
+        static_configs = [ { targets = [ "localhost:${toString tempo_http_port}" ]; } ];
+      }
+      {
+        job_name = "otel-collector";
+        static_configs = [ { targets = [ "localhost:${toString otlp_metrics_port}" ]; } ];
+      }
+      {
+        job_name = "loki";
+        static_configs = [ { targets = [ "localhost:${toString loki_http_port}" ]; } ];
+      }
+      {
+        job_name = "mongodb";
+        static_configs = [ { targets = [ "localhost:${toString mongodb_exporter_port}" ]; } ];
+      }
+    ];
+  };
+
   ############
   # Keycloak #
   ############
@@ -462,15 +585,19 @@ in
       working_dir = "${config.env.DEVENV_STATE}/tempo";
       conf = writeYAML "config-tempo.yaml" {
         stream_over_http_enabled = true;
-        server.http_listen_port = tempo_http_port;
-        server.grpc_listen_port = tempo_grpc_port;
-        server.log_level = "info";
+        server = {
+          http_listen_port = tempo_http_port;
+          http_listen_address = tempo_host;
+          grpc_listen_port = tempo_grpc_port;
+          grpc_listen_address = tempo_host;
+          log_level = "info";
+        };
         # query_frontend.search.duration_slo = "5s";
         # query_frontend.search.throughput_bytes_slo = 1.073741824e+09;
         # query_frontend.search.metadata_slo.duration_slo = "5s";
         # query_frontend.search.metadata_slo.throughput_bytes_slo = 1.073741824e+09;
         # query_frontend.trace_by_id.duration_slo = "5s";
-        distributor.receivers.otlp.protocols.grpc.endpoint = "${tempo_host}:${toString tempo_port}";
+        distributor.receivers.otlp.protocols.grpc.endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
         ingester.max_block_duration = "5m";
         compactor.compaction.block_retention = "1h";
         metrics_generator.registry.external_labels.source = "tempo";
@@ -530,6 +657,22 @@ in
     in
     {
       exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+    };
+
+  processes.mongodb-exporter =
+    let
+      inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
+      uri = "mongodb://${initDatabaseUsername}:${initDatabasePassword}@${mongo_addr}:${toString mongo_port}";
+    in
+    {
+      exec = ''
+        ${lib.getExe pkgs.prometheus-mongodb-exporter} \
+        --mongodb.uri="${uri}" \
+        --collect-all \
+        --web.listen-address="${mongodb_exporter_addr}:${toString mongodb_exporter_port}" \
+        --web.telemetry-path="/metrics"
+      '';
+
     };
 
   #############

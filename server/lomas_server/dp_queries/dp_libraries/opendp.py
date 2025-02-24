@@ -32,8 +32,6 @@ from lomas_server.constants import (
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
-dp.mod.enable_features("contrib")
-
 
 def get_lf_domain(metadata, by_config):
     """
@@ -49,8 +47,11 @@ def get_lf_domain(metadata, by_config):
     series_domains = []
     # Series domains
     for name, series_info in metadata["columns"].items():
+        series_bounds = None
         if series_info.type in ["float", "int"]:
             series_type = f"{series_info.type}{series_info.precision}"
+            if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
+                series_bounds = (series_info.lower, series_info.upper)
         # TODO 392: release opendp 0.12 (adapt with type date)
         elif series_info.type == "datetime":
             series_type = "string"
@@ -68,10 +69,6 @@ def get_lf_domain(metadata, by_config):
 
         # Note: Same as using option_domain (at least how I understand it)
         series_nullable = "nullable" in series_info
-
-        series_bounds = None
-        if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
-            series_bounds = (series_info.lower, series_info.upper)
 
         series_domain = dp.domains.series_domain(
             name,
@@ -453,10 +450,7 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
 
         groups = extract_group_by_columns(plan.explain())
-        if query_json.mechanism in OPENDP_OUTPUT_MEASURE:
-            output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
-        else:
-            raise ValueError("Invalid or missing mechanism")
+        output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata, groups)
 

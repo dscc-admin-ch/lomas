@@ -2,12 +2,17 @@ import io
 import json
 import unittest
 
+import opendp as dp
 import polars as pl
 from app import app
 from fastapi import status
 from fastapi.testclient import TestClient
+from opendp import measures as ms
 from tests.test_api_root import TestSetupRootAPIEndpoint
 
+from lomas_core.error_handler import (
+    InvalidQueryException,
+)
 from lomas_core.models.collections import Metadata
 from lomas_core.models.requests_examples import (
     DUMMY_NB_ROWS,
@@ -19,6 +24,7 @@ from lomas_core.models.requests_examples import (
 )
 from lomas_server.dp_queries.dp_libraries.opendp import (
     get_global_params,
+    get_lf_domain,
     update_params_by_grouping,
 )
 
@@ -256,7 +262,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
     Test OpenDP Polars functions.
     """
 
-    def test_margin(self) -> None:
+    def test1_margin(self) -> None:
         """Test margins created"""
 
         RAW_METADATA["rows"] = 100
@@ -293,7 +299,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         expected_margin["max_partition_contributions"] = 2
         self.assertEqual(margin_params, expected_margin)
 
-    def test_margin_grouping(self) -> None:
+    def test2_margin_grouping(self) -> None:
         """Test margins with grouping"""
         RAW_METADATA["rows"] = 100
         metadata = dict(Metadata.model_validate(RAW_METADATA))
@@ -345,3 +351,70 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             "max_influenced_partitions": 1,  # max_ids
         }
         self.assertEqual(margin_params, expected_margin)
+
+        # Check max_partition_contributions
+        metadata["max_ids"] = 10
+        metadata["columns"]["column_int"].max_partition_contributions = 5
+        metadata["columns"]["new_col"].max_partition_contributions = 4
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_contributions"] = 5
+        self.assertEqual(margin_params, expected_margin)
+
+        # Check max_partition_contributions (should never be bigger than max_ids)
+        metadata["max_ids"] = 2
+        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        expected_margin["max_partition_contributions"] = 2
+        self.assertEqual(margin_params, expected_margin)
+
+    def test3_lf_domain(self) -> None:
+        """Test lazyframe with different types"""
+        by_config = []  # type: ignore
+        col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
+        RAW_METADATA["columns"] = col_int  # type: ignore[index]
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        margin_params = get_global_params(metadata)
+        # lf with int
+        expected_series_type = ms.i32
+        expected_series_bounds = None
+        expected_series_nullable = False
+        expected_series_domain = dp.domains.series_domain(
+            "column_int",
+            dp.domains.atom_domain(
+                T=expected_series_type, nullable=expected_series_nullable, bounds=expected_series_bounds
+            ),
+        )
+        expected_lf_domain = dp.domains.with_margin(
+            dp.domains.lazyframe_domain([expected_series_domain]),
+            by=by_config,
+            public_info="lengths",
+            **margin_params,
+        )
+        lf_domain = get_lf_domain(metadata, by_config)
+        self.assertEqual(lf_domain, expected_lf_domain)
+
+        # lf with datetime
+        # TODO 392: Adapt this test with v0.12 datetime
+        col_datetime = {"col_datetime": {"type": "datetime", "upper": "2050-01-01", "lower": "1900-01-01"}}
+        RAW_METADATA["columns"] = col_datetime  # type: ignore[index]
+        metadata = dict(Metadata.model_validate(RAW_METADATA))
+
+        expected_series_type = ms.String
+        expected_series_domain = dp.domains.series_domain(
+            "col_datetime",
+            dp.domains.atom_domain(
+                T=expected_series_type, nullable=expected_series_nullable, bounds=expected_series_bounds
+            ),
+        )
+        expected_lf_domain = dp.domains.with_margin(
+            dp.domains.lazyframe_domain([expected_series_domain]),
+            by=by_config,
+            public_info="lengths",
+            **margin_params,
+        )
+        lf_domain = get_lf_domain(metadata, by_config)
+        self.assertEqual(lf_domain, expected_lf_domain)
+
+        # Test that unknown type raises an error
+        metadata["columns"]["col_datetime"].type = "new_type"
+        with self.assertRaises(InvalidQueryException):
+            get_lf_domain(metadata, by_config)

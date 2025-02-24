@@ -201,7 +201,7 @@ class QueryResponse(CostResponse):
 
 
 class Job(ResponseModel):
-    """Schduled Job Response."""
+    """Scheduled Job Response."""
 
     uid: UUID = Field(default_factory=uuid4)
     status: str = "in_progress"

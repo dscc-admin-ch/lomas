@@ -133,7 +133,7 @@ async def handle_query_on_private_dataset(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A QueryResponse model containing the result of the query
+        Job: A scheduled Job resulting in a QueryResponse containing the result of the query
             (specific to the library) as well as the cost of the query.
     """
     app = request.app
@@ -180,7 +180,7 @@ async def handle_query_on_dummy_dataset(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A QueryResponse model containing the result of the query
+        Job: A scheduled Job resulting in a QueryResponse containing the result of the query
             (specific to the library) as well as the cost of such a query if it was
             executed on a private dataset.
     """
@@ -235,7 +235,7 @@ async def handle_cost_query(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: A cost response containing the epsilon and delta
+        Job: A scheduled Job resulting in a CostResponse containing the epsilon, delta and
             privacy-loss budget cost for the request.
     """
     app = request.app

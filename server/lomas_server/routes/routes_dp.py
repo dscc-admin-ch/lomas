@@ -62,7 +62,7 @@ async def smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
     return await handle_query_on_private_dataset(
         request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
@@ -101,7 +101,7 @@ async def dummy_smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
     return await handle_query_on_dummy_dataset(
         request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
@@ -139,7 +139,7 @@ async def estimate_smartnoise_sql_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
     return await handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
@@ -180,7 +180,7 @@ async def smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
     return await handle_query_on_private_dataset(
@@ -220,7 +220,7 @@ async def dummy_smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
     return await handle_query_on_dummy_dataset(
@@ -260,7 +260,7 @@ async def estimate_smartnoise_synth_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
     return await handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
@@ -300,7 +300,7 @@ async def opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
     return await handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
@@ -336,7 +336,7 @@ async def dummy_opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
     return await handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
 
@@ -372,7 +372,7 @@ async def estimate_opendp_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
     return await handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
 
@@ -412,7 +412,7 @@ async def diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
     return await handle_query_on_private_dataset(
         request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
@@ -450,7 +450,7 @@ async def dummy_diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
     return await handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
 
@@ -495,6 +495,6 @@ async def estimate_diffprivlib_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
     return await handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)

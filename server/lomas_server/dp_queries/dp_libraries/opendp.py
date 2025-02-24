@@ -33,12 +33,12 @@ from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-def get_lf_domain(metadata, by_config):
+def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
     Args:
         metadata (dict): The metadata dictionary
-        by_config (list): List of the column names used for grouping
+        plan (LazyFrame): The polars query plan as a Polars LazyFrame
     Raises:
         Exception: If there is missing information in the metadata.
     Returns:
@@ -65,7 +65,7 @@ def get_lf_domain(metadata, by_config):
                 f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
             )
 
-        series_type = OPENDP_TYPE_MAPPING[series_type]
+        series_type = OPENDP_TYPE_MAPPING[series_type]  # type: ignore
 
         # Note: Same as using option_domain (at least how I understand it)
         series_nullable = "nullable" in series_info
@@ -84,10 +84,9 @@ def get_lf_domain(metadata, by_config):
     margin_params = get_global_params(metadata)
 
     # If grouping in the query, we update the margin params
-    if by_config:
+    by_config = extract_group_by_columns(plan.explain())
+    if len(by_config) >= 1:
         margin_params = update_params_by_grouping(metadata, by_config, margin_params)
-    else:
-        by_config = []
 
     # TODO 323: Multiple margins?
     # What if two group_by's in one query?
@@ -101,7 +100,7 @@ def get_lf_domain(metadata, by_config):
     return lf_domain
 
 
-def get_global_params(metadata):
+def get_global_params(metadata: dict) -> dict:
     """Get global parameters for margin
     Args:
         metadata (dict): The metadata dictionary
@@ -115,13 +114,13 @@ def get_global_params(metadata):
     return margin_params
 
 
-def update_params_by_grouping(metadata, by_config, margin_params):
+def update_params_by_grouping(metadata: dict, by_config: list, margin_params: dict) -> dict:
     """
     Updates the parameters for margin adaptation based on
     grouping configuration.
     Args:
         metadata (dict): The metadata dictionary.
-        by_config (list): Configuration for grouping.
+        by_config (list): List of the column names used for grouping
         margin_params (dict): Current parameters dictionary to update.
     Returns:
         dict: Updated parameters dictionary.
@@ -133,12 +132,12 @@ def update_params_by_grouping(metadata, by_config, margin_params):
     return margin_params
 
 
-def single_group_update_params(metadata, by_config, margin_params):
+def single_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> None:
     """
     Updates parameters for single-column grouping configuration.
     Args:
         metadata (dict): The metadata dictionary.
-        series_info (dict): Metadata for the series (column).
+        by_config (list): List of the column names used for grouping
         params (dict): Current parameters dictionary to update.
     """
     series_info = metadata["columns"].get(by_config[0])
@@ -177,7 +176,7 @@ def single_group_update_params(metadata, by_config, margin_params):
         )
 
 
-def multiple_group_update_params(metadata, by_config, margin_params):
+def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> None:
     """
     Updates parameters for multiple-column grouping configuration.
     Args:
@@ -405,7 +404,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
         raise InvalidQueryException(e)
 
 
-def extract_group_by_columns(plan: str) -> list | None:
+def extract_group_by_columns(plan: str) -> list:
     """
     Extract column names used in the BY operation from the plan string.
     Parameters:
@@ -425,7 +424,7 @@ def extract_group_by_columns(plan: str) -> list | None:
         # Find all column names inside col("...")
         column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
         return column_names
-    return None
+    return []
 
 
 def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dict) -> dp.Measurement:
@@ -449,10 +448,9 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
     elif query_json.pipeline_type == "polars":
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
 
-        groups = extract_group_by_columns(plan.explain())
         output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
 
-        lf_domain = get_lf_domain(metadata, groups)
+        lf_domain = get_lf_domain(metadata, plan)
 
         opendp_pipe = dp.measurements.make_private_lazyframe(
             lf_domain, dp.metrics.symmetric_distance(), output_measure, plan

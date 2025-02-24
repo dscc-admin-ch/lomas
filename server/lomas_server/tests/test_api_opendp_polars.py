@@ -389,7 +389,8 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             public_info="lengths",
             **margin_params,
         )
-        lf_domain = get_lf_domain(metadata, by_config)
+        plan = get_lf_from_json(OPENDP_POLARS_PIPELINE)
+        lf_domain = get_lf_domain(metadata, plan)
         self.assertEqual(lf_domain, expected_lf_domain)
 
         # lf with datetime
@@ -411,10 +412,10 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             public_info="lengths",
             **margin_params,
         )
-        lf_domain = get_lf_domain(metadata, by_config)
+        lf_domain = get_lf_domain(metadata, plan)
         self.assertEqual(lf_domain, expected_lf_domain)
 
         # Test that unknown type raises an error
         metadata["columns"]["col_datetime"].type = "new_type"
         with self.assertRaises(InvalidQueryException):
-            get_lf_domain(metadata, by_config)
+            get_lf_domain(metadata, plan)

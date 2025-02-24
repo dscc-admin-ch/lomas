@@ -9,16 +9,8 @@ jobs_var: ContextVar = ContextVar("jobs", default={})
 # -----------------------------------------------------------------------------
 
 # Get config and secrets from correct location
-if "LOMAS_CONFIG_PATH" in os.environ:
-    CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
-else:
-    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-
-if "LOMAS_SECRETS_PATH" in os.environ:
-    SECRETS_PATH = f"""{os.environ.get("LOMAS_SECRETS_PATH")}"""
-else:
-    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+CONFIG_PATH = os.getenv("LOMAS_CONFIG_PATH", "/usr/lomas_server/runtime.yaml")
+SECRETS_PATH = os.getenv("LOMAS_SECRETS_PATH", "/usr/lomas_server/secrets.yaml")
 
 SERVER_SERVICE_NAME = os.getenv("SERVER_SERVICE_NAME", "lomas-server-app")
 SERVICE_ID = os.getenv("HOSTNAME", "default-host")

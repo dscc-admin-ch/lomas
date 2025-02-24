@@ -1,5 +1,6 @@
 import asyncio
 import functools
+import logging
 import os
 import signal
 import time
@@ -9,6 +10,7 @@ from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -18,6 +20,7 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
+from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -40,6 +43,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.admin_database.factory import admin_database_factory
+from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
@@ -125,11 +129,11 @@ def handle_cost_query(body):
 
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
-        print(f" [x] Done ({elapsed:.2f})")
+        logging.info(f" [x] Done ({elapsed:.2f})")
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
 
 
@@ -167,11 +171,11 @@ def handle_query(body):
         )
         query_response = dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
-        print(f" [x] Done ({elapsed:.2f})")
+        logging.info(f" [x] Done ({elapsed:.2f})")
         return query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
 
 
@@ -205,11 +209,11 @@ def handle_dummy_query(body):
             requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
         elapsed = time.time() - start_sec
-        print(f" [x] Done ({elapsed:.2f})")
+        logging.info(f" [x] Done ({elapsed:.2f})")
         return dummy_query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        print(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
 
 
@@ -234,7 +238,7 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                         break
 
                     case query_response:
-                        print("Response length:", len(query_response.json()), message.correlation_id)
+                        logging.info("Response length: {len(query_response.json())} {message.correlation_id}")
                         body = query_response.json().encode()
 
                 await channel.default_exchange.publish(
@@ -258,7 +262,7 @@ async def force_terminate_task_group():
 def ask_exit(signame, tg):
     """Signal handler for TaskGroup termination."""
 
-    print(f"got signal {signame}: exit")
+    logging.info(f"got signal {signame}: exit")
     tg.create_task(force_terminate_task_group())
 
 
@@ -285,12 +289,15 @@ async def process_all_queues():
                     )
             # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
         except* TerminateTaskGroup:
-            print("Terminated")
+            logging.info("Terminated")
         finally:
             await channel.close()
             await connection.close()
 
 
 if __name__ == "__main__":
-    print(" [*] Waiting for messages. To exit press CTRL+C")
+    LoggingInstrumentor().instrument(set_logging_format=True)
+    init_telemetry(get_ressource(SERVER_SERVICE_NAME, SERVICE_ID))
+
+    logging.info(" [*] Waiting for messages. To exit press CTRL+C")
     asyncio.run(process_all_queues())

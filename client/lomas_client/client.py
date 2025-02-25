@@ -19,7 +19,7 @@ from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
-from lomas_client.utils import raise_error, validate_model_response
+from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import get_ressource, init_telemetry
 from lomas_core.models.requests import (
@@ -131,7 +131,7 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
 
-        return validate_model_response(res, InitialBudgetResponse)
+        return validate_model_response_direct(res, InitialBudgetResponse)
 
     def get_total_spent_budget(self) -> Optional[SpentBudgetResponse]:
         """This function retrieves the total spent budget.
@@ -145,7 +145,7 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
 
-        return validate_model_response(res, SpentBudgetResponse)
+        return validate_model_response_direct(res, SpentBudgetResponse)
 
     def get_remaining_budget(self) -> Optional[RemainingBudgetResponse]:
         """This function retrieves the remaining budget.
@@ -159,7 +159,7 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
 
-        return validate_model_response(res, RemainingBudgetResponse)
+        return validate_model_response_direct(res, RemainingBudgetResponse)
 
     def get_previous_queries(self) -> Optional[List[dict]]:
         """This function retrieves the previous queries of the user.

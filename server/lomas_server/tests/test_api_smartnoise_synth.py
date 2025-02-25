@@ -94,7 +94,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "Try decreasing batch_size in "
                 + "synth_params (default batch_size=500).",
                 library="smartnoise_synth",
-            ).model_dump(mode="json")
+            )
 
     def test_smartnoise_synth_query_samples(self) -> None:
         """Test smartnoise synth query return samples."""
@@ -167,7 +167,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error is not None and job.error["message"].startswith(
+            assert job.error is not None and job.error.message.startswith(
                 "Error while selecting provided select_cols: "
             )
 
@@ -403,7 +403,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "MWEMSynthesizer.__init__() got an "
                 + "unexpected keyword argument 'delta'",
                 library="smartnoise_synth",
-            ).model_dump(mode="json")
+            )
 
             # Expected to work: limited columns and delta None
             body["delta"] = None
@@ -470,7 +470,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error is not None and job.error["message"].startswith(
+            assert job.error is not None and job.error.message.startswith(
                 "mst synthesizer cannot be returned, only samples. "
                 + "Please, change model or set `return_model=False`"
             )
@@ -493,7 +493,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             )
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error is not None and job.error["message"].startswith(
+            assert job.error is not None and job.error.message.startswith(
                 "pacsynth synthesizer not supported due to Rust panic. "
                 + "Please select another Synthesizer."
             )
@@ -519,7 +519,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "Inputted epsilon parameter is too small to create a private"
                 + " dataset. Try increasing epsilon and rerunning.",
                 library="smartnoise_synth",
-            ).model_dump(mode="json")
+            )
 
             # Expect to work
             body["epsilon"] = 1.0
@@ -556,7 +556,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert job.error == ExternalLibraryExceptionModel(
                 message="pategan not reliable with this dataset.",
                 library="smartnoise_synth",
-            ).model_dump(mode="json")
+            )
 
     def test_smartnoise_synth_query_dpgan(self) -> None:
         """Test smartnoise synth query dpgan Synthesizer."""
@@ -580,7 +580,7 @@ class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "are too small to create a private dataset. "
                 + "Try increasing either parameter and rerunning.",
                 library="smartnoise_synth",
-            ).model_dump(mode="json")
+            )
 
             body["epsilon"] = 1.0
             response = client.post(

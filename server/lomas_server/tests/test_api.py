@@ -333,7 +333,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 + "Try preprocessing to reduce senstivity, "
                 + "or try different privacy parameters.",
                 library="smartnoise_sql",
-            ).model_dump(mode="json")
+            )
 
             # Expect to fail: query does not make sense
             input_smartnoise = dict(example_smartnoise_sql)
@@ -344,7 +344,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error obtaining cost: " + "Column cannot be found bill",
                 library="smartnoise_sql",
-            ).model_dump(mode="json")
+            )
 
             # Expect to fail: dataset without access
             input_smartnoise = dict(example_smartnoise_sql)
@@ -354,7 +354,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error == UnauthorizedAccessExceptionModel(
                 message="Dr. Antartica does not have access to IRIS."
-            ).model_dump(mode="json")
+            )
 
             # Expect to fail: dataset does not exist
             input_smartnoise = dict(example_smartnoise_sql)
@@ -365,7 +365,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.error == InvalidQueryExceptionModel(
                 message="Dataset I_do_not_exist does not exist."
                 + " Please, verify the client object initialisation."
-            ).model_dump(mode="json")
+            )
 
             # Expect to fail: user does not exist
             new_headers = self.headers
@@ -378,7 +378,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.error == UnauthorizedAccessExceptionModel(
                 message="User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
-            ).model_dump(mode="json")
+            )
 
     def test_smartnoise_sql_query_parameters(self) -> None:
         """Test smartnoise-sql query parameters."""
@@ -551,7 +551,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="The pipeline provided is not a measurement. It cannot be processed in this server."
-            ).model_dump(mode="json")
+            )
 
             # Test MAX_DIVERGENCE (pure DP)
             md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(scale=5.0)
@@ -588,7 +588,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.error == InvalidQueryExceptionModel(
                 message="fixed_delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
-            ).model_dump(mode="json")
+            )
 
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
@@ -616,7 +616,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert job.error == InvalidQueryExceptionModel(
                 message="fixed_delta must be set for smooth max divergence"
                 + " and zero concentrated divergence."
-            ).model_dump(mode="json")
+            )
 
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
@@ -836,11 +836,8 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             _, job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                job.error
-                == InvalidQueryExceptionModel(
-                    message="Not enough budget for this query "
-                    + "epsilon remaining 2.0, "
-                    + "delta remaining 0.004970000100000034."
-                ).model_dump()
+            assert job.error == InvalidQueryExceptionModel(
+                message="Not enough budget for this query "
+                + "epsilon remaining 2.0, "
+                + "delta remaining 0.004970000100000034."
             )

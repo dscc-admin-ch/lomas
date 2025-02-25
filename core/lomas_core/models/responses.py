@@ -16,6 +16,7 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
@@ -206,5 +207,5 @@ class Job(ResponseModel):
     uid: UUID = Field(default_factory=uuid4)
     status: str = "in_progress"
     result: QueryResponse | CostResponse | None = None
-    error: dict | None = None
+    error: LomasServerExceptionType | None = None
     status_code: int = 200

@@ -92,7 +92,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="Imputation strategy i_do_not_exist not supported."
-            ).model_dump(mode="json")
+            )
 
             # Should not work: Privacy Leak Warning
             warnings.simplefilter("error", PrivacyLeakWarning)
@@ -124,7 +124,7 @@ class TestDiffPrivLibEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
                 + "Lomas server cannot fit pipeline on data, "
                 + "PrivacyLeakWarning is a blocker.",
                 library=DPLibraries.DIFFPRIVLIB,
-            ).model_dump(mode="json")
+            )
 
             # Should not work: Compatibility Warning
             warnings.simplefilter("error", DiffprivlibCompatibilityWarning)

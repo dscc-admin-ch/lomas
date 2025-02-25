@@ -14,6 +14,9 @@ from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.models.collections import Metadata
+from lomas_core.models.exceptions import (
+    InvalidQueryExceptionModel,
+)
 from lomas_core.models.requests_examples import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -171,6 +174,26 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 json=example_opendp_polars_datetime,
             )
             assert response.status_code == status.HTTP_200_OK
+
+            # grouping of grouping should not work, should raise exception
+            plan = lf.group_by(["date", "georegion"]).agg(
+                [pl.col("temporal").dp.mean(bounds=(1, 52), scale=(1.0, 1)).alias("avg_temp")]
+            )
+            plan_2 = plan.group_by("georegion").agg([pl.col("avg_temp").dp.sum((1, 2000))])
+            json_plan = plan_2.serialize(format="json")
+            example_opendp_polars_datetime["opendp_json"] = json_plan
+            response = client.post(
+                "/opendp_query",
+                json=example_opendp_polars_datetime,
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert (
+                response.json()
+                == InvalidQueryExceptionModel(
+                    message="Your are trying to do multiple groupings. "
+                    + "This is currently not supported, please use one grouping"
+                ).model_dump()
+            )
 
     def test_opendp_polars_cost(self) -> None:
         """test_opendp_polars_cost"""

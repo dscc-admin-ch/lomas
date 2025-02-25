@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Body, Depends, Header, Request
+from uuid import UUID
+
+from fastapi import APIRouter, Body, Header, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.error_handler import (
@@ -20,7 +22,6 @@ from lomas_core.models.responses import (
 )
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
-from lomas_server.routes.utils import server_live
 
 router = APIRouter()
 
@@ -35,10 +36,33 @@ async def root():
     return RedirectResponse(url="/state")
 
 
+@router.get("/live")
+async def health_handler():
+    """HealthCheck endpoint: server alive.
+
+    Returns:
+        JSONResponse: "live"
+    """
+    return JSONResponse(content={"status": "alive"})
+
+
+@router.get("/status/{uid}")
+async def status_handler(request: Request, uid: UUID, response: Response):
+    """Job Status endpoint.
+
+    Returns:
+        Job
+    """
+    jobs = request.app.state.jobs_var.get()
+    if (job := jobs.get(str(uid))) is not None:
+        if job.status == "failed":
+            response.status_code = job.status_code
+        return job
+
+
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    request: Request,
     user_name: str = Header(None),
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
@@ -50,12 +74,11 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
-    app = request.app
 
     return JSONResponse(
         content={
             "requested_by": user_name,
-            "state": app.state.server_state,
+            "state": "live",
         }
     )
 
@@ -63,7 +86,6 @@ async def get_state(
 # Metadata query
 @router.post(
     "/get_dataset_metadata",
-    dependencies=[Depends(server_live)],
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
@@ -111,7 +133,6 @@ def get_dataset_metadata(
 # Dummy dataset query
 @router.post(
     "/get_dummy_dataset",
-    dependencies=[Depends(server_live)],
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
@@ -173,7 +194,6 @@ def get_dummy_dataset(
 # MongoDB get initial budget
 @router.post(
     "/get_initial_budget",
-    dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
@@ -224,7 +244,6 @@ def get_initial_budget(
 # MongoDB get total spent budget
 @router.post(
     "/get_total_spent_budget",
-    dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
@@ -275,7 +294,6 @@ def get_total_spent_budget(
 # MongoDB get remaining budget
 @router.post(
     "/get_remaining_budget",
-    dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
@@ -325,7 +343,6 @@ def get_remaining_budget(
 # MongoDB get archives
 @router.post(
     "/get_previous_queries",
-    dependencies=[Depends(server_live)],
     tags=["USER_BUDGET"],
 )
 def get_user_previous_queries(

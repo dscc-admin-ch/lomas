@@ -93,7 +93,7 @@ class SmartnoiseSynthClient:
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, CostResponse)
+        return validate_model_response(self.http_client, res, CostResponse)
 
     def query(
         self,
@@ -194,4 +194,4 @@ class SmartnoiseSynthClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, QueryResponse)
+        return validate_model_response(self.http_client, res, QueryResponse)

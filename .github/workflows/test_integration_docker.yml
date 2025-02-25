@@ -1,0 +1,29 @@
+name: Server Tests (Docker)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python 12
+      uses: astral-sh/setup-uv@v5
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: uv pip install -r requirements-test.txt
+
+    - name: Run test script
+      run: |
+        cd server
+        chmod +x run_tests_and_coverage.sh
+        ./run_tests_and_coverage.sh

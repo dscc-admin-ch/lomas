@@ -416,14 +416,19 @@ def extract_group_by_columns(plan: str) -> list:
     aggregate_by_pattern = r"AGGREGATE(?:.|\n)+?BY \[(.*?)\]"
 
     # Find the part of the plan related to the GROUP BY clause
-    match = re.search(aggregate_by_pattern, plan)
+    match = re.findall(aggregate_by_pattern, plan)
 
-    if match:
+    if len(match) == 1:
         # Extract the columns part
-        columns_part = match.group(1)
+        columns_part = match[0]
         # Find all column names inside col("...")
         column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
         return column_names
+    if len(match) > 1:
+        raise InvalidQueryException(
+            "Your are trying to do multiple groupings. "
+            "This is currently not supported, please use one grouping"
+        )
     return []
 
 

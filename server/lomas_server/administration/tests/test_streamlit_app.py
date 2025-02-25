@@ -5,6 +5,7 @@ from streamlit.testing.v1 import AppTest
 
 from lomas_server.administration.dashboard.config import Config as DashboardConfig
 from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import get_config as get_server_config
 
 
 def test_about_page():
@@ -34,17 +35,21 @@ def test_about_page():
 def mock_configs():
     """Fixture to mock server and dashboard configs."""
     with patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config, patch(
-        "lomas_server.administration.dashboard.utils.get_server_data"
-    ) as mock_get_server_data:
+        "lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data, patch(
+        "lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config:
 
         # Overwrite server config
         CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config.yaml",
+            config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
+        # Mock server config
+        mock_get_server_config.return_value = get_server_config()
 
         # Mock dashboard config
         dashboard_config = {
+            "mg_config": get_server_config().admin_database,
+            "kc_config": None,
             "server_url": "example.com",
             "server_service": "http://localhost:8000",
         }
@@ -70,14 +75,17 @@ def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
 
     # Server state messages
     assert "The server is live and ready!" in at.markdown[1].value
-    assert ":red[The server is in DEVELOPMENT mode.]" in at.markdown[2].value
+    assert ":red[The server is in PRODUCTION mode.]" in at.markdown[2].value
 
     # Check Server configurations
     assert "Server configurations" in at.subheader[0].value
     assert "The host IP of the server is: 0.0.0.0" in at.markdown[3].value
-    assert "The method against timing attack is: stall" in at.markdown[5].value
+    assert "The method against timing attack is: jitter" in at.markdown[5].value
 
     # Check Administration Database information
     assert "Administration Database" in at.subheader[1].value
-    assert "The administration database type is: yaml" in at.markdown[6].value
-    assert "The database file is: tests/test_data/local_db_file.yaml" in at.markdown[7].value
+    assert "The administration database type is: mongodb" in at.markdown[6].value
+    assert "Its address is:  127.0.0.1" in at.markdown[7].value
+    assert "Its port is:  `27017`" in at.markdown[8].value
+    assert "Its username is:  user" in at.markdown[9].value
+    assert "Its database name is:  defaultdb" in at.markdown[10].value

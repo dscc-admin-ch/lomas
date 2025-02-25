@@ -9,7 +9,6 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
-from pymongo.database import Database
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
@@ -43,19 +42,18 @@ from lomas_core.models.responses import (
     SpentBudgetResponse,
 )
 from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import get_mongodb
-from lomas_server.app import app
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
+from lomas_server.app import app
 from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
     TRUE_VALUES,
 )
-from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -94,18 +92,21 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
         self.user_name = "Dr. Antartica"
+        self.bearer = (
+            'Bearer {"name": "Dr. Antartica", "email": "dr.antartica@example.com"}'
+        )
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
         }
-        self.headers["user-name"] = self.user_name
+        self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            self.db: Database = get_mongodb()
+            self.mongo_config = get_config().admin_database
 
             add_users_via_yaml(
-                self.db,
+                self.mongo_config,
                 yaml_file="tests/test_data/test_user_collection.yaml",
                 clean=True,
                 overwrite=True,
@@ -117,7 +118,7 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 yaml_file = "tests/test_data/test_datasets.yaml"
 
             add_datasets_via_yaml(
-                self.db,
+                self.mongo_config,
                 yaml_file=yaml_file,
                 clean=True,
                 overwrite_datasets=True,
@@ -127,10 +128,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def tearDown(self) -> None:
         # Clean up database if needed
         if os.getenv(ENV_MONGO_INTEGRATION, "0").lower() in TRUE_VALUES:
-            drop_collection(self.db, "metadata")
-            drop_collection(self.db, "datasets")
-            drop_collection(self.db, "users")
-            drop_collection(self.db, "queries_archives")
+            drop_collection(self.mongo_config, "metadata")
+            drop_collection(self.mongo_config, "datasets")
+            drop_collection(self.mongo_config, "users")
+            drop_collection(self.mongo_config, "queries_archives")
         else:
             for file in glob.glob("tests/test_data/local_db_file_*.yaml"):
                 os.remove(file)
@@ -160,7 +161,6 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = json.loads(response.content.decode("utf8"))
-            assert response_dict["requested_by"] == self.user_name
             assert response_dict["state"]["LIVE"]
 
     def test_unknown_endpoint(self) -> None:
@@ -299,9 +299,11 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
-            fake_user = "fake_user"
+            fake_user_token = (
+                'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json=example_get_dummy_dataset,
@@ -311,15 +313,17 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             assert (
                 response.json()
                 == UnauthorizedAccessExceptionModel(
-                    message=f"User {fake_user} does not "
+                    message="User fake_user does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
             )
 
             # Expect to work with datetimes and another user
-            fake_user = "BirthdayGirl"
+            fake_user_token = (
+                'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json={
@@ -451,8 +455,12 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
+            fake_user_token = (
+                'Bearer {"name": "I_do_not_exist", "email": "I_do_not_exist@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = "I_do_not_exist"
+            new_headers["Authorization"] = fake_user_token
+
             response = client.post(
                 "/smartnoise_sql_query",
                 json=example_smartnoise_sql,
@@ -515,8 +523,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # Will be solved in issue 340
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
+        #     fake_user_token =
+        #       'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
         #     new_headers = self.headers
-        #     new_headers["user-name"] = "BirthdayGirl"
+        #     new_headers["Authorization"] = fake_user_token
         #     body = dict(example_smartnoise_sql)
         #     body["dataset_name"] = "BIRTHDAYS"
         # body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
@@ -574,10 +584,10 @@ class TestRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
                 "/dummy_smartnoise_sql_query",
                 json=example_dummy_smartnoise_sql,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            response_dict = json.loads(response.content.decode("utf8"))["detail"]
-            assert response_dict[0]["type"] == "missing"
-            assert response_dict[0]["loc"] == ["header", "user-name"]
+
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            response_content = json.loads(response.content.decode("utf8"))["detail"]
+            assert response_content == "Not authenticated"
 
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_smartnoise_sql)

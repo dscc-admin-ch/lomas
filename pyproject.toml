@@ -18,10 +18,11 @@ max-line-length = 110
 
 [tool.mypy]
 disable_error_code = ["import-untyped", "import-not-found"]
+plugins = ['pydantic.mypy']
 
 [[tool.mypy.overrides]]
 module = "lomas_server.tests.*"
-disable_error_code = ["arg-type", "attr-defined"]
+disable_error_code = ["arg-type", "attr-defined", "union-attr", "index"]
 
 [tool.pylint.main]
 ignore-patterns = "test_*.py"

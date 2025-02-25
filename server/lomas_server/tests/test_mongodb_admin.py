@@ -5,15 +5,15 @@ from typing import Dict
 import boto3
 import yaml
 from pymongo import MongoClient
+from pymongo.database import Database
 
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.utils import (
-    add_demo_data_to_mongodb_admin,
     get_mongodb_url,
 )
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
     add_datasets_via_yaml,
@@ -35,6 +35,7 @@ from lomas_server.mongodb_admin import (
     set_budget_field,
     set_may_query,
 )
+from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig, add_lomas_demo_data
 from lomas_server.tests.constants import (
     ENV_MONGO_INTEGRATION,
     ENV_S3_INTEGRATION,
@@ -60,8 +61,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     environment variable is set to True.
     """
 
-    @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(self) -> None:
         """Connection to database."""
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
@@ -71,52 +71,54 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Access to MongoDB
         admin_config = get_config().admin_database
         if isinstance(admin_config, MongoDBConfig):
-            mongo_config = admin_config
+            self.mongo_config = admin_config
         else:
             raise TypeError("Loaded config does not contain a MongoDBConfig.")
 
-        db_url = get_mongodb_url(mongo_config)
-        cls.db = MongoClient(db_url)[mongo_config.db_name]
+        db_url = get_mongodb_url(self.mongo_config)
+        self.db: Database = MongoClient(db_url)[self.mongo_config.db_name]
 
     def tearDown(self) -> None:
         """Drop all data from database."""
-        drop_collection(self.db, "metadata")
-        drop_collection(self.db, "datasets")
-        drop_collection(self.db, "users")
-        drop_collection(self.db, "queries_archives")
+        drop_collection(self.mongo_config, "metadata")
+        drop_collection(self.mongo_config, "datasets")
+        drop_collection(self.mongo_config, "users")
+        drop_collection(self.mongo_config, "queries_archives")
 
     def test_add_user(self) -> None:
         """Test adding a user."""
         user = "Tintin"
+        email = "tintin@example.com"
 
         # Add user
-        add_user(self.db, user)
+        add_user(self.mongo_config, user, email)
 
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"id.name": "Tintin"})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Adding existing user raises error
         with self.assertRaises(ValueError):
-            add_user(self.db, user)
+            add_user(self.mongo_config, user, email)
 
     def test_add_user_wb(self) -> None:
         """Test adding a user with a dataset."""
         user = "Tintin"
+        email = "tintin@example.com"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10
         delta = 0.02
 
-        add_user_with_budget(self.db, user, dataset, epsilon, delta)
+        add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
         expected_user = {  # pylint: disable=duplicate-code
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
                 {
@@ -129,43 +131,45 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
 
         # Adding budget to existing user should raise error
         with self.assertRaises(ValueError):
-            add_user_with_budget(self.db, user, dataset, epsilon, delta)
+            add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
 
     def test_del_user(self) -> None:
         """Test deleting a user."""
         # Setup: add a user
         user = "Tintin"
-        add_user(self.db, user)
+        email = "tintin@example.com"
+        add_user(self.mongo_config, user, email)
 
         # Deleting user
-        del_user(self.db, user)
+        del_user(self.mongo_config, user)
 
         expected_user = None
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         self.assertEqual(user_found, expected_user)
 
         # Removing non-existing should raise error
         with self.assertRaises(ValueError):
-            del_user(self.db, user)
+            del_user(self.mongo_config, user)
 
     def test_add_dataset_to_user(self) -> None:
         """Test add dataset to a user."""
         user = "Tintin"
+        email = "tintin@example.com"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10
         delta = 0.02
 
-        add_user(self.db, user)
-        add_dataset_to_user(self.db, user, dataset, epsilon, delta)
+        add_user(self.mongo_config, user, email)
+        add_dataset_to_user(self.mongo_config, user, dataset, epsilon, delta)
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
                 {
@@ -178,7 +182,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         del user_found["_id"]
 
         assert user_found == expected_user
@@ -187,31 +191,32 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # raise and error
         epsilon = 20
         with self.assertRaises(ValueError):
-            add_dataset_to_user(self.db, user, dataset, epsilon, delta)
+            add_dataset_to_user(self.mongo_config, user, dataset, epsilon, delta)
 
         # Adding dataset to non-existing user should raise an error
         user = "Milou"
         with self.assertRaises(ValueError):
-            add_dataset_to_user(self.db, user, dataset, epsilon, delta)
+            add_dataset_to_user(self.mongo_config, user, dataset, epsilon, delta)
 
     def test_del_dataset_to_user(self) -> None:
         """Test delete dataset from user."""
         # Setup: add user with dataset
         user = "Tintin"
+        email = "tintin@example.com"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10
         delta = 0.02
 
-        add_user_with_budget(self.db, user, dataset, epsilon, delta)
+        add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
 
         # Test dataset deletion
-        del_dataset_to_user(self.db, user, dataset)
+        del_dataset_to_user(self.mongo_config, user, dataset)
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [],
         }
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
@@ -219,31 +224,32 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Remove dataset from non-existant user should raise error
         user = "Milou"
         with self.assertRaises(ValueError):
-            del_dataset_to_user(self.db, user, dataset)
+            del_dataset_to_user(self.mongo_config, user, dataset)
 
         # Remove dataset not present in user should raise error
         user = "Tintin"
         dataset = "Bijoux de la Castafiore"
         with self.assertRaises(Exception):
-            del_dataset_to_user(self.db, user, dataset)
+            del_dataset_to_user(self.mongo_config, user, dataset)
 
     def test_set_budget_field(self) -> None:
         """Test setting a budget field."""
         # Setup: add user with budget
         user = "Tintin"
+        email = "tintin@example.com"
         dataset = "Bijoux de la Castafiore"
         epsilon = 10
         delta = 0.02
 
-        add_user_with_budget(self.db, user, dataset, epsilon, delta)
+        add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
 
         # Updating budget should work
         field = "initial_epsilon"
         value = 15
-        set_budget_field(self.db, user, dataset, field, value)
+        set_budget_field(self.mongo_config, user, dataset, field, value)
 
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
                 {
@@ -256,7 +262,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
@@ -264,30 +270,31 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Setting budget for non-existing user should fail
         user = "Milou"
         with self.assertRaises(ValueError):
-            set_budget_field(self.db, user, dataset, field, value)
+            set_budget_field(self.mongo_config, user, dataset, field, value)
 
         # Setting budget for non-existing dataset should fail
         user = "Tintin"
         dataset = "os de Milou"
         with self.assertRaises(ValueError):
-            set_budget_field(self.db, user, dataset, field, value)
+            set_budget_field(self.mongo_config, user, dataset, field, value)
 
     def test_set_may_query(self) -> None:
         """Test set may query."""
         # Setup: add user with budget
         user = "Tintin"
+        email = "tintin@example.com"
         dataset = "PENGUIN"
         epsilon = 10
         delta = 0.02
 
-        add_user_with_budget(self.db, user, dataset, epsilon, delta)
+        add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
 
         # Set may query
         value = False
-        set_may_query(self.db, user, value)
+        set_may_query(self.mongo_config, user, value)
 
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": value,
             "datasets_list": [
                 {
@@ -300,7 +307,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": user})
+        user_found = self.db.users.find_one({"id.name": user})
         del user_found["_id"]
 
         self.assertEqual(user_found, expected_user)
@@ -308,18 +315,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Raises error when user does not exist
         user = "Milou"
         with self.assertRaises(ValueError):
-            set_may_query(self.db, user, value)
+            set_may_query(self.mongo_config, user, value)
 
     def test_get_user(self) -> None:
         """Test show user."""
         user = "Milou"
+        email = "milou@example.com"
         dataset = "os"
         epsilon = 20
         delta = 0.005
-        add_user_with_budget(self.db, user, dataset, epsilon, delta)
-        user_found = get_user(self.db, "Milou")
+        add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
+        user_found = get_user(self.mongo_config, "Milou")
         expected_user = {
-            "user_name": user,
+            "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
                 {
@@ -334,7 +342,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(user_found, expected_user)
 
         with self.assertRaises(ValueError):
-            user_found = get_user(self.db, "Bianca Castafiore")
+            user_found = get_user(self.mongo_config, "Bianca Castafiore")
 
     def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file."""
@@ -342,10 +350,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         path = "./tests/test_data/test_user_collection.yaml"
         clean = False
         overwrite = False
-        add_users_via_yaml(self.db, path, clean, overwrite)
+        add_users_via_yaml(self.mongo_config, path, clean, overwrite)
 
         tintin = {
-            "user_name": "Tintin",
+            "id": {"name": "Tintin", "email": "tintin@example.com"},
             "may_query": True,
             "datasets_list": [
                 {
@@ -364,7 +372,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(user_found, tintin)
 
         milou = {
-            "user_name": "Milou",
+            "id": {"name": "Milou", "email": "milou@example.com"},
             "may_query": True,
             "datasets_list": [
                 {
@@ -377,7 +385,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Milou"})
+        user_found = self.db.users.find_one({"id.name": "Milou"})
         del user_found["_id"]
 
         self.assertEqual(user_found, milou)
@@ -387,16 +395,16 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         field = "initial_epsilon"
         value = 25.0
         dataset = "Bijoux de la Castafiore"
-        set_budget_field(self.db, user, dataset, field, value)
+        set_budget_field(self.mongo_config, user, dataset, field, value)
 
         clean = True
-        add_users_via_yaml(self.db, path, clean, overwrite)
+        add_users_via_yaml(self.mongo_config, path, clean, overwrite)
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"id.name": "Tintin"})
         del user_found["_id"]
         self.assertEqual(user_found, tintin)
 
-        user_found = self.db.users.find_one({"user_name": "Milou"})
+        user_found = self.db.users.find_one({"id.name": "Milou"})
         del user_found["_id"]
         self.assertEqual(user_found, milou)
 
@@ -405,37 +413,37 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         field = "initial_epsilon"
         value = False
         dataset = "Bijoux de la Castafiore"
-        set_budget_field(self.db, user, dataset, field, value)
+        set_budget_field(self.mongo_config, user, dataset, field, value)
 
         user = "Milou"
-        del_user(self.db, user)
-        add_users_via_yaml(self.db, path, clean=False, overwrite=True)
+        del_user(self.mongo_config, user)
+        add_users_via_yaml(self.mongo_config, path, clean=False, overwrite=True)
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"id.name": "Tintin"})
         del user_found["_id"]
         self.assertEqual(user_found, tintin)
 
-        user_found = self.db.users.find_one({"user_name": "Milou"})
+        user_found = self.db.users.find_one({"id.name": "Milou"})
         del user_found["_id"]
         self.assertEqual(user_found, milou)
 
         # Overwrite to false and existing users should warn
         with self.assertWarns(UserWarning):
-            add_users_via_yaml(self.db, path, clean=False, overwrite=False)
+            add_users_via_yaml(self.mongo_config, path, clean=False, overwrite=False)
 
     def test_get_archives_of_user(self) -> None:
         """Test show archives of user."""
-        add_user(self.db, "Milou")
-        add_user(self.db, "Tintin")
+        add_user(self.mongo_config, "Milou", "milou@example.com")
+        add_user(self.mongo_config, "Tintin", "tintin@example.com")
 
         # User exist but empty
-        archives_found = get_archives_of_user(self.db, "Milou")
+        archives_found = get_archives_of_user(self.mongo_config, "Milou")
         expected_archives: list[Dict] = []
         self.assertEqual(archives_found, expected_archives)
 
         # User does not exist
         with self.assertRaises(ValueError):
-            archives_found = get_archives_of_user(self.db, "Bianca Castafiore")
+            archives_found = get_archives_of_user(self.mongo_config, "Bianca Castafiore")
 
         # Add archives for Tintin and Dr. Antartica
         path = "./tests/test_data/test_archives_collection.yaml"
@@ -444,12 +452,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.db.queries_archives.insert_many(archives)
 
         # Milou still empty
-        archives_found = get_archives_of_user(self.db, "Milou")
+        archives_found = get_archives_of_user(self.mongo_config, "Milou")
         expected_archives = []
         self.assertEqual(archives_found, expected_archives)
 
         # Tintin has archives
-        archives_found = get_archives_of_user(self.db, "Tintin")[0]
+        archives_found = get_archives_of_user(self.mongo_config, "Tintin")[0]
         expected_archives = archives[1]
 
         archives_found.pop("_id")
@@ -460,34 +468,34 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def test_get_list_of_users(self) -> None:
         """Test get list of users."""
-        users_list = get_list_of_users(self.db)
+        users_list = get_list_of_users(self.mongo_config)
         self.assertEqual(users_list, [])
 
         dataset = "Bijoux de la Castafiore"
         epsilon = 0.1
         delta = 0.0001
-        add_user(self.db, "Bianca Castafiore")
-        add_user_with_budget(self.db, "Tintin", dataset, epsilon, delta)
-        add_user_with_budget(self.db, "Milou", dataset, epsilon, delta)
-        users_list = get_list_of_users(self.db)
+        add_user(self.mongo_config, "Bianca Castafiore", "bianca.castafiore@example.com")
+        add_user_with_budget(self.mongo_config, "Tintin", "tintin@example.com", dataset, epsilon, delta)
+        add_user_with_budget(self.mongo_config, "Milou", "milou@example.com", dataset, epsilon, delta)
+        users_list = get_list_of_users(self.mongo_config)
         self.assertEqual(users_list, ["Bianca Castafiore", "Tintin", "Milou"])
 
     def test_get_list_of_datasets_from_users(self) -> None:
         """Test get list of datasets from users."""
         user = "Bianca Castafiore"
-        add_user(self.db, user)
+        add_user(self.mongo_config, user, "bianca.castafiore@example.com")
 
-        users_list = get_list_of_datasets_from_user(self.db, user)
+        users_list = get_list_of_datasets_from_user(self.mongo_config, user)
         self.assertEqual(users_list, [])
 
         epsilon = 0.1
         delta = 0.0001
-        add_dataset_to_user(self.db, user, "Bijoux de la Castafiore", epsilon, delta)
-        add_dataset_to_user(self.db, user, "Le Sceptre d'Ottokar", epsilon, delta)
-        add_dataset_to_user(self.db, user, "Les Sept Boules de cristal", epsilon, delta)
-        add_user_with_budget(self.db, "Milou", "os", 0.1, 0.001)
+        add_dataset_to_user(self.mongo_config, user, "Bijoux de la Castafiore", epsilon, delta)
+        add_dataset_to_user(self.mongo_config, user, "Le Sceptre d'Ottokar", epsilon, delta)
+        add_dataset_to_user(self.mongo_config, user, "Les Sept Boules de cristal", epsilon, delta)
+        add_user_with_budget(self.mongo_config, "Milou", "milou@example.com", "os", 0.1, 0.001)
 
-        dataset_list = get_list_of_datasets_from_user(self.db, user)
+        dataset_list = get_list_of_datasets_from_user(self.mongo_config, user)
         self.assertEqual(
             dataset_list,
             [
@@ -497,7 +505,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         )
 
-        dataset_list = get_list_of_datasets_from_user(self.db, "Milou")
+        dataset_list = get_list_of_datasets_from_user(self.mongo_config, "Milou")
         self.assertEqual(dataset_list, ["os"])
 
     def test_add_local_dataset(self) -> None:
@@ -509,7 +517,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
@@ -544,7 +552,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Add already present dataset
         with self.assertRaises(ValueError):
             add_dataset(
-                self.db,
+                self.mongo_config,
                 dataset,
                 database_type=database_type,
                 metadata_database_type=metadata_database_type,
@@ -553,10 +561,10 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
         # Add not already present dataset but present metadata
-        drop_collection(self.db, "datasets")
+        drop_collection(self.mongo_config, "datasets")
         with self.assertRaises(ValueError):
             add_dataset(
-                self.db,
+                self.mongo_config,
                 dataset,
                 database_type=database_type,
                 metadata_database_type=metadata_database_type,
@@ -565,13 +573,13 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             )
 
         # Restart clean
-        drop_collection(self.db, "metadata")
-        drop_collection(self.db, "datasets")
+        drop_collection(self.mongo_config, "metadata")
+        drop_collection(self.mongo_config, "datasets")
 
         # Unknown database type for dataset
         with self.assertRaises(ValueError):
             add_dataset(
-                self.db,
+                self.mongo_config,
                 dataset,
                 database_type="type_that_does_not_exist",
                 metadata_database_type=metadata_database_type,
@@ -582,7 +590,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Unknown database type for metadata
         with self.assertRaises(ValueError):
             add_dataset(
-                self.db,
+                self.mongo_config,
                 dataset,
                 database_type=database_type,
                 metadata_database_type="type_that_does_not_exist",
@@ -609,7 +617,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         key_metadata = "metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
@@ -701,7 +709,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
 
         verify_datasets()
 
@@ -711,24 +719,24 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.db.datasets.insert_one({"dataset_name": "Les aventures de Tintin"})
 
         clean = True
-        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
         verify_datasets()
 
         # Check no overwrite triggers warning
         clean = False
         with self.assertWarns(UserWarning):
-            add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
+            add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
 
         # Check overwrite works
         self.db.datasets.update_one({"dataset_name": "IRIS"}, {"$set": {"dataset_name": "IRIS"}})
 
         overwrite_datasets = True
-        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
         verify_datasets()
 
         # Check no clean and overwrite metadata
         add_datasets_via_yaml(
-            self.db,
+            self.mongo_config,
             path,
             clean=False,
             overwrite_datasets=True,
@@ -763,7 +771,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_metadata = False
 
         add_datasets_via_yaml(
-            self.db,
+            self.mongo_config,
             dataset_path,
             clean,
             overwrite_datasets,
@@ -789,7 +797,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
@@ -798,7 +806,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
 
         # Verify delete works
-        del_dataset(self.db, dataset)
+        del_dataset(self.mongo_config, dataset)
 
         dataset_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
         self.assertEqual(dataset_found, None)
@@ -808,11 +816,11 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         # Delete non-existing dataset should trigger decorator error
         with self.assertRaises(ValueError):
-            del_dataset(self.db, dataset)
+            del_dataset(self.mongo_config, dataset)
 
         # Delete dataset with non-existing metadata should trigger decorator error
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
@@ -821,12 +829,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         )
         self.db.metadata.delete_many({dataset: {"$exists": True}})
         with self.assertRaises(ValueError):
-            del_dataset(self.db, dataset)
+            del_dataset(self.mongo_config, dataset)
 
     def test_get_dataset(self) -> None:
         """Test show dataset."""
         with self.assertRaises(ValueError):
-            dataset_found = get_dataset(self.db, "PENGUIN")
+            dataset_found = get_dataset(self.mongo_config, "PENGUIN")
 
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -835,14 +843,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
-        dataset_found = get_dataset(self.db, "PENGUIN")
+        dataset_found = get_dataset(self.mongo_config, "PENGUIN")
         expected_dataset = {
             "dataset_name": dataset,
             "dataset_access": {"database_type": database_type, "path": dataset_path},
@@ -857,7 +865,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_get_metadata_of_dataset(self) -> None:
         """Test show metadata_dataset."""
         with self.assertRaises(ValueError):
-            metadata_found = get_metadata_of_dataset(self.db, "PENGUIN")
+            metadata_found = get_metadata_of_dataset(self.mongo_config, "PENGUIN")
 
         dataset = "PENGUIN"
         database_type = PrivateDatabaseType.PATH
@@ -866,14 +874,14 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
             dataset_path=dataset_path,
             metadata_path=metadata_path,
         )
-        metadata_found = get_metadata_of_dataset(self.db, "PENGUIN")
+        metadata_found = get_metadata_of_dataset(self.mongo_config, "PENGUIN")
         with open(metadata_path, encoding="utf-8") as f:
             expected_metadata = yaml.safe_load(f)
             expected_metadata = Metadata.model_validate(expected_metadata).model_dump()
@@ -881,7 +889,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def test_get_list_of_datasets(self) -> None:
         """Test get list of datasets."""
-        list_datasets = get_list_of_datasets(self.db)
+        list_datasets = get_list_of_datasets(self.mongo_config)
         self.assertEqual(list_datasets, [])
 
         path = "./tests/test_data/test_datasets.yaml"
@@ -889,8 +897,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
-        list_datasets = get_list_of_datasets(self.db)
+        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+        list_datasets = get_list_of_datasets(self.mongo_config)
         self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])
 
     def test_drop_collection(self) -> None:
@@ -903,7 +911,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
 
         add_dataset(
-            self.db,
+            self.mongo_config,
             dataset,
             database_type,
             metadata_database_type,
@@ -913,24 +921,24 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         # Test
         collection = "datasets"
-        drop_collection(self.db, collection)
+        drop_collection(self.mongo_config, collection)
 
         nb_datasets = self.db.datasets.count_documents({})
         self.assertEqual(nb_datasets, 0)
 
     def test_get_collection(self) -> None:
         """Test show collection from db."""
-        dataset_collection = get_collection(self.db, "datasets")
+        dataset_collection = get_collection(self.mongo_config, "datasets")
         self.assertEqual(dataset_collection, [])
 
         path = "./tests/test_data/test_datasets.yaml"
         clean = False
         overwrite_datasets = False
         overwrite_metadata = False
-        add_datasets_via_yaml(self.db, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
         with open(path, encoding="utf-8") as f:
             expected_dataset_collection = yaml.safe_load(f)
-        dataset_collection = get_collection(self.db, "datasets")
+        dataset_collection = get_collection(self.mongo_config, "datasets")
         self.assertEqual(expected_dataset_collection["datasets"], dataset_collection)
 
     def test_add_demo_data_to_mongodb_admin(self) -> None:
@@ -941,15 +949,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         else:
             dataset_yaml = "tests/test_data/test_datasets.yaml"
 
-        add_demo_data_to_mongodb_admin(
+        demo_config = DemoAdminConfig(
+            mg_config=get_config().admin_database,
+            kc_config=None,
             user_yaml="./tests/test_data/test_user_collection.yaml",
             dataset_yaml=dataset_yaml,
         )
 
-        users_list = get_list_of_users(self.db)
+        add_lomas_demo_data(demo_config)
+
+        users_list = get_list_of_users(self.mongo_config)
         self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"])
 
-        list_datasets = get_list_of_datasets(self.db)
+        list_datasets = get_list_of_datasets(self.mongo_config)
 
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(

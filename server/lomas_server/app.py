@@ -1,6 +1,7 @@
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -45,6 +46,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
     # Set some app state
     lomas_app.state.admin_database = None
+    lomas_app.state.jobs_var = ContextVar("jobs", default={})
 
     # Load config
     try:
@@ -71,7 +73,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     # Set DP Libraries config
     set_opendp_features_config(config.dp_libraries.opendp)
 
-    async with rabbitmq_ctx(app):
+    async with rabbitmq_ctx(lomas_app):
 
         yield  # lomas_app is handling requests
 

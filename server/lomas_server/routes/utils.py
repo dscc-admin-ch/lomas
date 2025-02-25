@@ -20,7 +20,6 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.constants import jobs_var
 from lomas_server.utils.config import get_config
 
 AioPikaInstrumentor().instrument()
@@ -30,7 +29,7 @@ amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
 amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
 
 
-async def process_response(queue, cls):
+async def process_response(queue, cls, jobs_var):
     """Process responses queue into Jobs."""
 
     async with queue.iterator() as queue_iter:
@@ -55,25 +54,23 @@ async def process_response(queue, cls):
 async def rabbitmq_ctx(app):
     """RabbitMQ queue context to connect and register callbacks."""
 
-    app.state.jobs_var = jobs_var
-
     connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
     channel = await connection.channel()
 
     await channel.declare_queue("task_queue", auto_delete=True)
     app.state.task_queue_channel = channel
     queue = await channel.declare_queue("task_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, QueryResponse))
+    asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
 
     await channel.declare_queue("cost_queue", auto_delete=True)
     app.state.cost_queue_channel = channel
     queue = await channel.declare_queue("cost_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, CostResponse))
+    asyncio.create_task(process_response(queue, CostResponse, app.state.jobs_var))
 
     await channel.declare_queue("dummy_queue", auto_delete=True)
     app.state.dummy_queue_channel = channel
     queue = await channel.declare_queue("dummy_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, QueryResponse))
+    asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
 
     yield  # lomas_app is handling requests
 

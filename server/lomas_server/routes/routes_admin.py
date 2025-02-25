@@ -20,7 +20,6 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from lomas_server.constants import jobs_var
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 
@@ -48,13 +47,14 @@ async def health_handler():
 
 
 @router.get("/status/{uid}")
-async def status_handler(uid: UUID, response: Response):
+async def status_handler(request: Request, uid: UUID, response: Response):
     """Job Status endpoint.
 
     Returns:
         Job
     """
-    if (job := jobs_var.get().get(str(uid))) is not None:
+    jobs = request.app.state.jobs_var.get()
+    if (job := jobs.get(str(uid))) is not None:
         if job.status == "failed":
             response.status_code = job.status_code
         return job

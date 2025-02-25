@@ -1,12 +1,13 @@
 max_ids: 1
 row_privacy: true
-rows: 2032543
+rows: 2_032_543
 columns:
   region:
     type: int
     precision: 32
     cardinality: 7
     categories: [1, 2, 3, 4, 5, 6, 7]
+    max_partition_length : 474_690
   eco_branch:
     type: int
     precision: 32
@@ -16,27 +17,34 @@ columns:
        52, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71,
        72, 73, 74, 75, 77, 78, 79, 80, 81, 82, 85, 86, 87, 88, 90, 91, 92,
        93, 94, 95, 96]
+    max_partition_length: 34_330
   profession:
     type: int
     precision: 32
     cardinality: 28
     categories: [10, 21, 22, 23, 24, 25, 31, 32, 33, 34, 41, 42, 43, 51, 52, 53, 61,
        62, 71, 72, 73, 74, 81, 83, 91, 92, 93, 94]
+    max_partition_length: 78_857
   education:
     type: int
     precision: 32
     cardinality: 8
     categories: [1, 2, 3, 4, 5, 6, 7, 8]
+    max_partition_length: 268_697
   age:
     type: int
     precision: 32
     lower: 0
     upper: 120
+    max_partition_length: 53_952
   sex:
     type: int
     precision: 32
     cardinality: 2
     categories: [0, 1]
+    max_partition_length : 1_397_824
+    # max_influenced_partitions: 1
+    # max_partition_contributions: 1
   income:
     type: float
     precision: 64

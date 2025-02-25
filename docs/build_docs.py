@@ -106,6 +106,7 @@ def build_doc(version: str,
     subprocess.run("cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb", shell=True)
     subprocess.run("cp -r ../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb ./source/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb", shell=True)
     subprocess.run("cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb", shell=True)
+    subprocess.run("cp -r ../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb ./source/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb", shell=True)
     subprocess.run("cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb", shell=True)
     subprocess.run("cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb", shell=True)
   

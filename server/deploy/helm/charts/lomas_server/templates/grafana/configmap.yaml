@@ -51,7 +51,7 @@ data:
           httpHeaderName1: {{ .Values.grafana.datasources.loki.jsonData.httpHeaderName1 }}
         secureJsonData:
           httpHeaderValue1: {{ .Values.grafana.datasources.loki.secureJsonData.httpHeaderValue1 }}
-    
+
     grafana.ini: |
       [server]
       domain = {{ .Values.grafana.ingress.hostname }}

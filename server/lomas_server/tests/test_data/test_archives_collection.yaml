@@ -25,7 +25,7 @@
     spent_epsilon: 1.5
     spent_delta: 0.00014999500000001387
   timestamp: 1717575211.9354818
-  dp_librairy: smartnoise_sql
+  dp_library: smartnoise_sql
 - user_name: Tintin
   dataset_name: PENGUIN
   client_input:
@@ -51,4 +51,4 @@
     spent_epsilon: 0.5
     spent_delta: 0.00014999500000001387
   timestamp: 1717575450.2644176
-  dp_librairy: smartnoise_sql
+  dp_library: smartnoise_sql

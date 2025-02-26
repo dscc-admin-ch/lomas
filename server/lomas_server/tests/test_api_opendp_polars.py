@@ -28,7 +28,7 @@ from lomas_core.models.requests_examples import (
 from lomas_server.dp_queries.dp_libraries.opendp import (
     get_global_params,
     get_lf_domain,
-    update_params_by_grouping,
+    multiple_group_update_params,
 )
 
 RAW_METADATA = {
@@ -292,7 +292,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         by_config = ["column_int"]
         margin_params = get_global_params(metadata)
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
 
         # Since no max_partition length: rows is taken
         # Since no max_num_partitions: cardinality is taken
@@ -301,24 +301,24 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
 
         # max_partition_length is given: then we use it instead of rows
         metadata["columns"]["column_int"].max_partition_length = 50
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 50
         self.assertEqual(margin_params, expected_margin)
 
         metadata["columns"]["column_int"].max_influenced_partitions = 1
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 1
         self.assertEqual(margin_params, expected_margin)
 
         metadata["columns"]["column_int"].max_partition_contributions = 1
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 1
         self.assertEqual(margin_params, expected_margin)
 
         # Minimum between max_ids and max_partition_contributions should be taken
         metadata["columns"]["column_int"].max_partition_contributions = 4
         metadata["max_ids"] = 2
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 2
         self.assertEqual(margin_params, expected_margin)
 
@@ -334,7 +334,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         by_config = ["column_int", "new_col"]
         metadata["columns"]["column_int"].max_partition_length = None
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin = {
             "max_num_partitions": 4,  # from col_int cardinality
             "max_partition_length": 100,  # since all are none, rows taken
@@ -343,7 +343,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
 
         metadata["columns"]["column_int"].max_partition_length = 30
         metadata["columns"]["new_col"].max_partition_length = 50
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 30  # min between two col
         self.assertEqual(margin_params, expected_margin)
 
@@ -351,13 +351,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata["max_ids"] = 20
         metadata["columns"]["column_int"].max_influenced_partitions = 3
         metadata["columns"]["new_col"].max_influenced_partitions = 5
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 15
         self.assertEqual(margin_params, expected_margin)
 
         # Should never be bigger than max_ids global
         metadata["max_ids"] = 10
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 10
         self.assertEqual(margin_params, expected_margin)
 
@@ -366,7 +366,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         by_config = ["column_int", "new_col_str"]
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         # Since card1 = 4 and card2 = 2, card_tot = 8
         expected_margin = {
             "max_num_partitions": 8,
@@ -379,13 +379,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata["max_ids"] = 10
         metadata["columns"]["column_int"].max_partition_contributions = 5
         metadata["columns"]["new_col"].max_partition_contributions = 4
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 5
         self.assertEqual(margin_params, expected_margin)
 
         # Check max_partition_contributions (should never be bigger than max_ids)
         metadata["max_ids"] = 2
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 2
         self.assertEqual(margin_params, expected_margin)
 

@@ -86,7 +86,7 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     # If grouping in the query, we update the margin params
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) >= 1:
-        margin_params = update_params_by_grouping(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
 
     # TODO 323: Multiple margins?
     # What if two group_by's in one query?
@@ -114,69 +114,7 @@ def get_global_params(metadata: dict) -> dict:
     return margin_params
 
 
-def update_params_by_grouping(metadata: dict, by_config: list, margin_params: dict) -> dict:
-    """
-    Updates the parameters for margin adaptation based on
-    grouping configuration.
-    Args:
-        metadata (dict): The metadata dictionary.
-        by_config (list): List of the column names used for grouping
-        margin_params (dict): Current parameters dictionary to update.
-    Returns:
-        dict: Updated parameters dictionary.
-    """
-    if len(by_config) == 1:
-        single_group_update_params(metadata, by_config, margin_params)
-    else:
-        multiple_group_update_params(metadata, by_config, margin_params)
-    return margin_params
-
-
-def single_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> None:
-    """
-    Updates parameters for single-column grouping configuration.
-    Args:
-        metadata (dict): The metadata dictionary.
-        by_config (list): List of the column names used for grouping
-        params (dict): Current parameters dictionary to update.
-    """
-    series_info = metadata["columns"].get(by_config[0])
-    # Max_partition_length logic:
-    # Must be specified at least at the dataset level (global)
-    # if none are specified at the partition, we use the global
-    max_partition_length = metadata["rows"]
-    if series_info.max_partition_length:
-        max_partition_length = series_info.max_partition_length
-    margin_params["max_partition_length"] = min(metadata["rows"], max_partition_length)
-
-    # If none is given for the partition, None is used (allowed)
-    margin_params["max_num_partitions"] = None
-    if hasattr(series_info, "cardinality"):
-        margin_params["max_num_partitions"] = series_info.cardinality
-
-    # max_influenced partitions logic:
-    # "Greatest number of partitions any one
-    # individual may contribute to."
-    # If max_influenced_partitions is bigger than max_ids
-    # we fix it at max_ids (should not happen)
-    if series_info.max_influenced_partitions:
-        margin_params["max_influenced_partitions"] = min(
-            metadata["max_ids"],
-            series_info.max_influenced_partitions,
-        )
-    # max_partition_contributions logic:
-    # "The greatest number of records an individual
-    # may contribute to any one partition."
-    # If max_partition_contributions is bigger than max_ids
-    # we fix it at max_ids (should not happen)
-    if series_info.max_partition_contributions:
-        margin_params["max_partition_contributions"] = min(
-            metadata["max_ids"],
-            series_info.max_partition_contributions,
-        )
-
-
-def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> None:
+def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> dict:
     """
     Updates parameters for multiple-column grouping configuration.
     Args:
@@ -245,6 +183,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
             metadata["max_ids"],
             margin_params.get("max_partition_contributions"),
         )
+    return margin_params
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):

@@ -1,4 +1,5 @@
 import logging
+
 import yaml
 from mantelo import HttpException, KeycloakAdmin
 
@@ -49,7 +50,7 @@ def add_kc_user(
     kc_admin = get_kc_admin(kc_config)
 
     try:
-        # TODO remove this? or update when federation is activated.
+        # TODO remove this? or update when federation is activated. see issue #408
         kc_admin.users.post({"username": user_name, "email": user_email, "enabled": True})
 
         # Create client for user
@@ -85,8 +86,8 @@ def add_kc_user(
                 # "email": user_email, -> We do not set this to avoid conflicts with user created above.
                 "attributes": {
                     "lomas_user_client": True,  # flag to indicate this client is linked to a lomas user.
-                    "user_email": user_name,
                     "user_name": user_name,
+                    "user_email": user_email,
                 }
             }
         )
@@ -251,7 +252,9 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     return user_client_secret
 
 
-def set_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str, client_secret: str | None = None) -> None:
+def set_kc_user_client_secret(
+    kc_config: KeycloakClientConfig, user_name: str, client_secret: str | None = None
+) -> None:
     """Sets a (new) client secret for making api calls with the client libary for a given user.
 
     Args:
@@ -266,9 +269,6 @@ def set_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str, c
     if client_secret is None:
         kc_admin.clients(user_client_uid).client_secret.post({"type": "secret"})
     else:
-        client_dict = {
-            "clientId": user_name,
-            "secret": client_secret
-        }
+        client_dict = {"clientId": user_name, "secret": client_secret}
 
         kc_admin.clients(user_client_uid).put(client_dict)

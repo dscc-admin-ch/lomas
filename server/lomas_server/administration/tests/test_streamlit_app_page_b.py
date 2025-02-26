@@ -12,7 +12,6 @@ from lomas_server.utils.config import CONFIG_LOADER
 from lomas_server.utils.config import get_config as get_server_config
 
 
-
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
@@ -46,7 +45,6 @@ def mock_mongodb_and_helpers():
             "server_service": "http://localhost:8000",
         }
         mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
-
 
 
 def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915

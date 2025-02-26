@@ -1,5 +1,5 @@
-from uuid import UUID
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Body, Request, Response, Security
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -11,7 +11,6 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import Metadata, UserId
-from lomas_core.models.config import Config
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
@@ -69,12 +68,13 @@ async def status_handler(request: Request, uid: UUID, response: Response):
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    user_id: Annotated[  # pylint: disable=unused-argument
+        UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])
+    ],
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
 
     Args:
-        request (Request): Raw request object
         user_id (UserId): A UserId object identifying the user.
 
     Returns:
@@ -87,19 +87,21 @@ async def get_state(
         }
     )
 
+
 # Get server config
-@router.get("/config",
-            tags=["ADMIN_USER"],
-            response_model=ConfigResponse,
+@router.get(
+    "/config",
+    tags=["ADMIN_USER"],
+    response_model=ConfigResponse,
 )
 async def get_server_config(
-    request: Request,
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    user_id: Annotated[  # pylint: disable=unused-argument
+        UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])
+    ],
 ) -> ConfigResponse:
     """Returns the config of this server instance.
 
     Args:
-        request (Request): Raw request object
         user_id (UserId): A UserId object identifying the user.
 
     Returns:

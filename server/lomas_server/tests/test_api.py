@@ -182,9 +182,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
-            fake_user_token = (
-                'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
-            )
+            fake_user_token = 'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
             response = client.post(
@@ -202,9 +200,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             )
 
             # Expect to work with datetimes and another user
-            fake_user_token = (
-                'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
-            )
+            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
             response = client.post(
@@ -370,4 +366,3 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 + "epsilon remaining 2.0, "
                 + "delta remaining 0.004970000100000034."
             )
-

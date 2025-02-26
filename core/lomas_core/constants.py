@@ -54,6 +54,8 @@ class SSynthGanSynthesizer(StrEnum):
 # Security
 # ------------------------------------------------
 
+
 class Scopes(StrEnum):
-    """List of security scopes for the server endpoints"""
+    """List of security scopes for the server endpoints."""
+
     ADMIN = "admin"

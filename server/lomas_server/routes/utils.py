@@ -13,11 +13,6 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
-from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
-    InternalServerException,
-    UnauthorizedAccessException,
-)
 from lomas_core.models.collections import UserId
 from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
@@ -125,7 +120,7 @@ def get_user_id_from_authenticator(
     """
     user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
     request.state.user_name = user_id.name
-    
+
     return user_id
 
 

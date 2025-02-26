@@ -351,7 +351,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             ],
         }
 
-        user_found = self.db.users.find_one({"user_name": "Tintin"})
+        user_found = self.db.users.find_one({"id.name": "Tintin"})
         del user_found["_id"]
 
         self.assertEqual(user_found, tintin)
@@ -430,7 +430,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         with self.assertRaises(ValueError):
             archives_found = get_archives_of_user(self.mongo_config, "Bianca Castafiore")
 
-        # Add archives for Tintin and Dr. Antartica
+        # Add archives for Tintin and Dr.Antartica
         path = "./tests/test_data/test_archives_collection.yaml"
         with open(path, encoding="utf-8") as f:
             archives = yaml.safe_load(f)
@@ -755,8 +755,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         tintin_found = self.db.datasets.find_one({"dataset_name": "TINTIN_S3_TEST"})
         del tintin_found["_id"]
-        print(tintin_found)
-        print(tintin)
         self.assertEqual(tintin_found, tintin)
 
         metadata_found = self.db.metadata.find_one({"TINTIN_S3_TEST": {"$exists": True}})["TINTIN_S3_TEST"]
@@ -929,7 +927,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         add_lomas_demo_data(demo_config)
 
         users_list = get_list_of_users(self.mongo_config)
-        self.assertEqual(users_list, ["Dr. Antartica", "Tintin", "Milou", "BirthdayGirl"])
+        self.assertEqual(users_list, ["Dr.Antartica", "Tintin", "Milou", "BirthdayGirl"])
 
         list_datasets = get_list_of_datasets(self.mongo_config)
 

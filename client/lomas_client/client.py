@@ -1,7 +1,7 @@
 import base64
 import json
 import pickle
-from typing import List, Optional
+from typing import List, Optional, TypeVar
 
 import pandas as pd
 import polars as pl
@@ -23,7 +23,6 @@ from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import get_ressource, init_telemetry
-from lomas_core.models.constants import AuthenticationType
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -39,6 +38,8 @@ from lomas_core.models.responses import (
 enable_logging()
 enable_features("contrib")
 
+_Client = TypeVar("_Client")
+
 
 class Client:
     """Client class to send requests to the server.
@@ -50,9 +51,6 @@ class Client:
         self,
         url: str,
         dataset_name: str,
-        auth_method: AuthenticationType = AuthenticationType.JWT,
-        user_name: Optional[str] = None,
-        user_email: Optional[str] = None,
         keycloak_address: Optional[str] = None,
         keycloak_port: Optional[int] = None,
         keycloak_use_tls: Optional[bool] = None,
@@ -65,24 +63,18 @@ class Client:
         Args:
             url (str): The base URL for the API server.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
-            auth_method (AuthenticationType, optional): The authentication method to use
-                with the lomas server, one of AuthenticationType. Defaults to AuthenticationType.JWT.
-            user_name (str, optional): The name of the user allowed to perform queries, if using
-                free pass authentication. Defaults to None.
-            user_email (str, optional): The email of the user, if using free passauthentication.
-                Defaults to None.
             keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
                 if using jwt authentication. Defaults to None.
             client_id (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
+                (otherwise passed by environment variable). Defaults to None.
             client_secret (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
+                (otherwise passed by environment variable). Defaults to None.
         """
 
         resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
@@ -91,9 +83,6 @@ class Client:
         self.http_client = LomasHttpClient(
             url,
             dataset_name,
-            auth_method,
-            user_name,
-            user_email,
             keycloak_address,
             keycloak_port,
             keycloak_use_tls,

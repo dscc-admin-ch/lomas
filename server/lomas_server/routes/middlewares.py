@@ -72,15 +72,15 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
 
             response = await call_next(request)
 
-            if response.status_code < 400: # Run only for successful requests.
-                if hasattr(request.state, "user_name"): # Not all routes extract the user name.
+            if response.status_code < 400:  # Run only for successful requests.
+                if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
                     user_name = request.state.user_name
                     logging.info(
                         f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
                         f" for user '{user_name}' completed."
                     )
                     span.set_attribute("user_name", request.state.user_name)
-                
+
                 logging.info(
                     f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
                     " completed successfully"

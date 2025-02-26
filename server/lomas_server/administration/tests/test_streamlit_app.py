@@ -34,16 +34,11 @@ def test_about_page():
 @pytest.fixture
 def mock_configs():
     """Fixture to mock server and dashboard configs."""
-<<<<<<< HEAD
     with (
         patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
         patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
+        patch("lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config
     ):
-=======
-    with patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config, patch(
-        "lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data, patch(
-        "lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config:
->>>>>>> d3aa4fc0 (Updated admin methods to include user addition into keycloak.)
 
         # Overwrite server config
         CONFIG_LOADER.load_config(

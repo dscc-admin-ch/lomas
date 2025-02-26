@@ -3,10 +3,9 @@
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.config import Config as ServerConfig
 from lomas_core.models.constants import AdminDBType
 from lomas_server.administration.dashboard.config import get_config
-from lomas_server.administration.dashboard.utils import get_server_data, get_server_config
+from lomas_server.administration.dashboard.utils import get_server_config, get_server_data
 
 ###############################################################################
 # BACKEND
@@ -34,7 +33,6 @@ st.set_page_config(layout="wide")
 st.title("Lomas configurations")
 
 if "config" in st.session_state and "dashboard_config" in st.session_state:
-    print(st.session_state.dashboard_config)
     st.write(
         "The server is available for requests at the address: "
         + f"https://{st.session_state.dashboard_config.server_url}"

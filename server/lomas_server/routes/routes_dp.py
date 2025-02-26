@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, Security, status
+from fastapi import APIRouter, Request, Security, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
@@ -20,7 +20,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import Job
-from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.routes.utils import (
     get_user_id_from_authenticator,
     handle_query_to_job,
@@ -180,7 +179,9 @@ async def smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -218,7 +219,9 @@ async def dummy_smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -255,7 +258,9 @@ async def estimate_smartnoise_synth_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 # OpenDP

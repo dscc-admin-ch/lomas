@@ -12,14 +12,9 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
-from lomas_core.models.constants import AdminDBType
 from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.auth.auth import authenticator_factory
-from lomas_server.constants import (
-    SERVER_SERVICE_NAME,
-    SERVICE_ID,
-    TELEMETRY
-)
+from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID, TELEMETRY
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )

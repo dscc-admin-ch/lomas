@@ -1,3 +1,75 @@
+[project]
+name = "lomas"
+version = "0.4.1"
+requires-python = ">= 3.11"
+dependencies = [
+  # core
+  "diffprivlib==0.6.5",
+  "diffprivlib_logger==0.0.3",
+  "fastapi==0.111.1",
+  "private-pgm",
+  "numpy==1.26.4",
+  "opendp==0.12.0",
+  "opendp-logger==0.3.0",
+  "opentelemetry-api==1.29.0",
+  "opentelemetry-exporter-otlp==1.29.0",
+  "opentelemetry-sdk==1.29.0",
+  "pandas==2.2.2",
+  "polars==1.12.0",
+  "pymongo==4.6.3",
+  "pyarrow==16.1.0",
+  "scikit-learn==1.4.2",
+  "smartnoise-synth==1.0.4",
+  "smartnoise_synth_logger==0.0.3",
+  # server
+  "boto3==1.34.115",
+  "httpx==0.27.0",
+  "jax==0.4.31",
+  "jaxlib==0.4.31",
+  "opentelemetry-instrumentation-fastapi==0.50b0",
+  "opentelemetry-instrumentation-logging==0.50b0",
+  "opentelemetry-instrumentation-pymongo==0.50b0",
+  "opentelemetry-instrumentation-aio-pika==0.50b0",
+  "packaging==24.1",
+  "pyaml==23.9.5",
+  "pydantic==2.8.2",
+  "smartnoise-sql==1.0.6",
+  "uvicorn==0.29.0",
+  "aio-pika==9.5.4",
+  # streamlit
+  "mongomock==4.3.0",
+  "streamlit==1.39.0",
+  "st-pages==0.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "isort==6.0.0",
+  "black==25.1.0",
+  "flake8-pyproject==1.2.3",
+  "mypy==1.15.0",
+  "pylint==3.3.4",
+  "pydocstringformatter==0.7.3",
+  "coverage==7.6.12",
+  "pytest==8.3.3",
+  "pytest-cov==6.0.0",
+]
+client = [
+  "jupyter==1.0.0",
+  "opentelemetry-instrumentation-requests==0.50b0",
+]
+doc = [
+  "pandoc==2.4",
+  "sphinx==8.1.3",
+  "nbsphinx==0.9.6",
+  "sphinx-rtd-theme==3.0.2",
+  "sphinxcontrib.napoleon==0.7",
+  "myst-parser==4.0.0",
+]
+
+[tool.uv.sources]
+private-pgm = { git = "https://github.com/ryan112358/private-pgm", rev = "01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca" }
+
 [tool.black]
 line-length = 110
 include = '\.pyi?$'

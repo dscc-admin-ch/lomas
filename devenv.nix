@@ -87,18 +87,11 @@ in
   languages.python = {
     enable = true;
     uv.enable = true;
+    uv.sync = {
+      enable = true;
+      allExtras = true;
+    };
     venv.enable = true;
-    venv.requirements = (
-      concatStringsSep "\n" (
-        map readFile [
-          ./core/requirements_core.txt
-          ./client/requirements_client.txt
-          ./server/requirements_server.txt
-          ./server/requirements_streamlit.txt
-          ./requirements-dev.txt
-        ]
-      )
-    );
   };
 
   env = {

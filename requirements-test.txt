@@ -1,4 +1,5 @@
 -r core/requirements_core.txt
 -r server/requirements_server.txt
--r server/requirements_streamlit.txt
+-r server/requirements_admin.txt
+-r client/requirements_client.txt
 -r requirements-dev.txt

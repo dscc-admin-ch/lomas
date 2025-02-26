@@ -254,7 +254,7 @@ class AdminMongoDatabase(AdminDatabase):
         """
         queries = self.db.queries_archives.find(
             {
-                "id.name": user_name,
+                "user_name": user_name,
                 "dataset_name": f"{dataset_name}",
             },
             {"_id": 0},

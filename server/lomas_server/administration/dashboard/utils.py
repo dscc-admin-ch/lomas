@@ -1,10 +1,9 @@
 import os
-from oauthlib.oauth2 import BackendApplicationClient
-import requests
-from requests_oauthlib import OAuth2Session
-import streamlit as st
 
-from lomas_core.models.config import KeycloakClientConfig
+import streamlit as st
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+
 from lomas_core.models.config import Config as ServerConfig
 from lomas_server.administration.dashboard.config import Config
 
@@ -15,7 +14,7 @@ def get_server_data(_config: Config, endpoint):
     # Disable tls checks if needed
     if not _config.kc_config.use_tls:
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-        
+
     # Get JWT token
     oauth_client = BackendApplicationClient(_config.kc_config.client_id)
     oauth2_session = OAuth2Session(client=oauth_client)
@@ -42,6 +41,7 @@ def get_server_config(config: Config):
         config (Config): The dashboard config.
     """
     return ServerConfig.model_validate(get_server_data(config, "config")["config"])
+
 
 def check_user_warning(user: str) -> bool:
     """Verify if user already present and warning if it is.

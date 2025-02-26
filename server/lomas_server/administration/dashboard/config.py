@@ -1,16 +1,13 @@
 import os
-from typing import Optional
 
 import yaml
-from pydantic import BaseModel
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.config import AdminConfig, KeycloakClientConfig, MongoDBConfig
+from lomas_core.models.config import AdminConfig
 
 # Get config and secrets from correct location
 if "LOMAS_DASHBOARD_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_DASHBOARD_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
 else:
     CONFIG_PATH = "/usr/lomas_dashboard/dashboard.yaml"
 

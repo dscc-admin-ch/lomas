@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -96,7 +97,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error == UnauthorizedAccessExceptionModel(
-                message="Dr. Antartica does not have access to IRIS."
+                message="Dr.Antartica does not have access to IRIS."
             )
 
             # Expect to fail: dataset does not exist
@@ -252,7 +253,3 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert UnauthorizedAccessExceptionModel(message=f"{self.user_name} does not have access to IRIS.")
-
-
-
-

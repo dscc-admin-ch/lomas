@@ -25,14 +25,28 @@ datasets:
     database_type: "S3_DB"
     bucket: "example"
     key: "data/test_penguin.csv"
-    endpoint_url: "http://localhost:9000"
+    endpoint_url: "http://localhost:19000"
     credentials_name: "local_minio"
   metadata_access:
     database_type: "S3_DB"
     bucket: "example"
     key: "metadata/penguin_metadata.yaml"
-    endpoint_url: "http://localhost:9000"
+    endpoint_url: "http://localhost:19000"
     credentials_name: "local_minio"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/income_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/fso_income_synthetic_metadata.yaml"
+- dataset_name: "COVID_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/covid_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "tests/test_data/metadata/covid_synthetic_metadata.yaml"
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"
@@ -56,6 +70,16 @@ users:
     total_spent_delta: 0
   - dataset_name: "PUMS"
     initial_epsilon: 5
+    initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
+  - dataset_name: "FSO_INCOME_SYNTHETIC"
+    initial_epsilon: 10
+    initial_delta: 0.005
+    total_spent_epsilon: 0
+    total_spent_delta: 0
+  - dataset_name: "COVID_SYNTHETIC"
+    initial_epsilon: 10
     initial_delta: 0.005
     total_spent_epsilon: 0
     total_spent_delta: 0

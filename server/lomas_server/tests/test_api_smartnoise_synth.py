@@ -27,7 +27,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.app import app
 from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
-from lomas_server.tests.test_api import TestRootAPIEndpoint
+from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 
 
 def validate_response(response) -> QueryResponse:
@@ -44,7 +44,7 @@ def validate_response(response) -> QueryResponse:
     return r_model
 
 
-class TestSmartnoiseSynthEndpoint(TestRootAPIEndpoint):  # pylint: disable=R0904
+class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """Test Smartnoise Synth Endpoints with different Synthesizers."""
 
     def test_smartnoise_synth_query(self) -> None:

@@ -41,7 +41,7 @@ class LomasHttpClient:
             requests.Response: The response object resulting from the POST request.
         """
         logging.info(
-            f"User '{self.headers["user-name"]}' is making a request "
+            f"User '{self.headers.get('user-name')}' is making a request "
             + f"to url '{self.url}' "
             + f"at the endpoint '{endpoint}' "
             + f"with query params: {body.model_dump()}."

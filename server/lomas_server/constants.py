@@ -2,6 +2,9 @@ import os
 import string
 from enum import StrEnum
 
+from opendp import measures as ms
+from opendp import typing as tp
+
 # Config
 # -----------------------------------------------------------------------------
 
@@ -100,3 +103,18 @@ class OpenDPDatasetInputMetric(StrEnum):
     HAMMING_DISTANCE = "HammingDistance"
 
     INT_DISTANCE = "u32"  # opendp type for distance between datasets
+
+
+OPENDP_TYPE_MAPPING = {
+    "int32": tp.i32,
+    "float32": tp.f32,
+    "int64": tp.i64,
+    "float64": tp.f64,
+    "string": tp.String,
+    "boolean": bool,
+}
+
+OPENDP_OUTPUT_MEASURE = {
+    "laplace": ms.max_divergence(),
+    "gaussian": ms.zero_concentrated_divergence(),
+}

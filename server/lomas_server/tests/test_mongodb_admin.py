@@ -601,7 +601,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.S3
         metadata_database_type = PrivateDatabaseType.S3
         bucket = "example"
-        endpoint_url = "http://localhost:9000"
+        endpoint_url = "http://localhost:19000"
         access_key_id = "admin"
         secret_access_key = "admin123"
         credentials_name = "local_minio"
@@ -954,7 +954,15 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         if os.getenv(ENV_S3_INTEGRATION, "0").lower() in TRUE_VALUES:
             self.assertEqual(
                 list_datasets,
-                ["PENGUIN", "IRIS", "PUMS", "TINTIN_S3_TEST", "BIRTHDAYS"],
+                [
+                    "PENGUIN",
+                    "IRIS",
+                    "PUMS",
+                    "TINTIN_S3_TEST",
+                    "BIRTHDAYS",
+                    "FSO_INCOME_SYNTHETIC",
+                    "COVID_SYNTHETIC",
+                ],
             )
         else:
             self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])

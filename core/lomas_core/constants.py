@@ -13,7 +13,23 @@ class DPLibraries(StrEnum):
     SMARTNOISE_SQL = "smartnoise_sql"
     SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
+    OPENDP_POLARS = "opendp_polars"
     DIFFPRIVLIB = "diffprivlib"
+
+
+# OpenDP
+class OpenDpMechanism(StrEnum):
+    """Name of OpenDP mechanisms"""
+
+    LAPLACE = "laplace"
+    GAUSSIAN = "gaussian"
+
+
+class OpenDpPipelineType(StrEnum):
+    """Name of OpenDP pipelines"""
+
+    LEGACY = "legacy"
+    POLARS = "polars"
 
 
 # Smartnoise synth

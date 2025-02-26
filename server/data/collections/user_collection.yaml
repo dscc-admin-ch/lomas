@@ -54,3 +54,11 @@ users:
     initial_delta: 0.2
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
+- user_name: Mr. Corona
+  may_query: True
+  datasets_list:
+  - dataset_name: "COVID_SYNTHETIC"
+    initial_epsilon: 45.0
+    initial_delta: 0.2
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0

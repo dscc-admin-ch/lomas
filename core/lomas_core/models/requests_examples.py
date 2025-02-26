@@ -2,7 +2,11 @@ from typing import Dict
 
 from pydantic import JsonValue
 
-from lomas_core.constants import SSynthGanSynthesizer
+from lomas_core.constants import (
+    OpenDpMechanism,
+    OpenDpPipelineType,
+    SSynthGanSynthesizer,
+)
 from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
     DUMMY_NB_ROWS,
@@ -12,6 +16,8 @@ from lomas_core.models.constants import (
 
 # Query constants
 PENGUIN_DATASET: str = "PENGUIN"
+FSO_INCOME_DATASET: str = "FSO_INCOME_SYNTHETIC"
+COVID_DATASET: str = "COVID_SYNTHETIC"
 QUERY_EPSILON: float = 0.1
 QUERY_DELTA: float = 0.00001
 SQL_QUERY: str = "SELECT COUNT(*) AS NB_ROW FROM df"
@@ -154,8 +160,65 @@ example_opendp: Dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
+    "pipeline_type": OpenDpPipelineType.LEGACY,
+    "mechanism": None,
 }
 example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
+
+# OpenDP Polars
+# -----------------------------------------------------------------------------
+OPENDP_POLARS_PIPELINE: str = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32","bit_settings":'
+    '"","values":[1,6,5,4,4]},{"name":"eco_branch","datatype":"Int32","bit_settings":"",'
+    '"values":[85,16,71,25,16]},{"name":"profession","datatype":"Int32","bit_settings":"",'
+    '"values":[52,94,73,74,73]},{"name":"education","datatype":"Int32","bit_settings":"",'
+    '"values":[7,5,2,7,4]},{"name":"age","datatype":"Int32","bit_settings":"","values":'
+    '[60,44,22,112,94]},{"name":"sex","datatype":"Int32","bit_settings":"","values":'
+    '[1,0,1,1,0]},{"name":"income","datatype":"Float64","bit_settings":"","values":'
+    "[23496.63345669291,55903.89391456765,7317.908354313357,82935.48602726562,63534."
+    '775513084416]}]},"schema":{"fields":{"region":"Int32","eco_branch":"Int32",'
+    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32",'
+    '"income":"Float64"}}}}'
+)
+
+OPENDP_POLARS_PIPELINE_COVID: str = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
+    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
+    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
+    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
+    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
+    '"bit_settings":"","values":["BS","VS"]},{"name":"agegroup","datatype":'
+    '"String","bit_settings":"","values":["70 - 79","unknown"]},{"name":'
+    '"sex","datatype":"String","bit_settings":"","values":["other","other"]},'
+    '{"name":"testType","datatype":"String","bit_settings":"","values":'
+    '["rapid_antigen_test","rapid_antigen_test"]},{"name":"testResult","datatype"'
+    ':"String","bit_settings":"","values":["other","other"]},{"name":"country",'
+    '"datatype":"String","bit_settings":"","values":["other","unknown"]},{"name":'
+    '"subType","datatype":"String","bit_settings":"","values":["BA.2.75","XBB"]},'
+    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"","values":'
+    '[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"","values":'
+    '[true,false]}]},"schema":{"fields":{"patient_id":"Int32","id":"Int32","date":'
+    '"String","temporal":"Int32","georegion":"String","agegroup":"String","sex":'
+    '"String","testType":"String","testResult":"String","country":"String",'
+    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}}}}'
+)
+
+example_opendp_polars: Dict[str, JsonValue] = {
+    "dataset_name": FSO_INCOME_DATASET,
+    "opendp_json": OPENDP_POLARS_PIPELINE,
+    "pipeline_type": OpenDpPipelineType.POLARS,
+    "fixed_delta": QUERY_DELTA,
+    "mechanism": OpenDpMechanism.LAPLACE,
+}
+
+example_opendp_polars_datetime: Dict[str, JsonValue] = {
+    "dataset_name": COVID_DATASET,
+    "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
+    "pipeline_type": OpenDpPipelineType.POLARS,
+    "fixed_delta": QUERY_DELTA,
+    "mechanism": OpenDpMechanism.LAPLACE,
+}
+
 
 # DiffPrivLib
 # -----------------------------------------------------------------------------

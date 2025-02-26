@@ -4,6 +4,7 @@ import pickle
 from typing import List, Optional
 
 import pandas as pd
+import polars as pl
 from fastapi import status
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
@@ -118,6 +119,24 @@ class Client:
         raise_error(res)
         return None
 
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> Optional[pl.LazyFrame]:
+        """
+        Returns the polars LazyFrame for the dummy dataset with
+        optional parameters.
+        Args:
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+                Defaults to DUMMY_SEED.
+        Returns:
+            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
+        """
+        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
+
+        if dummy_pandas is None:
+            return None
+        return pl.from_pandas(dummy_pandas).lazy()
+
     def get_initial_budget(self) -> Optional[InitialBudgetResponse]:
         """This function retrieves the initial budget.
 
@@ -185,7 +204,7 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                match query["dp_librairy"]:
+                match query["dp_library"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.SMARTNOISE_SYNTH:
@@ -202,7 +221,7 @@ class Client:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_librairy']}")
+                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_library']}")
 
                 deserialised_queries.append(query)
 

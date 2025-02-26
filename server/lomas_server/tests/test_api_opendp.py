@@ -2,7 +2,6 @@ import opendp.prelude as dp_p
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from opendp.mod import enable_features
 from opendp_logger import enable_logging
 
 from lomas_core.constants import OpenDpPipelineType
@@ -24,11 +23,6 @@ from lomas_server.app import app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
-
-enable_features("floating-point")
-
 
 class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """
@@ -40,8 +34,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     @pytest.mark.long
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """Test_opendp_query."""
-        enable_logging()
-
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)
             job = submit_job_wait(client, "/opendp_query", json=example_opendp)

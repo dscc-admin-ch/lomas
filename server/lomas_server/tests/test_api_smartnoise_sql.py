@@ -1,7 +1,6 @@
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from opendp.mod import enable_features
 
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
@@ -24,11 +23,6 @@ from lomas_core.models.responses import (
 from lomas_server.app import app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
-
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
-
-enable_features("floating-point")
 
 
 class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904

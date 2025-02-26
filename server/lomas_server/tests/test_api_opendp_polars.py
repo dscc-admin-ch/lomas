@@ -3,6 +3,7 @@ import unittest
 
 import opendp as dp
 import polars as pl
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from opendp import measures as ms
@@ -143,6 +144,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                     assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     # TODO: opendp v0.12: Adapt for datetime
+    @pytest.mark.long
     def test_opendp_polars_datetime_query(self) -> None:
         """Test opendp polars query"""
         with TestClient(app, headers=self.headers) as client:

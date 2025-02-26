@@ -2,8 +2,6 @@ import numpy as np
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from opendp.mod import enable_features
-from pymongo.database import Database
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import InternalServerException
@@ -30,73 +28,20 @@ from lomas_core.models.responses import (
     SpentBudgetResponse,
 )
 from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import get_mongodb
 from lomas_server.app import app
-from lomas_server.mongodb_admin import (
-    add_datasets_via_yaml,
-    add_users_via_yaml,
-    drop_collection,
+from lomas_server.tests.test_api_root import (
+    INITAL_EPSILON,
+    INITIAL_DELTA,
+    TestSetupRootAPIEndpoint,
 )
-from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
-from lomas_server.utils.config import CONFIG_LOADER
-
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
-
-enable_features("floating-point")
-
-pytestmark = pytest.mark.anyio
 
 
 class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """End-to-end tests of the api endpoints."""
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        # Read correct config depending on the database we test against
-        CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config_mongo.yaml",
-            secrets_path="tests/test_configs/test_secrets.yaml",
-        )
-
-    def setUp(self) -> None:
-        """Set Up Header and DB for test."""
-        self.user_name = "Dr. Antartica"
-        self.headers = {
-            "Content-type": "application/json",
-            "Accept": "*/*",
-        }
-        self.headers["user-name"] = self.user_name
-
-        # Fill up database
-        self.db: Database = get_mongodb()
-
-        add_users_via_yaml(
-            self.db,
-            yaml_file="tests/test_data/test_user_collection.yaml",
-            clean=True,
-            overwrite=True,
-        )
-
-        add_datasets_via_yaml(
-            self.db,
-            yaml_file="tests/test_data/test_datasets_with_s3.yaml",
-            clean=True,
-            overwrite_datasets=True,
-            overwrite_metadata=True,
-        )
-
-    def tearDown(self) -> None:
-        # Clean up database
-        drop_collection(self.db, "metadata")
-        drop_collection(self.db, "datasets")
-        drop_collection(self.db, "users")
-        drop_collection(self.db, "queries_archives")
-
     def test_config_and_internal_server_exception(self) -> None:
         """Test set wrong configuration."""
-
         # Put unknown admin database
         with self.assertRaises(InternalServerException) as context:
             admin_database_factory(DBConfig())

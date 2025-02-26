@@ -1,16 +1,15 @@
 import logging
-from json import loads
 import os
+from json import loads
 from time import sleep
 from typing import Optional
 
-from oauthlib.oauth2 import BackendApplicationClient
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
 import requests
+from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from requests_oauthlib import OAuth2Session
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
-from lomas_core.models.constants import AuthenticationType
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
@@ -23,9 +22,6 @@ class LomasHttpClient:
         self,
         url: str,
         dataset_name: str,
-        auth_method: AuthenticationType = AuthenticationType.JWT,
-        user_name: Optional[str] = None,
-        user_email: Optional[str] = None,
         keycloak_address: Optional[str] = None,
         keycloak_port: Optional[int] = None,
         keycloak_use_tls: Optional[bool] = None,
@@ -38,24 +34,18 @@ class LomasHttpClient:
         Args:
             url (str): The base URL for the API server.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
-            auth_method (AuthenticationType, optional): The authentication method to use
-                with the lomas server, one of AuthenticationType. Defaults to AuthenticationType.JWT.
-            user_name (str, optional): The name of the user allowed to perform queries, if using
-                free pass authentication. Defaults to None.
-            user_email (str, optional): The email of the user, if using free passauthentication.
-                Defaults to None.
             keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
-                environment variable), if using jwt authentication. Defaults to None.
+                environment variable). Defaults to None.
             realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
                 if using jwt authentication. Defaults to None.
             client_id (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
+                (otherwise passed by environment variable). Defaults to None.
             client_secret (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable), if using jwt authentication. Defaults to None.
+                (otherwise passed by environment variable). Defaults to None.
         """
         RequestsInstrumentor().instrument()
 
@@ -63,62 +53,37 @@ class LomasHttpClient:
         self.dataset_name = dataset_name
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
 
-        match auth_method:
-            case AuthenticationType.FREE_PASS:
-                if user_name is None or user_email is None:
-                    # TODO create client exception
-                    raise Exception(
-                        "Missing user_name and user_email when using freepass authentication method."
-                    )
+        # TODO with issue 407: move these into config.
+        client_id = client_id or os.getenv("LOMAS_CLIENT_ID")
+        client_secret = client_secret or os.getenv("LOMAS_CLIENT_SECRET")
+        keycloak_address = keycloak_address or os.getenv("LOMAS_KEYCLOAK_ADDRESS")
+        env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
+        keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None)
+        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in [1, "True", "true"]
+        keycloak_use_tls = keycloak_use_tls or not env_keycloak_no_tls
+        realm = realm or os.getenv("LOMAS_REALM")
 
-                bearer = f'Bearer {{"user_name": "{user_name}", "user_email": "{user_email}"}}'
-                self.headers["Authentication"] = bearer
+        if any(
+            x is None
+            for x in [client_id, client_secret, keycloak_address, keycloak_port, keycloak_use_tls, realm]
+        ):
+            raise ValueError(
+                "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
+                "keycloak_protocol or realm when using jwt authentication method."
+            )
 
-            case AuthenticationType.JWT:
-                client_id = client_id or os.getenv("LOMAS_CLIENT_ID")  # TODO define const
-                client_secret = client_secret or os.getenv("LOMAS_CLIENT_SECRET")  # TODO define const
-                keycloak_address = keycloak_address or os.getenv(
-                    "LOMAS_KEYCLOAK_ADDRESS"
-                )  # TODO define const
-                env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
-                keycloak_port = keycloak_port or (
-                    int(env_keycloak_port) if env_keycloak_port else None
-                )  # TODO define const
-                keycloak_use_tls = keycloak_use_tls or bool(os.getenv("LOMAS_KEYCLOAL_USE_TLS"))
-                realm = realm or os.getenv("LOMAS_REALM")  # TODO define const
+        if not keycloak_use_tls:
+            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-                if (
-                    client_id is None
-                    or client_secret is None
-                    or keycloak_address is None
-                    or keycloak_port is None
-                    or keycloak_use_tls is None
-                    or realm is None
-                ):
-                    raise Exception(
-                        "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
-                        "keycloak_protocol or realm when using jwt authentication method."
-                    )
-
-                if not keycloak_use_tls:
-                    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-                    
-                self._client_id = client_id
-                self._client_secret = client_secret
-                oauth_client = BackendApplicationClient(client_id=self._client_id)
-                self._oauth2_session = OAuth2Session(client=oauth_client)
-                url_protocol = "https" if keycloak_use_tls else "http"
-                self._token_endpoint = (
-                    f"{url_protocol}://{keycloak_address}:"
-                    f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
-                )
-
-            case _:
-                raise Exception(
-                    f"Authentication method not supported: {auth_method}"
-                )  # TODO make client exception
-
-        self._auth_method = auth_method
+        self._client_id = client_id
+        self._client_secret = client_secret
+        oauth_client = BackendApplicationClient(client_id=self._client_id)
+        self._oauth2_session = OAuth2Session(client=oauth_client)
+        url_protocol = "https" if keycloak_use_tls else "http"
+        self._token_endpoint = (
+            f"{url_protocol}://{keycloak_address}:"
+            f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
+        )
 
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
@@ -151,51 +116,31 @@ class LomasHttpClient:
         """
 
         logging.info(
-            f"User '{self.headers.get('user-name')}' is making a request "
+            f"User (with client id '{self._client_id}') is making a request "
             + f"to url '{self.url}' "
             + f"at the endpoint '{endpoint}' "
             + f"with query params: {body.model_dump()}."
         )
-        
-        match self._auth_method:
-            case AuthenticationType.FREE_PASS:
-                r = requests.post(
-                    self.url + "/" + endpoint,
-                    json=body.model_dump(),
-                    headers=self.headers,
-                    timeout=(CONNECT_TIMEOUT, read_timeout),
-                )
-                return r
 
-            case AuthenticationType.JWT:
-                # Fetch token if not in session yet.
-                if not self._oauth2_session.authorized:
-                    self._fetch_token()
+        try:
+            r = self._oauth2_session.post(
+                self.url + "/" + endpoint,
+                json=body.model_dump(),
+                headers=self.headers,
+                timeout=(CONNECT_TIMEOUT, read_timeout),
+            )
+        except TokenExpiredError:
+            # Retry with new token
+            self._fetch_token()
+            r = self._oauth2_session.post(
+                self.url + "/" + endpoint,
+                json=body.model_dump(),
+                headers=self.headers,
+                timeout=(CONNECT_TIMEOUT, read_timeout),
+            )
 
-                try:
-                    r = self._oauth2_session.post(
-                        self.url + "/" + endpoint,
-                        json=body.model_dump(),
-                        headers=self.headers,
-                        timeout=(CONNECT_TIMEOUT, read_timeout),
-                    )
-                except TokenExpiredError:
-                    # Retry with new token
-                    self._fetch_token()
-                    r = self._oauth2_session.post(
-                        self.url + "/" + endpoint,
-                        json=body.model_dump(),
-                        headers=self.headers,
-                        timeout=(CONNECT_TIMEOUT, read_timeout),
-                    )
+        return r
 
-                return r
-
-            case _:
-                raise Exception(
-                    f"Authentication method {self._auth_method} not implemented for post."
-                )  # TODO internal
-            
     def wait_for_job(self, job_uid, n_retry=100, sleep_sec=0.5) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
 

@@ -1,15 +1,13 @@
 import unittest
 
 from opendp.mod import enable_features
-from pymongo.database import Database
 
-from lomas_server.admin_database.utils import get_mongodb
-from lomas_server.mongodb_admin import (
+from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.utils.config import CONFIG_LOADER
+from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -28,7 +26,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     """
 
     @classmethod
-    def setUp(cls) -> None:
+    def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
         CONFIG_LOADER.load_config(
             config_path="tests/test_configs/test_config_mongo.yaml",
@@ -42,10 +40,8 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
 
-        self.user_name = "Dr. Antartica"
-        self.bearer = (
-            'Bearer {"user_name": "Dr. Antartica", "user_email": "dr.antartica@penguin_research.org"}'
-        )
+        self.user_name = "Dr.Antartica"
+        self.bearer = 'Bearer {"name": "Dr.Antartica", "email": "dr.antartica@penguin_research.org"}'
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
@@ -53,10 +49,10 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
-        self.db: Database = get_mongodb()
+        self.mongo_config = get_config().admin_database
 
         add_users_via_yaml(
-            self.db,
+            self.mongo_config,
             yaml_file="tests/test_data/test_user_collection.yaml",
             clean=True,
             overwrite=True,
@@ -65,7 +61,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
 
         add_datasets_via_yaml(
-            self.db,
+            self.mongo_config,
             yaml_file=yaml_file,
             clean=True,
             overwrite_datasets=True,
@@ -73,8 +69,8 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         )
 
     def tearDown(self) -> None:
-        # Clean up database if needed
-        drop_collection(self.db, "metadata")
-        drop_collection(self.db, "datasets")
-        drop_collection(self.db, "users")
-        drop_collection(self.db, "queries_archives")
+        # Clean up database
+        drop_collection(self.mongo_config, "metadata")
+        drop_collection(self.mongo_config, "datasets")
+        drop_collection(self.mongo_config, "users")
+        drop_collection(self.mongo_config, "queries_archives")

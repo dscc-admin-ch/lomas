@@ -12,13 +12,14 @@ from lomas_server.utils.config import CONFIG_LOADER
 from lomas_server.utils.config import get_config as get_server_config
 
 
-
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
     with patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb, patch(
-        "streamlit.file_uploader") as mock_file_uploader, patch(
-        "lomas_server.administration.dashboard.config.get_config") as mock_get_config:
+        "streamlit.file_uploader"
+    ) as mock_file_uploader, patch(
+        "lomas_server.administration.dashboard.config.get_config"
+    ) as mock_get_config:
 
         mock_get_mongodb.return_value = get_mocked_db()
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"
@@ -44,7 +45,6 @@ def mock_mongodb_and_helpers():
             "server_service": "http://localhost:8000",
         }
         mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
-
 
 
 def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915

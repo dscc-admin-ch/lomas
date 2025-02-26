@@ -88,8 +88,6 @@ def create_confidential_client(
 
     Also assigns the roles listed in the provided dictionary.
 
-    TODO implement saveguards in case of exception
-
     Args:
         kc_admin (KeycloakAdmin): A KeycloakAdmin session.
         client_id (str): The client id to use.

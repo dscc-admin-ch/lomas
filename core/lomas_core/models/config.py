@@ -139,6 +139,7 @@ class KeycloakClientConfig(BaseModel):
 
 
 class AdminConfig(BaseSettings):
+    """Base model for settings for administrative tasks."""
 
     model_config = SettingsConfigDict(
         extra="ignore",

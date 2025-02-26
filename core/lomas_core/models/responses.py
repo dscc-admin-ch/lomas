@@ -35,7 +35,7 @@ class ResponseModel(BaseModel):
 
 class ConfigResponse(BaseModel):
     """Model for response to server config queries."""
-    
+
     config: Config
     """The server config."""
 

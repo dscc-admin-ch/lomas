@@ -320,9 +320,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         with TestClient(app) as client:
 
             # Expect to work
-            fake_user_token = (
-                'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
-            )
+            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
             new_headers["Authorization"] = fake_user_token
 

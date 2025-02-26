@@ -1,4 +1,5 @@
 import logging
+
 from pydantic_settings import SettingsConfigDict
 
 from lomas_core.models.config import AdminConfig

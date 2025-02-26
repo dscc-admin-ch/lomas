@@ -234,8 +234,8 @@ def add_user_with_budget(
     )
 
 
-@check_user_exists(True)
 @with_mongodb
+@check_user_exists(True)
 def del_user(db: Database, user: str) -> None:
     """Delete all related information for user from the users collection.
 
@@ -441,7 +441,6 @@ def add_users_via_yaml(
     new_users = []
     existing_users = []
     for user in user_dict.users:
-        print(f"user: {user.id.name}")
         if not db.users.find_one({"id.name": user.id.name}):
             new_users.append(user)
         else:
@@ -481,7 +480,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.queries_archives.find({"id.name": user}))
+    archives_infos: List[dict] = list(db.queries_archives.find({"user_name": user}))
     logging.info(archives_infos)
     return archives_infos
 

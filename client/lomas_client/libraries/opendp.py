@@ -25,7 +25,7 @@ class OpenDPClient:
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: Optional[float] = None,
-        mechanism: Optional[OpenDpMechanism] = "laplace",
+        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
     ):
         """This function executes an OpenDP query.
         Args:
@@ -39,7 +39,7 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
-            mechanism: (str, optional): Type of noise addition mechanism to use\
+            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
         Raises:
             Exception: If the opendp_pipeline type is not supported.
@@ -70,7 +70,7 @@ class OpenDPClient:
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: Optional[float] = None,
-        mechanism: Optional[str] = "laplace",
+        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
     ) -> Optional[CostResponse]:
         """This function estimates the cost of executing an OpenDP query.
 
@@ -83,7 +83,7 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a fixed_delta must be provided by the user.\
                 Defaults to None.
-            mechanism: (str, optional): Type of noise addition mechanism to use\
+            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
@@ -106,7 +106,7 @@ class OpenDPClient:
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: Optional[float] = None,
-        mechanism: Optional[str] = "laplace",
+        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -124,7 +124,7 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
                 In that case a fixed_delta must be provided by the user.
                 Defaults to None.
-            mechanism: (str, optional): Type of noise addition mechanism to use\
+            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\

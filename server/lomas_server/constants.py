@@ -5,6 +5,8 @@ from enum import StrEnum
 from opendp import measures as ms
 from opendp import typing as tp
 
+from lomas_core.constants import OpenDpMechanism
+
 # Config
 # -----------------------------------------------------------------------------
 
@@ -99,7 +101,7 @@ OPENDP_TYPE_MAPPING = {
     "boolean": bool,
 }
 
-OPENDP_OUTPUT_MEASURE = {
-    "laplace": ms.max_divergence(),
-    "gaussian": ms.zero_concentrated_divergence(),
+OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
+    OpenDpMechanism.LAPLACE: ms.max_divergence(),
+    OpenDpMechanism.GAUSSIAN: ms.zero_concentrated_divergence(),
 }

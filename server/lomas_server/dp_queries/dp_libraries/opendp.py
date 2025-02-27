@@ -392,6 +392,7 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
     elif query_json.pipeline_type == "polars":
         plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
 
+        assert query_json.mechanism is not None
         output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata, plan)

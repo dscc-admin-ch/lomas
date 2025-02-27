@@ -130,12 +130,7 @@ in
       popd
     '';
     process-compose = {
-      depends_on = {
-        rabbitmq.condition = "process_healthy";
-        mongodb.condition = "process_healthy";
-        mongodb-configure.condition = "process_started";
-        mongodb-init-lomas.condition = "process_started";
-      };
+      depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
     };
   };
@@ -178,23 +173,31 @@ in
     };
   };
 
-  processes.mongodb-init-lomas =
+  processes.mongodb-configure.process-compose.depends_on.mongodb.condition = "process_healthy";
+  processes.mongodb-configure.exec =
     let
-      mongo_init_script = pkgs.writeText "mongodb_init.js" ''
-        db.createUser({
-          user: "user",
-          pwd: "user_pwd",
-          roles: [{role: "readWrite", db: "${mongo_db_name}" }]
-        });
+      configureScript = pkgs.writeShellScriptBin "configure-mongodb" ''
+        set -euo pipefail
+        echo "Creating initial user"
+        rootAuthDatabase="admin"
+        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} "$rootAuthDatabase" >/dev/null <<-EOJS
+            db.createUser({
+                user: "${config.services.mongodb.initDatabaseUsername}",
+                pwd: "${config.services.mongodb.initDatabasePassword}",``
+                roles: [ { role: 'root', db: "$rootAuthDatabase" } ]
+            })
+        EOJS
+        echo "Creating user database: ${mongo_db_name}"
+        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} ${mongo_db_name} >/dev/null <<-EOJS
+            db.createUser({
+              user: "user",
+              pwd: "user_pwd",
+              roles: [{role: "readWrite", db: "${mongo_db_name}" }]
+            });
+        EOJS
       '';
     in
-    {
-      exec = ''
-        ${pkgs.mongosh}/bin/mongosh 127.0.0.1:${toString mongo_port}/${mongo_db_name} --file ${mongo_init_script};
-        tail -f /dev/null
-      '';
-      process-compose.depends_on.mongodb.condition = "process_healthy";
-    };
+    lib.mkForce "${configureScript}/bin/configure-mongodb";
 
   #############
   # GIT HOOKS #
@@ -306,8 +309,12 @@ in
           pytest-cov = {
             inherit working_dir;
             command = "pytest --no-cov-on-fail --cov . -k 'not admin_cli'";
-            depends_on.worker.condition = "process_started";
-            depends_on.minio.condition = "process_started";
+            depends_on = {
+              worker.condition = "process_started";
+              minio.condition = "process_started";
+              mongodb.condition = "process_started";
+              mongodb-configure.condition = "process_completed_successfully";
+            };
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;
           };

@@ -25,9 +25,7 @@ from lomas_server.tests.utils import submit_job_wait
 
 
 class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
-    """
-    Test OpenDP Endpoint.
-    """
+    """Test OpenDP Endpoint."""
 
     enable_logging()
 

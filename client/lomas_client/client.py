@@ -121,7 +121,8 @@ class Client:
 
     def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> Optional[pl.LazyFrame]:
         """
-        Returns the polars LazyFrame for the dummy dataset with
+        Returns the polars LazyFrame for the dummy dataset with.
+
         optional parameters.
         Args:
             nb_rows (int, optional): The number of rows in the dummy dataset.

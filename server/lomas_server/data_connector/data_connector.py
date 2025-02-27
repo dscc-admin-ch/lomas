@@ -36,6 +36,7 @@ class DataConnector(ABC):
         self,
     ) -> pl.LazyFrame:
         """Get the data in polars lazyframe format.
+
         Returns:
             pl.LazyFrame: The polars lazyframe for this dataset.
         """

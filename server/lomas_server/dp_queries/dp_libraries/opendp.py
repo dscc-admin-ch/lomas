@@ -36,6 +36,7 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
+
     Args:
         metadata (dict): The metadata dictionary
         plan (LazyFrame): The polars query plan as a Polars LazyFrame
@@ -101,7 +102,8 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
 
 
 def get_global_params(metadata: dict) -> dict:
-    """Get global parameters for margin
+    """Get global parameters for margin.
+
     Args:
         metadata (dict): The metadata dictionary
     Returns:
@@ -117,6 +119,7 @@ def get_global_params(metadata: dict) -> dict:
 def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> dict:
     """
     Updates parameters for multiple-column grouping configuration.
+
     Args:
         metadata (dict): The metadata dictionary.
         by_config (list): List of columns used for grouping.
@@ -195,6 +198,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         admin_database: AdminDatabase,
     ) -> None:
         """Initializer.
+
         Args:
             data_connector (DataConnector): DataConnector for the dataset
                 to query.
@@ -346,6 +350,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
 def extract_group_by_columns(plan: str) -> list:
     """
     Extract column names used in the BY operation from the plan string.
+
     Parameters:
     plan (str): The polars query plan as a string.
     Returns:
@@ -454,7 +459,6 @@ def set_opendp_features_config(opendp_config: OpenDPConfig):
     Also sets the "OPENDP_POLARS_LIB_PATH" environment variable
     for correctly creating private lazyframes from deserialized
     polars plans.
-
 
     Args:
         opendp_config (OpenDPConfig): OpenDP configurations

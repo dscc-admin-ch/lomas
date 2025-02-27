@@ -28,6 +28,7 @@ class OpenDPClient:
         mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
     ):
         """This function executes an OpenDP query.
+
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
                 Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\

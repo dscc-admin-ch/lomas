@@ -55,6 +55,7 @@ RAW_METADATA = {
 
 def get_lf_from_json(pipeline) -> pl.LazyFrame:
     """Deserialize a JSON string to create a Polars LazyFrame.
+
     This function deserializes a JSON string into a Polars
     `LazyFrame`.
     Returns:
@@ -68,6 +69,7 @@ def get_lf_from_json(pipeline) -> pl.LazyFrame:
 
 def mean_query_serialized(lf: pl.LazyFrame):
     """Example of a mean query using OpenDP with Polars.
+
     This function computes the differentially private mean of the "income" column
     in the provided `LazyFrame` with specified privacy parameters, then returns
     the serialized query plan in JSON format.
@@ -84,6 +86,7 @@ def mean_query_serialized(lf: pl.LazyFrame):
 
 def group_query_serialized(lf: pl.LazyFrame) -> str:
     """Example of a grouped mean query using OpenDP with Polars.
+
     This function computes the differentially private mean of the "income" column
     grouped by the "sex" column in the provided `LazyFrame`, and returns the
     serialized query plan in JSON format. The results are sorted by "income".
@@ -99,7 +102,8 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
 
 
 def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
-    """Example of a grouped mean query using OpenDP with Polars,
+    """Example of a grouped mean query using OpenDP with Polars,.
+
     grouped by multiple columns.
     This function computes the differentially private mean of the "income" column,
     grouped by both the "sex" and "region" columns in the provided `LazyFrame`.
@@ -119,12 +123,10 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
 
 
 class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
-    """
-    Test OpenDP Endpoint with different polars plans.
-    """
+    """Test OpenDP Endpoint with different polars plans."""
 
     def test_opendp_polars_query(self) -> None:
-        """Test opendp polars query"""
+        """Test opendp polars query."""
         for mechanism in ["laplace", "gaussian"]:
             with self.subTest(msg=mechanism):
                 with TestClient(app, headers=self.headers) as client:
@@ -146,7 +148,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
     # TODO: opendp v0.12: Adapt for datetime
     @pytest.mark.long
     def test_opendp_polars_datetime_query(self) -> None:
-        """Test opendp polars query"""
+        """Test opendp polars query."""
         with TestClient(app, headers=self.headers) as client:
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE_COVID)
             json_plan = lf.select(pl.col("temporal").dp.mean(bounds=(1, 52), scale=(100.0, 1))).serialize(
@@ -209,7 +211,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
             )
 
     def test_opendp_polars_cost(self) -> None:
-        """test_opendp_polars_cost"""
+        """Test_opendp_polars_cost."""
         for mechanism, delta_check in [("laplace", lambda x: x == 0), ("gaussian", lambda x: x > 0)]:
             with self.subTest(msg=mechanism):
                 with TestClient(app, headers=self.headers) as client:
@@ -226,7 +228,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                     assert delta_check(response_model.delta)
 
     def test_dummy_opendp_polars_query(self) -> None:
-        """test_dummy_opendp_polars_query"""
+        """Test_dummy_opendp_polars_query."""
         for mechanism in ["laplace", "gaussian"]:
             with self.subTest(msg=mechanism):
                 with TestClient(app, headers=self.headers) as client:
@@ -248,7 +250,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                     assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     def test_grouping_query(self) -> None:
-        """test_dummy_opendp_polars_query with grouing"""
+        """Test_dummy_opendp_polars_query with grouing."""
         with TestClient(app, headers=self.headers) as client:
 
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
@@ -279,12 +281,10 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
 
 
 class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
-    """
-    Test OpenDP Polars functions.
-    """
+    """Test OpenDP Polars functions."""
 
     def test1_margin(self) -> None:
-        """Test margins created"""
+        """Test margins created."""
 
         RAW_METADATA["rows"] = 100
         metadata = dict(Metadata.model_validate(RAW_METADATA))
@@ -321,7 +321,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(margin_params, expected_margin)
 
     def test2_margin_grouping(self) -> None:
-        """Test margins with grouping"""
+        """Test margins with grouping."""
         RAW_METADATA["rows"] = 100
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         margin_params = get_global_params(metadata)
@@ -388,7 +388,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(margin_params, expected_margin)
 
     def test3_lf_domain(self) -> None:
-        """Test lazyframe with different types"""
+        """Test lazyframe with different types."""
         by_config = []  # type: ignore
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
         RAW_METADATA["columns"] = col_int  # type: ignore[index]

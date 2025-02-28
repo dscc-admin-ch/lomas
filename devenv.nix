@@ -94,7 +94,7 @@ in
           ./core/requirements_core.txt
           ./client/requirements_client.txt
           ./server/requirements_server.txt
-          ./server/requirements_streamlit.txt
+          ./server/requirements_admin.txt
           ./requirements-dev.txt
         ]
       )
@@ -308,7 +308,7 @@ in
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --no-cov-on-fail --cov . -k 'not admin_cli'";
+            command = "pytest --no-cov-on-fail --cov . -k 'not test_streamlit_app_page_b'";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";

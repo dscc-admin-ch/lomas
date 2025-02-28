@@ -4,13 +4,16 @@ import random
 import time
 from contextlib import asynccontextmanager
 from functools import wraps
+from typing import Annotated
 
 import aio_pika
-from fastapi import Request
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.models.collections import UserId
 from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -97,6 +100,28 @@ def timing_protection(func):
         return response
 
     return wrapper
+
+
+def get_user_id_from_authenticator(
+    request: Request,
+    security_scopes: SecurityScopes,
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+) -> UserId:
+    """Extracts the authenticator from the app state and calls its get_user_id method.
+
+    Also adds the user_name to the request state to annotate the telemetry request span.
+
+    Args:
+        request (Request): The request to access the app and state.
+        auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP bearer token.
+
+    Returns:
+        UserId: A UserId instance extracted from the token.
+    """
+    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
+    request.state.user_name = user_id.name
+
+    return user_id
 
 
 @timing_protection

@@ -320,8 +320,9 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         with TestClient(app) as client:
 
             # Expect to work
+            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
-            new_headers["user-name"] = "BirthdayGirl"
+            new_headers["Authorization"] = fake_user_token
 
             body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "BIRTHDAYS"
@@ -333,7 +334,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 headers=new_headers,
             )
             r_model = validate_response(client, response)
-            assert r_model.requested_by == new_headers["user-name"]
+            assert r_model.requested_by == "BirthdayGirl"
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
             model = r_model.result.model
@@ -350,7 +351,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 headers=new_headers,
             )
             r_model = validate_response(client, response)
-            assert r_model.requested_by == new_headers["user-name"]
+            assert r_model.requested_by == "BirthdayGirl"
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
             model = r_model.result.model

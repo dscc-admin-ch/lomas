@@ -10,6 +10,8 @@ opentelemetry-exporter-otlp==1.29.0
 opentelemetry-sdk==1.29.0
 pandas==2.2.2
 polars==1.12.0
+pydantic==2.8.2
+pydantic-settings==2.7.1
 pymongo==4.6.3
 pyarrow==16.1.0
 scikit-learn==1.4.2

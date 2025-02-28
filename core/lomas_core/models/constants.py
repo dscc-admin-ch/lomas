@@ -21,6 +21,7 @@ DUMMY_SEED = 42
 OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
 DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
 
+
 # Metadata
 # -----------------------------------------------------------------------------
 
@@ -78,6 +79,13 @@ class PrivateDatabaseType(StrEnum):
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
+
+
+class AuthenticationType(StrEnum):
+    """Type of Authenticator to identify users."""
+
+    FREE_PASS = "free_pass"
+    JWT = "jwt"
 
 
 # Exceptions

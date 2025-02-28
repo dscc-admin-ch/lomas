@@ -72,14 +72,14 @@ class InternalServerExceptionModel(LomasServerExceptionModel):
     """
 
 
-LomasServerExceptionTypeAdapter: TypeAdapter = TypeAdapter(
-    Annotated[
-        Union[
-            InvalidQueryExceptionModel,
-            ExternalLibraryExceptionModel,
-            UnauthorizedAccessExceptionModel,
-            InternalServerExceptionModel,
-        ],
-        Field(discriminator="type"),
-    ]
-)
+LomasServerExceptionType = Annotated[
+    Union[
+        InvalidQueryExceptionModel,
+        ExternalLibraryExceptionModel,
+        UnauthorizedAccessExceptionModel,
+        InternalServerExceptionModel,
+    ],
+    Field(discriminator="type"),
+]
+
+LomasServerExceptionTypeAdapter: TypeAdapter = TypeAdapter(LomasServerExceptionType)

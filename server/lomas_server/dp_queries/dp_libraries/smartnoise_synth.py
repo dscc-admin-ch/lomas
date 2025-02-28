@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
 
 import pandas as pd
@@ -44,7 +44,6 @@ from lomas_core.models.requests import (
 from lomas_core.models.responses import SmartnoiseSynthModel, SmartnoiseSynthSamples
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
-    SECONDS_IN_A_DAY,
     SSYNTH_DEFAULT_BINS,
     SSYNTH_MIN_ROWS_PATE_GAN,
     SSYNTH_PRIVATE_COLUMN,
@@ -66,8 +65,7 @@ def datetime_to_float(upper: datetime, lower: datetime) -> float:
         Returns:
             float: number of days between upper and lower
     """
-    distance = upper - lower
-    return float(distance.total_seconds() / SECONDS_IN_A_DAY)
+    return (upper - lower) / timedelta(days=1)
 
 
 # TODO maybe a better place to put this? See issue #336

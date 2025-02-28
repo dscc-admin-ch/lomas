@@ -50,6 +50,6 @@ setup(
         "scikit-learn>=1.4.2",
         "smartnoise-sql==1.0.6",
         "smartnoise-synth>=1.0.4",
-        "smartnoise_synth_logger>=0.0.3"
-    ]
+        "smartnoise_synth_logger>=0.0.3",
+    ],
 )

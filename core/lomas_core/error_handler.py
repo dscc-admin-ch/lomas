@@ -11,6 +11,7 @@ from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
     InvalidQueryExceptionModel,
+    LomasServerExceptionType,
     UnauthorizedAccessExceptionModel,
 )
 
@@ -132,3 +133,22 @@ SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_403_FORBIDDEN: {"model": UnauthorizedAccessExceptionModel},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": InternalServerExceptionModel},
 }
+
+
+def raise_error_from_model(error_model: LomasServerExceptionType) -> None:
+    """Raise error message based on Server Error Model.
+
+    Args:
+        error_model
+    Raise:
+        Server Error
+    """
+    match error_model:
+        case InvalidQueryExceptionModel():
+            raise InvalidQueryException(error_model.message)
+        case ExternalLibraryExceptionModel():
+            raise ExternalLibraryException(error_model.library, error_model.message)
+        case UnauthorizedAccessExceptionModel():
+            raise UnauthorizedAccessException(error_model.message)
+        case InternalServerExceptionModel():
+            raise InternalServerException("Internal Server Exception.")

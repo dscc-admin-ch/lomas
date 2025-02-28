@@ -39,7 +39,7 @@ def mock_configs():
 
         # Overwrite server config
         CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config.yaml",
+            config_path="tests/test_configs/test_config_mongo.yaml",
             secrets_path="tests/test_configs/test_secrets.yaml",
         )
 
@@ -51,7 +51,7 @@ def mock_configs():
         mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
 
         # Mock get server data request
-        mock_get_server_data.return_value = {"state": {"LIVE": True, "message": "Server is live"}}
+        mock_get_server_data.return_value = {"state": "live"}
 
         yield
 
@@ -70,14 +70,12 @@ def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
 
     # Server state messages
     assert "The server is live and ready!" in at.markdown[1].value
-    assert ":red[The server is in DEVELOPMENT mode.]" in at.markdown[2].value
 
     # Check Server configurations
     assert "Server configurations" in at.subheader[0].value
     assert "The host IP of the server is: 0.0.0.0" in at.markdown[3].value
-    assert "The method against timing attack is: stall" in at.markdown[5].value
+    assert "The method against timing attack is: jitter" in at.markdown[5].value
 
     # Check Administration Database information
     assert "Administration Database" in at.subheader[1].value
-    assert "The administration database type is: yaml" in at.markdown[6].value
-    assert "The database file is: tests/test_data/local_db_file.yaml" in at.markdown[7].value
+    assert "The administration database type is: mongodb" in at.markdown[6].value

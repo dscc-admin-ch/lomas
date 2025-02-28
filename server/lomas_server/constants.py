@@ -5,35 +5,22 @@ from enum import StrEnum
 from opendp import measures as ms
 from opendp import typing as tp
 
+from lomas_core.constants import OpenDpMechanism
+
 # Config
 # -----------------------------------------------------------------------------
 
 # Get config and secrets from correct location
-if "LOMAS_CONFIG_PATH" in os.environ:
-    CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
-else:
-    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-
-if "LOMAS_SECRETS_PATH" in os.environ:
-    SECRETS_PATH = f"""{os.environ.get("LOMAS_SECRETS_PATH")}"""
-else:
-    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
+CONFIG_PATH = os.getenv("LOMAS_CONFIG_PATH", "/usr/lomas_server/runtime.yaml")
+SECRETS_PATH = os.getenv("LOMAS_SECRETS_PATH", "/usr/lomas_server/secrets.yaml")
 
 SERVER_SERVICE_NAME = os.getenv("SERVER_SERVICE_NAME", "lomas-server-app")
 SERVICE_ID = os.getenv("HOSTNAME", "default-host")
+TELEMETRY = bool(os.getenv("LOMAS_TELEMETRY", ""))
 
 
 # Misc
 # -----------------------------------------------------------------------------
-
-# Server states
-DB_NOT_LOADED = "User database not loaded"
-CONFIG_NOT_LOADED = "Config not loaded"
-SERVER_LIVE = "LIVE"
-
-# General values
-SECONDS_IN_A_DAY = 60 * 60 * 24
 
 # DP constants (max budget per user per dataset)
 EPSILON_LIMIT: float = 10.0
@@ -114,7 +101,7 @@ OPENDP_TYPE_MAPPING = {
     "boolean": bool,
 }
 
-OPENDP_OUTPUT_MEASURE = {
-    "laplace": ms.max_divergence(),
-    "gaussian": ms.zero_concentrated_divergence(),
+OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
+    OpenDpMechanism.LAPLACE: ms.max_divergence(),
+    OpenDpMechanism.GAUSSIAN: ms.zero_concentrated_divergence(),
 }

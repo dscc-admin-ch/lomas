@@ -19,14 +19,14 @@ class DPLibraries(StrEnum):
 
 # OpenDP
 class OpenDpMechanism(StrEnum):
-    """Name of OpenDP mechanisms"""
+    """Name of OpenDP mechanisms."""
 
     LAPLACE = "laplace"
     GAUSSIAN = "gaussian"
 
 
 class OpenDpPipelineType(StrEnum):
-    """Name of OpenDP pipelines"""
+    """Name of OpenDP pipelines."""
 
     LEGACY = "legacy"
     POLARS = "polars"

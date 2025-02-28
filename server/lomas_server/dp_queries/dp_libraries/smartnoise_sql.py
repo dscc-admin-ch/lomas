@@ -64,10 +64,7 @@ class SmartnoiseSQLQuerier(
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
         except Exception as e:
-            raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SQL,
-                "Error obtaining cost: " + str(e),
-            ) from e
+            raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
         return epsilon, delta
 

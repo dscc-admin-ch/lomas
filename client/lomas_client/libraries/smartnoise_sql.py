@@ -49,7 +49,7 @@ class SmartnoiseSQLClient:
         body = SmartnoiseSQLRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_sql_cost", body)
 
-        return validate_model_response(res, CostResponse)
+        return validate_model_response(self.http_client, res, CostResponse)
 
     def query(
         self,
@@ -114,4 +114,4 @@ class SmartnoiseSQLClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body)
 
-        return validate_model_response(res, QueryResponse)
+        return validate_model_response(self.http_client, res, QueryResponse)

@@ -1,4 +1,5 @@
 from typing import Annotated, Any, List, Literal, Union
+from uuid import UUID, uuid4
 
 import pandas as pd
 import polars as pl
@@ -7,6 +8,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
+    Field,
     PlainSerializer,
     PlainValidator,
     ValidationInfo,
@@ -15,6 +17,7 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
@@ -215,3 +218,13 @@ class QueryResponse(CostResponse):
         Discriminator("res_type"),
     ]
     """The query result object."""
+
+
+class Job(ResponseModel):
+    """Scheduled Job Response."""
+
+    uid: UUID = Field(default_factory=uuid4)
+    status: str = "in_progress"
+    result: QueryResponse | CostResponse | None = None
+    error: LomasServerExceptionType | None = None
+    status_code: int = 200

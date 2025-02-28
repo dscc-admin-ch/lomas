@@ -134,3 +134,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# devenv / direnv
+.devenv*
+devenv.local.nix
+.direnv
+.pre-commit-config.yaml

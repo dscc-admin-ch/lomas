@@ -1,11 +1,8 @@
-import json
-
 import opendp.prelude as dp_p
+import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from opendp.mod import enable_features
 from opendp_logger import enable_logging
-from tests.test_api_root import TestSetupRootAPIEndpoint
 
 from lomas_core.constants import OpenDpPipelineType
 from lomas_core.models.exceptions import (
@@ -23,33 +20,24 @@ from lomas_core.models.responses import (
     QueryResponse,
 )
 from lomas_server.app import app
-
-INITAL_EPSILON = 10
-INITIAL_DELTA = 0.005
-
-enable_features("floating-point")
+from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
+from lomas_server.tests.utils import submit_job_wait
 
 
 class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
-    """
-    Test OpenDP Endpoint.
-    """
+    """Test OpenDP Endpoint."""
 
     enable_logging()
 
+    @pytest.mark.long
     def test_opendp_query(self) -> None:  # pylint: disable=R0915
         """Test_opendp_query."""
-
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)
-            response = client.post(
-                "/opendp_query",
-                json=example_opendp,
-            )
-            assert response.status_code == status.HTTP_200_OK
+            job = submit_job_wait(client, "/opendp_query", json=example_opendp)
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -77,7 +65,8 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             )
 
             # Expect to fail: transormation instead of measurement
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
@@ -87,18 +76,16 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "mechanism": None,
                 },
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="The pipeline provided is not a "
-                    + "measurement. It cannot be processed in this server."
-                ).model_dump()
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="The pipeline provided is not a measurement. It cannot be processed in this server."
             )
 
             # Test MAX_DIVERGENCE (pure DP)
             md_pipeline = transformation_pipeline >> dp_p.m.then_laplace(scale=5.0)
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/opendp_query",
                 json={
                     "dataset_name": PENGUIN_DATASET,
@@ -108,10 +95,9 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "mechanism": None,
                 },
             )
-            assert response.status_code == status.HTTP_200_OK
 
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -129,22 +115,19 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "mechanism": None,
             }
             # Should error because missing fixed_delta
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="fixed_delta must be set for smooth max divergence"
-                    + " and zero concentrated divergence."
-                ).model_dump()
+            job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
             )
+
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -162,22 +145,19 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "mechanism": None,
             }
             # Should error because missing fixed_delta
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="fixed_delta must be set for smooth max divergence"
-                    + " and zero concentrated divergence."
-                ).model_dump()
+            job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None and job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="fixed_delta must be set for smooth max divergence"
+                + " and zero concentrated divergence."
             )
 
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
-            response = client.post("/opendp_query", json=json_obj)
-            assert response.status_code == status.HTTP_200_OK
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = QueryResponse.model_validate(response_dict)
+            job = submit_job_wait(client, "/opendp_query", json=json_obj)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -201,7 +181,7 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             # # Should error because missing fixed_delta
             # response = client.post("/opendp_query", json=json_obj)
             # assert response.status_code == status.HTTP_200_OK
-            # response_dict = json.loads(response.content.decode("utf8"))
+            # response_dict = response.json()
             # assert response_dict["requested_by"] == self.user_name
             # assert isinstance(response_dict["query_response"], dict)
             # assert response_dict["spent_epsilon"] > 0.1
@@ -209,15 +189,11 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
     def test_dummy_opendp_query(self) -> None:
         """Test_dummy_opendp_query."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/dummy_opendp_query",
-                json=example_dummy_opendp,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-            response_model = QueryResponse.model_validate_json(response.content.decode("utf8"))
+            job = submit_job_wait(client, "/dummy_opendp_query", json=example_dummy_opendp)
+            assert job is not None
+            response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
             assert not isinstance(response_model.result.value, list)
@@ -226,11 +202,7 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             # Should fail: user does not have access to dataset
             body = dict(example_dummy_opendp)
             body["dataset_name"] = "IRIS"
-            response = client.post(
-                "/dummy_opendp_query",
-                json=body,
-                headers=self.headers,
-            )
+            response = client.post("/dummy_opendp_query", json=body)
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
@@ -241,28 +213,18 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
     def test_opendp_cost(self) -> None:
         """Test_opendp_cost."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post(
-                "/estimate_opendp_cost",
-                json=example_opendp,
-                headers=self.headers,
-            )
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = json.loads(response.content.decode("utf8"))
-            response_model = CostResponse.model_validate(response_dict)
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp)
+            assert job is not None
+            response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0
 
             # Should fail: user does not have access to dataset
             body = dict(example_opendp)
             body["dataset_name"] = "IRIS"
-            response = client.post(
-                "/estimate_opendp_cost",
-                json=body,
-                headers=self.headers,
-            )
+            response = client.post("/estimate_opendp_cost", json=body)
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()

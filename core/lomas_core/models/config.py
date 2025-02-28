@@ -68,7 +68,7 @@ class S3CredentialsConfig(PrivateDBCredentials):
 
 
 class OpenDPConfig(BaseModel):
-    """BaseModel for openDP librairy config."""
+    """BaseModel for openDP library config."""
 
     contrib: bool
     floating_point: bool

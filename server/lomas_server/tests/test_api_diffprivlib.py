@@ -1,6 +1,6 @@
-import json
 import warnings
 
+import pytest
 from diffprivlib import models
 from diffprivlib.utils import (
     DiffprivlibCompatibilityWarning,
@@ -28,17 +28,20 @@ from lomas_core.models.responses import (
 )
 from lomas_server.app import app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
+from lomas_server.tests.utils import submit_job_wait, wait_for_job
 
 
-def validate_pipeline(response) -> QueryResponse:
+def validate_pipeline(client, response) -> QueryResponse:
     """Validate that the pipeline ran successfully.
 
     Returns a model and a score.
     """
-    assert response.status_code == status.HTTP_200_OK
-    response_dict = json.loads(response.content.decode("utf8"))
+    assert response.status_code == status.HTTP_202_ACCEPTED
 
-    r_model = QueryResponse.model_validate(response_dict)
+    job_uid = response.json()["uid"]
+    job = wait_for_job(client, f"/status/{job_uid}")
+
+    r_model = QueryResponse.model_validate(job.result)
     assert isinstance(r_model.result, DiffPrivLibQueryResult)
 
     return r_model
@@ -47,6 +50,7 @@ def validate_pipeline(response) -> QueryResponse:
 class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """Test DiffPrivLib Endpoint with different models."""
 
+    @pytest.mark.long
     def test_diffprivlib_query(self) -> None:
         """Test diffprivlib query."""
         with TestClient(app, headers=self.headers) as client:
@@ -56,10 +60,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=example_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = validate_pipeline(response)
-            assert isinstance(r_model.result, DiffPrivLibQueryResult)
+            r_model = validate_pipeline(client, response)
             assert r_model.requested_by == self.user_name
             assert r_model.result.score >= 0
             assert r_model.epsilon > 0
@@ -69,30 +70,30 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
             def test_imputation(diffprivlib_body, imputer_strategy):
                 diffprivlib_body = dict(diffprivlib_body)
                 diffprivlib_body["imputer_strategy"] = imputer_strategy
-                response = client.post(
+                job = submit_job_wait(
+                    client,
                     "/diffprivlib_query",
                     json=diffprivlib_body,
                     headers=self.headers,
                 )
-                return response
+                assert response.status_code == status.HTTP_202_ACCEPTED
+                return job
 
-            response = test_imputation(example_diffprivlib, "mean")
-            assert response.status_code == status.HTTP_200_OK
+            job = test_imputation(example_diffprivlib, "mean")
+            assert job.status == "complete"
 
-            response = test_imputation(example_diffprivlib, "median")
-            assert response.status_code == status.HTTP_200_OK
+            job = test_imputation(example_diffprivlib, "median")
+            assert job.status == "complete"
 
-            response = test_imputation(example_diffprivlib, "most_frequent")
-            assert response.status_code == status.HTTP_200_OK
+            job = test_imputation(example_diffprivlib, "most_frequent")
+            assert job.status == "complete"
 
             # Should not work unknow imputation strategy
-            response = test_imputation(example_diffprivlib, "i_do_not_exist")
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == InvalidQueryExceptionModel(
-                    message="Imputation strategy i_do_not_exist not supported."
-                ).model_dump()
+            job = test_imputation(example_diffprivlib, "i_do_not_exist")
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="Imputation strategy i_do_not_exist not supported."
             )
 
             # Should not work: Privacy Leak Warning
@@ -106,26 +107,25 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
             )
             dpl_string = serialise_pipeline(dpl_pipeline)
             diffprivlib_body["diffprivlib_json"] = dpl_string
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/diffprivlib_query",
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert (
-                response.json()
-                == ExternalLibraryExceptionModel(
-                    message="PrivacyLeakWarning: "
-                    + "Bounds parameter hasn't been specified, so falling back to "
-                    + "determining bounds from the data.\n "
-                    + "This will result in additional privacy leakage.  "
-                    + "To ensure differential privacy with no additional privacy "
-                    + "loss, specify `bounds` for each valued returned by "
-                    + "np.mean().. "
-                    + "Lomas server cannot fit pipeline on data, "
-                    + "PrivacyLeakWarning is a blocker.",
-                    library=DPLibraries.DIFFPRIVLIB,
-                ).model_dump()
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="PrivacyLeakWarning: "
+                + "Bounds parameter hasn't been specified, so falling back to "
+                + "determining bounds from the data.\n "
+                + "This will result in additional privacy leakage.  "
+                + "To ensure differential privacy with no additional privacy "
+                + "loss, specify `bounds` for each valued returned by "
+                + "np.mean().. "
+                + "Lomas server cannot fit pipeline on data, "
+                + "PrivacyLeakWarning is a blocker.",
+                library=DPLibraries.DIFFPRIVLIB,
             )
 
             # Should not work: Compatibility Warning
@@ -166,7 +166,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_linear_regression_models(self) -> None:
         """Test diffprivlib query: Linear Regression."""
@@ -193,7 +193,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_naives_bayes_model(self) -> None:
         """Test diffprivlib query: Gaussian Naives Bayes."""
@@ -219,7 +219,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_trees_models(self) -> None:
         """Test diffprivlib query: Random Forest, Decision Tree."""
@@ -247,7 +247,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
             # Test Decision Tree Classifier
             pipeline = Pipeline(
@@ -269,7 +269,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_clustering_models(self) -> None:
         """Test diffprivlib query: K-Means."""
@@ -292,7 +292,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
             diffprivlib_body["target_columns"] = None
             response = client.post(
@@ -300,7 +300,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_dimension_reduction_models(self) -> None:
         """Test diffprivlib query: PCA."""
@@ -327,20 +327,20 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            validate_pipeline(response)
+            validate_pipeline(client, response)
 
     def test_dummy_diffprivlib_query(self) -> None:
         """Test_dummy_diffprivlib_query."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/dummy_diffprivlib_query",
                 json=example_dummy_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            r_model = validate_pipeline(response)
+            assert job is not None
+            r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)
             assert r_model.result.score > 0
 
@@ -364,15 +364,14 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
         """Test_diffprivlib_cost."""
         with TestClient(app) as client:
             # Expect to work
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/estimate_diffprivlib_cost",
                 json=example_diffprivlib,
                 headers=self.headers,
             )
-            assert response.status_code == status.HTTP_200_OK
-
-            response_dict = json.loads(response.content.decode("utf8"))
-            r_model = CostResponse.model_validate(response_dict)
+            assert job is not None
+            r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon == 1.5
             assert r_model.delta == 0
 

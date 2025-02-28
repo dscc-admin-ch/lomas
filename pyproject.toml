@@ -1,6 +1,7 @@
 [tool.black]
 line-length = 110
 include = '\.pyi?$'
+extend_exclude = '\.ipynb'
 
 [tool.isort]
 multi_line_output = 3
@@ -10,38 +11,50 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 110
 split_on_trailing_comma = true
-known_first_party = ["lomas_core", "lomas_server" , "lomas_client"]
+known_first_party = ["lomas_core", "lomas_server", "lomas_client"]
 skip = [".gitignore", ".devenv"]
 
 [tool.flake8]
 max-line-length = 110
+extend_exclude = [".devenv", "docs"]
 
 [tool.mypy]
 disable_error_code = ["import-untyped", "import-not-found"]
+exclude = [ 'setup\.py', 'docs' ]
+no_site_packages = true
 
 [[tool.mypy.overrides]]
 module = "lomas_server.tests.*"
-disable_error_code = ["arg-type", "attr-defined"]
+disable_error_code = [ "attr-defined" ]
 
 [tool.pylint.main]
-ignore-patterns = "test_*.py"
 max-line-length = 110
+ignore-patterns = "test_*.py"
+recursive = "yes"
+ignore-paths = ".devenv,docs"
 
 [tool.pylint."messages control"]
 disable = [
     "fixme",
-    "import-error",
+    "import-error", # fails in git-runner but not locally ?
     "duplicate-code",
-    "too-many-lines",
     "too-many-locals",
-    "no-name-in-module",
+    "logging-not-lazy",
+    "undefined-variable", # handled by flake8
     "too-many-arguments",
     "too-few-public-methods",
     "dangerous-default-value",
     "missing-module-docstring",
     "logging-fstring-interpolation",
+    "too-many-positional-arguments",
 ]
 
 [tool.pydocstringformatter]
-write = true
 max-line-length = 110
+write = true
+exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
+
+[tool.pytest.ini_options]
+markers = [
+  "long: marks test as long (deselect with '-m \"not long\"')",
+]

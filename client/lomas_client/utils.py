@@ -6,41 +6,8 @@ from fastapi import status
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-    UnauthorizedAccessException,
-)
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InternalServerExceptionModel,
-    InvalidQueryExceptionModel,
-    LomasServerExceptionModel,
-    LomasServerExceptionTypeAdapter,
-    UnauthorizedAccessExceptionModel,
-)
-
-
-def raise_error_from_model(error_model: LomasServerExceptionModel | None) -> None:
-    """Raise error message based on Server Error Model.
-
-    Args:
-        error_model
-    Raise:
-        Server Error
-    """
-    match error_model:
-        case InvalidQueryExceptionModel():
-            raise InvalidQueryException(error_model.message)
-        case ExternalLibraryExceptionModel():
-            raise ExternalLibraryException(error_model.library, error_model.message)
-        case UnauthorizedAccessExceptionModel():
-            raise UnauthorizedAccessException(error_model.message)
-        case InternalServerExceptionModel():
-            raise InternalServerException("Internal Server Exception.")
-        case _:
-            raise InternalServerException(f"Unknown {InternalServerException}")
+from lomas_core.error_handler import raise_error_from_model
+from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 
 
 def raise_error(response: requests.Response) -> None:
@@ -118,6 +85,7 @@ def validate_model_response(client: LomasHttpClient, response: requests.Response
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
     if job.status == "failed":
+        assert job.error is not None, "job {job_uid} failed without error !"
         raise_error_from_model(job.error)
 
     return response_model.model_validate(job.result)

@@ -19,11 +19,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import Job
-from lomas_server.routes.utils import (
-    handle_cost_query,
-    handle_query_on_dummy_dataset,
-    handle_query_on_private_dataset,
-)
+from lomas_server.routes.utils import handle_query_to_job
 
 router = APIRouter()
 
@@ -64,9 +60,7 @@ async def smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_on_private_dataset(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -103,9 +97,7 @@ async def dummy_smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_on_dummy_dataset(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -141,7 +133,7 @@ async def estimate_smartnoise_sql_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -183,9 +175,7 @@ async def smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_on_private_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 @router.post(
@@ -223,9 +213,7 @@ async def dummy_smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_on_dummy_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 @router.post(
@@ -262,7 +250,7 @@ async def estimate_smartnoise_synth_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -302,7 +290,7 @@ async def opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -338,7 +326,7 @@ async def dummy_opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -374,7 +362,7 @@ async def estimate_opendp_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -414,9 +402,7 @@ async def diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_on_private_dataset(
-        request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB
-    )
+    return await handle_query_to_job(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -452,7 +438,7 @@ async def dummy_diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -497,4 +483,4 @@ async def estimate_diffprivlib_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)

@@ -10,10 +10,8 @@ from fastapi import Request
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    InternalServerException,
-    UnauthorizedAccessException,
-)
+from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -72,7 +70,7 @@ async def rabbitmq_ctx(app):
     queue = await channel.declare_queue("dummy_response", auto_delete=True)
     asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
 
-    yield  # lomas_app is handling requests
+    yield  # app is handling requests
 
     await connection.close()
 
@@ -82,166 +80,63 @@ def timing_protection(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        config = get_config()
+
         start_time = time.time()
         response = func(*args, **kwargs)
         process_time = time.time() - start_time
 
-        config = get_config()
-        if config.server.time_attack:
-            match config.server.time_attack.method:
-                case "stall":
-                    # Slows to a minimum response time defined by magnitude
-                    if process_time < config.server.time_attack.magnitude:
-                        time.sleep(config.server.time_attack.magnitude - process_time)
-                case "jitter":
-                    # Adds some time between 0 and magnitude secs
-                    time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
-                case _:
-                    raise InternalServerException("Time attack method not supported.")
+        match config.server.time_attack.method:
+            case TimeAttackMethod.STALL:
+                # Slows to a minimum response time defined by magnitude
+                if process_time < config.server.time_attack.magnitude:
+                    time.sleep(config.server.time_attack.magnitude - process_time)
+            case TimeAttackMethod.JITTER:
+                # Adds some time between 0 and magnitude secs
+                time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
         return response
 
     return wrapper
 
 
 @timing_protection
-async def handle_query_on_private_dataset(
+async def handle_query_to_job(
     request: Request,
-    query_json: QueryModel,
+    query: DummyQueryModel | QueryModel | LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
 ) -> Job:
     """
-    Handles queries on private datasets for all supported libraries.
+    Submit Job to handles queries on private, dummy and cost datasets on a worker.
 
     Args:
         request (Request): Raw request object
-        query_model (DummyQueryModel): An instance of DummyQueryModel,
-            specific to the library.
+        query (DummyQueryModel|QueryModel|LomasRequestModel): A Request or Query to be scheduled
         user_name (str): The user name
         dp_library (DPLibraries): Name of the DP library to use for the request
 
     Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
         UnauthorizedAccessException: A query is already ongoing for this user,
             the user does not exist or does not have access to the dataset.
 
     Returns:
         Job: A scheduled Job resulting in a QueryResponse containing the result of the query
             (specific to the library) as well as the cost of the query.
+            or a CostResponse containing the epsilon, delta and privacy-loss budget cost for the request.
     """
     app = request.app
 
-    new_task = Job()
-
-    jobs = app.state.jobs_var.get()
-    jobs[str(new_task.uid)] = new_task
-    app.state.jobs_var.set(jobs)
-
-    await app.state.task_queue_channel.default_exchange.publish(
-        aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{query_json.json()}".encode(), correlation_id=new_task.uid
-        ),
-        routing_key="task_queue",
-    )
-
-    return new_task
-
-
-async def handle_query_on_dummy_dataset(
-    request: Request,
-    query_model: DummyQueryModel,
-    user_name: str,
-    dp_library: DPLibraries,
-) -> Job:
-    """
-    Handles queries on dummy datasets for all supported libraries.
-
-    Args:
-        request (Request): Raw request object
-        query_model (DummyQueryModel): An instance of DummyQueryModel,
-            specific to the library.
-        user_name (str): The user name
-        dp_library (DPLibraries): Name of the DP library to use for the request
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
-
-    Returns:
-        Job: A scheduled Job resulting in a QueryResponse containing the result of the query
-            (specific to the library) as well as the cost of such a query if it was
-            executed on a private dataset.
-    """
-    app = request.app
-
-    dataset_name = query_model.dataset_name
+    dataset_name = query.dataset_name
     if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
+        raise UnauthorizedAccessException(f"{user_name} does not have access to {dataset_name}.")
 
-    new_task = Job()
-
-    jobs = app.state.jobs_var.get()
-    jobs[str(new_task.uid)] = new_task
-    app.state.jobs_var.set(jobs)
-
-    await app.state.dummy_queue_channel.default_exchange.publish(
-        aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{query_model.json()}".encode(), correlation_id=new_task.uid
-        ),
-        routing_key="dummy_queue",
-    )
-
-    return new_task
-
-
-@timing_protection
-async def handle_cost_query(
-    request: Request,
-    request_model: LomasRequestModel,
-    user_name: str,
-    dp_library: DPLibraries,
-) -> Job:
-    """
-    Handles cost queries for DP libraries.
-
-    Args:
-        request (Request): Raw request object
-        request_model (LomasRequestModel): An instance of LomasRequestModel,
-            specific to the library.
-        user_name (str): The user name
-        dp_library (DPLibraries): Name of the DP library to use for the request
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
-
-    Returns:
-        Job: A scheduled Job resulting in a CostResponse containing the epsilon, delta and
-            privacy-loss budget cost for the request.
-    """
-    app = request.app
-
-    dataset_name = request_model.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
+    match query:
+        case DummyQueryModel():
+            queue_name = "dummy_queue"
+        case QueryModel():
+            queue_name = "task_queue"
+        case LomasRequestModel():
+            queue_name = "cost_queue"
 
     new_task = Job()
 
@@ -251,9 +146,9 @@ async def handle_cost_query(
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{request_model.json()}".encode(), correlation_id=new_task.uid
+            body=f"{user_name}:{dp_library}:{query.json()}".encode(), correlation_id=new_task.uid
         ),
-        routing_key="cost_queue",
+        routing_key=queue_name,
     )
 
     return new_task

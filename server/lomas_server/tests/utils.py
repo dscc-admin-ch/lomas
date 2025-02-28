@@ -3,6 +3,7 @@ from test.support import sleeping_retry
 
 from fastapi import status
 
+from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import Job
 
 
@@ -23,7 +24,10 @@ def wait_for_job(client, endpoint) -> Job:
 def submit_job_wait(client, endpoint, json, headers=None) -> Job:
     """Post to a Job-type endpoint and periodically wait for result."""
     query_job_submit = client.post(endpoint, json=json, headers=headers)
-    assert query_job_submit.status_code == status.HTTP_202_ACCEPTED
+
+    if query_job_submit.status_code != status.HTTP_202_ACCEPTED:
+        error = LomasServerExceptionTypeAdapter.validate_json(query_job_submit.content)
+        return Job(status="failed", status_code=query_job_submit.status_code, error=error)
 
     job_uid = query_job_submit.json()["uid"]
     job = wait_for_job(client, f"/status/{job_uid}")

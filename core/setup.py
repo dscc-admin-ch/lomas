@@ -1,19 +1,13 @@
-import pathlib
+from pathlib import Path
 
 from setuptools import find_packages, setup
-
-here = pathlib.Path(__file__).parent.resolve()
-
-this_directory = pathlib.Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
-
 
 setup(
     name="lomas-core",
     packages=find_packages(),
     version="0.4.1",
     description="Lomas core.",
-    long_description=long_description,
+    long_description=Path("README.md").read_text("utf-8"),
     long_description_content_type="text/markdown",
     url="https://github.com/dscc-admin-ch/lomas/",
     author="Data Science Competence Center, Swiss Federal Statistical Office",
@@ -33,23 +27,5 @@ setup(
         "Topic :: Security",
     ],
     python_requires=">=3.11, <3.13",
-    install_requires=[
-        "diffprivlib==0.6.5",
-        "diffprivlib_logger>=0.0.3",
-        "fastapi>=0.111.1",
-        "numpy>=1.26.4",
-        "opendp==0.12.0",
-        "opendp_logger>=0.3.0",
-        "opentelemetry-api>=1.29.0",
-        "opentelemetry-exporter-otlp>=1.29.0",
-        "opentelemetry-sdk>=1.29.0",
-        "pandas>=2.2.2",
-        "polars==1.12.0",
-        "pyarrow==16.1.0",
-        "pymongo>=4.6.3",
-        "scikit-learn>=1.4.2",
-        "smartnoise-sql==1.0.6",
-        "smartnoise-synth>=1.0.4",
-        "smartnoise_synth_logger>=0.0.3",
-    ],
+    install_requires=Path("requirements_core.txt").read_text("utf-8").splitlines(),
 )

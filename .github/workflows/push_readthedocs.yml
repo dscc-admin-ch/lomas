@@ -2,22 +2,16 @@ name: Generate docs and push to dedicated repo for publishing
 
 on:
   push:
-    branches:
-      - develop
-      - master
+    branches: [develop, master]
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Set up Python 12
-      uses: astral-sh/setup-uv@v5
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v5
       with:
         python-version: 3.12
     - name: Install dependencies

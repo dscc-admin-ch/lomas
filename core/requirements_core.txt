@@ -1,7 +1,7 @@
 diffprivlib==0.6.5
 diffprivlib_logger==0.0.3
 fastapi==0.111.1
-git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca
+private-pgm @ git+https://github.com/ryan112358/private-pgm.git@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca
 numpy==1.26.4
 opendp==0.12.0
 opendp-logger==0.3.0

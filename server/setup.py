@@ -1,19 +1,13 @@
-import pathlib
+from pathlib import Path
 
 from setuptools import find_packages, setup
-
-here = pathlib.Path(__file__).parent.resolve()
-
-this_directory = pathlib.Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
-
 
 setup(
     name="lomas-server",
     packages=find_packages(),
     version="0.4.1",
     description="Lomas server.",
-    long_description=long_description,
+    long_description=Path("README.md").read_text("utf-8"),
     long_description_content_type="text/markdown",
     url="https://github.com/dscc-admin-ch/lomas/",
     author="Data Science Competence Center, Swiss Federal Statistical Office",
@@ -33,20 +27,5 @@ setup(
         "Topic :: Security",
     ],
     python_requires=">=3.11, <3.13",
-    install_requires=[
-        "boto3==1.34.115",
-        "httpx==0.27.0",
-        "jax==0.4.31",
-        "jaxlib==0.4.31",
-        "lomas-core==0.4.1",
-        "opentelemetry-instrumentation-fastapi>=0.50b0",
-        "opentelemetry-instrumentation-logging>=0.50b0",
-        "opentelemetry-instrumentation-pymongo>=0.50b0",
-        "packaging==24.1",
-        "pyaml==23.9.5",
-        "pydantic==2.8.2",
-        "smartnoise-sql==1.0.4",
-        "uvicorn==0.29.0",
-        "aio-pika==9.5.4",
-    ],
+    install_requires=Path("requirements_server.txt").read_text("utf-8").splitlines(),
 )

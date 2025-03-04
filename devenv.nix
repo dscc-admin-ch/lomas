@@ -368,6 +368,14 @@ in
     popd
   '';
 
+  scripts.py-build.exec = ''
+    pushd $DEVENV_ROOT
+    uv build --sdist core
+    uv build --sdist client
+    uv build --sdist server
+    popd
+  '';
+
   enterTest = ''
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"

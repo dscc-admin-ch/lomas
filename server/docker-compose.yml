@@ -110,7 +110,7 @@ services:
       - lomas-network
 
   lomas_demo_setup:
-    container_name: demo_setu
+    container_name: demo_setup
     image: dsccadminch/lomas_admin_dev
     build:
       dockerfile: ./Dockerfile

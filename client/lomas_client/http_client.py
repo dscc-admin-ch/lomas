@@ -70,6 +70,8 @@ class LomasHttpClient:
             raise ValueError(
                 "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
                 "keycloak_protocol or realm when using jwt authentication method."
+                "If you are using this library from a managed environment and don't know "
+                "about your credentials, please contact your system administrator."
             )
 
         if not keycloak_use_tls:
@@ -84,6 +86,9 @@ class LomasHttpClient:
             f"{url_protocol}://{keycloak_address}:"
             f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
         )
+
+        # Fetch first token:
+        self._fetch_token()
 
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""

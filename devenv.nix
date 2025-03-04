@@ -157,9 +157,8 @@ in
 
   processes.rabbitmq.process-compose = {
     readiness_probe = {
-      initial_delay_seconds = 10;
-      period_seconds = 3;
-      timeout_seconds = 3;
+      initial_delay_seconds = 20;
+      period_seconds = 5;
       success_threshold = 2;
       failure_threshold = 10;
     };
@@ -345,7 +344,7 @@ in
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --no-cov-on-fail --cov . -k 'not test_streamlit_app_page_b'";
+            command = "pytest --no-cov-on-fail --cov .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
@@ -376,6 +375,7 @@ in
       exit $pytest_return
     '';
 
+  # TODO Check this is enough and does not need to run the tools independently in every
   scripts.run-linter.exec = ''
     path=''${@:-.}
     echo "linting: $path"
@@ -412,12 +412,6 @@ in
     pushd $DEVENV_ROOT/server/lomas_server
     python uvicorn_server.py &
     ${config.scripts.run-worker-debug.exec}
-    popd
-  '';
-
-  scripts.run-streamlit.exec = ''
-    pushd $DEVENV_ROOT/server
-    streamlit run lomas_server/administration/dashboard/about.py
     popd
   '';
 

@@ -143,9 +143,6 @@ class AdminConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         extra="ignore",
-        env_prefix="lomas_adm_",
-        env_file="lomas_admin.env",
-        env_nested_delimiter="__",
         case_sensitive=False,
     )
 

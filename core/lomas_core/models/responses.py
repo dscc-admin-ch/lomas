@@ -232,7 +232,12 @@ class Job(ResponseModel):
     """Scheduled Job Response."""
 
     uid: UUID = Field(default_factory=uuid4)
+    """Job unique identifier."""
     status: str = "in_progress"
+    """Job status."""
     result: QueryResponse | CostResponse | None = None
+    """Job result, if available."""
     error: LomasServerExceptionType | None = None
+    """Job error, if any."""
     status_code: int = 200
+    """Status code for job response."""

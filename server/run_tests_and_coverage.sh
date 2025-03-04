@@ -15,7 +15,7 @@ cd lomas_server/
 python ./worker.py &
 
 # "mongodb", "LRU_cache", production mode, "jitter"
-pytest --cov --ignore administration/tests/test_streamlit_app_page_b.py .
+pytest --cov .
 ret=$?
 
 coverage report

@@ -1,10 +1,12 @@
 import logging
+from typing import Dict
 
 import yaml
 from mantelo import HttpException, KeycloakAdmin
 
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.config import KeycloakClientConfig
+from lomas_server.constants import KCAttributeNames
 
 
 def get_kc_admin(kc_config: KeycloakClientConfig) -> KeycloakAdmin:
@@ -27,6 +29,32 @@ def get_kc_admin(kc_config: KeycloakClientConfig) -> KeycloakAdmin:
     )
 
     return kc_admin
+
+
+def get_user_attr_protocol_mapper_dict(attr_name: str) -> Dict:
+    """Returns a correctly formated dict representing.
+
+    a protocol mapper for user attributes.
+
+    Args:
+        name (str): The name of the attribute to map.
+
+    Returns:
+        Dict: The protocol mapper representation
+    """
+    return {
+        "name": f"user_attribute_{attr_name}",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-usermodel-attribute-mapper",
+        "config": {
+            "user.attribute": attr_name,
+            "claim.name": attr_name,
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+        },
+    }
 
 
 def add_kc_user(
@@ -66,7 +94,8 @@ def add_kc_user(
             "defaultClientScopes": [],
             "optionalClientScopes": [],
             "attributes": {
-                "lomas_user_client": True  # flag to indicate this client is linked to a lomas user.
+                # flag to indicate this client is linked to a lomas user.
+                KCAttributeNames.LOMAS_USER_CLIENT: True
             },
         }
 
@@ -74,6 +103,10 @@ def add_kc_user(
             client_dict["secret"] = client_secret
 
         kc_admin.clients.post(client_dict)
+
+        # We want to add user info as claims in all tokens requested by this client.
+        # Only attributes from the service account user can be mapped as claims,
+        # so we must add them to the service account.
 
         # Add attributes to linked service account user
         user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
@@ -85,47 +118,28 @@ def add_kc_user(
             {
                 # "email": user_email, -> We do not set this to avoid conflicts with user created above.
                 "attributes": {
-                    "lomas_user_client": True,  # flag to indicate this client is linked to a lomas user.
-                    "user_name": user_name,
-                    "user_email": user_email,
+                    # flag to indicate this client is linked to a lomas user.
+                    KCAttributeNames.LOMAS_USER_CLIENT: True,
+                    KCAttributeNames.USER_NAME: user_name,
+                    KCAttributeNames.USER_EMAIL: user_email,
                 }
             }
         )
 
         # Map attributes into OIDC claims
         kc_admin.clients(user_client_uid).protocol_mappers.models.post(
-            {
-                "name": "user_attribute_user_email",
-                "protocol": "openid-connect",
-                "protocolMapper": "oidc-usermodel-attribute-mapper",
-                "config": {
-                    "user.attribute": "user_email",
-                    "claim.name": "user_email",
-                    "jsonType.label": "String",
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "userinfo.token.claim": "true",
-                },
-            }
+            get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_NAME)
         )
         kc_admin.clients(user_client_uid).protocol_mappers.models.post(
-            {
-                "name": "user_attribute_user_name",
-                "protocol": "openid-connect",
-                "protocolMapper": "oidc-usermodel-attribute-mapper",
-                "config": {
-                    "user.attribute": "user_name",
-                    "claim.name": "user_name",
-                    "jsonType.label": "String",
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "userinfo.token.claim": "true",
-                },
-            }
+            get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_EMAIL)
         )
+
+        logging.info(
+            f"Added keycloak user {user_name.replace('\r\n', '').replace('\n', '')} and associated client.\n"
+        )
+
     except HttpException as e:
-        print(e)
-        raise RuntimeError("Could not add user to keycloak. Please contact the service adminstrator.") from e
+        raise RuntimeError("Could not add user to keycloak. Please contact the service administrator.") from e
 
 
 def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
@@ -146,6 +160,10 @@ def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     # Delete client
     user_client_uid = kc_admin.clients.get(clientId=user)[0]["id"]  # type: ignore
     kc_admin.clients(user_client_uid).delete()
+
+    logging.info(
+        f"Deleted keycloak user {user.replace('\r\n', '').replace('\n', '')} and associated client.\n"
+    )
 
 
 def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
@@ -169,8 +187,8 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
     clients = kc_admin.clients.get()
     for client in clients:
         if (
-            "lomas_user_client" in client["attributes"]  # type: ignore
-            and client["attributes"]["lomas_user_client"]  # type: ignore
+            KCAttributeNames.LOMAS_USER_CLIENT in client["attributes"]  # type: ignore
+            and client["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]  # type: ignore
         ):
             client_id = client["id"]  # type: ignore
             kc_admin.clients(client_id).delete()
@@ -221,8 +239,8 @@ def add_kc_users_via_yaml(
             kc_clients = kc_admin.clients.get(userId=user.id.name)
             for kc_client in kc_clients:
                 if (
-                    "lomas_user_client" in kc_client["attributes"]  # type: ignore
-                    and kc_client["attributes"]["lomas_user_client"]  # type: ignore
+                    KCAttributeNames.LOMAS_USER_CLIENT in kc_client["attributes"]  # type: ignore
+                    and kc_client["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]  # type: ignore
                 ):  # type: ignore
                     kc_client_id = kc_client["id"]  # type: ignore
                     kc_admin.clients(kc_client_id).delete()
@@ -249,6 +267,10 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
     user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()["value"]  # type: ignore
 
+    logging.info(
+        f"Accessing keycloak user client secret for user {user_name.replace('\r\n', '').replace('\n', '')}.\n"
+    )
+
     return user_client_secret
 
 
@@ -272,3 +294,7 @@ def set_kc_user_client_secret(
         client_dict = {"clientId": user_name, "secret": client_secret}
 
         kc_admin.clients(user_client_uid).put(client_dict)
+
+    logging.info(
+        f"Set new secret for client associated to user {user_name.replace('\r\n', '').replace('\n', '')}."
+    )

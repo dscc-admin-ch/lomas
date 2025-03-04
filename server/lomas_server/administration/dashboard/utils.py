@@ -5,12 +5,14 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
 from lomas_core.models.config import Config as ServerConfig
+from lomas_core.models.config import KeycloakClientConfig
 from lomas_server.administration.dashboard.config import Config
 
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds
 def get_server_data(_config: Config, endpoint):
     """Fast api requests on server and cache the result for 60 seconds."""
+    assert isinstance(_config.kc_config, KeycloakClientConfig)
     # Disable tls checks if needed
     if not _config.kc_config.use_tls:
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"

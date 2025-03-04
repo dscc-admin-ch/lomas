@@ -1,4 +1,5 @@
-from abc import ABC
+import logging
+from abc import ABC, abstractmethod
 
 import jwt
 from fastapi.security import HTTPAuthorizationCredentials, SecurityScopes
@@ -7,11 +8,13 @@ from lomas_core.constants import Scopes
 from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import AuthenticatorConfig, FreePassAuthenticatorConfig, JWTAuthenticatorConfig
+from lomas_server.constants import KCAttributeNames
 
 
 class UserAuthenticator(ABC):
     """Abstract base class for providing user authentification methods."""
 
+    @abstractmethod
     def get_user_id(
         self,
         security_scopes: SecurityScopes,
@@ -20,6 +23,7 @@ class UserAuthenticator(ABC):
         """Extracts user id from bearer token.
 
         Args:
+            security_scopes (SecurityScopes): The required scopes for the endpoint.
             auth_creds (HTTPAuthorizationCredentials): Authorization credentials.
 
         Returns:
@@ -59,6 +63,7 @@ class FreePassAuthenticator(UserAuthenticator):
         except Exception as e:
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
+        logging.info(f"Authenticated user {user.name}")
         return user
 
 
@@ -117,12 +122,16 @@ class JWTAuthenticator(UserAuthenticator):
                     raise UnauthorizedAccessException("Only admin user can query this endpoint.")
                 user = UserId(name="admin", email="noemailexample.com")
             else:
-                user = UserId(name=token_content["user_name"], email=token_content["user_email"])
+                user = UserId(
+                    name=token_content[KCAttributeNames.USER_NAME],
+                    email=token_content[KCAttributeNames.USER_EMAIL],
+                )
 
         except Exception as e:
             # TODO problematic to add e into error message to client?
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
+        logging.info(f"Authenticated user {user.name}")
         return user
 
 

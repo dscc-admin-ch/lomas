@@ -85,6 +85,9 @@ class LomasHttpClient:
             f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
         )
 
+        # Fetch first token:
+        self._fetch_token()
+
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(

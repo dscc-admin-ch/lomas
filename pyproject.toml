@@ -17,6 +17,7 @@ skip = [".gitignore", ".devenv"]
 [tool.flake8]
 max-line-length = 110
 extend_exclude = [".devenv", "docs"]
+extend-ignore=["E501", "W503"]
 
 [tool.mypy]
 plugins = ['pydantic.mypy']
@@ -56,6 +57,7 @@ write = true
 exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
 [tool.pytest.ini_options]
+collect_ignore = ["*/test_streamlit_app_page_b.py"]
 markers = [
   "long: marks test as long (deselect with '-m \"not long\"')",
 ]

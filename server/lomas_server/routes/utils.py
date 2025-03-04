@@ -113,6 +113,7 @@ def get_user_id_from_authenticator(
 
     Args:
         request (Request): The request to access the app and state.
+        security_scopes (SecurityScopes): The required scopes for the endpoint.
         auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP bearer token.
 
     Returns:
@@ -171,7 +172,7 @@ async def handle_query_to_job(
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{query.json()}".encode(), correlation_id=new_task.uid
+            body=f"{user_name}:{dp_library}:{query.model_dump_json()}".encode(), correlation_id=new_task.uid
         ),
         routing_key=queue_name,
     )

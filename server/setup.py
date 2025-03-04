@@ -28,4 +28,16 @@ setup(
     ],
     python_requires=">=3.11, <3.13",
     install_requires=Path("requirements_server.txt").read_text("utf-8").splitlines(),
+    extras_require={
+        "admin": [
+            "mantelo==2.2.0",
+            "mongomock==4.3.0",
+            "oauthlib==3.2.2",
+            "pytest==8.3.3",
+            "requests==2.32.0",
+            "requests-oauthlib==2.0.0",
+            "streamlit==1.39.0",
+            "st-pages==0.5.0",
+        ]
+    },
 )

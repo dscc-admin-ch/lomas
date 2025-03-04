@@ -123,9 +123,11 @@ def add_kc_user(
                 },
             }
         )
+
+        logging.info(f"Added keycloak user {user_name} and associated client.\n")
+
     except HttpException as e:
-        print(e)
-        raise RuntimeError("Could not add user to keycloak. Please contact the service adminstrator.") from e
+        raise RuntimeError("Could not add user to keycloak. Please contact the service administrator.") from e
 
 
 def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
@@ -146,6 +148,8 @@ def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     # Delete client
     user_client_uid = kc_admin.clients.get(clientId=user)[0]["id"]  # type: ignore
     kc_admin.clients(user_client_uid).delete()
+
+    logging.info(f"Deleted keycloak user {user} and associated client.\n")
 
 
 def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
@@ -249,6 +253,8 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
     user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()["value"]  # type: ignore
 
+    logging.info(f"Accessing keycloak user client secret for user {user_name}.\n")
+
     return user_client_secret
 
 
@@ -272,3 +278,5 @@ def set_kc_user_client_secret(
         client_dict = {"clientId": user_name, "secret": client_secret}
 
         kc_admin.clients(user_client_uid).put(client_dict)
+
+    logging.info(f"Set new secret for client associated to user {user_name}.")

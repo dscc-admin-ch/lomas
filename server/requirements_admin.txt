@@ -1,7 +1,6 @@
 mantelo==2.2.0
 mongomock==4.3.0
 oauthlib==3.2.2
-pydantic-settings==2.7.1
 pytest==8.3.3
 requests==2.32.0
 requests-oauthlib==2.0.0

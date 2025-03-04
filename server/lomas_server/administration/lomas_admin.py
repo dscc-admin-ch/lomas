@@ -27,7 +27,7 @@ def add_lomas_user(
         admin_config (AdminConfig): The administration config.
         user_name (str): The name of the user.
         user_email (str): The email of the user.
-        client_secret (str | NoneType, optional):
+        client_secret (str | None, optional):
             The client secret for the user in case one wants to specify it. Defaults to None.
     """
     add_user(admin_config.mg_config, user_name, user_email)
@@ -56,6 +56,8 @@ def add_lomas_user_with_budget(
         dataset (str): name of the dataset to add to user
         epsilon (float): epsilon value for initial budget of user
         delta (float): delta value for initial budget of user
+        client_secret (str | None, optional):
+            The client secret for the user in case one wants to specify it. Defaults to None.
     """
     add_user_with_budget(admin_config.mg_config, user_name, user_email, dataset, epsilon, delta)
 

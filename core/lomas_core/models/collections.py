@@ -31,10 +31,21 @@ class DatasetOfUser(BaseModel):
 # -----------------------------------------------------------------------------
 
 
+class UserId(BaseModel):
+    """BaseModel for user identification."""
+
+    name: str
+    email: str
+    client_secret: Annotated[
+        Optional[str],
+        Field(default=None, exclude=True),  # exclude the field at serialization for security reasons
+    ]
+
+
 class User(BaseModel):
     """BaseModel for a user in a user collection."""
 
-    user_name: str
+    id: UserId
     may_query: bool
     datasets_list: List[DatasetOfUser]
 

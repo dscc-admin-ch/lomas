@@ -94,7 +94,7 @@ in
           ./core/requirements_core.txt
           ./client/requirements_client.txt
           ./server/requirements_server.txt
-          ./server/requirements_streamlit.txt
+          ./server/requirements_admin.txt
           ./requirements-dev.txt
         ]
       )
@@ -102,7 +102,7 @@ in
   };
 
   env = {
-    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
+    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server:${config.env.DEVENV_ROOT}/client";
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
@@ -122,6 +122,10 @@ in
       port = rabbitmq_mgmt_port;
     };
   };
+
+  ############
+  # WORKER   #
+  ############
 
   processes.worker = {
     exec = ''
@@ -212,42 +216,12 @@ in
       ];
     };
     isort.enable = true;
-    black = {
-      enable = true;
-      args = [
-        "--line-length"
-        "110"
-      ];
-    };
-    flake8 = {
-      enable = true;
-      args = [
-        "--max-line-length"
-        "110"
-        "--ignore"
-        "E501,W503"
-      ];
-    };
+    black.enable = true;
+    flake8.enable = true;
     pylint = {
       enable = true;
       verbose = true;
       args = [
-        "--max-line-length"
-        "110"
-        "--disable"
-        (concatStringsSep "," [
-          "fixme"
-          "import-error"
-          "duplicate-code"
-          "too-many-lines"
-          "too-many-locals"
-          "no-name-in-module"
-          "too-many-arguments"
-          "too-few-public-methods"
-          "dangerous-default-value"
-          "missing-module-docstring"
-          "logging-fstring-interpolation"
-        ])
         "--fail-under"
         "8"
       ];
@@ -308,7 +282,7 @@ in
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --no-cov-on-fail --cov . -k 'not admin_cli'";
+            command = "pytest --no-cov-on-fail --cov .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";

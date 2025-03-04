@@ -182,9 +182,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             )
 
             # Expect to fail: user does not exist
-            fake_user = "fake_user"
+            fake_user_token = 'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json=example_get_dummy_dataset,
@@ -194,15 +194,15 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             assert (
                 response.json()
                 == UnauthorizedAccessExceptionModel(
-                    message=f"User {fake_user} does not "
+                    message="User fake_user does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
             )
 
             # Expect to work with datetimes and another user
-            fake_user = "BirthdayGirl"
+            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
-            new_headers["user-name"] = fake_user
+            new_headers["Authorization"] = fake_user_token
             response = client.post(
                 "/get_dummy_dataset",
                 json={

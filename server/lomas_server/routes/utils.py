@@ -4,13 +4,16 @@ import random
 import time
 from contextlib import asynccontextmanager
 from functools import wraps
+from typing import Annotated
 
 import aio_pika
-from fastapi import Request
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.models.collections import UserId
 from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -99,6 +102,29 @@ def timing_protection(func):
     return wrapper
 
 
+def get_user_id_from_authenticator(
+    request: Request,
+    security_scopes: SecurityScopes,
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+) -> UserId:
+    """Extracts the authenticator from the app state and calls its get_user_id method.
+
+    Also adds the user_name to the request state to annotate the telemetry request span.
+
+    Args:
+        request (Request): The request to access the app and state.
+        security_scopes (SecurityScopes): The required scopes for the endpoint.
+        auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP bearer token.
+
+    Returns:
+        UserId: A UserId instance extracted from the token.
+    """
+    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
+    request.state.user_name = user_id.name
+
+    return user_id
+
+
 @timing_protection
 async def handle_query_to_job(
     request: Request,
@@ -146,7 +172,7 @@ async def handle_query_to_job(
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{query.json()}".encode(), correlation_id=new_task.uid
+            body=f"{user_name}:{dp_library}:{query.model_dump_json()}".encode(), correlation_id=new_task.uid
         ),
         routing_key=queue_name,
     )

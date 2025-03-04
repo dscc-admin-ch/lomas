@@ -44,15 +44,15 @@ COPY ./server/LICENSE /code/LICENSE
 COPY ./server/data/ /data/
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
-FROM lomas_server_base AS lomas_admin_dashboard_base
-COPY ./server/requirements_streamlit.txt /requirements_streamlit.txt
-RUN pip install --no-cache-dir --upgrade -r /requirements_streamlit.txt
+FROM lomas_server_base AS lomas_admin_base
+COPY ./server/requirements_admin.txt /requirements_admin.txt
+RUN pip install --no-cache-dir --upgrade -r /requirements_admin.txt
 
-FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
+FROM lomas_admin_base AS lomas_admin_dev
 ENV PYTHONDONTWRITEBYTECODE=1
 CMD ["streamlit", "run", "lomas_server/administration/dashboard/about.py"]
 
-FROM lomas_admin_dashboard_base AS lomas_admin_dashboard
+FROM lomas_admin_base AS lomas_admin
 COPY ./server/lomas_server/ /code/lomas_server/
 COPY ./server/LICENSE /code/LICENSE
 COPY ./server/data/ /data/

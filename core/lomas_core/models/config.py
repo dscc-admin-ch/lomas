@@ -1,9 +1,11 @@
-from typing import Annotated, List, Literal, Union
+from typing import Annotated, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.constants import (
     AdminDBType,
+    AuthenticationType,
     PrivateDatabaseType,
     TimeAttackMethod,
 )
@@ -41,7 +43,7 @@ class YamlDBConfig(DBConfig):
 class MongoDBConfig(DBConfig):
     """BaseModel for dataset store configs  in case of a  MongoDB database."""
 
-    db_type: Literal[AdminDBType.MONGODB]  # type: ignore
+    db_type: Literal[AdminDBType.MONGODB] = AdminDBType.MONGODB  # type: ignore
     address: str
     port: int
     username: str
@@ -81,6 +83,27 @@ class DPLibraryConfig(BaseModel):
     opendp: OpenDPConfig
 
 
+class AuthenticatorConfig(BaseModel):
+    """BaseModel for Authenticator configs."""
+
+
+class FreePassAuthenticatorConfig(AuthenticatorConfig):
+    """BaseModel for FreePassAuthenticator config."""
+
+    authentication_type: Literal[AuthenticationType.FREE_PASS]  # type: ignore
+
+
+class JWTAuthenticatorConfig(AuthenticatorConfig):
+    """BaseModel for JWTAuthenticatorConfig."""
+
+    authentication_type: Literal[AuthenticationType.JWT]  # type: ignore
+
+    keycloak_address: str
+    keycloak_port: int
+    keycloak_use_tls: bool
+    realm: str
+
+
 class Config(BaseModel):
     """Server runtime config."""
 
@@ -93,8 +116,35 @@ class Config(BaseModel):
     # A limit on the rate which users can submit answers
     submit_limit: float
 
+    authenticator: Annotated[
+        Union[FreePassAuthenticatorConfig, JWTAuthenticatorConfig], Field(discriminator="authentication_type")
+    ]
+
     admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
 
     private_db_credentials: List[Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]]
 
     dp_libraries: DPLibraryConfig
+
+
+class KeycloakClientConfig(BaseModel):
+    """Base model for Keycloak client config."""
+
+    address: str
+    port: int
+    use_tls: bool
+    realm: str
+    client_id: str
+    client_secret: str
+
+
+class AdminConfig(BaseSettings):
+    """Base model for settings for administrative tasks."""
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        case_sensitive=False,
+    )
+
+    mg_config: MongoDBConfig
+    kc_config: Annotated[Optional[KeycloakClientConfig], Field(default=None)]

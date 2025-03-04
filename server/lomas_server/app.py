@@ -12,9 +12,8 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import get_ressource, init_telemetry
-from lomas_core.models.constants import AdminDBType
 from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
+from lomas_server.auth.auth import authenticator_factory
 from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID, TELEMETRY
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -56,17 +55,13 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     except InternalServerException:
         logging.info("Config could not loaded")
 
-    # Fill up user database if in develop mode ONLY
-    if config.develop_mode:
-        logging.info("!! Develop mode ON !!")
-        if config.admin_database.db_type == AdminDBType.MONGODB:
-            logging.info("Adding demo data to MongoDB Admin")
-            add_demo_data_to_mongodb_admin()
-
     # Load admin database
     try:
         logging.info("Loading admin database")
         lomas_app.state.admin_database = admin_database_factory(config.admin_database)
+        logging.info("Loading authenticator")
+        lomas_app.state.authenticator = authenticator_factory(config.authenticator)
+
     except InternalServerException as e:
         logging.exception(f"Failed at startup: {str(e)}")
 

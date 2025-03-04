@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -95,7 +97,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             assert job is not None and job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error == UnauthorizedAccessExceptionModel(
-                message="Dr. Antartica does not have access to IRIS."
+                message="Dr.Antartica does not have access to IRIS."
             )
 
             # Expect to fail: dataset does not exist
@@ -110,8 +112,11 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             )
 
             # Expect to fail: user does not exist
+            fake_user_token = (
+                'Bearer {"name": "I_do_not_exist", "email": "I_do_not_exist@penguin_research.org"}'
+            )
             new_headers = self.headers
-            new_headers["user-name"] = "I_do_not_exist"
+            new_headers["Authorization"] = fake_user_token
             job = submit_job_wait(
                 client, "/smartnoise_sql_query", json=example_smartnoise_sql, headers=new_headers
             )
@@ -159,8 +164,10 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
         # Will be solved in issue 340
         # with TestClient(app, headers=self.headers) as client:
         #     # Expect to work: query with datetimes and another user
+        #     fake_user_token =
+        #       'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
         #     new_headers = self.headers
-        #     new_headers["user-name"] = "BirthdayGirl"
+        #     new_headers["Authorization"] = fake_user_token
         #     body = dict(example_smartnoise_sql)
         #     body["dataset_name"] = "BIRTHDAYS"
         # body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
@@ -208,11 +215,14 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             assert r_model.result.df["NB_ROW"][0] < 250
 
             # Should fail: no header
-            response = client.post("/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql)
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            response_dict = response.json()["detail"]
-            assert response_dict[0]["type"] == "missing"
-            assert response_dict[0]["loc"] == ["header", "user-name"]
+            response = client.post(
+                "/dummy_smartnoise_sql_query",
+                json=example_dummy_smartnoise_sql,
+            )
+
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+            response_content = json.loads(response.content.decode("utf8"))["detail"]
+            assert response_content == "Not authenticated"
 
             # Should fail: user does not have access to dataset
             response = client.post(

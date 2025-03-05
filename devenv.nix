@@ -17,6 +17,11 @@ let
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   mongo_db_name = "defaultdb";
   lomas_port = 48080;
+  postgres_addr = "localhost";
+  postgres_port = 5432;
+  kc_https_port = 4443;
+  kc_http_port = 4442;
+  kc_management_port = 4441;
 
   lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
     runtime_args = {
@@ -106,6 +111,10 @@ in
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
+    KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
+    KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
+    KC_BOOTSTRAP_ADMIN_USERNAME = "admin";
+    KC_BOOTSTRAP_ADMIN_PASSWORD = "admin";
   };
 
   ############
@@ -123,17 +132,17 @@ in
     };
   };
 
-  processes.worker = {
-    exec = ''
-      pushd $DEVENV_ROOT/server/lomas_server
-      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
-      popd
-    '';
-    process-compose = {
-      depends_on.rabbitmq.condition = "process_healthy";
-      replicas = 2;
-    };
-  };
+  # processes.worker = {
+  #   exec = ''
+  #     pushd $DEVENV_ROOT/server/lomas_server
+  #     $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+  #     popd
+  #   '';
+  #   process-compose = {
+  #     depends_on.rabbitmq.condition = "process_healthy";
+  #     replicas = 2;
+  #   };
+  # };
 
   ###########
   # MONGODB #
@@ -199,6 +208,116 @@ in
     in
     lib.mkForce "${configureScript}/bin/configure-mongodb";
 
+  ############
+  # Keycloak #
+  ############
+
+  processes.keycloak =
+    let
+      kc_hostname = "localhost";
+      cert = pkgs.runCommand "selfSignedCerts" { buildInputs = [ pkgs.openssl ]; } ''
+        openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -subj '/CN=${kc_hostname}'
+        mkdir -p $out
+        cp key.pem cert.pem $out
+      '';
+      confFile = pkgs.writeText "keycloak.conf" ''
+        db=postgres
+        db-password=${config.env.KC_HOME_DIR}/db_password
+        db-url-database=keycloak
+        db-url-host=${postgres_addr}
+        db-url-port=${toString postgres_port}
+        db-url-properties=
+        db-username=keycloak
+        hostname=${kc_hostname}
+        hostname-backchannel-dynamic=false
+        http-relative-path=/
+        https-certificate-file=${config.env.KC_HOME_DIR}/ssl/cert.pem
+        https-certificate-key-file=${config.env.KC_HOME_DIR}/ssl/key.pem
+        https-port=${toString kc_https_port}
+        http-enabled=true
+        http-port=${toString kc_http_port}
+        http-management-port=${toString kc_management_port}
+        https-management-certificate-file=
+        https-management-certificate-key-file=
+        health-enabled=true
+      '';
+      keycloakPkg = pkgs.keycloak.override { inherit confFile; };
+    in
+    {
+      exec = ''
+        set -o errexit -o pipefail -o nounset -o errtrace
+        shopt -s inherit_errexit
+        umask u=rwx,g=,o=
+
+        mkdir -p ${config.env.KC_HOME_DIR}/themes
+        ln -fs ${keycloakPkg}/providers ${config.env.KC_HOME_DIR}/
+        ln -fs ${keycloakPkg}/lib ${config.env.KC_HOME_DIR}/
+
+        install -D -m 0600 ${confFile} ${config.env.KC_HOME_DIR}/conf/keycloak.conf
+        echo $KC_BOOTSTRAP_ADMIN_PASSWORD > ${config.env.KC_HOME_DIR}/db_password
+
+        mkdir -p ${config.env.KC_HOME_DIR}/ssl
+        cp -u ${cert}/{cert,key}.pem ${config.env.KC_HOME_DIR}/ssl/
+        ${keycloakPkg}/bin/kc.sh --verbose start --optimized
+      '';
+
+      process-compose = {
+        depends_on.postgres.condition = "process_healthy";
+        readiness_probe = {
+          exec.command = ''
+            ${pkgs.curl}/bin/curl http://localhost:${toString kc_management_port}/health/ready
+          '';
+          initial_delay_seconds = 20;
+          period_seconds = 10;
+          timeout_seconds = 5;
+          success_threshold = 1;
+          failure_threshold = 5;
+        };
+      };
+    };
+
+  services.postgres = {
+    enable = true;
+    port = postgres_port;
+    listen_addresses = postgres_addr;
+    initialDatabases = [
+      {
+        name = "keycloak";
+        user = "keycloak";
+        pass = "${config.env.KC_BOOTSTRAP_ADMIN_PASSWORD}";
+      }
+    ];
+  };
+
+  #########
+  # MINIO #
+  #########
+
+  services.minio =
+    let
+      listenAddress = "127.0.0.1:${toString minio_port}";
+    in
+    {
+      enable = true;
+      browser = false;
+      inherit accessKey secretKey listenAddress;
+      buckets = [ "example" ];
+      afterStart = ''
+        mc cp ${./server/lomas_server/tests/test_data/test_penguin.csv} myminio/example/data/test_penguin.csv
+        mc cp ${./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml}  myminio/example/metadata/penguin_metadata.yaml
+        mc ls --recursive --versions myminio/example
+      '';
+      # Configure myminio alias
+      clientConfig = {
+        aliases.myminio = {
+          url = "http://${listenAddress}"; # <scheme>:// is mandatory
+          inherit accessKey secretKey;
+          api = "S3v4";
+          path = "auto";
+        };
+      };
+    };
+
   #############
   # GIT HOOKS #
   #############
@@ -254,38 +373,13 @@ in
     };
   };
 
-  #########
-  # MINIO #
-  #########
-
-  services.minio =
-    let
-      listenAddress = "127.0.0.1:${toString minio_port}";
-    in
-    {
-      enable = true;
-      browser = false;
-      inherit accessKey secretKey listenAddress;
-      buckets = [ "example" ];
-      afterStart = ''
-        mc cp ${./server/lomas_server/tests/test_data/test_penguin.csv} myminio/example/data/test_penguin.csv
-        mc cp ${./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml}  myminio/example/metadata/penguin_metadata.yaml
-        mc ls --recursive --versions myminio/example
-      '';
-      # Configure myminio alias
-      clientConfig = {
-        aliases.myminio = {
-          url = "http://${listenAddress}"; # <scheme>:// is mandatory
-          inherit accessKey secretKey;
-          api = "S3v4";
-          path = "auto";
-        };
-      };
-    };
-
   enterShell = ''
     echo hello from $GREET
   '';
+
+  #####################
+  # Various utilities #
+  #####################
 
   scripts.ut.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
@@ -358,7 +452,27 @@ in
 
   scripts.run-fastapi.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    fastapi dev --port ${toString lomas_port} app.py
+    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb uvicorn_server.py
+    popd
+  '';
+
+  scripts.run-worker.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb worker.py
+    popd
+  '';
+
+  scripts.run-lomas-dev.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+    $UV_PROJECT_ENVIRONMENT/bin/python uvicorn_server.py &
+    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb worker.py
+    popd
+  '';
+
+  scripts.run-lomas.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+    $UV_PROJECT_ENVIRONMENT/bin/python uvicorn_server.py &
+    $UV_PROJECT_ENVIRONMENT/bin/python worker.py
     popd
   '';
 

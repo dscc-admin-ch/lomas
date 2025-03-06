@@ -334,8 +334,8 @@ in
     black = {
       enable = true;
       args = [
-        "--line-length"
-        "110"
+        "--config"
+        "${config.env.DEVENV_ROOT}/pyproject.toml"
       ];
     };
     flake8 = {
@@ -351,22 +351,8 @@ in
       enable = true;
       verbose = true;
       args = [
-        "--max-line-length"
-        "110"
-        "--disable"
-        (concatStringsSep "," [
-          "fixme"
-          "import-error"
-          "duplicate-code"
-          "too-many-lines"
-          "too-many-locals"
-          "no-name-in-module"
-          "too-many-arguments"
-          "too-few-public-methods"
-          "dangerous-default-value"
-          "missing-module-docstring"
-          "logging-fstring-interpolation"
-        ])
+        "--rcfile"
+        "${config.env.DEVENV_ROOT}/pyproject.toml"
         "--fail-under"
         "8"
       ];

@@ -132,17 +132,17 @@ in
     };
   };
 
-  # processes.worker = {
-  #   exec = ''
-  #     pushd $DEVENV_ROOT/server/lomas_server
-  #     $UV_PROJECT_ENVIRONMENT/bin/python worker.py
-  #     popd
-  #   '';
-  #   process-compose = {
-  #     depends_on.rabbitmq.condition = "process_healthy";
-  #     replicas = 2;
-  #   };
-  # };
+  processes.worker = {
+    exec = ''
+      pushd $DEVENV_ROOT/server/lomas_server
+      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+      popd
+    '';
+    process-compose = {
+      depends_on.rabbitmq.condition = "process_healthy";
+      replicas = 2;
+    };
+  };
 
   ###########
   # MONGODB #
@@ -442,23 +442,24 @@ in
     popd
   '';
 
-  scripts.run-worker.exec = ''
+  scripts.run-worker-debug.exec = ''
+    process-compose process stop -v worker-0 worker-1
     pushd $DEVENV_ROOT/server/lomas_server
-    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb worker.py
+    python -m pdb worker.py
     popd
   '';
 
   scripts.run-lomas-dev.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    $UV_PROJECT_ENVIRONMENT/bin/python uvicorn_server.py &
-    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb worker.py
+    python uvicorn_server.py &
+    ${config.scripts.run-worker-debug.exec}
     popd
   '';
 
   scripts.run-lomas.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    $UV_PROJECT_ENVIRONMENT/bin/python uvicorn_server.py &
-    $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+    python uvicorn_server.py &
+    python worker.py
     popd
   '';
 

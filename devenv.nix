@@ -7,7 +7,8 @@
 }:
 
 let
-  inherit (builtins) readFile concatStringsSep toJSON;
+  inherit (builtins) readFile concatStringsSep;
+  toYAML = lib.generators.toYAML { };
 
   mongo_port = 27017;
   minio_port = 19000;
@@ -23,7 +24,7 @@ let
   kc_http_port = 4442;
   kc_management_port = 4441;
 
-  lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
+  lomas_config = pkgs.writeText "test_config.yaml" (toYAML {
     runtime_args = {
       settings = {
         develop_mode = false;
@@ -59,7 +60,7 @@ let
     };
   });
 
-  lomas_secrets = pkgs.writeText "test_secrets.yaml" (toJSON {
+  lomas_secrets = pkgs.writeText "test_secrets.yaml" (toYAML {
     admin_database = {
       password = "user_pwd";
       username = "user";
@@ -74,15 +75,17 @@ let
     ];
   });
 
-  lomas_dashboard = pkgs.writeText "dashboard.yaml" (toJSON {
+  lomas_dashboard = pkgs.writeText "dashboard.yaml" (toYAML {
     server_service = "http://localhost:${toString lomas_port}";
     server_url = "CakeMightBeALie.ch";
   });
 in
 {
+
+  # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
-    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
+    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server:${config.env.DEVENV_ROOT}/client";
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
@@ -94,9 +97,14 @@ in
 
   devcontainer.enable = true;
 
+  # Additional useful packages
   packages = [
     pkgs.git
+    pkgs.jq
+    pkgs.yq-go
     pkgs.mongosh
+    pkgs.kubectl
+    pkgs.kubernetes-helm
   ];
 
   ##############
@@ -135,9 +143,23 @@ in
     };
   };
 
+  processes.rabbitmq.process-compose = {
+    readiness_probe = {
+      initial_delay_seconds = 10;
+      period_seconds = 3;
+      timeout_seconds = 3;
+      success_threshold = 2;
+      failure_threshold = 10;
+    };
+  };
+
+  ##########
+  # WORKER #
+  ##########
+
   processes.worker = {
     exec = ''
-      $UV_PROJECT_ENVIRONMENT/bin/python worker.py
+      python worker.py
     '';
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
@@ -173,9 +195,7 @@ in
 
   processes.mongodb.process-compose = {
     readiness_probe = {
-      exec.command = ''
-        ${pkgs.mongosh}/bin/mongosh --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} 2>&1 >/dev/null
-      '';
+      exec.command = ''${lib.getExe pkgs.mongosh} --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} &>/dev/null'';
     };
   };
 
@@ -272,13 +292,13 @@ in
   scripts.ut-coverage.exec =
     let
       working_dir = "$DEVENV_ROOT/server/lomas_server";
-      pc-config-patch = pkgs.writeText "pc-coverage-disable-worker.yaml" (toJSON {
+      pc-config-patch = pkgs.writeText "pc-coverage-disable-worker.yaml" (toYAML {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
             inherit working_dir;
             replicas = 1;
-            command = "$UV_PROJECT_ENVIRONMENT/bin/coverage run --source=. -p worker.py";
+            command = "coverage run --source=. -p worker.py";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies

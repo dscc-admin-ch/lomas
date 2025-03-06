@@ -23,7 +23,9 @@ Settings up the environment with [devenv](https://devenv.sh/):
 1. `sh <(curl -L https://nixos.org/nix/install) --daemon --no-channel-add --nix-extra-conf-file <(echo -e "experimental-features = nix-command flakes \ntrusted-users = root ${USER:-}")`
 2. `nix profile install nixpkgs#devenv`
 3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
-    1. Vscode: [direnv extension](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
+    1. `nix profile install nixpkgs#direnv`
+    2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`
+    3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
 
 
 Once in lomas repo: `devenv shell`

@@ -80,7 +80,17 @@ let
   });
 in
 {
-  env.GREET = "Lomas env";
+  env = {
+    GREET = "Lomas env";
+    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
+    LOMAS_CONFIG_PATH = "${lomas_config}";
+    LOMAS_SECRETS_PATH = "${lomas_secrets}";
+    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
+    KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
+    KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
+    KC_BOOTSTRAP_ADMIN_USERNAME = "admin";
+    KC_BOOTSTRAP_ADMIN_PASSWORD = "admin";
+  };
 
   devcontainer.enable = true;
 
@@ -88,6 +98,10 @@ in
     pkgs.git
     pkgs.mongosh
   ];
+
+  ##############
+  # Python Env #
+  ##############
 
   languages.python = {
     enable = true;
@@ -104,17 +118,6 @@ in
         ]
       )
     );
-  };
-
-  env = {
-    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
-    LOMAS_CONFIG_PATH = "${lomas_config}";
-    LOMAS_SECRETS_PATH = "${lomas_secrets}";
-    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
-    KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
-    KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
-    KC_BOOTSTRAP_ADMIN_USERNAME = "admin";
-    KC_BOOTSTRAP_ADMIN_PASSWORD = "admin";
   };
 
   ############
@@ -134,11 +137,10 @@ in
 
   processes.worker = {
     exec = ''
-      pushd $DEVENV_ROOT/server/lomas_server
       $UV_PROJECT_ENVIRONMENT/bin/python worker.py
-      popd
     '';
     process-compose = {
+      working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
     };
@@ -332,7 +334,7 @@ in
 
   scripts.run-fastapi.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    $UV_PROJECT_ENVIRONMENT/bin/python -m pdb uvicorn_server.py
+    python -m pdb uvicorn_server.py
     popd
   '';
 
@@ -347,13 +349,6 @@ in
     pushd $DEVENV_ROOT/server/lomas_server
     python uvicorn_server.py &
     ${config.scripts.run-worker-debug.exec}
-    popd
-  '';
-
-  scripts.run-lomas.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    python uvicorn_server.py &
-    python worker.py
     popd
   '';
 

@@ -182,100 +182,34 @@ in
     };
   };
 
-  processes.mongodb-configure.process-compose.depends_on.mongodb.condition = "process_healthy";
-  processes.mongodb-configure.exec =
-    let
-      configureScript = pkgs.writeShellScriptBin "configure-mongodb" ''
-        set -euo pipefail
-        echo "Creating initial user"
-        rootAuthDatabase="admin"
-        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} "$rootAuthDatabase" >/dev/null <<-EOJS
-            db.createUser({
-                user: "${config.services.mongodb.initDatabaseUsername}",
-                pwd: "${config.services.mongodb.initDatabasePassword}",``
-                roles: [ { role: 'root', db: "$rootAuthDatabase" } ]
-            })
-        EOJS
-        echo "Creating user database: ${mongo_db_name}"
-        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} ${mongo_db_name} >/dev/null <<-EOJS
-            db.createUser({
-              user: "user",
-              pwd: "user_pwd",
-              roles: [{role: "readWrite", db: "${mongo_db_name}" }]
-            });
-        EOJS
-      '';
-    in
-    lib.mkForce "${configureScript}/bin/configure-mongodb";
+  processes.mongodb-configure = import ./devenv/mongo-init.nix {
+    inherit
+      pkgs
+      lib
+      mongo_db_name
+      mongo_port
+      ;
+    inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
+  };
 
   ############
   # Keycloak #
   ############
 
-  processes.keycloak =
-    let
-      kc_hostname = "localhost";
-      cert = pkgs.runCommand "selfSignedCerts" { buildInputs = [ pkgs.openssl ]; } ''
-        openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -subj '/CN=${kc_hostname}'
-        mkdir -p $out
-        cp key.pem cert.pem $out
-      '';
-      confFile = pkgs.writeText "keycloak.conf" ''
-        db=postgres
-        db-password=${config.env.KC_HOME_DIR}/db_password
-        db-url-database=keycloak
-        db-url-host=${postgres_addr}
-        db-url-port=${toString postgres_port}
-        db-url-properties=
-        db-username=keycloak
-        hostname=${kc_hostname}
-        hostname-backchannel-dynamic=false
-        http-relative-path=/
-        https-certificate-file=${config.env.KC_HOME_DIR}/ssl/cert.pem
-        https-certificate-key-file=${config.env.KC_HOME_DIR}/ssl/key.pem
-        https-port=${toString kc_https_port}
-        http-enabled=true
-        http-port=${toString kc_http_port}
-        http-management-port=${toString kc_management_port}
-        https-management-certificate-file=
-        https-management-certificate-key-file=
-        health-enabled=true
-      '';
-      keycloakPkg = pkgs.keycloak.override { inherit confFile; };
-    in
-    {
-      exec = ''
-        set -o errexit -o pipefail -o nounset -o errtrace
-        shopt -s inherit_errexit
-        umask u=rwx,g=,o=
+  processes.keycloak = import ./devenv/keycloak.nix {
+    inherit
+      pkgs
+      postgres_port
+      postgres_addr
+      kc_http_port
+      kc_https_port
+      kc_management_port
+      ;
+    env = config.env;
+    kc_hostname = "localhost";
+  };
 
-        mkdir -p ${config.env.KC_HOME_DIR}/themes
-        ln -fs ${keycloakPkg}/providers ${config.env.KC_HOME_DIR}/
-        ln -fs ${keycloakPkg}/lib ${config.env.KC_HOME_DIR}/
-
-        install -D -m 0600 ${confFile} ${config.env.KC_HOME_DIR}/conf/keycloak.conf
-        echo $KC_BOOTSTRAP_ADMIN_PASSWORD > ${config.env.KC_HOME_DIR}/db_password
-
-        mkdir -p ${config.env.KC_HOME_DIR}/ssl
-        cp -u ${cert}/{cert,key}.pem ${config.env.KC_HOME_DIR}/ssl/
-        ${keycloakPkg}/bin/kc.sh --verbose start --optimized
-      '';
-
-      process-compose = {
-        depends_on.postgres.condition = "process_healthy";
-        readiness_probe = {
-          exec.command = ''
-            ${pkgs.curl}/bin/curl http://localhost:${toString kc_management_port}/health/ready
-          '';
-          initial_delay_seconds = 20;
-          period_seconds = 10;
-          timeout_seconds = 5;
-          success_threshold = 1;
-          failure_threshold = 5;
-        };
-      };
-    };
-
+  # Keycloak requires a postgres
   services.postgres = {
     enable = true;
     port = postgres_port;
@@ -322,42 +256,7 @@ in
   # GIT HOOKS #
   #############
 
-  git-hooks.hooks = {
-    nixfmt-rfc-style = {
-      enable = true;
-      args = [
-        "--width"
-        "120"
-      ];
-    };
-    isort.enable = true;
-    black = {
-      enable = true;
-      args = [
-        "--config"
-        "${config.env.DEVENV_ROOT}/pyproject.toml"
-      ];
-    };
-    flake8 = {
-      enable = true;
-      args = [
-        "--max-line-length"
-        "110"
-        "--ignore"
-        "E501,W503"
-      ];
-    };
-    pylint = {
-      enable = true;
-      verbose = true;
-      args = [
-        "--rcfile"
-        "${config.env.DEVENV_ROOT}/pyproject.toml"
-        "--fail-under"
-        "8"
-      ];
-    };
-  };
+  git-hooks.hooks = import ./devenv/hooks.nix { env = config.env; };
 
   enterShell = ''
     echo hello from $GREET

@@ -17,6 +17,11 @@ let
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   mongo_db_name = "defaultdb";
   lomas_port = 48080;
+  postgres_addr = "localhost";
+  postgres_port = 5432;
+  kc_https_port = 4443;
+  kc_http_port = 4442;
+  kc_management_port = 4441;
 
   lomas_config = pkgs.writeText "test_config.yaml" (toJSON {
     runtime_args = {
@@ -75,7 +80,17 @@ let
   });
 in
 {
-  env.GREET = "Lomas env";
+  env = {
+    GREET = "Lomas env";
+    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
+    LOMAS_CONFIG_PATH = "${lomas_config}";
+    LOMAS_SECRETS_PATH = "${lomas_secrets}";
+    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
+    KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
+    KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
+    KC_BOOTSTRAP_ADMIN_USERNAME = "admin";
+    KC_BOOTSTRAP_ADMIN_PASSWORD = "admin";
+  };
 
   devcontainer.enable = true;
 
@@ -83,6 +98,10 @@ in
     pkgs.git
     pkgs.mongosh
   ];
+
+  ##############
+  # Python Env #
+  ##############
 
   languages.python = {
     enable = true;
@@ -99,13 +118,6 @@ in
         ]
       )
     );
-  };
-
-  env = {
-    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server";
-    LOMAS_CONFIG_PATH = "${lomas_config}";
-    LOMAS_SECRETS_PATH = "${lomas_secrets}";
-    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
   };
 
   ############
@@ -125,11 +137,10 @@ in
 
   processes.worker = {
     exec = ''
-      pushd $DEVENV_ROOT/server/lomas_server
       $UV_PROJECT_ENVIRONMENT/bin/python worker.py
-      popd
     '';
     process-compose = {
+      working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
     };
@@ -165,93 +176,48 @@ in
       exec.command = ''
         ${pkgs.mongosh}/bin/mongosh --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} 2>&1 >/dev/null
       '';
-      initial_delay_seconds = 3;
-      period_seconds = 10;
-      timeout_seconds = 5;
-      success_threshold = 1;
-      failure_threshold = 3;
     };
   };
 
-  processes.mongodb-configure.process-compose.depends_on.mongodb.condition = "process_healthy";
-  processes.mongodb-configure.exec =
-    let
-      configureScript = pkgs.writeShellScriptBin "configure-mongodb" ''
-        set -euo pipefail
-        echo "Creating initial user"
-        rootAuthDatabase="admin"
-        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} "$rootAuthDatabase" >/dev/null <<-EOJS
-            db.createUser({
-                user: "${config.services.mongodb.initDatabaseUsername}",
-                pwd: "${config.services.mongodb.initDatabasePassword}",``
-                roles: [ { role: 'root', db: "$rootAuthDatabase" } ]
-            })
-        EOJS
-        echo "Creating user database: ${mongo_db_name}"
-        ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} ${mongo_db_name} >/dev/null <<-EOJS
-            db.createUser({
-              user: "user",
-              pwd: "user_pwd",
-              roles: [{role: "readWrite", db: "${mongo_db_name}" }]
-            });
-        EOJS
-      '';
-    in
-    lib.mkForce "${configureScript}/bin/configure-mongodb";
+  processes.mongodb-configure = import ./devenv/mongo-init.nix {
+    inherit
+      pkgs
+      lib
+      mongo_db_name
+      mongo_port
+      ;
+    inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
+  };
 
-  #############
-  # GIT HOOKS #
-  #############
+  ############
+  # Keycloak #
+  ############
 
-  git-hooks.hooks = {
-    nixfmt-rfc-style = {
-      enable = true;
-      args = [
-        "--width"
-        "120"
-      ];
-    };
-    isort.enable = true;
-    black = {
-      enable = true;
-      args = [
-        "--line-length"
-        "110"
-      ];
-    };
-    flake8 = {
-      enable = true;
-      args = [
-        "--max-line-length"
-        "110"
-        "--ignore"
-        "E501,W503"
-      ];
-    };
-    pylint = {
-      enable = true;
-      verbose = true;
-      args = [
-        "--max-line-length"
-        "110"
-        "--disable"
-        (concatStringsSep "," [
-          "fixme"
-          "import-error"
-          "duplicate-code"
-          "too-many-lines"
-          "too-many-locals"
-          "no-name-in-module"
-          "too-many-arguments"
-          "too-few-public-methods"
-          "dangerous-default-value"
-          "missing-module-docstring"
-          "logging-fstring-interpolation"
-        ])
-        "--fail-under"
-        "8"
-      ];
-    };
+  processes.keycloak = import ./devenv/keycloak.nix {
+    inherit
+      pkgs
+      postgres_port
+      postgres_addr
+      kc_http_port
+      kc_https_port
+      kc_management_port
+      ;
+    env = config.env;
+    kc_hostname = "localhost";
+  };
+
+  # Keycloak requires a postgres
+  services.postgres = {
+    enable = true;
+    port = postgres_port;
+    listen_addresses = postgres_addr;
+    initialDatabases = [
+      {
+        name = "keycloak";
+        user = "keycloak";
+        pass = "${config.env.KC_BOOTSTRAP_ADMIN_PASSWORD}";
+      }
+    ];
   };
 
   #########
@@ -283,9 +249,19 @@ in
       };
     };
 
+  #############
+  # GIT HOOKS #
+  #############
+
+  git-hooks.hooks = import ./devenv/hooks.nix { env = config.env; };
+
   enterShell = ''
     echo hello from $GREET
   '';
+
+  #####################
+  # Various utilities #
+  #####################
 
   scripts.ut.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
@@ -358,7 +334,21 @@ in
 
   scripts.run-fastapi.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    fastapi dev --port ${toString lomas_port} app.py
+    python -m pdb uvicorn_server.py
+    popd
+  '';
+
+  scripts.run-worker-debug.exec = ''
+    process-compose process stop -v worker-0 worker-1
+    pushd $DEVENV_ROOT/server/lomas_server
+    python -m pdb worker.py
+    popd
+  '';
+
+  scripts.run-lomas-dev.exec = ''
+    pushd $DEVENV_ROOT/server/lomas_server
+    python uvicorn_server.py &
+    ${config.scripts.run-worker-debug.exec}
     popd
   '';
 

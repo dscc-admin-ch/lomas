@@ -59,14 +59,14 @@ in
   process-compose = {
     depends_on.postgres.condition = "process_healthy";
     readiness_probe = {
-      exec.command = ''
-        ${pkgs.curl}/bin/curl http://localhost:${toString kc_management_port}/health/ready
-      '';
-      initial_delay_seconds = 20;
-      period_seconds = 10;
-      timeout_seconds = 5;
-      success_threshold = 1;
-      failure_threshold = 5;
+      http_get = {
+        scheme = "http";
+        host = "127.0.0.1";
+        port = kc_management_port;
+        path = "/health/ready";
+      };
+      initial_delay_seconds = 15;
+      failure_threshold = 10;
     };
   };
 }

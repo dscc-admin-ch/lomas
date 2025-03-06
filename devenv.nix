@@ -174,11 +174,6 @@ in
       exec.command = ''
         ${pkgs.mongosh}/bin/mongosh --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} 2>&1 >/dev/null
       '';
-      initial_delay_seconds = 3;
-      period_seconds = 10;
-      timeout_seconds = 5;
-      success_threshold = 1;
-      failure_threshold = 3;
     };
   };
 

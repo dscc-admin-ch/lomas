@@ -48,6 +48,7 @@ dependencies = [
 ]
 [project.optional-dependencies]
 all = [
+  "mantelo==2.2.0",
   "mongomock==4.3.0",
   "streamlit==1.39.0",
   "st-pages==0.5.0",
@@ -55,3 +56,11 @@ all = [
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"
+
+[tool.pytest.ini_options]
+addopts = [
+  "--ignore-glob=*/test_streamlit_app_page_b.py"
+]
+markers = [
+  "long: marks test as long (deselect with '-m \"not long\"')",
+]

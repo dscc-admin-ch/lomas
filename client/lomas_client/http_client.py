@@ -135,6 +135,7 @@ class LomasHttpClient:
                 timeout=(CONNECT_TIMEOUT, read_timeout),
             )
         except TokenExpiredError:
+            # This also catches if there is no token at first try.
             # Retry with new token
             self._fetch_token()
             r = self._oauth2_session.post(
@@ -150,9 +151,17 @@ class LomasHttpClient:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
 
         for _ in range(n_retry):
-            job_query = requests.get(
-                f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
-            ).json()
+
+            try:
+                job_query = self._oauth2_session.get(
+                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                ).json()
+            except TokenExpiredError:
+                # This also catches if there is no token at first try.
+                self._fetch_token()
+                job_query = self._oauth2_session.get(
+                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                ).json()
 
             if job_query["status"] == "complete":
                 return Job.model_validate(job_query)

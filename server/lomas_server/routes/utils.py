@@ -164,7 +164,7 @@ async def handle_query_to_job(
         case LomasRequestModel():
             queue_name = "cost_queue"
 
-    new_task = Job()
+    new_task = Job(requested_by=user_name)
 
     jobs = app.state.jobs_var.get()
     jobs[str(new_task.uid)] = new_task

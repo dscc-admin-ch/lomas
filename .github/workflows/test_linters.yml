@@ -17,12 +17,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-<<<<<<< HEAD
           uv sync --extra test
 
-=======
-          uv pip install -r requirements-test.txt
->>>>>>> 2e47724d (Update notebooks and clean client. Run linters and tests)
       - name: flake8
         run: |
           flake8 core/lomas_core

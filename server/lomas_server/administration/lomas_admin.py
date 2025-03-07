@@ -51,8 +51,8 @@ def add_lomas_user_with_budget(
 
     Args:
         admin_config (AdminConfig): The administration config
-        user (str): username to be added
-        email (str): email to be added
+        user_name (str): username to be added
+        user_email (str): email to be added
         dataset (str): name of the dataset to add to user
         epsilon (float): epsilon value for initial budget of user
         delta (float): delta value for initial budget of user

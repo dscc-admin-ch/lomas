@@ -78,7 +78,7 @@ class JWTAuthenticator(UserAuthenticator):
         Args:
             keycloak_address (str): The keycloak address for this app instance.
             keycloak_port (int): The keycloak port
-            keycloak_verify_tls (str): Whether to use tls or not for interacting with keycloak.
+            keycloak_use_tls (str): Whether to use tls or not for interacting with keycloak.
             realm (str): The realm name for this app instance.
         """
         url_protocol = "https" if keycloak_use_tls else "http"

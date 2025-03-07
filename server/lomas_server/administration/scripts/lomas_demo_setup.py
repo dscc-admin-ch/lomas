@@ -11,12 +11,12 @@ from lomas_server.administration.mongodb_admin import (
 
 
 class DemoAdminConfig(AdminConfig):
-    """ "Extension of Admin config for demo setup."""
+    """Extension of Admin config for demo setup."""
 
     model_config = SettingsConfigDict(
         extra="ignore",
         env_prefix="lomas_admin_",
-        env_file="lomas_demo_admin.env",
+        env_file=".env.lomas_admin",
         env_nested_delimiter="__",
         case_sensitive=False,
     )

@@ -79,7 +79,17 @@ def add_kc_user(
 
     try:
         # TODO remove this? or update when federation is activated. see issue #408
-        kc_admin.users.post({"username": user_name, "email": user_email, "enabled": True})
+        kc_admin.users.post(
+            {
+                "username": user_name,
+                "email": user_email,
+                "enabled": True,
+                "attributes": {
+                    # flag to indicate this client is linked to a lomas user.
+                    KCAttributeNames.LOMAS_USER_CLIENT: True
+                },
+            }
+        )
 
         # Create client for user
         client_dict = {
@@ -134,9 +144,8 @@ def add_kc_user(
             get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_EMAIL)
         )
 
-        logging.info(
-            f"Added keycloak user {user_name.replace('\r\n', '').replace('\n', '')} and associated client.\n"
-        )
+        log_name = user_name.replace("\\r\\n", "").replace("\\n", "")
+        logging.info(f"Added keycloak user {log_name} and associated client.\\n")
 
     except HttpException as e:
         raise RuntimeError("Could not add user to keycloak. Please contact the service administrator.") from e
@@ -161,9 +170,7 @@ def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     user_client_uid = kc_admin.clients.get(clientId=user)[0]["id"]  # type: ignore
     kc_admin.clients(user_client_uid).delete()
 
-    logging.info(
-        f"Deleted keycloak user {user.replace('\r\n', '').replace('\n', '')} and associated client.\n"
-    )
+    logging.info("Deleted keycloak user and associated client.")
 
 
 def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
@@ -179,10 +186,14 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
 
     users = kc_admin.users.get()
     for user in users:
-        user_id = user["id"]  # type: ignore
-        kc_admin.users(user_id).delete()
+        if (
+            KCAttributeNames.LOMAS_USER_CLIENT in user["attributes"]  # type: ignore
+            and user["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]  # type: ignore
+        ):
+            user_id = user["id"]  # type: ignore
+            kc_admin.users(user_id).delete()
 
-    logging.info("Removed all keycloak users. \n")
+    logging.info("Removed all keycloak users.")
 
     clients = kc_admin.clients.get()
     for client in clients:
@@ -193,7 +204,7 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
             client_id = client["id"]  # type: ignore
             kc_admin.clients(client_id).delete()
 
-    logging.info("Removed all keycloak clients associated to users. \n")
+    logging.info("Removed all keycloak clients associated to users.")
 
 
 def add_kc_users_via_yaml(
@@ -245,7 +256,7 @@ def add_kc_users_via_yaml(
                     kc_client_id = kc_client["id"]  # type: ignore
                     kc_admin.clients(kc_client_id).delete()
 
-            logging.info(f"Overwriting user {user.id.name}. \n")
+            logging.info(f"Overwriting user {user.id.name}")
 
         add_kc_user(kc_config, user.id.name, user.id.email, user.id.client_secret)
 
@@ -267,9 +278,7 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
     user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()["value"]  # type: ignore
 
-    logging.info(
-        f"Accessing keycloak user client secret for user {user_name.replace('\r\n', '').replace('\n', '')}.\n"
-    )
+    logging.info("Accessing keycloak user client secret for user.")
 
     return user_client_secret
 
@@ -295,6 +304,4 @@ def set_kc_user_client_secret(
 
         kc_admin.clients(user_client_uid).put(client_dict)
 
-    logging.info(
-        f"Set new secret for client associated to user {user_name.replace('\r\n', '').replace('\n', '')}."
-    )
+    logging.info("Set new secret for client associated to user.")

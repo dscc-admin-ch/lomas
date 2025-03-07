@@ -233,6 +233,8 @@ class Job(ResponseModel):
 
     uid: UUID = Field(default_factory=uuid4)
     """Job unique identifier."""
+    requested_by: str | None = None
+    """Name of the user that requested this job."""
     status: str = "in_progress"
     """Job status."""
     result: QueryResponse | CostResponse | None = None

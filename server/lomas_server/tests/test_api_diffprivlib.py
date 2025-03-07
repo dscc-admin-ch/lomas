@@ -331,7 +331,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
 
     def test_dummy_diffprivlib_query(self) -> None:
         """Test_dummy_diffprivlib_query."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(
                 client,
@@ -362,7 +362,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
 
     def test_diffprivlib_cost(self) -> None:
         """Test_diffprivlib_cost."""
-        with TestClient(app) as client:
+        with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(
                 client,

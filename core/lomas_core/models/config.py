@@ -49,9 +49,9 @@ class MongoDBConfig(DBConfig):
     username: str
     password: str
     db_name: str
-    max_pool_size: int
-    min_pool_size: int
-    max_connecting: int
+    max_pool_size: int = 100
+    min_pool_size: int = 2
+    max_connecting: int = 2
 
 
 class PrivateDBCredentials(BaseModel):
@@ -143,6 +143,9 @@ class AdminConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         extra="ignore",
+        env_prefix="lomas_admin_",
+        env_file=".env.lomas_admin",
+        env_nested_delimiter="__",
         case_sensitive=False,
     )
 

@@ -1,12 +1,13 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Request, Response, Security
+from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
+    SERVER_QUERY_ERROR_RESPONSES,
     InternalServerException,
     UnauthorizedAccessException,
 )
@@ -20,6 +21,7 @@ from lomas_core.models.responses import (
     ConfigResponse,
     DummyDsResponse,
     InitialBudgetResponse,
+    Job,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
@@ -51,31 +53,48 @@ async def health_handler():
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}")
-async def status_handler(request: Request, uid: UUID, response: Response):
-    """Job Status endpoint.
+@router.get("/status/{uid}", response_model=Job, responses=SERVER_QUERY_ERROR_RESPONSES)
+async def status_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
+    request: Request,
+    uid: UUID,
+    response: Response,
+) -> Job:
+    """Job status endpoint.
+
+    Args:
+        user_id (UserId): The user id.
+        request (Request): The raw request.
+        uid (UUID): The job's unique id.
+        response (Response): The job status response.
+
+    Raises:
+        UnauthorizedAccessException: If the user does not have access to this job.
+        HTTPException: If the job does not exist.
 
     Returns:
-        Job
+        Job: The Job model for this uid.
     """
     jobs = request.app.state.jobs_var.get()
     if (job := jobs.get(str(uid))) is not None:
+        if job.requested_by != user_id.name:
+            raise UnauthorizedAccessException(f"{user_id.name} does not have access to job with uid {uid}.")
+
         if job.status == "failed":
             response.status_code = job.status_code
         return job
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This job does not exist.")
 
 
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    user_id: Annotated[  # pylint: disable=unused-argument
-        UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])
-    ],
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
 
     Args:
-        user_id (UserId): A UserId object identifying the user.
+        _ (UserId): A UserId object identifying the user.
 
     Returns:
         JSONResponse: The state of the server instance.
@@ -95,14 +114,12 @@ async def get_state(
     response_model=ConfigResponse,
 )
 async def get_server_config(
-    user_id: Annotated[  # pylint: disable=unused-argument
-        UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])
-    ],
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
 ) -> ConfigResponse:
     """Returns the config of this server instance.
 
     Args:
-        user_id (UserId): A UserId object identifying the user.
+        _ (UserId): A UserId object identifying the user.
 
     Returns:
         ConfigResponse: The server config.

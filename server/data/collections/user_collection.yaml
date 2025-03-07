@@ -69,7 +69,10 @@ users:
     initial_delta: 0.2
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: Mr. Corona
+- id:
+    name: Mr.Corona
+    email: mr.corona@example.com
+    client_secret: mr.corona
   may_query: True
   datasets_list:
   - dataset_name: "COVID_SYNTHETIC"

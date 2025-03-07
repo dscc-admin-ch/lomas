@@ -18,7 +18,7 @@ def mock_mongodb_and_helpers():
     with (
         patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb,
         patch("streamlit.file_uploader") as mock_file_uploader,
-        patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config
+        patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
     ):
 
         mock_get_mongodb.return_value = get_mocked_db()

@@ -95,17 +95,24 @@ in
     KC_BOOTSTRAP_ADMIN_PASSWORD = "admin";
   };
 
-  devcontainer.enable = true;
+  packages =
+    [
+      # required for up pip git+https in containers
+      pkgs.git
+      pkgs.cacert
+      pkgs.openssl
+    ]
+    # Additional useful packages
+    ++ lib.optionals (!config.container.isBuilding) [
+      pkgs.jq
+      pkgs.yq-go
+      pkgs.watchexec
+      pkgs.mongosh
+      pkgs.kubectl
+      pkgs.kubernetes-helm
+    ];
 
-  # Additional useful packages
-  packages = [
-    pkgs.git
-    pkgs.jq
-    pkgs.yq-go
-    pkgs.mongosh
-    pkgs.kubectl
-    pkgs.kubernetes-helm
-  ];
+  languages.nix.enable = true;
 
   ##############
   # Python Env #
@@ -127,6 +134,12 @@ in
       )
     );
   };
+
+  devcontainer.enable = true;
+  devcontainer.settings.customizations.vscode.extensions = [
+    "mkhl.direnv"
+    "jnoortheen.nix-ide"
+  ];
 
   ############
   # RABBITMQ #

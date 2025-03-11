@@ -208,7 +208,12 @@ in
 
   processes.mongodb.process-compose = {
     readiness_probe = {
-      exec.command = ''${lib.getExe pkgs.mongosh} --quiet --eval "{ ping: 1 }" --port ${toString mongo_port} &>/dev/null'';
+      exec.command = "${lib.getExe pkgs.mongosh} --quiet --eval '{ ping: 1 }' --port ${toString mongo_port} &>/dev/null";
+      initial_delay_seconds = 10;
+      period_seconds = 3;
+      timeout_seconds = 3;
+      success_threshold = 2;
+      failure_threshold = 10;
     };
   };
 

@@ -20,7 +20,7 @@ part of the project, refer to:
 
 Settings up the environment with [devenv](https://devenv.sh/):
 
-1. `sh <(curl -L https://nixos.org/nix/install) --daemon --no-channel-add --nix-extra-conf-file <(echo -e "experimental-features = nix-command flakes \ntrusted-users = root ${USER:-}")`
+1. `./scripts/bootstrap.sh`
 2. `nix profile install nixpkgs#{dev,dir}env`
 3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
     1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)

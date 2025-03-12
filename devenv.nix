@@ -9,6 +9,7 @@
 let
   inherit (builtins) readFile concatStringsSep;
   toYAML = lib.generators.toYAML { };
+  writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
   mongo_port = 27017;
@@ -71,7 +72,17 @@ let
   user_yaml_path = "/collections/user_collection.yaml";
   dataset_yaml_path = "/collections/dataset_collection.yaml";
 
-  lomas_config = pkgs.writeText "test_config.yaml" (toYAML {
+  # Telemetry
+  prometheus_host = "localhost";
+  prometheus_port = 19090;
+  tempo_host = "localhost";
+  tempo_http_port = 13200;
+  tempo_grpc_port = 19095;
+  tempo_port = 4317;
+  loki_http_port = 13100;
+  loki_grpc_port = 19096;
+
+  lomas_config = writeYAML "test_config.yaml" {
     runtime_args = {
       settings = {
         develop_mode = false;
@@ -112,9 +123,9 @@ let
         };
       };
     };
-  });
+  };
 
-  lomas_secrets = pkgs.writeText "test_secrets.yaml" (toYAML {
+  lomas_secrets = writeYAML "test_secrets.yaml" {
     admin_database = {
       password = mongo_password;
       username = mongo_user;
@@ -127,12 +138,12 @@ let
         secret_access_key = secretKey;
       }
     ];
-  });
+  };
 
-  lomas_dashboard = pkgs.writeText "dashboard.yaml" (toYAML {
+  lomas_dashboard = writeYAML "dashboard.yaml" {
     server_service = "http://localhost:${toString lomas_port}";
     server_url = "CakeMightBeALie.ch";
-  });
+  };
 
   lomas_logging = pkgs.writeText "logging.json" (toYAML {
     version = 1;
@@ -442,6 +453,85 @@ in
       };
     };
 
+  ##############
+  # Monitoring #
+  ##############
+
+  processes.tempo =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/tempo";
+      conf = writeYAML "config-tempo.yaml" {
+        stream_over_http_enabled = true;
+        server.http_listen_port = tempo_http_port;
+        server.grpc_listen_port = tempo_grpc_port;
+        server.log_level = "info";
+        # query_frontend.search.duration_slo = "5s";
+        # query_frontend.search.throughput_bytes_slo = 1.073741824e+09;
+        # query_frontend.search.metadata_slo.duration_slo = "5s";
+        # query_frontend.search.metadata_slo.throughput_bytes_slo = 1.073741824e+09;
+        # query_frontend.trace_by_id.duration_slo = "5s";
+        distributor.receivers.otlp.protocols.grpc.endpoint = "${tempo_host}:${toString tempo_port}";
+        ingester.max_block_duration = "5m";
+        compactor.compaction.block_retention = "1h";
+        metrics_generator.registry.external_labels.source = "tempo";
+        metrics_generator.storage.path = "${working_dir}/generator/wal";
+        metrics_generator.storage.remote_write = [
+          {
+            url = "http://${prometheus_host}:${toString prometheus_port}/api/v1/write";
+            send_exemplars = true;
+          }
+        ];
+        metrics_generator.traces_storage.path = "${working_dir}/generator/traces";
+        storage.trace.backend = "local";
+        storage.trace.wal.path = "${working_dir}/wal";
+        storage.trace.local.path = "${working_dir}/blocks";
+        overrides.defaults.metrics_generator.processors = [
+          "service-graphs"
+          "span-metrics"
+          "local-blocks"
+        ];
+        overrides.defaults.metrics_generator.generate_native_histograms = "both";
+      };
+      extraFlags = [ ];
+    in
+    {
+      exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+    };
+
+  processes.loki =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/loki";
+      conf = writeYAML "config-loki.yaml" {
+        auth_enabled = false;
+        limits_config.allow_structured_metadata = true;
+        limits_config.volume_enabled = true;
+        server.http_listen_port = loki_http_port;
+        server.grpc_listen_port = loki_grpc_port;
+        common.ring.instance_addr = "0.0.0.0";
+        common.ring.kvstore.store = "inmemory";
+        common.replication_factor = 1;
+        common.path_prefix = working_dir;
+        schema_config.configs = [
+          {
+            from = "2025-01-10";
+            store = "tsdb";
+            object_store = "filesystem";
+            schema = "v13";
+            index.prefix = "loki_index_";
+            index.period = "24h";
+          }
+        ];
+        storage_config.tsdb_shipper.active_index_directory = "${working_dir}/index";
+        storage_config.tsdb_shipper.cache_location = "${working_dir}/index_cache";
+        storage_config.filesystem.directory = "${working_dir}/chunks";
+        pattern_ingester.enabled = true;
+      };
+      extraFlags = [ ];
+    in
+    {
+      exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+    };
+
   #############
   # GIT HOOKS #
   #############
@@ -607,7 +697,7 @@ in
   scripts.ut-coverage.exec =
     let
       working_dir = "$DEVENV_ROOT/server/lomas_server";
-      pc-config-patch = pkgs.writeText "pc-coverage-disable-worker.yaml" (toYAML {
+      pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
@@ -634,7 +724,7 @@ in
             availability.exit_on_end = true;
           };
         };
-      });
+      };
     in
     ''
       pushd ${working_dir}

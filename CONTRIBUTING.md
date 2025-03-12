@@ -1,6 +1,6 @@
 # Notes for Contributors
 
-This page gives general information about developer workflows valid for the entire project. For more specific information about developing for the client or server 
+This page gives general information about developer workflows valid for the entire project. For more specific information about developing for the client or server
 part of the project, refer to:
 * Stable version of the [client contributor notes](https://dscc-admin-ch.github.io/lomas-docs/CONTRIBUTING_CLIENT.html) (or in the [GitHub repo](https://github.com/dscc-admin-ch/lomas/blob/master/client/CONTRIBUTING.md))
 * Stable version of the [server contributor notes](https://dscc-admin-ch.github.io/lomas-docs/CONTRIBUTING_SERVER.html) (or in the [GitHub repo](https://github.com/dscc-admin-ch/lomas/blob/master/server/CONTRIBUTING.md))
@@ -20,10 +20,12 @@ part of the project, refer to:
 
 Settings up the environment with [devenv](https://devenv.sh/):
 
-1. `sh <(curl -L https://nixos.org/nix/install) --daemon --no-channel-add --nix-extra-conf-file <(echo -e "experimental-features = nix-command flakes \ntrusted-users = root ${USER:-}")`
-2. `nix profile install nixpkgs#devenv`
+1. `./scripts/bootstrap.sh`
+2. `nix profile install nixpkgs#{dev,dir}env`
 3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
-    1. Vscode: [direnv extension](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
+    1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)
+    2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`
+    3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
 
 
 Once in lomas repo: `devenv shell`
@@ -131,7 +133,7 @@ Steps:
 0. Add the necessary requirements in `lomas/lomas_server/requirements.txt` and `lomas/lomas_client/requirements.txt`
 1. Add the library the the `DPLibraries` StrEnum class in `lomas/lomas_core/constants.py` (`DPLibraries.NEW_LIBRARY = "new_library"`) and add the `NewLibraryQuerier` option in the `querier_factory` (in  `lomas/lomas_server/dp_queries/dp_libraries/factory.py`).
 2. Create a file for your querier in the folder `lomas/lomas_server/dp_queries/dp_libraries/new_library.py`. Inside, create a class `NewLibraryQuerier` that inherits from `DPQuerier` (`lomas/lomas_server/dp_queries/dp_querier.py`), your class must contain a `cost` method that return the cost of a query and a `query` method that return a result of a DP query.
-3. Add the three associated API endpoints . 
+3. Add the three associated API endpoints .
 - a. Add the endpoint handlers in `lomas/lomas_server/routes/routes_dp.py`: `/new_library_query` (for queries on the real dataset), `/dummy_new_library_query` (for queries on the dummy dataset) and `/estimate_new_library_cost` (for estimating the privacy budget cost of a query).
 - b. The endpoints should have predefined pydantic BaselModel types. Aadd BaseModel classes of expected input `NewLibraryModel`, `DummyNewLibraryModel`, `NewLibraryCostModel` in  `lomas/lomas_server/utils/query_models.py` and add the request case in the function `model_input_to_lib()`.
 - c. The endpoints should have predefined default values `example_new_library`, `example_dummy_new_library` in  `lomas/lomas_server/utils/query_examples.py`.

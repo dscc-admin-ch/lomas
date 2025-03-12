@@ -2,7 +2,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "mkhl.direnv"
+        "mkhl.direnv",
+        "jnoortheen.nix-ide"
       ]
     }
   },

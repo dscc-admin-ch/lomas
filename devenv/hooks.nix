@@ -7,7 +7,9 @@
       "120"
     ];
   };
+
   isort.enable = true;
+
   black = {
     enable = true;
     args = [
@@ -15,6 +17,7 @@
       "${env.DEVENV_ROOT}/pyproject.toml"
     ];
   };
+
   # TODO: add flake8-pyproject inside this context
   # or switch to ruff ?
   flake8 = {
@@ -26,6 +29,7 @@
       "E501,W503"
     ];
   };
+
   pylint = {
     enable = true;
     verbose = true;
@@ -36,4 +40,5 @@
       "8"
     ];
   };
+
 }

@@ -1,3 +1,35 @@
+[project]
+name = "lomas"
+version = "0.4.1"
+requires-python = '>=3.11'
+dependencies = [
+  "lomas-core",
+  "lomas-client",
+  "lomas-server[all]",
+]
+
+[project.optional-dependencies]
+test = [
+  "isort==6.0.0",
+  "black==25.1.0",
+  "flake8-pyproject==1.2.3",
+  "mypy==1.15.0",
+  "pylint==3.3.4",
+  "pydocstringformatter==0.7.3",
+  "coverage==7.6.12",
+  "pytest==8.3.3",
+  "pytest-cov==6.0.0",
+]
+
+[tool.uv.sources]
+private-pgm = { git = "https://github.com/ryan112358/private-pgm", rev = "01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca" }
+lomas-core.workspace = true
+lomas-client.workspace = true
+lomas-server.workspace = true
+
+[tool.uv.workspace]
+members = [ "core", "client", "server" ]
+
 [tool.black]
 line-length = 110
 include = '\.pyi?$'

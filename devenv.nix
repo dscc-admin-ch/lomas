@@ -118,21 +118,29 @@ in
   # Python Env #
   ##############
 
+  # Add tasks to generate requriements.txt from the pyproject.toml
+  tasks = {
+    "devenv:compile-requirements" = {
+      exec = "uv pip compile pyproject.toml --all-extras -o requirements.txt --annotation-style line";
+      before = [ "devenv:python:virtualenv" ];
+      status = ''
+        get_last_modified() {
+          stat -c %Y $1 2>/dev/null || stat -f %m $1 2>/dev/null || echo 0
+        }
+        input=$(get_last_modified "pyproject.toml")
+        output=$(get_last_modified "requirements.txt")
+        if [[ $output -eq 0 || $input -gt $output ]]; then
+          exit 1
+        fi
+      '';
+    };
+  };
+
   languages.python = {
     enable = true;
     uv.enable = true;
     venv.enable = true;
-    venv.requirements = (
-      concatStringsSep "\n" (
-        map readFile [
-          ./core/requirements_core.txt
-          ./client/requirements_client.txt
-          ./server/requirements_server.txt
-          ./server/requirements_streamlit.txt
-          ./requirements-dev.txt
-        ]
-      )
-    );
+    venv.requirements = ./requirements.txt;
   };
 
   devcontainer.enable = true;

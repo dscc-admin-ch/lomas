@@ -1,6 +1,8 @@
 name: Generate docs and push to dedicated repo for publishing
 
 on:
+  pull_request:
+    branches: [develop, master]
   push:
     branches: [develop, master]
   release:
@@ -22,6 +24,7 @@ jobs:
         uv run build_docs.py
         ls -l ../pages
     - name: Pushes to another repository
+      if: github.event_name == 'push' || github.event_name == 'release'
       uses: cpina/github-action-push-to-another-repository@main
       env:
         SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}

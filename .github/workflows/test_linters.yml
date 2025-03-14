@@ -2,7 +2,7 @@ name: Linter checks
 
 on:
   pull_request:
-    branches: [ develop, master]
+    branches: [develop, master]
   workflow_dispatch:
 
 jobs:

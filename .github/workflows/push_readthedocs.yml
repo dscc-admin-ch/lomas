@@ -15,13 +15,11 @@ jobs:
       with:
         python-version: 3.12
     - name: Install dependencies
-      run: |
-        sudo apt-get install pandoc
-        uv pip install -r requirements-docs.txt
+      run: sudo apt-get install pandoc
     - name: Build with sphinx
       run: |
         cd docs
-        python3.12 build_docs.py
+        uv run build_docs.py
         ls -l ../pages
     - name: Pushes to another repository
       uses: cpina/github-action-push-to-another-repository@main

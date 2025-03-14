@@ -120,7 +120,7 @@ in
 
   scripts.pip-fix.exec = ''
     pushd $DEVENV_ROOT
-    ${config.tasks."devenv:compile-requirements".exec}
+    ${config.tasks."devenv:compile-requirements".exec} "$@"
     popd
   '';
 
@@ -177,6 +177,30 @@ in
       timeout_seconds = 3;
       success_threshold = 2;
       failure_threshold = 10;
+    };
+  };
+
+  ##########
+  # SERVER #
+  ##########
+
+  processes.lomas-server = {
+    exec = "python uvicorn_serve.py";
+    process-compose = {
+      working_dir = "$DEVENV_ROOT/server/lomas_server";
+      # do not start by default since ut & ut-coverage currently use fastapi TestClient
+      disabled = true;
+    };
+  };
+
+  #############
+  # DASHBOARD #
+  #############
+
+  processes.admin-dashboad = {
+    exec = "streamlit run --server.headless true lomas_server/administration/dashboard/about.py";
+    process-compose = {
+      working_dir = "$DEVENV_ROOT/server";
     };
   };
 

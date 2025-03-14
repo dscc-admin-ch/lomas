@@ -118,10 +118,16 @@ in
   # Python Env #
   ##############
 
+  scripts.pip-fix.exec = ''
+    pushd $DEVENV_ROOT
+    ${config.tasks."devenv:compile-requirements".exec}
+    popd
+  '';
+
   # Add tasks to generate requriements.txt from the pyproject.toml
   tasks = {
     "devenv:compile-requirements" = {
-      exec = "uv pip compile pyproject.toml --all-extras -o requirements.txt --annotation-style line";
+      exec = "uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt";
       before = [ "devenv:python:virtualenv" ];
       status = ''
         get_last_modified() {

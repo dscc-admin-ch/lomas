@@ -33,9 +33,10 @@ def test_about_page():
 @pytest.fixture
 def mock_configs():
     """Fixture to mock server and dashboard configs."""
-    with patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config, patch(
-        "lomas_server.administration.dashboard.utils.get_server_data"
-    ) as mock_get_server_data:
+    with (
+        patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
+        patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
+    ):
 
         # Overwrite server config
         CONFIG_LOADER.load_config(

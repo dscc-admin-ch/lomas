@@ -70,22 +70,14 @@ To ensure code quality and consistency, we perform several checks using various 
   pydocstringformatter .
   ```
 
-To streamline the process, you can use the `run_linter.sh` script in ``lomas`. The first time you run this script, use the following command to install dependencies:
-```bash
-chmod +x run_linter.sh
-./run_linter.sh  --install-deps
-```
-For subsequent runs, to run all linters (on server, client and core) simply execute:
-```bash
-./run_linter.sh
-```
-To run the linter in a specific package, the package can be specified as argument:
-```bash
-./run_linter.sh --client
-```
-will only run the linter for the client. And similarly for `./run_linter.sh --core` and `./run_linter.sh --server`.
+To streamline the process, you can use the `run-linter` command inside the Devenv.
 
-There should be no error or warning, otherwise the linting github action will fail. All configurations are in `lomas/server/pyproject.toml` and `lomas/client/pyproject.toml`.
+There should be no error or warning, otherwise the linting github action will fail. All configurations are in
+
+* `lomas/pyproject.toml`
+* `lomas/core/pyproject.toml`
+* `lomas/server/pyproject.toml`
+* `lomas/client/pyproject.toml`.
 
 As detailed below, we rely on GitHub workflows to automatically run these checks on pull requests, ensuring consistency and quality across all contributions.
 

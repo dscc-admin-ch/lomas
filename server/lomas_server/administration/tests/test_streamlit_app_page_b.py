@@ -12,9 +12,10 @@ from lomas_server.administration.tests.utils import get_mocked_db, load_mock_fil
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
-    with patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb, patch(
-        "streamlit.file_uploader"
-    ) as mock_file_uploader:
+    with (
+        patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb,
+        patch("streamlit.file_uploader") as mock_file_uploader,
+    ):
 
         mock_get_mongodb.return_value = get_mocked_db()
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"

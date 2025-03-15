@@ -371,13 +371,15 @@ in
     '';
 
   scripts.run-linter.exec = ''
+    path=''${@:-.}
+    echo "linting: $path"
     pushd $DEVENV_ROOT
-    isort .
-    black .
-    flake8 .
-    pylint .
-    pydocstringformatter .
-    mypy .
+    isort "$path"
+    black "$path"
+    flake8 "$path"
+    pylint "$path"
+    pydocstringformatter "$path"
+    mypy "$path"
     popd
   '';
 

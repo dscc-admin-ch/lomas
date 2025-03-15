@@ -14,20 +14,16 @@ jobs:
         with:
           python-version: 3.12
       - name: Install dependencies
-        run: |
-          uv pip install twine
+        run: uv pip install twine
       - name: Publish core package
         run: |
-          cd core
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          uv build --sdist core
+          twine upload dist/lomas_core* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
       - name: Publish client package
         run: |
-          cd client
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          uv build --sdist client
+          twine upload dist/lomas_client* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
       - name: Publish server package
         run: |
-          cd server
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          uv build --sdist server
+          twine upload dist/lomas_server* -u __token__ -p ${{ secrets.PYPI_TOKEN }}

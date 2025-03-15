@@ -152,7 +152,7 @@ opentelemetry-util-http==0.50b0  # via opentelemetry-instrumentation-asgi, opent
 opt-einsum==3.4.0         # via jax
 overrides==7.7.0          # via jupyter-server
 pac-synth==0.0.8          # via smartnoise-synth
-packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, lomas-server, matplotlib, mongomock, nbconvert, opentelemetry-instrumentation, pytest, qtconsole, qtpy, streamlit
+packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, mongomock, nbconvert, opentelemetry-instrumentation, pytest, qtconsole, qtpy, streamlit
 pamqp==3.3.0              # via aiormq
 pandas==2.2.3             # via lomas-core, private-pgm, smartnoise-sql, streamlit
 pandocfilters==1.5.1      # via nbconvert

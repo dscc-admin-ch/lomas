@@ -118,6 +118,12 @@ in
   # Python Env #
   ##############
 
+  scripts.pip-fix.exec = ''
+    pushd $DEVENV_ROOT
+    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt
+    popd
+  '';
+
   languages.python = {
     enable = true;
     venv.enable = true;

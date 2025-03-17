@@ -1,5 +1,8 @@
 name: Publish to PyPI.org
+
 on:
+  pull_request:
+    branches: [develop, master]
   release:
     types: [published]
 
@@ -15,17 +18,16 @@ jobs:
       - name: Install dependencies
         run: uv pip install twine
 
-      - name: Publish core package
+      - name: Build Packages
         run: |
           uv build --sdist core
-          twine upload dist/lomas_core* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-
-      - name: Publish client package
-        run: |
           uv build --sdist client
-          twine upload dist/lomas_client* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-
-      - name: Publish server package
-        run: |
           uv build --sdist server
+
+      - name: Publish Packages
+        if: github.event_name == 'release'
+        run: |
+          twine upload dist/lomas_core*   -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          twine upload dist/lomas_client* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
           twine upload dist/lomas_server* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+

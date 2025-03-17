@@ -7,22 +7,24 @@ jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.12
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: 3.12
+
       - name: Install dependencies
         run: uv pip install twine
+
       - name: Publish core package
         run: |
           uv build --sdist core
           twine upload dist/lomas_core* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+
       - name: Publish client package
         run: |
           uv build --sdist client
           twine upload dist/lomas_client* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+
       - name: Publish server package
         run: |
           uv build --sdist server

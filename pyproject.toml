@@ -21,13 +21,20 @@ test = [
   "pytest-cov>=6.0",
 ]
 
+# workspace setup for uv
 [tool.uv.sources]
-lomas-core.workspace = true
-lomas-client.workspace = true
-lomas-server.workspace = true
+lomas-core = { workspace = true }
+lomas-client = { workspace = true }
+lomas-server = { workspace = true }
 
 [tool.uv.workspace]
 members = [ "core", "client", "server" ]
+
+# workspace setup for setuptools (uv build)
+[tool.setuptools.package-dir]
+lomas-core = "core/lomas_core"
+lomas-client = "client/lomas_client"
+lomas-server = "server/lomas_server"
 
 [tool.black]
 line-length = 110

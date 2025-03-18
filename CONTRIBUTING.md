@@ -97,7 +97,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Client library push**: The 'version' and the 'install_requires' must be set in `core/setup.py`, `server/setup.py` and `client/setup.py` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
+* **Client library push**: The 'version' and the 'install_requires' must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the generation of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
 
@@ -110,7 +110,7 @@ The following actions must take place in this order when preparing a new release
 
 1. Create a `release/vx.y.z` branch from develop.
 2. Fix remaining issues.
-3. Adjust versions for the client, core and server libraries (in the different setup.py), the helm charts, as well as for the documentation.
+3. Adjust versions for the client, core and server libraries (in the different pyproject.toml), the helm charts, as well as for the documentation.
 4. Create a GitHub PR from this branch to develop AND master (make sure you are up to date with develop by rebasing on it)
 5. Once merged, manually create a release on GitHub with the tag `vx.y.z`.
 

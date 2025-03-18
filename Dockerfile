@@ -1,9 +1,10 @@
 FROM python:3.12 AS lomas_core
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /code
 
-COPY ./core/requirements_core.txt /code/requirements_core.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements_core.txt
+COPY ./core/pyproject.toml /code/pyproject.toml
+RUN uv sync --no-cache --no-install-project
 
 COPY ./core/lomas_core/ /code/lomas_core/
 
@@ -13,8 +14,8 @@ ENV PYTHONPATH="${PYTHONPATH}:/code/"
 FROM lomas_core AS lomas_client_base
 WORKDIR /code
 
-COPY ./client/requirements_client.txt /code/requirements_client.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements_client.txt
+COPY ./client/pyproject.toml /code/pyproject.toml
+RUN uv sync --no-cache --no-install-project
 
 FROM lomas_client_base AS lomas_client_dev
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -31,8 +32,8 @@ CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 ### SERVER
 FROM lomas_core AS lomas_server_base
 
-COPY ./server/requirements_server.txt /code/requirements_server.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements_server.txt
+COPY ./server/pyproject.toml /code/pyproject.toml
+RUN uv sync --no-cache --no-install-project
 
 FROM lomas_server_base AS lomas_server_dev
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -45,8 +46,7 @@ COPY ./server/data/ /data/
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
 FROM lomas_server_base AS lomas_admin_dashboard_base
-COPY ./server/requirements_streamlit.txt /requirements_streamlit.txt
-RUN pip install --no-cache-dir --upgrade -r /requirements_streamlit.txt
+RUN uv sync --no-cache --no-install-project --extra all
 
 FROM lomas_admin_dashboard_base AS lomas_admin_dashboard_dev
 ENV PYTHONDONTWRITEBYTECODE=1

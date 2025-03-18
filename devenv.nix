@@ -118,21 +118,20 @@ in
   # Python Env #
   ##############
 
+  scripts.pip-fix.exec = ''
+    pushd $DEVENV_ROOT
+    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt
+    popd
+  '';
+
   languages.python = {
     enable = true;
-    uv.enable = true;
     venv.enable = true;
-    venv.requirements = (
-      concatStringsSep "\n" (
-        map readFile [
-          ./core/requirements_core.txt
-          ./client/requirements_client.txt
-          ./server/requirements_server.txt
-          ./server/requirements_streamlit.txt
-          ./requirements-dev.txt
-        ]
-      )
-    );
+    uv.enable = true;
+    uv.sync = {
+      enable = true;
+      allExtras = true;
+    };
   };
 
   devcontainer.enable = true;
@@ -163,6 +162,30 @@ in
       timeout_seconds = 3;
       success_threshold = 2;
       failure_threshold = 10;
+    };
+  };
+
+  ##########
+  # SERVER #
+  ##########
+
+  processes.lomas-server = {
+    exec = "python uvicorn_serve.py";
+    process-compose = {
+      working_dir = "$DEVENV_ROOT/server/lomas_server";
+      # do not start by default since ut & ut-coverage currently use fastapi TestClient
+      disabled = true;
+    };
+  };
+
+  #############
+  # DASHBOARD #
+  #############
+
+  processes.admin-dashboad = {
+    exec = "streamlit run --server.headless true lomas_server/administration/dashboard/about.py";
+    process-compose = {
+      working_dir = "$DEVENV_ROOT/server";
     };
   };
 
@@ -354,13 +377,15 @@ in
     '';
 
   scripts.run-linter.exec = ''
+    path=''${@:-.}
+    echo "linting: $path"
     pushd $DEVENV_ROOT
-    isort .
-    black .
-    flake8 .
-    pylint .
-    pydocstringformatter .
-    mypy .
+    isort "$path"
+    black "$path"
+    flake8 "$path"
+    pylint "$path"
+    pydocstringformatter "$path"
+    mypy "$path"
     popd
   '';
 

@@ -1,3 +1,14 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+# "pandoc==2.4",
+# "sphinx==8.1.3",
+# "nbsphinx==0.9.6",
+# "sphinx-rtd-theme==3.0.2",
+# "sphinxcontrib.napoleon==0.7",
+# "myst-parser==4.0.0",
+# ]
+# ///
 """
 This file is largely inspired from this blog post.
 

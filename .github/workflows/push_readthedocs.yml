@@ -1,6 +1,8 @@
 name: Generate docs and push to dedicated repo for publishing
 
 on:
+  pull_request:
+    branches: [develop, master]
   push:
     branches: [develop, master]
   release:
@@ -10,26 +12,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v5
-      with:
-        python-version: 3.12
-    - name: Install dependencies
-      run: |
-        sudo apt-get install pandoc
-        uv pip install -r requirements-docs.txt
-    - name: Build with sphinx
-      run: |
-        cd docs
-        python3.12 build_docs.py
-        ls -l ../pages
-    - name: Pushes to another repository
-      uses: cpina/github-action-push-to-another-repository@main
-      env:
-        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
-      with:
-        source-directory: pages/
-        destination-github-username: 'dscc-admin-ch'
-        destination-repository-name: 'lomas-docs'
-        target-branch: main
-        target-directory: html
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: sudo apt-get install pandoc
+
+      - name: Build with sphinx
+        run: |
+          cd docs
+          uv run build_docs.py
+          ls -l ../pages
+
+      - name: Pushes to another repository
+        if: github.event_name == 'push' || github.event_name == 'release'
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
+        with:
+          source-directory: pages/
+          destination-github-username: 'dscc-admin-ch'
+          destination-repository-name: 'lomas-docs'
+          target-branch: main
+          target-directory: html

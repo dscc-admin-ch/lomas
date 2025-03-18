@@ -2,7 +2,7 @@ name: Linter checks
 
 on:
   pull_request:
-    branches: [ develop, master]
+    branches: [develop, master]
   workflow_dispatch:
 
 jobs:
@@ -10,25 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     name: Lint
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v4
-      - name: Install the latest version of uv and set the python version to 3.12
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: 3.12
+
       - name: Install dependencies
         run: |
-          uv pip install -r requirements-dev.txt
+          uv sync --extra test
+
       - name: flake8
         run: |
           flake8 core/lomas_core
           flake8 client/lomas_client
           flake8 server/lomas_server
+
       - name: mypy
         run: |
           mypy core/lomas_core
           mypy client/lomas_client
           mypy server/lomas_server
+
       - name: pylint
         run: |
           pylint core/lomas_core

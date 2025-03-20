@@ -1,5 +1,8 @@
 users:
-- user_name: Dr. Antartica
+- id:
+    name : Dr.Antartica
+    email: "dr.antartica@example.com"
+    client_secret: dr.antartica
   may_query: True
   datasets_list:
   - dataset_name: "PENGUIN"
@@ -27,7 +30,10 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0
     total_spent_delta: 0
-- user_name: "Tintin"
+- id:
+    name: "Tintin"
+    email: "tintin@example.com"
+    client_secret: tintin
   may_query: True
   datasets_list:
   - dataset_name: "Bijoux de la Castafiore"
@@ -35,7 +41,10 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: "Milou"
+- id:
+    name: "Milou"
+    email: "milou@example.com"
+    client_secret: milou
   may_query: True
   datasets_list:
   - dataset_name: "os"
@@ -43,7 +52,10 @@ users:
     initial_delta: 0.005
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
-- user_name: BirthdayGirl
+- id:
+    name: BirthdayGirl
+    email: "birthdaygirl@example.com"
+    client_secret: birthdaygirl
   may_query: True
   datasets_list:
   - dataset_name: "BIRTHDAYS"

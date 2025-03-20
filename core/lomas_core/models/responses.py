@@ -17,6 +17,7 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.config import Config
 from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
@@ -30,6 +31,13 @@ from lomas_core.models.utils import (
 
 class ResponseModel(BaseModel):
     """Base model for any response from the server."""
+
+
+class ConfigResponse(BaseModel):
+    """Model for response to server config queries."""
+
+    config: Config
+    """The server config."""
 
 
 class InitialBudgetResponse(ResponseModel):
@@ -224,7 +232,14 @@ class Job(ResponseModel):
     """Scheduled Job Response."""
 
     uid: UUID = Field(default_factory=uuid4)
+    """Job unique identifier."""
+    requested_by: str | None = None
+    """Name of the user that requested this job."""
     status: str = "in_progress"
+    """Job status."""
     result: QueryResponse | CostResponse | None = None
+    """Job result, if available."""
     error: LomasServerExceptionType | None = None
+    """Job error, if any."""
     status_code: int = 200
+    """Status code for job response."""

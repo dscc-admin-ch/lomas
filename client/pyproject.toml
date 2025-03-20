@@ -15,6 +15,7 @@ authors = [
     { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
     { name = "Swiss Federal Statistical Office" },
 ]
+license = "MIT"
 keywords = [
     "DP",
     "differential privacy",
@@ -29,7 +30,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -42,6 +42,8 @@ dependencies = [
     "lomas-core==0.4.1",
     "jupyter==1.0.0",
     "requests>=2.32.0",
+    "requests-oauthlib==2.0.0",
+    "oauthlib==3.2.2",
     "opentelemetry-instrumentation-requests==0.50b0",
 ]
 

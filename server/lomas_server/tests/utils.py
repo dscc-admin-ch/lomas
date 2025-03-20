@@ -7,11 +7,10 @@ from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import Job
 
 
-def wait_for_job(client, endpoint) -> Job:
+def wait_for_job(client, endpoint, headers=None) -> Job:
     """Periodically query the job endpoint sleeping in between until it completes / times-out."""
     for _ in sleeping_retry(75, error=False):
-        job_query = client.get(endpoint).json()
-
+        job_query = client.get(endpoint, headers=headers).json()
         if job_query["status"] == "complete":
             return Job.model_validate(job_query)
 
@@ -30,6 +29,6 @@ def submit_job_wait(client, endpoint, json, headers=None) -> Job:
         return Job(status="failed", status_code=query_job_submit.status_code, error=error)
 
     job_uid = query_job_submit.json()["uid"]
-    job = wait_for_job(client, f"/status/{job_uid}")
+    job = wait_for_job(client, f"/status/{job_uid}", headers=headers)
 
     return job

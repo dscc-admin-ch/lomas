@@ -34,6 +34,14 @@ NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 
+class KCAttributeNames(StrEnum):
+    """Keycloak attribute names, also used as claim names in JWT token."""
+
+    USER_NAME = "user_name"
+    USER_EMAIL = "user_email"
+    LOMAS_USER_CLIENT = "lomas_user_client"
+
+
 # DP Libraries
 # -----------------------------------------------------------------------------
 

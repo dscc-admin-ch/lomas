@@ -1,19 +1,18 @@
 import os
 
 import yaml
-from pydantic import BaseModel
 
 from lomas_core.error_handler import InternalServerException
+from lomas_core.models.config import AdminConfig
 
 # Get config and secrets from correct location
 if "LOMAS_DASHBOARD_CONFIG_PATH" in os.environ:
     CONFIG_PATH = f"""{os.environ.get("LOMAS_DASHBOARD_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
 else:
     CONFIG_PATH = "/usr/lomas_dashboard/dashboard.yaml"
 
 
-class Config(BaseModel):
+class Config(AdminConfig):
     """Dashboard runtime config."""
 
     server_url: str

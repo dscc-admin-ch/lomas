@@ -3,6 +3,8 @@
   lib,
   mongo_db_name,
   mongo_port,
+  mongo_user,
+  mongo_password,
   initDatabaseUsername,
   initDatabasePassword,
   ...
@@ -25,8 +27,8 @@
         echo "Creating user database: ${mongo_db_name}"
         ${pkgs.mongosh}/bin/mongosh --port ${toString mongo_port} ${mongo_db_name} >/dev/null <<-EOJS
             db.createUser({
-              user: "user",
-              pwd: "user_pwd",
+              user: "${mongo_user}",
+              pwd: "${mongo_password}",
               roles: [{role: "readWrite", db: "${mongo_db_name}" }]
             });
         EOJS

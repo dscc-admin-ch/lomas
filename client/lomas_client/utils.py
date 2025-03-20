@@ -3,10 +3,11 @@ from typing import Any
 
 import requests
 from fastapi import status
+from pydantic import ValidationError
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
-from lomas_core.error_handler import raise_error_from_model
+from lomas_core.error_handler import InternalServerException, raise_error_from_model
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 
 
@@ -19,7 +20,10 @@ def raise_error(response: requests.Response) -> None:
     Raise:
         Server Error
     """
-    error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    try:
+        error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    except ValidationError as e:
+        raise InternalServerException(f"Could not parse server error: {response.content}") from e
     raise_error_from_model(error_model)
 
 

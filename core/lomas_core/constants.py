@@ -49,3 +49,13 @@ class SSynthGanSynthesizer(StrEnum):
     PATE_CTGAN = "patectgan"
     PATE_GAN = "pategan"
     DP_GAN = "dpgan"
+
+
+# Security
+# ------------------------------------------------
+
+
+class Scopes(StrEnum):
+    """List of security scopes for the server endpoints."""
+
+    ADMIN = "admin"

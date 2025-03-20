@@ -1,16 +1,7 @@
-import logging
-
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import MongoDBConfig
-from lomas_server.mongodb_admin import (
-    add_datasets_via_yaml,
-    add_users_via_yaml,
-    drop_collection,
-)
-from lomas_server.utils.config import get_config
 
 
 def get_mongodb_url(config: MongoDBConfig) -> str:
@@ -42,57 +33,15 @@ def get_mongodb_url(config: MongoDBConfig) -> str:
     return db_url
 
 
-def get_mongodb() -> Database:
-    """Get URL of the administration MongoDB.
+def get_mongodb(mongo_config: MongoDBConfig) -> Database:
+    """Get MongoClient of the administration MongoDB.
 
     Args:
-        config (DBConfig): An instance of DBConfig.
+        config (MongoDBConfig): An instance of MongoDBConfig.
 
     Returns:
         str: A correctly formatted url for connecting to the
             MongoDB database.
     """
-    admin_config = get_config().admin_database
-    if isinstance(admin_config, MongoDBConfig):
-        db_url = get_mongodb_url(admin_config)
-    else:
-        raise InternalServerException("Expected MongoDBConfig, found {type(admin_config)}.")
-
-    return MongoClient(db_url)[admin_config.db_name]
-
-
-def add_demo_data_to_mongodb_admin(
-    user_yaml: str = "/data/collections/user_collection.yaml",
-    dataset_yaml: str = "/data/collections/dataset_collection.yaml",
-) -> None:
-    """
-    Adds the demo data to the mongodb admindb.
-
-    Meant to be used in the develop mode of the service.
-
-    Args:
-        user_yaml (str): path to user collection yaml file
-        dataset_yaml (str): path to dataset collection yaml file
-    """
-    logging.info("Creating example user collection")
-    mongo_db: Database = get_mongodb()
-
-    logging.info("Creating user collection")
-    add_users_via_yaml(
-        mongo_db,
-        clean=True,
-        overwrite=True,
-        yaml_file=user_yaml,
-    )
-
-    logging.info("Creating datasets and metadata collection")
-    add_datasets_via_yaml(
-        mongo_db,
-        clean=True,
-        overwrite_datasets=True,
-        overwrite_metadata=True,
-        yaml_file=dataset_yaml,
-    )
-
-    logging.info("Empty archives")
-    drop_collection(mongo_db, collection="queries_archives")
+    db_url = get_mongodb_url(mongo_config)
+    return MongoClient(db_url)[mongo_config.db_name]

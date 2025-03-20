@@ -33,7 +33,7 @@ from lomas_server.tests.utils import (
 )
 
 
-def validate_response(client, response) -> QueryResponse:
+def validate_response(client, response, headers=None) -> QueryResponse:
     """Validate that the pipeline ran successfully.
 
     Returns a model and a score.
@@ -41,7 +41,7 @@ def validate_response(client, response) -> QueryResponse:
     assert response.status_code == status.HTTP_202_ACCEPTED
 
     job_uid = response.json()["uid"]
-    job = wait_for_job(client, f"/status/{job_uid}")
+    job = wait_for_job(client, f"/status/{job_uid}", headers=headers)
 
     r_model = QueryResponse.model_validate(job.result)
     assert isinstance(r_model.result, SmartnoiseSynthModel | SmartnoiseSynthSamples)
@@ -62,7 +62,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=example_smartnoise_synth_query,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
 
             assert r_model.requested_by == self.user_name
             assert r_model.epsilon >= 0.1
@@ -111,7 +111,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -126,7 +126,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -148,7 +148,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -194,7 +194,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -217,7 +217,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -320,8 +320,9 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         with TestClient(app) as client:
 
             # Expect to work
+            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
-            new_headers["user-name"] = "BirthdayGirl"
+            new_headers["Authorization"] = fake_user_token
 
             body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "BIRTHDAYS"
@@ -332,8 +333,8 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=new_headers,
             )
-            r_model = validate_response(client, response)
-            assert r_model.requested_by == new_headers["user-name"]
+            r_model = validate_response(client, response, headers=self.headers)
+            assert r_model.requested_by == "BirthdayGirl"
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
             model = r_model.result.model
@@ -349,8 +350,8 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=new_headers,
             )
-            r_model = validate_response(client, response)
-            assert r_model.requested_by == new_headers["user-name"]
+            r_model = validate_response(client, response, headers=self.headers)
+            assert r_model.requested_by == "BirthdayGirl"
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
             model = r_model.result.model
@@ -374,7 +375,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -414,7 +415,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -429,7 +430,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -455,7 +456,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 headers=self.headers,
             )
 
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthSamples)
@@ -532,7 +533,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)
@@ -592,7 +593,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
                 json=body,
                 headers=self.headers,
             )
-            r_model = validate_response(client, response)
+            r_model = validate_response(client, response, headers=self.headers)
             assert r_model.requested_by == self.user_name
 
             assert isinstance(r_model.result, SmartnoiseSynthModel)

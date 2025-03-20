@@ -1,4 +1,4 @@
-- user_name: Dr. Antartica
+- user_name: Dr.Antartica
   dataset_name: PENGUIN
   client_input:
     query_str: "SELECT COUNT(*) AS nb_penguins,         AVG(bill_length_mm) AS avg_bill_length_mm         FROM df"
@@ -8,7 +8,7 @@
     mechanisms: {}
     postprocess: true
   response:
-    requested_by: Dr. Antartica
+    requested_by: Dr.Antartica
     query_response:
       index:
         - 0

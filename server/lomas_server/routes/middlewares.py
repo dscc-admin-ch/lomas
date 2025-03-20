@@ -61,17 +61,36 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
 
         tracer = get_tracer(__name__)
         with tracer.start_as_current_span("user_request_span") as span:
-            span.set_attribute("user_name", user_name)
             for param, value in query_params.items():
                 span.set_attribute(f"query_param.{param}", value)
 
             logging.info(
-                f"User '{user_name}' is making a request to route '{route}' "
+                f"User is making a request to route '{route}' "
                 + f"with query params: {query_params}. "
                 + f"trace_id={format_trace_id(span.get_span_context().trace_id)}"
             )
 
             response = await call_next(request)
+
+            if response.status_code < 400:  # Run only for successful requests.
+                if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
+                    user_name = request.state.user_name
+                    logging.info(
+                        f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
+                        f" for user '{user_name}' completed."
+                    )
+                    span.set_attribute("user_name", request.state.user_name)
+
+                logging.info(
+                    f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
+                    " completed successfully"
+                )
+
+            else:
+                logging.info(
+                    f"Failed request with trace_id={format_trace_id(span.get_span_context().trace_id)}."
+                    f"Status code: {response.status_code}."
+                )
 
         return response
 

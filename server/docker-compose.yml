@@ -20,7 +20,6 @@ services:
       - ../core/lomas_core:/code/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
-      - ./data/:/data/
     depends_on:
       minio-client:
         condition: service_completed_successfully
@@ -30,6 +29,12 @@ services:
         restart: true
       otel-collector:
         condition: service_started
+      keycloak:
+        condition: service_started
+        restart: true
+      keycloak_setup:
+        condition: service_completed_successfully
+        restart: true
     networks:
       - lomas-network
 
@@ -67,6 +72,67 @@ services:
       - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017
     depends_on:
       - mongodb
+  
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.1.0
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    command: start-dev --health-enabled=true # TODO will have to change that to production mode.
+    ports:
+        - 8081:8080
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: always
+    networks:
+      - lomas-network
+
+  keycloak_setup:
+    container_name: keycloak_setup
+    image: dsccadminch/lomas_admin_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_admin_dev
+      context: ../
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.keycloak_setup"
+    env_file: ./configs/administration/lomas_keycloak_setup.env
+    volumes:
+      - ../core/lomas_core:/code/lomas_core
+      - ./lomas_server:/code/lomas_server
+    networks:
+      - lomas-network
+
+  lomas_demo_setup:
+    container_name: demo_setup
+    image: dsccadminch/lomas_admin_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_admin_dev
+      context: ../
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      keycloak_setup:
+        condition: service_completed_successfully
+    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
+    env_file: ./configs/administration/lomas_demo_setup.env
+    volumes:
+      - ../core/lomas_core:/code/lomas_core
+      - ./lomas_server:/code/lomas_server
+      - ./data/collections/metadata:/data/collections/metadata/
+      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
+      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+    networks:
+      - lomas-network
 
   minio:
     container_name: minio
@@ -103,12 +169,12 @@ services:
       - lomas-network
 
   lomas_admin_dashboard:
-    image: dsccadminch/lomas_admin_dashboard_dev
+    image: dsccadminch/lomas_admin_dev
     build:
       dockerfile: ./Dockerfile
-      target: lomas_admin_dashboard_dev
+      target: lomas_admin_dev
       context: ../
-    container_name: lomas_admin_dashboard_dev
+    container_name: lomas_admin_dev
     ports:
       - 8501:8501
     restart: always

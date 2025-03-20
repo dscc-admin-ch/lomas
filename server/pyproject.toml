@@ -15,11 +15,11 @@ authors = [
     { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
     { name = "Swiss Federal Statistical Office" },
 ]
+license = "MIT"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -39,12 +39,14 @@ dependencies = [
   "opentelemetry-instrumentation-aio-pika==0.50b0",
   "pyaml==23.9.5",
   "pydantic==2.8.2",
+  "pyjwt==2.10.1",
   "smartnoise-sql==1.0.6",
   "uvicorn==0.29.0",
   "aio-pika==9.5.4",
 ]
 [project.optional-dependencies]
 all = [
+  "mantelo==2.2.0",
   "mongomock==4.3.0",
   "streamlit==1.39.0",
   "st-pages==0.5.0",
@@ -52,3 +54,11 @@ all = [
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"
+
+[tool.pytest.ini_options]
+addopts = [
+  "--ignore-glob=*/test_streamlit_app_page_b.py"
+]
+markers = [
+  "long: marks test as long (deselect with '-m \"not long\"')",
+]

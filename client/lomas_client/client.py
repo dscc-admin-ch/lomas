@@ -1,7 +1,7 @@
 import base64
 import json
 import pickle
-from typing import List, Optional
+from typing import List, Optional, TypeVar
 
 import pandas as pd
 import polars as pl
@@ -38,6 +38,8 @@ from lomas_core.models.responses import (
 enable_logging()
 enable_features("contrib")
 
+_Client = TypeVar("_Client")
+
 
 class Client:
     """Client class to send requests to the server.
@@ -45,19 +47,49 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
-        """Initializes the Client with the specified URL, user name, and dataset name.
+    def __init__(
+        self,
+        url: str,
+        dataset_name: str,
+        keycloak_address: Optional[str] = None,
+        keycloak_port: Optional[int] = None,
+        keycloak_use_tls: Optional[bool] = None,
+        realm: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+    ) -> None:
+        """Initializes the Client with the specified URL, dataset name and authentication parameters.
 
         Args:
             url (str): The base URL for the API server.
-            user_name (str): The name of the user allowed to perform queries.
             dataset_name (str): The name of the dataset to be accessed or manipulated.
+            keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
+                environment variable). Defaults to None.
+            keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
+                environment variable). Defaults to None.
+            keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
+                environment variable). Defaults to None.
+            realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
+                if using jwt authentication. Defaults to None.
+            client_id (str, optional): Overwrites the client id of the user's associated service account
+                (otherwise passed by environment variable). Defaults to None.
+            client_secret (str, optional): Overwrites the client id of the user's associated service account
+                (otherwise passed by environment variable). Defaults to None.
         """
 
         resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
         init_telemetry(resource)
 
-        self.http_client = LomasHttpClient(url, user_name, dataset_name)
+        self.http_client = LomasHttpClient(
+            url,
+            dataset_name,
+            keycloak_address,
+            keycloak_port,
+            keycloak_use_tls,
+            realm,
+            client_id,
+            client_secret,
+        )
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)

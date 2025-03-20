@@ -1,27 +1,34 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Header, Request, Response
+from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from lomas_core.constants import Scopes
 from lomas_core.error_handler import (
     KNOWN_EXCEPTIONS,
+    SERVER_QUERY_ERROR_RESPONSES,
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import Metadata
+from lomas_core.models.collections import Metadata, UserId
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
 )
 from lomas_core.models.responses import (
+    ConfigResponse,
     DummyDsResponse,
     InitialBudgetResponse,
+    Job,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.routes.utils import get_user_id_from_authenticator
+from lomas_server.utils.config import get_config
 
 router = APIRouter()
 
@@ -46,30 +53,48 @@ async def health_handler():
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}")
-async def status_handler(request: Request, uid: UUID, response: Response):
-    """Job Status endpoint.
+@router.get("/status/{uid}", response_model=Job, responses=SERVER_QUERY_ERROR_RESPONSES)
+async def status_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
+    request: Request,
+    uid: UUID,
+    response: Response,
+) -> Job:
+    """Job status endpoint.
+
+    Args:
+        user_id (UserId): The user id.
+        request (Request): The raw request.
+        uid (UUID): The job's unique id.
+        response (Response): The job status response.
+
+    Raises:
+        UnauthorizedAccessException: If the user does not have access to this job.
+        HTTPException: If the job does not exist.
 
     Returns:
-        Job
+        Job: The Job model for this uid.
     """
     jobs = request.app.state.jobs_var.get()
     if (job := jobs.get(str(uid))) is not None:
+        if job.requested_by != user_id.name:
+            raise UnauthorizedAccessException(f"{user_id.name} does not have access to job with uid {uid}.")
+
         if job.status == "failed":
             response.status_code = job.status_code
         return job
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This job does not exist.")
 
 
 # Get server state
 @router.get("/state", tags=["ADMIN_USER"])
 async def get_state(
-    user_name: str = Header(None),
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
 ) -> JSONResponse:
     """Returns the current state dict of this server instance.
 
     Args:
-        request (Request): Raw request object
-        user_name (str, optional): The user name. Defaults to Header(None).
+        _ (UserId): A UserId object identifying the user.
 
     Returns:
         JSONResponse: The state of the server instance.
@@ -77,10 +102,31 @@ async def get_state(
 
     return JSONResponse(
         content={
-            "requested_by": user_name,
             "state": "live",
         }
     )
+
+
+# Get server config
+@router.get(
+    "/config",
+    tags=["ADMIN_USER"],
+    response_model=ConfigResponse,
+)
+async def get_server_config(
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+) -> ConfigResponse:
+    """Returns the config of this server instance.
+
+    Args:
+        _ (UserId): A UserId object identifying the user.
+
+    Returns:
+        ConfigResponse: The server config.
+    """
+    config = get_config()
+
+    return ConfigResponse(config=config)
 
 
 # Metadata query
@@ -90,14 +136,15 @@ async def get_state(
 )
 def get_dataset_metadata(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = Body(example_get_admin_db_data),
-    user_name: str = Header(None),
 ) -> Metadata:
     """
     Retrieves metadata for a given dataset.
 
     Args:
         request (Request): Raw request object
+        user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing
             the dataset_name key for indicating the dataset.
             Defaults to Body(example_get_admin_db_data).
@@ -114,9 +161,9 @@ def get_dataset_metadata(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
+    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
+            f"{user_id.name} does not have access to {dataset_name}.",
         )
 
     try:
@@ -137,14 +184,15 @@ def get_dataset_metadata(
 )
 def get_dummy_dataset(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: GetDummyDataset = Body(example_get_dummy_dataset),
-    user_name: str = Header(None),
 ) -> DummyDsResponse:
     """
     Generates and returns a dummy dataset.
 
     Args:
         request (Request): Raw request object
+        user_id (UserId): A UserId object identifying the user.
         query_json (GetDummyDataset, optional):
             A JSON object containing the following:
                 - nb_rows (int, optional): The number of rows in the
@@ -165,9 +213,9 @@ def get_dummy_dataset(
     app = request.app
 
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
+    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
+            f"{user_id.name} does not have access to {dataset_name}.",
         )
 
     try:
@@ -198,21 +246,19 @@ def get_dummy_dataset(
 )
 def get_initial_budget(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = Body(example_get_admin_db_data),
-    user_name: str = Header(None),
 ) -> InitialBudgetResponse:
     """
     Returns the initial budget for a user and dataset.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
+        user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
-
-        user_name (str, optional): The user name.
-            Defaults to Header(None).
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -232,7 +278,7 @@ def get_initial_budget(
         (
             initial_epsilon,
             initial_delta,
-        ) = app.state.admin_database.get_initial_budget(user_name, query_json.dataset_name)
+        ) = app.state.admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -248,21 +294,19 @@ def get_initial_budget(
 )
 def get_total_spent_budget(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = Body(example_get_admin_db_data),
-    user_name: str = Header(None),
 ) -> SpentBudgetResponse:
     """
     Returns the spent budget for a user and dataset.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
+        user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
-
-        user_name (str, optional): The user name.
-            Defaults to Header(None).
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -282,7 +326,7 @@ def get_total_spent_budget(
         (
             total_spent_epsilon,
             total_spent_delta,
-        ) = app.state.admin_database.get_total_spent_budget(user_name, query_json.dataset_name)
+        ) = app.state.admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
@@ -298,21 +342,19 @@ def get_total_spent_budget(
 )
 def get_remaining_budget(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = Body(example_get_admin_db_data),
-    user_name: str = Header(None),
 ) -> RemainingBudgetResponse:
     """
     Returns the remaining budget for a user and dataset.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
+        user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
-
-        user_name (str, optional): The user name.
-            Defaults to Header(None).
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -330,7 +372,7 @@ def get_remaining_budget(
 
     try:
         rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-            user_name, query_json.dataset_name
+            user_id.name, query_json.dataset_name
         )
     except KNOWN_EXCEPTIONS as e:
         raise e
@@ -347,21 +389,19 @@ def get_remaining_budget(
 )
 def get_user_previous_queries(
     request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = Body(example_get_admin_db_data),
-    user_name: str = Header(None),
 ) -> JSONResponse:
     """
     Returns the query history of a user on a specific dataset.
 
     Args:
-        request (Request): Raw request object
+        request (Request): Raw request object.
+        user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
             Defaults to Body(example_get_admin_db_data).
-
-        user_name (str, optional): The user name.
-            Defaults to Header(None).
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -380,7 +420,7 @@ def get_user_previous_queries(
 
     try:
         previous_queries = app.state.admin_database.get_user_previous_queries(
-            user_name, query_json.dataset_name
+            user_id.name, query_json.dataset_name
         )  # TODO 359 improve on that and return models.
     except KNOWN_EXCEPTIONS as e:
         raise e

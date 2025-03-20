@@ -1,2 +1,21 @@
 server_url: "http://localhost:80"
 server_service: "http://lomas_server:80"
+
+mg_config:
+  db_type: "mongodb"
+  address: "mongodb"
+  port: 27017
+  password: "user_pwd"
+  username: "user"
+  db_name: "defaultdb"
+  max_pool_size: 100
+  min_pool_size: 2
+  max_connecting: 2
+
+kc_config:
+  address: "keycloak"
+  port: 8080
+  use_tls: false
+  realm: lomas
+  client_id: lomas_admin
+  client_secret: lomas_admin

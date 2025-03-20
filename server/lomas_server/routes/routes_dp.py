@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Header, Request, status
+from fastapi import APIRouter, Request, Security, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
+from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
@@ -19,7 +20,10 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import Job
-from lomas_server.routes.utils import handle_query_to_job
+from lomas_server.routes.utils import (
+    get_user_id_from_authenticator,
+    handle_query_to_job,
+)
 
 router = APIRouter()
 
@@ -35,7 +39,7 @@ router = APIRouter()
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
 ) -> Job:
@@ -44,7 +48,7 @@ async def smartnoise_sql_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLQueryModel): The smartnoise_sql query body.
 
@@ -60,7 +64,7 @@ async def smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -71,7 +75,7 @@ async def smartnoise_sql_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def dummy_smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
 ) -> Job:
@@ -80,7 +84,7 @@ async def dummy_smartnoise_sql_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLDummyQueryModel):
             The smartnoise_sql query body.
@@ -97,7 +101,7 @@ async def dummy_smartnoise_sql_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -108,7 +112,7 @@ async def dummy_smartnoise_sql_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def estimate_smartnoise_sql_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
 ) -> Job:
@@ -117,7 +121,7 @@ async def estimate_smartnoise_sql_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLRequestModel):
             The smartnoise_sql request body.
@@ -133,7 +137,7 @@ async def estimate_smartnoise_sql_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -148,7 +152,7 @@ async def estimate_smartnoise_sql_cost(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
 ) -> Job:
@@ -157,7 +161,7 @@ async def smartnoise_synth_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthQueryModel):
             The smartnoise_synth query body.
@@ -175,7 +179,9 @@ async def smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -186,7 +192,7 @@ async def smartnoise_synth_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def dummy_smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
 ) -> Job:
@@ -195,7 +201,7 @@ async def dummy_smartnoise_synth_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthDummyQueryModel):
             The smartnoise_synth query body.
@@ -213,7 +219,9 @@ async def dummy_smartnoise_synth_handler(
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 @router.post(
@@ -224,7 +232,7 @@ async def dummy_smartnoise_synth_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def estimate_smartnoise_synth_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
 ) -> Job:
@@ -233,7 +241,7 @@ async def estimate_smartnoise_synth_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthRequestModel):
             The smartnoise_synth query body.
@@ -250,7 +258,9 @@ async def estimate_smartnoise_synth_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 # OpenDP
@@ -265,7 +275,7 @@ async def estimate_smartnoise_synth_cost(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def opendp_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPQueryModel,
 ) -> Job:
@@ -274,7 +284,7 @@ async def opendp_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -290,7 +300,7 @@ async def opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -301,7 +311,7 @@ async def opendp_query_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def dummy_opendp_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
 ) -> Job:
@@ -310,7 +320,7 @@ async def dummy_opendp_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -326,7 +336,7 @@ async def dummy_opendp_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -337,7 +347,7 @@ async def dummy_opendp_query_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def estimate_opendp_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPRequestModel,
 ) -> Job:
@@ -346,7 +356,7 @@ async def estimate_opendp_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPRequestModel): The opendp query object.
 
@@ -362,7 +372,7 @@ async def estimate_opendp_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -377,7 +387,7 @@ async def estimate_opendp_cost(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
 ) -> Job:
@@ -386,7 +396,7 @@ async def diffprivlib_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibQueryModel): The diffprivlib query body.
 
@@ -402,7 +412,7 @@ async def diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -413,7 +423,7 @@ async def diffprivlib_query_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def dummy_diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
 ) -> Job:
@@ -422,7 +432,7 @@ async def dummy_diffprivlib_query_handler(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibDummyQueryModel): The diffprivlib query body.
 
@@ -438,7 +448,7 @@ async def dummy_diffprivlib_query_handler(
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, query_json, user_id.name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -449,7 +459,7 @@ async def dummy_diffprivlib_query_handler(
     status_code=status.HTTP_202_ACCEPTED,
 )
 async def estimate_diffprivlib_cost(
-    user_name: Annotated[str, Header()],
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
 ) -> Job:
@@ -458,7 +468,7 @@ async def estimate_diffprivlib_cost(
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibRequestModel): The diffprivlib query body.
         A JSON object containing the following:
@@ -483,4 +493,4 @@ async def estimate_diffprivlib_cost(
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)

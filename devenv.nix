@@ -72,9 +72,9 @@ let
           address = "127.0.0.1";
           port = mongo_port;
           db_name = mongo_db_name;
-          max_pool_size = 100;
-          min_pool_size = 2;
-          max_connecting = 2;
+          max_pool_size = mongo_max_pool_size;
+          min_pool_size = mongo_min_pool_size;
+          max_connecting = mongo_max_connecting;
         };
         authenticator = {
           authentication_type = "jwt";
@@ -257,9 +257,7 @@ in
   ##########
 
   processes.worker = {
-    exec = ''
-      python worker.py
-    '';
+    exec = "python worker.py";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.rabbitmq.condition = "process_healthy";
@@ -344,28 +342,16 @@ in
         pass = "${config.env.KC_BOOTSTRAP_ADMIN_PASSWORD}";
       }
     ];
-    # initialScript = ''
-    #   SELECT pg_terminate_backend(pg_stat_activity.pid)
-    #   FROM pg_stat_activity
-    #   WHERE pg_stat_activity.datname = 'keycloak';
-    #   DROP DATABASE keycloak;
-    #   DROP ROLE keycloak;
-    # '';
   };
 
   # Keycloak setup for lomas
-  processes.keycloak_setup =
-    let
-    in
-    {
-      exec = ''
-        python administration/scripts/keycloak_setup.py
-      '';
-      process-compose = {
-        working_dir = "$DEVENV_ROOT/server/lomas_server";
-        depends_on.keycloak.condition = "process_healthy";
-      };
+  processes.keycloak_setup = {
+    exec = "python administration/scripts/keycloak_setup.py";
+    process-compose = {
+      working_dir = "$DEVENV_ROOT/server/lomas_server";
+      depends_on.keycloak.condition = "process_healthy";
     };
+  };
 
   #########
   # MINIO #

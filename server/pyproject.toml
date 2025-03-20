@@ -31,8 +31,6 @@ classifiers = [
 dependencies = [
   "lomas-core==0.4.1",
   "boto3==1.34.115",
-  "cryptography==44.0.0",
-  "httpx==0.27.0",
   "jax==0.4.31",
   "jaxlib==0.4.31",
   "opentelemetry-instrumentation-fastapi>=0.50b0",

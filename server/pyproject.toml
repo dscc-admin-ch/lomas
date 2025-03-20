@@ -15,11 +15,11 @@ authors = [
     { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
     { name = "Swiss Federal Statistical Office" },
 ]
+license = "MIT"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

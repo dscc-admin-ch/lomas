@@ -101,7 +101,7 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
-    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.keycloak_setup"
+    entrypoint: /bin/sh -c "uv run -m lomas_server.administration.scripts.keycloak_setup"
     env_file: ./configs/administration/lomas_keycloak_setup.env
     volumes:
       - ../core/lomas_core:/code/lomas_core

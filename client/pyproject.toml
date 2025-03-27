@@ -2,8 +2,9 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = { "" = "lomas_client" }
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["."]
 
 [project]
 name = "lomas-client"

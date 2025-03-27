@@ -119,7 +119,6 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
-    PYTHONPATH = "${config.env.DEVENV_ROOT}/core:${config.env.DEVENV_ROOT}/server:${config.env.DEVENV_ROOT}/client";
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
@@ -193,7 +192,10 @@ in
     uv.enable = true;
     uv.sync = {
       enable = true;
-      allExtras = true;
+      arguments = [
+        "--frozen"
+        "--all-extras"
+      ];
     };
   };
 

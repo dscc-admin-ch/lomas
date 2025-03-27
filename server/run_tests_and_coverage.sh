@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker compose -f docker-compose-test.yml up --detach
+docker compose -f docker-compose-test.yml --env-file ./configs/.env.docker-compose up --detach
 
 sleep 15
 
@@ -25,6 +25,6 @@ coverage xml -o coverage.xml
 
 cd ..
 
-docker compose -f docker-compose-test.yml down --volumes
+docker compose -f docker-compose-test.yml --env-file ./configs/.env.docker-compose up down --volumes
 
 exit $ret

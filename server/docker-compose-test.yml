@@ -3,8 +3,9 @@ services:
     container_name: rabbitmq
     image: rabbitmq:4.0-management
     ports:
-      - 127.0.0.1:5672:5672
-      - 127.0.0.1:15672:15672
+      - 127.0.0.1:${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
+      - 127.0.0.1:${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
+
   mongodb:
     container_name: mongodb
     image: mongodb/mongodb-community-server:6.0-ubi8
@@ -13,16 +14,16 @@ services:
     # Still unclear why just setting chmod 777 ./data does not solve the issue.
     #user: 1000:1000
     ports:
-      - 127.0.0.1:27017:27017
+      - 127.0.0.1:${LOMAS_MONGO_PORT}:${LOMAS_MONGO_PORT}
     volumes:
       - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
     # We use this in docker compose to have a user/password for mongodb
     # Proper deployment on a kubernetes cluster should use a helm chart
     # and parametrize a user specific to the fastAPI server.
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=root
-      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
-      - MONGODB_INITDB_DATABASE=defaultdb
+      - MONGODB_INITDB_ROOT_USERNAME=${LOMAS_MONGO_ROOT_USERNAME}
+      - MONGODB_INITDB_ROOT_PASSWORD=${LOMAS_MONGO_ROOT_PWD}
+      - MONGODB_INITDB_DATABASE=${LOMAS_MONGO_DATABASE}
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
     networks:
       - test-network
@@ -31,14 +32,14 @@ services:
     container_name: minio
     image: minio/minio
     ports:
-      - 19000:19000
+      - ${LOMAS_MINIO_PORT}:${LOMAS_MINIO_PORT}
       - 19001:19001
     command: server /data
     environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=admin123
-      - MINIO_ADDRESS=:19000
-      - MINIO_CONSOLE_ADDRESS=:19001
+      - MINIO_ROOT_USER=${LOMAS_MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${LOMAS_MINIO_ROOT_PWD}
+      - MINIO_ADDRESS=:${LOMAS_MINIO_PORT}
+      - MINIO_CONSOLE_ADDRESS=:${LOMAS_MINIO_CONSOLE_PORT}
     volumes:
       - minio-data:/data
     networks:
@@ -50,7 +51,7 @@ services:
       - minio
     entrypoint: /bin/sh -c "
       sleep 15 &&
-      mc alias set myminio http://minio:19000 admin admin123 &&
+      mc alias set myminio http://minio:${LOMAS_MINIO_PORT} admin admin123 &&
       mc mb myminio/example || true &&
       mc cp /data/test_penguin.csv myminio/example/data/test_penguin.csv &&
       mc cp /data/metadata/penguin_metadata.yaml myminio/example/metadata/penguin_metadata.yaml &&

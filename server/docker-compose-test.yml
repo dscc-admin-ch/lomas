@@ -5,6 +5,10 @@ services:
     ports:
       - 127.0.0.1:${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
       - 127.0.0.1:${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
+    environment:
+      - RABBITMQ_DEFAULT_USER=${LOMAS_AMQP_USER}
+      - RABBITMQ_DEFAULT_PASS=${LOMAS_AMQP_PASS}
+      - RABBITMQ_NODE_PORT=${LOMAS_AMQP_PORT}
 
   mongodb:
     container_name: mongodb
@@ -20,8 +24,11 @@ services:
     # We use this in docker compose to have a user/password for mongodb
     # Proper deployment on a kubernetes cluster should use a helm chart
     # and parametrize a user specific to the fastAPI server.
+    command:
+      - "--port"
+      - "${LOMAS_MONGO_PORT}"
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=${LOMAS_MONGO_ROOT_USERNAME}
+      - MONGODB_INITDB_ROOT_USERNAME=${LOMAS_MONGO_ROOT_USER}
       - MONGODB_INITDB_ROOT_PASSWORD=${LOMAS_MONGO_ROOT_PWD}
       - MONGODB_INITDB_DATABASE=${LOMAS_MONGO_DATABASE}
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
@@ -33,7 +40,7 @@ services:
     image: minio/minio
     ports:
       - ${LOMAS_MINIO_PORT}:${LOMAS_MINIO_PORT}
-      - 19001:19001
+      - ${LOMAS_MINIO_CONSOLE_PORT}:${LOMAS_MINIO_CONSOLE_PORT}
     command: server /data
     environment:
       - MINIO_ROOT_USER=${LOMAS_MINIO_ROOT_USER}
@@ -44,6 +51,7 @@ services:
       - minio-data:/data
     networks:
       - test-network
+      
   minio-client:
     container_name: minio-client
     image: minio/mc

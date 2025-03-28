@@ -4,7 +4,7 @@ runtime_args:
     submit_limit: 300
     server:
       host_ip: "0.0.0.0"
-      host_port: "80"
+      host_port: "48080"
       log_level: "info"
       reload: True
       workers: 1 # Will be overwritten to one anyway for now.
@@ -22,7 +22,7 @@ runtime_args:
     authenticator:
       authentication_type: "jwt"
       keycloak_address: "keycloak"
-      keycloak_port: 8080
+      keycloak_port: 4442
       keycloak_use_tls: False
       realm: "lomas"
     dp_libraries:

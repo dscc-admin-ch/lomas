@@ -1,5 +1,5 @@
-server_url: "http://localhost:80"
-server_service: "http://lomas_server:80"
+server_url: "http://localhost:48080"
+server_service: "http://lomas_server:48080"
 
 mg_config:
   db_type: "mongodb"
@@ -14,7 +14,7 @@ mg_config:
 
 kc_config:
   address: "keycloak"
-  port: 8080
+  port: 4442
   use_tls: false
   realm: lomas
   client_id: lomas_admin

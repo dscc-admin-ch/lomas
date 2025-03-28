@@ -10,7 +10,6 @@ COPY ./client/pyproject.toml /code/client/pyproject.toml
 COPY ./server/pyproject.toml /code/server/pyproject.toml
 COPY ./uv.lock /code/uv.lock
 
-
 ### CORE
 # Base -> only deps
 FROM lomas AS lomas_core_base
@@ -33,6 +32,7 @@ RUN uv sync --package lomas-client --no-cache --no-install-workspace
 FROM lomas_client_base AS lomas_client_dev
 WORKDIR /code/client
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH="${PYTHONPATH}:/code/core:/code/client"
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 FROM lomas_client_base AS lomas_client
@@ -53,6 +53,7 @@ RUN uv sync --package lomas-server --no-cache --no-install-workspace
 FROM lomas_server_base AS lomas_server_dev
 WORKDIR /code/server
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH="${PYTHONPATH}:/code/core:/code/server"
 CMD ["python", "-m", "lomas_server.uvicorn_serve"]
 
 FROM lomas_server_base AS lomas_server
@@ -70,6 +71,7 @@ RUN uv sync --package lomas-server --no-cache --no-install-workspace --extra all
 
 FROM lomas_admin_base AS lomas_admin_dev
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH="${PYTHONPATH}:/code/core:/code/server"
 CMD ["streamlit", "run", "server/lomas_server/administration/dashboard/about.py"]
 
 FROM lomas_admin_base AS lomas_admin

@@ -675,6 +675,18 @@ in
     popd
   '';
 
+  scripts.docker-compose-up.exec = ''
+    pushd $DEVENV_ROOT/server/
+    docker compose --env-file configs/.env.docker-compose up
+    popd
+  '';
+
+  scripts.docker-compose-down.exec = ''
+    pushd $DEVENV_ROOT/server/
+    docker compose --env-file configs/.env.docker-compose down
+    popd
+  '';
+
   scripts.py-build.exec = ''
     pushd $DEVENV_ROOT
     uv build --sdist core

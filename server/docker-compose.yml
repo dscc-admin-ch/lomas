@@ -250,8 +250,7 @@ services:
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
-      - STREAMLIT_SERVER_BASE_URL_PATH=""
-      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=0
     volumes:
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/server/lomas_server

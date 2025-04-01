@@ -1,16 +1,20 @@
+import os
 from unittest.mock import patch
 
 import pytest
 from streamlit.testing.v1 import AppTest
 
 from lomas_server.administration.dashboard.config import Config as DashboardConfig
+from lomas_server.tests.utils import get_test_dir
 from lomas_server.utils.config import CONFIG_LOADER
 from lomas_server.utils.config import get_config as get_server_config
 
 
 def test_about_page():
     """Test display about.py page."""
-    at = AppTest.from_file("../dashboard/about.py").run()
+    this_file_path = os.path.abspath(__file__)
+    admin_test_dir = os.path.dirname(this_file_path)
+    at = AppTest.from_file(f"{admin_test_dir}/../dashboard/about.py").run()
 
     # Check the title
     assert "Welcome!" in at.title[0].value
@@ -42,8 +46,8 @@ def mock_configs():
 
         # Overwrite server config
         CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config_mongo.yaml",
-            secrets_path="tests/test_configs/test_secrets.yaml",
+            config_path=f"{get_test_dir()}/test_configs/test_config_mongo.yaml",
+            secrets_path=f"{get_test_dir()}/test_configs/test_secrets.yaml",
         )
         # Mock server config
         mock_get_server_config.return_value = get_server_config()
@@ -66,7 +70,9 @@ def mock_configs():
 def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
     """Test display a_server_overview.py page."""
 
-    at = AppTest.from_file("../dashboard/pages/a_server_overview.py").run()
+    this_file_path = os.path.abspath(__file__)
+    admin_test_dir = os.path.dirname(this_file_path)
+    at = AppTest.from_file(f"{admin_test_dir}/../dashboard/pages/a_server_overview.py").run()
 
     # Check the title
     assert "Lomas configurations" in at.title[0].value

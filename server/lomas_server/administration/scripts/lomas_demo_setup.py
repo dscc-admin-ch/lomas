@@ -21,6 +21,7 @@ class DemoAdminConfig(AdminConfig):
         case_sensitive=False,
     )
 
+    path_prefix: str = ""
     user_yaml: str = "/data/collections/user_collection.yaml"
     dataset_yaml: str = "/data/collections/dataset_collection.yaml"
 
@@ -38,10 +39,7 @@ def add_lomas_demo_data(
     """
     logging.info("Creating user collection")
     add_lomas_users_via_yaml(
-        config,
-        clean=True,
-        overwrite=True,
-        yaml_file=config.user_yaml,
+        config, clean=True, overwrite=True, yaml_file=config.user_yaml, path_prefix=config.path_prefix
     )
 
     logging.info("Creating datasets and metadata collection")
@@ -51,6 +49,7 @@ def add_lomas_demo_data(
         overwrite_datasets=True,
         overwrite_metadata=True,
         yaml_file=config.dataset_yaml,
+        path_prefix=config.path_prefix,
     )
 
     logging.info("Empty archives")

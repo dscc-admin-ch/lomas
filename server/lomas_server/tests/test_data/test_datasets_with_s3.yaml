@@ -5,21 +5,21 @@ datasets:
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "metadata/penguin_metadata.yaml"
 - dataset_name: "IRIS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "metadata/penguin_metadata.yaml"
 - dataset_name: "PUMS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/pums_metadata.yaml"
+    path: "metadata/pums_metadata.yaml"
 - dataset_name: "TINTIN_S3_TEST"
   dataset_access:
     database_type: "S3_DB"
@@ -38,21 +38,21 @@ datasets:
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/birthdays.csv"
+    path: "birthdays.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/birthday_metadata.yaml"
+    path: "metadata/birthday_metadata.yaml"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/income_synthetic_data.csv"
+    path: "income_synthetic_data.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/fso_income_synthetic_metadata.yaml"
+    path: "metadata/fso_income_synthetic_metadata.yaml"
 - dataset_name: "COVID_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/covid_synthetic_data.csv"
+    path: "covid_synthetic_data.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/covid_synthetic_metadata.yaml"
+    path: "metadata/covid_synthetic_metadata.yaml"

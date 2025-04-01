@@ -67,8 +67,9 @@ let
   jupyter_pwd = "dprocks";
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
-  user_yaml_path = "../data/collections/user_collection.yaml";
-  dataset_yaml_path = "../data/collections/dataset_collection.yaml";
+  admin_path_prefix = "${config.devenv.root}/server/data/";
+  user_yaml_path = "/collections/user_collection.yaml";
+  dataset_yaml_path = "/collections/dataset_collection.yaml";
 
   lomas_config = pkgs.writeText "test_config.yaml" (toYAML {
     runtime_args = {
@@ -175,6 +176,7 @@ in
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = lomas_admin_client_secret;
+    LOMAS_ADMIN_PATH_PREFIX = admin_path_prefix;
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
   };
@@ -285,8 +287,7 @@ in
       working_dir = "$DEVENV_ROOT/server";
       environment = [
         "STREAMLIT_SERVER_PORT=${toString dashboard_port}"
-        "STREAMLIT_SERVER_BASE_URL_PATH=''"
-        "STREAMLIT_BROWSER_GATHER_USAGE_STATS=''"
+        "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
       ];
     };
   };
@@ -527,6 +528,7 @@ in
         LOMAS_ADMIN_KC_CONFIG__REALM=${lomas_realm}
         LOMAS_ADMIN_KC_CONFIG__CLIENT_ID=${lomas_admin_client_id}
         LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET=${lomas_admin_client_secret}
+        LOMAS_ADMIN_PATH_PREFIX="/data"
         LOMAS_ADMIN_USER_YAML=${user_yaml_path}
         LOMAS_ADMIN_DATASET_YAML=${dataset_yaml_path}
         EOF

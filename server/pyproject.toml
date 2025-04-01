@@ -44,8 +44,8 @@ dependencies = [
   "smartnoise-sql==1.0.6",
   "uvicorn==0.29.0",
   "aio-pika==9.5.4",
-  "cryptography==44.0.2"
 ]
+
 [project.optional-dependencies]
 all = [
   "mantelo==2.2.0",
@@ -53,6 +53,9 @@ all = [
   "streamlit==1.39.0",
   "st-pages==0.5.0",
 ]
+
+[project.scripts]
+lomas-serve = "lomas_server.uvicorn_serve:uvicorn_serve"
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"

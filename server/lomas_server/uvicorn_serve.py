@@ -4,8 +4,8 @@ import uvicorn
 
 from lomas_server.utils.config import get_config
 
-if __name__ == "__main__":
 
+def uvicorn_serve():
     config = get_config()
 
     if config.server.workers != 1:
@@ -23,3 +23,7 @@ if __name__ == "__main__":
         workers=1,
         reload=config.server.reload,
     )
+
+
+if __name__ == "__main__":
+    uvicorn_serve()

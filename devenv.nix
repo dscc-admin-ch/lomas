@@ -196,7 +196,13 @@ in
       pkgs.kubernetes-helm
     ];
 
-  languages.nix.enable = true;
+  cachix.enable = true;
+  cachix.pull = [
+    "pre-commit-hooks"
+    "lomas"
+  ];
+
+  languages.nix.enable = !config.container.isBuilding;
 
   ##############
   # Python Env #

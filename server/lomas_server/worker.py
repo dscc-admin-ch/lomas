@@ -65,6 +65,8 @@ set_opendp_features_config(config.dp_libraries.opendp)
 # TODO: merge in pydantic-settings
 amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
 amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
+amqp_addr = os.environ.get("LOMAS_AMQP_ADDR", "127.0.0.1")
+amqp_port = os.environ.get("LOMAS_AMQP_PORT", "5672")
 
 
 def handle_known_exceptions(exc):
@@ -264,7 +266,7 @@ async def process_all_queues():
     """Handle & await all pika processing queues."""
 
     loop = asyncio.get_running_loop()
-    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@127.0.0.1/")
+    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/")
 
     async with connection:
         channel = await connection.channel()

@@ -2,8 +2,9 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = { "" = "lomas_server" }
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["."]
 
 [project]
 name = "lomas-server"
@@ -43,6 +44,7 @@ dependencies = [
   "smartnoise-sql==1.0.6",
   "uvicorn==0.29.0",
   "aio-pika==9.5.4",
+  "cryptography==44.0.2"
 ]
 [project.optional-dependencies]
 all = [

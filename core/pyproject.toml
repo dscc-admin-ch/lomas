@@ -45,7 +45,7 @@ dependencies = [
     "pydantic==2.8.2",
     "pydantic-settings==2.7.1",
     "pymongo>=4.6.3",
-    "scikit-learn>=1.4.2",
+    "scikit-learn>=1.5",
     "smartnoise-synth>=1.0.4",
     "smartnoise_synth_logger>=0.0.3",
     "private-pgm",

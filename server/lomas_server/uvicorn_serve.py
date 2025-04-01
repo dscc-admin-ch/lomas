@@ -4,7 +4,9 @@ import uvicorn
 
 from lomas_server.utils.config import get_config
 
-if __name__ == "__main__":
+
+def uvicorn_serve():
+    """Start the ASGI server for lomas"""
 
     config = get_config()
 
@@ -23,3 +25,7 @@ if __name__ == "__main__":
         workers=1,
         reload=config.server.reload,
     )
+
+
+if __name__ == "__main__":
+    uvicorn_serve()

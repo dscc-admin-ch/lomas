@@ -6,6 +6,7 @@ from mantelo import HttpException, KeycloakAdmin
 
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.config import KeycloakClientConfig
+from lomas_server.administration.utils import absolute_path
 from lomas_server.constants import KCAttributeNames
 
 
@@ -208,7 +209,11 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
 
 
 def add_kc_users_via_yaml(
-    kc_config: KeycloakClientConfig, yaml_file: str | dict, clean: bool, overwrite: bool
+    kc_config: KeycloakClientConfig,
+    yaml_file: str | dict,
+    clean: bool,
+    overwrite: bool,
+    path_prefix: str = "",
 ) -> None:
     """Adds new lomas users to keycloak.
 
@@ -221,6 +226,7 @@ def add_kc_users_via_yaml(
             Otherwise dict representing a UserCollection.
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
+        path_prefix (str, optional): path prefix to add to file paths.
 
     Raises:
         HTTPException: If any of the calls to keycloak fails
@@ -233,7 +239,7 @@ def add_kc_users_via_yaml(
 
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
-        with open(yaml_file, encoding="utf-8") as f:
+        with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
             raw_dict: dict = yaml.safe_load(f)
     else:
         raw_dict = yaml_file

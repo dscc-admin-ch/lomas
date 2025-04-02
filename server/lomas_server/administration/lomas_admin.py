@@ -81,7 +81,7 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
 
 
 def add_lomas_users_via_yaml(
-    admin_config: AdminConfig, yaml_file: str | Dict, clean: bool, overwrite: bool
+    admin_config: AdminConfig, yaml_file: str | Dict, clean: bool, overwrite: bool, path_prefix: str = ""
 ) -> None:
     """Add all users from a yaml file.
 
@@ -98,11 +98,12 @@ def add_lomas_users_via_yaml(
         overwrite (bool): boolean flag
             True if overwrite already existing users
             False errors if new values for already existing users
+        path_prefix (str, optional): path prefix to add to file paths.
     """
-    add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite)
+    add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
 
     if admin_config.kc_config is not None:
-        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean, overwrite)
+        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
 
 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:

@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from opendp.mod import enable_features
@@ -7,6 +8,7 @@ from lomas_server.administration.mongodb_admin import (
     add_users_via_yaml,
     drop_collection,
 )
+from lomas_server.tests.utils import get_test_dir
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 INITAL_EPSILON = 10
@@ -29,8 +31,8 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     def setUpClass(cls) -> None:
         # Read correct config depending on the database we test against
         CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config_mongo.yaml",
-            secrets_path="tests/test_configs/test_secrets.yaml",
+            config_path=f"{get_test_dir()}/test_configs/test_config_mongo.yaml",
+            secrets_path=f"{get_test_dir()}/test_configs/test_secrets.yaml",
         )
 
     @classmethod
@@ -51,14 +53,19 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         # Fill up database if needed
         self.mongo_config = get_config().admin_database
 
+        this_file_path = os.path.abspath(__file__)
+        this_file_dir = os.path.dirname(this_file_path)
+        path_prefix = f"{this_file_dir}/test_data"
+
         add_users_via_yaml(
             self.mongo_config,
-            yaml_file="tests/test_data/test_user_collection.yaml",
+            yaml_file="test_user_collection.yaml",
             clean=True,
             overwrite=True,
+            path_prefix=path_prefix,
         )
 
-        yaml_file = "tests/test_data/test_datasets_with_s3.yaml"
+        yaml_file = "test_datasets_with_s3.yaml"
 
         add_datasets_via_yaml(
             self.mongo_config,
@@ -66,6 +73,7 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
             clean=True,
             overwrite_datasets=True,
             overwrite_metadata=True,
+            path_prefix=path_prefix,
         )
 
     def tearDown(self) -> None:

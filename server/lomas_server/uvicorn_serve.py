@@ -6,7 +6,7 @@ from lomas_server.utils.config import get_config
 
 
 def uvicorn_serve():
-    """Start the ASGI server for lomas"""
+    """Start the ASGI server for lomas."""
 
     config = get_config()
 

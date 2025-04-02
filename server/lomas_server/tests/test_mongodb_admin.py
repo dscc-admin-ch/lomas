@@ -1,3 +1,4 @@
+# pylint: disable=C0302
 import unittest
 from typing import Dict
 
@@ -6,7 +7,7 @@ import yaml
 from pymongo import MongoClient
 from pymongo.database import Database
 
-from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.collections import DSInfo, DSPathAccess, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.utils import (
@@ -35,6 +36,8 @@ from lomas_server.administration.mongodb_admin import (
     set_may_query,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig, add_lomas_demo_data
+from lomas_server.administration.utils import absolute_path
+from lomas_server.tests.utils import get_test_dir
 from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
@@ -48,9 +51,12 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def setUp(self) -> None:
         """Connection to database."""
+        self.test_dir = get_test_dir()
+        self.test_data_dir = f"{self.test_dir}/test_data"
+
         CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config_mongo.yaml",
-            secrets_path="tests/test_configs/test_secrets.yaml",
+            config_path=f"{self.test_dir}/test_configs/test_config_mongo.yaml",
+            secrets_path=f"{self.test_dir}/test_configs/test_secrets.yaml",
         )
 
         # Access to MongoDB
@@ -69,6 +75,26 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         drop_collection(self.mongo_config, "datasets")
         drop_collection(self.mongo_config, "users")
         drop_collection(self.mongo_config, "queries_archives")
+
+    def update_dataset_paths(self, dataset: dict) -> dict:
+        """Update dataset paths with prefix.
+
+        Helper function that takes a dataset yaml, parses it and updates
+        all the file paths with the prefix to the test data directory.
+
+        Args:
+            dataset (dict): Dataset yaml.
+
+        Returns:
+            dict: Dataset yaml with updated paths.
+        """
+        ds_model = DSInfo.model_validate(dataset)
+        if isinstance(ds_model.dataset_access, DSPathAccess):
+            ds_model.dataset_access.path = absolute_path(ds_model.dataset_access.path, self.test_data_dir)
+        if isinstance(ds_model.metadata_access, DSPathAccess):
+            ds_model.metadata_access.path = absolute_path(ds_model.metadata_access.path, self.test_data_dir)
+
+        return ds_model.model_dump()
 
     def test_add_user(self) -> None:
         """Test adding a user."""
@@ -332,7 +358,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
     def test_add_users_via_yaml(self) -> None:
         """Test create user collection via YAML file."""
         # Adding two users
-        path = "./tests/test_data/test_user_collection.yaml"
+        path = f"{self.test_data_dir}/test_user_collection.yaml"
         clean = False
         overwrite = False
         add_users_via_yaml(self.mongo_config, path, clean, overwrite)
@@ -431,7 +457,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             archives_found = get_archives_of_user(self.mongo_config, "Bianca Castafiore")
 
         # Add archives for Tintin and Dr.Antartica
-        path = "./tests/test_data/test_archives_collection.yaml"
+        path = f"{self.test_data_dir}/test_archives_collection.yaml"
         with open(path, encoding="utf-8") as f:
             archives = yaml.safe_load(f)
         self.db.queries_archives.insert_many(archives)
@@ -499,7 +525,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
         metadata_database_type = PrivateDatabaseType.PATH
-        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+        metadata_path = f"{self.test_data_dir}/metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.mongo_config,
@@ -521,7 +547,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         expected_dataset = DSInfo.model_validate(expected_dataset).model_dump()
 
         with open(
-            "./tests/test_data/metadata/penguin_metadata.yaml",
+            f"{self.test_data_dir}/metadata/penguin_metadata.yaml",
             encoding="utf-8",
         ) as f:
             expected_metadata = yaml.safe_load(f)
@@ -655,7 +681,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test add datasets via a YAML file."""
         # Load reference data
         with open(
-            "./tests/test_data/test_datasets.yaml",
+            f"{self.test_data_dir}/test_datasets.yaml",
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
@@ -663,7 +689,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             iris = datasets["datasets"][1]
 
         with open(
-            "./tests/test_data/metadata/penguin_metadata.yaml",
+            f"{self.test_data_dir}/metadata/penguin_metadata.yaml",
             encoding="utf-8",
         ) as f:
             penguin_metadata = yaml.safe_load(f)
@@ -672,24 +698,31 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             # Check penguin and iris are in db
             penguin_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
             del penguin_found["_id"]
-            self.assertEqual(penguin_found, penguin)
+            self.assertEqual(penguin_found, self.update_dataset_paths(penguin))
 
             metadata_found = self.db.metadata.find_one({"PENGUIN": {"$exists": True}})["PENGUIN"]
             self.assertEqual(metadata_found, penguin_metadata)
 
             iris_found = self.db.datasets.find_one({"dataset_name": "IRIS"})
             del iris_found["_id"]
-            self.assertEqual(iris_found, iris)
+            self.assertEqual(iris_found, self.update_dataset_paths(iris))
 
             metadata_found = self.db.metadata.find_one({"IRIS": {"$exists": True}})["IRIS"]
             self.assertEqual(metadata_found, penguin_metadata)
 
-        path = "./tests/test_data/test_datasets.yaml"
+        path = "test_datasets.yaml"
         clean = False
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(
+            self.mongo_config,
+            path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+            path_prefix=self.test_data_dir,
+        )
 
         verify_datasets()
 
@@ -699,19 +732,40 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.db.datasets.insert_one({"dataset_name": "Les aventures de Tintin"})
 
         clean = True
-        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(
+            self.mongo_config,
+            path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+            path_prefix=self.test_data_dir,
+        )
         verify_datasets()
 
         # Check no overwrite triggers warning
         clean = False
         with self.assertWarns(UserWarning):
-            add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+            add_datasets_via_yaml(
+                self.mongo_config,
+                path,
+                clean,
+                overwrite_datasets,
+                overwrite_metadata,
+                path_prefix=self.test_data_dir,
+            )
 
         # Check overwrite works
         self.db.datasets.update_one({"dataset_name": "IRIS"}, {"$set": {"dataset_name": "IRIS"}})
 
         overwrite_datasets = True
-        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(
+            self.mongo_config,
+            path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+            path_prefix=self.test_data_dir,
+        )
         verify_datasets()
 
         # Check no clean and overwrite metadata
@@ -721,22 +775,23 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             clean=False,
             overwrite_datasets=True,
             overwrite_metadata=True,
+            path_prefix=self.test_data_dir,
         )
         verify_datasets()
 
     def test_add_s3_datasets_via_yaml(self) -> None:
         """Test add datasets via a YAML file."""
         # Load reference data
-        dataset_path = "./tests/test_data/test_datasets_with_s3.yaml"
+        dataset_path = "test_datasets_with_s3.yaml"
         with open(
-            dataset_path,
+            f"{self.test_data_dir}/{dataset_path}",
             encoding="utf-8",
         ) as f:
             datasets = yaml.safe_load(f)
             tintin = DSInfo.model_validate(datasets["datasets"][3]).model_dump()
 
         with open(
-            "./tests/test_data/metadata/penguin_metadata.yaml",
+            f"{self.test_data_dir}/metadata/penguin_metadata.yaml",
             encoding="utf-8",
         ) as f:
             tintin_metadata = yaml.safe_load(f)
@@ -751,6 +806,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
             clean,
             overwrite_datasets,
             overwrite_metadata,
+            path_prefix=self.test_data_dir,
         )
 
         tintin_found = self.db.datasets.find_one({"dataset_name": "TINTIN_S3_TEST"})
@@ -767,7 +823,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
         metadata_database_type = PrivateDatabaseType.PATH
-        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+        metadata_path = f"{self.test_data_dir}/metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.mongo_config,
@@ -813,7 +869,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
         metadata_database_type = PrivateDatabaseType.PATH
-        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+        metadata_path = f"{self.test_data_dir}/metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.mongo_config,
@@ -844,7 +900,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
         metadata_database_type = PrivateDatabaseType.PATH
-        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+        metadata_path = f"{self.test_data_dir}/metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.mongo_config,
@@ -865,12 +921,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         list_datasets = get_list_of_datasets(self.mongo_config)
         self.assertEqual(list_datasets, [])
 
-        path = "./tests/test_data/test_datasets.yaml"
+        path = "test_datasets.yaml"
         clean = False
         overwrite_datasets = False
         overwrite_metadata = False
 
-        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
+        add_datasets_via_yaml(
+            self.mongo_config,
+            path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+            path_prefix=self.test_data_dir,
+        )
         list_datasets = get_list_of_datasets(self.mongo_config)
         self.assertEqual(list_datasets, ["PENGUIN", "IRIS", "BIRTHDAYS", "PUMS"])
 
@@ -881,7 +944,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         database_type = PrivateDatabaseType.PATH
         dataset_path = "some_path"
         metadata_database_type = PrivateDatabaseType.PATH
-        metadata_path = "./tests/test_data/metadata/penguin_metadata.yaml"
+        metadata_path = f"{self.test_data_dir}/metadata/penguin_metadata.yaml"
 
         add_dataset(
             self.mongo_config,
@@ -904,15 +967,25 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         dataset_collection = get_collection(self.mongo_config, "datasets")
         self.assertEqual(dataset_collection, [])
 
-        path = "./tests/test_data/test_datasets.yaml"
+        path = "test_datasets.yaml"
         clean = False
         overwrite_datasets = False
         overwrite_metadata = False
-        add_datasets_via_yaml(self.mongo_config, path, clean, overwrite_datasets, overwrite_metadata)
-        with open(path, encoding="utf-8") as f:
+        add_datasets_via_yaml(
+            self.mongo_config,
+            path,
+            clean,
+            overwrite_datasets,
+            overwrite_metadata,
+            path_prefix=self.test_data_dir,
+        )
+        with open(f"{self.test_data_dir}/{path}", encoding="utf-8") as f:
             expected_dataset_collection = yaml.safe_load(f)
+            updated_expected_collection = []
+            for d in expected_dataset_collection["datasets"]:
+                updated_expected_collection.append(self.update_dataset_paths(d))
         dataset_collection = get_collection(self.mongo_config, "datasets")
-        self.assertEqual(expected_dataset_collection["datasets"], dataset_collection)
+        self.assertEqual(updated_expected_collection, dataset_collection)
 
     def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db."""
@@ -920,8 +993,9 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         demo_config = DemoAdminConfig(
             mg_config=get_config().admin_database,
             kc_config=None,
-            user_yaml="./tests/test_data/test_user_collection.yaml",
-            dataset_yaml="tests/test_data/test_datasets_with_s3.yaml",
+            user_yaml="test_user_collection.yaml",
+            dataset_yaml="test_datasets_with_s3.yaml",
+            path_prefix=self.test_data_dir,
         )
 
         add_lomas_demo_data(demo_config)

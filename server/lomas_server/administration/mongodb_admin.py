@@ -27,6 +27,7 @@ from lomas_server.admin_database.mongodb_database import (
     check_result_acknowledged,
 )
 from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.administration.utils import absolute_path
 
 
 def check_user_exists(enforce_true: bool) -> Callable:
@@ -402,10 +403,7 @@ def get_user(db: Database, user: str) -> dict:
 
 @with_mongodb
 def add_users_via_yaml(
-    db: Database,
-    yaml_file: Union[str, Dict],
-    clean: bool,
-    overwrite: bool,
+    db: Database, yaml_file: Union[str, Dict], clean: bool, overwrite: bool, path_prefix: str = ""
 ) -> None:
     """Add all users from yaml file to the user collection.
 
@@ -420,6 +418,7 @@ def add_users_via_yaml(
         overwrite (bool): boolean flag
             True if overwrite already existing users
             False errors if new values for already existing users
+        path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
 
     Returns:
         None
@@ -431,7 +430,7 @@ def add_users_via_yaml(
 
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
-        with open(yaml_file, encoding="utf-8") as f:
+        with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
             yaml_dict: dict = yaml.safe_load(f)
     else:
         yaml_dict = yaml_file
@@ -528,6 +527,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     dataset_name: str,
     database_type: str,
     metadata_database_type: str,
+    path_prefix: str = "",
     dataset_path: Optional[str] = "",
     metadata_path: Optional[str] = "",
     bucket: Optional[str] = "",
@@ -549,6 +549,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
         database_type (str): Type of the database
         metadata_database_type (str): Metadata database type
 
+        path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
         dataset_path (str): Path to the dataset (for local db type)
         metadata_path (str): Path to metadata (for local db type)
 
@@ -581,7 +582,9 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     }
 
     if database_type == PrivateDatabaseType.PATH:
-        dataset_access["path"] = dataset_path
+        if dataset_path is None:
+            raise ValueError("Dataset path not set.")
+        dataset_access["path"] = absolute_path(dataset_path, path_prefix)
     elif database_type == PrivateDatabaseType.S3:
         dataset_access["bucket"] = bucket
         dataset_access["key"] = key
@@ -596,7 +599,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     metadata_access: Dict[str, Any] = {"database_type": metadata_database_type}
     if metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
-        with open(metadata_path, encoding="utf-8") as f:  # type: ignore
+        with open(absolute_path(metadata_path, path_prefix), encoding="utf-8") as f:  # type: ignore
             metadata_dict = yaml.safe_load(f)
 
         metadata_access["path"] = metadata_path
@@ -650,6 +653,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     clean: bool,
     overwrite_datasets: bool,
     overwrite_metadata: bool,
+    path_prefix: str = "",
 ) -> None:
     """Set all database types to datasets in dataset collection based.
 
@@ -663,6 +667,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         clean (bool): Whether to clean the collection before adding.
         overwrite_datasets (bool): Whether to overwrite existing datasets.
         overwrite_metadata (bool): Whether to overwrite existing metadata.
+        path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
 
     Raises:
         ValueError: If there are errors in the YAML file format.
@@ -677,7 +682,7 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
         logging.info("Cleaning done. \n")
 
     if isinstance(yaml_file, str):
-        with open(yaml_file, encoding="utf-8") as f:
+        with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
             yaml_dict: dict = yaml.safe_load(f)
     else:
         yaml_dict = yaml_file
@@ -687,6 +692,12 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     new_datasets = []
     existing_datasets = []
     for d in dataset_dict.datasets:
+        # Overwrite path
+        if isinstance(d.dataset_access, DSPathAccess):
+            d.dataset_access.path = absolute_path(d.dataset_access.path, path_prefix)
+        if isinstance(d.metadata_access, DSPathAccess):
+            d.metadata_access.path = absolute_path(d.metadata_access.path, path_prefix)
+
         # Fill datasets_list
         if not db.datasets.find_one({"dataset_name": d.dataset_name}):
             new_datasets.append(d)

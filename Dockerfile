@@ -76,5 +76,6 @@ CMD ["streamlit", "run", "server/lomas_server/administration/dashboard/about.py"
 
 FROM lomas_admin_base AS lomas_admin
 COPY --from=lomas_server /code/ /code/
+COPY --from=lomas_server /data/ /data/
 RUN uv sync --package lomas-server --no-cache --extra all
 CMD ["streamlit", "run", "server/lomas_server/administration/dashboard/about.py"]

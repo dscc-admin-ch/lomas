@@ -465,6 +465,7 @@ in
   };
 
   processes.opentelemetry-collector.process-compose = {
+    namespace = "telemetry";
     depends_on = {
       tempo.condition = "process_started";
       loki.condition = "process_started";
@@ -503,6 +504,7 @@ in
       }
     ];
   };
+  processes.prometheus.process-compose.namespace = "telemetry";
 
   ############
   # Keycloak #
@@ -623,6 +625,7 @@ in
     in
     {
       exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+      process-compose.namespace = "telemetry";
     };
 
   processes.loki =
@@ -657,6 +660,7 @@ in
     in
     {
       exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+      process-compose.namespace = "telemetry";
     };
 
   processes.mongodb-exporter =
@@ -672,7 +676,7 @@ in
         --web.listen-address="${mongodb_exporter_addr}:${toString mongodb_exporter_port}" \
         --web.telemetry-path="/metrics"
       '';
-
+      process-compose.namespace = "telemetry";
     };
 
   #############

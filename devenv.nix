@@ -878,6 +878,7 @@ in
     ''
       pushd ${working_dir}
       echo "Running coverage with patched process-compose config (${pc-config-patch})"
+      yq -Poy ${pc-config-patch}
       process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch}
       pytest_return=$?
 
@@ -969,5 +970,29 @@ in
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
     ${config.scripts.ut.exec}
+  '';
+
+  scripts.yelp.exec = ''
+    cat << EOF
+    - Starting up whole thing
+    devenv up
+
+    - Starting processes up without telemetry
+    process-compose up -n default
+
+    - What the hell is process-compose doing
+    yq \$PC_CONFIG_FILES
+
+    - I just want my UTs / pytest to work !
+    devenv up
+    ut / pytest -k ...
+
+    - Just run the coverage alreaaady
+    ut-coverage
+
+    - My python packages are broken/out of sync/missing
+    uv sync --all-extras [-U]
+    uv add <packages>
+    EOF
   '';
 }

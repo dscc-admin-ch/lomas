@@ -536,6 +536,8 @@ in
       }
     ];
   };
+  # cheeky override of postgres statup command to force a aclean start
+  processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
 
   # Keycloak setup for lomas
   processes.keycloak_setup = {
@@ -893,7 +895,7 @@ in
 
   scripts.run-lomas.exec = ''
     echo Resetting databases states
-    rm -rf $DEVENV_STATE/{postgres,mongodb}
+    rm -rf $DEVENV_STATE/mongodb
     devenv up
   '';
 

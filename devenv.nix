@@ -74,14 +74,17 @@ let
   dataset_yaml_path = "/collections/dataset_collection.yaml";
 
   # Telemetry
+  grafanaHost = "localhost";
+  grafanaPort = 3000;
   prometheus_host = "localhost";
   prometheus_port = 19090;
   tempo_host = "localhost";
   tempo_http_port = 13200;
   tempo_grpc_port = 19095;
   tempo_otlp_grpc_port = 14317;
+  loki_host = "localhost";
   loki_http_port = 13100;
-  loki_grpc_port = 19096;
+  # loki_grpc_port = 19096;
   otlp_host = "localhost";
   otlp_grpc_port = 4317;
   otlp_http_port = 4318;
@@ -172,6 +175,7 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
+    TELEMETRY = 1;
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
@@ -247,7 +251,7 @@ in
 
   scripts.pip-fix.exec = ''
     pushd $DEVENV_ROOT
-    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt
+    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt $@
     popd
   '';
 
@@ -406,17 +410,17 @@ in
         debug.verbosity = "detailed";
 
         prometheus = {
-          endpoint = "localhost:${toString otlp_metrics_port}";
+          endpoint = "${otlp_host}:${toString otlp_metrics_port}";
           namespace = "lomas_server";
         };
 
         "otlp/tempo" = {
-          endpoint = "http://localhost:${toString tempo_otlp_grpc_port}";
+          endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
           tls.insecure = true;
         };
 
         "otlphttp/loki" = {
-          endpoint = "http://localhost:${toString loki_http_port}/otlp";
+          endpoint = "http://${loki_host}:${toString loki_http_port}/otlp";
           tls.insecure = true;
         };
       };
@@ -584,6 +588,111 @@ in
   # Monitoring #
   ##############
 
+  processes.grafana =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/grafana";
+
+      datasources = pkgs.writeText "grafana-config.yaml" ''
+        datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          access: proxy
+          orgId: 1
+          url: 'http://${prometheus_host}:${toString prometheus_port}'
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+          jsonData:
+            httpMethod: GET
+
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          access: proxy
+          orgId: 1
+          url: 'http://${tempo_host}:${toString tempo_http_port}'
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: true
+          apiVersion: 1
+          stream_over_http_enabled: false
+
+        - name: Loki
+          type: loki
+          uid: loki
+          access: proxy
+          orgId: 1
+          url: 'http://${loki_host}:${toString loki_http_port}'
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            httpHeaderValue1: tenant1
+      '';
+
+      conf = pkgs.writeText "config.ini" ''
+        [server]
+        domain=${grafanaHost}
+        enforce_domain=false
+        http_port=${toString grafanaPort}
+        enable_gzip=false
+
+        [paths]
+        enable_gzip=true
+        http_addr=${grafanaHost}
+        http_port=${toString grafanaPort}
+        plugins=${working_dir}/plugins
+        provisioning=${working_dir}/provisioning
+        server=http
+
+        [snapshots]
+        external_enabled=false
+        public_mode=false
+
+        [security]
+        admin_user=admin
+        admin_password=admin
+        disable_initial_admin_creation=true
+      '';
+
+      dashboardProvision = writeYAML "dashboard.yaml" {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "Lomas";
+            folder = "Services";
+            type = "file";
+            options.path = "${working_dir}/dashboards";
+          }
+        ];
+      };
+
+      extraFlags = [ ];
+    in
+    {
+      exec = ''
+        mkdir -p ${working_dir}/dashboards
+        mkdir -p ${working_dir}/provisioning/{datasources,dashboards}
+
+        ln -fs ${pkgs.grafana}/share/grafana/conf ${working_dir}
+        ln -fs ${pkgs.grafana}/share/grafana/public ${working_dir}
+
+        ln -sf ${datasources} ${working_dir}/provisioning/datasources/datasource.yaml
+        ln -sf ${dashboardProvision} ${working_dir}/provisioning/dashboards/dashboard.yaml
+        ln -sf ${./server/configs/observability/grafana/example_dashboard_config.json} ${working_dir}/dashboards
+        ln -sf ${conf} ${working_dir}/grafana.ini
+
+        ${pkgs.grafana}/bin/grafana server -homepath=${working_dir} -config=${conf} ${lib.escapeShellArgs extraFlags}
+      '';
+      process-compose.namespace = "telemetry";
+    };
+
   processes.tempo =
     let
       working_dir = "${config.env.DEVENV_STATE}/tempo";
@@ -638,8 +747,8 @@ in
         limits_config.allow_structured_metadata = true;
         limits_config.volume_enabled = true;
         server.http_listen_port = loki_http_port;
-        server.grpc_listen_port = loki_grpc_port;
-        common.ring.instance_addr = "0.0.0.0";
+        # server.grpc_listen_port = loki_grpc_port;
+        common.ring.instance_addr = loki_host;
         common.ring.kvstore.store = "inmemory";
         common.replication_factor = 1;
         common.path_prefix = working_dir;

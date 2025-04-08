@@ -269,7 +269,11 @@ async def process_all_queues():
     """Handle & await all pika processing queues."""
 
     loop = asyncio.get_running_loop()
-    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/")
+    connection = await aio_pika.connect_robust(
+        f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/",
+        fail_fast=False,
+        reconnect_interval=10,
+    )
 
     async with connection:
         channel = await connection.channel()

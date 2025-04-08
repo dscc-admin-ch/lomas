@@ -57,7 +57,11 @@ async def process_response(queue, cls, jobs_var):
 async def rabbitmq_ctx(app):
     """RabbitMQ queue context to connect and register callbacks."""
 
-    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/")
+    connection = await aio_pika.connect_robust(
+        f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/",
+        fail_fast=False,
+        reconnect_interval=10,
+    )
     channel = await connection.channel()
 
     await channel.declare_queue("task_queue", auto_delete=True)

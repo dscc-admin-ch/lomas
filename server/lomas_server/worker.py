@@ -1,9 +1,12 @@
 import asyncio
 import functools
+import json
 import logging
+import logging.config
 import os
 import signal
 import time
+from pathlib import Path
 
 import aio_pika
 from fastapi import status
@@ -292,6 +295,9 @@ async def process_all_queues():
 
 
 if __name__ == "__main__":
+    # TODO: merge in pydantic-settings
+    logging.config.dictConfig(json.loads(Path(os.environ.get("LOMAS_LOGGING_CONFIG")).read_text()))
+
     if TELEMETRY:
         LoggingInstrumentor().instrument(set_logging_format=True)
         init_telemetry(get_ressource(SERVER_SERVICE_NAME, SERVICE_ID))

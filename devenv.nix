@@ -133,6 +133,22 @@ let
     server_service = "http://localhost:${toString lomas_port}";
     server_url = "CakeMightBeALie.ch";
   });
+
+  lomas_logging = pkgs.writeText "logging.json" (toYAML {
+    version = 1;
+    disable_existing_loggers = false;
+    formatters.simple.format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s";
+    handlers.stdout = {
+      class = "logging.StreamHandler";
+      level = "DEBUG";
+      formatter = "simple";
+      stream = "ext://sys.stdout";
+    };
+    root = {
+      level = "DEBUG";
+      handlers = [ "stdout" ];
+    };
+  });
 in
 {
   # Environment variable available inside devenv
@@ -141,6 +157,7 @@ in
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
+    LOMAS_LOGGING_CONFIG = "${lomas_logging}";
     LOMAS_AMQP_USER = rabbitmq_user;
     LOMAS_AMQP_PASS = rabbitmq_pass;
     LOMAS_AMQP_ADDR = rabbitmq_addr;

@@ -296,7 +296,8 @@ async def process_all_queues():
 
 if __name__ == "__main__":
     # TODO: merge in pydantic-settings
-    logging.config.dictConfig(json.loads(Path(os.environ.get("LOMAS_LOGGING_CONFIG")).read_text()))
+    if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
+        logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
 
     if TELEMETRY:
         LoggingInstrumentor().instrument(set_logging_format=True)

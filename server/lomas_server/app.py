@@ -78,7 +78,8 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
 
 # TODO: merge in pydantic-settings
-logging.config.dictConfig(json.loads(Path(os.environ.get("LOMAS_LOGGING_CONFIG")).read_text()))
+if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
+    logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
 
 # Initalise telemetry
 if TELEMETRY:

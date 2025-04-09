@@ -7,10 +7,11 @@
 }:
 
 let
-  inherit (builtins) readFile concatStringsSep;
   toYAML = lib.generators.toYAML { };
+  writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
+  mongo_addr = "localhost";
   mongo_port = 27017;
   minio_port = 19000;
   minio_console_port = 19001;
@@ -26,6 +27,7 @@ let
   kc_hostname = "localhost";
   dashboard_port = 8501;
   otel_port = 4317; # Must keep this value
+  otel_port_http = 4318; # Must keep this value
   mongo_collector_port = 9216;
   jupyter_port = 8888;
 
@@ -60,8 +62,6 @@ let
   # Minio
   minio_root_user = "admin";
   minio_root_pwd = "admin123";
-  accessKey = "admin";
-  secretKey = "admin123";
 
   # Jupyter
   jupyter_pwd = "dprocks";
@@ -71,7 +71,24 @@ let
   user_yaml_path = "/collections/user_collection.yaml";
   dataset_yaml_path = "/collections/dataset_collection.yaml";
 
-  lomas_config = pkgs.writeText "test_config.yaml" (toYAML {
+  # Telemetry
+  grafanaHost = "localhost";
+  grafanaPort = 3000;
+  prometheus_host = "localhost";
+  prometheus_port = 19090;
+  tempo_host = "localhost";
+  tempo_http_port = 13200;
+  tempo_grpc_port = 19095;
+  tempo_otlp_grpc_port = 14317;
+  loki_host = "localhost";
+  loki_http_port = 13100;
+  # loki_grpc_port = 19096;
+  otlp_host = "localhost";
+  otlp_metrics_port = 29090;
+  mongodb_exporter_addr = "localhost";
+  mongodb_exporter_port = 19216;
+
+  lomas_config = writeYAML "test_config.yaml" {
     runtime_args = {
       settings = {
         develop_mode = false;
@@ -89,7 +106,7 @@ let
         };
         admin_database = {
           db_type = "mongodb";
-          address = "127.0.0.1";
+          address = mongo_addr;
           port = mongo_port;
           db_name = mongo_db_name;
           max_pool_size = mongo_max_pool_size;
@@ -112,9 +129,9 @@ let
         };
       };
     };
-  });
+  };
 
-  lomas_secrets = pkgs.writeText "test_secrets.yaml" (toYAML {
+  lomas_secrets = writeYAML "test_secrets.yaml" {
     admin_database = {
       password = mongo_password;
       username = mongo_user;
@@ -124,17 +141,17 @@ let
         credentials_name = "local_minio";
         db_type = "S3_DB";
         access_key_id = minio_root_user;
-        secret_access_key = secretKey;
+        secret_access_key = minio_root_pwd;
       }
     ];
-  });
+  };
 
-  lomas_dashboard = pkgs.writeText "dashboard.yaml" (toYAML {
+  lomas_dashboard = writeYAML "dashboard.yaml" {
     server_service = "http://localhost:${toString lomas_port}";
     server_url = "CakeMightBeALie.ch";
-  });
+  };
 
-  lomas_logging = pkgs.writeText "logging.json" (toYAML {
+  lomas_logging = writeYAML "logging.json" {
     version = 1;
     disable_existing_loggers = false;
     formatters.simple.format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s";
@@ -148,12 +165,13 @@ let
       level = "DEBUG";
       handlers = [ "stdout" ];
     };
-  });
+  };
 in
 {
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
+    TELEMETRY = 1;
     LOMAS_CONFIG_PATH = "${lomas_config}";
     LOMAS_SECRETS_PATH = "${lomas_secrets}";
     LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
@@ -215,12 +233,6 @@ in
       pkgs.kubernetes-helm
     ];
 
-  cachix.enable = true;
-  cachix.pull = [
-    "pre-commit-hooks"
-    "lomas"
-  ];
-
   languages.nix.enable = !config.container.isBuilding;
 
   ##############
@@ -229,7 +241,7 @@ in
 
   scripts.pip-fix.exec = ''
     pushd $DEVENV_ROOT
-    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt
+    uv pip compile pyproject.toml --annotation-style line --all-extras $@ | ${pkgs.gnused}/bin/sed -re '/^-e file:/d' > requirements.txt
     popd
   '';
 
@@ -370,6 +382,129 @@ in
     inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
   };
 
+  ########
+  # OTLP #
+  ########
+
+  # tune down default namespace from "all" to "default" to make telemetry namespace optional, see @yelp
+  process.manager.args = {
+    namespace = "default";
+  };
+
+  services.opentelemetry-collector = {
+    enable = true;
+    settings = {
+      receivers.otlp.protocols = {
+        grpc.endpoint = "localhost:${toString otel_port}";
+        http.endpoint = "localhost:${toString otel_port_http}";
+      };
+
+      processors.batch.timeout = "5s";
+
+      exporters = {
+        debug.verbosity = "detailed";
+
+        prometheus = {
+          endpoint = "${otlp_host}:${toString otlp_metrics_port}";
+          namespace = "lomas_server";
+        };
+
+        "otlp/tempo" = {
+          endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
+          tls.insecure = true;
+        };
+
+        "otlphttp/loki" = {
+          endpoint = "http://${loki_host}:${toString loki_http_port}/otlp";
+          tls.insecure = true;
+        };
+      };
+
+      extensions = {
+        health_check.endpoint = "localhost:13133";
+        pprof.endpoint = "localhost:1777";
+        zpages.endpoint = "localhost:55679";
+      };
+
+      service = {
+        extensions = [
+          "health_check"
+          "pprof"
+          "zpages"
+        ];
+        pipelines = {
+          traces = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "otlp/tempo"
+            ];
+          };
+          metrics = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "prometheus"
+            ];
+          };
+          logs = {
+            receivers = [ "otlp" ];
+            processors = [ "batch" ];
+            exporters = [
+              "debug"
+              "otlphttp/loki"
+            ];
+          };
+        };
+      };
+
+    };
+  };
+
+  processes.opentelemetry-collector.process-compose = {
+    namespace = "telemetry";
+    depends_on = {
+      tempo.condition = "process_started";
+      loki.condition = "process_started";
+      prometheus.condition = "process_started";
+    };
+  };
+
+  services.prometheus = {
+    enable = true;
+    port = prometheus_port;
+    globalConfig = {
+      evaluation_interval = "10s";
+      scrape_interval = "10s";
+      scrape_timeout = "10s";
+    };
+    scrapeConfigs = [
+      {
+        job_name = "prometheus";
+        static_configs = [ { targets = [ "localhost:${toString prometheus_port}" ]; } ];
+      }
+      {
+        job_name = "tempo";
+        static_configs = [ { targets = [ "localhost:${toString tempo_http_port}" ]; } ];
+      }
+      {
+        job_name = "otel-collector";
+        static_configs = [ { targets = [ "localhost:${toString otlp_metrics_port}" ]; } ];
+      }
+      {
+        job_name = "loki";
+        static_configs = [ { targets = [ "localhost:${toString loki_http_port}" ]; } ];
+      }
+      {
+        job_name = "mongodb";
+        static_configs = [ { targets = [ "localhost:${toString mongodb_exporter_port}" ]; } ];
+      }
+    ];
+  };
+  processes.prometheus.process-compose.namespace = "telemetry";
+
   ############
   # Keycloak #
   ############
@@ -400,6 +535,8 @@ in
       }
     ];
   };
+  # cheeky override of postgres statup command to force a clean start
+  processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
 
   # Keycloak setup for lomas
   processes.keycloak_setup = {
@@ -440,6 +577,212 @@ in
           path = "auto";
         };
       };
+    };
+
+  ##############
+  # Monitoring #
+  ##############
+
+  processes.grafana =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/grafana";
+
+      datasources = pkgs.writeText "grafana-config.yaml" ''
+        datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          access: proxy
+          orgId: 1
+          url: 'http://${prometheus_host}:${toString prometheus_port}'
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+          jsonData:
+            httpMethod: GET
+
+        - name: Tempo
+          type: tempo
+          uid: tempo
+          access: proxy
+          orgId: 1
+          url: 'http://${tempo_host}:${toString tempo_http_port}'
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: true
+          apiVersion: 1
+          stream_over_http_enabled: false
+
+        - name: Loki
+          type: loki
+          uid: loki
+          access: proxy
+          orgId: 1
+          url: 'http://${loki_host}:${toString loki_http_port}'
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            httpHeaderValue1: tenant1
+      '';
+
+      conf = pkgs.writeText "config.ini" ''
+        [server]
+        domain=${grafanaHost}
+        enforce_domain=false
+        http_port=${toString grafanaPort}
+        enable_gzip=false
+
+        [paths]
+        enable_gzip=true
+        http_addr=${grafanaHost}
+        http_port=${toString grafanaPort}
+        plugins=${working_dir}/plugins
+        provisioning=${working_dir}/provisioning
+        server=http
+
+        [snapshots]
+        external_enabled=false
+        public_mode=false
+
+        [security]
+        admin_user=admin
+        admin_password=admin
+        disable_initial_admin_creation=true
+      '';
+
+      dashboardProvision = writeYAML "dashboard.yaml" {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "Lomas";
+            folder = "Services";
+            type = "file";
+            options.path = "${working_dir}/dashboards";
+          }
+        ];
+      };
+
+      extraFlags = [ ];
+    in
+    {
+      exec = ''
+        mkdir -p ${working_dir}/dashboards
+        mkdir -p ${working_dir}/provisioning/{datasources,dashboards}
+
+        ln -fs ${pkgs.grafana}/share/grafana/conf ${working_dir}
+        ln -fs ${pkgs.grafana}/share/grafana/public ${working_dir}
+
+        ln -sf ${datasources} ${working_dir}/provisioning/datasources/datasource.yaml
+        ln -sf ${dashboardProvision} ${working_dir}/provisioning/dashboards/dashboard.yaml
+        ln -sf ${./server/configs/observability/grafana/example_dashboard_config.json} ${working_dir}/dashboards
+        ln -sf ${conf} ${working_dir}/grafana.ini
+
+        ${pkgs.grafana}/bin/grafana server -homepath=${working_dir} -config=${conf} ${lib.escapeShellArgs extraFlags}
+      '';
+      process-compose.namespace = "telemetry";
+    };
+
+  processes.tempo =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/tempo";
+      conf = writeYAML "config-tempo.yaml" {
+        stream_over_http_enabled = true;
+        server = {
+          http_listen_port = tempo_http_port;
+          http_listen_address = tempo_host;
+          grpc_listen_port = tempo_grpc_port;
+          grpc_listen_address = tempo_host;
+          log_level = "info";
+        };
+        # query_frontend.search.duration_slo = "5s";
+        # query_frontend.search.throughput_bytes_slo = 1.073741824e+09;
+        # query_frontend.search.metadata_slo.duration_slo = "5s";
+        # query_frontend.search.metadata_slo.throughput_bytes_slo = 1.073741824e+09;
+        # query_frontend.trace_by_id.duration_slo = "5s";
+        distributor.receivers.otlp.protocols.grpc.endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
+        ingester.max_block_duration = "5m";
+        compactor.compaction.block_retention = "1h";
+        metrics_generator.registry.external_labels.source = "tempo";
+        metrics_generator.storage.path = "${working_dir}/generator/wal";
+        metrics_generator.storage.remote_write = [
+          {
+            url = "http://${prometheus_host}:${toString prometheus_port}/api/v1/write";
+            send_exemplars = true;
+          }
+        ];
+        metrics_generator.traces_storage.path = "${working_dir}/generator/traces";
+        storage.trace.backend = "local";
+        storage.trace.wal.path = "${working_dir}/wal";
+        storage.trace.local.path = "${working_dir}/blocks";
+        overrides.defaults.metrics_generator.processors = [
+          "service-graphs"
+          "span-metrics"
+          "local-blocks"
+        ];
+        overrides.defaults.metrics_generator.generate_native_histograms = "both";
+      };
+      extraFlags = [ ];
+    in
+    {
+      exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+      process-compose.namespace = "telemetry";
+    };
+
+  processes.loki =
+    let
+      working_dir = "${config.env.DEVENV_STATE}/loki";
+      conf = writeYAML "config-loki.yaml" {
+        auth_enabled = false;
+        limits_config.allow_structured_metadata = true;
+        limits_config.volume_enabled = true;
+        server.http_listen_port = loki_http_port;
+        # server.grpc_listen_port = loki_grpc_port;
+        common.ring.instance_addr = loki_host;
+        common.ring.kvstore.store = "inmemory";
+        common.replication_factor = 1;
+        common.path_prefix = working_dir;
+        schema_config.configs = [
+          {
+            from = "2025-01-10";
+            store = "tsdb";
+            object_store = "filesystem";
+            schema = "v13";
+            index.prefix = "loki_index_";
+            index.period = "24h";
+          }
+        ];
+        storage_config.tsdb_shipper.active_index_directory = "${working_dir}/index";
+        storage_config.tsdb_shipper.cache_location = "${working_dir}/index_cache";
+        storage_config.filesystem.directory = "${working_dir}/chunks";
+        pattern_ingester.enabled = true;
+      };
+      extraFlags = [ ];
+    in
+    {
+      exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+      process-compose.namespace = "telemetry";
+    };
+
+  processes.mongodb-exporter =
+    let
+      inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
+      uri = "mongodb://${initDatabaseUsername}:${initDatabasePassword}@${mongo_addr}:${toString mongo_port}";
+    in
+    {
+      exec = ''
+        ${lib.getExe pkgs.prometheus-mongodb-exporter} \
+        --mongodb.uri="${uri}" \
+        --collect-all \
+        --web.listen-address="${mongodb_exporter_addr}:${toString mongodb_exporter_port}" \
+        --web.telemetry-path="/metrics"
+      '';
+      process-compose.namespace = "telemetry";
     };
 
   #############
@@ -607,7 +950,7 @@ in
   scripts.ut-coverage.exec =
     let
       working_dir = "$DEVENV_ROOT/server/lomas_server";
-      pc-config-patch = pkgs.writeText "pc-coverage-disable-worker.yaml" (toYAML {
+      pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
@@ -634,11 +977,12 @@ in
             availability.exit_on_end = true;
           };
         };
-      });
+      };
     in
     ''
       pushd ${working_dir}
       echo "Running coverage with patched process-compose config (${pc-config-patch})"
+      yq -Poy ${pc-config-patch}
       process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch}
       pytest_return=$?
 
@@ -656,7 +1000,7 @@ in
 
   scripts.run-lomas.exec = ''
     echo Resetting databases states
-    rm -rf $DEVENV_STATE/{postgres,mongodb}
+    rm -rf $DEVENV_STATE/mongodb
     devenv up
   '';
 
@@ -730,5 +1074,31 @@ in
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
     ${config.scripts.ut.exec}
+  '';
+
+  scripts.yelp.exec = ''
+    cat << EOF
+    - Starting up the environment
+    devenv up
+
+    - Starting up the environment *with telemetry*
+    process-compose up
+    or
+    devenv up -- --namespace=telemetry
+
+    - What the hell is process-compose doing
+    yq \$PC_CONFIG_FILES
+
+    - I just want my UTs / pytest to work !
+    devenv up
+    ut / pytest -k ...
+
+    - Just run the coverage alreaaady
+    ut-coverage
+
+    - My python packages are broken/out of sync/missing
+    uv sync --all-extras [-U]
+    uv add <packages>
+    EOF
   '';
 }

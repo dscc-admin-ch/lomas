@@ -11,7 +11,7 @@ name = "lomas-client"
 version = "0.4.1"
 description = "A client to interact with the Lomas server."
 readme = "README.md"
-requires-python = ">=3.11, <3.13"
+requires-python = ">=3.11, <3.14"
 authors = [
     { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
     { name = "Swiss Federal Statistical Office" },

@@ -51,6 +51,7 @@ from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.routes.utils import rabbitmq_connect_queue
 from lomas_server.utils.config import get_config
 
 AioPikaInstrumentor().instrument()
@@ -64,12 +65,6 @@ config = get_config()
 admin_database = admin_database_factory(config.admin_database)
 private_credentials = config.private_db_credentials
 set_opendp_features_config(config.dp_libraries.opendp)
-
-# TODO: merge in pydantic-settings
-amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
-amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
-amqp_addr = os.environ.get("LOMAS_AMQP_ADDR", "127.0.0.1")
-amqp_port = os.environ.get("LOMAS_AMQP_PORT", "5672")
 
 
 def handle_known_exceptions(exc):
@@ -269,7 +264,7 @@ async def process_all_queues():
     """Handle & await all pika processing queues."""
 
     loop = asyncio.get_running_loop()
-    connection = await aio_pika.connect_robust(f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/")
+    connection = await rabbitmq_connect_queue()
 
     async with connection:
         channel = await connection.channel()

@@ -1,7 +1,11 @@
+import json
 import logging
+import logging.config
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from pathlib import Path
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -72,6 +76,10 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
         yield  # lomas_app is handling requests
 
+
+# TODO: merge in pydantic-settings
+if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
+    logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
 
 # Initalise telemetry
 if TELEMETRY:

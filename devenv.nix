@@ -237,12 +237,6 @@ in
       pkgs.kubernetes-helm
     ];
 
-  cachix.enable = true;
-  cachix.pull = [
-    "pre-commit-hooks"
-    "lomas"
-  ];
-
   languages.nix.enable = !config.container.isBuilding;
 
   ##############
@@ -251,7 +245,7 @@ in
 
   scripts.pip-fix.exec = ''
     pushd $DEVENV_ROOT
-    uv pip compile pyproject.toml --annotation-style line --all-extras -o requirements.txt $@
+    uv pip compile pyproject.toml --annotation-style line --all-extras $@ | ${pkgs.gnused}/bin/sed -re '/^-e file:/d' > requirements.txt
     popd
   '';
 

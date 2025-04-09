@@ -7,7 +7,6 @@
 }:
 
 let
-  inherit (builtins) readFile concatStringsSep;
   toYAML = lib.generators.toYAML { };
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
@@ -28,6 +27,7 @@ let
   kc_hostname = "localhost";
   dashboard_port = 8501;
   otel_port = 4317; # Must keep this value
+  otel_port_http = 4318; # Must keep this value
   mongo_collector_port = 9216;
   jupyter_port = 8888;
 
@@ -62,8 +62,6 @@ let
   # Minio
   minio_root_user = "admin";
   minio_root_pwd = "admin123";
-  accessKey = "admin";
-  secretKey = "admin123";
 
   # Jupyter
   jupyter_pwd = "dprocks";
@@ -86,8 +84,6 @@ let
   loki_http_port = 13100;
   # loki_grpc_port = 19096;
   otlp_host = "localhost";
-  otlp_grpc_port = 4317;
-  otlp_http_port = 4318;
   otlp_metrics_port = 29090;
   mongodb_exporter_addr = "localhost";
   mongodb_exporter_port = 19216;
@@ -145,7 +141,7 @@ let
         credentials_name = "local_minio";
         db_type = "S3_DB";
         access_key_id = minio_root_user;
-        secret_access_key = secretKey;
+        secret_access_key = minio_root_pwd;
       }
     ];
   };
@@ -155,7 +151,7 @@ let
     server_url = "CakeMightBeALie.ch";
   };
 
-  lomas_logging = pkgs.writeText "logging.json" (toYAML {
+  lomas_logging = writeYAML "logging.json" {
     version = 1;
     disable_existing_loggers = false;
     formatters.simple.format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s";
@@ -169,7 +165,7 @@ let
       level = "DEBUG";
       handlers = [ "stdout" ];
     };
-  });
+  };
 in
 {
   # Environment variable available inside devenv
@@ -399,8 +395,8 @@ in
     enable = true;
     settings = {
       receivers.otlp.protocols = {
-        grpc.endpoint = "localhost:${toString otlp_grpc_port}";
-        http.endpoint = "localhost:${toString otlp_http_port}";
+        grpc.endpoint = "localhost:${toString otel_port}";
+        http.endpoint = "localhost:${toString otel_port_http}";
       };
 
       processors.batch.timeout = "5s";
@@ -539,7 +535,7 @@ in
       }
     ];
   };
-  # cheeky override of postgres statup command to force a aclean start
+  # cheeky override of postgres statup command to force a clean start
   processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
 
   # Keycloak setup for lomas

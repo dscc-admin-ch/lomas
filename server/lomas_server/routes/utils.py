@@ -1,5 +1,7 @@
 import asyncio
+import logging
 import os
+import posix as Status
 import random
 import time
 from contextlib import asynccontextmanager
@@ -53,15 +55,26 @@ async def process_response(queue, cls, jobs_var):
                 jobs_var.set(jobs)
 
 
+async def rabbitmq_connect_queue(reconnect_interval=10, timeout=120):
+    """Attempt with retries to connect to the queue."""
+    try:
+        async with asyncio.timeout(timeout):
+            connection = await aio_pika.connect_robust(
+                f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/",
+                fail_fast=False,
+                reconnect_interval=reconnect_interval,
+            )
+            return connection
+    except TimeoutError:
+        logging.error(f"Couldn't connect to queue {amqp_addr}:{amqp_port} in time")
+        asyncio.sys.exit(Status.EX_UNAVAILABLE)
+
+
 @asynccontextmanager
 async def rabbitmq_ctx(app):
     """RabbitMQ queue context to connect and register callbacks."""
 
-    connection = await aio_pika.connect_robust(
-        f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/",
-        fail_fast=False,
-        reconnect_interval=10,
-    )
+    connection = await rabbitmq_connect_queue()
     channel = await connection.channel()
 
     await channel.declare_queue("task_queue", auto_delete=True)

@@ -396,6 +396,11 @@ in
   # OTLP #
   ########
 
+  # tune down default namespace from "all" to "default" to make telemetry namespace optional, see @yelp
+  process.manager.args = {
+    namespace = "default";
+  };
+
   services.opentelemetry-collector = {
     enable = true;
     settings = {
@@ -1083,11 +1088,13 @@ in
 
   scripts.yelp.exec = ''
     cat << EOF
-    - Starting up whole thing
+    - Starting up the environment
     devenv up
 
-    - Starting processes up without telemetry
-    process-compose up -n default
+    - Starting up the environment *with telemetry*
+    process-compose up
+    or
+    devenv up -- --namespace=telemetry
 
     - What the hell is process-compose doing
     yq \$PC_CONFIG_FILES

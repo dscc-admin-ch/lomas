@@ -19,20 +19,9 @@ jobs:
         run: |
           uv sync --extra test
 
-      - name: flake8
+      - name: ruff
         run: |
-          flake8 core/lomas_core
-          flake8 client/lomas_client
-          flake8 server/lomas_server
-
-      - name: mypy
-        run: |
-          mypy core/lomas_core
-          mypy client/lomas_client
-          mypy server/lomas_server
-
-      - name: pylint
-        run: |
-          pylint core/lomas_core
-          pylint client/lomas_client
-          pylint server/lomas_server
+          for d in core/lomas_core client/lomas_client server/lomas_server; do
+            ruff check "$d"
+            ruff format --check "$d"
+          done

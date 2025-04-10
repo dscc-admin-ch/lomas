@@ -225,6 +225,7 @@ in
     ]
     # Additional useful packages
     ++ lib.optionals (!config.container.isBuilding) [
+      pkgs.ruff
       pkgs.jq
       pkgs.yq-go
       pkgs.watchexec
@@ -1009,11 +1010,8 @@ in
     path=''${@:-.}
     echo "linting: $path"
     pushd $DEVENV_ROOT
-    isort "$path"
-    black "$path"
-    flake8 "$path"
-    pylint "$path"
-    pydocstringformatter "$path"
+    ruff check --fix "$path"
+    ruff format "$path"
     mypy "$path"
     popd
   '';

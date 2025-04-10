@@ -208,7 +208,10 @@ class SmartnoiseSynthQuerier(
                     col_metadata
                 ):  # TODO any way of specifying cardinality? See issue #337
                     constraints[col] = ChainTransformer(
-                        [LabelTransformer(nullable=nullable), OneHotEncoder()]
+                        [
+                            LabelTransformer(nullable=nullable),
+                            OneHotEncoder(),
+                        ]
                     )
                 elif self._is_continuous(col_metadata):
                     constraints[col] = MinMaxTransformer(

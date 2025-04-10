@@ -41,7 +41,6 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
-
         self.user_name = "Dr.Antartica"
         self.bearer = 'Bearer {"name": "Dr.Antartica", "email": "dr.antartica@penguin_research.org"}'
         self.headers = {

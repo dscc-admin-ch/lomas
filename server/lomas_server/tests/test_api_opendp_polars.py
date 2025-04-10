@@ -281,7 +281,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
 
     def test1_margin(self) -> None:
         """Test margins created."""
-
         RAW_METADATA["rows"] = 100
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         by_config = ["column_int"]

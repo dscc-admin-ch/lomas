@@ -76,7 +76,6 @@ class Client:
             client_secret (str, optional): Overwrites the client id of the user's associated service account
                 (otherwise passed by environment variable). Defaults to None.
         """
-
         resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
         init_telemetry(resource)
 
@@ -177,7 +176,6 @@ class Client:
             Optional[InitialBudgetResponse]: A dictionary
                 containing the initial budget.
         """
-
         body_dict = {"dataset_name": self.http_client.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)

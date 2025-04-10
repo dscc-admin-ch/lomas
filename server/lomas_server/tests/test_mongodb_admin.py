@@ -991,7 +991,6 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def test_add_demo_data_to_mongodb_admin(self) -> None:
         """Test add demo data to admin db."""
-
         demo_config = DemoAdminConfig(
             mg_config=get_config().admin_database,
             kc_config=None,

@@ -62,7 +62,7 @@ def create_realm(config: Config, kc_admin: KeycloakAdmin):
 
 
 def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
-    """Creates clients for the lomas application:
+    """Creates clients for the lomas application.
 
         - lomas_admin
         - lomas_api
@@ -71,7 +71,6 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
         config (Config): Config for creating the clients.
         kc_admin (KeycloakAdmin): A KeycloakAdmin session.
     """
-
     create_confidential_client(
         kc_admin,
         config.lomas_admin_client_id,

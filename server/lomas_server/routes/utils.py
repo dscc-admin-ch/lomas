@@ -36,7 +36,6 @@ amqp_port = os.environ.get("LOMAS_AMQP_PORT", "5672")
 
 async def process_response(queue, cls, jobs_var):
     """Process responses queue into Jobs."""
-
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process():
@@ -73,7 +72,6 @@ async def rabbitmq_connect_queue(reconnect_interval=10, timeout=120):
 @asynccontextmanager
 async def rabbitmq_ctx(app):
     """RabbitMQ queue context to connect and register callbacks."""
-
     connection = await rabbitmq_connect_queue()
     channel = await connection.channel()
 

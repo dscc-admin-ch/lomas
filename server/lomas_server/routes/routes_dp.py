@@ -43,7 +43,7 @@ async def smartnoise_sql_handler(
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries for the SmartNoiseSQL library.
 
     \f
@@ -79,7 +79,7 @@ async def dummy_smartnoise_sql_handler(
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
     \f
@@ -116,7 +116,7 @@ async def estimate_smartnoise_sql_cost(
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
 ) -> Job:
-    """
+    r"""
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
     \f
@@ -156,7 +156,7 @@ async def smartnoise_synth_handler(
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries for the SmartNoiseSynth library.
 
     \f
@@ -196,7 +196,7 @@ async def dummy_smartnoise_synth_handler(
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries on dummy datasets for the SmartNoiseSynth library.
 
     \f
@@ -236,7 +236,7 @@ async def estimate_smartnoise_synth_cost(
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
 ) -> Job:
-    """
+    r"""
     Computes the privacy loss budget cost of a SmartNoiseSynth query.
 
     \f
@@ -279,7 +279,7 @@ async def opendp_query_handler(
     request: Request,
     opendp_query: OpenDPQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries for the OpenDP Library.
 
     \f
@@ -315,7 +315,7 @@ async def dummy_opendp_query_handler(
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries on dummy datasets for the OpenDP library.
 
     \f
@@ -351,7 +351,7 @@ async def estimate_opendp_cost(
     request: Request,
     opendp_query: OpenDPRequestModel,
 ) -> Job:
-    """
+    r"""
     Estimates the privacy loss budget cost of an OpenDP query.
 
     \f
@@ -391,7 +391,7 @@ async def diffprivlib_query_handler(
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries for the DiffPrivLib Library.
 
     \f
@@ -427,7 +427,7 @@ async def dummy_diffprivlib_query_handler(
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
 ) -> Job:
-    """
+    r"""
     Handles queries on dummy datasets for the DiffPrivLib library.
 
     \f
@@ -463,7 +463,7 @@ async def estimate_diffprivlib_cost(
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
 ) -> Job:
-    """
+    r"""
     Estimates the privacy loss budget cost of an DiffPrivLib query.
 
     \f

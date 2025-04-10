@@ -18,7 +18,6 @@ def admin_database_factory(config: DBConfig) -> AdminDatabase:
     Returns:
         AdminDatabase: A instance of the correct type of AdminDatabase.
     """
-
     match config:
         case MongoDBConfig():
             db_url = get_mongodb_url(config)

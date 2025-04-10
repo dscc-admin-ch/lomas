@@ -78,7 +78,6 @@ def init_telemetry(resource: Resource) -> None:
     Args:
         resource (Resource): The resource to associate with the app and instance.
     """
-
     init_traces_exporter(resource)
     init_metrics_exporter(resource)
     init_logs_exporter(resource)

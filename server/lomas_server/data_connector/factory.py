@@ -75,7 +75,6 @@ def get_dataset_credentials(
     Returns:
         PrivateDBCredentials: The matching credentials.
     """
-
     if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials:
             if isinstance(c, S3CredentialsConfig) and (credentials_name == c.credentials_name):

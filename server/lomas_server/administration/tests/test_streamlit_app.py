@@ -68,7 +68,6 @@ def mock_configs():
 
 def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
     """Test display a_server_overview.py page."""
-
     this_file_path = os.path.abspath(__file__)
     admin_test_dir = os.path.dirname(this_file_path)
     at = AppTest.from_file(f"{admin_test_dir}/../dashboard/pages/a_server_overview.py").run()

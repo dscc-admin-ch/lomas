@@ -173,7 +173,6 @@ def add_user(db: Database, user: str, email: str) -> None:
     Returns:
         None
     """
-
     validated_user = User.model_validate(
         {
             "id": {"name": user, "email": email},
@@ -581,7 +580,6 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     Returns:
         None
     """
-
     # Step 1: Build dataset
     dataset: dict[str, Any] = {"dataset_name": dataset_name}
 

@@ -225,7 +225,6 @@ in
     ]
     # Additional useful packages
     ++ lib.optionals (!config.container.isBuilding) [
-      pkgs.ruff
       pkgs.jq
       pkgs.yq-go
       pkgs.watchexec

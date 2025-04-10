@@ -55,7 +55,7 @@ class ExternalLibraryException(Exception):
 
 class UnauthorizedAccessException(Exception):
     """
-    Custom exception for unauthorized access:
+    Custom exception for unauthorized access.
 
     (unknown user, no access to dataset, etc)
     """

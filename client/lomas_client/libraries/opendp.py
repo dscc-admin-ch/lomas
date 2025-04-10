@@ -89,7 +89,6 @@ class OpenDPClient:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
             fixed_delta=fixed_delta,

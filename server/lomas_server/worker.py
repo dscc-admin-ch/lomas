@@ -69,7 +69,6 @@ set_opendp_features_config(config.dp_libraries.opendp)
 
 def handle_known_exceptions(exc):
     """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization."""
-
     match exc:
         case ExternalLibraryException():
             return JSONResponse(
@@ -97,7 +96,6 @@ def handle_known_exceptions(exc):
 
 def handle_cost_query(body):
     """Handle Cost query into CostResponse."""
-
     start_sec = time.time()
     message = body.decode()
     _, dp_library, request_model = message.split(":", 2)
@@ -139,7 +137,6 @@ def handle_cost_query(body):
 
 def handle_query(body):
     """Handle DP query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, query_json = message.split(":", 2)
@@ -181,7 +178,6 @@ def handle_query(body):
 
 def handle_dummy_query(body):
     """Handle DP-dummy query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, query_model = message.split(":", 2)
@@ -219,7 +215,6 @@ def handle_dummy_query(body):
 
 async def process_message(channel, in_queue, out_queue, message_handler):
     """General RabbitMQ Message handler -> processing -> response."""
-
     queue = await channel.declare_queue(in_queue, auto_delete=True)
     await channel.declare_queue(out_queue, auto_delete=True)
 
@@ -248,25 +243,23 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                 )
 
 
-class TerminateTaskGroup(Exception):
+class TerminateTaskGroupException(Exception):
     """Exception raised to terminate a task group."""
 
 
 async def force_terminate_task_group():
     """Used to force termination of a task group."""
-    raise TerminateTaskGroup()
+    raise TerminateTaskGroupException()
 
 
 def ask_exit(signame, tg):
     """Signal handler for TaskGroup termination."""
-
     logging.info(f"got signal {signame}: exit")
     tg.create_task(force_terminate_task_group())
 
 
 async def process_all_queues():
     """Handle & await all pika processing queues."""
-
     loop = asyncio.get_running_loop()
     connection = await rabbitmq_connect_queue()
 
@@ -287,7 +280,7 @@ async def process_all_queues():
                         functools.partial(ask_exit, signame, tg),
                     )
             # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
-        except* TerminateTaskGroup:
+        except* TerminateTaskGroupException:
             logging.info("Terminated")
         finally:
             await channel.close()

@@ -18,12 +18,20 @@ data:
           port: 27017
           password: {{ index .Values.mongodb.auth.passwords 0 }}
           username: {{ index .Values.mongodb.auth.usernames 0 }}
-          db_name: {{ index .Values.mongodb.auth.databases 0}}
+          db_name: {{ index .Values.mongodb.auth.databases 0 }}
           max_pool_size: {{ .Values.mongodb.max_pool_size }}
           min_pool_size: {{ .Values.mongodb.min_pool_size }}
           max_connecting: {{ .Values.mongodb.max_connecting }}
+        authenticator:
+          authentication_type: jwt
+          keycloak_address: {{ .Values.keycloak.fullnameOverride }}
+          keycloak_port: {{ .Values.keycloak.service.ports.http }}
+          keycloak_use_tls: false
+          realm: {{ .Values.admin.realm }}
         dp_libraries:
           opendp:
             contrib: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.contrib }}
             floating_point: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.floating_point }}
             honest_but_curious: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.honest_but_curious }}
+        private_db_credentials: {{ .Values.server.runtime_args.settings.private_db_credentials }}
+      

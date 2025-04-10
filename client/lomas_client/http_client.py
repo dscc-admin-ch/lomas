@@ -59,7 +59,7 @@ class LomasHttpClient:
         keycloak_address = keycloak_address or os.getenv("LOMAS_KEYCLOAK_ADDRESS")
         env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
         keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None)
-        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in [1, "True", "true"]
+        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in ["1", "True", "true"]
         keycloak_use_tls = keycloak_use_tls or not env_keycloak_no_tls
         realm = realm or os.getenv("LOMAS_REALM")
 
@@ -76,7 +76,6 @@ class LomasHttpClient:
 
         if not keycloak_use_tls:
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-
         self._client_id = client_id
         self._client_secret = client_secret
         oauth_client = BackendApplicationClient(client_id=self._client_id)

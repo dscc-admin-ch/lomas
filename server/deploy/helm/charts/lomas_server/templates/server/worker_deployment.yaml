@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "lomas.server.fullname" . }}
+  name: {{ include "lomas.worker.fullname" . }}
   labels:
-    {{- include "lomas.server.labels" . | nindent 4 }}
+    {{- include "lomas.worker.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "lomas.server.selectorLabels" . | nindent 6 }}
-  replicas: 1
+      {{- include "lomas.worker.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.server.replicas }}
   template:
     metadata:
       {{- with .Values.server.podAnnotations }}
@@ -16,7 +16,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "lomas.server.selectorLabels" . | nindent 8 }}
+        {{- include "lomas.worker.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "lomas.serviceAccountName" . }}
       securityContext:
@@ -41,6 +41,7 @@ spec:
             {{- toYaml .Values.server.securityContext | nindent 12 }}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        command: ["python", "-m", "lomas_server.worker"]
         ports:
           - name: http
             containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}

@@ -152,9 +152,8 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
-        if hasattr(series_info, "cardinality"):
-            if series_info.cardinality:
-                margin_params["max_num_partitions"] *= series_info.cardinality
+        if hasattr(series_info, "cardinality") and series_info.cardinality:
+            margin_params["max_num_partitions"] *= series_info.cardinality
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
@@ -328,7 +327,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
                                 a dataset input metric.
     """
     distance_type = metric_distance_type(pipeline.input_metric)
-    if not distance_type == OpenDPDatasetInputMetric.INT_DISTANCE:
+    if distance_type != OpenDPDatasetInputMetric.INT_DISTANCE:
         e = (
             f"The input distance type is not {OpenDPDatasetInputMetric.INT_DISTANCE}"
             + f" but {distance_type} which is not a valid distance type for datasets."

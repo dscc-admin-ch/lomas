@@ -44,10 +44,7 @@ def git_ref_exists(git_ref: str) -> bool:
     """
     # check if reference is a tag
     tag_pattern = r"^v\d+\.\d+\.\d+$"
-    if re.match(tag_pattern, git_ref):
-        refs = "tags"
-    else:
-        refs = "heads"
+    refs = "tags" if re.match(tag_pattern, git_ref) else "heads"
     try:
         result = subprocess.run(
             f"git ls-remote --{refs} origin {git_ref}",
@@ -57,10 +54,7 @@ def git_ref_exists(git_ref: str) -> bool:
             check=False,
         )
 
-        if len(result.stdout.strip()) > 0:
-            return True
-        else:
-            return False
+        return len(result.stdout.strip()) > 0
     except subprocess.CalledProcessError as e:
         print(f"Error checking ref: {e}")
         return False
@@ -88,8 +82,8 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
     start_branch = start_branch_cmd.stdout.strip()
 
     # Set parameters for conf.py
-    os.environ["current_version"] = version
-    os.environ["current_language"] = language
+    os.environ["CURRENT_VERSION"] = version
+    os.environ["CURRENT_LANGUAGE"] = language
 
     if not local and not git_ref_exists(tag):
         # Replace index if tag does not exist
@@ -263,8 +257,8 @@ if __name__ == "__main__":
     if args.local:
         # Set arguments to conf.py
         # to separate a single local build from all builds we have a flag, see conf.py
-        os.environ["build_all_docs"] = str(False)
-        os.environ["pages_root"] = "./build/html"
+        os.environ["BUILD_ALL_DOCS"] = str(False)
+        os.environ["PAGES_ROOT"] = "./build/html"
         start_branch_cmd = subprocess.run(
             "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True, check=False
         )
@@ -274,8 +268,8 @@ if __name__ == "__main__":
     else:
         # Set arguments to conf.py
         # to separate a single local build from all builds we have a flag, see conf.py
-        os.environ["build_all_docs"] = str(True)
-        os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
+        os.environ["BUILD_ALL_DOCS"] = str(True)
+        os.environ["PAGES_ROOT"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
         # manually build the master branch
         build_doc("stable", "en", "master")

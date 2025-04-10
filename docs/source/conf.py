@@ -75,14 +75,14 @@ html_static_path = ["_static"]
 html_logo = "_static/logo.png"
 
 # get the environment variable build_all_docs and pages_root
-build_all_docs = os.environ.get("build_all_docs")
-pages_root = os.environ.get("pages_root", "")
+build_all_docs = os.environ.get("BUILD_ALL_DOCS")
+pages_root = os.environ.get("PAGES_ROOT", "")
 
 # if not there, we dont call this
 if build_all_docs is not None:
     # we get the current language and version
-    current_language = os.environ.get("current_language")
-    current_version = os.environ.get("current_version")
+    current_language = os.environ.get("CURRENT_LANGUAGE")
+    current_version = os.environ.get("CURRENT_VERSION")
 
     # we set the html_context wit current language and version
     # and empty languages and versions for now

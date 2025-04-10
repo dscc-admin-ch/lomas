@@ -60,11 +60,7 @@ class AdminMongoDatabase(AdminDatabase):
         """
         MONGO_QUERY_COUNTER.add(1, {"operation": "does_dataset_exist"})
         collection_query = self.db.datasets.find({})
-        for document in collection_query:
-            if document["dataset_name"] == dataset_name:
-                return True
-
-        return False
+        return any(document["dataset_name"] == dataset_name for document in collection_query)
 
     @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> Metadata:

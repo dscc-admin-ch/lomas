@@ -128,22 +128,21 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
     def test_opendp_polars_query(self) -> None:
         """Test opendp polars query."""
         for mechanism in ["laplace", "gaussian"]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
-                    json_plan = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = json_plan
+            with self.subTest(msg=mechanism), TestClient(app, headers=self.headers) as client:
+                lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
+                json_plan = mean_query_serialized(lf)
+                example_opendp_polars["opendp_json"] = json_plan
 
-                    # Laplace
-                    example_opendp_polars["mechanism"] = mechanism
-                    job = submit_job_wait(
-                        client,
-                        "/opendp_query",
-                        json=example_opendp_polars,
-                    )
-                    assert job is not None
-                    response_model = QueryResponse.model_validate(job.result)
-                    assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+                # Laplace
+                example_opendp_polars["mechanism"] = mechanism
+                job = submit_job_wait(
+                    client,
+                    "/opendp_query",
+                    json=example_opendp_polars,
+                )
+                assert job is not None
+                response_model = QueryResponse.model_validate(job.result)
+                assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     # TODO: opendp v0.12: Adapt for datetime
     @pytest.mark.long
@@ -213,41 +212,39 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
         for mechanism, delta_check in [("laplace", lambda x: x == 0), ("gaussian", lambda x: x > 0)]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
-                    json_plan = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = json_plan
+            with self.subTest(msg=mechanism), TestClient(app, headers=self.headers) as client:
+                lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
+                json_plan = mean_query_serialized(lf)
+                example_opendp_polars["opendp_json"] = json_plan
 
-                    # Expect to work
-                    example_opendp_polars["mechanism"] = mechanism
-                    job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
-                    assert job is not None
-                    response_model = CostResponse.model_validate(job.result)
-                    assert response_model.epsilon > 0.0
-                    assert delta_check(response_model.delta)
+                # Expect to work
+                example_opendp_polars["mechanism"] = mechanism
+                job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+                assert job is not None
+                response_model = CostResponse.model_validate(job.result)
+                assert response_model.epsilon > 0.0
+                assert delta_check(response_model.delta)
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""
         for mechanism in ["laplace", "gaussian"]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
-                    json_plan = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = json_plan
+            with self.subTest(msg=mechanism), TestClient(app, headers=self.headers) as client:
+                lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
+                json_plan = mean_query_serialized(lf)
+                example_opendp_polars["opendp_json"] = json_plan
 
-                    # Expect to work
-                    example_opendp_polars["mechanism"] = mechanism
-                    example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
-                    example_opendp_polars["dummy_seed"] = DUMMY_SEED
-                    job = submit_job_wait(
-                        client,
-                        "/dummy_opendp_query",
-                        json=example_opendp_polars,
-                    )
-                    assert job is not None
-                    response_model = QueryResponse.model_validate(job.result)
-                    assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+                # Expect to work
+                example_opendp_polars["mechanism"] = mechanism
+                example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
+                example_opendp_polars["dummy_seed"] = DUMMY_SEED
+                job = submit_job_wait(
+                    client,
+                    "/dummy_opendp_query",
+                    json=example_opendp_polars,
+                )
+                assert job is not None
+                response_model = QueryResponse.model_validate(job.result)
+                assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     def test_grouping_query(self) -> None:
         """Test_dummy_opendp_polars_query with grouing."""

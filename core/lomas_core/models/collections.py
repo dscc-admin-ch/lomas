@@ -205,10 +205,7 @@ def get_column_metadata_discriminator(v: Any) -> str:
     Returns:
         str: The metadata string type.
     """
-    if isinstance(v, dict):
-        col_type = v.get(TYPE_FIELD)
-    else:
-        col_type = getattr(v, TYPE_FIELD)
+    col_type = v.get(TYPE_FIELD) if isinstance(v, dict) else getattr(v, TYPE_FIELD)
 
     if (
         col_type

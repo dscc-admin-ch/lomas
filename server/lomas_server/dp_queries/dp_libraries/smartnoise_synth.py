@@ -351,12 +351,13 @@ class SmartnoiseSynthQuerier(
 
         # Preprocessing information from metadata
         metadata = self.data_connector.get_metadata()
-        if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
-            if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
-                raise ExternalLibraryException(
-                    DPLibraries.SMARTNOISE_SYNTH,
-                    f"{SSynthGanSynthesizer.PATE_GAN} not reliable " + "with this dataset.",
-                )
+        if (query_json.synth_name == SSynthGanSynthesizer.PATE_GAN) and (
+            metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN
+        ):
+            raise ExternalLibraryException(
+                DPLibraries.SMARTNOISE_SYNTH,
+                f"{SSynthGanSynthesizer.PATE_GAN} not reliable " + "with this dataset.",
+            )
 
         constraints = self._get_default_constraints(metadata, query_json, table_transformer_style)
 

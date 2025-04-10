@@ -95,7 +95,7 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
             indexes = serie.index.tolist()
             for _ in range(0, NB_RANDOM_NONE):
                 index_to_insert = rng.choice(indexes)
-                serie.at[index_to_insert] = None
+                serie.loc[index_to_insert] = None
 
         # Add randomly generated data as new column of dataframe
         df[col_name] = serie

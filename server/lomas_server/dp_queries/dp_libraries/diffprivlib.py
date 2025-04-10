@@ -66,7 +66,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         warnings.simplefilter("error", PrivacyLeakWarning)
         try:
             if y_train is not None:
-                y_train = y_train.values.ravel()
+                y_train = y_train.to_numpy().ravel()
             dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(

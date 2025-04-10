@@ -110,7 +110,7 @@ class SmartnoiseSQLQuerier(
                 "Error executing query:" + str(e),
             ) from e
         if not query_json.postprocess:
-            result = list(result)[0]
+            result = next(iter(result))
             cols = [f"res_{i}" for i in range(len(result))]
             result = [result]
         else:
@@ -125,7 +125,7 @@ class SmartnoiseSQLQuerier(
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        if df_res.isnull().values.any():
+        if df_res.isna().to_numpy().any():
             # Try again up to SSQL_MAX_ITERATION
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1

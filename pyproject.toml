@@ -58,6 +58,17 @@ select = [
   "N", # pep8-naming
   "D", # pydocstyle
   "FAST001", "FAST003", # FastAPI lint
+  "DTZ", # flake8-datetimez
+  "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
+  "PYI", # flake8-pyi
+  #"LOG",
+  # "PT", # Pytest-style (lots of fixes todo)
+  "RSE", # flake8-raise
+  "FLY", # flynt
+  # "C90", # maccabe do we want it ?
+  "NPY", # NumPy-specific rules
+  "PD", # Pandas-specific rules
+  "RUF", # Ruff-sepicifc rules
 ]
 ignore = [
   "E501",
@@ -68,6 +79,7 @@ ignore = [
   "N812", #lowercase-imported-as-non-lowercase
   "D10", # Missing docstring in public module/package/__init__
   "D401", # First line of docstring should be in imperative mood
+  "PD901", # Avoid using the generic variable name `df` for DataFrames
 ]
 isort.split-on-trailing-comma = true
 isort.known-first-party = ["lomas_core", "lomas_server", "lomas_client"]

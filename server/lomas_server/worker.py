@@ -249,7 +249,7 @@ class TerminateTaskGroupException(Exception):
 
 async def force_terminate_task_group():
     """Used to force termination of a task group."""
-    raise TerminateTaskGroupException()
+    raise TerminateTaskGroupException
 
 
 def ask_exit(signame, tg):

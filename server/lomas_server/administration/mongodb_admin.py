@@ -155,7 +155,7 @@ def with_mongodb(func: Callable) -> Callable:
     return wrapper
 
 
-##########################  USERS  ########################## # noqa: E266
+##########################  USERS  ##########################
 @with_mongodb
 @check_user_exists(False)
 def add_user(db: Database, user: str, email: str) -> None:
@@ -398,7 +398,7 @@ def get_user(db: Database, user: str) -> dict:
     Returns:
         user (dict): all information of user from 'users' collection
     """
-    user_info = list(db.users.find({"id.name": user}))[0]
+    user_info = next(iter(db.users.find({"id.name": user})))
     user_info.pop("_id", None)
     logging.info(user_info)
     return user_info
@@ -526,7 +526,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 
-###################  DATASET TO DATABASE  ################### # noqa: E266
+###################  DATASET TO DATABASE  ###################
 @with_mongodb
 @check_dataset_and_metadata_exist(False)
 def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
@@ -807,7 +807,7 @@ def get_dataset(db: Database, dataset: str) -> dict:
     Returns:
         dataset_info (dict): informations about the dataset
     """
-    dataset_info = list(db.datasets.find({"dataset_name": dataset}))[0]
+    dataset_info = next(iter(db.datasets.find({"dataset_name": dataset})))
     dataset_info.pop("_id", None)
     logging.info(dataset_info)
     return dataset_info
@@ -852,7 +852,7 @@ def get_list_of_datasets(db: Database) -> list:
     return dataset_names
 
 
-#######################  COLLECTIONS  ####################### # noqa: E266
+#######################  COLLECTIONS  #######################
 @with_mongodb
 def drop_collection(db: Database, collection: str) -> None:
     """Delete collection.

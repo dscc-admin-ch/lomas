@@ -26,7 +26,7 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
 
     This middleware logs the incoming requests, including the user name
     the route being accessed, and any query parameters.
-    Additionally, it creates a trace span to trace the user’s request and
+    Additionally, it creates a trace span to trace the user's request and
     adds attributes to the span related to the user name and query parameters.
     """
 

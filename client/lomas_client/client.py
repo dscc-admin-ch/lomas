@@ -1,7 +1,6 @@
 import base64
 import json
 import pickle
-from typing import TypeVar
 
 import pandas as pd
 import polars as pl
@@ -37,8 +36,6 @@ from lomas_core.models.responses import (
 # Opendp_logger
 enable_logging()
 enable_features("contrib")
-
-_Client = TypeVar("_Client")
 
 
 class Client:

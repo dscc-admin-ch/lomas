@@ -57,6 +57,7 @@ select = [
   "SIM", # flake8-simplify
   "N", # pep8-naming
   "D", # pydocstyle
+  "FAST001", "FAST003", # FastAPI lint
 ]
 ignore = [
   "E501",

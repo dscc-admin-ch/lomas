@@ -53,7 +53,7 @@ async def health_handler():
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}", response_model=Job, responses=SERVER_QUERY_ERROR_RESPONSES)
+@router.get("/status/{uid}", responses=SERVER_QUERY_ERROR_RESPONSES)
 async def status_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
@@ -110,7 +110,6 @@ async def get_state(
 @router.get(
     "/config",
     tags=["ADMIN_USER"],
-    response_model=ConfigResponse,
 )
 async def get_server_config(
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],

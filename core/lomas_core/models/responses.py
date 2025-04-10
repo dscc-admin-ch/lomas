@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 import pandas as pd
@@ -81,9 +81,7 @@ class DummyDsResponse(ResponseModel):
 
     @field_validator("dummy_df", mode="before")
     @classmethod
-    def deserialize_dummy_df(
-        cls, v: pd.DataFrame | dict, info: ValidationInfo
-    ) -> pd.DataFrame:
+    def deserialize_dummy_df(cls, v: pd.DataFrame | dict, info: ValidationInfo) -> pd.DataFrame:
         """Decodes the dict representation of the dummy df with correct types.
 
         Only does so if the input value is not already a dataframe.
@@ -163,9 +161,7 @@ class SmartnoiseSynthModel(BaseModel):
 
     res_type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
     """Result type description."""
-    model: Annotated[
-        Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)
-    ]
+    model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
     """Synthetic data generator model."""
 
 
@@ -210,14 +206,14 @@ class OpenDPPolarsQueryResult(BaseModel):
 
 
 # Response object
-QueryResultTypeAlias = Union[
-    DiffPrivLibQueryResult,
-    SmartnoiseSQLQueryResult,
-    SmartnoiseSynthModel,
-    SmartnoiseSynthSamples,
-    OpenDPQueryResult,
-    OpenDPPolarsQueryResult,
-]
+QueryResultTypeAlias = (
+    DiffPrivLibQueryResult
+    | SmartnoiseSQLQueryResult
+    | SmartnoiseSynthModel
+    | SmartnoiseSynthSamples
+    | OpenDPQueryResult
+    | OpenDPPolarsQueryResult
+)
 
 
 class QueryResponse(CostResponse):

@@ -57,9 +57,7 @@ class LomasHttpClient:
         client_secret = client_secret or os.getenv("LOMAS_CLIENT_SECRET")
         keycloak_address = keycloak_address or os.getenv("LOMAS_KEYCLOAK_ADDRESS")
         env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
-        keycloak_port = keycloak_port or (
-            int(env_keycloak_port) if env_keycloak_port else None
-        )
+        keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None)
         env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in [
             1,
             "True",
@@ -188,6 +186,4 @@ class LomasHttpClient:
 
             sleep(sleep_sec)
 
-        raise TimeoutError(
-            f"Job {job_uid} didn't complete in time ({sleep_sec * n_retry})"
-        )
+        raise TimeoutError(f"Job {job_uid} didn't complete in time ({sleep_sec * n_retry})")

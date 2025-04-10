@@ -21,9 +21,7 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
 class SmartnoiseSQLQuerier(
-    DPQuerier[
-        SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel, SmartnoiseSQLQueryResult
-    ]
+    DPQuerier[SmartnoiseSQLRequestModel, SmartnoiseSQLQueryModel, SmartnoiseSQLQueryResult]
 ):
     """Concrete implementation of the DPQuerier ABC for the SmartNoiseSQL library."""
 
@@ -64,9 +62,7 @@ class SmartnoiseSQLQuerier(
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
         except Exception as e:
-            raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}"
-            ) from e
+            raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
         return epsilon, delta
 
@@ -104,14 +100,10 @@ class SmartnoiseSQLQuerier(
         epsilon, delta = query_json.epsilon, query_json.delta
 
         if self.reader is None:
-            raise InternalServerException(
-                "Smartnoise SQL `query` method called before `cost` method"
-            )
+            raise InternalServerException("Smartnoise SQL `query` method called before `cost` method")
 
         try:
-            result = self.reader.execute(
-                query_json.query_str, postprocess=query_json.postprocess
-            )
+            result = self.reader.execute(query_json.query_str, postprocess=query_json.postprocess)
         except Exception as e:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,

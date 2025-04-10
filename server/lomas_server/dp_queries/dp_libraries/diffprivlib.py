@@ -24,9 +24,7 @@ from lomas_server.dp_queries.dp_libraries.utils import (
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-class DiffPrivLibQuerier(
-    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]
-):
+class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]):
     """Concrete implementation of the DPQuerier ABC for the DiffPrivLib library."""
 
     def __init__(
@@ -128,9 +126,7 @@ class DiffPrivLibQuerier(
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
         if self.dpl_pipeline is None:
-            raise InternalServerException(
-                "DiffPrivLib `query` method called before `cost` method"
-            )
+            raise InternalServerException("DiffPrivLib `query` method called before `cost` method")
 
         # Model accuracy
         score = self.dpl_pipeline.score(self.x_test, self.y_test)

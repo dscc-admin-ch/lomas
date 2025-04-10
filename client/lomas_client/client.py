@@ -151,9 +151,7 @@ class Client:
         raise_error(res)
         return None
 
-    def get_dummy_lf(
-        self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
-    ) -> pl.LazyFrame | None:
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame | None:
         """
         Returns the polars LazyFrame for the dummy dataset with.
 
@@ -246,23 +244,17 @@ class Client:
                         return_model = query["client_input"]["return_model"]
                         res = query["response"]["result"]
                         if return_model:
-                            query["response"]["result"] = pickle.loads(
-                                base64.b64decode(res)
-                            )
+                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
                         else:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
-                        opdp_query = make_load_json(
-                            query["client_input"]["opendp_json"]
-                        )
+                        opdp_query = make_load_json(query["client_input"]["opendp_json"])
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(
-                            f"Cannot deserialise unknown query type: {query['dp_library']}"
-                        )
+                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_library']}")
 
                 deserialised_queries.append(query)
 

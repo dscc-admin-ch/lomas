@@ -126,24 +126,16 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             dataset_count = db.datasets.count_documents({"dataset_name": dataset})
 
             if enforce_true and dataset_count == 0:
-                raise ValueError(
-                    f"Dataset {dataset} does not exist in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} does not exist in dataset collection")
             if not enforce_true and dataset_count > 0:
-                raise ValueError(
-                    f"Dataset {dataset} already exists in dataset collection"
-                )
+                raise ValueError(f"Dataset {dataset} already exists in dataset collection")
 
             metadata_count = db.metadata.count_documents({dataset: {"$exists": True}})
 
             if enforce_true and metadata_count == 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} does not exist in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} does not exist in metadata collection")
             if not enforce_true and metadata_count > 0:
-                raise ValueError(
-                    f"Metadata for dataset {dataset} already exists in metadata collection"
-                )
+                raise ValueError(f"Metadata for dataset {dataset} already exists in metadata collection")
 
             return function(*arguments, **kwargs)  # type: ignore
 
@@ -271,9 +263,7 @@ def del_user(db: Database, user: str) -> None:
 @with_mongodb
 @check_user_exists(True)
 @check_user_has_dataset(False)
-def add_dataset_to_user(
-    db: Database, user: str, dataset: str, epsilon: float, delta: float
-) -> None:
+def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, delta: float) -> None:
     """Add dataset to user with initialized budget values.
 
     Adds to list of datasets, that the user has access to.
@@ -344,9 +334,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 @with_mongodb
 @check_user_exists(True)
 @check_user_has_dataset(True)
-def set_budget_field(
-    db: Database, user: str, dataset: str, field: str, value: float
-) -> None:
+def set_budget_field(db: Database, user: str, dataset: str, field: str, value: float) -> None:
     """Set (for some reason) a budget field to a given value.
 
     (Only) If given user exists and has access to given dataset.
@@ -730,15 +718,11 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
             for d in existing_datasets:
                 dataset_filter = {"dataset_name": d.dataset_name}
                 update_operation = {"$set": d.model_dump()}
-                res: _WriteResult = db.datasets.update_many(
-                    dataset_filter, update_operation
-                )
+                res: _WriteResult = db.datasets.update_many(dataset_filter, update_operation)
                 check_result_acknowledged(res)
             logging.info("Existing datasets updated with new collection")
         else:
-            warn(
-                "Some datasets already present in database. Overwrite is set to False."
-            )
+            warn("Some datasets already present in database. Overwrite is set to False.")
 
     # Add dataset collection
     if new_datasets:
@@ -784,14 +768,10 @@ def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
 
         if metadata and overwrite_metadata:
             logging.info(f"Metadata updated for dataset : {dataset_name}.")
-            res = db.metadata.update_one(
-                metadata_filter, {"$set": {dataset_name: metadata_dict}}
-            )
+            res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            logging.info(
-                "Metadata already exist. Use the command -om to overwrite with new values."
-            )
+            logging.info("Metadata already exist. Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)

@@ -121,13 +121,9 @@ class Config(BaseModel):
         Field(discriminator="authentication_type"),
     ]
 
-    admin_database: Annotated[
-        MongoDBConfig | YamlDBConfig, Field(discriminator="db_type")
-    ]
+    admin_database: Annotated[MongoDBConfig | YamlDBConfig, Field(discriminator="db_type")]
 
-    private_db_credentials: list[
-        Annotated[S3CredentialsConfig, Field(discriminator="db_type")]
-    ]
+    private_db_credentials: list[Annotated[S3CredentialsConfig, Field(discriminator="db_type")]]
 
     dp_libraries: DPLibraryConfig
 

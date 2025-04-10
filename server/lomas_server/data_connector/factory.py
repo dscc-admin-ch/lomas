@@ -50,9 +50,7 @@ def data_connector_factory(
 
             return S3Connector(ds_metadata, ds_access)
         case _:
-            raise InternalServerException(
-                f"Unknown database type: {ds_access.database_type}"
-            )
+            raise InternalServerException(f"Unknown database type: {ds_access.database_type}")
 
 
 def get_dataset_credentials(
@@ -80,9 +78,7 @@ def get_dataset_credentials(
 
     if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials:
-            if isinstance(c, S3CredentialsConfig) and (
-                credentials_name == c.credentials_name
-            ):
+            if isinstance(c, S3CredentialsConfig) and (credentials_name == c.credentials_name):
                 return c
 
     raise InternalServerException(

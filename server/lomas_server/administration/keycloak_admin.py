@@ -123,9 +123,7 @@ def add_kc_user(
 
         # Add attributes to linked service account user
         user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
-        user_service_account_uid = kc_admin.clients(
-            user_client_uid
-        ).service_account_user.get()[
+        user_service_account_uid = kc_admin.clients(user_client_uid).service_account_user.get()[
             "id"  # type: ignore
         ]
 
@@ -153,9 +151,7 @@ def add_kc_user(
         logging.info(f"Added keycloak user {log_name} and associated client.\\n")
 
     except HttpException as e:
-        raise RuntimeError(
-            "Could not add user to keycloak. Please contact the service administrator."
-        ) from e
+        raise RuntimeError("Could not add user to keycloak. Please contact the service administrator.") from e
 
 
 def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
@@ -288,9 +284,7 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     kc_admin = get_kc_admin(kc_config)
 
     user_client_uid = kc_admin.clients.get(clientId=user_name)[0]["id"]  # type: ignore
-    user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()[
-        "value"
-    ]  # type: ignore
+    user_client_secret: str = kc_admin.clients(user_client_uid).client_secret.get()["value"]  # type: ignore
 
     logging.info("Accessing keycloak user client secret for user.")
 

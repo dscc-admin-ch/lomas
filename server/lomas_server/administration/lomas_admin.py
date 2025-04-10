@@ -60,9 +60,7 @@ def add_lomas_user_with_budget(
         client_secret (str | None, optional):
             The client secret for the user in case one wants to specify it. Defaults to None.
     """
-    add_user_with_budget(
-        admin_config.mg_config, user_name, user_email, dataset, epsilon, delta
-    )
+    add_user_with_budget(admin_config.mg_config, user_name, user_email, dataset, epsilon, delta)
 
     if admin_config.kc_config is not None:
         add_kc_user(admin_config.kc_config, user_name, user_email, client_secret)
@@ -107,14 +105,10 @@ def add_lomas_users_via_yaml(
             False errors if new values for already existing users
         path_prefix (str, optional): path prefix to add to file paths.
     """
-    add_users_via_yaml(
-        admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix
-    )
+    add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
 
     if admin_config.kc_config is not None:
-        add_kc_users_via_yaml(
-            admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix
-        )
+        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
 
 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:

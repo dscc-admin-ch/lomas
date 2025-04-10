@@ -12,7 +12,13 @@
   ruff.enable = true;
 
   # formatter: ruff format
-  ruff-format.enable = true;
+  ruff-format = {
+    enable = true;
+    args = [
+      "--config=${env.DEVENV_ROOT}/pyproject.toml"
+      "--line-length=110"
+    ];
+  };
 
   # TODO: add flake8-pyproject inside this context
   # or switch to ruff ?

@@ -37,7 +37,6 @@ def data_connector_factory(
         case DSPathAccess():
             return PathConnector(ds_metadata, ds_access.path)
         case DSS3Access():
-
             credentials = get_dataset_credentials(
                 private_db_credentials,
                 ds_access.database_type,

@@ -338,7 +338,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
         raise InvalidQueryException(e)
 
     dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
-    if not metric_type(pipeline.input_metric) in dataset_input_metric:
+    if metric_type(pipeline.input_metric) not in dataset_input_metric:
         e = (
             f"The input distance metric {pipeline.input_metric} is not a dataset"
             + " input metric. It cannot be processed in this server."

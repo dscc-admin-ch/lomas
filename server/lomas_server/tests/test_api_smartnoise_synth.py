@@ -139,7 +139,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_select_cols(self) -> None:
         """Test smartnoise synth query select_cols."""
         with TestClient(app, headers=self.headers) as client:
-
             # Expect to work
             body = dict(example_smartnoise_synth_query)
             body["select_cols"] = ["species", "island"]
@@ -174,7 +173,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_constraints(self) -> None:
         """Test smartnoise synth query constraints."""
         with TestClient(app, headers=self.headers) as client:
-
             constraints = {
                 "species": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
                 "island": ChainTransformer([LabelTransformer(nullable=True), OneHotEncoder()]),
@@ -208,7 +206,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
         and categorical int columns
         """
         with TestClient(app, headers=self.headers) as client:
-
             # Expect to work
             body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "PUMS"
@@ -228,7 +225,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_delta_none(self) -> None:
         """Test smartnoise synth query on other synthesizer with delta None."""
         with TestClient(app, headers=self.headers) as client:
-
             # Expect to work
             body = dict(example_dummy_smartnoise_synth_query)
             body["dataset_name"] = "PUMS"
@@ -318,7 +314,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_datetime(self) -> None:
         """Test smartnoise synth query on other dataset for datetime columns."""
         with TestClient(app) as client:
-
             # Expect to work
             fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
             new_headers = self.headers
@@ -387,7 +382,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_mwem(self) -> None:
         """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:
-
             # Expected to fail: delta
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mwem"
@@ -442,7 +436,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_mst(self) -> None:
         """Test smartnoise synth query MST Synthesizer."""
         with TestClient(app) as client:
-
             # Expect to work:
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "mst"
@@ -506,7 +499,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_patectgan(self) -> None:
         """Test smartnoise synth query PATE-CTGAN Synthesizer."""
         with TestClient(app) as client:
-
             # Expect to fail: epsilon too small
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "patectgan"
@@ -544,7 +536,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_pategan(self) -> None:
         """Test smartnoise synth query pategan Synthesizer."""
         with TestClient(app) as client:
-
             # Expect to fail: penguin dataset is too small
             # (pategan needs > 1000 rows)
             body = dict(example_smartnoise_synth_query)
@@ -566,7 +557,6 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
     def test_smartnoise_synth_query_dpgan(self) -> None:
         """Test smartnoise synth query dpgan Synthesizer."""
         with TestClient(app) as client:
-
             # Expect to fail: epsilon too small
             body = dict(example_smartnoise_synth_query)
             body["synth_name"] = "dpgan"

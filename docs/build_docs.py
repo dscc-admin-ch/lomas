@@ -220,7 +220,6 @@ def move_dir(src: str, dst: str) -> None:
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--local", action="store_true", help="local build on current branch")
 

@@ -73,7 +73,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     set_opendp_features_config(config.dp_libraries.opendp)
 
     async with rabbitmq_ctx(lomas_app):
-
         yield  # lomas_app is handling requests
 
 

@@ -20,7 +20,6 @@ def mock_mongodb_and_helpers():
         patch("streamlit.file_uploader") as mock_file_uploader,
         patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
     ):
-
         mock_get_mongodb.return_value = get_mocked_db()
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"
         mock_file = load_mock_file(mock_file_path)

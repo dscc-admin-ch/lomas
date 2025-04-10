@@ -126,9 +126,9 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             metadata_count = db.metadata.count_documents({dataset: {"$exists": True}})
 
             if enforce_true and metadata_count == 0:
-                raise ValueError(f"Metadata for dataset {dataset} does" " not exist in metadata collection")
+                raise ValueError(f"Metadata for dataset {dataset} does not exist in metadata collection")
             if not enforce_true and metadata_count > 0:
-                raise ValueError(f"Metadata for dataset {dataset} already" " exists in metadata collection")
+                raise ValueError(f"Metadata for dataset {dataset} already exists in metadata collection")
 
             return function(*arguments, **kwargs)  # type: ignore
 
@@ -296,10 +296,7 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
     check_result_acknowledged(res)
 
     logging.info(
-        f"Added access to dataset {dataset}"
-        f" to user {user}"
-        f" with budget epsilon {epsilon}"
-        f" and delta {delta}."
+        f"Added access to dataset {dataset} to user {user} with budget epsilon {epsilon} and delta {delta}."
     )
 
 
@@ -355,7 +352,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
 
     check_result_acknowledged(res)
 
-    logging.info(f"Set budget of {user} for dataset {dataset}" f" of {field} to {value}.")
+    logging.info(f"Set budget of {user} for dataset {dataset} of {field} to {value}.")
 
 
 @with_mongodb

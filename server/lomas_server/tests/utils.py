@@ -1,8 +1,8 @@
 import os
 from json import loads
-from test.support import sleeping_retry
 
 from fastapi import status
+from test.support import sleeping_retry
 
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import Job

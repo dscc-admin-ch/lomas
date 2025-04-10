@@ -6,7 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-
     model_config = SettingsConfigDict(
         extra="ignore",
         env_prefix="lomas_kc_setup_",
@@ -138,7 +137,6 @@ def create_confidential_client(
 
 
 if __name__ == "__main__":
-
     # Load config and get admin session
     config = Config()
     if not config.keycloak_use_tls:

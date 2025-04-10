@@ -43,7 +43,6 @@ def mock_configs():
         patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
         patch("lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config,
     ):
-
         # Overwrite server config
         CONFIG_LOADER.load_config(
             config_path=f"{get_test_dir()}/test_configs/test_config_mongo.yaml",

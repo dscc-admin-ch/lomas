@@ -252,7 +252,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
     def test_grouping_query(self) -> None:
         """Test_dummy_opendp_polars_query with grouing."""
         with TestClient(app, headers=self.headers) as client:
-
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan

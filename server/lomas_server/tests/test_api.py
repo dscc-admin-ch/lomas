@@ -73,7 +73,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         """Test_get_dataset_metadata."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_dataset_metadata", json=example_get_admin_db_data
+            )
             assert response.status_code == status.HTTP_200_OK
 
             metadata = response.json()
@@ -84,7 +86,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
-            response = client.post("/get_dataset_metadata", json={"dataset_name": fake_dataset})
+            response = client.post(
+                "/get_dataset_metadata", json={"dataset_name": fake_dataset}
+            )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert (
                 response.json()
@@ -96,7 +100,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Expect to fail: user does have access to dataset
             other_dataset = "IRIS"
-            response = client.post("/get_dataset_metadata", json={"dataset_name": other_dataset})
+            response = client.post(
+                "/get_dataset_metadata", json={"dataset_name": other_dataset}
+            )
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
@@ -117,9 +123,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             response_dict = response.json()
             r_model = DummyDsResponse.model_validate(response_dict)
 
-            assert (
-                r_model.dummy_df.shape[0] == DUMMY_NB_ROWS
-            ), "Dummy pd.DataFrame does not have expected number of rows"
+            assert r_model.dummy_df.shape[0] == DUMMY_NB_ROWS, (
+                "Dummy pd.DataFrame does not have expected number of rows"
+            )
             assert response_dict["datetime_columns"] == []
 
             expected_dtypes = [
@@ -131,9 +137,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 "float",
                 "string",
             ]
-            assert (
-                r_model.dummy_df.dtypes.values == expected_dtypes
-            ).all(), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
+            assert (r_model.dummy_df.dtypes.values == expected_dtypes).all(), (
+                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
+            )
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -215,18 +221,22 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             assert response.status_code == status.HTTP_200_OK
             r_model = DummyDsResponse.model_validate(response.json())
 
-            assert r_model.dummy_df.shape[0] == 10, "Dummy pd.DataFrame does not have expected number of rows"
+            assert r_model.dummy_df.shape[0] == 10, (
+                "Dummy pd.DataFrame does not have expected number of rows"
+            )
 
             expected_dtype = np.dtype("<M8[ns]")
-            assert (
-                r_model.dummy_df.dtypes.values[0] == expected_dtype
-            ), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtype}"
+            assert r_model.dummy_df.dtypes.values[0] == expected_dtype, (
+                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtype}"
+            )
 
     def test_get_initial_budget(self) -> None:
         """Test_get_initial_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_initial_budget", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_initial_budget", json=example_get_admin_db_data
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_model = InitialBudgetResponse.model_validate(response.json())
@@ -234,10 +244,14 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget
-            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(
+                client, "/smartnoise_sql_query", json=example_smartnoise_sql
+            )
 
             # Response should stay the same
-            response_2 = client.post("/get_initial_budget", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_initial_budget", json=example_get_admin_db_data
+            )
             assert response_2.status_code == status.HTTP_200_OK
             assert response_2.json() == response.json()
 
@@ -245,7 +259,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         """Test_get_total_spent_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_total_spent_budget", json=example_get_admin_db_data
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
@@ -254,10 +270,14 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             assert response_model.total_spent_delta == 0
 
             # Query to spend budget
-            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(
+                client, "/smartnoise_sql_query", json=example_smartnoise_sql
+            )
 
             # Response should have updated spent budget
-            response_2 = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_total_spent_budget", json=example_get_admin_db_data
+            )
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
@@ -271,7 +291,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         """Test_get_remaining_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_remaining_budget", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_remaining_budget", json=example_get_admin_db_data
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
@@ -281,10 +303,14 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             assert response_model.remaining_delta == INITIAL_DELTA
 
             # Query to spend budget
-            submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            submit_job_wait(
+                client, "/smartnoise_sql_query", json=example_smartnoise_sql
+            )
 
             # Response should have removed spent budget
-            response_2 = client.post("/get_remaining_budget", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_remaining_budget", json=example_get_admin_db_data
+            )
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
@@ -297,18 +323,24 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         """Test_get_previous_queries."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_previous_queries", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
             assert response_dict["previous_queries"] == []
 
             # Query to archive 1 (smartnoise)
-            job_smnoise = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
+            job_smnoise = submit_job_wait(
+                client, "/smartnoise_sql_query", json=example_smartnoise_sql
+            )
             assert job_smnoise is not None and job_smnoise.result is not None
 
             # Response should have one element in list
-            response_2 = client.post("/get_previous_queries", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
@@ -316,24 +348,36 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             previous_query = response_dict_2["previous_queries"][0]
             assert previous_query["dp_library"] == DPLibraries.SMARTNOISE_SQL
             assert previous_query["client_input"] == example_smartnoise_sql
-            assert previous_query["response"] == job_smnoise.result.model_dump(mode="json")
+            assert previous_query["response"] == job_smnoise.result.model_dump(
+                mode="json"
+            )
 
             # Query to archive 2 (opendp)
             job_opendp = submit_job_wait(client, "/opendp_query", json=example_opendp)
             assert job_opendp is not None and job_opendp.result is not None
 
             # Response should have two elements in list
-            response_3 = client.post("/get_previous_queries", json=example_get_admin_db_data)
+            response_3 = client.post(
+                "/get_previous_queries", json=example_get_admin_db_data
+            )
             assert response_3.status_code == status.HTTP_200_OK
             response_dict_3 = response_3.json()
 
             assert len(response_dict_3["previous_queries"]) == 2
-            assert response_dict_3["previous_queries"][0] == response_dict_2["previous_queries"][0]
-            assert response_dict_3["previous_queries"][1]["dp_library"] == DPLibraries.OPENDP
-            assert response_dict_3["previous_queries"][1]["client_input"] == example_opendp
-            assert response_dict_3["previous_queries"][1]["response"] == job_opendp.result.model_dump(
-                mode="json"
+            assert (
+                response_dict_3["previous_queries"][0]
+                == response_dict_2["previous_queries"][0]
             )
+            assert (
+                response_dict_3["previous_queries"][1]["dp_library"]
+                == DPLibraries.OPENDP
+            )
+            assert (
+                response_dict_3["previous_queries"][1]["client_input"] == example_opendp
+            )
+            assert response_dict_3["previous_queries"][1][
+                "response"
+            ] == job_opendp.result.model_dump(mode="json")
 
     @pytest.mark.long
     def test_subsequent_budget_limit_logic(self) -> None:

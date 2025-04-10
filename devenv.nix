@@ -41,6 +41,7 @@ let
   kc_admin_client_id = "admin-cli";
   kc_setup_admin_user = "admin";
   kc_setup_admin_pwd = "admin";
+  kc_setup_overwrite_realm = "true";
 
   lomas_realm = "lomas";
   lomas_admin_client_id = "lomas_admin";
@@ -198,6 +199,7 @@ in
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = lomas_admin_client_secret;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = lomas_api_client_id;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = lomas_api_client_secret;
+    LOMAS_KC_SETUP_OVERWRITE_REALM = kc_setup_overwrite_realm;
 
     # Lomas demo setup
     LOMAS_ADMIN_MG_CONFIG__ADDRESS = "localhost";
@@ -866,6 +868,7 @@ in
         LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET=${lomas_admin_client_secret}
         LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID=${lomas_api_client_id}
         LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET=${lomas_api_client_secret}
+        LOMAS_KC_SETUP_OVERWRITE_REALM=${kc_setup_overwrite_realm}
 
         EOF
       '';
@@ -997,12 +1000,6 @@ in
       popd
       exit $pytest_return
     '';
-
-  scripts.run-lomas.exec = ''
-    echo Resetting databases states
-    rm -rf $DEVENV_STATE/mongodb
-    devenv up
-  '';
 
   # TODO Check this is enough and does not need to run the tools independently in every
   scripts.run-linter.exec = ''

@@ -1,11 +1,13 @@
+import logging
 import os
 from typing import Dict, List
 
-from mantelo import KeycloakAdmin
+from mantelo import HttpException, KeycloakAdmin
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
+    """Config model for keycloak setup script"""
 
     model_config = SettingsConfigDict(
         extra="ignore",
@@ -31,6 +33,8 @@ class Config(BaseSettings):
     lomas_api_client_id: str = "lomas_api"
     lomas_api_client_secret: str
 
+    overwrite_realm: bool = True
+
 
 def get_admin_session(config: Config) -> KeycloakAdmin:
     """Returns a keycloak admin session using the.
@@ -54,13 +58,26 @@ def get_admin_session(config: Config) -> KeycloakAdmin:
 
 
 def create_realm(config: Config, kc_admin: KeycloakAdmin):
-    """Creates the application realm.
+    """Creates the application realm if it does not already exist.
+
+    This removes any existing realms with the same name if they already exist!
+
+    This does not reset the application realm!
 
     Args:
         config (Config): Config for creating the realm.
         kc_admin (KeycloakAdmin): A KeycloakAdmin session.
     """
-    kc_admin.realms.post({"realm": config.lomas_realm, "enabled": True})
+    try:
+        kc_admin.realms.post({"realm": config.lomas_realm, "enabled": True})
+        logging.info("Created application realm")
+    except HttpException as e:
+        if e.status_code == 409 and "Conflict detected" in e.json["errorMessage"]:
+            logging.info("Application realm already exists.")
+            if config.overwrite_realm:
+                kc_admin.realms(config.lomas_realm).delete()
+                kc_admin.realms.post({"realm": config.lomas_realm, "enabled": True})
+                logging.info("Replaced existing with new application realm.")
 
 
 def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
@@ -88,9 +105,10 @@ def create_confidential_client(
 ) -> None:
     """Creates a confidential client with an associated service account.
 
-    and allows only for the client credentials flow.
+    Allows only for the client credentials flow and assigns the roles
+    listed in the provided dictionary.
 
-    Also assigns the roles listed in the provided dictionary.
+    Only creates the account if it does not already exist.
 
     Args:
         kc_admin (KeycloakAdmin): A KeycloakAdmin session.
@@ -136,9 +154,11 @@ def create_confidential_client(
             roles_to_add  # type: ignore
         )
 
+    logging.info("Created new confidential client.")
 
-if __name__ == "__main__":
 
+def kc_setup():
+    """Lomas keycloak setup script"""
     # Load config and get admin session
     config = Config()
     if not config.keycloak_use_tls:
@@ -154,3 +174,7 @@ if __name__ == "__main__":
 
     # 2. Create clients
     create_lomas_clients(config, kc_admin)
+
+
+if __name__ == "__main__":
+    kc_setup()

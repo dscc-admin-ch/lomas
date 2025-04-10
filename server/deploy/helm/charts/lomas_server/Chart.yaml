@@ -13,4 +13,12 @@ icon: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/i
 dependencies:
   - name: mongodb
     version: "13.18.1"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: rabbitmq
+    condition: rabbitmq.create
+    version: 15.5.0 # rabbitmq 4.0.8
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: keycloak
+    condition: keycloak.create
+    version: 24.4.13 # Keycloak 26.1.4
+    repository: oci://registry-1.docker.io/bitnamicharts

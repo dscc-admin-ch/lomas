@@ -8,15 +8,11 @@
     ];
   };
 
-  isort.enable = true;
+  # linter: ruff check
+  ruff.enable = true;
 
-  black = {
-    enable = true;
-    args = [
-      "--config"
-      "${env.DEVENV_ROOT}/pyproject.toml"
-    ];
-  };
+  # formatter: ruff format
+  ruff-format.enable = true;
 
   # TODO: add flake8-pyproject inside this context
   # or switch to ruff ?

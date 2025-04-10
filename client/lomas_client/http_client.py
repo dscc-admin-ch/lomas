@@ -2,7 +2,6 @@ import logging
 import os
 from json import loads
 from time import sleep
-from typing import Optional
 
 import requests
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
@@ -22,12 +21,12 @@ class LomasHttpClient:
         self,
         url: str,
         dataset_name: str,
-        keycloak_address: Optional[str] = None,
-        keycloak_port: Optional[int] = None,
-        keycloak_use_tls: Optional[bool] = None,
-        realm: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
+        keycloak_address: str | None = None,
+        keycloak_port: int | None = None,
+        keycloak_use_tls: bool | None = None,
+        realm: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
     ) -> None:
         """Initializes the HTTP client with the specified URL, dataset name and authentication parameters.
 
@@ -58,14 +57,27 @@ class LomasHttpClient:
         client_secret = client_secret or os.getenv("LOMAS_CLIENT_SECRET")
         keycloak_address = keycloak_address or os.getenv("LOMAS_KEYCLOAK_ADDRESS")
         env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
-        keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None)
-        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in [1, "True", "true"]
+        keycloak_port = keycloak_port or (
+            int(env_keycloak_port) if env_keycloak_port else None
+        )
+        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in [
+            1,
+            "True",
+            "true",
+        ]
         keycloak_use_tls = keycloak_use_tls or not env_keycloak_no_tls
         realm = realm or os.getenv("LOMAS_REALM")
 
         if any(
             x is None
-            for x in [client_id, client_secret, keycloak_address, keycloak_port, keycloak_use_tls, realm]
+            for x in [
+                client_id,
+                client_secret,
+                keycloak_address,
+                keycloak_port,
+                keycloak_use_tls,
+                realm,
+            ]
         ):
             raise ValueError(
                 "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
@@ -93,7 +105,9 @@ class LomasHttpClient:
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(
-            self._token_endpoint, client_id=self._client_id, client_secret=self._client_secret
+            self._token_endpoint,
+            client_id=self._client_id,
+            client_secret=self._client_secret,
         )
 
     def post(
@@ -153,13 +167,17 @@ class LomasHttpClient:
         for _ in range(n_retry):
             try:
                 job_query = self._oauth2_session.get(
-                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    f"{self.url}/status/{job_uid}",
+                    headers=self.headers,
+                    timeout=(CONNECT_TIMEOUT),
                 ).json()
             except TokenExpiredError:
                 # This also catches if there is no token at first try.
                 self._fetch_token()
                 job_query = self._oauth2_session.get(
-                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    f"{self.url}/status/{job_uid}",
+                    headers=self.headers,
+                    timeout=(CONNECT_TIMEOUT),
                 ).json()
 
             if job_query["status"] == "complete":
@@ -170,4 +188,6 @@ class LomasHttpClient:
 
             sleep(sleep_sec)
 
-        raise TimeoutError(f"Job {job_uid} didn't complete in time ({sleep_sec * n_retry})")
+        raise TimeoutError(
+            f"Job {job_uid} didn't complete in time ({sleep_sec * n_retry})"
+        )

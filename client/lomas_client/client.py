@@ -1,7 +1,7 @@
 import base64
 import json
 import pickle
-from typing import List, Optional, TypeVar
+from typing import TypeVar
 
 import pandas as pd
 import polars as pl
@@ -51,12 +51,12 @@ class Client:
         self,
         url: str,
         dataset_name: str,
-        keycloak_address: Optional[str] = None,
-        keycloak_port: Optional[int] = None,
-        keycloak_use_tls: Optional[bool] = None,
-        realm: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
+        keycloak_address: str | None = None,
+        keycloak_port: int | None = None,
+        keycloak_use_tls: bool | None = None,
+        realm: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
     ) -> None:
         """Initializes the Client with the specified URL, dataset name and authentication parameters.
 
@@ -97,7 +97,7 @@ class Client:
 
     def get_dataset_metadata(
         self,
-    ) -> Optional[LomasRequestModel]:
+    ) -> LomasRequestModel | None:
         """This function retrieves metadata for the dataset.
 
         Returns:
@@ -119,7 +119,7 @@ class Client:
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[DummyDsResponse]:
+    ) -> DummyDsResponse | None:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
@@ -151,7 +151,9 @@ class Client:
         raise_error(res)
         return None
 
-    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> Optional[pl.LazyFrame]:
+    def get_dummy_lf(
+        self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
+    ) -> pl.LazyFrame | None:
         """
         Returns the polars LazyFrame for the dummy dataset with.
 
@@ -170,7 +172,7 @@ class Client:
             return None
         return pl.from_pandas(dummy_pandas).lazy()
 
-    def get_initial_budget(self) -> Optional[InitialBudgetResponse]:
+    def get_initial_budget(self) -> InitialBudgetResponse | None:
         """This function retrieves the initial budget.
 
         Returns:
@@ -185,7 +187,7 @@ class Client:
 
         return validate_model_response_direct(res, InitialBudgetResponse)
 
-    def get_total_spent_budget(self) -> Optional[SpentBudgetResponse]:
+    def get_total_spent_budget(self) -> SpentBudgetResponse | None:
         """This function retrieves the total spent budget.
 
         Returns:
@@ -199,7 +201,7 @@ class Client:
 
         return validate_model_response_direct(res, SpentBudgetResponse)
 
-    def get_remaining_budget(self) -> Optional[RemainingBudgetResponse]:
+    def get_remaining_budget(self) -> RemainingBudgetResponse | None:
         """This function retrieves the remaining budget.
 
         Returns:
@@ -213,7 +215,7 @@ class Client:
 
         return validate_model_response_direct(res, RemainingBudgetResponse)
 
-    def get_previous_queries(self) -> Optional[List[dict]]:
+    def get_previous_queries(self) -> list[dict] | None:
         """This function retrieves the previous queries of the user.
 
         Raises:
@@ -244,17 +246,23 @@ class Client:
                         return_model = query["client_input"]["return_model"]
                         res = query["response"]["result"]
                         if return_model:
-                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
+                            query["response"]["result"] = pickle.loads(
+                                base64.b64decode(res)
+                            )
                         else:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
-                        opdp_query = make_load_json(query["client_input"]["opendp_json"])
+                        opdp_query = make_load_json(
+                            query["client_input"]["opendp_json"]
+                        )
                         query["client_input"]["opendp_json"] = opdp_query
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_library']}")
+                        raise ValueError(
+                            f"Cannot deserialise unknown query type: {query['dp_library']}"
+                        )
 
                 deserialised_queries.append(query)
 

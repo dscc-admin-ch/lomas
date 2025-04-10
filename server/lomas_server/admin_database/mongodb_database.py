@@ -1,5 +1,3 @@
-from typing import List
-
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
@@ -163,7 +161,9 @@ class AdminMongoDatabase(AdminDatabase):
         )
         return doc_count > 0
 
-    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
+    def get_epsilon_or_delta(
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
+    ) -> float:
         """Get total spent epsilon or delta by a user on dataset.
 
         Args:
@@ -240,7 +240,7 @@ class AdminMongoDatabase(AdminDatabase):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.
@@ -261,7 +261,9 @@ class AdminMongoDatabase(AdminDatabase):
         )
         return list(queries)
 
-    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
+    def save_query(
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
+    ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 

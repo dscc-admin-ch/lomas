@@ -1,8 +1,8 @@
 import argparse
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Dict, List
 
 from lomas_core.error_handler import (
     InvalidQueryException,
@@ -32,7 +32,9 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(
+        self, *args: argparse.Namespace, **kwargs: dict[str, str]
+    ) -> None:
         user_name = args[0]
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
@@ -61,7 +63,9 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(
+        self, *args: argparse.Namespace, **kwargs: dict[str, str]
+    ) -> None:
         dataset_name = args[0]
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
@@ -95,7 +99,9 @@ def user_must_have_access_to_dataset(
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(
+        self, *args: argparse.Namespace, **kwargs: dict[str, str]
+    ) -> None:
         user_name = args[0]
         dataset_name = args[1]
         if not self.has_user_access_to_dataset(user_name, dataset_name):
@@ -111,7 +117,7 @@ class AdminDatabase(ABC):
     """Overall database management for server state."""
 
     @abstractmethod
-    def __init__(self, **connection_parameters: Dict[str, str]) -> None:
+    def __init__(self, **connection_parameters: dict[str, str]) -> None:
         """
         Connects to the DB.
 
@@ -210,7 +216,9 @@ class AdminDatabase(ABC):
         """
 
     @abstractmethod
-    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
+    def get_epsilon_or_delta(
+        self, user_name: str, dataset_name: str, parameter: BudgetDBKey
+    ) -> float:
         """
         Get the total spent epsilon or delta by user on dataset.
 
@@ -224,7 +232,7 @@ class AdminDatabase(ABC):
         """
 
     @user_must_have_access_to_dataset
-    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the total spent epsilon and delta spent by user on dataset.
 
@@ -239,12 +247,14 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, BudgetDBKey.EPSILON_SPENT
+            ),
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
         ]
 
     @user_must_have_access_to_dataset
-    def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the initial epsilon and delta budget.
 
@@ -259,12 +269,14 @@ class AdminDatabase(ABC):
                 the second value is the delta value.
         """
         return [
-            self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_INIT),
+            self.get_epsilon_or_delta(
+                user_name, dataset_name, BudgetDBKey.EPSILON_INIT
+            ),
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
         ]
 
     @user_must_have_access_to_dataset
-    def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the remaining epsilon and delta budget (initial - total spent).
 
@@ -300,7 +312,9 @@ class AdminDatabase(ABC):
             spent_value (float): spending of epsilon or delta on last query
         """
 
-    def update_epsilon(self, user_name: str, dataset_name: str, spent_epsilon: float) -> None:
+    def update_epsilon(
+        self, user_name: str, dataset_name: str, spent_epsilon: float
+    ) -> None:
         """
         Update spent epsilon by user with total spent epsilon.
 
@@ -309,9 +323,13 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
             spent_epsilon (float): value of epsilon spent on last query
         """
-        return self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon)
+        return self.update_epsilon_or_delta(
+            user_name, dataset_name, BudgetDBKey.EPSILON_SPENT, spent_epsilon
+        )
 
-    def update_delta(self, user_name: str, dataset_name: str, spent_delta: float) -> None:
+    def update_delta(
+        self, user_name: str, dataset_name: str, spent_delta: float
+    ) -> None:
         """
         Update spent delta spent by user with spent delta of the user.
 
@@ -320,7 +338,9 @@ class AdminDatabase(ABC):
             dataset_name (str): name of the dataset
             spent_delta (float): value of delta spent on last query
         """
-        self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta)
+        self.update_epsilon_or_delta(
+            user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta
+        )
 
     @user_must_have_access_to_dataset
     def update_budget(
@@ -365,7 +385,7 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Retrieves and return the queries already done by a user.
 
@@ -379,7 +399,9 @@ class AdminDatabase(ABC):
             List[dict]: List of previous queries.
         """
 
-    def prepare_save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> dict:
+    def prepare_save_query(
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
+    ) -> dict:
         """
         Prepare the query to save in archives.
 
@@ -406,7 +428,9 @@ class AdminDatabase(ABC):
         return to_archive
 
     @abstractmethod
-    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
+    def save_query(
+        self, user_name: str, query: LomasRequestModel, response: QueryResponse
+    ) -> None:
         """
         Save queries of user on datasets in a separate collection (table).
 

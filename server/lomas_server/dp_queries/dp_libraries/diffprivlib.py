@@ -1,5 +1,4 @@
 import warnings
-from typing import Optional
 
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
@@ -25,7 +24,9 @@ from lomas_server.dp_queries.dp_libraries.utils import (
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]):
+class DiffPrivLibQuerier(
+    DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryModel, DiffPrivLibQueryResult]
+):
     """Concrete implementation of the DPQuerier ABC for the DiffPrivLib library."""
 
     def __init__(
@@ -34,9 +35,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         admin_database: AdminDatabase,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.dpl_pipeline: Optional[Pipeline] = None
-        self.x_test: Optional[pd.DataFrame] = None
-        self.y_test: Optional[pd.DataFrame] = None
+        self.dpl_pipeline: Pipeline | None = None
+        self.x_test: pd.DataFrame | None = None
+        self.y_test: pd.DataFrame | None = None
 
     def fit_model_on_data(
         self, query_json: DiffPrivLibRequestModel
@@ -127,7 +128,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
             dict: The dictionary encoding of the resulting pd.DataFrame.
         """
         if self.dpl_pipeline is None:
-            raise InternalServerException("DiffPrivLib `query` method called before `cost` method")
+            raise InternalServerException(
+                "DiffPrivLib `query` method called before `cost` method"
+            )
 
         # Model accuracy
         score = self.dpl_pipeline.score(self.x_test, self.y_test)

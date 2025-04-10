@@ -1,5 +1,3 @@
-from typing import List, Optional, Type
-
 from diffprivlib_logger import serialise_pipeline
 from sklearn.pipeline import Pipeline
 
@@ -26,12 +24,12 @@ class DiffPrivLibClient:
     def cost(
         self,
         pipeline: Pipeline,
-        feature_columns: List[str] = [""],
-        target_columns: List[str] = [""],
+        feature_columns: list[str] = [""],
+        target_columns: list[str] = [""],
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
-    ) -> Optional[CostResponse]:
+    ) -> CostResponse | None:
         """This function estimates the cost of executing a DiffPrivLib query.
 
         Args:
@@ -77,15 +75,15 @@ class DiffPrivLibClient:
     def query(
         self,
         pipeline: Pipeline,
-        feature_columns: List[str],
-        target_columns: Optional[List[str]] = None,
+        feature_columns: list[str],
+        target_columns: list[str] | None = None,
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse | None:
         """Trains a DiffPrivLib pipeline and return a trained Pipeline.
 
         Args:
@@ -128,7 +126,7 @@ class DiffPrivLibClient:
             "imputer_strategy": imputer_strategy,
         }
 
-        request_model: Type[DiffPrivLibRequestModel]
+        request_model: type[DiffPrivLibRequestModel]
         if dummy:
             endpoint = "dummy_diffprivlib_query"
             body_dict["dummy_nb_rows"] = nb_rows

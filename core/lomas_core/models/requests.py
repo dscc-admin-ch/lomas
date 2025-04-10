@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
@@ -75,7 +73,9 @@ class DummyQueryModel(QueryModel):
 class SmartnoiseSQLRequestModel(LomasRequestModel):
     """Base input model for a smarnoise-sql request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql_cost]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql_cost]}
+    )
 
     query_str: str
     """The SQL query to execute.
@@ -98,7 +98,9 @@ class SmartnoiseSQLRequestModel(LomasRequestModel):
 class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
     """Base input model for a smartnoise-sql query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql]}
+    )
 
     postprocess: bool
     """
@@ -112,7 +114,9 @@ class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
 class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
     """Input model for a smartnoise-sql query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_sql]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_sql]}
+    )
 
 
 # SmartnoiseSynth
@@ -120,15 +124,17 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 class SmartnoiseSynthRequestModel(LomasRequestModel):
     """Base input model for a SmartnoiseSynth request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]}
+    )
 
-    synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
+    synth_name: SSynthMarginalSynthesizer | SSynthGanSynthesizer
     """Name of the synthesizer model to use."""
     epsilon: float = Field(..., gt=0)
     """Privacy parameter (e.g., 0.1)."""
-    delta: Optional[float] = Field(..., ge=0)
+    delta: float | None = Field(..., ge=0)
     """Privacy parameter (e.g., 1e-5)."""
-    select_cols: List
+    select_cols: list
     """List of columns to select."""
     synth_params: dict
     """
@@ -150,7 +156,9 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
 class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
     """Base input model for a smarnoise-synth query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_query]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_query]}
+    )
 
     return_model: bool
     """True to get Synthesizer model, False to get samples."""
@@ -183,7 +191,7 @@ class OpenDPRequestModel(LomasRequestModel):
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
-    fixed_delta: Optional[float] = Field(..., ge=0)
+    fixed_delta: float | None = Field(..., ge=0)
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
 
@@ -194,7 +202,7 @@ class OpenDPRequestModel(LomasRequestModel):
     """
     pipeline_type: OpenDpPipelineType
     """The type of pipeline ('legacy' or 'polars')."""
-    mechanism: Optional[OpenDpMechanism]
+    mechanism: OpenDpMechanism | None
     """The noise mechanism ('laplace' or 'gaussian').
 
     Need to be specified when using polars
@@ -204,13 +212,17 @@ class OpenDPRequestModel(LomasRequestModel):
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]}
+    )
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
     """Input model for an opendp query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]}
+    )
 
 
 # DiffPrivLib
@@ -218,13 +230,15 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 class DiffPrivLibRequestModel(LomasRequestModel):
     """Base input model for a diffprivlib request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]}
+    )
 
     diffprivlib_json: str
     """The DiffPrivLib pipeline for the query (See diffprivlib_logger package.)."""
     feature_columns: list
     """The list of feature columns to train."""
-    target_columns: Optional[list]
+    target_columns: list | None
     """The list of target columns to predict."""
     test_size: float = Field(..., gt=0.0, lt=1.0)
     """The proportion of the test set."""
@@ -237,13 +251,17 @@ class DiffPrivLibRequestModel(LomasRequestModel):
 class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
     """Base input model for a diffprivlib query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]}
+    )
 
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
     """Input model for a DiffPrivLib query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_diffprivlib]})
+    model_config = ConfigDict(
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_diffprivlib]}
+    )
 
 
 # Utils

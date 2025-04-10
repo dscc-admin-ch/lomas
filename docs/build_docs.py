@@ -94,7 +94,9 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
     if not local and not git_ref_exists(tag):
         # Replace index if tag does not exist
         subprocess.run("mv source/index.rst source/index.rst.old", shell=True)
-        subprocess.run("mv source/index_under_construction.rst source/index.rst", shell=True)
+        subprocess.run(
+            "mv source/index_under_construction.rst source/index.rst", shell=True
+        )
 
     else:
         if not local:
@@ -108,17 +110,30 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
 
         # Copy relevant sources and generate code docs rsts.
         subprocess.run("mkdir -p ./source/_static", shell=True)
-        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True)
-        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
-        subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
-        subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
-        subprocess.run("sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules", shell=True)
         subprocess.run(
-            "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True
+            "cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True
         )
         subprocess.run(
-            "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True
+            "cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True
+        )
+        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+        subprocess.run(
+            "cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True
+        )
+        subprocess.run(
+            "cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules",
+            shell=True,
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules",
+            shell=True,
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules",
+            shell=True,
         )
         subprocess.run("mkdir -p ./source/notebooks", shell=True)
         subprocess.run(
@@ -147,7 +162,7 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
         )
 
     # Build the html doc
-    os.environ["SPHINXOPTS"] = "-D language='{}'".format(language)
+    os.environ["SPHINXOPTS"] = f"-D language='{language}'"
     subprocess.run("make html", shell=True)
 
     # Make things as they were before
@@ -160,17 +175,30 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
         subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True)
         # Copy relevant sources and generate code docs rsts.
         subprocess.run("mkdir -p ./source/_static", shell=True)
-        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True)
-        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
-        subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
-        subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
-        subprocess.run("sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules", shell=True)
         subprocess.run(
-            "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules", shell=True
+            "cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True
         )
         subprocess.run(
-            "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules", shell=True
+            "cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True
+        )
+        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
+        subprocess.run(
+            "cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True
+        )
+        subprocess.run(
+            "cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules",
+            shell=True,
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules",
+            shell=True,
+        )
+        subprocess.run(
+            "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules",
+            shell=True,
         )
         subprocess.run("mkdir -p ./source/notebooks", shell=True)
         subprocess.run(
@@ -221,7 +249,9 @@ def move_dir(src: str, dst: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--local", action="store_true", help="local build on current branch")
+    parser.add_argument(
+        "-l", "--local", action="store_true", help="local build on current branch"
+    )
 
     args = parser.parse_args()
 
@@ -249,7 +279,7 @@ if __name__ == "__main__":
         print(r.stdout)
 
         # reading the yaml file
-        with open("versions.yaml", "r") as yaml_file:
+        with open("versions.yaml") as yaml_file:
             docs = yaml.safe_load(yaml_file)
 
         # and looping over all values to call our build with version, language and its tag
@@ -260,5 +290,7 @@ if __name__ == "__main__":
             for language in details.get("languages", []):
                 build_doc(version, language, tag)
                 move_dir("./build/html/", "../pages/" + version + "/" + language + "/")
-                r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
+                r = subprocess.run(
+                    ["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE
+                )
                 print(r.stdout)

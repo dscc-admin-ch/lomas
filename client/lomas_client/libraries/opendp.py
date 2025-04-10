@@ -1,5 +1,3 @@
-from typing import Optional, Type
-
 import opendp as dp
 import polars as pl
 
@@ -24,8 +22,8 @@ class OpenDPClient:
     def _get_opendp_request_body(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: Optional[float] = None,
-        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
+        fixed_delta: float | None = None,
+        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
     ):
         """This function executes an OpenDP query.
 
@@ -69,9 +67,9 @@ class OpenDPClient:
     def cost(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: Optional[float] = None,
-        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
-    ) -> Optional[CostResponse]:
+        fixed_delta: float | None = None,
+        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
+    ) -> CostResponse | None:
         """This function estimates the cost of executing an OpenDP query.
 
         Args:
@@ -105,12 +103,12 @@ class OpenDPClient:
     def query(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: Optional[float] = None,
-        mechanism: Optional[OpenDpMechanism] = OpenDpMechanism.LAPLACE,
+        fixed_delta: float | None = None,
+        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse | None:
         """This function executes an OpenDP query.
 
         Args:
@@ -145,7 +143,7 @@ class OpenDPClient:
             mechanism=mechanism,
         )
 
-        request_model: Type[OpenDPRequestModel]
+        request_model: type[OpenDPRequestModel]
         if dummy:
             endpoint = "dummy_opendp_query"
             body_json["dummy_nb_rows"] = nb_rows

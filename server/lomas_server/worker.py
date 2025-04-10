@@ -75,7 +75,9 @@ def handle_known_exceptions(exc):
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content=jsonable_encoder(
-                    ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
+                    ExternalLibraryExceptionModel(
+                        message=exc.error_message, library=exc.library
+                    )
                 ),
             )
         case InternalServerException():
@@ -86,12 +88,16 @@ def handle_known_exceptions(exc):
         case InvalidQueryException():
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
+                content=jsonable_encoder(
+                    InvalidQueryExceptionModel(message=exc.error_message)
+                ),
             )
         case UnauthorizedAccessException():
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
-                content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
+                content=jsonable_encoder(
+                    UnauthorizedAccessExceptionModel(message=exc.error_message)
+                ),
             )
 
 
@@ -107,7 +113,9 @@ def handle_cost_query(body):
             request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model)
 
         case DPLibraries.SMARTNOISE_SYNTH:
-            request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model)
+            request_model = SmartnoiseSynthRequestModel.model_validate_json(
+                request_model
+            )
 
         case DPLibraries.OPENDP:
             request_model = OpenDPRequestModel.model_validate_json(request_model)
@@ -133,7 +141,9 @@ def handle_cost_query(body):
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(
+            f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})"
+        )
         return known_exc.body, known_exc.status_code
 
 
@@ -175,7 +185,9 @@ def handle_query(body):
         return query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(
+            f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})"
+        )
         return known_exc.body, known_exc.status_code
 
 
@@ -190,7 +202,9 @@ def handle_dummy_query(body):
         case DPLibraries.SMARTNOISE_SQL:
             query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model)
         case DPLibraries.SMARTNOISE_SYNTH:
-            query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model)
+            query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(
+                query_model
+            )
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model)
         case DPLibraries.DIFFPRIVLIB:
@@ -213,7 +227,9 @@ def handle_dummy_query(body):
         return dummy_query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(
+            f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})"
+        )
         return known_exc.body, known_exc.status_code
 
 
@@ -227,7 +243,7 @@ async def process_message(channel, in_queue, out_queue, message_handler):
         async for message in queue_iter:
             async with message.process():
                 headers = None
-                body = bytes()
+                body = b""
 
                 match message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
@@ -235,11 +251,17 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                         body = exc_body
 
                     case query_response:
-                        logging.info("Response length: {len(query_response.json())} {message.correlation_id}")
+                        logging.info(
+                            "Response length: {len(query_response.json())} {message.correlation_id}"
+                        )
                         body = query_response.json().encode()
 
                 await channel.default_exchange.publish(
-                    aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
+                    aio_pika.Message(
+                        headers=headers,
+                        body=body,
+                        correlation_id=message.correlation_id,
+                    ),
                     routing_key=out_queue,
                 )
 
@@ -272,14 +294,27 @@ async def process_all_queues():
 
         try:
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
-                tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
-                tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
+                tg.create_task(
+                    process_message(
+                        channel, "task_queue", "task_response", handle_query
+                    )
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "cost_queue", "cost_response", handle_cost_query
+                    )
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "dummy_queue", "dummy_response", handle_dummy_query
+                    )
+                )
 
                 # register signal for polite TaskGroup termination
                 for signame in ["SIGINT", "SIGTERM"]:
                     loop.add_signal_handler(
-                        getattr(signal, signame), functools.partial(ask_exit, signame, tg)
+                        getattr(signal, signame),
+                        functools.partial(ask_exit, signame, tg),
                     )
             # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
         except* TerminateTaskGroup:
@@ -292,7 +327,9 @@ async def process_all_queues():
 if __name__ == "__main__":
     # TODO: merge in pydantic-settings
     if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
-        logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
+        logging.config.dictConfig(
+            json.loads(Path(logging_config).read_text(encoding="utf-8"))
+        )
 
     if TELEMETRY:
         LoggingInstrumentor().instrument(set_logging_format=True)

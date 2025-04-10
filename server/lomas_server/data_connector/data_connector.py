@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
@@ -10,7 +9,7 @@ from lomas_core.models.collections import DatetimeMetadata, Metadata
 class DataConnector(ABC):
     """Overall access to sensitive data."""
 
-    df: Optional[pd.DataFrame] = None
+    df: pd.DataFrame | None = None
 
     def __init__(self, metadata: Metadata) -> None:
         """Initializer.
@@ -21,8 +20,8 @@ class DataConnector(ABC):
         self.metadata: Metadata = metadata
 
         dtypes, datetime_columns = get_column_dtypes(self.metadata)
-        self.dtypes: Dict[str, str] = dtypes
-        self.datetime_columns: List[str] = datetime_columns
+        self.dtypes: dict[str, str] = dtypes
+        self.datetime_columns: list[str] = datetime_columns
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:
@@ -51,7 +50,7 @@ class DataConnector(ABC):
         return self.metadata
 
 
-def get_column_dtypes(metadata: Metadata) -> Tuple[Dict[str, str], List[str]]:
+def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
     """Extracts and returns the column types from the metadata.
 
     Args:

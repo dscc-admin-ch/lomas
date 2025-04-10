@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pandas as pd
 
 from lomas_core.error_handler import InternalServerException, InvalidQueryException
@@ -27,7 +25,7 @@ class PathConnector(DataConnector):
         """
         super().__init__(metadata)
         self.ds_path: str = dataset_path
-        self.df: Optional[pd.DataFrame] = None
+        self.df: pd.DataFrame | None = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format.

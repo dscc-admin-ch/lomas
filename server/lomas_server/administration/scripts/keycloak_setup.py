@@ -1,5 +1,4 @@
 import os
-from typing import Dict, List
 
 from mantelo import KeycloakAdmin
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -79,11 +78,16 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
         config.lomas_admin_client_secret,
         {"realm-management": ["manage-users", "manage-clients"]},
     )
-    create_confidential_client(kc_admin, config.lomas_api_client_id, config.lomas_api_client_secret)
+    create_confidential_client(
+        kc_admin, config.lomas_api_client_id, config.lomas_api_client_secret
+    )
 
 
 def create_confidential_client(
-    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: Dict[str, List[str]] = {}
+    kc_admin: KeycloakAdmin,
+    client_id: str,
+    client_secret: str,
+    roles: dict[str, list[str]] = {},
 ) -> None:
     """Creates a confidential client with an associated service account.
 
@@ -117,7 +121,9 @@ def create_confidential_client(
 
     # Fetch service account uid
     lomas_admin_uid = kc_admin.clients.get(clientId="lomas_admin")[0]["id"]  # type: ignore
-    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin_uid).service_account_user.get()[
+    lomas_admin_service_account_uid = kc_admin.clients(
+        lomas_admin_uid
+    ).service_account_user.get()[
         "id"  # type: ignore
     ]
 
@@ -131,7 +137,9 @@ def create_confidential_client(
             role_uid = kc_admin.clients(client_uid).roles(role).get()["id"]  # type: ignore
             roles_to_add.append({"id": role_uid, "name": role})
 
-        kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(
+        kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(
+            client_uid
+        ).post(
             roles_to_add  # type: ignore
         )
 

@@ -1,5 +1,3 @@
-from typing import List, Optional, Type
-
 from smartnoise_synth_logger import serialise_constraints
 
 from lomas_client.constants import (
@@ -31,12 +29,12 @@ class SmartnoiseSynthClient:
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
+        delta: float | None = None,
+        select_cols: list[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
-    ) -> Optional[CostResponse]:
+    ) -> CostResponse | None:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -91,7 +89,9 @@ class SmartnoiseSynthClient:
             "constraints": constraints_str,
         }
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
-        res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
+        res = self.http_client.post(
+            "estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT
+        )
 
         return validate_model_response(self.http_client, res, CostResponse)
 
@@ -99,8 +99,8 @@ class SmartnoiseSynthClient:
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
+        delta: float | None = None,
+        select_cols: list[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
@@ -110,7 +110,7 @@ class SmartnoiseSynthClient:
         nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse | None:
         """This function executes a SmartNoise Synthetic query.
 
         Args:
@@ -181,7 +181,7 @@ class SmartnoiseSynthClient:
             "condition": condition,
             "nb_samples": nb_samples,
         }
-        request_model: Type[SmartnoiseSynthRequestModel]
+        request_model: type[SmartnoiseSynthRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
             body_dict["dummy_nb_rows"] = nb_rows

@@ -1,5 +1,3 @@
-from typing import Dict
-
 from lomas_core.models.config import AdminConfig
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -17,7 +15,10 @@ from lomas_server.administration.mongodb_admin import (
 
 
 def add_lomas_user(
-    admin_config: AdminConfig, user_name: str, user_email: str, client_secret: str | None = None
+    admin_config: AdminConfig,
+    user_name: str,
+    user_email: str,
+    client_secret: str | None = None,
 ):
     """Adds a user to the lomas application.
 
@@ -59,7 +60,9 @@ def add_lomas_user_with_budget(
         client_secret (str | None, optional):
             The client secret for the user in case one wants to specify it. Defaults to None.
     """
-    add_user_with_budget(admin_config.mg_config, user_name, user_email, dataset, epsilon, delta)
+    add_user_with_budget(
+        admin_config.mg_config, user_name, user_email, dataset, epsilon, delta
+    )
 
     if admin_config.kc_config is not None:
         add_kc_user(admin_config.kc_config, user_name, user_email, client_secret)
@@ -81,7 +84,11 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
 
 
 def add_lomas_users_via_yaml(
-    admin_config: AdminConfig, yaml_file: str | Dict, clean: bool, overwrite: bool, path_prefix: str = ""
+    admin_config: AdminConfig,
+    yaml_file: str | dict,
+    clean: bool,
+    overwrite: bool,
+    path_prefix: str = "",
 ) -> None:
     """Add all users from a yaml file.
 
@@ -100,10 +107,14 @@ def add_lomas_users_via_yaml(
             False errors if new values for already existing users
         path_prefix (str, optional): path prefix to add to file paths.
     """
-    add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
+    add_users_via_yaml(
+        admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix
+    )
 
     if admin_config.kc_config is not None:
-        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
+        add_kc_users_via_yaml(
+            admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix
+        )
 
 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:

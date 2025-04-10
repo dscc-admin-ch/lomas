@@ -1,7 +1,6 @@
 import json
 import logging
 import time
-from typing import Tuple
 
 from fastapi import Request
 from opentelemetry.trace import format_trace_id, get_tracer
@@ -73,7 +72,9 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             if response.status_code < 400:  # Run only for successful requests.
-                if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
+                if hasattr(
+                    request.state, "user_name"
+                ):  # Not all routes extract the user name.
                     user_name = request.state.user_name
                     logging.info(
                         f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
@@ -121,7 +122,9 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.app_name = app_name
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         """
         Processes HTTP request, records metrics and returns the HTTP response.
 
@@ -158,7 +161,9 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         FAST_API_REQUESTS_IN_PROGRESS_GAUGE.add(
             1, {"method": method, "path": path, "app_name": self.app_name}
         )
-        FAST_API_REQUESTS_COUNTER.add(1, {"method": method, "path": path, "app_name": self.app_name})
+        FAST_API_REQUESTS_COUNTER.add(
+            1, {"method": method, "path": path, "app_name": self.app_name}
+        )
 
         before_time = time.perf_counter()
 
@@ -202,7 +207,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def get_path(request: Request) -> Tuple[str, bool]:
+    def get_path(request: Request) -> tuple[str, bool]:
         """
         Attempts to match the request' route to a defined route.
 

@@ -54,6 +54,7 @@ def git_ref_exists(git_ref: str) -> bool:
             shell=True,
             text=True,
             capture_output=True,
+            check=False,
         )
 
         if len(result.stdout.strip()) > 0:
@@ -82,7 +83,7 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
         local (bool): whether to build on the local branch only
     """
     start_branch_cmd = subprocess.run(
-        "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True
+        "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True, check=False
     )
     start_branch = start_branch_cmd.stdout.strip()
 
@@ -92,126 +93,151 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
 
     if not local and not git_ref_exists(tag):
         # Replace index if tag does not exist
-        subprocess.run("mv source/index.rst source/index.rst.old", shell=True)
-        subprocess.run("mv source/index_under_construction.rst source/index.rst", shell=True)
+        subprocess.run("mv source/index.rst source/index.rst.old", shell=True, check=False)
+        subprocess.run("mv source/index_under_construction.rst source/index.rst", shell=True, check=False)
 
     else:
         if not local:
             # Fetch and checkout branch to document
-            subprocess.run(f"git fetch origin {tag}:{tag}", shell=True)
-            subprocess.run(f"git checkout {tag}", shell=True)
+            subprocess.run(f"git fetch origin {tag}:{tag}", shell=True, check=False)
+            subprocess.run(f"git checkout {tag}", shell=True, check=False)
 
             # Versions and conf.py always from calling branch
-            subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True)
-            subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True)
+            subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True, check=False)
+            subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True, check=False)
 
         # Copy relevant sources and generate code docs rsts.
-        subprocess.run("mkdir -p ./source/_static", shell=True)
-        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True)
-        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
-        subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
-        subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
+        subprocess.run("mkdir -p ./source/_static", shell=True, check=False)
+        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True, check=False)
+        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True, check=False)
+        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True, check=False)
+        subprocess.run(
+            "cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True, check=False
+        )
+        subprocess.run(
+            "cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True, check=False
+        )
         subprocess.run(
             "sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules",
             shell=True,
+            check=False,
         )
-        subprocess.run("mkdir -p ./source/notebooks", shell=True)
+        subprocess.run("mkdir -p ./source/notebooks", shell=True, check=False)
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook.ipynb ./source/notebooks/Demo_Client_Notebook.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb ./source/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb",
             shell=True,
+            check=False,
         )
 
     # Build the html doc
     os.environ["SPHINXOPTS"] = f"-D language='{language}'"
-    subprocess.run("make html", shell=True)
+    subprocess.run("make html", shell=True, check=False)
 
     # Make things as they were before
     if not local:
         # Fetch and checkout branch to document
-        subprocess.run(f"git fetch origin {tag}:{tag}", shell=True)
-        subprocess.run(f"git checkout {tag}", shell=True)
+        subprocess.run(f"git fetch origin {tag}:{tag}", shell=True, check=False)
+        subprocess.run(f"git checkout {tag}", shell=True, check=False)
         # Versions and conf.py always from calling branch
-        subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True)
-        subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True)
+        subprocess.run(f"git checkout {start_branch} -- source/conf.py", shell=True, check=False)
+        subprocess.run(f"git checkout {start_branch} -- versions.yaml", shell=True, check=False)
         # Copy relevant sources and generate code docs rsts.
-        subprocess.run("mkdir -p ./source/_static", shell=True)
-        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
-        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True)
-        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
-        subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
-        subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
+        subprocess.run("mkdir -p ./source/_static", shell=True, check=False)
+        subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True, check=False)
+        subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True, check=False)
+        subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True, check=False)
+        subprocess.run(
+            "cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True, check=False
+        )
+        subprocess.run(
+            "cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True, check=False
+        )
         subprocess.run(
             "sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "sphinx-apidoc -o ./source ../client/lomas_client/ --tocfile client_modules",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "sphinx-apidoc -o ./source ../server/lomas_server/ --tocfile server_modules",
             shell=True,
+            check=False,
         )
-        subprocess.run("mkdir -p ./source/notebooks", shell=True)
+        subprocess.run("mkdir -p ./source/notebooks", shell=True, check=False)
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook.ipynb ./source/notebooks/Demo_Client_Notebook.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb ./source/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb ./source/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb",
             shell=True,
+            check=False,
         )
         subprocess.run(
             "cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb",
             shell=True,
+            check=False,
         )
-
-    return
 
 
 # a move dir method because we run multiple builds and bring the html folders to a
@@ -224,8 +250,8 @@ def move_dir(src: str, dst: str) -> None:
         src (str): source directory
         dst (str): destination directory
     """
-    subprocess.run(["mkdir", "-p", dst])
-    subprocess.run("mv " + src + "* " + dst, shell=True)
+    subprocess.run(["mkdir", "-p", dst], check=False)
+    subprocess.run("mv " + src + "* " + dst, shell=True, check=False)
 
 
 if __name__ == "__main__":
@@ -240,7 +266,7 @@ if __name__ == "__main__":
         os.environ["build_all_docs"] = str(False)
         os.environ["pages_root"] = "./build/html"
         start_branch_cmd = subprocess.run(
-            "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True
+            "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True, check=False
         )
         start_branch = start_branch_cmd.stdout.strip()
         build_doc("stable", "en", "", True)
@@ -254,7 +280,7 @@ if __name__ == "__main__":
         # manually build the master branch
         build_doc("stable", "en", "master")
         move_dir("./build/html/", "../pages/")
-        r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
+        r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE, check=False)
         print(r.stdout)
 
         # reading the yaml file
@@ -269,5 +295,5 @@ if __name__ == "__main__":
             for language in details.get("languages", []):
                 build_doc(version, language, tag)
                 move_dir("./build/html/", "../pages/" + version + "/" + language + "/")
-                r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE)
+                r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE, check=False)
                 print(r.stdout)

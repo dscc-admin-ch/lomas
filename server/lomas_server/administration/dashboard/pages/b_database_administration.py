@@ -464,9 +464,8 @@ with dataset_tab:
         keyword_args["key"] = ad_s3_key
         keyword_args["endpoint_url"] = ad_s3_url
         DATASET_READY = True
-    else:
-        if ad_dataset is not None:
-            st.write("Please, fill all empty fields for dataset.")
+    elif ad_dataset is not None:
+        st.write("Please, fill all empty fields for dataset.")
 
     if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
         keyword_args["metadata_path"] = ad_meta_path
@@ -485,9 +484,8 @@ with dataset_tab:
         keyword_args["metadata_access_key_id"] = ad_meta_s3_kid
         keyword_args["metadata_secret_access_key"] = ad_meta_s3_sk
         METADATA_READY = True
-    else:
-        if ad_dataset is not None:
-            st.write("Please, fill all empty fields for the metadata.")
+    elif ad_dataset is not None:
+        st.write("Please, fill all empty fields for the metadata.")
 
     if st.button(
         f"Add {ad_type} dataset with {ad_meta_type} metadata",
@@ -554,7 +552,7 @@ with dataset_tab:
             warning_field_missing()
 
 with content_tab:
-    st.subheader("Show one element")  #
+    st.subheader("Show one element")
     elem_users, elem_archives = st.columns(2)
     with elem_users:
         user_selected = st.selectbox(

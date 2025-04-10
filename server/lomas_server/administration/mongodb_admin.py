@@ -655,7 +655,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
 
 
 @with_mongodb
-def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
+def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915 #noqa: PLR0912
     db: Database,
     yaml_file: str | dict,
     clean: bool,

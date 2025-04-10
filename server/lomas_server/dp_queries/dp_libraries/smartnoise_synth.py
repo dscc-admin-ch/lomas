@@ -230,33 +230,30 @@ class SmartnoiseSynthQuerier(
                             ),
                         ]
                     )
-            else:  # Cube
-                if self._is_categorical(
-                    col_metadata
-                ):  # TODO any way of specifying cardinality? See issue #337
-                    constraints[col] = LabelTransformer(nullable=nullable)
-                elif self._is_continuous(col_metadata):
-                    constraints[col] = BinTransformer(
-                        lower=col_metadata.lower,
-                        upper=col_metadata.upper,
-                        bins=SSYNTH_DEFAULT_BINS,
-                        nullable=nullable,
-                    )
-                elif self._is_datetime(col_metadata):
-                    constraints[col] = ChainTransformer(
-                        [
-                            DateTimeTransformer(epoch=col_metadata.lower),
-                            BinTransformer(
-                                lower=0.0,  # because start epoch at lower bound
-                                upper=datetime_to_float(
-                                    col_metadata.upper,
-                                    col_metadata.lower,
-                                ),
-                                bins=SSYNTH_DEFAULT_BINS,
-                                nullable=nullable,
+            elif self._is_categorical(col_metadata):  # TODO any way of specifying cardinality? See issue #337
+                constraints[col] = LabelTransformer(nullable=nullable)
+            elif self._is_continuous(col_metadata):
+                constraints[col] = BinTransformer(
+                    lower=col_metadata.lower,
+                    upper=col_metadata.upper,
+                    bins=SSYNTH_DEFAULT_BINS,
+                    nullable=nullable,
+                )
+            elif self._is_datetime(col_metadata):
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(epoch=col_metadata.lower),
+                        BinTransformer(
+                            lower=0.0,  # because start epoch at lower bound
+                            upper=datetime_to_float(
+                                col_metadata.upper,
+                                col_metadata.lower,
                             ),
-                        ]
-                    )
+                            bins=SSYNTH_DEFAULT_BINS,
+                            nullable=nullable,
+                        ),
+                    ]
+                )
 
         return constraints
 

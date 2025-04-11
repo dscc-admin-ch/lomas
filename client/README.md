@@ -37,6 +37,8 @@ client = Client(url="http://lomas_server_dev:80", user_name = "Emilie", dataset_
 ```
 Once `client` is initialized it can be used to send requests to respective DP frameworks.
 
+Note: Parameters for authentication are set via environment variables.
+
 #### Get metadata
 Metadata information aout the dataset can be accessed in a format based on SmartnoiseSQL dictionary format, where among other, there is information about all the available columns, their type, bound values (see Smartnoise page for more details). Any metadata is required for Smartnoise-SQL is also required here and additional information such that the different categories in a string type column column can be added.
 
@@ -55,7 +57,7 @@ df_dummy = client.get_dummy_dataset(nb_rows = 200, seed = 1)
 ####  Query smartnoise-sql
 She can query on the sensitive dataset using smartnoise-sql library in the back-end with the following method:
 ```python
-response = client.smartnoise_sql_query(
+response = client.smartnoise_sql.query(
     query = ""SELECT COUNT(*) AS nb_penguins FROM df"",  
     epsilon = 0.1, 
     delta = 0.00001,
@@ -68,7 +70,7 @@ NOTE: the 'FROM' of the SQL query must be followed by 'df' for the command to wo
 ####  Get smartnoise-sql query cost
 In SmartnoiseSQL, the budget that will by used by a query might be different than what is asked by the user. The estimate cost function returns the estimated real cost of any query.
 ```python
-real_cost_epsilon, real_cost_delta = client.estimate_smartnoise_sql_cost(
+real_cost_epsilon, real_cost_delta = client.smartnoise_sql.cost(
     query = "SELECT COUNT(*) AS nb_penguins FROM df", 
     epsilon = 0.1, 
     delta = 0.000001
@@ -94,7 +96,7 @@ pipeline = (
     trans.then_variance() >>
     meas.then_laplace(scale=5.0)
 )
-result = client.opendp_query(
+result = client.opendp.query(
     opendp_pipeline = pipeline, 
 )
 ```
@@ -104,7 +106,7 @@ Similarly as in Smartnoise-sql, to query on a dummy dataset for testing purposes
 ####  Get opendp query cost
 The budget that will by used by a query is usually not expressed in the epsilon, delta format used in the server. For instance, in the pipeline exemple above the noise is expressed as `meas.then_laplace(scale=5.0)`. It can be converted in term of the epsilon and delta cost with the function below:
 ```python
-real_cost_epsilon, real_cost_delta = client.estimate_opendp_cost(opendp_pipeline = pipeline)
+real_cost_epsilon, real_cost_delta = client.opendp.cost(opendp_pipeline = pipeline)
 ```
 
 

@@ -127,7 +127,6 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    CONTRIBUTING.md
-   CONTRIBUTING_CLIENT.md
    CONTRIBUTING_SERVER.md
 
 .. toctree::

@@ -1,8 +1,8 @@
 Local
 ==================
 
-This chapter provides instructions on how to deploy the server locally. 
-Follow these steps to get your server up and running on your local machine.
+This chapter provides instructions on how to deploy the service locally. 
+Follow these steps to get your server and all the components up and running on your local machine.
 
 Prerequisites
 -------------

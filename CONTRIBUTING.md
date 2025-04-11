@@ -18,7 +18,7 @@ part of the project, refer to:
 
 ## Devenv
 
-Settings up the environment with [devenv](https://devenv.sh/):
+Setting up the environment with [devenv](https://devenv.sh/):
 
 1. `./scripts/bootstrap.sh`
 2. `nix profile install nixpkgs#{dev,dir}env`
@@ -28,51 +28,45 @@ Settings up the environment with [devenv](https://devenv.sh/):
     3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
 
 
-Once in lomas repo: `devenv shell`
+Once in lomas repo run the following to activate the devenv: `devenv shell`.
 
-To spin-up necessary services: `devenv processes up`
-
-Some utilities are provided inside the environment such as:
-
+The following utilities are now available in your shell:
+- `yelp` will print a similar help page.
+- `devenv up` will start up the environment (lomas server, worker, keycloak, mongodb, rabbitmq) and set up the components. Demo users and datasets will also be added to the service.
+- `devenv up -- --namespace=telemetry` or `process-compose up` will do the same as above but with telemetry enabled.
+- `yq $PC_CONFIG_FILES` will show what process-compose is doing.
+- `ut / pytest -k <name of your test>` will run individual tests, no need to setup the python path. If your tests require the services to be up, run `devenv up` before.
+- `ut-coverage` will run tests and coverage.
+- `uv sync --all-extras [-U]` will fix broken/out of sync/missing packages.
+- `uv add <packages>` will add new packages.
 - `run-linter` will run all the Linting suit (isort/black/flake8/pylint/pydocstringformatter/mypy)
-- `ut` runs the server pytest suit
-- `ut-coverage` runs the server coverage & report generation
 
-Note that some of them (fast enough) are integrated as git pre-commit hook (namely isort/black/flake8/pylint)
+Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely isort/black/flake8/pylint).
+
+## Python package management
+
+We use [`uv`](https://docs.astral.sh/uv/reference/cli/) for managing Python dependencies and package builds. The repo is setup using the workspaces layout, see [here for reference](https://docs.astral.sh/uv/concepts/projects/workspaces/).
+
+Here are some of the more common commands:
+- `uv sync` syncs the virtual environment with the uv.lock file. This also removes installed packages that are not listed in that file.
+- `uv sync --all-extras` does the same as above but with all extra dependencies.
+- `uv add <package>` adds a package to the project. The pyproject.toml file as well as the uv.lock file are updated.
+
+Activating the devenv already activates the python venv with uv.
 
 
 ## Linting and Other Checks
 
-To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that should be performed:
+To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that are performed by the `run-linter` command:
 
-- **Code Formatting:** Use `black` to automatically format the code. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
-  ```bash
-  black .
-  ```
+- **Code Formatting:** We use `black` to automatically format the code.
+- **Code Style and Static Analysis**: We use flake8 to verify formatting and perform static code.
+- **Static Type Checking**: We use mypy for static type checking. Note that both the server and the client have their own pyproject.toml files with configs to ignore specific warnings.
+- **Additional Static Analysis**: We use pylint for further static analysis. Note that both the server and the client have their own config in their respective pyproject.toml files to ignore specific warnings.
+- **Automatic docstring linter formatting**: We use pydocstringformatter for automatically formatting docstring following PEP257 recommandations.
+- **Import statement reordering**: We use isort to perform this task.
 
-- **Code Style and Static Analysis**: Use flake8 to verify formatting and perform static code analysis. In `lomas/server/lomas_server` , `lomas/client/lomas_client` and `lomas/core/lomas_core`:
- ```bash
-  flake8 .
-  ```
-
-- **Static Type Checking**: Use mypy for static type checking. Note that both the server and the client have their own mypi.ini files to ignore specific warnings. In `lomas/server`, `lomas/client` and `lomas/core`:
- ```bash
-  mypy .
-  ```
-
-- **Additional Static Analysis**: Use pylint for further static analysis. Note that both the server and the client have their own .pylintrc files to ignore specific warnings. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
- ```bash
-  pylint .
-  ```
-
-- **Automatic docstring linter formatting**: Use pydocstringformatter for automatically formatting docstring following PEP257 recommandations. In `lomas/server/lomas_server`, `lomas/client/lomas_client` and `lomas/core/lomas_core`:
- ```bash
-  pydocstringformatter .
-  ```
-
-To streamline the process, you can use the `run-linter` command inside the Devenv.
-
-There should be no error or warning, otherwise the linting github action will fail. All configurations are in
+There should be no error or warning when calling `run-linter`, otherwise the linting github action will fail. All configurations are in
 
 * `lomas/pyproject.toml`
 * `lomas/core/pyproject.toml`
@@ -89,15 +83,15 @@ The table below gives an overview of which workflows are triggered by what event
 | Workflow / Trigger     | PR to develop | PR to master | Push to develop | Push to release/** | Push to master | GitHub release |
 |------------------------|---------------|--------------|-----------------|--------------------|----------------|----------------|
 | Tests and Linters      | Yes           | Yes          | No              | No                 | No             | No             |
-| Docker build and push  | No            | No           | Yes (tag = git sha) | No             | Yes (tag = git sha) | Yes (tags = latest and semver (x.y.z)) |
-| Client library push    | No            | No           | No              | No                 | No             | Yes (must manually adjust version) |
+| Docker build and push  | Yes (no push) | Yes (no push)| Yes (tag = git sha) | No             | Yes (tag = git sha) | Yes (tags = latest and semver (x.y.z)) |
+| Python libraries push  | No            | No           | No              | No                 | No             | Yes (must manually adjust version) |
 | Helm charts push       | No            | No           | No              | Yes (must manually adjust version)  | No             | No             |
 | Documentation push     | No            | No           | Yes (for latest)| No                 | No             | Yes (for stable, must manually add version) |
 | Security with CodeQL*  | Yes           | Yes          | No              | No                 | No             | No             |
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Client library push**: The 'version' and the 'install_requires' must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
+* **Python libraries push**: The 'version' and the 'install_requires' must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: If a new version is released, it must be added to the `docs/versions.yaml` file. For more details on the generation of the documentation, please refer to `docs` and the `docs/build_docs.py` script.
 

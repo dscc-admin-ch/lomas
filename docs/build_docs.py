@@ -111,7 +111,6 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
         subprocess.run("cp ../images/lomas_logo_txt.png ./source/_static/logo.png", shell=True)
         subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True)
         subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True)
-        subprocess.run("cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True)
         subprocess.run("cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True)
         subprocess.run("sphinx-apidoc -o ./source ../core/lomas_core/ --tocfile core_modules", shell=True)
         subprocess.run(

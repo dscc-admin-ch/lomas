@@ -56,7 +56,12 @@ def add_lomas_demo_data(
     drop_collection(config.mg_config, collection="queries_archives")
 
 
-if __name__ == "__main__":
+def lomas_demo_setup():
+    """Script for setting up demo users and dataset."""
     demo_config = DemoAdminConfig()
 
     add_lomas_demo_data(demo_config)
+
+
+if __name__ == "__main__":
+    lomas_demo_setup()

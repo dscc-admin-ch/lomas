@@ -57,6 +57,8 @@ all = [
 
 [project.scripts]
 lomas-serve = "lomas_server.uvicorn_serve:uvicorn_serve"
+lomas-keycloak-setup = "lomas_server.administration.scripts.keycloak_setup:kc_setup"
+lomas-demo-setup = "lomas_server.administration.scripts.lomas_demo_setup:lomas_demo_setup"
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"

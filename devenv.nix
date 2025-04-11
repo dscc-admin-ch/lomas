@@ -542,7 +542,7 @@ in
 
   # Keycloak setup for lomas
   processes.keycloak_setup = {
-    exec = "python administration/scripts/keycloak_setup.py";
+    exec = "lomas-keycloak-setup";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.keycloak.condition = "process_healthy";
@@ -1063,7 +1063,7 @@ in
 
   scripts.demo_setup.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
-    python administration/scripts/lomas_demo_setup.py
+    lomas-demo-setup
     popd
   '';
 

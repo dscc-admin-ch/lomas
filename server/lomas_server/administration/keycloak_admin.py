@@ -187,11 +187,7 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
 
     users = kc_admin.users.get()
     for user in users:
-        if (
-            "attributes" in user
-            and KCAttributeNames.LOMAS_USER_CLIENT in user["attributes"]  # type: ignore
-            and user["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]  # type: ignore
-        ):
+        if user.get("attributes", {}).get(KCAttributeNames.LOMAS_USER_CLIENT):
             user_id = user["id"]  # type: ignore
             kc_admin.users(user_id).delete()
 
@@ -199,11 +195,7 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
 
     clients = kc_admin.clients.get()
     for client in clients:
-        if (
-            "attributes" in client
-            and KCAttributeNames.LOMAS_USER_CLIENT in client["attributes"]  # type: ignore
-            and client["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]  # type: ignore
-        ):
+        if client.get("attributes", {}).get(KCAttributeNames.LOMAS_USER_CLIENT):
             client_id = client["id"]  # type: ignore
             kc_admin.clients(client_id).delete()
 

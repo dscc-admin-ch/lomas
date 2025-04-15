@@ -235,6 +235,8 @@ in
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
   };
 
+  cachix.pull = [ "lomas" ];
+
   packages =
     [
       # required for up pip git+https in containers

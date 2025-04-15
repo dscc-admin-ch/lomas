@@ -235,7 +235,9 @@ async def process_message(channel, in_queue, out_queue, message_handler):
                         body = exc_body
 
                     case query_response:
-                        logging.info("Response length: {len(query_response.json())} {message.correlation_id}")
+                        logging.info(
+                            f"Response length: {len(query_response.json())} {message.correlation_id}"
+                        )
                         body = query_response.json().encode()
 
                 await channel.default_exchange.publish(

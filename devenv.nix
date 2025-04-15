@@ -166,6 +166,23 @@ let
       level = "DEBUG";
       handlers = [ "stdout" ];
     };
+    loggers = {
+      "pymongo.command".level = "INFO";
+      "pymongo.topology".level = "INFO";
+      "pymongo.connection".level = "INFO";
+      "pymongo.serverSelection".level = "INFO";
+
+      "aiormq.connection".level = "INFO";
+      "aiormq.channel".level = "INFO";
+      "aio_pika.exchange".level = "DEBUG";
+
+      "urllib3".level = "INFO";
+
+      "botocore".level = "INFO";
+      "botocore.endpoint".level = "DEBUG";
+
+      "faker".level = "WARN";
+    };
   };
 in
 {
@@ -217,6 +234,8 @@ in
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
   };
+
+  cachix.pull = [ "lomas" ];
 
   packages =
     [

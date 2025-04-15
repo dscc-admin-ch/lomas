@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: [3.11, 3.12, 3.13]
     permissions:
       # Gives the action the necessary permissions for publishing new
       # comments in pull requests.
@@ -27,7 +27,8 @@ jobs:
     - uses: cachix/install-nix-action@v26
     - uses: cachix/cachix-action@v14
       with:
-        name: devenv
+        name: lomas
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
       run: nix profile install nixpkgs#devenv

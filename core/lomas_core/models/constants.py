@@ -1,6 +1,5 @@
 from enum import IntEnum, StrEnum
-
-import pkg_resources
+from importlib import metadata
 
 # Field names
 # -----------------------------------------------------------------------------
@@ -18,8 +17,8 @@ JSON_SCHEMA_EXAMPLES = "examples"
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
-OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
-DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
+OPENDP_VERSION = metadata.version("opendp")
+DIFFPRIVLIB_VERSION = metadata.version("diffprivlib")
 
 
 # Metadata

@@ -45,32 +45,32 @@ Useful Links for Debugging and Access
 
 Below are the important endpoints that can be accessed for debugging and visualizing data:
 
-- **Grafana Dashboard**:  
+- **Grafana Dashboard**:
 
-  `http://localhost:3000`:  
+  `http://localhost:3000`:
   Access the Grafana dashboard where logs, traces, and metrics can be visualized.
 
-- **Prometheus Time-Series Query**:  
+- **Prometheus Time-Series Query**:
 
-  `http://localhost:9090/query`:  
+  `http://localhost:9090/query`:
   Directly query Prometheus for time-series data.
 
-- **Metrics Endpoints**:  
+- **Metrics Endpoints**:
 
-  - `http://localhost:9091/metrics`:  
+  - `http://localhost:9091/metrics`:
     Metrics from the Lomas server.
 
-  - `http://localhost:9090/metrics`: 
+  - `http://localhost:9090/metrics`:
     Other metrics exposed by Prometheus.
 
-- **Tempo Trace Debugging**:  
+- **Tempo Trace Debugging**:
 
-  `http://localhost:55679/debug/tracez`: 
+  `http://localhost:55679/debug/tracez`:
   Debug trace data from Tempo.
 
-- **Loki Direct Access**:  
+- **Loki Direct Access**:
 
-  - `http://localhost:3100/ready`:  
+  - `http://localhost:3100/ready`:
     Check the readiness of the Loki service.
 
   - `http://localhost:3100/config`:
@@ -78,13 +78,13 @@ Below are the important endpoints that can be accessed for debugging and visuali
 
 - **OpenTelemetry Collector**:
 
-  - `http://localhost:13133/health`:  
+  - `http://localhost:13133/health`:
     Health check endpoint for the OpenTelemetry Collector.
 
-  - `http://localhost:1777/debug/pprof/`:  
+  - `http://localhost:1777/debug/pprof/`:
     Profiling and debugging endpoint for performance analysis.
 
-  - `http://localhost:55679/debug/tracez`:  
+  - `http://localhost:55679/debug/tracez`:
     Trace information for debugging traces.
 
 Configuration Files and Customization

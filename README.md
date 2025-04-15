@@ -17,7 +17,7 @@
 
 
 
-# Lomas: The Data Oases Hidden Behind the Mist. 
+# Lomas: The Data Oases Hidden Behind the Mist.
 
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
@@ -74,7 +74,7 @@ Finally, the service provider is responsible for deploying the service and manag
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
 ## Disclaimer
-Lomas is a Proof of Concept that is still under development. 
+Lomas is a Proof of Concept that is still under development.
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
 

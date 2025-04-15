@@ -58,8 +58,8 @@ df_dummy = client.get_dummy_dataset(nb_rows = 200, seed = 1)
 She can query on the sensitive dataset using smartnoise-sql library in the back-end with the following method:
 ```python
 response = client.smartnoise_sql.query(
-    query = ""SELECT COUNT(*) AS nb_penguins FROM df"",  
-    epsilon = 0.1, 
+    query = ""SELECT COUNT(*) AS nb_penguins FROM df"",
+    epsilon = 0.1,
     delta = 0.00001,
     dummy = False # Optionnal
 )
@@ -71,8 +71,8 @@ NOTE: the 'FROM' of the SQL query must be followed by 'df' for the command to wo
 In SmartnoiseSQL, the budget that will by used by a query might be different than what is asked by the user. The estimate cost function returns the estimated real cost of any query.
 ```python
 real_cost_epsilon, real_cost_delta = client.smartnoise_sql.cost(
-    query = "SELECT COUNT(*) AS nb_penguins FROM df", 
-    epsilon = 0.1, 
+    query = "SELECT COUNT(*) AS nb_penguins FROM df",
+    epsilon = 0.1,
     delta = 0.000001
 )
 ```
@@ -97,7 +97,7 @@ pipeline = (
     meas.then_laplace(scale=5.0)
 )
 result = client.opendp.query(
-    opendp_pipeline = pipeline, 
+    opendp_pipeline = pipeline,
 )
 ```
 
@@ -137,4 +137,4 @@ To see detailed examples of the library, many notebooks are available  in the [c
 
 
 ### More detailed documentation
-More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-docs/). 
+More detailed documentation is available on [this GitHub Page](https://dscc-admin-ch.github.io/lomas-docs/).

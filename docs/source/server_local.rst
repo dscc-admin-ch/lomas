@@ -1,7 +1,7 @@
 Local
 ==================
 
-This chapter provides instructions on how to deploy the service locally. 
+This chapter provides instructions on how to deploy the service locally.
 Follow these steps to get your server and all the components up and running on your local machine.
 
 Prerequisites
@@ -30,7 +30,7 @@ Steps to Deploy Locally
 
 3. Start the Server
 
-   With Docker and Docker Compose set up, you can now start the server. 
+   With Docker and Docker Compose set up, you can now start the server.
    In the same directory, run:
 
    .. code-block:: bash

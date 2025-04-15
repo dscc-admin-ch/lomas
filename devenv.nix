@@ -166,6 +166,23 @@ let
       level = "DEBUG";
       handlers = [ "stdout" ];
     };
+    loggers = {
+      "pymongo.command".level = "INFO";
+      "pymongo.topology".level = "INFO";
+      "pymongo.connection".level = "INFO";
+      "pymongo.serverSelection".level = "INFO";
+
+      "aiormq.connection".level = "INFO";
+      "aiormq.channel".level = "INFO";
+      "aio_pika.exchange".level = "DEBUG";
+
+      "urllib3".level = "INFO";
+
+      "botocore".level = "INFO";
+      "botocore.endpoint".level = "DEBUG";
+
+      "faker".level = "WARN";
+    };
   };
 in
 {

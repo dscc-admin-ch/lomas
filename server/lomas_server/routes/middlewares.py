@@ -10,7 +10,6 @@ from starlette.routing import Match
 from starlette.types import ASGIApp
 
 from lomas_core.error_handler import KNOWN_EXCEPTIONS
-from lomas_server.constants import SERVER_SERVICE_NAME
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -109,7 +108,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
     to a metrics collector (e.g., Prometheus or any other OTLP-compatible collector).
     """
 
-    def __init__(self, app: ASGIApp, app_name: str = SERVER_SERVICE_NAME) -> None:
+    def __init__(self, app: ASGIApp, app_name: str) -> None:
         """
         Initializes the MetricMiddleware.
 

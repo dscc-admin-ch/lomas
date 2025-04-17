@@ -69,14 +69,14 @@ class DSAccess(BaseModel):
 class DSPathAccess(DSAccess):
     """BaseModel for a local dataset."""
 
-    database_type: Literal[PrivateDatabaseType.PATH]  # type: ignore
+    database_type: Literal[PrivateDatabaseType.PATH]
     path: str
 
 
 class DSS3Access(DSAccess):
     """BaseModel for a dataset on S3."""
 
-    database_type: Literal[PrivateDatabaseType.S3]  # type: ignore
+    database_type: Literal[PrivateDatabaseType.S3]
     endpoint_url: str
     bucket: str
     key: str

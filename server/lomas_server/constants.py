@@ -1,23 +1,9 @@
-import os
 import string
 from enum import StrEnum
 
-from opendp import measures as ms
-from opendp import typing as tp
+from opendp import measures as ms, typing as tp
 
 from lomas_core.constants import OpenDpMechanism
-
-# Config
-# -----------------------------------------------------------------------------
-
-# Get config and secrets from correct location
-CONFIG_PATH = os.getenv("LOMAS_CONFIG_PATH", "/usr/lomas_server/runtime.yaml")
-SECRETS_PATH = os.getenv("LOMAS_SECRETS_PATH", "/usr/lomas_server/secrets.yaml")
-
-SERVER_SERVICE_NAME = os.getenv("SERVER_SERVICE_NAME", "lomas-server-app")
-SERVICE_ID = os.getenv("HOSTNAME", "default-host")
-TELEMETRY = bool(os.getenv("LOMAS_TELEMETRY", ""))
-
 
 # Misc
 # -----------------------------------------------------------------------------

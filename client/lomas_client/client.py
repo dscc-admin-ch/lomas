@@ -7,6 +7,8 @@ import polars as pl
 from fastapi import status
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from pydantic import ValidationError
 
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
@@ -17,8 +19,10 @@ from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
+from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
+from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -41,50 +45,24 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(
-        self,
-        url: str,
-        dataset_name: str,
-        keycloak_address: str | None = None,
-        keycloak_port: int | None = None,
-        keycloak_use_tls: bool | None = None,
-        realm: str | None = None,
-        client_id: str | None = None,
-        client_secret: str | None = None,
-    ) -> None:
-        """Initializes the Client with the specified URL, dataset name and authentication parameters.
+    def __init__(self) -> None:
+        """Initializes the Client with the specified URL, dataset name and authentication parameters."""
 
-        Args:
-            url (str): The base URL for the API server.
-            dataset_name (str): The name of the dataset to be accessed or manipulated.
-            keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
-                environment variable). Defaults to None.
-            keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
-                environment variable). Defaults to None.
-            keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
-                environment variable). Defaults to None.
-            realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
-                if using jwt authentication. Defaults to None.
-            client_id (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable). Defaults to None.
-            client_secret (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable). Defaults to None.
-        """
+        try:
+            self.config = ClientConfig()
+        except ValidationError as exc:
+            raise ValueError(
+                "Missing one of or invalid: client_id, client_secret, keycloak_url"
+                "or realm when using jwt authentication method."
+                "If you are using this library from a managed environment and don't know "
+                "about your credentials, please contact your system administrator."
+            ) from exc
 
-        # resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
-        # TODO fix in settings pr.
-        # init_telemetry(resource)
+        if self.config.telemetry.enabled:
+            LoggingInstrumentor().instrument(set_logging_format=True)
+            init_telemetry(self.config.telemetry)
 
-        self.http_client = LomasHttpClient(
-            url,
-            dataset_name,
-            keycloak_address,
-            keycloak_port,
-            keycloak_use_tls,
-            realm,
-            client_id,
-            client_secret,
-        )
+        self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)
@@ -99,7 +77,7 @@ class Client:
             Optional[LomasRequestModel]:
                 A dictionary containing dataset metadata.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_dataset_metadata", body)
         if res.status_code == status.HTTP_200_OK:
@@ -131,7 +109,7 @@ class Client:
                 representing the dummy dataset.
         """
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.config.dataset_name,
             "dummy_nb_rows": nb_rows,
             "dummy_seed": seed,
         }
@@ -173,7 +151,7 @@ class Client:
                 containing the initial budget.
         """
 
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
@@ -187,7 +165,7 @@ class Client:
             Optional[SpentBudgetResponse]: A dictionary containing
                 the total spent budget.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
@@ -201,7 +179,7 @@ class Client:
             Optional[RemainingBudgetResponse]: A dictionary
                 containing the remaining budget.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
@@ -219,7 +197,7 @@ class Client:
             Optional[List[dict]]: A list of dictionary containing
             the different queries on the private dataset.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_previous_queries", body)

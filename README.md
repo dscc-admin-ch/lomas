@@ -13,8 +13,9 @@
 [![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
 [![CodeQL](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml)
 [![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
-
-
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
 # Lomas: The Data Oases Hidden Behind the Mist.

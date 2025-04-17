@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import TypeAlias, TypeGuard
+from typing import TypeGuard
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -69,7 +69,7 @@ def datetime_to_float(upper: datetime, lower: datetime) -> float:
 
 
 # TODO maybe a better place to put this? See issue #336
-SSynthColumnType: TypeAlias = (
+SSynthColumnType = (
     StrMetadata
     | StrCategoricalMetadata
     | BooleanMetadata
@@ -165,7 +165,7 @@ class SmartnoiseSynthQuerier(
             if select_cols and col_name not in select_cols:
                 continue
 
-            if not isinstance(data, SSynthColumnType):  # type: ignore[misc, arg-type]
+            if not isinstance(data, SSynthColumnType):
                 raise InternalServerException(f"Column type {data.type} not supported for SmartnoiseSynth")
 
             columns[col_name] = data
@@ -230,33 +230,30 @@ class SmartnoiseSynthQuerier(
                             ),
                         ]
                     )
-            else:  # Cube
-                if self._is_categorical(
-                    col_metadata
-                ):  # TODO any way of specifying cardinality? See issue #337
-                    constraints[col] = LabelTransformer(nullable=nullable)
-                elif self._is_continuous(col_metadata):
-                    constraints[col] = BinTransformer(
-                        lower=col_metadata.lower,
-                        upper=col_metadata.upper,
-                        bins=SSYNTH_DEFAULT_BINS,
-                        nullable=nullable,
-                    )
-                elif self._is_datetime(col_metadata):
-                    constraints[col] = ChainTransformer(
-                        [
-                            DateTimeTransformer(epoch=col_metadata.lower),
-                            BinTransformer(
-                                lower=0.0,  # because start epoch at lower bound
-                                upper=datetime_to_float(
-                                    col_metadata.upper,
-                                    col_metadata.lower,
-                                ),
-                                bins=SSYNTH_DEFAULT_BINS,
-                                nullable=nullable,
+            elif self._is_categorical(col_metadata):  # TODO any way of specifying cardinality? See issue #337
+                constraints[col] = LabelTransformer(nullable=nullable)
+            elif self._is_continuous(col_metadata):
+                constraints[col] = BinTransformer(
+                    lower=col_metadata.lower,
+                    upper=col_metadata.upper,
+                    bins=SSYNTH_DEFAULT_BINS,
+                    nullable=nullable,
+                )
+            elif self._is_datetime(col_metadata):
+                constraints[col] = ChainTransformer(
+                    [
+                        DateTimeTransformer(epoch=col_metadata.lower),
+                        BinTransformer(
+                            lower=0.0,  # because start epoch at lower bound
+                            upper=datetime_to_float(
+                                col_metadata.upper,
+                                col_metadata.lower,
                             ),
-                        ]
-                    )
+                            bins=SSYNTH_DEFAULT_BINS,
+                            nullable=nullable,
+                        ),
+                    ]
+                )
 
         return constraints
 

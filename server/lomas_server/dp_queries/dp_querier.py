@@ -113,7 +113,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
 
         try:
             # Get cost of the query
-            eps_cost, delta_cost = self.cost(query_json)  # type: ignore [arg-type]
+            eps_cost, delta_cost = self.cost(query_json)
 
             # Check that enough budget to do the query
             try:
@@ -132,7 +132,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
 
             # Query
             try:
-                query_result = self.query(query_json)  # type: ignore [arg-type]
+                query_result = self.query(query_json)
             except KNOWN_EXCEPTIONS as e:
                 raise e
             except Exception as e:

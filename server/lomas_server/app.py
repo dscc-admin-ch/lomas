@@ -1,11 +1,8 @@
-import json
 import logging
 import logging.config
-import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
-from pathlib import Path
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -15,10 +12,10 @@ from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
-from lomas_core.instrumentation import get_ressource, init_telemetry
-from lomas_server.admin_database.factory import admin_database_factory
+from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.config import Config
+from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.auth.auth import authenticator_factory
-from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID, TELEMETRY
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -28,7 +25,6 @@ from lomas_server.routes.middlewares import (
     LoggingAndTracingMiddleware,
 )
 from lomas_server.routes.utils import rabbitmq_ctx
-from lomas_server.utils.config import get_config
 
 
 @asynccontextmanager
@@ -47,22 +43,18 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     # Startup
     logging.info("Startup message")
 
+    # Load Config
+    config = Config()
+
     # Set some app state
     lomas_app.state.admin_database = None
     lomas_app.state.jobs_var = ContextVar("jobs", default={})
-
-    # Load config
-    try:
-        logging.info("Loading config")
-        config = get_config()
-        lomas_app.state.private_credentials = config.private_db_credentials
-    except InternalServerException:
-        logging.info("Config could not loaded")
+    lomas_app.state.private_credentials = config.private_db_credentials
 
     # Load admin database
     try:
         logging.info("Loading admin database")
-        lomas_app.state.admin_database = admin_database_factory(config.admin_database)
+        lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
         logging.info("Loading authenticator")
         lomas_app.state.authenticator = authenticator_factory(config.authenticator)
 
@@ -70,27 +62,27 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         logging.exception(f"Failed at startup: {str(e)}")
 
     # Set DP Libraries config
-    set_opendp_features_config(config.dp_libraries.opendp)
+    set_opendp_features_config(config.opendp_features)
 
     async with rabbitmq_ctx(lomas_app):
 
         yield  # lomas_app is handling requests
 
 
-# TODO: merge in pydantic-settings
-if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
-    logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
+# Init config for logging purposes
+initConfig = Config()
+logging.config.dictConfig(initConfig.logging_config)
 
 # Initalise telemetry
-if TELEMETRY:
+if initConfig.telemetry.enabled:
     LoggingInstrumentor().instrument(set_logging_format=True)
-    init_telemetry(get_ressource(SERVER_SERVICE_NAME, SERVICE_ID))
+    init_telemetry(initConfig.telemetry)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
 
 # Setting metrics middleware
-app.add_middleware(FastAPIMetricMiddleware, app_name=SERVER_SERVICE_NAME)
+app.add_middleware(FastAPIMetricMiddleware, app_name=initConfig.telemetry.service_name)
 app.add_middleware(LoggingAndTracingMiddleware)
 
 # Add custom exception handlers

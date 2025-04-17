@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import posix as Status
 import random
 import sys
@@ -19,6 +18,7 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
+from lomas_core.models.config import Config
 from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -26,15 +26,8 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.utils.config import get_config
 
 AioPikaInstrumentor().instrument()
-
-# TODO: merge in pydantic-settings
-amqp_user = os.environ.get("LOMAS_AMQP_USER", "guest")
-amqp_pass = os.environ.get("LOMAS_AMQP_PASS", "guest")
-amqp_addr = os.environ.get("LOMAS_AMQP_ADDR", "127.0.0.1")
-amqp_port = os.environ.get("LOMAS_AMQP_PORT", "5672")
 
 
 async def process_response(
@@ -68,19 +61,19 @@ async def process_response(
 
 
 async def rabbitmq_connect_queue(
-    reconnect_interval: int = 10, timeout: int = 120
+    config: Config, reconnect_interval: int = 10, timeout: int = 120
 ) -> aio_pika.RobustConnection:
     """Attempt with retries to connect to the queue."""
     try:
         async with asyncio.timeout(timeout):
             connection = await aio_pika.connect_robust(
-                f"amqp://{amqp_user}:{amqp_pass}@{amqp_addr}:{amqp_port}/",
+                str(config.amqp.dsn),
                 fail_fast=False,
                 reconnect_interval=reconnect_interval,
             )
             return connection
     except TimeoutError:
-        logging.error(f"Couldn't connect to queue {amqp_addr}:{amqp_port} in time")
+        logging.error(f"Couldn't connect to queue {config.amqp.url} in time")
         sys.exit(Status.EX_UNAVAILABLE)
 
 
@@ -88,7 +81,9 @@ async def rabbitmq_connect_queue(
 async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
     """RabbitMQ queue context to connect and register callbacks."""
 
-    connection = await rabbitmq_connect_queue()
+    config = Config()
+
+    connection = await rabbitmq_connect_queue(config)
     channel = await connection.channel()
 
     await channel.declare_queue("task_queue", auto_delete=True)
@@ -116,7 +111,7 @@ def timing_protection(func):  # type: ignore[no-untyped-def]
 
     @wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
-        config = get_config()
+        config = Config()
 
         start_time = time.time()
         response = func(*args, **kwargs)

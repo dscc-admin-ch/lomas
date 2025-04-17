@@ -8,25 +8,12 @@
     ];
   };
 
-  isort.enable = true;
-
   black = {
     enable = true;
+    before = [ "ruff" ];
     args = [
       "--config"
       "${env.DEVENV_ROOT}/pyproject.toml"
-    ];
-  };
-
-  # TODO: add flake8-pyproject inside this context
-  # or switch to ruff ?
-  flake8 = {
-    enable = true;
-    args = [
-      "--max-line-length"
-      "110"
-      "--ignore"
-      "E501,W503"
     ];
   };
 
@@ -34,6 +21,7 @@
 
   pylint = {
     enable = true;
+    after = [ "ruff" ];
     verbose = true;
     args = [
       "--rcfile"

@@ -1,13 +1,10 @@
 import asyncio
 import functools
-import json
 import logging
 import logging.config
-import os
 import signal
 import time
 from collections.abc import Callable
-from pathlib import Path
 from typing import Any, Never
 
 import aio_pika
@@ -25,7 +22,8 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from lomas_core.instrumentation import get_ressource, init_telemetry
+from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.config import Config
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -47,26 +45,19 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.constants import SERVER_SERVICE_NAME, SERVICE_ID, TELEMETRY
+from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.routes.utils import rabbitmq_connect_queue
-from lomas_server.utils.config import get_config
 
 AioPikaInstrumentor().instrument()
 
-# CONFIG_LOADER.load_config(
-#     config_path="tests/test_configs/test_config_mongo.yaml",
-#     secrets_path="tests/test_configs/test_secrets.yaml",
-# )
-
-config = get_config()
-admin_database = admin_database_factory(config.admin_database)
+config = Config()
+admin_database = AdminMongoDatabase(config.admin_database)
 private_credentials = config.private_db_credentials
-set_opendp_features_config(config.dp_libraries.opendp)
+set_opendp_features_config(config.opendp_features)
 
 
 def handle_known_exceptions(exc: BaseException) -> JSONResponse:
@@ -274,7 +265,7 @@ async def process_all_queues() -> None:
     """Handle & await all pika processing queues."""
 
     loop = asyncio.get_running_loop()
-    connection = await rabbitmq_connect_queue()
+    connection = await rabbitmq_connect_queue(config)
 
     async with connection:
         channel = await connection.channel()
@@ -300,13 +291,11 @@ async def process_all_queues() -> None:
 
 
 if __name__ == "__main__":
-    # TODO: merge in pydantic-settings
-    if (logging_config := os.environ.get("LOMAS_LOGGING_CONFIG")) is not None:
-        logging.config.dictConfig(json.loads(Path(logging_config).read_text(encoding="utf-8")))
+    logging.config.dictConfig(config.logging_config)
 
-    if TELEMETRY:
+    if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)
-        init_telemetry(get_ressource(SERVER_SERVICE_NAME, SERVICE_ID))
+        init_telemetry(config.telemetry)
 
     logging.info(" [*] Waiting for messages. To exit press CTRL+C")
     asyncio.run(process_all_queues())

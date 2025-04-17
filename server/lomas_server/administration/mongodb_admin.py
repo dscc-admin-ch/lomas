@@ -24,10 +24,7 @@ from lomas_core.models.collections import (
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
-from lomas_server.admin_database.mongodb_database import (
-    check_result_acknowledged,
-)
-from lomas_server.admin_database.utils import get_mongodb
+from lomas_server.admin_database.mongodb_database import check_result_acknowledged, get_mongodb
 from lomas_server.administration.utils import absolute_path
 
 
@@ -59,7 +56,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
             if not enforce_true and user_count > 0:
                 raise ValueError(f"User {user} already exists in user collection")
 
-            return function(*arguments, **kwargs)  # type: ignore
+            return function(*arguments, **kwargs)
 
         return wrapper_decorator
 
@@ -101,7 +98,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
             if not enforce_true and user_and_ds_count > 0:
                 raise ValueError(f"User {user} already has dataset {dataset}")
 
-            return function(*arguments, **kwargs)  # type: ignore
+            return function(*arguments, **kwargs)
 
         return wrapper_decorator
 
@@ -131,7 +128,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
             if not enforce_true and metadata_count > 0:
                 raise ValueError(f"Metadata for dataset {dataset} already" " exists in metadata collection")
 
-            return function(*arguments, **kwargs)  # type: ignore
+            return function(*arguments, **kwargs)
 
         return wrapper_decorator
 

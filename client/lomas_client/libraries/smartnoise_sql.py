@@ -39,7 +39,7 @@ class SmartnoiseSQLClient:
         """
         body_dict = {
             "query_str": query,
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
             "mechanisms": mechanisms,
@@ -92,7 +92,7 @@ class SmartnoiseSQLClient:
         """
         body_dict = {
             "query_str": query,
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "epsilon": epsilon,
             "delta": delta,
             "mechanisms": mechanisms,

@@ -9,16 +9,7 @@ services:
     ports:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
-    environment:
-      - SERVER_SERVICE_NAME=lomas-server-app
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_PYTHON_LOG_CORRELATION=true
-      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-      - LOMAS_AMQP_USER=${LOMAS_AMQP_USER}
-      - LOMAS_AMQP_PASS=${LOMAS_AMQP_PASS}
-      - LOMAS_AMQP_ADDR=${LOMAS_AMQP_DOCKER_ADDR}
-      - LOMAS_AMQP_PORT=${LOMAS_RABBIT_MQ_PORT}
+    env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
@@ -51,16 +42,7 @@ services:
     container_name: lomas_worker_dev
     restart: always
     command: "python -m lomas_server.worker"
-    environment:
-      - SERVER_SERVICE_NAME=lomas-worker-app
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_PYTHON_LOG_CORRELATION=true
-      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-      - LOMAS_AMQP_USER=${LOMAS_AMQP_USER}
-      - LOMAS_AMQP_PASS=${LOMAS_AMQP_PASS}
-      - LOMAS_AMQP_ADDR=${LOMAS_AMQP_DOCKER_ADDR}
-      - LOMAS_AMQP_PORT=${LOMAS_RABBIT_MQ_PORT}
+    env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
@@ -94,9 +76,9 @@ services:
       - ${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
       - ${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
     environment:
-      - RABBITMQ_DEFAULT_USER=${LOMAS_AMQP_USER}
-      - RABBITMQ_DEFAULT_PASS=${LOMAS_AMQP_PASS}
-      - RABBITMQ_NODE_PORT=${LOMAS_AMQP_PORT}
+      - RABBITMQ_DEFAULT_USER=${LOMAS_RABBIT_MQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${LOMAS_RABBIT_MQ_PASS}
+      - RABBITMQ_NODE_PORT=${LOMAS_RABBIT_MQ_PORT}
     networks:
       - lomas-network
 
@@ -271,8 +253,8 @@ services:
       context: ../
     container_name: lomas_client
     environment:
-      - CLIENT_SERVICE_NAME=lomas-client
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
+      - LOMAS_SERVICE_TELEMETRY__SERVICE_NAME=lomas-client
+      - LOMAS_SERVICE_telemetry__COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
     command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}

@@ -28,7 +28,6 @@ from lomas_core.models.responses import (
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.routes.utils import get_user_id_from_authenticator
-from lomas_server.utils.config import get_config
 
 router = APIRouter()
 
@@ -53,7 +52,7 @@ async def health_handler() -> JSONResponse:
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}", response_model=Job, responses=SERVER_QUERY_ERROR_RESPONSES)
+@router.get("/status/{uid}", responses=SERVER_QUERY_ERROR_RESPONSES)
 async def status_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
@@ -111,7 +110,6 @@ async def get_state(
 @router.get(
     "/config",
     tags=["ADMIN_USER"],
-    response_model=ConfigResponse,
 )
 async def get_server_config(
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -124,7 +122,7 @@ async def get_server_config(
     Returns:
         ConfigResponse: The server config.
     """
-    return ConfigResponse(config=get_config())
+    return ConfigResponse()
 
 
 # Metadata query

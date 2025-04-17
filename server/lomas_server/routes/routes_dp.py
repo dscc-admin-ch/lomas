@@ -33,7 +33,6 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -69,7 +68,6 @@ async def smartnoise_sql_handler(
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -106,7 +104,6 @@ async def dummy_smartnoise_sql_handler(
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -146,7 +143,6 @@ async def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -186,7 +182,6 @@ async def smartnoise_synth_handler(
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -226,7 +221,6 @@ async def dummy_smartnoise_synth_handler(
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -269,7 +263,6 @@ async def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -305,7 +298,6 @@ async def opendp_query_handler(
 
 @router.post(
     "/dummy_opendp_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -341,7 +333,6 @@ async def dummy_opendp_query_handler(
 
 @router.post(
     "/estimate_opendp_cost",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -381,7 +372,6 @@ async def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -417,7 +407,6 @@ async def diffprivlib_query_handler(
 
 @router.post(
     "/dummy_diffprivlib_query",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
@@ -453,7 +442,6 @@ async def dummy_diffprivlib_query_handler(
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    response_model=Job,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,

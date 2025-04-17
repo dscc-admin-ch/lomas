@@ -46,7 +46,7 @@ class OpenDPClient:
             dict: A dictionnary for the request body.
         """
         body_json = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "fixed_delta": fixed_delta,
             "mechanism": mechanism,
         }

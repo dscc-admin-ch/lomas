@@ -1,1 +1,3 @@
-from lomas_client.client import Client  # noqa
+from .client import Client
+
+__all__ = ("Client",)

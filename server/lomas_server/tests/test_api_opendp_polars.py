@@ -12,12 +12,14 @@ from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.models.collections import Metadata
+from lomas_core.models.constants import (
+    DUMMY_NB_ROWS,
+    DUMMY_SEED,
+)
 from lomas_core.models.exceptions import (
     InvalidQueryExceptionModel,
 )
 from lomas_core.models.requests_examples import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
     OPENDP_POLARS_PIPELINE,
     OPENDP_POLARS_PIPELINE_COVID,
     example_opendp_polars,
@@ -53,7 +55,7 @@ RAW_METADATA = {
 }
 
 
-def get_lf_from_json(pipeline) -> pl.LazyFrame:
+def get_lf_from_json(pipeline: str) -> pl.LazyFrame:
     """Deserialize a JSON string to create a Polars LazyFrame.
 
     This function deserializes a JSON string into a Polars
@@ -67,7 +69,7 @@ def get_lf_from_json(pipeline) -> pl.LazyFrame:
     return lf
 
 
-def mean_query_serialized(lf: pl.LazyFrame):
+def mean_query_serialized(lf: pl.LazyFrame) -> str:
     """Example of a mean query using OpenDP with Polars.
 
     This function computes the differentially private mean of the "income" column
@@ -391,7 +393,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         """Test lazyframe with different types."""
         by_config = []  # type: ignore
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
-        RAW_METADATA["columns"] = col_int  # type: ignore[index]
+        RAW_METADATA["columns"] = col_int
         metadata = dict(Metadata.model_validate(RAW_METADATA))
         margin_params = get_global_params(metadata)
         # lf with int
@@ -417,7 +419,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         # lf with datetime
         # TODO 392: Adapt this test with v0.12 datetime
         col_datetime = {"col_datetime": {"type": "datetime", "upper": "2050-01-01", "lower": "1900-01-01"}}
-        RAW_METADATA["columns"] = col_datetime  # type: ignore[index]
+        RAW_METADATA["columns"] = col_datetime
         metadata = dict(Metadata.model_validate(RAW_METADATA))
 
         expected_series_type = ms.String

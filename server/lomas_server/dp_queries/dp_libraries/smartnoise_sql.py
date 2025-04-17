@@ -153,7 +153,7 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
         Privacy: The updated Privacy object.
     """
     for stat in SSQL_STATS:
-        if stat in mechanisms.keys():
+        if stat in mechanisms:
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
 

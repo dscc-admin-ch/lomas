@@ -25,12 +25,23 @@ from lomas_core.models.responses import (
     SmartnoiseSynthSamples,
 )
 from lomas_server.app import app
-from lomas_server.tests.constants import PENGUIN_COLUMNS, PUMS_COLUMNS
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import (
     submit_job_wait,
     wait_for_job,
 )
+
+PENGUIN_COLUMNS = [
+    "species",
+    "island",
+    "bill_length_mm",
+    "bill_depth_mm",
+    "flipper_length_mm",
+    "body_mass_g",
+    "sex",
+]
+
+PUMS_COLUMNS = ["age", "sex", "educ", "race", "income", "married"]
 
 
 def validate_response(client, response, headers=None) -> QueryResponse:
@@ -326,7 +337,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=
 
             body = dict(example_smartnoise_synth_query)
             body["dataset_name"] = "BIRTHDAYS"
-            body["synth_params"]["batch_size"] = 2  # type: ignore
+            body["synth_params"]["batch_size"] = 2
             # With gan synthesizer
             response = client.post(
                 "/smartnoise_synth_query",

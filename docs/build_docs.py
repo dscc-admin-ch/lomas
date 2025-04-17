@@ -200,8 +200,6 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
             shell=True,
         )
 
-    return
-
 
 # a move dir method because we run multiple builds and bring the html folders to a
 # location which we then push to github pages

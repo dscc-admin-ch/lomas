@@ -1,11 +1,12 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AmqpDsn, AnyUrl, BaseModel, ConfigDict, Field, HttpUrl, UrlConstraints, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.constants import (
-    AdminDBType,
     AuthenticationType,
+    DefaultLoggingConf,
+    OpenDPFeatures,
     PrivateDatabaseType,
     TimeAttackMethod,
 )
@@ -22,36 +23,40 @@ class Server(BaseModel):
     """BaseModel for uvicorn server configs."""
 
     time_attack: TimeAttack
+    submit_limit: float
+    """A limit on the rate which users can submit answers."""
     host_ip: str
     host_port: int
     log_level: str
-    reload: bool
-    workers: int
+    reload: bool = Field(default=False)
 
 
-class DBConfig(BaseModel):
-    """BaseModel for database type config."""
-
-
-class YamlDBConfig(DBConfig):
-    """BaseModel for dataset store configs  in case of a Yaml database."""
-
-    db_type: Literal[AdminDBType.YAML]  # type: ignore
-    db_file: str
-
-
-class MongoDBConfig(DBConfig):
+class MongoDBConfig(BaseModel):
     """BaseModel for dataset store configs  in case of a  MongoDB database."""
 
-    db_type: Literal[AdminDBType.MONGODB] = AdminDBType.MONGODB  # type: ignore
-    address: str
-    port: int
-    username: str
-    password: str
-    db_name: str
+    dsn: Annotated[
+        AnyUrl,
+        UrlConstraints(host_required=True, allowed_schemes=["mongodb", "mongodb+srv"], default_port=27017),
+    ]
     max_pool_size: int = 100
     min_pool_size: int = 2
     max_connecting: int = 2
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def db_name(self) -> str:
+        """Database name."""
+        return self.dsn.path.strip("/")
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def url_with_options(self) -> str:
+        """Construct full DSN including options."""
+        return (
+            f"{self.dsn}?authSource={self.db_name}"
+            f"&maxPoolSize={self.max_pool_size}&minPoolSize={self.min_pool_size}"
+            f"&maxConnecting={self.max_connecting}"
+        )
 
 
 class PrivateDBCredentials(BaseModel):
@@ -63,24 +68,10 @@ class S3CredentialsConfig(PrivateDBCredentials):
 
     model_config = ConfigDict(extra="allow")
 
-    db_type: Literal[PrivateDatabaseType.S3]  # type: ignore
+    db_type: Literal[PrivateDatabaseType.S3]
     credentials_name: str
     access_key_id: str
     secret_access_key: str
-
-
-class OpenDPConfig(BaseModel):
-    """BaseModel for openDP library config."""
-
-    contrib: bool
-    floating_point: bool
-    honest_but_curious: bool
-
-
-class DPLibraryConfig(BaseModel):
-    """BaseModel for DP librairies config."""
-
-    opendp: OpenDPConfig
 
 
 class AuthenticatorConfig(BaseModel):
@@ -90,52 +81,83 @@ class AuthenticatorConfig(BaseModel):
 class FreePassAuthenticatorConfig(AuthenticatorConfig):
     """BaseModel for FreePassAuthenticator config."""
 
-    authentication_type: Literal[AuthenticationType.FREE_PASS]  # type: ignore
+    authentication_type: Literal[AuthenticationType.FREE_PASS]
 
 
 class JWTAuthenticatorConfig(AuthenticatorConfig):
     """BaseModel for JWTAuthenticatorConfig."""
 
-    authentication_type: Literal[AuthenticationType.JWT]  # type: ignore
-
-    keycloak_address: str
-    keycloak_port: int
-    keycloak_use_tls: bool
+    authentication_type: Literal[AuthenticationType.JWT]
+    keycloak_url: HttpUrl
     realm: str
 
 
-class Config(BaseModel):
+class AmqpConfig(BaseSettings):
+    """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
+
+    dsn: AmqpDsn
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def url(self) -> AnyUrl:
+        """Queue base URL."""
+        return f"{self.dsn.addr}:{self.dsn.port}"
+
+
+class Telemetry(BaseModel):
+    """Telemetry config."""
+
+    enabled: bool
+    service_name: str = Field(default="lomas-server-app")
+    service_id: str = Field(default="default-host")
+    collector_endpoint: Annotated[HttpUrl, UrlConstraints(default_port=4317)]
+    collector_insecure: bool = Field(default=False)
+    collector_log_correlation: bool = Field(default=False)
+
+
+class Config(BaseSettings):
     """Server runtime config."""
 
-    # Develop mode
-    develop_mode: bool
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_prefix="lomas_service_",
+        env_nested_delimiter="__",
+        case_sensitive=False,
+    )
 
     # Server configs
     server: Server
-
-    # A limit on the rate which users can submit answers
-    submit_limit: float
 
     authenticator: Annotated[
         FreePassAuthenticatorConfig | JWTAuthenticatorConfig, Field(discriminator="authentication_type")
     ]
 
-    admin_database: Annotated[MongoDBConfig | YamlDBConfig, Field(discriminator="db_type")]
+    admin_database: MongoDBConfig
 
-    private_db_credentials: list[Annotated[S3CredentialsConfig, Field(discriminator="db_type")]]
+    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]]
 
-    dp_libraries: DPLibraryConfig
+    logging_config: dict = Field(default=DefaultLoggingConf)
+
+    amqp: AmqpConfig
+
+    opendp_features: OpenDPFeatures
+
+    telemetry: Telemetry
 
 
 class KeycloakClientConfig(BaseModel):
     """Base model for Keycloak client config."""
 
-    address: str
-    port: int
-    use_tls: bool
+    url: HttpUrl
     realm: str
     client_id: str
     client_secret: str
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def use_tls(self) -> bool:
+        """Using TLS ?"""
+        return self.url.scheme == "https"
 
 
 class AdminConfig(BaseSettings):
@@ -149,5 +171,7 @@ class AdminConfig(BaseSettings):
         case_sensitive=False,
     )
 
+    server_url: str
+    server_service: str
     mg_config: MongoDBConfig
     kc_config: Annotated[KeycloakClientConfig | None, Field(default=None)]

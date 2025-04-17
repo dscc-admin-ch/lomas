@@ -1,17 +1,16 @@
 # pylint: disable=C0302
+import os
 import unittest
+from pathlib import Path
 
 import boto3
 import yaml
-from pymongo import MongoClient
 from pymongo.database import Database
 
 from lomas_core.models.collections import DSInfo, DSPathAccess, Metadata
-from lomas_core.models.config import MongoDBConfig
-from lomas_core.models.constants import PrivateDatabaseType
-from lomas_server.admin_database.utils import (
-    get_mongodb_url,
-)
+from lomas_core.models.config import Config, MongoDBConfig
+from lomas_core.models.constants import AuthenticationType, PrivateDatabaseType
+from lomas_server.admin_database.mongodb_database import get_mongodb
 from lomas_server.administration.mongodb_admin import (
     add_dataset,
     add_dataset_to_user,
@@ -36,8 +35,6 @@ from lomas_server.administration.mongodb_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig, add_lomas_demo_data
 from lomas_server.administration.utils import absolute_path
-from lomas_server.tests.utils import get_test_dir
-from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 
 class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
@@ -50,23 +47,19 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
     def setUp(self) -> None:
         """Connection to database."""
-        self.test_dir = get_test_dir()
-        self.test_data_dir = f"{self.test_dir}/test_data"
+        self.test_data_dir = str(Path(__file__).parent / "test_data")
 
-        CONFIG_LOADER.load_config(
-            config_path=f"{self.test_dir}/test_configs/test_config_mongo.yaml",
-            secrets_path=f"{self.test_dir}/test_configs/test_secrets.yaml",
-        )
-
+        # Disable Keycloak for UTs
+        self.previous_auth_method = os.environ.get("lomas_service_authenticator__authentication_type", "")
+        os.environ["lomas_service_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
         # Access to MongoDB
-        admin_config = get_config().admin_database
+        admin_config = Config().admin_database
         if isinstance(admin_config, MongoDBConfig):
             self.mongo_config = admin_config
         else:
             raise TypeError("Loaded config does not contain a MongoDBConfig.")
 
-        db_url = get_mongodb_url(self.mongo_config)
-        self.db: Database = MongoClient(db_url)[self.mongo_config.db_name]
+        self.db: Database = get_mongodb(self.mongo_config)
 
     def tearDown(self) -> None:
         """Drop all data from database."""
@@ -74,6 +67,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         drop_collection(self.mongo_config, "datasets")
         drop_collection(self.mongo_config, "users")
         drop_collection(self.mongo_config, "queries_archives")
+        # reset env
+        os.environ["lomas_service_authenticator__authentication_type"] = self.previous_auth_method
 
     def update_dataset_paths(self, dataset: dict) -> dict:
         """Update dataset paths with prefix.
@@ -990,7 +985,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         """Test add demo data to admin db."""
 
         demo_config = DemoAdminConfig(
-            mg_config=get_config().admin_database,
+            mg_config=Config().admin_database,
             kc_config=None,
             user_yaml="test_user_collection.yaml",
             dataset_yaml="test_datasets_with_s3.yaml",

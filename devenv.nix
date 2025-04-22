@@ -322,8 +322,6 @@ in
     exec = "python uvicorn_serve.py";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
-      # do not start by default since ut & ut-coverage currently use fastapi TestClient
-      disabled = true;
     };
   };
 

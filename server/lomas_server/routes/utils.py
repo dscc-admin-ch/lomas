@@ -44,20 +44,27 @@ async def process_response(
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
-            async with message.process():
+            async with message.process(ignore_processed=True):
                 jobs = jobs_var.get()
 
-                match message.headers:
-                    case {"type": "exception", "status_code": status_code}:
-                        jobs[message.correlation_id].error = message.body.decode()
-                        jobs[message.correlation_id].status = "failed"
-                        jobs[message.correlation_id].result = None
-                        jobs[message.correlation_id].status_code = status_code
-                    case _:
-                        jobs[message.correlation_id].result = cls.model_validate_json(message.body.decode())
-                        jobs[message.correlation_id].status = "complete"
+                if message.correlation_id not in jobs:
+                    await message.reject(requeue=True)
+                else:
+                    await message.ack()
 
-                jobs_var.set(jobs)
+                    match message.headers:
+                        case {"type": "exception", "status_code": status_code}:
+                            jobs[message.correlation_id].error = message.body.decode()
+                            jobs[message.correlation_id].status = "failed"
+                            jobs[message.correlation_id].result = None
+                            jobs[message.correlation_id].status_code = status_code
+                        case _:
+                            jobs[message.correlation_id].result = cls.model_validate_json(
+                                message.body.decode()
+                            )
+                            jobs[message.correlation_id].status = "complete"
+
+                    jobs_var.set(jobs)
 
 
 async def rabbitmq_connect_queue(

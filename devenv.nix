@@ -301,6 +301,7 @@ in
     configItems = {
       "default_user" = rabbitmq_user;
       "default_pass" = rabbitmq_pass;
+      "heartbeat" = "1800"; # Extra super duper long hearbeat timeout for long running tasks in workers
     };
   };
 
@@ -951,32 +952,36 @@ in
   #####################
 
   scripts.ut.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    pytest -c $DEVENV_ROOT/server/pyproject.toml .
+    pushd $DEVENV_ROOT/
+    pytest -c $DEVENV_ROOT/pyproject.toml .
     popd
   '';
 
   scripts.ut-coverage.exec =
     let
-      working_dir = "$DEVENV_ROOT/server/lomas_server";
+      working_dir = "$DEVENV_ROOT/";
       pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
             inherit working_dir;
             replicas = 1;
-            command = "coverage run --source=. -p worker.py";
+            command = "coverage run --no-cov-on-fail -p ./server/lomas_server/worker.py";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --no-cov-on-fail --cov .";
+            command = "pytest --cov --no-cov-on-fail .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
               mongodb.condition = "process_started";
               mongodb-configure.condition = "process_completed_successfully";
+              keycloak.condition = "process_ready";
+              rabbitmq.condition = "process_ready";
+              keycloak_setup.condition = "process_completed_successfully";
+              lomas-server.condition = "process_started";
             };
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;
@@ -1015,6 +1020,12 @@ in
     pylint "$path"
     pydocstringformatter "$path"
     mypy "$path"
+    popd
+  '';
+
+  scripts.run-notebooks.exec = ''
+    pushd $DEVENV_ROOT
+    python -m lomas_client.scripts.run_notebooks
     popd
   '';
 

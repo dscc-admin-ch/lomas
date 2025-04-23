@@ -1,9 +1,13 @@
 import pytest
 
-from lomas_client.scripts.run_notebooks import run_notebooks
+from lomas_client.scripts.run_notebooks import run_notebook
 
 
 @pytest.mark.long
-def test_run_notebooks():
-    """Runs all client notebooks and fails if any of them raises an error."""
-    run_notebooks(save_output=False)
+def test_run_notebook(notebook: str) -> None:
+    """Runs the notebook and fails if the notebook fails.
+
+    Args:
+        notebook (str): The notebook file path.
+    """
+    run_notebook(notebook, save_output=False)

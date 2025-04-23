@@ -62,16 +62,3 @@ lomas-demo-setup = "lomas_server.administration.scripts.lomas_demo_setup:lomas_d
 
 [project.urls]
 Homepage = "https://github.com/dscc-admin-ch/lomas/"
-
-[tool.pytest.ini_options]
-#syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
-filterwarnings = [
-  "ignore:'json' serialization format of LazyFrame is deprecated:UserWarning",
-  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger).*:",
-]
-addopts = [
-  "--ignore-glob=*/test_streamlit_app_page_b.py"
-]
-markers = [
-  "long: marks test as long (deselect with '-m \"not long\"')",
-]

@@ -136,6 +136,9 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         known_exc = handle_known_exceptions(exc)
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
+    except Exception as e:
+        breakpoint()
+        raise InternalServerException(str(e)) from e
 
 
 def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
@@ -178,6 +181,10 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         known_exc = handle_known_exceptions(exc)
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
+    except Exception as e:
+        breakpoint()
+        raise InternalServerException(str(e)) from e
+
 
 
 def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
@@ -216,6 +223,9 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         known_exc = handle_known_exceptions(exc)
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
+    except Exception as e:
+        breakpoint()
+        raise InternalServerException(str(e)) from e
 
 
 async def process_message(

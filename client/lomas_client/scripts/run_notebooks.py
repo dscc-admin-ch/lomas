@@ -1,4 +1,5 @@
 import glob
+import logging
 
 import nbformat
 from nbclient import NotebookClient
@@ -19,6 +20,29 @@ def get_client_notebook_files():
     return notebooks
 
 
+def run_notebook(file: str, save_output: bool = False) -> None:
+    """Runs the notebook in the given file.
+
+    Assumes all services in the process compose are up and
+    the file layout is same as in the code repository.
+
+    Args:
+        file (str): _description_
+        save_output (bool, optional): Saves the output to the original file. Defaults to False.
+    """
+    # Reset demo users and budgets
+    lomas_demo_setup()
+    # file = "/home/azureuser/work/sdd-poc-server/client/lomas_client/tests/../../notebooks/Demo_Client_Notebook.ipynb"
+    nb = nbformat.read(file, as_version=4)
+    nb_client = NotebookClient(
+        nb, resources={"metadata": {"path": f"{get_test_dir()}/../../notebooks/"}}, timeout=60 * 5
+    )
+    nb_client.execute()
+
+    if save_output:
+        nbformat.write(nb, file)
+
+
 def run_notebooks(save_output: bool = False) -> None:
     """Runs all notebooks in the notebooks folder.
 
@@ -29,18 +53,10 @@ def run_notebooks(save_output: bool = False) -> None:
         save_output (bool, optional): Saves the output to the original file. Defaults to False.
     """
     notebooks = get_client_notebook_files()
+    notebooks = ["/home/azureuser/work/sdd-poc-server/client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb"]
     for file in notebooks:
-        # Reset demo users and budgets
-        lomas_demo_setup()
-        file = "/home/azureuser/work/sdd-poc-server/client/lomas_client/tests/../../notebooks/Demo_Client_Notebook.ipynb"
-        nb = nbformat.read(file, as_version=4)
-        nb_client = NotebookClient(nb, resources={"metadata": {"path": f"{get_test_dir()}/../../notebooks/"}})
-        nb_client.execute()
-
-        if save_output:
-            nbformat.write(nb, file)
-
-        break
+        print(f"Running {file}.")
+        run_notebook(file, save_output)
 
 
 if __name__ == "__main__":

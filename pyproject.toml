@@ -159,3 +159,24 @@ max-line-length = 110
 write = true
 exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
+[tool.pytest.ini_options]
+#syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
+filterwarnings = [
+  "ignore:'json' serialization format of LazyFrame is deprecated:UserWarning",
+  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger).*:",
+]
+addopts = [
+  "--ignore-glob=*/test_streamlit_app_page_b.py"
+]
+markers = [
+  "long: marks test as long (deselect with '-m \"not long\"')",
+]
+
+[tool.coverage.run]
+source = [
+  "./core/lomas_core",
+  "./server/lomas_server",
+  "./client/lomas_client"
+]
+relative_files = true
+

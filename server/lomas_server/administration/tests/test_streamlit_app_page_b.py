@@ -47,7 +47,7 @@ def mock_mongodb_and_helpers():
         mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
 
 
-def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R0915
+def test_widgets(mock_mongodb_and_helpers) -> None:  # pylint: disable=W0621, W0613, R0915
     """Test the different widgets (add/remove users/datasets/metadata)."""
 
     # Simulate interaction with the Streamlit app
@@ -190,7 +190,7 @@ def test_widgets(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613, R09
     assert at.markdown[4].value == "Archives were all deleted."
 
 
-def test_layout(mock_mongodb_and_helpers):  # pylint: disable=W0621, W0613
+def test_layout(mock_mongodb_and_helpers) -> None:  # pylint: disable=W0621, W0613
     """Test the layout of administration page b."""
 
     # Simulate interaction with the Streamlit app

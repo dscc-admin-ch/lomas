@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, TypeAlias, TypeGuard, Union
+from typing import TypeAlias, TypeGuard
 
 import pandas as pd
 from smartnoise_synth_logger import deserialise_constraints
@@ -69,15 +69,15 @@ def datetime_to_float(upper: datetime, lower: datetime) -> float:
 
 
 # TODO maybe a better place to put this? See issue #336
-SSynthColumnType: TypeAlias = Union[
-    StrMetadata,
-    StrCategoricalMetadata,
-    BooleanMetadata,
-    IntCategoricalMetadata,
-    IntMetadata,
-    FloatMetadata,
-    DatetimeMetadata,
-]
+SSynthColumnType: TypeAlias = (
+    StrMetadata
+    | StrCategoricalMetadata
+    | BooleanMetadata
+    | IntCategoricalMetadata
+    | IntMetadata
+    | FloatMetadata
+    | DatetimeMetadata
+)
 
 
 class SmartnoiseSynthQuerier(
@@ -95,7 +95,7 @@ class SmartnoiseSynthQuerier(
         admin_database: AdminDatabase,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.model: Optional[Synthesizer] = None
+        self.model: Synthesizer | None = None
 
     def _is_categorical(
         self, col_metadata: ColumnMetadata
@@ -113,12 +113,7 @@ class SmartnoiseSynthQuerier(
         """
         return isinstance(
             col_metadata,
-            (
-                StrMetadata,
-                StrCategoricalMetadata,
-                BooleanMetadata,
-                IntCategoricalMetadata,
-            ),
+            StrMetadata | StrCategoricalMetadata | BooleanMetadata | IntCategoricalMetadata,
         )
 
     def _is_continuous(self, col_metadata: ColumnMetadata) -> TypeGuard[IntMetadata | FloatMetadata]:
@@ -131,7 +126,7 @@ class SmartnoiseSynthQuerier(
             TypeGuard[IntMetadata | FloatMetadata]:
                 TypeGuard for continuous columns metadata
         """
-        return isinstance(col_metadata, (IntMetadata, FloatMetadata))
+        return isinstance(col_metadata, IntMetadata | FloatMetadata)
 
     def _is_datetime(self, col_metadata: ColumnMetadata) -> TypeGuard[DatetimeMetadata]:
         """Checks if the column type is datetime.
@@ -145,8 +140,8 @@ class SmartnoiseSynthQuerier(
         return isinstance(col_metadata, DatetimeMetadata)
 
     def _get_and_check_valid_column_types(
-        self, metadata: Metadata, select_cols: List[str]
-    ) -> Dict[str, SSynthColumnType]:
+        self, metadata: Metadata, select_cols: list[str]
+    ) -> dict[str, SSynthColumnType]:
         """
         Ensures the type of the selected columns can be handled with.
 
@@ -164,7 +159,7 @@ class SmartnoiseSynthQuerier(
         Returns:
             Dict[str, SSynthColumnType]: The filtered dict of selected columns.
         """
-        columns: Dict[str, SSynthColumnType] = {}
+        columns: dict[str, SSynthColumnType] = {}
 
         for col_name, data in metadata.columns.items():
             if select_cols and col_name not in select_cols:

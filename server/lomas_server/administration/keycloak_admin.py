@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 
 import yaml
 from mantelo import HttpException, KeycloakAdmin
@@ -32,7 +31,7 @@ def get_kc_admin(kc_config: KeycloakClientConfig) -> KeycloakAdmin:
     return kc_admin
 
 
-def get_user_attr_protocol_mapper_dict(attr_name: str) -> Dict:
+def get_user_attr_protocol_mapper_dict(attr_name: str) -> dict:
     """Returns a correctly formated dict representing.
 
     a protocol mapper for user attributes.

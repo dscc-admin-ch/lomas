@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Type
+from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -71,7 +71,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
+KNOWN_EXCEPTIONS: tuple[type[BaseException], ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

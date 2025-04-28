@@ -5,7 +5,7 @@ import uvicorn
 from lomas_server.utils.config import get_config
 
 
-def uvicorn_serve():
+def uvicorn_serve() -> None:
     """Start the ASGI server for lomas."""
 
     config = get_config()

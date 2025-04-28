@@ -1,5 +1,3 @@
-from typing import List
-
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
@@ -240,7 +238,7 @@ class AdminMongoDatabase(AdminDatabase):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """Retrieves and return the queries already done by a user.
 
         Wrapped by :py:func:`user_must_have_access_to_dataset`.

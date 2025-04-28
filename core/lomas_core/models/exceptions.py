@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
@@ -73,12 +73,10 @@ class InternalServerExceptionModel(LomasServerExceptionModel):
 
 
 LomasServerExceptionType = Annotated[
-    Union[
-        InvalidQueryExceptionModel,
-        ExternalLibraryExceptionModel,
-        UnauthorizedAccessExceptionModel,
-        InternalServerExceptionModel,
-    ],
+    InvalidQueryExceptionModel
+    | ExternalLibraryExceptionModel
+    | UnauthorizedAccessExceptionModel
+    | InternalServerExceptionModel,
     Field(discriminator="type"),
 ]
 

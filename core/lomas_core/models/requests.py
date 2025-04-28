@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
@@ -122,13 +120,13 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
 
     model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]})
 
-    synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
+    synth_name: SSynthMarginalSynthesizer | SSynthGanSynthesizer
     """Name of the synthesizer model to use."""
     epsilon: float = Field(..., gt=0)
     """Privacy parameter (e.g., 0.1)."""
-    delta: Optional[float] = Field(..., ge=0)
+    delta: float | None = Field(..., ge=0)
     """Privacy parameter (e.g., 1e-5)."""
-    select_cols: List
+    select_cols: list
     """List of columns to select."""
     synth_params: dict
     """
@@ -183,7 +181,7 @@ class OpenDPRequestModel(LomasRequestModel):
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
-    fixed_delta: Optional[float] = Field(..., ge=0)
+    fixed_delta: float | None = Field(..., ge=0)
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
 
@@ -194,7 +192,7 @@ class OpenDPRequestModel(LomasRequestModel):
     """
     pipeline_type: OpenDpPipelineType
     """The type of pipeline ('legacy' or 'polars')."""
-    mechanism: Optional[OpenDpMechanism]
+    mechanism: OpenDpMechanism | None
     """The noise mechanism ('laplace' or 'gaussian').
 
     Need to be specified when using polars
@@ -224,7 +222,7 @@ class DiffPrivLibRequestModel(LomasRequestModel):
     """The DiffPrivLib pipeline for the query (See diffprivlib_logger package.)."""
     feature_columns: list
     """The list of feature columns to train."""
-    target_columns: Optional[list]
+    target_columns: list | None
     """The list of target columns to predict."""
     test_size: float = Field(..., gt=0.0, lt=1.0)
     """The proportion of the test set."""

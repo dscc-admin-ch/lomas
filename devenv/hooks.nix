@@ -30,6 +30,8 @@
     ];
   };
 
+  ruff.enable = true;
+
   pylint = {
     enable = true;
     verbose = true;

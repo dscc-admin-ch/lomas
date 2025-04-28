@@ -34,7 +34,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def root():
+async def root() -> RedirectResponse:
     """Redirect root endpoint to the state endpoint.
 
     Returns:
@@ -44,7 +44,7 @@ async def root():
 
 
 @router.get("/live")
-async def health_handler():
+async def health_handler() -> JSONResponse:
     """HealthCheck endpoint: server alive.
 
     Returns:
@@ -124,9 +124,7 @@ async def get_server_config(
     Returns:
         ConfigResponse: The server config.
     """
-    config = get_config()
-
-    return ConfigResponse(config=config)
+    return ConfigResponse(config=get_config())
 
 
 # Metadata query

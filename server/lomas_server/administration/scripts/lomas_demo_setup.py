@@ -56,7 +56,7 @@ def add_lomas_demo_data(
     drop_collection(config.mg_config, collection="queries_archives")
 
 
-def lomas_demo_setup():
+def lomas_demo_setup() -> None:
     """Script for setting up demo users and dataset."""
     demo_config = DemoAdminConfig()
 

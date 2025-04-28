@@ -1,13 +1,12 @@
 import logging
 import os
-from typing import Dict, List
 
 from mantelo import HttpException, KeycloakAdmin
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-    """Config model for keycloak setup script"""
+    """Config model for keycloak setup script."""
 
     model_config = SettingsConfigDict(
         extra="ignore",
@@ -57,7 +56,7 @@ def get_admin_session(config: Config) -> KeycloakAdmin:
     )
 
 
-def create_realm(config: Config, kc_admin: KeycloakAdmin):
+def create_realm(config: Config, kc_admin: KeycloakAdmin) -> None:
     """Creates the application realm if it does not already exist.
 
     This removes any existing realms with the same name if they already exist!
@@ -101,7 +100,7 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
 
 
 def create_confidential_client(
-    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: Dict[str, List[str]] = {}
+    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] = {}
 ) -> None:
     """Creates a confidential client with an associated service account.
 
@@ -157,8 +156,8 @@ def create_confidential_client(
     logging.info("Created new confidential client.")
 
 
-def kc_setup():
-    """Lomas keycloak setup script"""
+def kc_setup() -> None:
+    """Lomas keycloak setup script."""
     # Load config and get admin session
     config = Config()
     if not config.keycloak_use_tls:

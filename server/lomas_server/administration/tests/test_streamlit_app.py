@@ -10,7 +10,7 @@ from lomas_server.utils.config import CONFIG_LOADER
 from lomas_server.utils.config import get_config as get_server_config
 
 
-def test_about_page():
+def test_about_page() -> None:
     """Test display about.py page."""
     this_file_path = os.path.abspath(__file__)
     admin_test_dir = os.path.dirname(this_file_path)
@@ -67,7 +67,7 @@ def mock_configs():
         yield
 
 
-def test_a_server_overview_page(mock_configs):  # pylint: disable=W0621, W0613
+def test_a_server_overview_page(mock_configs) -> None:  # pylint: disable=W0621, W0613
     """Test display a_server_overview.py page."""
 
     this_file_path = os.path.abspath(__file__)

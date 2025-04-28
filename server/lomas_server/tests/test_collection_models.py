@@ -135,7 +135,7 @@ class TestMetadataModel(unittest.TestCase):
         with self.assertRaises(ValueError):
             IntMetadata.model_validate(input_int)
 
-    def test_standard_metadata_fields(self):
+    def test_standard_metadata_fields(self) -> None:
         """Test standard metadata fields."""
         input_metadata = {
             "max_ids": 1,

@@ -1,7 +1,8 @@
 import argparse
 import functools
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections.abc import Callable
+from typing import Any
 from warnings import warn
 
 import boto3
@@ -47,7 +48,7 @@ def check_user_exists(enforce_true: bool) -> Callable:
 
     def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: dict) -> None:
             db = arguments[0]
             user = arguments[1]
 
@@ -83,7 +84,7 @@ def check_user_has_dataset(enforce_true: bool) -> Callable:
 
     def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: dict) -> None:
             db = arguments[0]
             user = arguments[1]
             dataset = arguments[2]
@@ -112,7 +113,7 @@ def check_dataset_and_metadata_exist(enforce_true: bool) -> Callable:
 
     def inner_func(function: Callable[[Database, argparse.Namespace], None]) -> Callable:
         @functools.wraps(function)
-        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: Dict) -> None:
+        def wrapper_decorator(*arguments: argparse.Namespace, **kwargs: dict) -> None:
             db = arguments[0]
             dataset = arguments[1]
 
@@ -141,7 +142,7 @@ def with_mongodb(func: Callable) -> Callable:
     """Decorator that replaces the config with a database instance."""
 
     @functools.wraps(func)
-    def wrapper(config: MongoDBConfig, *args: Any, **kwargs: Dict) -> None:
+    def wrapper(config: MongoDBConfig, *args: Any, **kwargs: dict) -> None:
         db = get_mongodb(config)
         return func(db, *args, **kwargs)
 
@@ -403,7 +404,7 @@ def get_user(db: Database, user: str) -> dict:
 
 @with_mongodb
 def add_users_via_yaml(
-    db: Database, yaml_file: Union[str, Dict], clean: bool, overwrite: bool, path_prefix: str = ""
+    db: Database, yaml_file: str | dict, clean: bool, overwrite: bool, path_prefix: str = ""
 ) -> None:
     """Add all users from yaml file to the user collection.
 
@@ -469,7 +470,7 @@ def add_users_via_yaml(
 
 @with_mongodb
 @check_user_exists(True)
-def get_archives_of_user(db: Database, user: str) -> List[dict]:
+def get_archives_of_user(db: Database, user: str) -> list[dict]:
     """Show all previous queries from a user.
 
     Args:
@@ -479,7 +480,7 @@ def get_archives_of_user(db: Database, user: str) -> List[dict]:
     Returns:
         archives (List): list of previous queries from the user
     """
-    archives_infos: List[dict] = list(db.queries_archives.find({"user_name": user}))
+    archives_infos: list[dict] = list(db.queries_archives.find({"user_name": user}))
     logging.info(archives_infos)
     return archives_infos
 
@@ -528,18 +529,18 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     database_type: str,
     metadata_database_type: str,
     path_prefix: str = "",
-    dataset_path: Optional[str] = "",
-    metadata_path: Optional[str] = "",
-    bucket: Optional[str] = "",
-    key: Optional[str] = "",
-    endpoint_url: Optional[str] = "",
-    credentials_name: Optional[str] = "",
-    metadata_bucket: Optional[str] = "",
-    metadata_key: Optional[str] = "",
-    metadata_endpoint_url: Optional[str] = "",
-    metadata_access_key_id: Optional[str] = "",
-    metadata_secret_access_key: Optional[str] = "",
-    metadata_credentials_name: Optional[str] = "",
+    dataset_path: str | None = "",
+    metadata_path: str | None = "",
+    bucket: str | None = "",
+    key: str | None = "",
+    endpoint_url: str | None = "",
+    credentials_name: str | None = "",
+    metadata_bucket: str | None = "",
+    metadata_key: str | None = "",
+    metadata_endpoint_url: str | None = "",
+    metadata_access_key_id: str | None = "",
+    metadata_secret_access_key: str | None = "",
+    metadata_credentials_name: str | None = "",
 ) -> None:
     """Set a database type to a dataset in dataset collection.
 
@@ -575,9 +576,9 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     """
 
     # Step 1: Build dataset
-    dataset: Dict[str, Any] = {"dataset_name": dataset_name}
+    dataset: dict[str, Any] = {"dataset_name": dataset_name}
 
-    dataset_access: Dict[str, Any] = {
+    dataset_access: dict[str, Any] = {
         "database_type": database_type,
     }
 
@@ -596,7 +597,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
     dataset["dataset_access"] = dataset_access
 
     # Step 2: Build metadata
-    metadata_access: Dict[str, Any] = {"database_type": metadata_database_type}
+    metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
     if metadata_database_type == PrivateDatabaseType.PATH:
         # Store metadata from yaml to metadata collection
         with open(absolute_path(metadata_path, path_prefix), encoding="utf-8") as f:  # type: ignore
@@ -649,7 +650,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
 @with_mongodb
 def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
     db: Database,
-    yaml_file: Union[str, Dict],
+    yaml_file: str | dict,
     clean: bool,
     overwrite_datasets: bool,
     overwrite_metadata: bool,

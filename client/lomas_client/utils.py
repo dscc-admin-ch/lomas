@@ -27,7 +27,7 @@ def raise_error(response: requests.Response) -> None:
     raise_error_from_model(error_model)
 
 
-def validate_synthesizer(synth_name: str, return_model: bool = False):
+def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
     """Validate smartnoise synthesizer (some model are not accepted).
 
     Args:

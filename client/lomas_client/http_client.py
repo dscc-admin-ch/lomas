@@ -2,7 +2,6 @@ import logging
 import os
 from json import loads
 from time import sleep
-from typing import Optional
 
 import requests
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
@@ -22,12 +21,12 @@ class LomasHttpClient:
         self,
         url: str,
         dataset_name: str,
-        keycloak_address: Optional[str] = None,
-        keycloak_port: Optional[int] = None,
-        keycloak_use_tls: Optional[bool] = None,
-        realm: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
+        keycloak_address: str | None = None,
+        keycloak_port: int | None = None,
+        keycloak_use_tls: bool | None = None,
+        realm: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
     ) -> None:
         """Initializes the HTTP client with the specified URL, dataset name and authentication parameters.
 
@@ -146,7 +145,7 @@ class LomasHttpClient:
 
         return r
 
-    def wait_for_job(self, job_uid, n_retry=100, sleep_sec=0.5) -> Job:
+    def wait_for_job(self, job_uid: str, n_retry: int = 100, sleep_sec: float = 0.5) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
 
         for _ in range(n_retry):

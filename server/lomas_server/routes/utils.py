@@ -3,13 +3,16 @@ import logging
 import os
 import posix as Status
 import random
+import sys
 import time
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from functools import wraps
 from typing import Annotated
 
 import aio_pika
-from fastapi import Depends, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
@@ -34,7 +37,9 @@ amqp_addr = os.environ.get("LOMAS_AMQP_ADDR", "127.0.0.1")
 amqp_port = os.environ.get("LOMAS_AMQP_PORT", "5672")
 
 
-async def process_response(queue, cls, jobs_var):
+async def process_response(
+    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs_var: ContextVar
+) -> None:
     """Process responses queue into Jobs."""
 
     async with queue.iterator() as queue_iter:
@@ -55,7 +60,9 @@ async def process_response(queue, cls, jobs_var):
                 jobs_var.set(jobs)
 
 
-async def rabbitmq_connect_queue(reconnect_interval=10, timeout=120):
+async def rabbitmq_connect_queue(
+    reconnect_interval: int = 10, timeout: int = 120
+) -> aio_pika.RobustConnection:
     """Attempt with retries to connect to the queue."""
     try:
         async with asyncio.timeout(timeout):
@@ -67,11 +74,11 @@ async def rabbitmq_connect_queue(reconnect_interval=10, timeout=120):
             return connection
     except TimeoutError:
         logging.error(f"Couldn't connect to queue {amqp_addr}:{amqp_port} in time")
-        asyncio.sys.exit(Status.EX_UNAVAILABLE)
+        sys.exit(Status.EX_UNAVAILABLE)
 
 
 @asynccontextmanager
-async def rabbitmq_ctx(app):
+async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
     """RabbitMQ queue context to connect and register callbacks."""
 
     connection = await rabbitmq_connect_queue()
@@ -97,11 +104,11 @@ async def rabbitmq_ctx(app):
     await connection.close()
 
 
-def timing_protection(func):
+def timing_protection(func):  # type: ignore[no-untyped-def]
     """Adds delays to requests response to protect against timing attack."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
         config = get_config()
 
         start_time = time.time()

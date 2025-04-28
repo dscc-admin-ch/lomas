@@ -32,7 +32,7 @@ class ConfigLoader:
     _instance = None
     _config = None
 
-    def __new__(cls):
+    def __new__(cls):  # type: ignore
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -52,7 +52,7 @@ class ConfigLoader:
                 correctly interpreted.
         """
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 config_data = yaml.safe_load(f)
 
             self._config = Config.model_validate(config_data)

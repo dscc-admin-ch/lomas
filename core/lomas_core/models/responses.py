@@ -1,4 +1,4 @@
-from typing import Annotated, Any, List, Literal, Union
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 import pandas as pd
@@ -74,7 +74,7 @@ class DummyDsResponse(ResponseModel):
 
     dtypes: Any
     """The dummy_df column data types."""
-    datetime_columns: List[str]
+    datetime_columns: list[str]
     """The list of columns with datetime type."""
     dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
     """The dummy dataframe."""
@@ -186,7 +186,7 @@ class OpenDPQueryResult(BaseModel):
 
     res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
-    value: Union[int, float, List[Union[int, float]]]
+    value: int | float | list[int | float]
     """The result value of the query."""
 
 
@@ -206,14 +206,14 @@ class OpenDPPolarsQueryResult(BaseModel):
 
 
 # Response object
-QueryResultTypeAlias = Union[
-    DiffPrivLibQueryResult,
-    SmartnoiseSQLQueryResult,
-    SmartnoiseSynthModel,
-    SmartnoiseSynthSamples,
-    OpenDPQueryResult,
-    OpenDPPolarsQueryResult,
-]
+QueryResultTypeAlias = (
+    DiffPrivLibQueryResult
+    | SmartnoiseSQLQueryResult
+    | SmartnoiseSynthModel
+    | SmartnoiseSynthSamples
+    | OpenDPQueryResult
+    | OpenDPPolarsQueryResult
+)
 
 
 class QueryResponse(CostResponse):

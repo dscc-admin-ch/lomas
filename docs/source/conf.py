@@ -82,11 +82,11 @@ pages_root = os.environ.get("pages_root", "")
 if build_all_docs is not None:
     # we get the current language and version
     current_language = os.environ.get("current_language")
-    current_version = os.environ.get("current_version")
+    current_version = os.environ.get("current_version", "develop")
 
     # we set the html_context wit current language and version
     # and empty languages and versions for now
-    html_context = {
+    html_context: dict = {
         "current_language": current_language,
         "languages": [],
         "current_version": current_version,
@@ -103,7 +103,7 @@ if build_all_docs is not None:
 
     # and loop over all other versions from our yaml file
     # to set versions and languages
-    with open("../versions.yaml", "r") as yaml_file:
+    with open("../versions.yaml") as yaml_file:
         docs = yaml.safe_load(yaml_file)
 
     if current_version != "stable":

@@ -5,7 +5,7 @@ import streamlit as st
 from st_pages import Page, show_pages
 
 
-def main():
+def main() -> None:
     """Main function for the streamlit lomas dashboard."""
     st.set_page_config(page_title="Lomas Dashboard")
     folder = "./lomas_server/administration/dashboard"  # TODO 352 move

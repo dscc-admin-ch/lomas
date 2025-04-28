@@ -1,5 +1,4 @@
 import warnings
-from typing import Optional
 
 import pandas as pd
 from diffprivlib.utils import PrivacyLeakWarning
@@ -34,9 +33,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         admin_database: AdminDatabase,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.dpl_pipeline: Optional[Pipeline] = None
-        self.x_test: Optional[pd.DataFrame] = None
-        self.y_test: Optional[pd.DataFrame] = None
+        self.dpl_pipeline: Pipeline | None = None
+        self.x_test: pd.DataFrame | None = None
+        self.y_test: pd.DataFrame | None = None
 
     def fit_model_on_data(
         self, query_json: DiffPrivLibRequestModel

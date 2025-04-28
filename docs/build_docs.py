@@ -53,8 +53,7 @@ def git_ref_exists(git_ref: str) -> bool:
             f"git ls-remote --{refs} origin {git_ref}",
             shell=True,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
 
         if len(result.stdout.strip()) > 0:
@@ -66,7 +65,7 @@ def git_ref_exists(git_ref: str) -> bool:
         return False
 
 
-def build_doc(version: str, language: str, tag: str, local: bool = False):
+def build_doc(version: str, language: str, tag: str, local: bool = False) -> None:
     """
     Builds the documention for the given tag (git ref).
 
@@ -146,7 +145,7 @@ def build_doc(version: str, language: str, tag: str, local: bool = False):
         )
 
     # Build the html doc
-    os.environ["SPHINXOPTS"] = "-D language='{}'".format(language)
+    os.environ["SPHINXOPTS"] = f"-D language='{language}'"
     subprocess.run("make html", shell=True)
 
     # Make things as they were before
@@ -249,7 +248,7 @@ if __name__ == "__main__":
         print(r.stdout)
 
         # reading the yaml file
-        with open("versions.yaml", "r") as yaml_file:
+        with open("versions.yaml") as yaml_file:
             docs = yaml.safe_load(yaml_file)
 
         # and looping over all values to call our build with version, language and its tag

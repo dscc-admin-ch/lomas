@@ -301,7 +301,7 @@ in
     configItems = {
       "default_user" = rabbitmq_user;
       "default_pass" = rabbitmq_pass;
-      "heartbeat" = "1800"; # Extra super duper long hearbeat timeout for long running tasks in workers
+      "heartbeat" = "1800"; # Extra super duper long hearbeat timeout for long running tasks in workersss
     };
   };
 
@@ -351,6 +351,8 @@ in
       working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
+      # Un-comment to observe worker logs.
+      # log_location = "$DEVENV_ROOT/worker.log";
     };
   };
 
@@ -966,13 +968,13 @@ in
           worker = {
             inherit working_dir;
             replicas = 1;
-            command = "coverage run --no-cov-on-fail -p ./server/lomas_server/worker.py";
+            command = "coverage run --rcfile=pyproject.toml -p -m lomas_server.worker";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --cov --no-cov-on-fail .";
+            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml -k initial_budget .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
@@ -1041,10 +1043,11 @@ in
     popd
   '';
 
+  #     pushd $DEVENV_ROOT #/server/lomas_server
   scripts.run-worker-debug.exec = ''
     process-compose process stop -v worker-0 worker-1
-    pushd $DEVENV_ROOT/server/lomas_server
-    python -m pdb worker.py
+    pushd $DEVEN_ROOT
+    python -m pdb lomas_server.worker
     popd
   '';
 

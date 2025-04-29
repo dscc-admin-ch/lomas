@@ -1,5 +1,4 @@
 import glob
-import logging
 
 import nbformat
 from nbclient import NotebookClient
@@ -8,7 +7,7 @@ from lomas_client.tests.utils import get_test_dir
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 
 
-def get_client_notebook_files():
+def get_client_notebook_files() -> list[str]:
     """
     Returns a list of the client notebook file names (absolute paths).
 
@@ -53,7 +52,7 @@ def run_notebooks(save_output: bool = False) -> None:
         save_output (bool, optional): Saves the output to the original file. Defaults to False.
     """
     notebooks = get_client_notebook_files()
-    notebooks = ["/home/azureuser/work/sdd-poc-server/client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb"]
+
     for file in notebooks:
         print(f"Running {file}.")
         run_notebook(file, save_output)

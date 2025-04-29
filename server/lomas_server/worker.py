@@ -71,7 +71,6 @@ set_opendp_features_config(config.dp_libraries.opendp)
 
 def handle_known_exceptions(exc: BaseException) -> JSONResponse:
     """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization."""
-
     match exc:
         case ExternalLibraryException():
             return JSONResponse(
@@ -137,7 +136,6 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
-        breakpoint()
         raise InternalServerException(str(e)) from e
 
 
@@ -182,9 +180,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
-        breakpoint()
         raise InternalServerException(str(e)) from e
-
 
 
 def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
@@ -224,7 +220,6 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
-        breakpoint()
         raise InternalServerException(str(e)) from e
 
 

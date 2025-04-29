@@ -17,7 +17,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from lomas_core.constants import OTLP_COLLECTOR_ENDPOINT
 
 
-def get_ressource(service_name: str, host_name: str):
+def get_ressource(service_name: str, host_name: str) -> Resource:
     """
     Creates a Resource object with metadata describing the service.
 

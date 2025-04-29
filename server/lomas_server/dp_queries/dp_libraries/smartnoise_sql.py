@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
@@ -33,7 +31,7 @@ class SmartnoiseSQLQuerier(
         admin_database: AdminDatabase,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.reader: Optional[Reader] = None
+        self.reader: Reader | None = None
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.

@@ -1,4 +1,4 @@
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -117,12 +117,12 @@ class Config(BaseModel):
     submit_limit: float
 
     authenticator: Annotated[
-        Union[FreePassAuthenticatorConfig, JWTAuthenticatorConfig], Field(discriminator="authentication_type")
+        FreePassAuthenticatorConfig | JWTAuthenticatorConfig, Field(discriminator="authentication_type")
     ]
 
-    admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
+    admin_database: Annotated[MongoDBConfig | YamlDBConfig, Field(discriminator="db_type")]
 
-    private_db_credentials: List[Annotated[Union[S3CredentialsConfig], Field(discriminator="db_type")]]
+    private_db_credentials: list[Annotated[S3CredentialsConfig, Field(discriminator="db_type")]]
 
     dp_libraries: DPLibraryConfig
 
@@ -150,4 +150,4 @@ class AdminConfig(BaseSettings):
     )
 
     mg_config: MongoDBConfig
-    kc_config: Annotated[Optional[KeycloakClientConfig], Field(default=None)]
+    kc_config: Annotated[KeycloakClientConfig | None, Field(default=None)]

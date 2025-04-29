@@ -1,7 +1,6 @@
 import json
 import logging
 import time
-from typing import Tuple
 
 from fastapi import Request
 from opentelemetry.trace import format_trace_id, get_tracer
@@ -31,7 +30,7 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
     adds attributes to the span related to the user name and query parameters.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """
         Handles the request and performs logging and tracing.
 
@@ -202,7 +201,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def get_path(request: Request) -> Tuple[str, bool]:
+    def get_path(request: Request) -> tuple[str, bool]:
         """
         Attempts to match the request' route to a defined route.
 

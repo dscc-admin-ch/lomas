@@ -4,13 +4,13 @@ import streamlit as st
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
+from lomas_core.models.config import AdminConfig as Config
 from lomas_core.models.config import Config as ServerConfig
 from lomas_core.models.config import KeycloakClientConfig
-from lomas_server.administration.dashboard.config import Config
 
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds
-def get_server_data(_config: Config, endpoint):
+def get_server_data(_config: Config, endpoint: str) -> str:
     """Fast api requests on server and cache the result for 60 seconds."""
     assert isinstance(_config.kc_config, KeycloakClientConfig)
     # Disable tls checks if needed
@@ -36,7 +36,7 @@ def get_server_data(_config: Config, endpoint):
     return response.raise_for_status()
 
 
-def get_server_config(config: Config):
+def get_server_config(config: Config) -> ServerConfig:
     """Fetches the server config.
 
     Args:

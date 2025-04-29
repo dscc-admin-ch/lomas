@@ -1,6 +1,5 @@
 # pylint: disable=C0302
 import unittest
-from typing import Dict
 
 import boto3
 import yaml
@@ -449,7 +448,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
 
         # User exist but empty
         archives_found = get_archives_of_user(self.mongo_config, "Milou")
-        expected_archives: list[Dict] = []
+        expected_archives: list[dict] = []
         self.assertEqual(archives_found, expected_archives)
 
         # User does not exist
@@ -694,7 +693,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         ) as f:
             penguin_metadata = yaml.safe_load(f)
 
-        def verify_datasets():
+        def verify_datasets() -> None:
             # Check penguin and iris are in db
             penguin_found = self.db.datasets.find_one({"dataset_name": "PENGUIN"})
             del penguin_found["_id"]

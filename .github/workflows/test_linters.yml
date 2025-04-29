@@ -21,18 +21,12 @@ jobs:
 
       - name: flake8
         run: |
-          flake8 core/lomas_core
-          flake8 client/lomas_client
-          flake8 server/lomas_server
+          flake8 -v core/lomas_core client/lomas_client server/lomas_server
 
       - name: mypy
         run: |
-          mypy core/lomas_core
-          mypy client/lomas_client
-          mypy server/lomas_server
+          mypy core/lomas_core client/lomas_client server/lomas_server
 
       - name: pylint
         run: |
-          pylint core/lomas_core
-          pylint client/lomas_client
-          pylint server/lomas_server
+          pylint -v core/lomas_core client/lomas_client server/lomas_server

@@ -1,5 +1,3 @@
-from typing import Optional, Type
-
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
@@ -14,7 +12,7 @@ from lomas_core.models.responses import CostResponse, QueryResponse
 class SmartnoiseSQLClient:
     """A client for executing and estimating the cost of SmartNoise SQL queries."""
 
-    def __init__(self, http_client: LomasHttpClient):
+    def __init__(self, http_client: LomasHttpClient) -> None:
         self.http_client = http_client
 
     def cost(
@@ -23,7 +21,7 @@ class SmartnoiseSQLClient:
         epsilon: float,
         delta: float,
         mechanisms: dict[str, str] = {},
-    ) -> Optional[CostResponse]:
+    ) -> CostResponse | None:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -61,7 +59,7 @@ class SmartnoiseSQLClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse | None:
         """This function executes a SmartNoise SQL query.
 
         Args:
@@ -101,7 +99,7 @@ class SmartnoiseSQLClient:
             "postprocess": postprocess,
         }
 
-        request_model: Type[SmartnoiseSQLRequestModel]
+        request_model: type[SmartnoiseSQLRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_sql_query"
             body_dict["dummy_nb_rows"] = nb_rows

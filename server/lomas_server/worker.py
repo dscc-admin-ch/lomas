@@ -6,7 +6,9 @@ import logging.config
 import os
 import signal
 import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, Never
 
 import aio_pika
 from fastapi import status
@@ -67,7 +69,7 @@ private_credentials = config.private_db_credentials
 set_opendp_features_config(config.dp_libraries.opendp)
 
 
-def handle_known_exceptions(exc):
+def handle_known_exceptions(exc: BaseException) -> JSONResponse:
     """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization."""
 
     match exc:
@@ -95,25 +97,24 @@ def handle_known_exceptions(exc):
             )
 
 
-def handle_cost_query(body):
+def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
     """Handle Cost query into CostResponse."""
-
     start_sec = time.time()
     message = body.decode()
-    _, dp_library, request_model = message.split(":", 2)
+    _, dp_library, request_model_str = message.split(":", 2)
 
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
-            request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model)
+            request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
 
         case DPLibraries.SMARTNOISE_SYNTH:
-            request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model)
+            request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model_str)
 
         case DPLibraries.OPENDP:
-            request_model = OpenDPRequestModel.model_validate_json(request_model)
+            request_model = OpenDPRequestModel.model_validate_json(request_model_str)
 
         case DPLibraries.DIFFPRIVLIB:
-            request_model = DiffPrivLibRequestModel.model_validate_json(request_model)
+            request_model = DiffPrivLibRequestModel.model_validate_json(request_model_str)
     try:
         data_connector = data_connector_factory(
             request_model.dataset_name,
@@ -137,25 +138,25 @@ def handle_cost_query(body):
         return known_exc.body, known_exc.status_code
 
 
-def handle_query(body):
+def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP query into QueryResponse."""
 
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_json = message.split(":", 2)
+    user_name, dp_library, query_json_str = message.split(":", 2)
 
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
-            query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json)
+            query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
 
         case DPLibraries.SMARTNOISE_SYNTH:
-            query_json = SmartnoiseSynthQueryModel.model_validate_json(query_json)
+            query_json = SmartnoiseSynthQueryModel.model_validate_json(query_json_str)
 
         case DPLibraries.OPENDP:
-            query_json = OpenDPQueryModel.model_validate_json(query_json)
+            query_json = OpenDPQueryModel.model_validate_json(query_json_str)
 
         case DPLibraries.DIFFPRIVLIB:
-            query_json = DiffPrivLibQueryModel.model_validate_json(query_json)
+            query_json = DiffPrivLibQueryModel.model_validate_json(query_json_str)
 
     try:
         data_connector = data_connector_factory(
@@ -179,22 +180,22 @@ def handle_query(body):
         return known_exc.body, known_exc.status_code
 
 
-def handle_dummy_query(body):
+def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP-dummy query into QueryResponse."""
 
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_model = message.split(":", 2)
+    user_name, dp_library, query_model_str = message.split(":", 2)
 
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
-            query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model)
+            query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
         case DPLibraries.SMARTNOISE_SYNTH:
-            query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model)
+            query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model_str)
         case DPLibraries.OPENDP:
-            query_model = OpenDPDummyQueryModel.model_validate_json(query_model)
+            query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
         case DPLibraries.DIFFPRIVLIB:
-            query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model)
+            query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model_str)
 
     try:
         data_connector = get_dummy_dataset_for_query(admin_database, query_model)
@@ -217,7 +218,9 @@ def handle_dummy_query(body):
         return known_exc.body, known_exc.status_code
 
 
-async def process_message(channel, in_queue, out_queue, message_handler):
+async def process_message(
+    channel: aio_pika.Channel, in_queue: str, out_queue: str, message_handler: Callable[[bytes], Any]
+) -> None:
     """General RabbitMQ Message handler -> processing -> response."""
 
     queue = await channel.declare_queue(in_queue, auto_delete=True)
@@ -227,7 +230,7 @@ async def process_message(channel, in_queue, out_queue, message_handler):
         async for message in queue_iter:
             async with message.process():
                 headers = None
-                body = bytes()
+                body = b""
 
                 match message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
@@ -250,19 +253,19 @@ class TerminateTaskGroup(Exception):
     """Exception raised to terminate a task group."""
 
 
-async def force_terminate_task_group():
+async def force_terminate_task_group() -> Never:
     """Used to force termination of a task group."""
-    raise TerminateTaskGroup()
+    raise TerminateTaskGroup
 
 
-def ask_exit(signame, tg):
+def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
     """Signal handler for TaskGroup termination."""
 
     logging.info(f"got signal {signame}: exit")
     tg.create_task(force_terminate_task_group())
 
 
-async def process_all_queues():
+async def process_all_queues() -> None:
     """Handle & await all pika processing queues."""
 
     loop = asyncio.get_running_loop()

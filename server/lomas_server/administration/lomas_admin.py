@@ -1,5 +1,3 @@
-from typing import Dict
-
 from lomas_core.models.config import AdminConfig
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -18,7 +16,7 @@ from lomas_server.administration.mongodb_admin import (
 
 def add_lomas_user(
     admin_config: AdminConfig, user_name: str, user_email: str, client_secret: str | None = None
-):
+) -> None:
     """Adds a user to the lomas application.
 
     Only adds a user to keycloak if the kc_config is not null.
@@ -81,7 +79,7 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
 
 
 def add_lomas_users_via_yaml(
-    admin_config: AdminConfig, yaml_file: str | Dict, clean: bool, overwrite: bool, path_prefix: str = ""
+    admin_config: AdminConfig, yaml_file: str | dict, clean: bool, overwrite: bool, path_prefix: str = ""
 ) -> None:
     """Add all users from a yaml file.
 

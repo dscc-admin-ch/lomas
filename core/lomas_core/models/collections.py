@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
 
@@ -37,7 +37,7 @@ class UserId(BaseModel):
     name: str
     email: str
     client_secret: Annotated[
-        Optional[str],
+        str | None,
         Field(default=None, exclude=True),  # exclude the field at serialization for security reasons
     ]
 
@@ -47,13 +47,13 @@ class User(BaseModel):
 
     id: UserId
     may_query: bool
-    datasets_list: List[DatasetOfUser]
+    datasets_list: list[DatasetOfUser]
 
 
 class UserCollection(BaseModel):
     """BaseModel for users collection."""
 
-    users: List[User]
+    users: list[User]
 
 
 # Dataset Access Data
@@ -80,8 +80,8 @@ class DSS3Access(DSAccess):
     endpoint_url: str
     bucket: str
     key: str
-    access_key_id: Optional[str] = None
-    secret_access_key: Optional[str] = None
+    access_key_id: str | None = None
+    secret_access_key: str | None = None
     credentials_name: str
 
 
@@ -89,14 +89,14 @@ class DSInfo(BaseModel):
     """BaseModel for a dataset."""
 
     dataset_name: str
-    dataset_access: Annotated[Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)]
-    metadata_access: Annotated[Union[DSPathAccess, DSS3Access], Field(discriminator=DB_TYPE_FIELD)]
+    dataset_access: Annotated[DSPathAccess | DSS3Access, Field(discriminator=DB_TYPE_FIELD)]
+    metadata_access: Annotated[DSPathAccess | DSS3Access, Field(discriminator=DB_TYPE_FIELD)]
 
 
 class DatasetsCollection(BaseModel):
     """BaseModel for datasets collection."""
 
-    datasets: List[DSInfo]
+    datasets: list[DSInfo]
 
 
 # Metadata
@@ -110,9 +110,9 @@ class ColumnMetadata(BaseModel):
     nullable: bool = False
     # See issue #323 for checking this and validating.
 
-    max_partition_length: Optional[Annotated[int, Field(gt=0)]] = None
-    max_influenced_partitions: Optional[Annotated[int, Field(gt=0)]] = None
-    max_partition_contributions: Optional[Annotated[int, Field(gt=0)]] = None
+    max_partition_length: Annotated[int, Field(gt=0)] | None = None
+    max_influenced_partitions: Annotated[int, Field(gt=0)] | None = None
+    max_partition_contributions: Annotated[int, Field(gt=0)] | None = None
 
 
 class StrMetadata(ColumnMetadata):
@@ -125,7 +125,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
     """Model for categorical column metadata."""
 
     @model_validator(mode="after")
-    def validate_categories(self):
+    def validate_categories(self) -> Self:
         """Makes sure number of categories matches cardinality."""
         if len(self.categories) != self.cardinality:
             raise ValueError("Number of categories should be equal to cardinality.")
@@ -137,14 +137,14 @@ class StrCategoricalMetadata(CategoricalColumnMetadata):
 
     type: Literal[MetadataColumnType.STRING]
     cardinality: int
-    categories: List[str]
+    categories: list[str]
 
 
 class BoundedColumnMetadata(ColumnMetadata):
     """Model for columns with bounded data."""
 
     @model_validator(mode="after")
-    def validate_bounds(self):
+    def validate_bounds(self) -> Self:
         """Validates column bounds."""
         if self.lower is not None and self.upper is not None and self.lower > self.upper:
             raise ValueError("Lower bound cannot be larger than upper bound.")
@@ -167,7 +167,7 @@ class IntCategoricalMetadata(CategoricalColumnMetadata):
     type: Literal[MetadataColumnType.INT]
     precision: Precision
     cardinality: int
-    categories: List[int]
+    categories: list[int]
 
 
 class FloatMetadata(BoundedColumnMetadata):
@@ -231,19 +231,17 @@ class Metadata(BaseModel):
     max_ids: Annotated[int, Field(gt=0)]
     rows: Annotated[int, Field(gt=0)]
     row_privacy: bool
-    censor_dims: Optional[bool] = False
-    columns: Dict[
+    censor_dims: bool | None = False
+    columns: dict[
         str,
         Annotated[
-            Union[
-                Annotated[StrMetadata, Tag(MetadataColumnType.STRING)],
-                Annotated[StrCategoricalMetadata, Tag(MetadataColumnType.CAT_STRING)],
-                Annotated[IntMetadata, Tag(MetadataColumnType.INT)],
-                Annotated[IntCategoricalMetadata, Tag(MetadataColumnType.CAT_INT)],
-                Annotated[FloatMetadata, Tag(MetadataColumnType.FLOAT)],
-                Annotated[BooleanMetadata, Tag(MetadataColumnType.BOOLEAN)],
-                Annotated[DatetimeMetadata, Tag(MetadataColumnType.DATETIME)],
-            ],
+            Annotated[StrMetadata, Tag(MetadataColumnType.STRING)]
+            | Annotated[StrCategoricalMetadata, Tag(MetadataColumnType.CAT_STRING)]
+            | Annotated[IntMetadata, Tag(MetadataColumnType.INT)]
+            | Annotated[IntCategoricalMetadata, Tag(MetadataColumnType.CAT_INT)]
+            | Annotated[FloatMetadata, Tag(MetadataColumnType.FLOAT)]
+            | Annotated[BooleanMetadata, Tag(MetadataColumnType.BOOLEAN)]
+            | Annotated[DatetimeMetadata, Tag(MetadataColumnType.DATETIME)],
             Discriminator(get_column_metadata_discriminator),
         ],
     ]

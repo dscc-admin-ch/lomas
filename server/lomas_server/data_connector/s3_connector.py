@@ -1,5 +1,3 @@
-from typing import Optional
-
 import boto3
 import pandas as pd
 
@@ -32,7 +30,7 @@ class S3Connector(DataConnector):
         )
         self.bucket: str = credentials.bucket
         self.key: str = credentials.key
-        self.df: Optional[pd.DataFrame] = None
+        self.df: pd.DataFrame | None = None
 
     def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format.

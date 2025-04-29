@@ -1,5 +1,3 @@
-from typing import List
-
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import DSPathAccess, DSS3Access
 from lomas_core.models.config import PrivateDBCredentials, S3CredentialsConfig
@@ -13,7 +11,7 @@ from lomas_server.data_connector.s3_connector import S3Connector
 def data_connector_factory(
     dataset_name: str,
     admin_database: AdminDatabase,
-    private_db_credentials: List[PrivateDBCredentials],
+    private_db_credentials: list[PrivateDBCredentials],
 ) -> DataConnector:
     """
     Returns the appropriate dataset class based on dataset storage location.
@@ -57,7 +55,7 @@ def data_connector_factory(
 
 
 def get_dataset_credentials(
-    private_db_credentials: List[PrivateDBCredentials],
+    private_db_credentials: list[PrivateDBCredentials],
     db_type: PrivateDatabaseType,
     credentials_name: str,
 ) -> PrivateDBCredentials:

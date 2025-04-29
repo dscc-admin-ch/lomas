@@ -70,7 +70,7 @@ class FreePassAuthenticator(UserAuthenticator):
 class JWTAuthenticator(UserAuthenticator):
     """Authenticator class that identifies users by validating the provided JWT token."""
 
-    def __init__(self, keycloak_address: str, keycloak_port: int, keycloak_use_tls: bool, realm: str):
+    def __init__(self, keycloak_address: str, keycloak_port: int, keycloak_use_tls: bool, realm: str) -> None:
         """Constructor method.
 
         Initializes instance PyJWKClient with caching.

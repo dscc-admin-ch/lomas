@@ -1,4 +1,4 @@
-import os
+import os  # noqa: I001
 from json import loads
 from test.support import sleeping_retry
 

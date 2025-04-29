@@ -31,7 +31,7 @@ def main() -> None:
     description = """
         The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database.
         Whether you need to monitor server status, manage user accounts, or administer datasets, this dashboard offers a convenient way to do so.
-    """  # pylint: disable=C0301  # noqa: E501
+    """  # pylint: disable=C0301
     st.write(description)
 
     st.header("Key Features")
@@ -43,7 +43,7 @@ def main() -> None:
         - **Dataset Management**: Add, remove, or modify datasets and associated metadata with ease.
         - **View Database Content**: Dive deep into the database to view detailed information about users, datasets, metadata, and archives.
         - **Delete Content (DANGEROUS)**: Safely delete users, datasets, metadata, or entire collections when necessary.
-        """  # pylint: disable=C0301 # noqa: E501
+        """  # pylint: disable=C0301
     st.write(features)
 
     st.header("Quick Start")
@@ -58,7 +58,7 @@ def main() -> None:
         3. Exercise caution when using deletion functionalities, as they can permanently remove data.
 
         4. Refer to the documentation or tooltips for additional guidance on specific features.
-    """  # pylint: disable=C0301 # noqa: E501
+    """  # pylint: disable=C0301
     st.write(quick_start)
 
     # Additional resources

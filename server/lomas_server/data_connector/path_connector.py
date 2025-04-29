@@ -46,7 +46,7 @@ class PathConnector(DataConnector):
                     )
                 except Exception as err:
                     raise InternalServerException(
-                        "Error reading csv at http path:" f"{self.ds_path}: {err}",
+                        f"Error reading csv at http path:{self.ds_path}: {err}",
                     ) from err
             else:
                 return InvalidQueryException(

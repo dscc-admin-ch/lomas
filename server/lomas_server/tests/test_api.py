@@ -297,7 +297,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to archive 1 (smartnoise)
             job_smnoise = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
-            assert job_smnoise is not None and job_smnoise.result is not None
+            assert job_smnoise is not None
+            assert job_smnoise.result is not None
 
             # Response should have one element in list
             response_2 = client.post("/get_previous_queries", json=example_get_admin_db_data)
@@ -312,7 +313,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # Query to archive 2 (opendp)
             job_opendp = submit_job_wait(client, "/opendp_query", json=example_opendp)
-            assert job_opendp is not None and job_opendp.result is not None
+            assert job_opendp is not None
+            assert job_opendp.result is not None
 
             # Response should have two elements in list
             response_3 = client.post("/get_previous_queries", json=example_get_admin_db_data)
@@ -337,21 +339,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="Not enough budget for this query "

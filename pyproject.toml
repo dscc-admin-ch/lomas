@@ -63,13 +63,13 @@ select = [
   "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
   "PYI", # flake8-pyi
   # "LOG",
-  # "PT", # Pytest-style (lots of fixes todo)
+  "PT", # Pytest-style (lots of fixes todo)
   "RSE", # flake8-raise
   "FLY", # flynt
   # "C90", # maccabe do we want it ?
   "NPY", # NumPy-specific rules
-  # "PD", # Pandas-specific rules
-  # "RUF", # Ruff-sepicifc rules
+  "PD", # Pandas-specific rules
+  "RUF", # Ruff-sepicifc rules
   "FURB", # Refurbishing and modernizing Python codebases
   "PGH004", # blanket noqa comments
   "RET501", "RET502",  # better return None handling

@@ -143,7 +143,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                         "/opendp_query",
                         json=example_opendp_polars,
                     )
-                    assert job is not None
                     response_model = QueryResponse.model_validate(job.result)
                     assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -164,7 +163,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -175,7 +173,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/dummy_opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -189,7 +186,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -205,7 +201,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="Your are trying to do multiple groupings. "
@@ -224,7 +220,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                     # Expect to work
                     example_opendp_polars["mechanism"] = mechanism
                     job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
-                    assert job is not None
                     response_model = CostResponse.model_validate(job.result)
                     assert response_model.epsilon > 0.0
                     assert delta_check(response_model.delta)
@@ -247,14 +242,12 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                         "/dummy_opendp_query",
                         json=example_opendp_polars,
                     )
-                    assert job is not None
                     response_model = QueryResponse.model_validate(job.result)
                     assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     def test_grouping_query(self) -> None:
         """Test_dummy_opendp_polars_query with grouing."""
         with TestClient(app, headers=self.headers) as client:
-
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
@@ -264,7 +257,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars,
             )
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -277,7 +269,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
                 "/opendp_query",
                 json=example_opendp_polars,
             )
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -297,30 +288,30 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         # Since no max_partition length: rows is taken
         # Since no max_num_partitions: cardinality is taken
         expected_margin = {"max_num_partitions": 4, "max_partition_length": 100}
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # max_partition_length is given: then we use it instead of rows
         metadata["columns"]["column_int"].max_partition_length = 50
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 50
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         metadata["columns"]["column_int"].max_influenced_partitions = 1
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 1
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         metadata["columns"]["column_int"].max_partition_contributions = 1
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 1
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Minimum between max_ids and max_partition_contributions should be taken
         metadata["columns"]["column_int"].max_partition_contributions = 4
         metadata["max_ids"] = 2
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 2
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
     def test2_margin_grouping(self) -> None:
         """Test margins with grouping."""
@@ -339,13 +330,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             "max_num_partitions": 4,  # from col_int cardinality
             "max_partition_length": 100,  # since all are none, rows taken
         }  # from max_ids
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         metadata["columns"]["column_int"].max_partition_length = 30
         metadata["columns"]["new_col"].max_partition_length = 50
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 30  # min between two col
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Check max_influenced_partitions (max should be multiple of each group)
         metadata["max_ids"] = 20
@@ -353,13 +344,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata["columns"]["new_col"].max_influenced_partitions = 5
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 15
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Should never be bigger than max_ids global
         metadata["max_ids"] = 10
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 10
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Test multi grouping (cardinality)
         new_col_str = {"type": "string", "cardinality": 2, "categories": ["a", "b"]}
@@ -373,7 +364,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             "max_partition_length": 100,  # Since none for col_str
             "max_influenced_partitions": 1,  # max_ids
         }
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Check max_partition_contributions
         metadata["max_ids"] = 10
@@ -381,13 +372,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         metadata["columns"]["new_col"].max_partition_contributions = 4
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 5
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
         # Check max_partition_contributions (should never be bigger than max_ids)
         metadata["max_ids"] = 2
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 2
-        self.assertEqual(margin_params, expected_margin)
+        assert margin_params == expected_margin
 
     def test3_lf_domain(self) -> None:
         """Test lazyframe with different types."""
@@ -414,7 +405,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
         )
         plan = get_lf_from_json(OPENDP_POLARS_PIPELINE)
         lf_domain = get_lf_domain(metadata, plan)
-        self.assertEqual(lf_domain, expected_lf_domain)
+        assert lf_domain == expected_lf_domain
 
         # lf with datetime
         # TODO 392: Adapt this test with v0.12 datetime
@@ -436,9 +427,9 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
             **margin_params,
         )
         lf_domain = get_lf_domain(metadata, plan)
-        self.assertEqual(lf_domain, expected_lf_domain)
+        assert lf_domain == expected_lf_domain
 
         # Test that unknown type raises an error
         metadata["columns"]["col_datetime"].type = "new_type"
-        with self.assertRaises(InvalidQueryException):
+        with pytest.raises(InvalidQueryException):
             get_lf_domain(metadata, plan)

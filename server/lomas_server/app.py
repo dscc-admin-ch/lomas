@@ -59,13 +59,12 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         lomas_app.state.authenticator = authenticator_factory(config.authenticator)
 
     except InternalServerException as e:
-        logging.exception(f"Failed at startup: {str(e)}")
+        logging.exception(f"Failed at startup: {e!s}")
 
     # Set DP Libraries config
     set_opendp_features_config(config.opendp_features)
 
     async with rabbitmq_ctx(lomas_app):
-
         yield  # lomas_app is handling requests
 
 

@@ -197,19 +197,21 @@ class AdminMongoDatabase(AdminDatabase):
         Returns:
             float: The requested budget value.
         """
-        return list(
-            self.db.users.aggregate(
-                [
-                    {"$unwind": "$datasets_list"},
-                    {
-                        "$match": {
-                            "id.name": user_name,
-                            "datasets_list.dataset_name": f"{dataset_name}",
-                        }
-                    },
-                ]
+        return next(
+            iter(
+                self.db.users.aggregate(
+                    [
+                        {"$unwind": "$datasets_list"},
+                        {
+                            "$match": {
+                                "id.name": user_name,
+                                "datasets_list.dataset_name": f"{dataset_name}",
+                            }
+                        },
+                    ]
+                )
             )
-        )[0]["datasets_list"][parameter]
+        )["datasets_list"][parameter]
 
     def update_epsilon_or_delta(
         self,

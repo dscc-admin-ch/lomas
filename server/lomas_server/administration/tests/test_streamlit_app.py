@@ -39,7 +39,6 @@ def mock_configs():
         patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
         patch("lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config,
     ):
-
         # Mock server config
         mock_get_server_config.return_value = Config()
 

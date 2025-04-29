@@ -130,7 +130,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
 
             # Should not work: Compatibility Warning
             warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
-            with self.assertRaises(DiffprivlibCompatibilityWarning):
+            with pytest.raises(DiffprivlibCompatibilityWarning):
                 Pipeline(
                     [
                         ("scaler", models.StandardScaler(epsilon=0.5)),
@@ -339,7 +339,6 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=example_dummy_diffprivlib,
                 headers=self.headers,
             )
-            assert job is not None
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)
             assert r_model.result.score > 0
@@ -370,7 +369,6 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R090
                 json=example_diffprivlib,
                 headers=self.headers,
             )
-            assert job is not None
             r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon == 1.5
             assert r_model.delta == 0

@@ -36,7 +36,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             # Basic test based on example with max divergence (Pure DP)
             job = submit_job_wait(client, "/opendp_query", json=example_opendp)
 
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
@@ -76,7 +75,7 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                     "mechanism": None,
                 },
             )
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="The pipeline provided is not a measurement. It cannot be processed in this server."
@@ -96,7 +95,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
                 },
             )
 
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
@@ -116,7 +114,7 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             }
             # Should error because missing fixed_delta
             job = submit_job_wait(client, "/opendp_query", json=json_obj)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="fixed_delta must be set for smooth max divergence"
@@ -126,7 +124,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
             job = submit_job_wait(client, "/opendp_query", json=json_obj)
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
@@ -146,7 +143,7 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             }
             # Should error because missing fixed_delta
             job = submit_job_wait(client, "/opendp_query", json=json_obj)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="fixed_delta must be set for smooth max divergence"
@@ -156,7 +153,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
             # Should work because fixed_delta is set
             json_obj["fixed_delta"] = 1e-6
             job = submit_job_wait(client, "/opendp_query", json=json_obj)
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
@@ -192,7 +188,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/dummy_opendp_query", json=example_dummy_opendp)
-            assert job is not None
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
             assert isinstance(response_model.result, OpenDPQueryResult)
@@ -216,7 +211,6 @@ class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp)
-            assert job is not None
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 0.1
             assert response_model.delta == 0

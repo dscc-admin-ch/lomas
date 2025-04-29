@@ -89,7 +89,7 @@ def validate_model_response(client: LomasHttpClient, response: requests.Response
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
     if job.status == "failed":
-        assert job.error is not None, "job {job_uid} failed without error !"
+        assert job.error is not None, f"job {job_uid} failed without error !"
         raise_error_from_model(job.error)
 
     return response_model.model_validate(job.result)

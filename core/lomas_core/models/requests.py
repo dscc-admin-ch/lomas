@@ -187,7 +187,7 @@ class OpenDPRequestModel(LomasRequestModel):
 
     (e.g. with "make_gaussian") then it is converted to "SmoothedMaxDivergence"
     with "make_zCDP_to_approxDP" (see "opendp measurements documentation at
-    https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
+    https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP).
     In that case a "fixed_delta" must be provided by the user.
     """
     pipeline_type: OpenDpPipelineType

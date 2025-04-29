@@ -251,7 +251,7 @@ def add_kc_users_via_yaml(
                 kc_user_id = kc_user["id"]  # type: ignore
                 kc_admin.users(kc_user_id).delete()
 
-            kc_clients = kc_admin.clients.get(userId=user.id.name)
+            kc_clients = kc_admin.clients.get(clientId=user.id.name)
             for kc_client in kc_clients:
                 if (
                     KCAttributeNames.LOMAS_USER_CLIENT in kc_client["attributes"]  # type: ignore

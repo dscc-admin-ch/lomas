@@ -154,15 +154,15 @@ class TestKeycloakAdmin(unittest.TestCase):  # pylint: disable=R0904
         # Load demo yaml
         with open(absolute_path(demo_config.user_yaml, demo_config.path_prefix), encoding="utf-8") as f:
             yaml_users: dict = yaml.safe_load(f)
-        yaml_users["users"][0]["id"]["client_secret"] = "test_secret"
+        new_secret = "test_secret"
+        yaml_users["users"][0]["id"]["client_secret"] = new_secret
 
-        # Check overwrite argument
-        # seems it needs to be corrected, overwrite seems to delete users
-        # add_kc_users_via_yaml(self.kc_config, yaml_users, False, True)
-
-        # with overwrite activated
-        add_kc_users_via_yaml(self.kc_config, yaml_users, True, True)
-        self.assertEqual(self.kc_admin.clients.get(clientId="Alice")[0]["secret"], "test_secret")
+        # Check overwrite argument and with yaml file instead of path
+        add_kc_users_via_yaml(self.kc_config, yaml_users, False, True)
+        self.assertEqual(self.kc_admin.clients.get(clientId="Alice")[0]["secret"], new_secret)
+        # Check that we have still two users (user and service account) and one client
+        self.assertEqual(len(self.kc_admin.users.get(username="Alice")), 2)
+        self.assertEqual(len(self.kc_admin.clients.get(clientId="Alice")), 1)
 
         # Check it fails if yaml does not respect pydantic model
         yaml_users["users"] = ""

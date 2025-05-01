@@ -31,7 +31,6 @@ def run_notebook(file: str, save_output: bool = False) -> None:
     """
     # Reset demo users and budgets
     lomas_demo_setup()
-    # file = "/home/azureuser/work/sdd-poc-server/client/lomas_client/tests/../../notebooks/Demo_Client_Notebook.ipynb"
     nb = nbformat.read(file, as_version=4)
     nb_client = NotebookClient(
         nb, resources={"metadata": {"path": f"{get_test_dir()}/../../notebooks/"}}, timeout=60 * 5

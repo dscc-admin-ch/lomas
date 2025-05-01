@@ -72,7 +72,7 @@ class Client:
         """
 
         # resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
-        # TODO
+        # TODO fix in settings pr.
         # init_telemetry(resource)
 
         self.http_client = LomasHttpClient(

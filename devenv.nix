@@ -974,7 +974,7 @@ in
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml -k initial_budget .";
+            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
@@ -1043,7 +1043,6 @@ in
     popd
   '';
 
-  #     pushd $DEVENV_ROOT #/server/lomas_server
   scripts.run-worker-debug.exec = ''
     process-compose process stop -v worker-0 worker-1
     pushd $DEVEN_ROOT

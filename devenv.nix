@@ -301,6 +301,7 @@ in
     configItems = {
       "default_user" = rabbitmq_user;
       "default_pass" = rabbitmq_pass;
+      "heartbeat" = "1800"; # Extra super duper long hearbeat timeout for long running tasks in workersss
     };
   };
 
@@ -322,8 +323,6 @@ in
     exec = "python uvicorn_serve.py";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
-      # do not start by default since ut & ut-coverage currently use fastapi TestClient
-      disabled = true;
     };
   };
 
@@ -352,6 +351,8 @@ in
       working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
+      # Un-comment to observe worker logs.
+      # log_location = "$DEVENV_ROOT/worker.log";
     };
   };
 
@@ -953,32 +954,36 @@ in
   #####################
 
   scripts.ut.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    pytest -c $DEVENV_ROOT/server/pyproject.toml .
+    pushd $DEVENV_ROOT/
+    pytest -c $DEVENV_ROOT/pyproject.toml .
     popd
   '';
 
   scripts.ut-coverage.exec =
     let
-      working_dir = "$DEVENV_ROOT/server/lomas_server";
+      working_dir = "$DEVENV_ROOT/";
       pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
             inherit working_dir;
             replicas = 1;
-            command = "coverage run --source=. -p worker.py";
+            command = "coverage run --rcfile=pyproject.toml -p -m lomas_server.worker";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --no-cov-on-fail --cov .";
+            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml .";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
               mongodb.condition = "process_started";
               mongodb-configure.condition = "process_completed_successfully";
+              keycloak.condition = "process_ready";
+              rabbitmq.condition = "process_ready";
+              keycloak_setup.condition = "process_completed_successfully";
+              lomas-server.condition = "process_started";
             };
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;
@@ -1020,6 +1025,12 @@ in
     popd
   '';
 
+  scripts.run-notebooks.exec = ''
+    pushd $DEVENV_ROOT
+    python -m lomas_client.scripts.run_notebooks
+    popd
+  '';
+
   scripts.run-jupyter.exec = ''
     pushd $DEVENV_ROOT/client
     jupyter notebook --ip 0.0.0.0 --port ${toString jupyter_port} --no-browser --allow-root
@@ -1034,8 +1045,8 @@ in
 
   scripts.run-worker-debug.exec = ''
     process-compose process stop -v worker-0 worker-1
-    pushd $DEVENV_ROOT/server/lomas_server
-    python -m pdb worker.py
+    pushd $DEVEN_ROOT
+    python -m pdb lomas_server.worker
     popd
   '';
 

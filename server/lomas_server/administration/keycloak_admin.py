@@ -84,9 +84,13 @@ def add_kc_user(
                 "username": user_name,
                 "email": user_email,
                 "enabled": True,
+                # TODO 399.
+                # The following does not work on standard users and is silently ignored by keycloak.
+                # One would have to add the attribute name to the managed attributes of the realm.
+                # This is probably best implemented once we have proper groups/roles in lomas.
                 "attributes": {
                     # flag to indicate this client is linked to a lomas user.
-                    KCAttributeNames.LOMAS_USER_CLIENT: True
+                    KCAttributeNames.LOMAS_USER_CLIENT: [True]
                 },
             }
         )
@@ -186,9 +190,10 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
 
     users = kc_admin.users.get()
     for user in users:
-        if user.get("attributes", {}).get(KCAttributeNames.LOMAS_USER_CLIENT):
-            user_id = user["id"]  # type: ignore
-            kc_admin.users(user_id).delete()
+        # TODO 399. See comment above (add_kc_user)
+        # if user.get("attributes", {}).get(KCAttributeNames.LOMAS_USER_CLIENT):
+        user_id = user["id"]  # type: ignore
+        kc_admin.users(user_id).delete()
 
     logging.info("Removed all keycloak users.")
 

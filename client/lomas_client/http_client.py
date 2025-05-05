@@ -145,7 +145,7 @@ class LomasHttpClient:
 
         return r
 
-    def wait_for_job(self, job_uid: str, n_retry: int = 100, sleep_sec: float = 0.5) -> Job:
+    def wait_for_job(self, job_uid: str, n_retry: int = 400, sleep_sec: float = 1) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
 
         for _ in range(n_retry):

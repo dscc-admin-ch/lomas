@@ -9,7 +9,7 @@ class ClientConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         extra="ignore",
-        env_prefix="lomas_",
+        env_prefix="lomas_client_",
         env_nested_delimiter="__",
         case_sensitive=False,
     )

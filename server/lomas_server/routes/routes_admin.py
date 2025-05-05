@@ -157,6 +157,7 @@ def get_dataset_metadata(
     app = request.app
 
     dataset_name = query_json.dataset_name
+
     if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
             f"{user_id.name} does not have access to {dataset_name}.",
@@ -164,7 +165,6 @@ def get_dataset_metadata(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
-
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:

@@ -124,7 +124,7 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
         raise InternalServerException(str(e)) from e
@@ -168,7 +168,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
         raise InternalServerException(str(e)) from e
@@ -208,7 +208,7 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return dummy_query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({known_exc.status_code}|{known_exc.body})")
+        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
         raise InternalServerException(str(e)) from e

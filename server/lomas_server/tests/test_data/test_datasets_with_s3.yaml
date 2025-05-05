@@ -26,7 +26,7 @@ datasets:
     bucket: "example"
     key: "data/test_penguin.csv"
     endpoint_url: "http://localhost:19000"
-    credentials_name: "local_minio"
+    credentials_name: "minio"
   metadata_access:
     database_type: "S3_DB"
     bucket: "example"
@@ -34,7 +34,7 @@ datasets:
     endpoint_url: "http://localhost:19000"
     access_key_id: "admin"
     secret_access_key: "admin123"
-    credentials_name: "local_minio"
+    credentials_name: "minio"
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"

@@ -13,13 +13,28 @@ datasets:
   metadata_access:
     database_type: "PATH_DB"
     path: "collections/metadata/penguin_metadata.yaml"
-- dataset_name: "TITANIC"
+- dataset_name: "PUMS"
   dataset_access:
     database_type: "PATH_DB"
-    path: "datasets/titanic.csv"
+    path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/titanic_metadata.yaml"
+    path: "collections/metadata/pums_metadata.yaml"
+- dataset_name: "TITANIC"
+  dataset_access:
+    database_type: "S3_DB"
+    bucket: "example"
+    key: "data/titanic.csv"
+    endpoint_url: "http://minio:19000"
+    credentials_name: "minio"
+  metadata_access:
+    database_type: "S3_DB"
+    bucket: "example"
+    key: "metadata/titanic_metadata.yaml"
+    endpoint_url: "http://minio:19000"
+    access_key_id: "admin"
+    secret_access_key: "admin123"
+    credentials_name: "minio"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"

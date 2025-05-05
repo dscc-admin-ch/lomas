@@ -48,6 +48,7 @@ services:
       - ../core/lomas_core:/code/core/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
+      - ./data/datasets:/data/datasets/
     depends_on:
       minio-client:
         condition: service_completed_successfully
@@ -122,7 +123,7 @@ services:
       - MONGODB_URI=mongodb://${LOMAS_MONGO_ROOT_USER}:${LOMAS_MONGO_ROOT_PWD}@mongodb:${LOMAS_MONGO_PORT}
     depends_on:
       - mongodb
-  
+
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:26.1.0
@@ -180,7 +181,7 @@ services:
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/
-      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
+      - ./data/collections/dataset_collection.yaml:/data/collections/dataset_collection.yaml
       - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
     networks:
       - lomas-network
@@ -197,8 +198,6 @@ services:
       - MINIO_ROOT_PASSWORD=${LOMAS_MINIO_ROOT_PWD}
       - MINIO_ADDRESS=:${LOMAS_MINIO_PORT}
       - MINIO_CONSOLE_ADDRESS=:${LOMAS_MINIO_CONSOLE_PORT}
-    #volumes:
-      #- minio-data:/data
     networks:
       - lomas-network
 
@@ -229,6 +228,7 @@ services:
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
+    env_file: ./configs/administration/.env.lomas_demo_setup
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
@@ -252,9 +252,7 @@ services:
       target: lomas_client_dev
       context: ../
     container_name: lomas_client
-    environment:
-      - LOMAS_SERVICE_TELEMETRY__SERVICE_NAME=lomas-client
-      - LOMAS_SERVICE_telemetry__COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
+    env_file: ./configs/.env.lomas_client
     command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}

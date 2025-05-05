@@ -175,6 +175,7 @@ in
     ++ lib.optionals (!config.container.isBuilding) [
       pkgs.jq
       pkgs.yq-go
+      pkgs.nbstripout
       pkgs.watchexec
       pkgs.mongosh
       pkgs.kubectl
@@ -720,7 +721,10 @@ in
   # GIT HOOKS #
   #############
 
-  git-hooks.hooks = import ./devenv/hooks.nix { env = config.env; };
+  git-hooks.hooks = import ./devenv/hooks.nix {
+    inherit pkgs;
+    env = config.env;
+  };
 
   enterShell = ''
     echo hello from $GREET

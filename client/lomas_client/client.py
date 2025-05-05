@@ -45,11 +45,15 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(self) -> None:
-        """Initializes the Client with the specified URL, dataset name and authentication parameters."""
+    def __init__(self, **kwargs: ClientConfig.model_config) -> None:
+        """Initializes the Client with the specified URL, dataset name and authentication parameters.
+
+        Args:
+            kwargs: All keyword arguments will be forwarded to the ClientConfig
+        """
 
         try:
-            self.config = ClientConfig()
+            self.config = ClientConfig(**kwargs)
         except ValidationError as exc:
             raise ValueError(
                 "Missing one of or invalid: client_id, client_secret, keycloak_url"

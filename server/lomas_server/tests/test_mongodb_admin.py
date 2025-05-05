@@ -612,7 +612,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         endpoint_url = "http://localhost:19000"
         access_key_id = "admin"
         secret_access_key = "admin123"
-        credentials_name = "local_minio"
+        credentials_name = "minio"
         key_file = "data/test_penguin.csv"
         key_metadata = "metadata/penguin_metadata.yaml"
 

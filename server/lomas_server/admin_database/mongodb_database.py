@@ -1,10 +1,10 @@
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
-from pymongo.errors import WriteConcernError
+from pymongo.errors import ConnectionFailure, WriteConcernError
 from pymongo.results import _WriteResult
 
-from lomas_core.error_handler import InvalidQueryException
+from lomas_core.error_handler import InternalServerException, InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
 from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.requests import LomasRequestModel
@@ -32,8 +32,20 @@ def get_mongodb(mongo_config: MongoDBConfig) -> Database:
 
     Returns:
         MongoDBConfig: A client object directly
+
+    Raises:
+        InternalServerException: If the connection to the MongoDB failed.
     """
-    return MongoClient(mongo_config.url_with_options)[mongo_config.db_name]
+
+    db = MongoClient(mongo_config.url_with_options)[mongo_config.db_name]
+
+    try:
+        # Verify connection to database is possible (credentials verification included)
+        db.list_collection_names()
+    except ConnectionFailure as e:
+        raise InternalServerException("Connection to MongoDB failed.") from e
+
+    return db
 
 
 class AdminMongoDatabase(AdminDatabase):

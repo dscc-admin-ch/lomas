@@ -101,7 +101,7 @@ admin:
     user_yaml_path: "/collections/user_collection.yaml"
     dataset_yaml_path: "/collections/dataset_collection.yaml"
 
-  
+
   # We leave unset stuff here
   serviceAccount:
     create: false
@@ -394,7 +394,7 @@ keycloak:
   create: true # Added by Lomas
 
   fullnameOverride: "lomas-keycloak"
-  
+
   global:
     imageRegistry: ""
     imagePullSecrets: []
@@ -420,7 +420,7 @@ keycloak:
   # We do tls termination at the ingress
   tls:
     enabled: false
-    
+
   adminRealm: "master"
   production: true
   proxyHeaders: "forwarded" # or xforwarded, must check with ingress
@@ -480,7 +480,7 @@ keycloak:
           - "lomas-keycloak-test.lab.sspcloud.fr"
 
     # adminIngress:
-    
+
   postgresql:
     enabled: true
     fullnameOverride: lomas-keycloak-postgresql
@@ -491,12 +491,12 @@ keycloak:
       database: lomas_keycloak
       existingSecret: "" # TODO
       secretKeys:
-        # Still needs to be set because of 
+        # Still needs to be set because of
         # https://github.com/bitnami/charts/blob/af06d0b9da2bf9585753a417727a7b67e9467c63/bitnami/keycloak/templates/statefulset.yaml#L166
         # that references this
         # https://github.com/bitnami/charts/blob/af06d0b9da2bf9585753a417727a7b67e9467c63/bitnami/keycloak/templates/_helpers.tpl#L180
         # The postgres subchart sets the secret to postgres-password
-        userPasswordKey: postgres-password 
+        userPasswordKey: postgres-password
     architecture: standalone
     primary:
       persistence:
@@ -541,12 +541,12 @@ rabbitmq:
     existingSecretPasswordKey: ""
     tls:
       enabled: false
-      
+
   plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
 
   clustering:
     enabled: false
-    
+
   containerPorts:
     amqp: 5672
     amqpTls: 5671
@@ -613,7 +613,7 @@ rabbitmq:
 
   networkPolicy:
     enabled: false
-    
+
   metrics:
     enabled: false
     plugins: "rabbitmq_prometheus"

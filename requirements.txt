@@ -64,7 +64,7 @@ iniconfig==2.1.0          # via pytest
 ipykernel==6.29.5         # via jupyter, jupyter-console, jupyterlab, qtconsole
 ipython==9.2.0            # via ipykernel, ipywidgets, jupyter-console
 ipython-pygments-lexers==1.1.1  # via ipython
-ipywidgets==8.1.6         # via jupyter
+ipywidgets==8.1.7         # via jupyter
 isoduration==20.11.0      # via jsonschema
 isort==6.0.1              # via pylint
 jax==0.5.3                # via lomas-server
@@ -85,15 +85,15 @@ jupyter-events==0.12.0    # via jupyter-server
 jupyter-lsp==2.2.5        # via jupyterlab
 jupyter-server==2.15.0    # via jupyter-lsp, jupyterlab, jupyterlab-server, notebook, notebook-shim
 jupyter-server-terminals==0.5.3  # via jupyter-server
-jupyterlab==4.4.1         # via notebook
+jupyterlab==4.4.2         # via notebook
 jupyterlab-pygments==0.3.0  # via nbconvert
 jupyterlab-server==2.27.3  # via jupyterlab, notebook
-jupyterlab-widgets==3.0.14  # via ipywidgets
+jupyterlab-widgets==3.0.15  # via ipywidgets
 kiwisolver==1.4.8         # via matplotlib
 mantelo==2.2.0            # via lomas-server
 markdown-it-py==3.0.0     # via rich
 markupsafe==3.0.2         # via jinja2, nbconvert
-matplotlib==3.10.1        # via private-pgm
+matplotlib==3.10.1        # via private-pgm, seaborn
 matplotlib-inline==0.1.7  # via ipykernel, ipython
 mccabe==0.7.0             # via pylint
 mdurl==0.1.2              # via markdown-it-py
@@ -104,16 +104,16 @@ mpmath==1.3.0             # via sympy
 multidict==6.4.3          # via yarl
 mypy==1.15.0              # via lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via black, mypy
-narwhals==1.37.1          # via altair
+narwhals==1.38.0          # via altair
 nbclient==0.10.2          # via nbconvert
 nbconvert==7.16.6         # via jupyter, jupyter-server
 nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert
 nest-asyncio==1.6.0       # via ipykernel
 networkx==3.4.2           # via private-pgm, torch
 nose==1.3.7               # via private-pgm
-notebook==7.4.1           # via jupyter
+notebook==7.4.2           # via jupyter
 notebook-shim==0.2.4      # via jupyterlab, notebook
-numpy==1.26.4             # via contourpy, diffprivlib, jax, jaxlib, lomas-core, matplotlib, ml-dtypes, opacus, pandas, private-pgm, pydeck, scikit-learn, scipy, streamlit
+numpy==1.26.4             # via contourpy, diffprivlib, jax, jaxlib, lomas-core, matplotlib, ml-dtypes, opacus, pandas, private-pgm, pydeck, scikit-learn, scipy, seaborn, streamlit
 oauthlib==3.2.2           # via lomas-client, requests-oauthlib
 opacus==0.14.0            # via smartnoise-synth
 opendp==0.12.0            # via lomas-core, opendp-logger, smartnoise-sql
@@ -127,7 +127,7 @@ opentelemetry-instrumentation==0.50b0  # via opentelemetry-instrumentation-aio-p
 opentelemetry-instrumentation-aio-pika==0.50b0  # via lomas-server
 opentelemetry-instrumentation-asgi==0.50b0  # via opentelemetry-instrumentation-fastapi
 opentelemetry-instrumentation-fastapi==0.50b0  # via lomas-server
-opentelemetry-instrumentation-logging==0.50b0  # via lomas-server
+opentelemetry-instrumentation-logging==0.50b0  # via lomas-client, lomas-server
 opentelemetry-instrumentation-pymongo==0.50b0  # via lomas-server
 opentelemetry-instrumentation-requests==0.50b0  # via lomas-client
 opentelemetry-proto==1.29.0  # via opentelemetry-exporter-otlp-proto-common, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
@@ -139,7 +139,7 @@ overrides==7.7.0          # via jupyter-server
 pac-synth==0.0.8          # via smartnoise-synth
 packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, mongomock, nbconvert, opentelemetry-instrumentation, pytest, qtconsole, qtpy, streamlit
 pamqp==3.3.0              # via aiormq
-pandas==2.2.3             # via lomas-core, private-pgm, smartnoise-sql, streamlit
+pandas==2.2.3             # via lomas-core, private-pgm, seaborn, smartnoise-sql, streamlit
 pandocfilters==1.5.1      # via nbconvert
 parso==0.8.4              # via jedi
 pathspec==0.12.1          # via black
@@ -190,6 +190,7 @@ ruff==0.11.8              # via lomas (pyproject.toml)
 s3transfer==0.10.4        # via boto3
 scikit-learn==1.6.1       # via diffprivlib, lomas-core
 scipy==1.15.2             # via diffprivlib, jax, jaxlib, opacus, private-pgm, scikit-learn
+seaborn==0.13.2           # via lomas-client
 send2trash==1.8.3         # via jupyter-server
 sentinels==1.0.0          # via mongomock
 setuptools==80.3.1        # via diffprivlib, jupyterlab, torch

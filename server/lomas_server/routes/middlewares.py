@@ -9,7 +9,6 @@ from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
-from lomas_core.error_handler import KNOWN_EXCEPTIONS
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -160,9 +159,12 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
 
         before_time = time.perf_counter()
 
+        # Initialize status_code
+        status_code = None
+
         try:
             response = await call_next(request)
-        except KNOWN_EXCEPTIONS as e:
+        except Exception as e:
             FAST_API_EXCEPTION_COUNTER.add(
                 1,
                 {

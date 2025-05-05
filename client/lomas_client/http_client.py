@@ -19,7 +19,8 @@ class LomasHttpClient:
 
     def __init__(self, config: ClientConfig) -> None:
         """Initializes the HTTP client with the specified URL, dataset name and authentication parameters."""
-        RequestsInstrumentor().instrument()
+        if config.telemetry.enabled:
+            RequestsInstrumentor().instrument()
 
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.config = config
@@ -74,7 +75,7 @@ class LomasHttpClient:
 
         try:
             r = self._oauth2_session.post(
-                f"{self.config.app_url}/endpoint",
+                f"{self.config.app_url}/{endpoint}",
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
@@ -84,7 +85,7 @@ class LomasHttpClient:
             # Retry with new token
             self._fetch_token()
             r = self._oauth2_session.post(
-                f"{self.config.app_url}/endpoint",
+                f"{self.config.app_url}/{endpoint}",
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),

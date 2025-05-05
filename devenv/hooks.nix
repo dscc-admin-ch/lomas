@@ -1,5 +1,7 @@
 { env, ... }:
 {
+  trim-trailing-whitespace.enable = true;
+
   nixfmt-rfc-style = {
     enable = true;
     args = [

@@ -28,7 +28,10 @@ class TestKeycloakAdmin(unittest.TestCase):  # pylint: disable=R0904
     def setUp(self) -> None:
         """Connection to keycloak."""
 
-        self.kc_config = AdminConfig().kc_config
+        admin_config = AdminConfig()
+        assert admin_config.kc_config is not None, "kc_config must not be None"
+
+        self.kc_config = admin_config.kc_config
         self.kc_admin = get_kc_admin(self.kc_config)
 
         self.user_name = "aria"

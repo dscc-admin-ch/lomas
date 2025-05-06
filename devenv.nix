@@ -175,7 +175,6 @@ in
     ++ lib.optionals (!config.container.isBuilding) [
       pkgs.jq
       pkgs.yq-go
-      pkgs.nbstripout
       pkgs.watchexec
       pkgs.mongosh
       pkgs.kubectl

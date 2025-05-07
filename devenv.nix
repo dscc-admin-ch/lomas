@@ -243,6 +243,7 @@ in
     exec = "python uvicorn_serve.py";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
+      depends_on.mongodb.condition = "process_healthy";
     };
   };
 

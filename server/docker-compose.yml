@@ -16,6 +16,8 @@ services:
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
     depends_on:
+      rabbitmq:
+        condition: service_started
       minio-client:
         condition: service_completed_successfully
         restart: true
@@ -24,12 +26,21 @@ services:
         restart: true
       otel-collector:
         condition: service_started
+      tempo:
+        condition: service_started
+      loki:
+        condition: service_started
       keycloak:
         condition: service_started
         restart: true
       keycloak_setup:
         condition: service_completed_successfully
         restart: true
+      lomas_demo_setup:
+        condition: service_completed_successfully
+        restart: true
+      lomas_worker:
+        condition: service_started
     networks:
       - lomas-network
 
@@ -245,7 +256,7 @@ services:
     networks:
       - lomas-network
 
-  client:
+  lomas_client:
     image: dsccadminch/lomas_client_dev
     build:
       dockerfile: ./Dockerfile

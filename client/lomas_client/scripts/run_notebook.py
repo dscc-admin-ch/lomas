@@ -28,7 +28,6 @@ def run_notebook(
         run_demo_setup (bool): Runs the lomas_demo_setup before running the notebook.
         save_output (bool, optional): Saves the output to the original file. Defaults to False.
         skip_smartnoise_synth (bool, optional): Skip smartnoise synth demo notebook
-
     """
     # TODO issue 423
     if skip_smartnoise_synth and file.name == "Demo_Client_Notebook_Smartnoise-Synth.ipynb":

@@ -15,7 +15,9 @@ def get_client_notebook_files() -> list[Path]:
     return [nb.resolve() for nb in Path(__file__).parent.glob("../../notebooks/*.ipynb")]
 
 
-def run_notebook(file: Path, run_demo_setup: bool, save_output: bool = False) -> None:
+def run_notebook(
+    file: Path, run_demo_setup: bool, save_output: bool = False, skip_smartnoise_synth: bool = True
+) -> None:
     """Runs the notebook in the given file.
 
     Assumes all services in the process compose are up and
@@ -25,7 +27,14 @@ def run_notebook(file: Path, run_demo_setup: bool, save_output: bool = False) ->
         file (str): _description_
         run_demo_setup (bool): Runs the lomas_demo_setup before running the notebook.
         save_output (bool, optional): Saves the output to the original file. Defaults to False.
+        skip_smartnoise_synth (bool, optional): Skip smartnoise synth demo notebook
+
     """
+    # TODO issue 423
+    if skip_smartnoise_synth and file.name == "Demo_Client_Notebook_Smartnoise-Synth.ipynb":
+        print("Skiping smartnoise synth notebook.")
+        return
+
     # Reset demo users and budgets
     if run_demo_setup:
         # Import this here so that the script can still be run in environments without the server lib.
@@ -54,7 +63,7 @@ def run_notebooks(run_demo_setup: bool, save_output: bool = False) -> None:
     notebooks = get_client_notebook_files()
 
     for file in notebooks:
-        print(f"Running {file}.")
+        print(f"Running {file.name}.")
         run_notebook(file, run_demo_setup, save_output)
 
 

@@ -23,24 +23,4 @@ jobs:
 
     - name: Run a notebook within a container
       run: |
-        devenv shell
-        cd server
-        docker-compose-up &> docker-compose.logs &
-
-        TIMEOUT=360
-        INTERVAL=10
-        ELAPSED=0
-
-        while [ $ELAPSED -lt $TIMEOUT ]; do
-          if docker container ls --format '{{.Names}}' | grep -q "lomas_client"; then
-            sleep 5
-            echo "Starting test"
-            docker exec lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/income_minimal.ipynb
-            res=$?
-            cat docker-compose.logs
-            docker-compose-down
-            exit res
-          fi
-          sleep $INTERVAL
-          ELAPSED=$((ELAPSED + INTERVAL))
-        done
+        devenv shell -- docker-compose-test

@@ -95,7 +95,7 @@ in
   env = {
     GREET = "Lomas env";
     LOMAS_APP_URL = "http://localhost:${toString lomas_port}";
-    LOMAS_SERVICE_AMQP__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@${rabbitmq_addr}:${toString rabbitmq_port}";
+    LOMAS_SERVICE_amqp__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@${rabbitmq_addr}:${toString rabbitmq_port}";
     LOMAS_SERVICE_opendp_features = toPydanticSetting [
       "contrib"
       "floating-point"
@@ -820,7 +820,7 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_SERVICE_AMQP__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@rabbitmq:${toString rabbitmq_port}";
+          LOMAS_SERVICE_amqp__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@rabbitmq:${toString rabbitmq_port}";
           LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString kc_http_port}";
           LOMAS_SERVICE_admin_database__dsn = "mongodb://${mongo_user}:${mongo_password}@mongodb:${toString mongo_port}/${mongo_db_name}";
           LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
@@ -1031,6 +1031,13 @@ in
   scripts.docker-compose-up.exec = ''
     pushd $DEVENV_ROOT/server/
     docker compose --env-file configs/.env.docker-compose up
+    popd
+  '';
+
+  scripts.docker-compose-test.exec = ''
+    pushd $DEVENV_ROOT/server/
+    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/s3_example_notebook.ipynb
+    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     popd
   '';
 

@@ -12,4 +12,4 @@ def test_run_notebook(notebook: Path) -> None:
     Args:
         notebook (str): The notebook file path.
     """
-    run_notebook(notebook, True, save_output=False, skip_smartnoise_synth=True)
+    run_notebook(notebook, run_demo_setup=True, save_output=False, skip_smartnoise_synth=True)

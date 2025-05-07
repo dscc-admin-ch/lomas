@@ -49,27 +49,10 @@ def run_notebook(
         nbformat.write(nb, file)
 
 
-def run_notebooks(run_demo_setup: bool, save_output: bool = False) -> None:
-    """Runs all notebooks in the notebooks folder.
-
-    Assumes all services in the process compose are up and
-    the file layout is same as in the code repository.
-
-    Args:
-        run_demo_setup (bool): Runs the lomas_demo_setup before every notebook run.
-        save_output (bool, optional): Saves the output to the original file. Defaults to False.
-    """
-    notebooks = get_client_notebook_files()
-
-    for file in notebooks:
-        print(f"Running {file.name}.")
-        run_notebook(file, run_demo_setup, save_output)
-
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("Run client notebooks")
-    parser.add_argument("--notebook", type=str, help="Path to notebook to run.")
+    parser.add_argument("--notebook", type=Path, help="Path to notebook to run.")
     parser.add_argument(
         "--all", "-a", action="store_true", help="Run all notebooks. Ignores the --notebook option."
     )
@@ -83,7 +66,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.all:
-        run_notebooks(args.run_demo_setup, save_output=args.save_output)
-    else:
-        run_notebook(Path(args.notebook), args.run_demo_setup, save_output=args.save_output)
+    # use the notebook given in argument otherwise discover all the client ones
+    notebooks = get_client_notebook_files() if args.all else [args.notebook]
+
+    for file in notebooks:
+        print(f"Running {file.name}.")
+        run_notebook(file, run_demo_setup=args.run_demo_setup, save_output=args.save_output)

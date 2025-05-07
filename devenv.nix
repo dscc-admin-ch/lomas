@@ -998,7 +998,7 @@ in
 
   scripts.run-notebooks.exec = ''
     pushd $DEVENV_ROOT
-    python -m lomas_client.scripts.run_notebook -a -s
+    python -m lomas_client.scripts.run_notebook -a -s -d
     popd
   '';
 

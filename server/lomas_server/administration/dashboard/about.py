@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 
 import streamlit as st
 from st_pages import Page, show_pages
@@ -79,9 +79,8 @@ def main() -> None:
 if __name__ == "__main__":
     # We add the src directory to the python search path
     # Required if the code is not installed as a package via pip/setuptools
-    admin_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
-    sys.path.append(admin_dir)
-    src_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
-    sys.path.append(src_dir)
+    admin_dir = Path(__file__).parent.parent
+    src_dir = admin_dir.parent
+    sys.path.extend(map(str, {admin_dir, src_dir}))
 
     main()

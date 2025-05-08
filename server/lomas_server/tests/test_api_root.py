@@ -1,15 +1,16 @@
 import os
 import unittest
+from pathlib import Path
 
 from opendp.mod import enable_features
 
+from lomas_core.models.config import Config
+from lomas_core.models.constants import AuthenticationType
 from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
-from lomas_server.tests.utils import get_test_dir
-from lomas_server.utils.config import CONFIG_LOADER, get_config
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
@@ -27,20 +28,12 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
     before running while the latter will use a local YamlDatabase.
     """
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        # Read correct config depending on the database we test against
-        CONFIG_LOADER.load_config(
-            config_path=f"{get_test_dir()}/test_configs/test_config_mongo.yaml",
-            secrets_path=f"{get_test_dir()}/test_configs/test_secrets.yaml",
-        )
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        pass
-
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
+
+        # Disable Keycloak for UTs
+        self.previous_auth_method = os.environ.get("lomas_service_authenticator__authentication_type", "")
+        os.environ["lomas_service_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
 
         self.user_name = "Dr.Antartica"
         self.bearer = 'Bearer {"name": "Dr.Antartica", "email": "dr.antartica@penguin_research.org"}'
@@ -51,11 +44,9 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
-        self.mongo_config = get_config().admin_database
+        self.mongo_config = Config().admin_database
 
-        this_file_path = os.path.abspath(__file__)
-        this_file_dir = os.path.dirname(this_file_path)
-        path_prefix = f"{this_file_dir}/test_data"
+        path_prefix = str(Path(__file__).parent / "test_data")
 
         add_users_via_yaml(
             self.mongo_config,
@@ -82,3 +73,5 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
         drop_collection(self.mongo_config, "datasets")
         drop_collection(self.mongo_config, "users")
         drop_collection(self.mongo_config, "queries_archives")
+        # reset env
+        os.environ["lomas_service_authenticator__authentication_type"] = self.previous_auth_method

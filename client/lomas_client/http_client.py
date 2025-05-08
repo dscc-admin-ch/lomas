@@ -9,81 +9,27 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from requests_oauthlib import OAuth2Session
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
+from lomas_client.models.config import ClientConfig
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
 
-# pylint: disable=R0903
 class LomasHttpClient:
     """A client for interacting with the Lomas API."""
 
-    def __init__(
-        self,
-        url: str,
-        dataset_name: str,
-        keycloak_address: str | None = None,
-        keycloak_port: int | None = None,
-        keycloak_use_tls: bool | None = None,
-        realm: str | None = None,
-        client_id: str | None = None,
-        client_secret: str | None = None,
-    ) -> None:
-        """Initializes the HTTP client with the specified URL, dataset name and authentication parameters.
+    def __init__(self, config: ClientConfig) -> None:
+        """Initializes the HTTP client with the specified URL, dataset name and authentication parameters."""
+        if config.telemetry.enabled:
+            RequestsInstrumentor().instrument()
 
-        Args:
-            url (str): The base URL for the API server.
-            dataset_name (str): The name of the dataset to be accessed or manipulated.
-            keycloak_address (str, optional): Overwrites the keycloak address (otherwise passed by
-                environment variable). Defaults to None.
-            keycloak_port (str, optional): Overwrites the keycloak port (otherwise passed by
-                environment variable). Defaults to None.
-            keycloak_use_tls (bool, optional): Overwrites keycloak use_tls (otherwise passed by
-                environment variable). Defaults to None.
-            realm (str, optional): Overwrites the realm (otherwise passed by environment variable),
-                if using jwt authentication. Defaults to None.
-            client_id (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable). Defaults to None.
-            client_secret (str, optional): Overwrites the client id of the user's associated service account
-                (otherwise passed by environment variable). Defaults to None.
-        """
-        RequestsInstrumentor().instrument()
-
-        self.url = url
-        self.dataset_name = dataset_name
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
+        self.config = config
 
-        # TODO with issue 407: move these into config.
-        client_id = client_id or os.getenv("LOMAS_CLIENT_ID")
-        client_secret = client_secret or os.getenv("LOMAS_CLIENT_SECRET")
-        keycloak_address = keycloak_address or os.getenv("LOMAS_KEYCLOAK_ADDRESS")
-        env_keycloak_port = os.getenv("LOMAS_KEYCLOAK_PORT")
-        keycloak_port = keycloak_port or (int(env_keycloak_port) if env_keycloak_port else None)
-        env_keycloak_no_tls = os.getenv("LOMAS_KEYCLOAK_USE_TLS") not in ["1", "True", "true"]
-        keycloak_use_tls = keycloak_use_tls or not env_keycloak_no_tls
-        realm = realm or os.getenv("LOMAS_REALM")
-
-        if any(
-            x is None
-            for x in [client_id, client_secret, keycloak_address, keycloak_port, keycloak_use_tls, realm]
-        ):
-            raise ValueError(
-                "Missing one of client_id, client_secret, keycloak_address, keycloak_port"
-                "keycloak_protocol or realm when using jwt authentication method."
-                "If you are using this library from a managed environment and don't know "
-                "about your credentials, please contact your system administrator."
-            )
-
-        if not keycloak_use_tls:
+        if not self.config.keycloak_use_tls:
+            logging.info("Keycloak configured without TLS -> using oauthlib insecure transport")
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-        self._client_id = client_id
-        self._client_secret = client_secret
-        oauth_client = BackendApplicationClient(client_id=self._client_id)
+        oauth_client = BackendApplicationClient(client_id=self.config.client_id)
         self._oauth2_session = OAuth2Session(client=oauth_client)
-        url_protocol = "https" if keycloak_use_tls else "http"
-        self._token_endpoint = (
-            f"{url_protocol}://{keycloak_address}:"
-            f"{keycloak_port}/realms/{realm}/protocol/openid-connect/token"
-        )
 
         # Fetch first token:
         self._fetch_token()
@@ -91,7 +37,9 @@ class LomasHttpClient:
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(
-            self._token_endpoint, client_id=self._client_id, client_secret=self._client_secret
+            self.config.token_endpoint,
+            client_id=self.config.client_id,
+            client_secret=self.config.client_secret,
         )
 
     def post(
@@ -119,15 +67,15 @@ class LomasHttpClient:
         """
 
         logging.info(
-            f"User (with client id '{self._client_id}') is making a request "
-            + f"to url '{self.url}' "
+            f"User (with client id '{self.config.client_id}') is making a request "
+            + f"to url '{self.config.app_url}' "
             + f"at the endpoint '{endpoint}' "
             + f"with query params: {body.model_dump()}."
         )
 
         try:
             r = self._oauth2_session.post(
-                self.url + "/" + endpoint,
+                f"{self.config.app_url}/{endpoint}",
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
@@ -137,7 +85,7 @@ class LomasHttpClient:
             # Retry with new token
             self._fetch_token()
             r = self._oauth2_session.post(
-                self.url + "/" + endpoint,
+                f"{self.config.app_url}/{endpoint}",
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
@@ -152,13 +100,13 @@ class LomasHttpClient:
 
             try:
                 job_query = self._oauth2_session.get(
-                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
                 ).json()
             except TokenExpiredError:
                 # This also catches if there is no token at first try.
                 self._fetch_token()
                 job_query = self._oauth2_session.get(
-                    f"{self.url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
                 ).json()
 
             if job_query["status"] == "complete":

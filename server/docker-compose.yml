@@ -9,22 +9,15 @@ services:
     ports:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
-    environment:
-      - SERVER_SERVICE_NAME=lomas-server-app
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_PYTHON_LOG_CORRELATION=true
-      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-      - LOMAS_AMQP_USER=${LOMAS_AMQP_USER}
-      - LOMAS_AMQP_PASS=${LOMAS_AMQP_PASS}
-      - LOMAS_AMQP_ADDR=${LOMAS_AMQP_DOCKER_ADDR}
-      - LOMAS_AMQP_PORT=${LOMAS_RABBIT_MQ_PORT}
+    env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
     depends_on:
+      rabbitmq:
+        condition: service_started
       minio-client:
         condition: service_completed_successfully
         restart: true
@@ -33,12 +26,21 @@ services:
         restart: true
       otel-collector:
         condition: service_started
+      tempo:
+        condition: service_started
+      loki:
+        condition: service_started
       keycloak:
         condition: service_started
         restart: true
       keycloak_setup:
         condition: service_completed_successfully
         restart: true
+      lomas_demo_setup:
+        condition: service_completed_successfully
+        restart: true
+      lomas_worker:
+        condition: service_started
     networks:
       - lomas-network
 
@@ -51,21 +53,13 @@ services:
     container_name: lomas_worker_dev
     restart: always
     command: "python -m lomas_server.worker"
-    environment:
-      - SERVER_SERVICE_NAME=lomas-worker-app
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_PYTHON_LOG_CORRELATION=true
-      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-      - LOMAS_AMQP_USER=${LOMAS_AMQP_USER}
-      - LOMAS_AMQP_PASS=${LOMAS_AMQP_PASS}
-      - LOMAS_AMQP_ADDR=${LOMAS_AMQP_DOCKER_ADDR}
-      - LOMAS_AMQP_PORT=${LOMAS_RABBIT_MQ_PORT}
+    env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
+      - ./data/datasets:/data/datasets/
     depends_on:
       minio-client:
         condition: service_completed_successfully
@@ -94,9 +88,9 @@ services:
       - ${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
       - ${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
     environment:
-      - RABBITMQ_DEFAULT_USER=${LOMAS_AMQP_USER}
-      - RABBITMQ_DEFAULT_PASS=${LOMAS_AMQP_PASS}
-      - RABBITMQ_NODE_PORT=${LOMAS_AMQP_PORT}
+      - RABBITMQ_DEFAULT_USER=${LOMAS_RABBIT_MQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${LOMAS_RABBIT_MQ_PASS}
+      - RABBITMQ_NODE_PORT=${LOMAS_RABBIT_MQ_PORT}
     networks:
       - lomas-network
 
@@ -140,7 +134,7 @@ services:
       - MONGODB_URI=mongodb://${LOMAS_MONGO_ROOT_USER}:${LOMAS_MONGO_ROOT_PWD}@mongodb:${LOMAS_MONGO_PORT}
     depends_on:
       - mongodb
-  
+
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:26.1.0
@@ -198,7 +192,7 @@ services:
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/
-      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
+      - ./data/collections/dataset_collection_docker_compose.yaml:/data/collections/dataset_collection.yaml
       - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
     networks:
       - lomas-network
@@ -215,8 +209,6 @@ services:
       - MINIO_ROOT_PASSWORD=${LOMAS_MINIO_ROOT_PWD}
       - MINIO_ADDRESS=:${LOMAS_MINIO_PORT}
       - MINIO_CONSOLE_ADDRESS=:${LOMAS_MINIO_CONSOLE_PORT}
-    #volumes:
-      #- minio-data:/data
     networks:
       - lomas-network
 
@@ -247,6 +239,7 @@ services:
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
+    env_file: ./configs/administration/.env.lomas_demo_setup
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
@@ -263,16 +256,14 @@ services:
     networks:
       - lomas-network
 
-  client:
+  lomas_client:
     image: dsccadminch/lomas_client_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_client_dev
       context: ../
     container_name: lomas_client
-    environment:
-      - CLIENT_SERVICE_NAME=lomas-client
-      - OTEL_COLLECTOR_ENDPOINT=http://otel-collector:${LOMAS_OTEL_PORT}
+    env_file: ./configs/.env.lomas_client
     command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}

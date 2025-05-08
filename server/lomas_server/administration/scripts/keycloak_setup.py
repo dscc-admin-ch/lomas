@@ -2,6 +2,7 @@ import logging
 import os
 
 from mantelo import HttpException, KeycloakAdmin
+from pydantic import HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,9 +17,7 @@ class Config(BaseSettings):
         case_sensitive=False,
     )
 
-    keycloak_address: str
-    keycloak_port: int
-    keycloak_use_tls: bool
+    keycloak_url: HttpUrl
     keycloak_authentication_realm: str
     keycloak_admin_client_id: str
     keycloak_admin_user: str
@@ -34,6 +33,12 @@ class Config(BaseSettings):
 
     overwrite_realm: bool = True
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def keycloak_use_tls(self) -> bool:
+        """Using TLS ?"""
+        return self.keycloak_url.scheme == "https"
+
 
 def get_admin_session(config: Config) -> KeycloakAdmin:
     """Returns a keycloak admin session using the.
@@ -44,10 +49,9 @@ def get_admin_session(config: Config) -> KeycloakAdmin:
     Returns:
         KeycloakAdmin: KeycloakAdmin session.
     """
-    url_protocol = "https" if config.keycloak_use_tls else "http"
 
     return KeycloakAdmin.from_username_password(
-        server_url=f"{url_protocol}://{config.keycloak_address}:{config.keycloak_port}",
+        server_url=config.keycloak_url,
         realm_name=config.keycloak_authentication_realm,
         client_id=config.keycloak_admin_client_id,
         username=config.keycloak_admin_user,
@@ -134,24 +138,20 @@ def create_confidential_client(
     )
 
     # Fetch service account uid
-    lomas_admin_uid = kc_admin.clients.get(clientId="lomas_admin")[0]["id"]  # type: ignore
-    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin_uid).service_account_user.get()[
-        "id"  # type: ignore
-    ]
+    lomas_admin_uid = kc_admin.clients.get(clientId="lomas_admin")[0]["id"]
+    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin_uid).service_account_user.get()["id"]
 
     for client, roles_list in roles.items():
         # Fetch realm management and manage-clients role uids
-        client_uid = kc_admin.clients.get(clientId=client)[0]["id"]  # type: ignore
+        client_uid = kc_admin.clients.get(clientId=client)[0]["id"]
 
         # Create role config for user and client combination
         roles_to_add = []
         for role in roles_list:
-            role_uid = kc_admin.clients(client_uid).roles(role).get()["id"]  # type: ignore
+            role_uid = kc_admin.clients(client_uid).roles(role).get()["id"]
             roles_to_add.append({"id": role_uid, "name": role})
 
-        kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(
-            roles_to_add  # type: ignore
-        )
+        kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(roles_to_add)
 
     logging.info("Created new confidential client.")
 

@@ -8,7 +8,6 @@ data:
   runtime.yaml: |
     runtime_args:
       settings:
-        develop_mode: {{ .Values.server.runtime_args.settings.develop_mode }}
         submit_limit: {{ .Values.server.runtime_args.settings.submit_limit }}
         server:
             {{- toYaml .Values.server.runtime_args.settings.server | nindent 10 }}
@@ -34,4 +33,4 @@ data:
             floating_point: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.floating_point }}
             honest_but_curious: {{ .Values.server.runtime_args.settings.dp_libraries.opendp.honest_but_curious }}
         private_db_credentials: {{ .Values.server.runtime_args.settings.private_db_credentials }}
-      
+

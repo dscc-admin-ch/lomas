@@ -58,7 +58,7 @@ class DiffPrivLibClient:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,
@@ -117,7 +117,7 @@ class DiffPrivLibClient:
             Optional[Pipeline]: A trained DiffPrivLip pipeline
         """
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "diffprivlib_json": serialise_pipeline(pipeline),
             "feature_columns": feature_columns,
             "target_columns": target_columns,

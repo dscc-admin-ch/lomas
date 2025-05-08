@@ -1,15 +1,27 @@
+import os
+from io import BytesIO
 from unittest.mock import patch
 
+import mongomock
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from lomas_core.models.config import AdminConfig as DashboardConfig
 from lomas_core.models.constants import (
     PrivateDatabaseType,
 )
-from lomas_server.administration.dashboard.config import Config as DashboardConfig
-from lomas_server.administration.tests.utils import get_mocked_db, load_mock_file
-from lomas_server.utils.config import CONFIG_LOADER
-from lomas_server.utils.config import get_config as get_server_config
+
+
+def load_mock_file(file_path: str) -> BytesIO:
+    """
+    Loads the YAML content from a given file path and returns a.
+
+    mock BytesIO file-like object.
+    """
+    with open(file_path, "rb") as file:
+        mock_file = BytesIO(file.read())
+        mock_file.name = os.path.basename(file_path)
+    return mock_file
 
 
 @pytest.fixture
@@ -18,10 +30,10 @@ def mock_mongodb_and_helpers():
     with (
         patch("lomas_server.admin_database.utils.get_mongodb") as mock_get_mongodb,
         patch("streamlit.file_uploader") as mock_file_uploader,
-        patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
+        patch("lomas_core.models.config.AdminConfig") as mock_get_config,
     ):
 
-        mock_get_mongodb.return_value = get_mocked_db()
+        mock_get_mongodb.return_value = mongomock.MongoClient()["test_db"]
         mock_file_path = "../data/collections/metadata/iris_metadata.yaml"
         mock_file = load_mock_file(mock_file_path)
         mock_file_uploader.return_value = mock_file
@@ -31,15 +43,9 @@ def mock_mongodb_and_helpers():
             "mock_file_uploader": mock_file_uploader,
         }
 
-        # Overwrite server config
-        CONFIG_LOADER.load_config(
-            config_path="tests/test_configs/test_config_mongo.yaml",
-            secrets_path="tests/test_configs/test_secrets.yaml",
-        )
-
         # Mock dashboard config
         dashboard_config = {
-            "mg_config": get_server_config().admin_database,
+            "mg_config": DashboardConfig().mg_config,
             "kc_config": None,
             "server_url": "example.com",
             "server_service": "http://localhost:8000",

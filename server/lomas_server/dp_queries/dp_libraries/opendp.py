@@ -16,7 +16,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.models.config import OpenDPConfig
+from lomas_core.models.constants import OpenDPFeatures
 from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -66,7 +66,7 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
                 f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
             )
 
-        series_type = OPENDP_TYPE_MAPPING[series_type]  # type: ignore
+        series_type = OPENDP_TYPE_MAPPING[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
         series_nullable = "nullable" in series_info
@@ -451,7 +451,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     return measurement
 
 
-def set_opendp_features_config(opendp_config: OpenDPConfig) -> None:
+def set_opendp_features_config(features: OpenDPFeatures) -> None:
     """Enable opendp features based on config.
 
     See https://github.com/opendp/opendp/discussions/304
@@ -459,18 +459,10 @@ def set_opendp_features_config(opendp_config: OpenDPConfig) -> None:
     Also sets the "OPENDP_POLARS_LIB_PATH" environment variable
     for correctly creating private lazyframes from deserialized
     polars plans.
-
-    Args:
-        opendp_config (OpenDPConfig): OpenDP configurations
     """
-    if opendp_config.contrib:
-        enable_features("contrib")
-
-    if opendp_config.floating_point:
-        enable_features("floating-point")
-
-    if opendp_config.honest_but_curious:
-        enable_features("honest-but-curious")
+    for feat in features:
+        logging.debug(f"OpenDP: enabling feature: {feat}")
+        enable_features(feat)
 
     # Set DP Libraries config
     os.environ["OPENDP_LIB_PATH"] = str(lib_path)

@@ -39,9 +39,9 @@ The following utilities are now available in your shell:
 - `ut-coverage` will run tests and coverage.
 - `uv sync --all-extras [-U]` will fix broken/out of sync/missing packages.
 - `uv add <packages>` will add new packages.
-- `run-linter` will run all the Linting suit (isort/black/flake8/pylint/pydocstringformatter/mypy)
+- `run-linter` will run all the Linting suit (black/ruff/pylint/pydocstringformatter/mypy)
 
-Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely isort/black/flake8/pylint).
+Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely black/ruff/pylint).
 
 ## Python package management
 
@@ -60,11 +60,11 @@ Activating the devenv already activates the python venv with uv.
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that are performed by the `run-linter` command:
 
 - **Code Formatting:** We use `black` to automatically format the code.
-- **Code Style and Static Analysis**: We use flake8 to verify formatting and perform static code.
+- **Code Style and Static Analysis**: We use ruff to verify formatting and perform static code.
 - **Static Type Checking**: We use mypy for static type checking. Note that both the server and the client have their own pyproject.toml files with configs to ignore specific warnings.
 - **Additional Static Analysis**: We use pylint for further static analysis. Note that both the server and the client have their own config in their respective pyproject.toml files to ignore specific warnings.
 - **Automatic docstring linter formatting**: We use pydocstringformatter for automatically formatting docstring following PEP257 recommandations.
-- **Import statement reordering**: We use isort to perform this task.
+- **Import statement reordering**: We use ruff to perform this task.
 
 There should be no error or warning when calling `run-linter`, otherwise the linting github action will fail. All configurations are in
 

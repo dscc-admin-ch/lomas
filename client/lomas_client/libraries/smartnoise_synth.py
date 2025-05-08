@@ -79,7 +79,7 @@ class SmartnoiseSynthClient:
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,
@@ -167,7 +167,7 @@ class SmartnoiseSynthClient:
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,

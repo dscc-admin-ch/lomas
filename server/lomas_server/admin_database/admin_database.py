@@ -14,7 +14,7 @@ from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
 
-def user_must_exist(func: Callable) -> Callable:  # type: ignore
+def user_must_exist(func: Callable) -> Callable:
     """
     Decorator function to verify that a user exists.
 
@@ -43,7 +43,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     return wrapper_decorator
 
 
-def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
+def dataset_must_exist(func: Callable) -> Callable:
     """
     Decorator function to verify that a dataset exists.
 
@@ -75,7 +75,7 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
 
 def user_must_have_access_to_dataset(
     func: Callable,
-) -> Callable:  # type: ignore
+) -> Callable:
     """
     Decorator function to enforce a user has access to a dataset.
 

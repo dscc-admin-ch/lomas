@@ -8,6 +8,7 @@
 
 let
   toYAML = lib.generators.toYAML { };
+  toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
@@ -36,7 +37,6 @@ let
   rabbitmq_pass = "guest";
 
   # Keycloak
-  kc_use_tls = "false"; # True not supported in devenv/docker compose
   kc_auth_realm = "master";
   kc_admin_client_id = "admin-cli";
   kc_setup_admin_user = "admin";
@@ -88,125 +88,70 @@ let
   otlp_metrics_port = 29090;
   mongodb_exporter_addr = "localhost";
   mongodb_exporter_port = 19216;
-
-  lomas_config = writeYAML "test_config.yaml" {
-    runtime_args = {
-      settings = {
-        develop_mode = false;
-        submit_limit = 300;
-        server = {
-          host_ip = "0.0.0.0";
-          host_port = lomas_port;
-          log_level = "info";
-          reload = true;
-          workers = 1;
-          time_attack = {
-            method = "jitter";
-            magnitude = 1;
-          };
-        };
-        admin_database = {
-          db_type = "mongodb";
-          address = mongo_addr;
-          port = mongo_port;
-          db_name = mongo_db_name;
-          max_pool_size = mongo_max_pool_size;
-          min_pool_size = mongo_min_pool_size;
-          max_connecting = mongo_max_connecting;
-        };
-        authenticator = {
-          authentication_type = "jwt";
-          keycloak_address = "localhost";
-          keycloak_port = kc_http_port;
-          keycloak_use_tls = false;
-          realm = "lomas";
-        };
-        dp_libraries = {
-          opendp = {
-            contrib = true;
-            floating_point = true;
-            honest_but_curious = true;
-          };
-        };
-      };
-    };
-  };
-
-  lomas_secrets = writeYAML "test_secrets.yaml" {
-    admin_database = {
-      password = mongo_password;
-      username = mongo_user;
-    };
-    private_db_credentials = [
-      {
-        credentials_name = "local_minio";
-        db_type = "S3_DB";
-        access_key_id = minio_root_user;
-        secret_access_key = minio_root_pwd;
-      }
-    ];
-  };
-
-  lomas_dashboard = writeYAML "dashboard.yaml" {
-    server_service = "http://localhost:${toString lomas_port}";
-    server_url = "CakeMightBeALie.ch";
-  };
-
-  lomas_logging = writeYAML "logging.json" {
-    version = 1;
-    disable_existing_loggers = false;
-    formatters.simple.format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s";
-    handlers.stdout = {
-      class = "logging.StreamHandler";
-      level = "DEBUG";
-      formatter = "simple";
-      stream = "ext://sys.stdout";
-    };
-    root = {
-      level = "DEBUG";
-      handlers = [ "stdout" ];
-    };
-    loggers = {
-      "pymongo.command".level = "INFO";
-      "pymongo.topology".level = "INFO";
-      "pymongo.connection".level = "INFO";
-      "pymongo.serverSelection".level = "INFO";
-
-      "aiormq.connection".level = "INFO";
-      "aiormq.channel".level = "INFO";
-      "aio_pika.exchange".level = "DEBUG";
-
-      "urllib3".level = "INFO";
-
-      "botocore".level = "INFO";
-      "botocore.endpoint".level = "DEBUG";
-
-      "faker".level = "WARN";
-    };
-  };
 in
 {
+  overlays = import ./devenv/overlays.nix;
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
-    TELEMETRY = 1;
-    LOMAS_CONFIG_PATH = "${lomas_config}";
-    LOMAS_SECRETS_PATH = "${lomas_secrets}";
-    LOMAS_DASHBOARD_CONFIG_PATH = "${lomas_dashboard}";
-    LOMAS_LOGGING_CONFIG = "${lomas_logging}";
-    LOMAS_AMQP_USER = rabbitmq_user;
-    LOMAS_AMQP_PASS = rabbitmq_pass;
-    LOMAS_AMQP_ADDR = rabbitmq_addr;
-    LOMAS_AMQP_PORT = rabbitmq_port;
     KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
     KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
     KC_BOOTSTRAP_ADMIN_USERNAME = kc_setup_admin_pwd;
     KC_BOOTSTRAP_ADMIN_PASSWORD = kc_setup_admin_user;
 
+    # Pydantic note:
+    # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.
+
+    # Lomas Server Runtime
+    LOMAS_SERVICE_server__host_ip = "0.0.0.0";
+    LOMAS_SERVICE_server__host_port = lomas_port;
+    LOMAS_SERVICE_server__log_level = "info";
+    LOMAS_SERVICE_server__reload = "true";
+    LOMAS_SERVICE_server__submit_limit = 300;
+    LOMAS_SERVICE_server__time_attack__method = "jitter";
+    LOMAS_SERVICE_server__time_attack__magnitude = 1;
+
+    LOMAS_SERVICE_amqp__url = "amqp://${rabbitmq_addr}:${toString rabbitmq_port}";
+    LOMAS_SERVICE_amqp__username = rabbitmq_user;
+    LOMAS_SERVICE_amqp__password = rabbitmq_pass;
+    LOMAS_SERVICE_opendp_features = toPydanticSetting [
+      "contrib"
+      "floating-point"
+      "honest-but-curious"
+    ];
+    LOMAS_SERVICE_admin_database__url = "mongodb://${mongo_addr}:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_SERVICE_admin_database__username = mongo_user;
+    LOMAS_SERVICE_admin_database__password = mongo_password;
+    LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
+    LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
+    LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
+    LOMAS_SERVICE_authenticator__authentication_type = "jwt";
+    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString kc_http_port}";
+    LOMAS_SERVICE_authenticator__realm = lomas_realm;
+    LOMAS_SERVICE_private_db_credentials__0__credentials_name = "minio";
+    LOMAS_SERVICE_private_db_credentials__0__db_type = "S3_DB";
+    LOMAS_SERVICE_private_db_credentials__0__access_key_id = minio_root_user;
+    LOMAS_SERVICE_private_db_credentials__0__secret_access_key = minio_root_pwd;
+
+    LOMAS_SERVICE_telemetry__enabled = "false";
+    LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
+    LOMAS_SERVICE_telemetry__service_id = "default-host";
+    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";
+    LOMAS_SERVICE_telemetry__collector_insecure = "true";
+
+    # Lomas client environment
+    LOMAS_CLIENT_KEYCLOAK_URL = "http://${kc_hostname}:${toString kc_http_port}";
+    LOMAS_CLIENT_REALM = lomas_realm;
+    LOMAS_CLIENT_APP_URL = "http://localhost:${toString lomas_port}";
+
+    LOMAS_CLIENT_telemetry__enabled = "false";
+    LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
+    LOMAS_CLIENT_telemetry__service_id = "default-host";
+    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";
+    LOMAS_CLIENT_telemetry__collector_insecure = "true";
+
     # Keycloak setup
-    LOMAS_KC_SETUP_KEYCLOAK_ADDRESS = kc_hostname;
-    LOMAS_KC_SETUP_KEYCLOAK_PORT = kc_http_port;
-    LOMAS_KC_SETUP_KEYCLOAK_USE_TLS = kc_use_tls;
+    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${kc_hostname}:${toString kc_http_port}";
     LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = kc_setup_admin_user;
@@ -219,14 +164,12 @@ in
     LOMAS_KC_SETUP_OVERWRITE_REALM = kc_setup_overwrite_realm;
 
     # Lomas demo setup
-    LOMAS_ADMIN_MG_CONFIG__ADDRESS = "localhost";
-    LOMAS_ADMIN_MG_CONFIG__PORT = mongo_port;
-    LOMAS_ADMIN_MG_CONFIG__USERNAME = mongo_user;
-    LOMAS_ADMIN_MG_CONFIG__PASSWORD = mongo_password;
-    LOMAS_ADMIN_MG_CONFIG__DB_NAME = mongo_db_name;
-    LOMAS_ADMIN_KC_CONFIG__ADDRESS = kc_hostname;
-    LOMAS_ADMIN_KC_CONFIG__PORT = kc_http_port;
-    LOMAS_ADMIN_KC_CONFIG__USE_TLS = kc_use_tls;
+    LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
+    LOMAS_ADMIN_MG_CONFIG__url = "mongodb://localhost:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_ADMIN_MG_CONFIG__username = mongo_user;
+    LOMAS_ADMIN_MG_CONFIG__password = mongo_password;
+    LOMAS_ADMIN_KC_CONFIG__URL = "http://${kc_hostname}:${toString kc_http_port}";
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = lomas_admin_client_secret;
@@ -270,13 +213,6 @@ in
     enable = true;
     venv.enable = true;
     uv.enable = true;
-    uv.sync = {
-      enable = true;
-      arguments = [
-        "--frozen"
-        "--all-extras"
-      ];
-    };
   };
 
   devcontainer.enable = true;
@@ -323,6 +259,7 @@ in
     exec = "python uvicorn_serve.py";
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
+      depends_on.mongodb.condition = "process_healthy";
     };
   };
 
@@ -360,26 +297,15 @@ in
   # MONGODB #
   ###########
 
-  # Current SSPL license of MongoDB is, debatably, not tagged as 'free' in upstream nixpkgs
-  services.mongodb =
-    let
-      pkgs_sspl = import inputs.nixpkgs {
-        inherit (pkgs.stdenv) system;
-        config = pkgs.config // {
-          allowlistedLicenses = [ lib.licenses.sspl ];
-        };
-      };
-    in
-    {
-      enable = true;
-      package = pkgs_sspl.mongodb-ce;
-      additionalArgs = [
-        "--port"
-        (toString mongo_port)
-      ];
-      initDatabaseUsername = "root";
-      initDatabasePassword = "root_pwd";
-    };
+  services.mongodb = {
+    enable = true;
+    additionalArgs = [
+      "--port"
+      (toString mongo_port)
+    ];
+    initDatabaseUsername = "root";
+    initDatabasePassword = "root_pwd";
+  };
 
   processes.mongodb.process-compose = {
     readiness_probe = {
@@ -587,6 +513,8 @@ in
       afterStart = ''
         mc cp ${./server/lomas_server/tests/test_data/test_penguin.csv} myminio/example/data/test_penguin.csv
         mc cp ${./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml}  myminio/example/metadata/penguin_metadata.yaml
+        mc cp ${./server/data/datasets/titanic.csv} myminio/example/data/titanic.csv
+        mc cp ${./server/data/collections/metadata/titanic_metadata.yaml}  myminio/example/metadata/titanic_metadata.yaml
         mc ls --recursive --versions myminio/example
       '';
       # Configure myminio alias
@@ -811,10 +739,32 @@ in
   # GIT HOOKS #
   #############
 
-  git-hooks.hooks = import ./devenv/hooks.nix { env = config.env; };
+  git-hooks.hooks = import ./devenv/hooks.nix {
+    inherit pkgs;
+    env = config.env;
+  };
 
   enterShell = ''
     echo hello from $GREET
+
+    UV_SYNC_COMMAND=(uv sync --frozen --all-extras)
+
+    # Avoid running "uv sync" for every shell. Only run it when the "pyproject.toml" file or Python interpreter has changed.
+    [[ -f "$UV_PROJECT_ENVIRONMENT/.devenv_interpreter" ]] && read -r PYTHON_INTERPRETER < "$UV_PROJECT_ENVIRONMENT/.devenv_interpreter" || PYTHON_INTERPRETER=""
+
+    ACTUAL_UV_CHECKSUM="''${PYTHON_INTERPRETER}:$(${pkgs.nix}/bin/nix-hash --type sha256 pyproject.toml):''${UV_SYNC_COMMAND[@]}"
+    UV_CHECKSUM_FILE="$UV_PROJECT_ENVIRONMENT/uv.sync.checksum"
+
+    [[ -f "$UV_CHECKSUM_FILE" ]] && read -r EXPECTED_UV_CHECKSUM < "$UV_CHECKSUM_FILE" || EXPECTED_UV_CHECKSUM=""
+
+    if [ "$ACTUAL_UV_CHECKSUM" != "$EXPECTED_UV_CHECKSUM" ]; then
+      if "''${UV_SYNC_COMMAND[@]}"; then
+        echo "$ACTUAL_UV_CHECKSUM" > "$UV_CHECKSUM_FILE"
+      else
+        echo "uv sync failed. Run 'uv sync' manually." >&2
+        exit 1
+      fi
+    fi
   '';
 
   #########
@@ -840,10 +790,8 @@ in
         # RabbitMQ
         LOMAS_RABBIT_MQ_PORT=${toString rabbitmq_port}
         LOMAS_RABBIT_MQ_MGMT_PORT=${toString rabbitmq_mgmt_port}
-        LOMAS_AMQP_USER=${rabbitmq_user}
-        LOMAS_AMQP_PASS=${rabbitmq_pass}
-        # We use a different name here not to conflict with devenv environment.
-        LOMAS_AMQP_DOCKER_ADDR="rabbitmq"
+        LOMAS_RABBIT_MQ_USER=${rabbitmq_user}
+        LOMAS_RABBIT_MQ_PASS=${rabbitmq_pass}
 
         # MongoDB
         LOMAS_MONGO_PORT=${toString mongo_port}
@@ -870,53 +818,80 @@ in
       '';
     };
 
-    "filegen:env_docker_compose_kc_setup" = {
-      before = [ "devenv:enterShell" ];
-      exec = ''
-        cat > $DEVENV_ROOT/server/configs/administration/.env.keycloak_setup <<EOF
-        # This file was autogenerated by devenv
+    "filegen:env_docker_compose_service" =
+      let
+        kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
+        kcEnvVarFinal = kcEnvVar // {
+          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq_port}";
+          LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString kc_http_port}";
+          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
+        };
+      in
+      {
+        before = [ "devenv:enterShell" ];
+        exec = ''
+          cat > $DEVENV_ROOT/server/configs/.env.lomas_service <<EOF
+          # This file was autogenerated by devenv
+          ${lib.generators.toKeyValue { } kcEnvVarFinal}
+          EOF
+        '';
+      };
 
-        LOMAS_KC_SETUP_KEYCLOAK_ADDRESS=keycloak
-        LOMAS_KC_SETUP_KEYCLOAK_PORT=${toString kc_http_port}
-        LOMAS_KC_SETUP_KEYCLOAK_USE_TLS=${kc_use_tls}
-        LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM=${kc_auth_realm}
-        LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID=${kc_admin_client_id}
-        LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER=${kc_setup_admin_user}
-        LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD=${kc_setup_admin_pwd}
-        LOMAS_KC_SETUP_LOMAS_REALM=${lomas_realm}
-        LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID=${lomas_admin_client_id}
-        LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET=${lomas_admin_client_secret}
-        LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID=${lomas_api_client_id}
-        LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET=${lomas_api_client_secret}
-        LOMAS_KC_SETUP_OVERWRITE_REALM=${kc_setup_overwrite_realm}
+    "filegen:env_docker_compose_client" =
+      let
+        kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_CLIENT_" name) config.env;
+        kcEnvVarFinal = kcEnvVar // {
+          LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString lomas_port}";
+          LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString kc_http_port}";
+          LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
+        };
+      in
+      {
+        before = [ "devenv:enterShell" ];
+        exec = ''
+          cat > $DEVENV_ROOT/server/configs/.env.lomas_client <<EOF
+          # This file was autogenerated by devenv
+          ${lib.generators.toKeyValue { } kcEnvVarFinal}
+          EOF
+        '';
+      };
 
-        EOF
-      '';
-    };
+    "filegen:env_docker_compose_kc_setup" =
+      let
+        kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_KC_" name) config.env;
+        kcEnvVarFinal = kcEnvVar // {
+          LOMAS_KC_SETUP_KEYCLOAK_URL = "http://keycloak:${toString kc_http_port}";
+        };
+      in
+      {
+        before = [ "devenv:enterShell" ];
+        exec = ''
+          cat > $DEVENV_ROOT/server/configs/administration/.env.keycloak_setup <<EOF
+          # This file was autogenerated by devenv
+          ${lib.generators.toKeyValue { } kcEnvVarFinal}
+          EOF
+        '';
+      };
 
-    "filegen:env_docker_compose_admin" = {
-      before = [ "devenv:enterShell" ];
-      exec = ''
-        cat > $DEVENV_ROOT/server/configs/administration/.env.lomas_demo_setup <<EOF
-        # This file was autogenerated by devenv
-
-        LOMAS_ADMIN_MG_CONFIG__ADDRESS=mongodb
-        LOMAS_ADMIN_MG_CONFIG__PORT=${toString mongo_port}
-        LOMAS_ADMIN_MG_CONFIG__USERNAME=${mongo_user}
-        LOMAS_ADMIN_MG_CONFIG__PASSWORD=${mongo_password}
-        LOMAS_ADMIN_MG_CONFIG__DB_NAME=${mongo_db_name}
-        LOMAS_ADMIN_KC_CONFIG__ADDRESS=keycloak
-        LOMAS_ADMIN_KC_CONFIG__PORT=${toString kc_http_port}
-        LOMAS_ADMIN_KC_CONFIG__USE_TLS=${kc_use_tls}
-        LOMAS_ADMIN_KC_CONFIG__REALM=${lomas_realm}
-        LOMAS_ADMIN_KC_CONFIG__CLIENT_ID=${lomas_admin_client_id}
-        LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET=${lomas_admin_client_secret}
-        LOMAS_ADMIN_PATH_PREFIX="/data"
-        LOMAS_ADMIN_USER_YAML=${user_yaml_path}
-        LOMAS_ADMIN_DATASET_YAML=${dataset_yaml_path}
-        EOF
-      '';
-    };
+    "filegen:env_docker_compose_admin" =
+      let
+        adminVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_ADMIN_" name) config.env;
+        adminVarFinal = adminVar // {
+          LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
+          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_ADMIN_PATH_PREFIX = "/data";
+        };
+      in
+      {
+        before = [ "devenv:enterShell" ];
+        exec = ''
+          cat > $DEVENV_ROOT/server/configs/administration/.env.lomas_demo_setup <<EOF
+          # This file was autogenerated by devenv
+          ${lib.generators.toKeyValue { } adminVarFinal}
+          EOF
+        '';
+      };
 
     "filegen:mongo_init" = {
       before = [ "devenv:enterShell" ];
@@ -974,7 +949,7 @@ in
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml .";
+            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml \${1:-.}";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
@@ -992,18 +967,17 @@ in
       };
     in
     ''
+      path=''${@:-.}
       pushd ${working_dir}
-      echo "Running coverage with patched process-compose config (${pc-config-patch})"
+      echo "Running coverage on $path with patched process-compose config (${pc-config-patch})"
       yq -Poy ${pc-config-patch}
-      process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch}
+      process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch} -- "$path"
       pytest_return=$?
 
       if [ $pytest_return -eq 0 ]; then
         echo "✅ test success -> building coverage"
         # these per-process coverages are generated by coverage run -p <...>
         coverage combine -a .coverage.*
-        coverage report
-        coverage xml -o coverage.xml
       fi
 
       popd
@@ -1012,22 +986,20 @@ in
 
   # TODO Check this is enough and does not need to run the tools independently in every
   scripts.run-linter.exec = ''
-    path=''${@:-.}
-    echo "linting: $path"
     pushd $DEVENV_ROOT
-    isort "$path"
-    black "$path"
-    flake8 "$path"
-    ruff check --fix "$path"
-    pylint "$path"
-    pydocstringformatter "$path"
-    mypy "$path"
+    path=''${@:-.}
+    [[ "$path" = "." ]] || echo "linting: $path"
+    echo -n 🌑; black "$path"
+    echo -n ⚡️; ruff check --fix "$path"
+    echo -n 🐌; pylint "$path"
+    echo -n 🔧; pydocstringformatter "$path"
+    echo -n 🐍; mypy "$path"
     popd
   '';
 
   scripts.run-notebooks.exec = ''
     pushd $DEVENV_ROOT
-    python -m lomas_client.scripts.run_notebooks
+    python -m lomas_client.scripts.run_notebook -a -s -d
     popd
   '';
 
@@ -1060,6 +1032,13 @@ in
   scripts.docker-compose-up.exec = ''
     pushd $DEVENV_ROOT/server/
     docker compose --env-file configs/.env.docker-compose up
+    popd
+  '';
+
+  scripts.docker-compose-test.exec = ''
+    pushd $DEVENV_ROOT/server/
+    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/s3_example_notebook.ipynb
+    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     popd
   '';
 

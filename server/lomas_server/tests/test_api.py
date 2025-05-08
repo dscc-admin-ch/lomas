@@ -4,14 +4,14 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import InternalServerException
-from lomas_core.models.config import DBConfig
+from lomas_core.models.constants import (
+    DUMMY_NB_ROWS,
+)
 from lomas_core.models.exceptions import (
     InvalidQueryExceptionModel,
     UnauthorizedAccessExceptionModel,
 )
 from lomas_core.models.requests_examples import (
-    DUMMY_NB_ROWS,
     PENGUIN_DATASET,
     QUERY_DELTA,
     QUERY_EPSILON,
@@ -27,7 +27,6 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from lomas_server.admin_database.factory import admin_database_factory
 from lomas_server.app import app
 from lomas_server.tests.test_api_root import (
     INITAL_EPSILON,
@@ -39,13 +38,6 @@ from lomas_server.tests.utils import submit_job_wait
 
 class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
     """End-to-end tests of the api endpoints."""
-
-    def test_config_and_internal_server_exception(self) -> None:
-        """Test set wrong configuration."""
-        # Put unknown admin database
-        with self.assertRaises(InternalServerException) as context:
-            admin_database_factory(DBConfig())
-        self.assertEqual(str(context.exception), "Database type not supported.")
 
     def test_root(self) -> None:
         """Test root endpoint redirection to state endpoint."""

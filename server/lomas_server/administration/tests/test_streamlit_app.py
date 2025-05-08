@@ -1,20 +1,16 @@
-import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from lomas_server.administration.dashboard.config import Config as DashboardConfig
-from lomas_server.tests.utils import get_test_dir
-from lomas_server.utils.config import CONFIG_LOADER
-from lomas_server.utils.config import get_config as get_server_config
+from lomas_core.models.config import AdminConfig, Config
 
 
 def test_about_page() -> None:
     """Test display about.py page."""
-    this_file_path = os.path.abspath(__file__)
-    admin_test_dir = os.path.dirname(this_file_path)
-    at = AppTest.from_file(f"{admin_test_dir}/../dashboard/about.py").run()
+    admin_dir = Path(__file__).parent.parent
+    at = AppTest.from_file(f"{admin_dir}/dashboard/about.py").run()
 
     # Check the title
     assert "Welcome!" in at.title[0].value
@@ -39,27 +35,22 @@ def test_about_page() -> None:
 def mock_configs():
     """Fixture to mock server and dashboard configs."""
     with (
-        patch("lomas_server.administration.dashboard.config.get_config") as mock_get_config,
+        patch("lomas_core.models.config.AdminConfig") as mock_get_config,
         patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
         patch("lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config,
     ):
 
-        # Overwrite server config
-        CONFIG_LOADER.load_config(
-            config_path=f"{get_test_dir()}/test_configs/test_config_mongo.yaml",
-            secrets_path=f"{get_test_dir()}/test_configs/test_secrets.yaml",
-        )
         # Mock server config
-        mock_get_server_config.return_value = get_server_config()
+        mock_get_server_config.return_value = Config()
 
         # Mock dashboard config
         dashboard_config = {
-            "mg_config": get_server_config().admin_database,
+            "mg_config": AdminConfig(kc_config=None).mg_config,
             "kc_config": None,
             "server_url": "example.com",
             "server_service": "http://localhost:8000",
         }
-        mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
+        mock_get_config.return_value = AdminConfig(**dashboard_config)
 
         # Mock get server data request
         mock_get_server_data.return_value = {"state": "live"}
@@ -70,9 +61,8 @@ def mock_configs():
 def test_a_server_overview_page(mock_configs) -> None:  # pylint: disable=W0621, W0613
     """Test display a_server_overview.py page."""
 
-    this_file_path = os.path.abspath(__file__)
-    admin_test_dir = os.path.dirname(this_file_path)
-    at = AppTest.from_file(f"{admin_test_dir}/../dashboard/pages/a_server_overview.py").run()
+    admin_dir = Path(__file__).parent.parent
+    at = AppTest.from_file(f"{admin_dir}/dashboard/pages/a_server_overview.py").run()
 
     # Check the title
     assert "Lomas configurations" in at.title[0].value
@@ -92,8 +82,7 @@ def test_a_server_overview_page(mock_configs) -> None:  # pylint: disable=W0621,
 
     # Check Administration Database information
     assert "Administration Database" in at.subheader[1].value
-    assert "The administration database type is: mongodb" in at.markdown[6].value
-    assert "Its address is:  127.0.0.1" in at.markdown[7].value
-    assert "Its port is:  `27017`" in at.markdown[8].value
-    assert "Its username is:  user" in at.markdown[9].value
-    assert "Its database name is:  defaultdb" in at.markdown[10].value
+    assert "Its address is:  localhost" in at.markdown[6].value
+    assert "Its port is:  `27017`" in at.markdown[7].value
+    assert "Its username is:  user" in at.markdown[8].value
+    assert "Its database name is:  defaultdb" in at.markdown[9].value

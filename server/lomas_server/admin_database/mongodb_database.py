@@ -1,11 +1,12 @@
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
-from pymongo.errors import WriteConcernError
+from pymongo.errors import ConnectionFailure, WriteConcernError
 from pymongo.results import _WriteResult
 
-from lomas_core.error_handler import InvalidQueryException
+from lomas_core.error_handler import InternalServerException, InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.admin_database import (
@@ -23,10 +24,34 @@ from lomas_server.utils.metrics import (
 )
 
 
+def get_mongodb(mongo_config: MongoDBConfig) -> Database:
+    """Get MongoClient of the administration MongoDB.
+
+    Args:
+        config (MongoDBConfig): An instance of MongoDBConfig.
+
+    Returns:
+        MongoDBConfig: A client object directly
+
+    Raises:
+        InternalServerException: If the connection to the MongoDB failed.
+    """
+
+    db = MongoClient(mongo_config.url_with_options)[mongo_config.db_name]
+
+    try:
+        # Verify connection to database is possible (credentials verification included)
+        db.list_collection_names()
+    except ConnectionFailure as e:
+        raise InternalServerException("Connection to MongoDB failed.") from e
+
+    return db
+
+
 class AdminMongoDatabase(AdminDatabase):
     """Overall MongoDB database management for server state."""
 
-    def __init__(self, connection_string: str, database_name: str) -> None:
+    def __init__(self, config: MongoDBConfig) -> None:
         """Connect to database.
 
         Args:
@@ -34,7 +59,7 @@ class AdminMongoDatabase(AdminDatabase):
             database_name (str): Mongodb database name.
         """
         PymongoInstrumentor().instrument()
-        self.db: Database = MongoClient(connection_string)[database_name]
+        self.db: Database = get_mongodb(config)
 
     def does_user_exist(self, user_name: str) -> bool:
         """Checks if user exist in the database.
@@ -80,7 +105,7 @@ class AdminMongoDatabase(AdminDatabase):
         """
         MONGO_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
         metadatas = self.db.metadata.find_one({dataset_name: {"$exists": True}})
-        return Metadata.model_validate(metadatas[dataset_name])  # type: ignore
+        return Metadata.model_validate(metadatas[dataset_name])
 
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
@@ -132,7 +157,7 @@ class AdminMongoDatabase(AdminDatabase):
             return_document=ReturnDocument.BEFORE,
         )
 
-        return res["may_query"]  # type: ignore
+        return res["may_query"]
 
     @user_must_exist
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
@@ -229,8 +254,8 @@ class AdminMongoDatabase(AdminDatabase):
             Dataset: The dataset model.
         """
         dataset = self.db.datasets.find_one({"dataset_name": dataset_name})
-        dataset.pop("_id", None)  # type: ignore[union-attr]
-        dataset.pop("id", None)  # type: ignore[union-attr]
+        dataset.pop("_id", None)
+        dataset.pop("id", None)
         return DSInfo.model_validate(dataset)
 
     @user_must_have_access_to_dataset

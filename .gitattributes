@@ -1,0 +1,3 @@
+# linguist-generated: Excluded from stats, hidden in diffs
+*.lock linguist-generated
+**/configs/.env.* linguist-generated

@@ -94,13 +94,6 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
-    LOMAS_APP_URL = "http://localhost:${toString lomas_port}";
-    LOMAS_SERVICE_amqp__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@${rabbitmq_addr}:${toString rabbitmq_port}";
-    LOMAS_SERVICE_opendp_features = toPydanticSetting [
-      "contrib"
-      "floating-point"
-      "honest-but-curious"
-    ];
     KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
     KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
     KC_BOOTSTRAP_ADMIN_USERNAME = kc_setup_admin_pwd;
@@ -118,7 +111,17 @@ in
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
 
-    LOMAS_SERVICE_admin_database__dsn = "mongodb://${mongo_user}:${mongo_password}@${mongo_addr}:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_SERVICE_amqp__url = "amqp://${rabbitmq_addr}:${toString rabbitmq_port}";
+    LOMAS_SERVICE_amqp__username = rabbitmq_user;
+    LOMAS_SERVICE_amqp__password = rabbitmq_pass;
+    LOMAS_SERVICE_opendp_features = toPydanticSetting [
+      "contrib"
+      "floating-point"
+      "honest-but-curious"
+    ];
+    LOMAS_SERVICE_admin_database__url = "mongodb://${mongo_addr}:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_SERVICE_admin_database__username = mongo_user;
+    LOMAS_SERVICE_admin_database__password = mongo_password;
     LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
     LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
     LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
@@ -163,7 +166,9 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
-    LOMAS_ADMIN_MG_CONFIG__DSN = "mongodb://${mongo_user}:${mongo_password}@localhost:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_ADMIN_MG_CONFIG__url = "mongodb://localhost:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_ADMIN_MG_CONFIG__username = mongo_user;
+    LOMAS_ADMIN_MG_CONFIG__password = mongo_password;
     LOMAS_ADMIN_KC_CONFIG__URL = "http://${kc_hostname}:${toString kc_http_port}";
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
@@ -787,9 +792,6 @@ in
         LOMAS_RABBIT_MQ_MGMT_PORT=${toString rabbitmq_mgmt_port}
         LOMAS_RABBIT_MQ_USER=${rabbitmq_user}
         LOMAS_RABBIT_MQ_PASS=${rabbitmq_pass}
-        # We use a different name here not to conflict with devenv environment.
-        LOMAS_AMQP__DSN="amqp://${rabbitmq_user}:${rabbitmq_pass}@rabbitmq:${toString rabbitmq_port}"
-
 
         # MongoDB
         LOMAS_MONGO_PORT=${toString mongo_port}
@@ -820,9 +822,9 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_SERVICE_amqp__dsn = "amqp://${rabbitmq_user}:${rabbitmq_pass}@rabbitmq:${toString rabbitmq_port}";
+          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq_port}";
           LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString kc_http_port}";
-          LOMAS_SERVICE_admin_database__dsn = "mongodb://${mongo_user}:${mongo_password}@mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
           LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
         };
       in
@@ -877,7 +879,7 @@ in
         adminVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_ADMIN_" name) config.env;
         adminVarFinal = adminVar // {
           LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
-          LOMAS_ADMIN_MG_CONFIG__DSN = "mongodb://${mongo_user}:${mongo_password}@mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
           LOMAS_ADMIN_PATH_PREFIX = "/data";
         };
       in

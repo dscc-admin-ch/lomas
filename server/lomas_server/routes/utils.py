@@ -73,7 +73,7 @@ async def rabbitmq_connect_queue(
             )
             return connection
     except TimeoutError:
-        logging.error(f"Couldn't connect to queue {config.amqp.url} in time")
+        logging.error(f"Couldn't connect to queue {config.amqp.base_url} in time")
         sys.exit(Status.EX_UNAVAILABLE)
 
 

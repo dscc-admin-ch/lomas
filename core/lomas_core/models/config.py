@@ -1,6 +1,16 @@
 from typing import Annotated, Literal
 
-from pydantic import AmqpDsn, AnyUrl, BaseModel, ConfigDict, Field, HttpUrl, UrlConstraints, computed_field
+from pydantic import (
+    AmqpDsn,
+    AnyUrl,
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    UrlConstraints,
+    computed_field,
+)
+from pydantic_core import Url
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.constants import (
@@ -34,10 +44,12 @@ class Server(BaseModel):
 class MongoDBConfig(BaseModel):
     """BaseModel for dataset store configs  in case of a  MongoDB database."""
 
-    dsn: Annotated[
+    url: Annotated[
         AnyUrl,
         UrlConstraints(host_required=True, allowed_schemes=["mongodb", "mongodb+srv"], default_port=27017),
     ]
+    username: str
+    password: str
     max_pool_size: int = 100
     min_pool_size: int = 2
     max_connecting: int = 2
@@ -46,17 +58,26 @@ class MongoDBConfig(BaseModel):
     @property
     def db_name(self) -> str:
         """Database name."""
-        return self.dsn.path.strip("/")
+        return self.url.path.strip("/")
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def url_with_options(self) -> str:
         """Construct full DSN including options."""
-        return (
-            f"{self.dsn}?authSource={self.db_name}"
-            f"&maxPoolSize={self.max_pool_size}&minPoolSize={self.min_pool_size}"
-            f"&maxConnecting={self.max_connecting}"
+        dsn = Url.build(
+            scheme=self.url.scheme,
+            username=self.username,
+            password=self.password,
+            host=self.url.host,
+            port=self.url.port,
+            path=self.url.path.strip("/"),
+            query=(
+                f"authSource={self.db_name}"
+                f"&maxPoolSize={self.max_pool_size}&minPoolSize={self.min_pool_size}"
+                f"&maxConnecting={self.max_connecting}"
+            ),
         )
+        return str(dsn)
 
 
 class PrivateDBCredentials(BaseModel):
@@ -95,13 +116,28 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
 class AmqpConfig(BaseSettings):
     """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
 
-    dsn: AmqpDsn
+    url: AmqpDsn
+    username: str
+    password: str
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def url(self) -> AnyUrl:
+    def dsn(self) -> str:
+        """Construct full DSN including credentials."""
+        dsn = Url.build(
+            scheme=self.url.scheme,
+            username=self.username,
+            password=self.password,
+            host=self.url.host,
+            port=self.url.port,
+        )
+        return str(dsn)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def base_url(self) -> str:
         """Queue base URL."""
-        return f"{self.dsn.addr}:{self.dsn.port}"
+        return f"{self.url.addr}:{self.url.port}"
 
 
 class Telemetry(BaseModel):

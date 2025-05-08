@@ -120,7 +120,7 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
 
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
-        logging.info(f" [x] Done ({elapsed:.2f})")
+        logging.warning(f" [x] Done ({elapsed:.2f})")
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
@@ -168,7 +168,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
+        logging.warning(f" [-] KNOWN_EXCEPTIONS ({exc})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
         raise InternalServerException(str(e)) from e
@@ -208,7 +208,7 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return dummy_query_response
     except KNOWN_EXCEPTIONS as exc:
         known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
+        logging.warning(f" [-] KNOWN_EXCEPTIONS ({exc})")
         return known_exc.body, known_exc.status_code
     except Exception as e:
         raise InternalServerException(str(e)) from e

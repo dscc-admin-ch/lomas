@@ -1,6 +1,6 @@
 apiVersion: batch/v1
 kind: Job
-metadata: 
+metadata:
   name: {{ include "lomas.admin.keycloak-setup.fullname" . }}
 spec:
   template:
@@ -31,12 +31,8 @@ spec:
           imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
           command: ["python", "-m", "lomas_server.administration.scripts.keycloak_setup"]
           env:
-            - name: LOMAS_KC_SETUP_KEYCLOAK_ADDRESS
-              value: {{ .Values.keycloak.fullnameOverride }}
-            - name: LOMAS_KC_SETUP_KEYCLOAK_PORT
-              value: {{ .Values.keycloak.service.ports.http | quote }}
-            - name: LOMAS_KC_SETUP_KEYCLOAK_USE_TLS
-              value: {{ .Values.admin.keycloak.use_tls_setup | quote }}
+            - name: LOMAS_KC_SETUP_KEYCLOAK_URL
+              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
             - name: LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM
               value: {{ .Values.keycloak.adminRealm }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID

@@ -189,7 +189,7 @@
                     "type": "object",
                     "properties": {
                         "resourcePolicy": {
-                            "description": "Set this to 'keep' to disable data pvc deletion when uninstalling the chart. Subsequent installs will use the same pvc, restoring the state of the server. Note: if the runtime_args.settings.develop_mode is set to True, the server state will be reset (default datasets and budgets).",
+                            "description": "Set this to 'keep' to disable data pvc deletion when uninstalling the chart. Subsequent installs will use the same pvc, restoring the state of the server. Note: if the runtime_args.develop_mode is set to True, the server state will be reset (default datasets and budgets).",
                             "enum": [
                                 "",
                                 "keep"

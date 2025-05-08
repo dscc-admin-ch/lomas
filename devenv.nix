@@ -70,7 +70,7 @@ let
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
   admin_path_prefix = "${config.devenv.root}/server/data/";
   user_yaml_path = "/collections/user_collection.yaml";
-  dataset_yaml_path = "/collections/dataset_collection.yaml";
+  dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
 
   # Telemetry
   grafanaHost = "localhost";
@@ -137,7 +137,7 @@ in
     LOMAS_SERVICE_private_db_credentials__0__access_key_id = minio_root_user;
     LOMAS_SERVICE_private_db_credentials__0__secret_access_key = minio_root_pwd;
 
-    LOMAS_SERVICE_telemetry__enabled = "false";
+    T = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
     LOMAS_SERVICE_telemetry__service_id = "default-host";
     LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";
@@ -884,6 +884,7 @@ in
         adminVarFinal = adminVar // {
           LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
           LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
           LOMAS_ADMIN_PATH_PREFIX = "/data";
         };
       in

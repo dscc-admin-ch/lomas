@@ -1,9 +1,12 @@
-import unittest
+from dataclasses import dataclass
+from pathlib import Path
 
+import pytest
 import yaml
+from mantelo import KeycloakAdmin
 from pydantic import ValidationError
 
-from lomas_core.models.config import AdminConfig
+from lomas_core.models.config import AdminConfig, KeycloakClientConfig
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
     add_kc_users_via_yaml,
@@ -17,159 +20,150 @@ from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig
 from lomas_server.administration.utils import absolute_path
 
 
-class TestKeycloakAdmin(unittest.TestCase):  # pylint: disable=R0904
-    """
-    Tests for the functions in keycloak_admin.py.
+@dataclass
+class Client:
+    user_name: str = "aria"
+    user_email: str = "aria.stark@winterfell.no"
+    client_secret: str = "secret_aria"
 
-    This is an integration test and requires a keycloak instance
-    to be started before being executed.
-    """
 
-    def setUp(self) -> None:
-        """Connection to keycloak."""
+@pytest.fixture
+def client():
+    return Client()
 
-        admin_config = AdminConfig()
-        assert admin_config.kc_config is not None, "kc_config must not be None"
 
-        self.kc_config = admin_config.kc_config
-        self.kc_admin = get_kc_admin(self.kc_config)
+@dataclass(frozen=True)
+class KC:
+    config: KeycloakClientConfig
+    admin: KeycloakAdmin
 
-        self.user_name = "aria"
-        self.user_email = "aria.stark@winterfell.no"
-        self.client_secret = "secret_aria"
 
-    def test_add_keycloak_user(self) -> None:
-        """Test adding a user in Keycloak."""
-        # Delete all users to start fresh
-        del_all_kc_users(self.kc_config)
+@pytest.fixture
+def kc():
+    """Connection to keycloak."""
+    admin_config = AdminConfig()
+    if (kc_config := admin_config.kc_config) is None:
+        pytest.fail("kc_config must not be None")
 
-        len_users_before = len(self.kc_admin.users.get())
-        add_kc_user(self.kc_config, self.user_name, self.user_email, self.client_secret)
+    yield KC(kc_config, get_kc_admin(kc_config))
 
-        # Check client is added
-        new_client = self.kc_admin.clients.get(clientID=self.user_name)
-        self.assertNotEqual(new_client, [])
-        self.assertEqual(new_client[0]["name"], self.user_name)
+    # Cleanup: delete all users to start fresh
+    del_all_kc_users(kc_config)
 
-        # Check users is added
-        self.assertEqual(len(self.kc_admin.users.get()), len_users_before + 1)
 
-        # Check that a user and and associated service account were created
-        user_inserted = self.kc_admin.users.get(username=self.user_name)
-        self.assertEqual(len(user_inserted), 2)
+def test_add_keycloak_user(client, kc) -> None:
+    """Test adding a user in Keycloak."""
+    len_users_before = len(kc.admin.users.get())
+    add_kc_user(kc.config, client.user_name, client.user_email, client.client_secret)
 
-        # Check that attributes to service account is added and correct
-        attributes_expected = {
-            "user_email": [self.user_email],
-            "user_name": [self.user_name],
-            "lomas_user_client": ["true"],
-        }
-        self.assertEqual(user_inserted[1]["attributes"], attributes_expected)
+    # Check client is added
+    new_client = kc.admin.clients.get(clientID=client.user_name)
+    assert new_client != []
+    assert new_client[0]["name"] == client.user_name
 
-    def test_del_keycloak_user(self) -> None:
-        """Test deleting a user from Keycloak"""
-        # Delete all users to start fresh
-        del_all_kc_users(self.kc_config)
+    # Check users is added
+    assert len(kc.admin.users.get()) == len_users_before + 1
 
-        add_kc_user(self.kc_config, self.user_name, self.user_email, self.client_secret)
+    # Check that a user and and associated service account were created
+    user_inserted = kc.admin.users.get(username=client.user_name)
+    assert len(user_inserted) == 2
 
-        len_users_before = len(self.kc_admin.users.get())
-        client_before = self.kc_admin.clients.get(clientID=self.user_name)
+    # Check that attributes to service account is added and correct
+    attributes_expected = {
+        "user_email": [client.user_email],
+        "user_name": [client.user_name],
+        "lomas_user_client": ["true"],
+    }
+    assert user_inserted[1]["attributes"] == attributes_expected
 
-        del_kc_user(self.kc_config, self.user_name)
-        # Check user has been deleted
-        self.assertEqual(len(self.kc_admin.users.get()), len_users_before - 1)
 
-        # Check there is no client associated to this user
-        client = self.kc_admin.clients.get(clientID=self.user_name)
-        self.assertNotEqual(client, client_before)
+def test_del_keycloak_user(client, kc) -> None:
+    """Test deleting a user from Keycloak."""
+    add_kc_user(kc.config, client.user_name, client.user_email, client.client_secret)
 
-    def test_del_all_kc_users(self) -> None:
-        """Test deleting a user from Keycloak"""
-        del_all_kc_users(self.kc_config)
+    len_users_before = len(kc.admin.users.get())
+    client_before = kc.admin.clients.get(clientID=client.user_name)
 
-        # Adding two users
-        add_kc_user(self.kc_config, self.user_name, self.user_email, self.client_secret)
-        add_kc_user(
-            self.kc_config, self.user_name + "bis", self.user_email + "bis", self.client_secret + "bis"
-        )
+    del_kc_user(kc.config, client.user_name)
+    # Check user has been deleted
+    assert len(kc.admin.users.get()) == len_users_before - 1
 
-        # Delete all users
-        del_all_kc_users(self.kc_config)
-        # Check users has been deleted
-        self.assertEqual(len(self.kc_admin.users.get()), 0)
+    # Check there is no client associated to this user
+    client = kc.admin.clients.get(clientID=client.user_name)
+    assert client != client_before
 
-        # Check there are no more clients associated to each users
-        self.assertEqual(len(self.kc_admin.clients.get(clientID=self.user_name)), 0)
-        self.assertEqual(len(self.kc_admin.clients.get(clientID=self.user_name + "bis")), 0)
 
-    def test_get_kc_user_client_secret(self):
-        """Test get client secret"""
-        # Delete all users
-        del_all_kc_users(self.kc_config)
+def test_del_all_kc_users(client, kc) -> None:
+    """Test deleting a user from Keycloak."""
+    # Adding two users
+    add_kc_user(kc.config, client.user_name, client.user_email, client.client_secret)
+    add_kc_user(kc.config, client.user_name + "bis", client.user_email + "bis", client.client_secret + "bis")
 
-        # Add a user
-        add_kc_user(self.kc_config, self.user_name, self.user_email, self.client_secret)
+    # Delete all users
+    del_all_kc_users(kc.config)
+    # Check users has been deleted
+    assert len(kc.admin.users.get()) == 0
 
-        # check if client secret is retrieved
-        client_secret = get_kc_user_client_secret(self.kc_config, self.user_name)
+    # Check there are no more clients associated to each users
+    assert len(kc.admin.clients.get(clientID=client.user_name)) == 0
+    assert len(kc.admin.clients.get(clientID=client.user_name + "bis")) == 0
 
-        self.assertEqual(client_secret, self.client_secret)
 
-    def test_set_kc_user_client_secret(self):
-        """Test set kc user client secret"""
-        # Delete all users
-        del_all_kc_users(self.kc_config)
+def test_get_kc_user_client_secret(client, kc):
+    """Test get client secret."""
+    # Add a user
+    add_kc_user(kc.config, client.user_name, client.user_email, client.client_secret)
 
-        # Add a user
-        add_kc_user(self.kc_config, self.user_name, self.user_email, self.client_secret)
+    # check if client secret is retrieved
+    client_secret = get_kc_user_client_secret(kc.config, client.user_name)
 
-        # Check that correct secret is added
-        self.assertEqual(self.kc_admin.clients.get(clientID=self.user_name)[0]["secret"], self.client_secret)
+    assert client_secret == client.client_secret
 
-        # Check that the secret is overwritten (and random) when not secret is given
-        set_kc_user_client_secret(self.kc_config, self.user_name)
-        self.assertNotEqual(
-            self.kc_admin.clients.get(clientID=self.user_name)[0]["secret"], self.client_secret
-        )
-        self.assertTrue(len(self.kc_admin.clients.get(clientID=self.user_name)[0]["secret"]) > 0)
 
-        # Check that the new secret is overwritten correctly
-        new_secret = "new_secret"
-        set_kc_user_client_secret(self.kc_config, self.user_name, new_secret)
-        self.assertEqual(self.kc_admin.clients.get(clientID=self.user_name)[0]["secret"], new_secret)
+def test_set_kc_user_client_secret(client, kc):
+    """Test set kc user client secret."""
+    # Add a user
+    add_kc_user(kc.config, client.user_name, client.user_email, client.client_secret)
 
-    def test_add_kc_users_via_yaml(self):
-        """Test adding users in keycloak via a yaml file"""
-        del_all_kc_users(self.kc_config)
+    # Check that correct secret is added
+    assert kc.admin.clients.get(clientID=client.user_name)[0]["secret"] == client.client_secret
 
-        demo_config = DemoAdminConfig()
+    # Check that the secret is overwritten (and random) when not secret is given
+    set_kc_user_client_secret(kc.config, client.user_name)
+    assert kc.admin.clients.get(clientID=client.user_name)[0]["secret"] != client.client_secret
+    assert len(kc.admin.clients.get(clientID=client.user_name)[0]["secret"]) > 0
 
-        add_kc_users_via_yaml(
-            self.kc_config, demo_config.user_yaml, True, True, path_prefix=demo_config.path_prefix
-        )
-        # Check that users/clients are inserted
-        self.assertEqual(len(self.kc_admin.users.get()), 6)  # check that all 6 users are inserted
-        self.assertEqual(self.kc_admin.users.get(username="Dr.FSO")[0]["username"], "dr.fso")
-        self.assertEqual(self.kc_admin.users.get(username="Dr.FSO")[1]["username"], "service-account-dr.fso")
-        self.assertEqual(
-            self.kc_admin.clients.get(clientId="Dr.FSO")[0]["attributes"]["lomas_user_client"], "true"
-        )
+    # Check that the new secret is overwritten correctly
+    new_secret = "new_secret"
+    set_kc_user_client_secret(kc.config, client.user_name, new_secret)
+    assert kc.admin.clients.get(clientID=client.user_name)[0]["secret"] == new_secret
 
-        # Load demo yaml
-        with open(absolute_path(demo_config.user_yaml, demo_config.path_prefix), encoding="utf-8") as f:
-            yaml_users: dict = yaml.safe_load(f)
-        new_secret = "test_secret"
-        yaml_users["users"][0]["id"]["client_secret"] = new_secret
 
-        # Check overwrite argument and with yaml file instead of path
-        add_kc_users_via_yaml(self.kc_config, yaml_users, False, True)
-        self.assertEqual(self.kc_admin.clients.get(clientId="Alice")[0]["secret"], new_secret)
-        # Check that we have still two users (user and service account) and one client
-        self.assertEqual(len(self.kc_admin.users.get(username="Alice")), 2)
-        self.assertEqual(len(self.kc_admin.clients.get(clientId="Alice")), 1)
+def test_add_kc_users_via_yaml(client, kc):
+    """Test adding users in keycloak via a yaml file."""
+    demo_config = DemoAdminConfig()
 
-        # Check it fails if yaml does not respect pydantic model
-        yaml_users["users"] = ""
-        with self.assertRaises(ValidationError):
-            add_kc_users_via_yaml(self.kc_config, yaml_users, True, True)
+    add_kc_users_via_yaml(kc.config, demo_config.user_yaml, True, True, path_prefix=demo_config.path_prefix)
+    # Check that users/clients are inserted
+    assert len(kc.admin.users.get()) == 6  # check that all 6 users are inserted
+    assert kc.admin.users.get(username="Dr.FSO")[0]["username"] == "dr.fso"
+    assert kc.admin.users.get(username="Dr.FSO")[1]["username"] == "service-account-dr.fso"
+    assert kc.admin.clients.get(clientId="Dr.FSO")[0]["attributes"]["lomas_user_client"] == "true"
+
+    # Load demo yaml
+    with Path.open(absolute_path(demo_config.user_yaml, demo_config.path_prefix), encoding="utf-8") as f:
+        yaml_users = yaml.safe_load(f)
+    new_secret = "test_secret"
+    yaml_users["users"][0]["id"]["client_secret"] = new_secret
+
+    # Check overwrite argument and with yaml file instead of path
+    add_kc_users_via_yaml(kc.config, yaml_users, False, True)
+    assert kc.admin.clients.get(clientId="Alice")[0]["secret"] == new_secret
+    # Check that we have still two users (user and service account) and one client
+    assert len(kc.admin.users.get(username="Alice")) == 2
+    assert len(kc.admin.clients.get(clientId="Alice")) == 1
+
+    # Check it fails if yaml does not respect pydantic model
+    yaml_users["users"] = ""
+    with pytest.raises(ValidationError):
+        add_kc_users_via_yaml(kc.config, yaml_users, True, True)

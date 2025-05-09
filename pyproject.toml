@@ -132,7 +132,7 @@ warn_required_dynamic_aliases = true
 
 [tool.pylint.main]
 max-line-length = 110
-ignore-patterns = "test_*.py"
+ignore-patterns = "test_.*py$"
 recursive = "yes"
 ignore-paths = ".devenv,docs"
 

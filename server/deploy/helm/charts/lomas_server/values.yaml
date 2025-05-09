@@ -10,7 +10,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-4945172
+    tag: sha-3d3b305
   imagePullSecrets: []
 
   # Runtime args for server
@@ -22,17 +22,15 @@ server:
       time_attack:
         method: "jitter" # or "stall"
         magnitude: 1
-    authenticator:  # todo switch to keycloak defined values.
+    authenticator:
       authentication_type: jwt
-      keycloak_port: 443
-      keycloak_use_tls: true
-      realm: lomas
     opendp_features: ["contrib", "floating-point", "honest-but-curious"]
     private_db_credentials:
-      - credentials_name: "test"
-        db_type: "S3_DB"
-        access_key_id: "abc"
-        secret_access_key: "def" # list of credentials, eg. {credentials_name: "abc", db_type: "S3_DB", ...}
+      # - existing_secret: "" # Set this if there is an existing secret.
+      # - credentials_name: "s3" # Or set the credentials directly.
+      #  db_type: "S3_DB"
+      #  access_key_id: "abc"
+      #  secret_access_key: "def"
     telemetry:
       enabled: true
       service_name: lomas_server_app
@@ -47,7 +45,7 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "dada-lomas.lab.sspcloud.fr"
+    hostname: "lomas.example.com"
   # Lomas server not meant to be replicated for now
   replicaCount: 1
   # Lomas server not intended to be autoscaled for now
@@ -84,16 +82,17 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-4945172
+    tag: sha-3d3b305
 
   realm: "lomas"
   client_id: "lomas_admin"
   client_secret: "lomas_admin"
+  client_secret_existing_secret: ""
+  client_secret_secret_key: ""
   lomas_service_client_id: "lomas_service"
   lomas_service_client_secret: "lomas_service"
-  keycloak:
-    use_tls_setup: false
-    # use_tls: false TODO
+  lomas_service_existing_secret: ""
+  lomas_service_secret_key: ""
   keycloakSetup:
     overwrite_realm: true
     resources: {}
@@ -102,7 +101,6 @@ admin:
     path_prefix: "/data"
     user_yaml_path: "/collections/user_collection.yaml"
     dataset_yaml_path: "/collections/dataset_collection.yaml"
-
 
   # We leave unset stuff here
   serviceAccount:
@@ -129,7 +127,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-4945172
+    tag: sha-3d3b305
   imagePullSecrets: []
 
   # Runtime args for server
@@ -146,7 +144,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "dada-lomas.dashboard.lab.sspcloud.fr"
+    hostname: "lomas-dashboard.example.com"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -367,7 +365,7 @@ mongodb:
   image:
     registry: docker.io
     image: bitnami/mongodb
-    tag: 6.0.9-debian-11-r5
+    tag: 8.0.9-debian-12-r0
   service:
     ports:
       mongodb: 27017
@@ -376,8 +374,9 @@ mongodb:
     rootUser: root
     rootPassword: root_pwd # changeme
     usernames: [user]
-    passwords: [user_pwd] # changeme
+    passwords: [user_pwd] # changeme TODO enforce length of one.
     databases: [defaultdb]
+    existingSecret: ""
   replicaCount: 1
   discoverable:
     allow: true
@@ -428,7 +427,7 @@ keycloak:
 
   adminRealm: "master"
   production: true
-  proxy: edge # TODO check this.
+  proxy: edge
   proxyHeaders: "forwarded" # or xforwarded, must check with ingress
 
   replicaCount: 1
@@ -478,12 +477,12 @@ keycloak:
       ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
     # List of rules for the Ingress
-    hostname: "dada-lomas-keycloak.lab.sspcloud.fr"
+    hostname: "keycloak.example.com"
     # TLS configuration
     #tls: true
     extraTls:
       - hosts:
-          - "dada-lomas-keycloak.lab.sspcloud.fr"
+          - "keycloak.example.com"
 
     # adminIngress:
 
@@ -581,7 +580,7 @@ rabbitmq:
     seccompProfile:
       type: "RuntimeDefault"
 
-  resourcesPreset: "micro"
+  resourcesPreset: "small"
   resources: {}
 
   pdb:

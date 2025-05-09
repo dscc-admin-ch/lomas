@@ -31,8 +31,13 @@ class ClientConfig(BaseSettings):
 
     @computed_field
     def keycloak_use_tls(self) -> bool:
-        """Using TLS ?"""
+        """Using TLS for keycloak?"""
         return self.keycloak_url.scheme == "https"
+
+    @computed_field
+    def lomas_service_use_tls(self) -> bool:
+        """Using TLS for lomas service?"""
+        return self.app_url.scheme == "https"
 
     @computed_field
     def token_endpoint(self) -> str:

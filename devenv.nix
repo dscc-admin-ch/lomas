@@ -137,7 +137,7 @@ in
     LOMAS_SERVICE_private_db_credentials__0__access_key_id = minio_root_user;
     LOMAS_SERVICE_private_db_credentials__0__secret_access_key = minio_root_pwd;
 
-    T = "false";
+    LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
     LOMAS_SERVICE_telemetry__service_id = "default-host";
     LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";

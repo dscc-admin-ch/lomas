@@ -40,17 +40,26 @@ spec:
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER
               value: {{ .Values.keycloak.auth.adminUser }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD
-              value: {{ .Values.keycloak.auth.adminPassword }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
+                  key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
             - name: LOMAS_KC_SETUP_LOMAS_REALM
               value: {{ .Values.admin.realm }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID
               value: {{ .Values.admin.client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET
-              value: {{ .Values.admin.client_secret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-admin.secretName" . }}
+                  key: {{ template "lomas-admin.secretKey" . }}
             - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID
               value: {{ .Values.admin.lomas_service_client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET
-              value: {{ .Values.admin.lomas_service_client_secret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-service.secretName" . }}
+                  key: {{ template "lomas-service.secretKey" . }}
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
           resources:

@@ -149,7 +149,12 @@ class AmqpConfig(BaseModel):
     @computed_field
     def base_url(self) -> str:
         """Queue base URL."""
-        return f"{self.url.host}:{self.url.port}"
+        base_url = Url.build(
+            scheme=self.url.scheme,
+            host=self.url.host,
+            port=self.url.port,
+        )
+        return str(base_url)
 
 
 class Telemetry(BaseModel):

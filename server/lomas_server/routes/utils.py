@@ -85,21 +85,28 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
 
     connection = await rabbitmq_connect_queue(config)
     channel = await connection.channel()
+    background_tasks = set()  # Avoid dangling asyncio.Task by storing them here
 
     await channel.declare_queue("task_queue", auto_delete=True)
     app.state.task_queue_channel = channel
     queue = await channel.declare_queue("task_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    background_tasks.add(tasks_response_task)
+    tasks_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("cost_queue", auto_delete=True)
     app.state.cost_queue_channel = channel
     queue = await channel.declare_queue("cost_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, CostResponse, app.state.jobs_var))
+    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs_var))
+    background_tasks.add(cost_response_task)
+    cost_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("dummy_queue", auto_delete=True)
     app.state.dummy_queue_channel = channel
     queue = await channel.declare_queue("dummy_response", auto_delete=True)
-    asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    background_tasks.add(dummy_response_task)
+    dummy_response_task.add_done_callback(background_tasks.discard)
 
     yield  # app is handling requests
 

@@ -97,7 +97,6 @@ class LomasHttpClient:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
 
         for _ in range(n_retry):
-
             try:
                 job_query = self._oauth2_session.get(
                     f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)

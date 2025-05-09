@@ -37,7 +37,6 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             # Expect to work
             job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
 
-            assert job is not None
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name
@@ -68,7 +67,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["epsilon"] = 0.000000001
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error obtaining cost: "
@@ -83,7 +82,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["query_str"] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error obtaining cost: " + "Column cannot be found bill",
@@ -94,7 +93,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "IRIS"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error == UnauthorizedAccessExceptionModel(
                 message="Dr.Antartica does not have access to IRIS."
@@ -104,7 +103,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "I_do_not_exist"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
                 message="Dataset I_do_not_exist does not exist."
@@ -120,7 +119,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             job = submit_job_wait(
                 client, "/smartnoise_sql_query", json=example_smartnoise_sql, headers=new_headers
             )
-            assert job is not None and job.status == "failed"
+            assert job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
             assert job.error == UnauthorizedAccessExceptionModel(
                 message="User I_do_not_exist does not exist. "
@@ -135,7 +134,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             body = dict(example_smartnoise_sql)
             body["query_str"] = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -144,7 +143,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             # Change the mechanism
             body["mechanisms"] = {"count": "gaussian", "sum_float": "laplace"}
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -153,7 +152,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             # Try postprocess False
             body["postprocess"] = False
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -192,7 +191,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
                 "/smartnoise_sql_query",
                 json=input_smartnoise,
             )
-            assert job is not None and job.status == "complete"
+            assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
@@ -208,7 +207,6 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             job = submit_job_wait(
                 client, "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql, headers=self.headers
             )
-            assert job is not None
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["NB_ROW"][0] > 0
@@ -239,7 +237,6 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
                 "/estimate_smartnoise_sql_cost",
                 json=example_smartnoise_sql_cost,
             )
-            assert job is not None
             r_model = CostResponse.model_validate(job.result)
             assert r_model.epsilon == QUERY_EPSILON
             assert r_model.delta > QUERY_DELTA

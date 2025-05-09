@@ -59,8 +59,7 @@ class OpenDPClient:
             body_json["pipeline_type"] = "polars"
         else:
             raise TypeError(
-                f"Opendp_pipeline must either of type Measurement"
-                f" or LazyFrame, found {type(opendp_pipeline)}"
+                f"Opendp_pipeline must either of type Measurement or LazyFrame, found {type(opendp_pipeline)}"
             )
 
         return body_json

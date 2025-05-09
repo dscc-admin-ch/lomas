@@ -1,9 +1,9 @@
-from pytest import Metafunc
+import pytest
 
 from lomas_client.scripts.run_notebook import get_client_notebook_files
 
 
-def pytest_generate_tests(metafunc: Metafunc) -> None:
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Pytest function to generate test functions for notebook runs.
 
     Args:

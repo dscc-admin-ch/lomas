@@ -31,8 +31,7 @@ st.title("Lomas configurations")
 
 if "config" in st.session_state and "dashboard_config" in st.session_state:
     st.write(
-        "The server is available for requests at the address: "
-        + f"https://{st.session_state.dashboard_config.server_url}"
+        f"The server is available for requests at the address: {st.session_state.dashboard_config.server_url}"
     )
 
     state_response = get_server_data(st.session_state.dashboard_config, "state")

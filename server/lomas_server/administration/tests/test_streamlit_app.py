@@ -46,7 +46,7 @@ def mock_configs():
         dashboard_config = {
             "mg_config": AdminConfig(kc_config=None).mg_config,
             "kc_config": None,
-            "server_url": "example.com",
+            "server_url": "https://example.com",
             "server_service": "http://localhost:8000",
         }
         mock_get_config.return_value = AdminConfig(**dashboard_config)

@@ -1,5 +1,6 @@
 # pylint: disable=C0103
-import os
+
+from pathlib import Path
 
 import streamlit as st
 import yaml
@@ -416,10 +417,11 @@ with dataset_tab:
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
-                base_path = "/data" if "data" in os.listdir() else "../data"
-                ad_meta_path = os.path.join(f"{base_path}/collections/metadata", uploaded_metadata.name)
-                with open(ad_meta_path, "wb") as f:
-                    f.write(uploaded_metadata.getbuffer())
+                data_dir = (
+                    Path("/data") if Path("/data").exists() else Path(__file__).parent / "../../../../data"
+                )
+                ad_meta_path = (data_dir / "collections/metadata" / uploaded_metadata.name).resolve()
+                ad_meta_path.write_bytes(uploaded_metadata.getbuffer())
 
                 st.success(f"File {uploaded_metadata.name} uploaded successfully!")
         case PrivateDatabaseType.S3:

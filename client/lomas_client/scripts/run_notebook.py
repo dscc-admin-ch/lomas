@@ -50,7 +50,6 @@ def run_notebook(
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser("Run client notebooks")
     parser.add_argument("--notebook", type=Path, help="Path to notebook to run.")
     parser.add_argument(

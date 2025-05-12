@@ -54,14 +54,12 @@ class MongoDBConfig(BaseModel):
     min_pool_size: int = 2
     max_connecting: int = 2
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def db_name(self) -> str:
         """Database name."""
         return self.url.path.strip("/")
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def url_with_options(self) -> str:
         """Construct full DSN including options."""
         dsn = Url.build(
@@ -113,15 +111,14 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
     realm: str
 
 
-class AmqpConfig(BaseSettings):
+class AmqpConfig(BaseModel):
     """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
 
     url: AmqpDsn
     username: str
     password: str
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def dsn(self) -> str:
         """Construct full DSN including credentials."""
         dsn = Url.build(
@@ -133,11 +130,10 @@ class AmqpConfig(BaseSettings):
         )
         return str(dsn)
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def base_url(self) -> str:
         """Queue base URL."""
-        return f"{self.url.addr}:{self.url.port}"
+        return f"{self.url.host}:{self.url.port}"
 
 
 class Telemetry(BaseModel):
@@ -189,11 +185,15 @@ class KeycloakClientConfig(BaseModel):
     client_id: str
     client_secret: str
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def use_tls(self) -> bool:
         """Using TLS ?"""
         return self.url.scheme == "https"
+
+    @computed_field
+    def token_endpoint(self) -> str:
+        """Build OAuth2 token endpoint."""
+        return f"{self.url}/realms/{self.realm}/protocol/openid-connect/token"
 
 
 class AdminConfig(BaseSettings):

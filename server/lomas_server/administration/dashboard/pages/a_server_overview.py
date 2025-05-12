@@ -1,5 +1,3 @@
-# pylint: skip-file
-# type: ignore
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException

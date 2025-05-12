@@ -29,14 +29,12 @@ class ClientConfig(BaseSettings):
     telemetry: Telemetry
     """Telemetry Settings."""
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def keycloak_use_tls(self) -> bool:
         """Using TLS ?"""
         return self.keycloak_url.scheme == "https"
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def token_endpoint(self) -> str:
         """Build OAuth2 token endpoint."""
         return f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"

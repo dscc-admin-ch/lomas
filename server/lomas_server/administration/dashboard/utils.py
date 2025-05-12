@@ -10,21 +10,17 @@ from lomas_core.models.config import AdminConfig as Config, Config as ServerConf
 @st.cache_data(ttl=60)  # Cache for 60 seconds
 def get_server_data(_config: Config, endpoint: str) -> str:
     """Fast api requests on server and cache the result for 60 seconds."""
-    assert isinstance(_config.kc_config, KeycloakClientConfig)
+    kc_config = _config.kc_config
+    assert isinstance(kc_config, KeycloakClientConfig)
     # Disable tls checks if needed
-    if not _config.kc_config.use_tls:
+    if not kc_config.use_tls:
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
     # Get JWT token
-    oauth_client = BackendApplicationClient(_config.kc_config.client_id)
+    oauth_client = BackendApplicationClient(kc_config.client_id)
     oauth2_session = OAuth2Session(client=oauth_client)
-    url_protocol = "https" if _config.kc_config.use_tls else "http"
-    token_url = (
-        f"{url_protocol}://{_config.kc_config.address}:"
-        f"{_config.kc_config.port}/realms/{_config.kc_config.realm}/protocol/openid-connect/token"
-    )
     oauth2_session.fetch_token(
-        token_url, client_id=_config.kc_config.client_id, client_secret=_config.kc_config.client_secret
+        kc_config.token_endpoint, client_id=kc_config.client_id, client_secret=kc_config.client_secret
     )
 
     # Perform request

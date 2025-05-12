@@ -1,5 +1,4 @@
-# type: ignore
-# pylint: skip-file
+# pylint: disable=C0103
 import os
 
 import streamlit as st
@@ -93,14 +92,10 @@ with user_tab:
             type="password",
         )
     if st.button("Add user", key="add_user_button"):
-        if au_username and au_email:
-            au_user_warning = check_user_warning(au_username)
-            if not au_user_warning:
-                add_lomas_user(st.session_state.dashboard_config, au_username, au_email, au_client_secret)
-                st.session_state["list_users"] = get_list_of_users(
-                    st.session_state.dashboard_config.mg_config
-                )
-                st.write(f"User {au_username} was added.")
+        if au_username and au_email and not check_user_warning(au_username):
+            add_lomas_user(st.session_state.dashboard_config, au_username, au_email, au_client_secret)
+            st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
+            st.write(f"User {au_username} was added.")
         else:
             warning_field_missing()
 
@@ -378,7 +373,7 @@ with user_tab:
                     st.session_state.dashboard_config.mg_config
                 )
                 st.write("Users were added.")
-            except Exception as e:
+            except ValueError as e:
                 st.error(f"Failed to import collection because {e}")
 
             st.write(f"Users imported: {st.session_state.list_users}")
@@ -470,13 +465,8 @@ with dataset_tab:
     if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
         keyword_args["metadata_path"] = ad_meta_path
         METADATA_READY = True
-    elif (
-        ad_meta_type == PrivateDatabaseType.S3
-        and ad_meta_s3_bucket
-        and ad_meta_s3_key
-        and ad_meta_s3_url
-        and ad_meta_s3_kid
-        and ad_meta_s3_sk
+    elif ad_meta_type == PrivateDatabaseType.S3 and all(
+        (ad_meta_s3_bucket, ad_meta_s3_key, ad_meta_s3_url, ad_meta_s3_kid, ad_meta_s3_sk)
     ):
         keyword_args["metadata_bucket"] = ad_meta_s3_bucket
         keyword_args["metadata_key"] = ad_meta_s3_key
@@ -500,7 +490,7 @@ with dataset_tab:
                     ad_meta_type,
                     **keyword_args,
                 )
-            except Exception as e:
+            except ValueError as e:
                 st.error(f"Failed to add dataset because {e}")
 
             DATASET_READY = False

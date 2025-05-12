@@ -2,41 +2,24 @@ from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
-import mongomock
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.config import AdminConfig as DashboardConfig
 from lomas_core.models.constants import PrivateDatabaseType
 
 
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
-    with (
-        patch("lomas_server.admin_database.mongodb_database.get_mongodb") as mock_get_mongodb,
-        patch("streamlit.file_uploader") as mock_file_uploader,
-        patch("lomas_core.models.config.AdminConfig") as mock_get_config,
-    ):
-        mock_get_mongodb.return_value = mongomock.MongoClient()["test_db"]
+    with (patch("streamlit.file_uploader") as mock_file_uploader,):
         mock_file_path = Path(__file__).parent / "../../../data/collections/metadata/iris_metadata.yaml"
         mock_file = BytesIO(mock_file_path.read_bytes())
         mock_file.name = mock_file_path.name
         mock_file_uploader.return_value = mock_file
 
         yield {
-            "mock_get_mongodb": mock_get_mongodb,
             "mock_file_uploader": mock_file_uploader,
         }
-
-        # Mock dashboard config
-        dashboard_config = {
-            "mg_config": DashboardConfig().mg_config,
-            "kc_config": None,
-            "server_url": "https://example.com",
-            "server_service": "http://localhost:8000",
-        }
-        mock_get_config.return_value = DashboardConfig.model_validate(dashboard_config)
 
 
 @pytest.mark.xfail  # FIXME

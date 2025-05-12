@@ -417,13 +417,12 @@ with dataset_tab:
             ad_meta_path = None
             if uploaded_metadata is not None:
                 # Save the file
-                data_dir = (
-                    Path("/data") if Path("/data").exists() else Path(__file__).parent / "../../../../data"
-                )
-                ad_meta_path = (data_dir / "collections/metadata" / uploaded_metadata.name).resolve()
+                ad_meta_path = (
+                    Path(__file__).parent / "../../../../data/collections/metadata" / uploaded_metadata.name
+                ).resolve()
                 ad_meta_path.write_bytes(uploaded_metadata.getbuffer())
-
                 st.success(f"File {uploaded_metadata.name} uploaded successfully!")
+
         case PrivateDatabaseType.S3:
             (
                 ad_meta_s3_1,

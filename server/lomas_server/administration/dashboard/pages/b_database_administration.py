@@ -471,7 +471,7 @@ with dataset_tab:
         st.write("Please, fill all empty fields for dataset.")
 
     if ad_meta_type == PrivateDatabaseType.PATH and ad_meta_path:
-        keyword_args["metadata_path"] = ad_meta_path
+        keyword_args["metadata_path"] = str(ad_meta_path)
         METADATA_READY = True
     elif ad_meta_type == PrivateDatabaseType.S3 and all(
         (ad_meta_s3_bucket, ad_meta_s3_key, ad_meta_s3_url, ad_meta_s3_kid, ad_meta_s3_sk)

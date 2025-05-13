@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 from mantelo import KeycloakAdmin
-from pydantic import ValidationError
+from pydantic import Generator, ValidationError
 
 from lomas_core.models.config import AdminConfig, KeycloakClientConfig
 from lomas_server.administration.keycloak_admin import (
@@ -39,11 +39,11 @@ class KC:
 
 
 @pytest.fixture
-def kc():
+def kc() -> Generator[KC]:
     """Connection to keycloak."""
     admin_config = AdminConfig()
-    if (kc_config := admin_config.kc_config) is None:
-        pytest.fail("kc_config must not be None")
+    kc_config = admin_config.kc_config
+    assert kc_config is not None
 
     yield KC(kc_config, get_kc_admin(kc_config))
 

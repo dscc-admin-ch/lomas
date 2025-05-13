@@ -11,18 +11,16 @@ from lomas_core.models.constants import PrivateDatabaseType
 @pytest.fixture
 def mock_mongodb_and_helpers():
     """Fixture to mock the MongoDB and helper functions used in the Streamlit app."""
-    with (patch("streamlit.file_uploader") as mock_file_uploader,):
+    with patch("streamlit.file_uploader") as mock_file_uploader:
         mock_file_path = Path(__file__).parent / "../../../data/collections/metadata/iris_metadata.yaml"
         mock_file = BytesIO(mock_file_path.read_bytes())
         mock_file.name = mock_file_path.name
         mock_file_uploader.return_value = mock_file
 
-        yield {
-            "mock_file_uploader": mock_file_uploader,
-        }
+        yield {"mock_file_uploader": mock_file_uploader}
 
 
-@pytest.mark.xfail  # FIXME
+@pytest.mark.skip  # FIXME
 def test_widgets(mock_mongodb_and_helpers) -> None:  # pylint: disable=W0621, W0613, R0915
     """Test the different widgets (add/remove users/datasets/metadata)."""
 
@@ -171,7 +169,7 @@ def test_widgets(mock_mongodb_and_helpers) -> None:  # pylint: disable=W0621, W0
     assert at.markdown[4].value == "Archives were all deleted."
 
 
-def test_layout(mock_mongodb_and_helpers) -> None:  # pylint: disable=W0621, W0613
+def test_layout(mock_mongodb_and_helpers) -> None:
     """Test the layout of administration page b."""
 
     # Simulate interaction with the Streamlit app

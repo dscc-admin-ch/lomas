@@ -9,11 +9,6 @@ from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import AdminConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
-from lomas_server.administration.dashboard.utils import (
-    check_dataset_warning,
-    check_user_warning,
-    warning_field_missing,
-)
 from lomas_server.administration.keycloak_admin import get_kc_user_client_secret, set_kc_user_client_secret
 from lomas_server.administration.lomas_admin import (
     add_lomas_user,
@@ -43,6 +38,12 @@ from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
 
 EPSILON_STEP = 0.01
 DELTA_STEP = 0.00001
+
+
+def warning_field_missing() -> None:
+    """Writes warning that some fields are missing."""
+    st.warning("Please fill all fields.")
+
 
 ###############################################################################
 # BACKEND
@@ -93,7 +94,9 @@ with user_tab:
             type="password",
         )
     if st.button("Add user", key="add_user_button"):
-        if au_username and au_email and not check_user_warning(au_username):
+        if au_username in st.session_state.list_users:
+            st.warning(f"User {au_username} is already in the database.")
+        elif au_username and au_email:
             add_lomas_user(st.session_state.dashboard_config, au_username, au_email, au_client_secret)
             st.session_state["list_users"] = get_list_of_users(st.session_state.dashboard_config.mg_config)
             st.write(f"User {au_username} was added.")
@@ -104,7 +107,8 @@ with user_tab:
     auwb_1, auwb_2, auwb_3 = st.columns(3)
     with auwb_1:
         auwb_username = st.text_input("Username (add user with budget)", key="auwb_username")
-        auwb_user_warning = check_user_warning(auwb_username)
+        if auwb_username in st.session_state.list_users:
+            st.warning(f"User {auwb_username} is already in the database.")
     with auwb_2:
         auwb_email = st.text_input("Email (add user)", value="", key="auwb_email_key")
     with auwb_3:
@@ -386,7 +390,10 @@ with dataset_tab:
     ad_1, ad_2, ad_3 = st.columns(3)
     with ad_1:
         ad_dataset = st.text_input("Dataset name (add dataset)", None, key="ad_dataset")
-        ad_dataset_warning = check_dataset_warning(ad_dataset)
+        ad_dataset_warning = ad_dataset in st.session_state.list_datasets
+        if ad_dataset_warning:
+            st.warning(f"Dataset {ad_dataset} is already in the database.")
+
     with ad_2:
         ad_type = st.selectbox(
             "Dataset type (add dataset)",

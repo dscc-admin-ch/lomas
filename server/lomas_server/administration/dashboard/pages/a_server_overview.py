@@ -4,6 +4,10 @@ from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import AdminConfig
 from lomas_server.administration.dashboard.utils import get_server_config, get_server_data
 
+# Initialization
+st.set_page_config(layout="wide")
+st.title("Lomas configurations")
+
 ###############################################################################
 # BACKEND
 ###############################################################################
@@ -23,11 +27,6 @@ except InternalServerException as e:
 ###############################################################################
 # GUI and user interactions
 ###############################################################################
-
-# Initialization
-st.set_page_config(layout="wide")
-
-st.title("Lomas configurations")
 
 if "config" in st.session_state and "dashboard_config" in st.session_state:
     st.write(

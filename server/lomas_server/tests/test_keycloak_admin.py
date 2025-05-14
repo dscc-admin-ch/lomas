@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 from mantelo import KeycloakAdmin
-from pydantic import Generator, ValidationError
+from pydantic import ValidationError
 
 from lomas_core.models.config import AdminConfig, KeycloakClientConfig
 from lomas_server.administration.keycloak_admin import (
@@ -39,7 +39,7 @@ class KC:
 
 
 @pytest.fixture
-def kc() -> Generator[KC]:
+def kc():
     """Connection to keycloak."""
     admin_config = AdminConfig()
     kc_config = admin_config.kc_config

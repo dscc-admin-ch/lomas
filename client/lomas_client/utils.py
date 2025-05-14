@@ -1,5 +1,5 @@
-from json import JSONDecodeError
 import warnings
+from json import JSONDecodeError
 from typing import Any, NoReturn, TypeVar
 
 import requests

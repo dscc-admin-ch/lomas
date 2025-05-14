@@ -27,8 +27,8 @@ jobs:
       id: uv-cache
       with:
         path: /home/runner/.cache/uv
-        key: uv-store-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-
+        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
+        restore-keys: uv-store-3.12-
 
     - name: Run all test with coverage
       run: devenv shell -- ut-coverage client/
@@ -38,7 +38,7 @@ jobs:
       if: steps.uv-cache.outputs.cache-hit != 'true'
       with:
         path: /home/runner/.cache/uv
-        key: uv-store-${{ hashFiles('uv.lock') }}
+        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
 
     - run: mv .coverage .coverage.client
     - name: Store coverage file
@@ -71,8 +71,8 @@ jobs:
       id: uv-cache
       with:
         path: /home/runner/.cache/uv
-        key: uv-store-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-
+        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+        restore-keys: uv-store-${{ matrix.python-version }}-
 
     - name: Set Python package
       run: |
@@ -88,7 +88,7 @@ jobs:
       if: steps.uv-cache.outputs.cache-hit != 'true'
       with:
         path: /home/runner/.cache/uv
-        key: uv-store-${{ hashFiles('uv.lock') }}
+        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
 
     - run: mv .coverage .coverage.${{ matrix.python-version }}
     - name: Store coverage file

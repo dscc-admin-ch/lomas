@@ -15,10 +15,7 @@ from lomas_core.models.collections import (
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_core.models.requests import DummyQueryModel
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import (
-    NB_RANDOM_NONE,
-    RANDOM_STRINGS,
-)
+from lomas_server.constants import RANDOM_STRINGS
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 
 
@@ -89,11 +86,10 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     {type(data)} in column {col_name}"
                 )
 
-        # Add None value if the column is nullable
+        # Add nullable proportion of None values
         if data.nullable:
-            # Get the indexes of 'serie'
             indexes = serie.index.tolist()
-            for _ in range(0, NB_RANDOM_NONE):
+            for _ in range(0, int(nb_rows * data.nullable)):
                 index_to_insert = rng.choice(indexes)
                 serie.loc[index_to_insert] = None
 

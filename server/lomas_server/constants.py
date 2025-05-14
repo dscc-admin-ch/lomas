@@ -14,7 +14,6 @@ DELTA_LIMIT: float = 0.01
 
 # Dummy dataset generation
 RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
-NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]

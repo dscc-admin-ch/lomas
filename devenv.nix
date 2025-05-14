@@ -90,7 +90,17 @@ let
   mongodb_exporter_port = 19216;
 in
 {
+  # overlay our packages (pkgs) set
   overlays = import ./devenv/overlays.nix;
+
+  # import our modules
+  imports = [
+    ./devenv/hooks.nix
+  ];
+
+  hooks.enable = true;
+  hooks.projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
@@ -738,15 +748,6 @@ in
       '';
       process-compose.namespace = "telemetry";
     };
-
-  #############
-  # GIT HOOKS #
-  #############
-
-  git-hooks.hooks = import ./devenv/hooks.nix {
-    inherit pkgs;
-    env = config.env;
-  };
 
   enterShell = ''
     echo hello from $GREET

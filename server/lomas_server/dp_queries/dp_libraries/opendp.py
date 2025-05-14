@@ -69,7 +69,7 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
         series_type = OPENDP_TYPE_MAPPING[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = "nullable" in series_info
+        series_nullable = series_info.nullable_proportion > 0.0
 
         series_domain = dp.domains.series_domain(
             name,

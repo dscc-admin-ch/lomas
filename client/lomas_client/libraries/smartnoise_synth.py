@@ -32,7 +32,7 @@ class SmartnoiseSynthClient:
         delta: float | None = None,
         select_cols: list[str] = [],
         synth_params: dict = {},
-        nullable: bool = True,
+        nullable_proportion: bool = True,
         constraints: dict = {},
     ) -> CostResponse | None:
         """This function estimates the cost of executing a SmartNoise query.
@@ -64,7 +64,7 @@ class SmartnoiseSynthClient:
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
                 Defaults to None.
-            nullable (bool): True if some data cells may be null
+            nullable_proportion (bool): True if some data cells may be null
                 Defaults to True.
             constraints (dict): Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
@@ -85,7 +85,7 @@ class SmartnoiseSynthClient:
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
-            "nullable": nullable,
+            "nullable_proportion": nullable_proportion,
             "constraints": constraints_str,
         }
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
@@ -100,7 +100,7 @@ class SmartnoiseSynthClient:
         delta: float | None = None,
         select_cols: list[str] = [],
         synth_params: dict = {},
-        nullable: bool = True,
+        nullable_proportion: bool = True,
         constraints: dict = {},
         dummy: bool = False,
         return_model: bool = False,
@@ -138,7 +138,7 @@ class SmartnoiseSynthClient:
                 See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
                 all parameters of the model except `epsilon` and `delta`.
                 Defaults to None.
-            nullable (bool): True if some data cells may be null
+            nullable_proportion (bool): True if some data cells may be null
                 Defaults to True.
             constraints: Dictionnary for custom table transformer constraints.
                 Column that are not specified will be inferred based on metadata.
@@ -173,7 +173,7 @@ class SmartnoiseSynthClient:
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
-            "nullable": nullable,
+            "nullable_proportion": nullable_proportion,
             "constraints": constraints_str,
             "return_model": return_model,
             "condition": condition,

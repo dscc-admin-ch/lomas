@@ -86,10 +86,10 @@ def make_dummy_dataset(  # pylint: disable=too-many-locals
                     {type(data)} in column {col_name}"
                 )
 
-        # Add nullable proportion of None values
-        if data.nullable:
+        # Add nullable_proportion proportion of None values
+        if data.nullable_proportion:
             indexes = serie.index.tolist()
-            for _ in range(0, int(nb_rows * data.nullable)):
+            for _ in range(0, int(nb_rows * data.nullable_proportion)):
                 index_to_insert = rng.choice(indexes)
                 serie.loc[index_to_insert] = None
 

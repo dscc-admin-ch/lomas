@@ -107,7 +107,7 @@ class ColumnMetadata(BaseModel):
     """Base model for column metadata."""
 
     private_id: bool = False
-    nullable: float = 0.0
+    nullable_proportion: float = 0.0
     # See issue #323 for checking this and validating.
 
     max_partition_length: Annotated[int, Field(gt=0)] | None = None

@@ -97,6 +97,7 @@ in
   imports = [
     ./devenv/hooks.nix
     ./devenv/keycloak.nix
+    ./devenv/mongodb.nix
   ];
 
   hooks.enable = true;
@@ -113,6 +114,17 @@ in
       kc_hostname
       ;
     kc_bootstrapAdminPass = kc_setup_admin_pwd;
+  };
+
+  lomasMongo = {
+    enable = true;
+    addr = mongo_addr;
+    port = mongo_port;
+    dbName = mongo_db_name;
+    initialUser = mongo_root_user;
+    initialPassword = mongo_root_password;
+    user = mongo_user;
+    password = mongo_password;
   };
 
   # Environment variable available inside devenv
@@ -142,7 +154,7 @@ in
       "floating-point"
       "honest-but-curious"
     ];
-    LOMAS_SERVICE_admin_database__url = "mongodb://${mongo_addr}:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_SERVICE_admin_database__url = config.lomasMongo.dsn;
     LOMAS_SERVICE_admin_database__username = mongo_user;
     LOMAS_SERVICE_admin_database__password = mongo_password;
     LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
@@ -189,7 +201,7 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
-    LOMAS_ADMIN_MG_CONFIG__url = "mongodb://localhost:${toString mongo_port}/${mongo_db_name}";
+    LOMAS_ADMIN_MG_CONFIG__url = config.lomasMongo.dsn;
     LOMAS_ADMIN_MG_CONFIG__username = mongo_user;
     LOMAS_ADMIN_MG_CONFIG__password = mongo_password;
     LOMAS_ADMIN_KC_CONFIG__URL = "http://${kc_hostname}:${toString kc_http_port}";
@@ -208,14 +220,12 @@ in
       # required for up pip git+https in containers
       pkgs.git
       pkgs.cacert
-      pkgs.openssl
     ]
     # Additional useful packages
     ++ lib.optionals (!config.container.isBuilding) [
       pkgs.jq
       pkgs.yq-go
       pkgs.watchexec
-      pkgs.mongosh
       pkgs.kubectl
       pkgs.kubernetes-helm
     ];
@@ -314,43 +324,6 @@ in
       # Un-comment to observe worker logs.
       # log_location = "$DEVENV_ROOT/logs/worker.log";
     };
-  };
-
-  ###########
-  # MONGODB #
-  ###########
-
-  services.mongodb = {
-    enable = true;
-    additionalArgs = [
-      "--port"
-      (toString mongo_port)
-    ];
-    initDatabaseUsername = "root";
-    initDatabasePassword = "root_pwd";
-  };
-
-  processes.mongodb.process-compose = {
-    readiness_probe = {
-      exec.command = "${lib.getExe pkgs.mongosh} --quiet --eval '{ ping: 1 }' --port ${toString mongo_port} &>/dev/null";
-      initial_delay_seconds = 10;
-      period_seconds = 3;
-      timeout_seconds = 3;
-      success_threshold = 2;
-      failure_threshold = 10;
-    };
-  };
-
-  processes.mongodb-configure = import ./devenv/mongo-init.nix {
-    inherit
-      pkgs
-      lib
-      mongo_db_name
-      mongo_port
-      mongo_user
-      mongo_password
-      ;
-    inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
   };
 
   ########

@@ -96,10 +96,24 @@ in
   # import our modules
   imports = [
     ./devenv/hooks.nix
+    ./devenv/keycloak.nix
   ];
 
   hooks.enable = true;
   hooks.projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+
+  lomasKeycloak = {
+    enable = true;
+    inherit
+      postgres_port
+      postgres_addr
+      kc_http_port
+      kc_https_port
+      kc_management_port
+      kc_hostname
+      ;
+    kc_bootstrapAdminPass = kc_setup_admin_pwd;
+  };
 
   # Environment variable available inside devenv
   env = {
@@ -107,11 +121,6 @@ in
 
     # Ensure `coverage` uses our project config
     COVERAGE_RCFILE = "${config.env.DEVENV_ROOT}/pyproject.toml";
-
-    KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
-    KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
-    KC_BOOTSTRAP_ADMIN_USERNAME = kc_setup_admin_pwd;
-    KC_BOOTSTRAP_ADMIN_PASSWORD = kc_setup_admin_user;
 
     # Pydantic note:
     # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.
@@ -466,48 +475,6 @@ in
     ];
   };
   processes.prometheus.process-compose.namespace = "telemetry";
-
-  ############
-  # Keycloak #
-  ############
-
-  processes.keycloak = import ./devenv/keycloak.nix {
-    inherit
-      pkgs
-      postgres_port
-      postgres_addr
-      kc_http_port
-      kc_https_port
-      kc_management_port
-      ;
-    env = config.env;
-    kc_hostname = "localhost";
-  };
-
-  # Keycloak requires a postgres
-  services.postgres = {
-    enable = true;
-    port = postgres_port;
-    listen_addresses = postgres_addr;
-    initialDatabases = [
-      {
-        name = "keycloak";
-        user = "keycloak";
-        pass = "${config.env.KC_BOOTSTRAP_ADMIN_PASSWORD}";
-      }
-    ];
-  };
-  # cheeky override of postgres statup command to force a clean start
-  processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
-
-  # Keycloak setup for lomas
-  processes.keycloak_setup = {
-    exec = "lomas-keycloak-setup";
-    process-compose = {
-      working_dir = "$DEVENV_ROOT/server/lomas_server";
-      depends_on.keycloak.condition = "process_healthy";
-    };
-  };
 
   #########
   # MINIO #

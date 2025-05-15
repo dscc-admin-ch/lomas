@@ -10,7 +10,7 @@ argon2-cffi==23.1.0       # via jupyter-server
 argon2-cffi-bindings==21.2.0  # via argon2-cffi
 arrow==1.3.0              # via isoduration
 asgiref==3.8.1            # via opentelemetry-instrumentation-asgi
-astroid==3.3.9            # via pylint
+astroid==3.3.10           # via pylint
 asttokens==3.0.0          # via stack-data
 async-lru==2.0.5          # via jupyterlab
 attrs==25.3.0             # via jsonschema, mantelo, referencing
@@ -25,7 +25,7 @@ cachetools==5.5.2         # via streamlit
 certifi==2025.4.26        # via httpcore, httpx, requests
 cffi==1.17.1              # via argon2-cffi-bindings, cryptography
 charset-normalizer==3.4.2  # via requests
-click==8.1.8              # via black, streamlit, uvicorn
+click==8.2.0              # via black, streamlit, uvicorn
 comm==0.2.2               # via ipykernel, ipywidgets
 contourpy==1.3.2          # via matplotlib
 coverage==7.8.0           # via pytest-cov, lomas (pyproject.toml)
@@ -40,20 +40,20 @@ diffprivlib-logger==0.0.3  # via lomas-core
 dill==0.4.0               # via pylint
 disjoint-set==0.8.0       # via private-pgm
 dnspython==2.7.0          # via pymongo
-exceptiongroup==1.2.2     # via aio-pika
+exceptiongroup==1.3.0     # via aio-pika
 executing==2.2.0          # via stack-data
 faker==37.1.0             # via smartnoise-synth
 fastapi==0.115.12         # via lomas-core
 fastjsonschema==2.21.1    # via nbformat
 filelock==3.18.0          # via torch
-fonttools==4.57.0         # via matplotlib
+fonttools==4.58.0         # via matplotlib
 fqdn==1.5.1               # via jsonschema
 fsspec==2025.3.2          # via torch
 gitdb==4.0.12             # via gitpython
 gitpython==3.1.44         # via streamlit
 googleapis-common-protos==1.70.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
 graphviz==0.20.3          # via smartnoise-sql
-greenlet==3.2.1           # via sqlalchemy
+greenlet==3.2.2           # via sqlalchemy
 grpcio==1.71.0            # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0               # via httpcore, uvicorn
 httpcore==1.0.9           # via httpx
@@ -93,18 +93,17 @@ kiwisolver==1.4.8         # via matplotlib
 mantelo==2.2.0            # via lomas-server
 markdown-it-py==3.0.0     # via rich
 markupsafe==3.0.2         # via jinja2, nbconvert
-matplotlib==3.10.1        # via private-pgm, seaborn
+matplotlib==3.10.3        # via private-pgm, seaborn
 matplotlib-inline==0.1.7  # via ipykernel, ipython
 mccabe==0.7.0             # via pylint
 mdurl==0.1.2              # via markdown-it-py
 mistune==3.1.3            # via nbconvert
 ml-dtypes==0.5.1          # via jax, jaxlib
-mongomock==4.3.0          # via lomas-server
 mpmath==1.3.0             # via sympy
 multidict==6.4.3          # via yarl
 mypy==1.15.0              # via lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via black, mypy
-narwhals==1.38.0          # via altair
+narwhals==1.39.0          # via altair
 nbclient==0.10.2          # via nbconvert
 nbconvert==7.16.6         # via jupyter, jupyter-server
 nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert
@@ -137,7 +136,7 @@ opentelemetry-util-http==0.50b0  # via opentelemetry-instrumentation-asgi, opent
 opt-einsum==3.4.0         # via jax
 overrides==7.7.0          # via jupyter-server
 pac-synth==0.0.8          # via smartnoise-synth
-packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, mongomock, nbconvert, opentelemetry-instrumentation, pytest, qtconsole, qtpy, streamlit
+packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, nbconvert, opentelemetry-instrumentation, pytest, qtconsole, qtpy, streamlit
 pamqp==3.3.0              # via aiormq
 pandas==2.2.3             # via lomas-core, private-pgm, seaborn, smartnoise-sql, streamlit
 pandocfilters==1.5.1      # via nbconvert
@@ -145,7 +144,7 @@ parso==0.8.4              # via jedi
 pathspec==0.12.1          # via black
 pexpect==4.9.0            # via ipython
 pillow==10.4.0            # via matplotlib, streamlit
-platformdirs==4.3.7       # via black, jupyter-core, pylint
+platformdirs==4.3.8       # via black, jupyter-core, pylint
 pluggy==1.5.0             # via pytest
 polars==1.12.0            # via lomas-core
 private-pgm @ git+https://github.com/ryan112358/private-pgm@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca  # via lomas-core
@@ -174,7 +173,7 @@ pytest-cov==6.1.1         # via lomas (pyproject.toml)
 python-dateutil==2.9.0.post0  # via arrow, botocore, jupyter-client, matplotlib, pandas
 python-dotenv==1.1.0      # via pydantic-settings
 python-json-logger==3.3.0  # via jupyter-events
-pytz==2025.2              # via mongomock, pandas
+pytz==2025.2              # via pandas
 pyyaml==6.0.2             # via jupyter-events, pyaml, smartnoise-sql
 pyzmq==26.4.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
 qtconsole==5.6.1          # via jupyter
@@ -186,14 +185,13 @@ rfc3339-validator==0.1.4  # via jsonschema, jupyter-events
 rfc3986-validator==0.1.1  # via jsonschema, jupyter-events
 rich==13.9.4              # via streamlit
 rpds-py==0.24.0           # via jsonschema, referencing
-ruff==0.11.8              # via lomas (pyproject.toml)
+ruff==0.11.9              # via lomas (pyproject.toml)
 s3transfer==0.10.4        # via boto3
 scikit-learn==1.6.1       # via diffprivlib, lomas-core
-scipy==1.15.2             # via diffprivlib, jax, jaxlib, opacus, private-pgm, scikit-learn
+scipy==1.15.3             # via diffprivlib, jax, jaxlib, opacus, private-pgm, scikit-learn
 seaborn==0.13.2           # via lomas-client
 send2trash==1.8.3         # via jupyter-server
-sentinels==1.0.0          # via mongomock
-setuptools==80.3.1        # via diffprivlib, jupyterlab, torch
+setuptools==80.4.0        # via diffprivlib, jupyterlab, torch
 six==1.17.0               # via python-dateutil, rfc3339-validator
 smartnoise-sql==1.0.6     # via lomas-server, smartnoise-synth
 smartnoise-synth==1.0.4   # via lomas-core, smartnoise-synth-logger
@@ -217,7 +215,7 @@ torch==2.7.0+cpu          # via opacus, smartnoise-synth, lomas (pyproject.toml)
 tornado==6.4.2            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, streamlit, terminado
 traitlets==5.14.3         # via comm, ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, qtconsole
 types-python-dateutil==2.9.0.20241206  # via arrow
-typing-extensions==4.13.2  # via altair, anyio, beautifulsoup4, fastapi, mypy, opentelemetry-sdk, pydantic, pydantic-core, referencing, sqlalchemy, streamlit, torch
+typing-extensions==4.13.2  # via altair, anyio, beautifulsoup4, exceptiongroup, fastapi, mypy, opentelemetry-sdk, pydantic, pydantic-core, referencing, sqlalchemy, streamlit, torch
 tzdata==2025.2            # via faker, pandas
 uri-template==1.3.0       # via jsonschema
 urllib3==2.4.0            # via botocore, requests

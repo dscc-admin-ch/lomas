@@ -1,3 +1,4 @@
+import abc
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -20,6 +21,7 @@ from lomas_core.models.constants import (
     PrivateDatabaseType,
     TimeAttackMethod,
 )
+from lomas_server.auth.auth import FreePassAuthenticator, JWTAuthenticator, UserAuthenticator
 
 
 class TimeAttack(BaseModel):
@@ -54,14 +56,12 @@ class MongoDBConfig(BaseModel):
     min_pool_size: int = 2
     max_connecting: int = 2
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def db_name(self) -> str:
         """Database name."""
         return self.url.path.strip("/")
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def url_with_options(self) -> str:
         """Construct full DSN including options."""
         dsn = Url.build(
@@ -95,14 +95,25 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
-class AuthenticatorConfig(BaseModel):
+class AuthenticatorConfig(BaseModel, abc.ABC):
     """BaseModel for Authenticator configs."""
+
+    @abc.abstractmethod
+    def user_auth(self) -> UserAuthenticator:
+        """Creates an instance of a UserAuthenticator from the provided config.
+
+        Returns:
+            UserAuthenticator: The correct authenticator instance.
+        """
 
 
 class FreePassAuthenticatorConfig(AuthenticatorConfig):
     """BaseModel for FreePassAuthenticator config."""
 
     authentication_type: Literal[AuthenticationType.FREE_PASS]
+
+    def user_auth(self) -> UserAuthenticator:
+        return FreePassAuthenticator()
 
 
 class JWTAuthenticatorConfig(AuthenticatorConfig):
@@ -112,16 +123,18 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
     keycloak_url: HttpUrl
     realm: str
 
+    def user_auth(self) -> UserAuthenticator:
+        return JWTAuthenticator(self.keycloak_url, self.realm)
 
-class AmqpConfig(BaseSettings):
+
+class AmqpConfig(BaseModel):
     """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
 
     url: AmqpDsn
     username: str
     password: str
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def dsn(self) -> str:
         """Construct full DSN including credentials."""
         dsn = Url.build(
@@ -133,11 +146,10 @@ class AmqpConfig(BaseSettings):
         )
         return str(dsn)
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def base_url(self) -> str:
         """Queue base URL."""
-        return f"{self.url.addr}:{self.url.port}"
+        return f"{self.url.host}:{self.url.port}"
 
 
 class Telemetry(BaseModel):
@@ -189,11 +201,15 @@ class KeycloakClientConfig(BaseModel):
     client_id: str
     client_secret: str
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def use_tls(self) -> bool:
         """Using TLS ?"""
         return self.url.scheme == "https"
+
+    @computed_field
+    def token_endpoint(self) -> str:
+        """Build OAuth2 token endpoint."""
+        return f"{self.url}/realms/{self.realm}/protocol/openid-connect/token"
 
 
 class AdminConfig(BaseSettings):

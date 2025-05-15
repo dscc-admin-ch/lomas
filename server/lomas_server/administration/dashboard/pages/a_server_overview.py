@@ -1,10 +1,12 @@
-# pylint: skip-file
-# type: ignore
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.config import AdminConfig
 from lomas_server.administration.dashboard.utils import get_server_config, get_server_data
+
+# Initialization
+st.set_page_config(layout="wide")
+st.title("Lomas configurations")
 
 ###############################################################################
 # BACKEND
@@ -26,15 +28,9 @@ except InternalServerException as e:
 # GUI and user interactions
 ###############################################################################
 
-# Initialization
-st.set_page_config(layout="wide")
-
-st.title("Lomas configurations")
-
 if "config" in st.session_state and "dashboard_config" in st.session_state:
     st.write(
-        "The server is available for requests at the address: "
-        + f"https://{st.session_state.dashboard_config.server_url}"
+        f"The server is available for requests at the address: {st.session_state.dashboard_config.server_url}"
     )
 
     state_response = get_server_data(st.session_state.dashboard_config, "state")

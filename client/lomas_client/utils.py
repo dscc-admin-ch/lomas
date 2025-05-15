@@ -1,5 +1,5 @@
 import warnings
-from typing import Any
+from typing import Any, NoReturn, TypeVar
 
 import requests
 from fastapi import status
@@ -9,9 +9,10 @@ from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
 from lomas_core.error_handler import InternalServerException, raise_error_from_model
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response) -> None:
+def raise_error(response: requests.Response) -> NoReturn:
     """Raise error message based on the HTTP response.
 
     Args:
@@ -70,10 +71,14 @@ def validate_model_response_direct(response: requests.Response, response_model: 
         return r_model
 
     raise_error(response)
-    return None
 
 
-def validate_model_response(client: LomasHttpClient, response: requests.Response, response_model: Any) -> Any:
+ResponseT = TypeVar("ResponseT", bound=ResponseModel)
+
+
+def validate_model_response(
+    client: LomasHttpClient, response: requests.Response, response_model: type[ResponseT]
+) -> ResponseT:
     """Validate and process a HTTP response.
 
     Args:
@@ -84,7 +89,6 @@ def validate_model_response(client: LomasHttpClient, response: requests.Response
     """
     if response.status_code != status.HTTP_202_ACCEPTED:
         raise_error(response)
-        return None
 
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)

@@ -1,16 +1,17 @@
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.config import AdminConfig, Config
+
+@pytest.fixture
+def dashbord_dir() -> Path:
+    return Path(__file__).parent / "../dashboard"
 
 
-def test_about_page() -> None:
+def test_about_page(dashbord_dir: Path) -> None:
     """Test display about.py page."""
-    admin_dir = Path(__file__).parent.parent
-    at = AppTest.from_file(f"{admin_dir}/dashboard/about.py").run()
+    at = AppTest.from_file(f"{dashbord_dir}/about.py").run()
 
     # Check the title
     assert "Welcome!" in at.title[0].value
@@ -31,44 +32,16 @@ def test_about_page() -> None:
     assert "**Support**: If you encounter any issues " in at.markdown[-1].value
 
 
-@pytest.fixture
-def mock_configs():
-    """Fixture to mock server and dashboard configs."""
-    with (
-        patch("lomas_core.models.config.AdminConfig") as mock_get_config,
-        patch("lomas_server.administration.dashboard.utils.get_server_data") as mock_get_server_data,
-        patch("lomas_server.administration.dashboard.utils.get_server_config") as mock_get_server_config,
-    ):
-        # Mock server config
-        mock_get_server_config.return_value = Config()
-
-        # Mock dashboard config
-        dashboard_config = {
-            "mg_config": AdminConfig(kc_config=None).mg_config,
-            "kc_config": None,
-            "server_url": "example.com",
-            "server_service": "http://localhost:8000",
-        }
-        mock_get_config.return_value = AdminConfig(**dashboard_config)
-
-        # Mock get server data request
-        mock_get_server_data.return_value = {"state": "live"}
-
-        yield
-
-
-def test_a_server_overview_page(mock_configs) -> None:  # pylint: disable=W0621, W0613
+def test_a_server_overview_page(dashbord_dir: Path) -> None:
     """Test display a_server_overview.py page."""
-
-    admin_dir = Path(__file__).parent.parent
-    at = AppTest.from_file(f"{admin_dir}/dashboard/pages/a_server_overview.py").run()
+    at = AppTest.from_file(f"{dashbord_dir}/pages/a_server_overview.py").run()
 
     # Check the title
     assert "Lomas configurations" in at.title[0].value
 
     # Check server URL
     assert "The server is available for requests at the address:" in at.markdown[0].value
-    assert "https://example.com" in at.markdown[0].value
+    assert "http://localhost:48080" in at.markdown[0].value
 
     # Server state messages
     assert "The server is live and ready!" in at.markdown[1].value

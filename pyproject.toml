@@ -132,7 +132,7 @@ warn_required_dynamic_aliases = true
 
 [tool.pylint.main]
 max-line-length = 110
-ignore-patterns = "test_*.py"
+ignore-patterns = "test_.*py$"
 recursive = "yes"
 ignore-paths = ".devenv,docs"
 
@@ -166,7 +166,6 @@ filterwarnings = [
 ]
 addopts = [
   "--import-mode=importlib",
-  "--ignore-glob=*/test_streamlit_app_page_b.py",
 ]
 markers = [
   "long: marks test as long (deselect with '-m \"not long\"')",
@@ -179,3 +178,20 @@ source = [
   "./client/lomas_client"
 ]
 relative_files = true
+omit = [
+  "**/uvicorn_serve.py",
+  "**/b_database_administration.py",
+]
+
+[tool.coverage.report]
+exclude_also = [
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise (AssertionError|NotImplementedError|TimeoutError)",
+  '(except|raise) InternalServerException',
+  'except (KNOWN_EXCEPTIONS|Exception|yaml.YAMLError)',
+  'case _:',
+  # Don't complain about missing debug-only code:
+  "def __repr__",
+  # Don't complain if non-runnable code isn't run:
+  "if __name__ == .__main__.:",
+]

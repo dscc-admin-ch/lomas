@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 inputs:
   nixpkgs:
-    url: github:NixOS/nixpkgs/nixpkgs-unstable
+    url: github:cachix/devenv-nixpkgs/rolling
   nix2container:
     url: github:nlewo/nix2container
     inputs:

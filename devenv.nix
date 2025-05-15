@@ -94,6 +94,10 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
+
+    # Ensure `coverage` uses our project config
+    COVERAGE_RCFILE = "${config.env.DEVENV_ROOT}/pyproject.toml";
+
     KC_HOME_DIR = "${config.env.DEVENV_STATE}/keycloak";
     KC_CONF_DIR = "${config.env.DEVENV_STATE}/conf";
     KC_BOOTSTRAP_ADMIN_USERNAME = kc_setup_admin_pwd;
@@ -936,20 +940,24 @@ in
 
   scripts.ut-coverage.exec =
     let
-      working_dir = "$DEVENV_ROOT/";
+      working_dir = "$DEVENV_ROOT";
       pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it
           worker = {
             inherit working_dir;
             replicas = 1;
-            command = "coverage run --rcfile=pyproject.toml -p -m lomas_server.worker";
+            command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
+          };
+          keycloak_setup = {
+            inherit working_dir;
+            command = "coverage run --data-file=.coverage.keycloak_setup server/lomas_server/administration/scripts/keycloak_setup.py";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
           pytest-cov = {
             inherit working_dir;
-            command = "pytest --cov --no-cov-on-fail --cov-config=pyproject.toml \${1:-.}";
+            command = "pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} \"$@\"";
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_started";
@@ -967,11 +975,13 @@ in
       };
     in
     ''
-      path=''${@:-.}
+      # if any arguments given: consume first as root path (zb. server/) and forward the rest to pytest (zb. -v / -x / -k ...)
+      path=''${1:-.}
+      [[ $# > 0 ]] && shift
       pushd ${working_dir}
       echo "Running coverage on $path with patched process-compose config (${pc-config-patch})"
       yq -Poy ${pc-config-patch}
-      process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch} -- "$path"
+      process-compose run pytest-cov -f $PC_CONFIG_FILES -f ${pc-config-patch} -- "$path" "$@"
       pytest_return=$?
 
       if [ $pytest_return -eq 0 ]; then
@@ -1017,7 +1027,7 @@ in
 
   scripts.run-worker-debug.exec = ''
     process-compose process stop -v worker-0 worker-1
-    pushd $DEVEN_ROOT
+    pushd $DEVENV_ROOT
     python -m pdb lomas_server.worker
     popd
   '';

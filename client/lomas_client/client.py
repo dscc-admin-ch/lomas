@@ -45,7 +45,7 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(self, **kwargs: ClientConfig.model_config) -> None:
+    def __init__(self, **kwargs: ClientConfig.model_config):
         """Initializes the Client with the specified URL, dataset name and authentication parameters.
 
         Args:
@@ -72,9 +72,7 @@ class Client:
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
-    def get_dataset_metadata(
-        self,
-    ) -> LomasRequestModel | None:
+    def get_dataset_metadata(self) -> LomasRequestModel:
         """This function retrieves metadata for the dataset.
 
         Returns:
@@ -90,13 +88,12 @@ class Client:
             return metadata
 
         raise_error(res)
-        return None
 
     def get_dummy_dataset(
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> DummyDsResponse | None:
+    ) -> DummyDsResponse:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
@@ -126,9 +123,8 @@ class Client:
             return res_model.dummy_df
 
         raise_error(res)
-        return None
 
-    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame | None:
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
         """
         Returns the polars LazyFrame for the dummy dataset with.
 
@@ -142,12 +138,9 @@ class Client:
             Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
         """
         dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
-
-        if dummy_pandas is None:
-            return None
         return pl.from_pandas(dummy_pandas).lazy()
 
-    def get_initial_budget(self) -> InitialBudgetResponse | None:
+    def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.
 
         Returns:
@@ -162,7 +155,7 @@ class Client:
 
         return validate_model_response_direct(res, InitialBudgetResponse)
 
-    def get_total_spent_budget(self) -> SpentBudgetResponse | None:
+    def get_total_spent_budget(self) -> SpentBudgetResponse:
         """This function retrieves the total spent budget.
 
         Returns:
@@ -176,7 +169,7 @@ class Client:
 
         return validate_model_response_direct(res, SpentBudgetResponse)
 
-    def get_remaining_budget(self) -> RemainingBudgetResponse | None:
+    def get_remaining_budget(self) -> RemainingBudgetResponse:
         """This function retrieves the remaining budget.
 
         Returns:
@@ -190,7 +183,7 @@ class Client:
 
         return validate_model_response_direct(res, RemainingBudgetResponse)
 
-    def get_previous_queries(self) -> list[dict] | None:
+    def get_previous_queries(self) -> list[dict]:
         """This function retrieves the previous queries of the user.
 
         Raises:
@@ -238,4 +231,3 @@ class Client:
             return deserialised_queries
 
         raise_error(res)
-        return None

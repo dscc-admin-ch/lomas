@@ -6,9 +6,8 @@ from fastapi.security import HTTPAuthorizationCredentials, SecurityScopes
 from pydantic import HttpUrl
 
 from lomas_core.constants import Scopes
-from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
+from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
-from lomas_core.models.config import AuthenticatorConfig, FreePassAuthenticatorConfig, JWTAuthenticatorConfig
 from lomas_server.constants import KCAttributeNames
 
 
@@ -129,27 +128,3 @@ class JWTAuthenticator(UserAuthenticator):
 
         logging.info(f"Authenticated user {user.name}")
         return user
-
-
-def authenticator_factory(auth_config: AuthenticatorConfig) -> UserAuthenticator:
-    """Creates an instance of a UserAuthenticator from the provided config.
-
-    Args:
-        auth_config (AuthenticatorConfig): The configuration to create the authenticator.
-
-    Raises:
-        InternalServerException: If it cannot create the authenticator.
-
-    Returns:
-        UserAuthenticator: The correct authenticator instance.
-    """
-    match auth_config:
-        case FreePassAuthenticatorConfig():
-            return FreePassAuthenticator()
-        case JWTAuthenticatorConfig():
-            return JWTAuthenticator(
-                auth_config.keycloak_url,
-                auth_config.realm,
-            )
-        case _:
-            raise InternalServerException("Authenticator type not supported.")

@@ -6,7 +6,9 @@ from unittest.mock import patch
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from lomas_core.models.config import AdminConfig, MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
+from lomas_server.administration.mongodb_admin import drop_collection, get_mongodb
 
 
 @pytest.fixture
@@ -21,13 +23,29 @@ def mock_mongodb_and_helpers():
         yield mock_file_uploader
 
 
+def wipe_db(mg_config: MongoDBConfig):
+    drop_collection(mg_config, "metadata")
+    drop_collection(mg_config, "datasets")
+    drop_collection(mg_config, "users")
+    drop_collection(mg_config, "queries_archives")
+
+
 @pytest.fixture
 def at():
-    return AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
+    mg_config = AdminConfig().mg_config
+
+    # pre-clean MongoDB (typical case: we are here after notebooks run)
+    wipe_db(mg_config)
+    get_mongodb(mg_config)
+
+    yield AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
+
+    # post-clean by politesse
+    wipe_db(mg_config)
 
 
 @pytest.fixture
-def dataset_iris(at, mock_mongodb_and_helpers):
+def dataset_iris(at: AppTest, mock_mongodb_and_helpers):
     at.text_input("ad_dataset").set_value("IRIS").run()
     at.selectbox("ad_type").set_value(PrivateDatabaseType.PATH).run()
     at.selectbox("ad_meta_type").set_value(PrivateDatabaseType.PATH).run()
@@ -46,7 +64,7 @@ def dataset_iris(at, mock_mongodb_and_helpers):
     assert at.session_state.list_datasets == []
 
 
-def test_widgets(at, dataset_iris) -> None:
+def test_widgets(at: AppTest, dataset_iris) -> None:
     """Test the different widgets (add/remove users/datasets/metadata)."""
     # User tab
     # Subheader "Add user"
@@ -175,12 +193,8 @@ def test_widgets(at, dataset_iris) -> None:
     assert at.markdown[4].value == "Archives were all deleted."
 
 
-def test_layout() -> None:
+def test_layout(at: AppTest) -> None:
     """Test the layout of administration page b."""
-
-    # Simulate interaction with the Streamlit app
-    at = AppTest.from_file("../dashboard/pages/b_database_administration.py").run()
-
     # Check the title
     assert "Admin Database Management" in at.title[0].value
 

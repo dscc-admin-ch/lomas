@@ -190,11 +190,9 @@ omit = [
 [tool.coverage.report]
 exclude_also = [
     # Don't complain if tests don't hit defensive assertion code:
-  "raise AssertionError",
-  "raise NotImplementedError",
-  '(except|raise)\s+InternalServerException',
-  'except\s+(KNOWN_EXCEPTIONS|Exception)',
-  'except\s+yaml.YAMLError',
+  "raise (|AssertionError|NotImplementedError|TimeoutError)",
+  '(except|raise) InternalServerException',
+  'except (KNOWN_EXCEPTIONS|Exception|yaml.YAMLError)',
   'case _:',
     # Don't complain about missing debug-only code:
   "def __repr__",

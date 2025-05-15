@@ -15,7 +15,6 @@ from lomas_core.error_handler import (
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.config import Config
 from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
-from lomas_server.auth.auth import authenticator_factory
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -56,7 +55,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
         logging.info("Loading admin database")
         lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
         logging.info("Loading authenticator")
-        lomas_app.state.authenticator = authenticator_factory(config.authenticator)
+        lomas_app.state.authenticator = config.authenticator.user_auth()
 
     except InternalServerException as e:
         logging.exception(f"Failed at startup: {e!s}")

@@ -1,3 +1,4 @@
+import abc
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -20,6 +21,7 @@ from lomas_core.models.constants import (
     PrivateDatabaseType,
     TimeAttackMethod,
 )
+from lomas_server.auth.auth import FreePassAuthenticator, JWTAuthenticator, UserAuthenticator
 
 
 class TimeAttack(BaseModel):
@@ -93,14 +95,25 @@ class S3CredentialsConfig(PrivateDBCredentials):
     secret_access_key: str
 
 
-class AuthenticatorConfig(BaseModel):
+class AuthenticatorConfig(BaseModel, abc.ABC):
     """BaseModel for Authenticator configs."""
+
+    @abc.abstractmethod
+    def user_auth(self) -> UserAuthenticator:
+        """Creates an instance of a UserAuthenticator from the provided config.
+
+        Returns:
+            UserAuthenticator: The correct authenticator instance.
+        """
 
 
 class FreePassAuthenticatorConfig(AuthenticatorConfig):
     """BaseModel for FreePassAuthenticator config."""
 
     authentication_type: Literal[AuthenticationType.FREE_PASS]
+
+    def user_auth(self) -> UserAuthenticator:
+        return FreePassAuthenticator()
 
 
 class JWTAuthenticatorConfig(AuthenticatorConfig):
@@ -109,6 +122,9 @@ class JWTAuthenticatorConfig(AuthenticatorConfig):
     authentication_type: Literal[AuthenticationType.JWT]
     keycloak_url: HttpUrl
     realm: str
+
+    def user_auth(self) -> UserAuthenticator:
+        return JWTAuthenticator(self.keycloak_url, self.realm)
 
 
 class AmqpConfig(BaseModel):

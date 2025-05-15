@@ -9,7 +9,7 @@ import yaml
 from pymongo.database import Database
 
 from lomas_core.models.collections import DSInfo, DSPathAccess, Metadata
-from lomas_core.models.config import Config, MongoDBConfig
+from lomas_core.models.config import Config
 from lomas_core.models.constants import AuthenticationType, PrivateDatabaseType
 from lomas_server.admin_database.mongodb_database import get_mongodb
 from lomas_server.administration.mongodb_admin import (
@@ -54,12 +54,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.previous_auth_method = os.environ.get("lomas_service_authenticator__authentication_type", "")
         os.environ["lomas_service_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
         # Access to MongoDB
-        admin_config = Config().admin_database
-        if isinstance(admin_config, MongoDBConfig):
-            self.mongo_config = admin_config
-        else:
-            raise TypeError("Loaded config does not contain a MongoDBConfig.")
-
+        self.mongo_config = Config().admin_database
         self.db: Database = get_mongodb(self.mongo_config)
 
     def tearDown(self) -> None:

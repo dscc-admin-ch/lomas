@@ -293,7 +293,7 @@ in
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
       # Un-comment to observe worker logs.
-      # log_location = "$DEVENV_ROOT/worker.log";
+      # log_location = "$DEVENV_ROOT/logs/worker.log";
     };
   };
 
@@ -949,6 +949,7 @@ in
             inherit working_dir;
             replicas = 1;
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
+            log_location = "$DEVENV_ROOT/logs/worker.log";
           };
           keycloak_setup = {
             inherit working_dir;
@@ -969,6 +970,8 @@ in
               keycloak_setup.condition = "process_completed_successfully";
               lomas-server.condition = "process_started";
             };
+            log_location = "$DEVENV_ROOT/logs/pytest.log";
+            log_configuration.flush_each_line = true;
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;
           };

@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [develop, master]
   push:
-    branches: [develop, wip_425_helm]
+    branches: [develop]
   release:
     types: [published]
 
@@ -44,6 +44,6 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          push: ${{ github.event_name == 'push' || github.event_name == 'release' || github.ref_name == 'wip_425_helm' }}
+          push: ${{ github.event_name == 'push' || github.event_name == 'release' }}
           target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}

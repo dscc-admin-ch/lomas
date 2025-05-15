@@ -975,6 +975,7 @@ in
       };
     in
     ''
+      # if any arguments given: consume first as root path (zb. server/) and forward the rest to pytest (zb. -v / -x / -k ...)
       path=''${1:-.}
       [[ $# > 0 ]] && shift
       pushd ${working_dir}

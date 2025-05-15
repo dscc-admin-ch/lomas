@@ -179,24 +179,19 @@ source = [
 ]
 relative_files = true
 omit = [
-  "server/lomas_server/mongodb_admin_cli.py",
-  "server/lomas_server/uvicorn_serve.py",
-  "server/lomas_server/administration/tests/test_streamlit_app.py",
-  "server/lomas_server/administration/tests/test_streamlit_app_page_b.py",
-  "server/lomas_server/administration/tests/utils.py",
-  "server/lomas_server/administration/dashboard/pages/b_database_administration.py",
+  "**/uvicorn_serve.py",
+  "**/b_database_administration.py",
 ]
 
 [tool.coverage.report]
 exclude_also = [
-    # Don't complain if tests don't hit defensive assertion code:
-  "raise (|AssertionError|NotImplementedError|TimeoutError)",
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise (AssertionError|NotImplementedError|TimeoutError)",
   '(except|raise) InternalServerException',
   'except (KNOWN_EXCEPTIONS|Exception|yaml.YAMLError)',
   'case _:',
-    # Don't complain about missing debug-only code:
+  # Don't complain about missing debug-only code:
   "def __repr__",
   # Don't complain if non-runnable code isn't run:
-  "if 0:",
   "if __name__ == .__main__.:",
 ]

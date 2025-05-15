@@ -84,7 +84,7 @@ example_smartnoise_synth_cost: dict[str, JsonValue] = {
         "batch_size": 50,
         "epochs": 5,
     },
-    "nullable_proportion": True,
+    "nullable": True,
     "constraints": "",
 }
 example_smartnoise_synth_query: dict[str, JsonValue] = dict(example_smartnoise_synth_cost)

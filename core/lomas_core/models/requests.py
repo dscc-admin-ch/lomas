@@ -135,7 +135,7 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
     See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
     all parameters of the model except `epsilon` and `delta`.
     """
-    nullable_proportion: bool
+    nullable: bool
     """True if some data cells may be null."""
     constraints: str
     """

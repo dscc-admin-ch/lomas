@@ -189,7 +189,7 @@ class SmartnoiseSynthQuerier(
             metadata (Metadata): Metadata of the dataset
             query_json (SmartnoiseSynthRequestModel): JSON request object for the query
                 select_cols (List[str]): List of columns to select
-                nullable (bool): True is the data can have Null values, False otherwise
+                nullable (bool): True if the data can have Null values, False otherwise
             table_transformer_style (str): 'gan' or 'cube'
 
         Returns:

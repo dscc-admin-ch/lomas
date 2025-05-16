@@ -121,6 +121,7 @@ in
     addr = mongo_addr;
     port = mongo_port;
     dbName = mongo_db_name;
+    extraDbNames = [ "testdb" ];
     initialUser = mongo_root_user;
     initialPassword = mongo_root_password;
     user = mongo_user;

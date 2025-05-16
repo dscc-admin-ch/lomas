@@ -6,53 +6,68 @@
 }:
 
 let
-  inherit (lib) types;
   cfg = config.lomasMongo;
+
+  inherit (lib)
+    types
+    mkIf
+    mkForce
+    mkOption
+    mkEnableOption
+    getExe
+    ;
 in
 {
   options.lomasMongo = {
-    enable = lib.mkEnableOption "Enable Lomas MongoDB";
+    enable = mkEnableOption "Enable Lomas MongoDB";
 
-    addr = lib.mkOption {
+    addr = mkOption {
       type = types.str;
       default = "localhost";
       example = "mongo.domain";
       description = "MongoDB Server address";
     };
 
-    port = lib.mkOption {
+    port = mkOption {
       type = types.int;
       default = 27017;
       description = "MongoDB port";
     };
 
-    dbName = lib.mkOption {
+    dbName = mkOption {
       type = types.str;
       default = "defaultdb";
       description = "MongoDB default database name";
     };
 
-    initialUser = lib.mkOption {
+    extraDbNames = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "testdb" ];
+      description = "Extra database to create (zb. for testing/integration)";
+    };
+
+    initialUser = mkOption {
       type = types.str;
       description = "MongoDB default initialUser name";
     };
 
-    initialPassword = lib.mkOption {
+    initialPassword = mkOption {
       type = types.str;
       description = "MongoDB default initialPassword name";
     };
 
-    user = lib.mkOption {
+    user = mkOption {
       type = types.str;
       description = "MongoDB default user name";
     };
 
-    password = lib.mkOption {
+    password = mkOption {
       type = types.str;
       description = "MongoDB default user password";
     };
 
-    dsn = lib.mkOption {
+    dsn = mkOption {
       readOnly = true;
       type = types.str;
       default = "mongodb://${cfg.addr}:${toString cfg.port}/${cfg.dbName}";
@@ -60,7 +75,7 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     packages = [ pkgs.mongosh ];
 
     services.mongodb = {
@@ -83,7 +98,7 @@ in
           }:
           ''
             echo "Creating user/database: ${user}/${dbName}"
-            ${lib.getExe pkgs.mongosh} --port ${toString cfg.port} ${dbName} >/dev/null <<-EOJS
+            ${getExe pkgs.mongosh} --port ${toString cfg.port} ${dbName} >/dev/null <<-EOJS
                 db.createUser({
                   user: "${user}",
                   pwd: "${pwd}",
@@ -92,22 +107,27 @@ in
             EOJS
           '';
         configureScript = pkgs.writeShellScriptBin "configure-mongodb" (
-          lib.strings.concatLines [
-            "set -euo pipefail"
-            (createUserDB {
-              dbName = "admin";
-              user = cfg.initialUser;
-              pwd = cfg.initialPassword;
-            })
-            (createUserDB { dbName = cfg.dbName; })
-            (createUserDB { dbName = "testdb"; })
-          ]
+          lib.strings.concatLines (
+            [
+              "set -euo pipefail"
+              # Initial admin database
+              (createUserDB {
+                dbName = "admin";
+                user = cfg.initialUser;
+                pwd = cfg.initialPassword;
+              })
+              # Initial user database
+              (createUserDB { dbName = cfg.dbName; })
+            ]
+            # Extra databases
+            ++ (map (extraDb: createUserDB { dbName = extraDb; }) cfg.extraDbNames)
+          )
         );
       in
       {
         process-compose.depends_on.mongodb.condition = "process_healthy";
         # override mongodb-configure original script
-        exec = lib.mkForce "${configureScript}/bin/configure-mongodb";
+        exec = mkForce "${configureScript}/bin/configure-mongodb";
       };
 
     processes.mongodb.process-compose = {

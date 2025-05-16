@@ -5,9 +5,16 @@
   ...
 }:
 let
-  inherit (lib) types;
   cfg = config.lomasKeycloak;
 
+  inherit (lib)
+    types
+    mkIf
+    mkOption
+    mkEnableOption
+    ;
+
+  # We need some kind of certificates to start Keycloak in production mode
   certSelfSigned = pkgs.runCommand "selfSignedCerts" { buildInputs = [ pkgs.openssl ]; } ''
     openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -subj '/CN=${cfg.kc_hostname}'
     mkdir -p $out
@@ -16,6 +23,7 @@ let
 
   dbPassword = "${cfg.homeDir}/db_password";
 
+  # We have to construct the conf file now to build keycloak package since it's doing a wierd pre-build/configure
   confFile = pkgs.writeText "keycloak.conf" ''
     db=postgres
     db-password=${dbPassword}
@@ -38,76 +46,75 @@ let
     health-enabled=true
   '';
 
+  # Building/setting up package (kc.sh build steps, required for --optimized run)
   keycloakPkg = pkgs.keycloak.override { inherit confFile; };
-
 in
 {
 
   options.lomasKeycloak = {
-    enable = lib.mkEnableOption "Enable lomas Keycloak Service";
+    enable = mkEnableOption "Enable lomas Keycloak Service";
 
-    postgres_port = lib.mkOption {
+    postgres_port = mkOption {
       type = types.int;
       default = 5432;
-      example = "5432";
       description = "PostgreSQL port";
     };
 
-    postgres_addr = lib.mkOption {
+    postgres_addr = mkOption {
       type = types.str;
       default = "localhost";
       example = "postgres.domain";
       description = "PostgreSQL address";
     };
 
-    kc_http_port = lib.mkOption {
+    kc_http_port = mkOption {
       type = types.int;
       description = "Keycloak http port";
     };
 
-    kc_https_port = lib.mkOption {
+    kc_https_port = mkOption {
       type = types.int;
       description = "Keycloak https port";
     };
 
-    kc_management_port = lib.mkOption {
+    kc_management_port = mkOption {
       type = types.int;
       description = "Keycloak Management port";
     };
 
-    kc_hostname = lib.mkOption {
+    kc_hostname = mkOption {
       type = types.str;
       default = "localhost";
       example = "keycloak.domain";
       description = "Keycloak Hostname";
     };
 
-    kc_bootstrapAdminUser = lib.mkOption {
+    kc_bootstrapAdminUser = mkOption {
       type = types.str;
       default = "admin";
       example = "admin";
       description = "Keycloak boostrap Admin Username";
     };
 
-    kc_bootstrapAdminPass = lib.mkOption {
+    kc_bootstrapAdminPass = mkOption {
       type = types.str;
       description = "Keycloak boostrap Admin Password";
     };
 
-    homeDir = lib.mkOption {
+    homeDir = mkOption {
       type = types.str;
       default = "${config.devenv.state}/keycloak";
       description = "Keycloak Home directory";
     };
 
-    confDir = lib.mkOption {
+    confDir = mkOption {
       type = types.str;
       default = "${config.devenv.state}/conf";
       description = "Keycloak Config directory";
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     env = {
       # Theses are critical and used by kc.sh at startup !
       KC_HOME_DIR = cfg.homeDir;
@@ -152,6 +159,15 @@ in
       };
     };
 
+    # Keycloak setup for lomas
+    processes.keycloak_setup = {
+      exec = "lomas-keycloak-setup";
+      process-compose = {
+        working_dir = "$DEVENV_ROOT/server/lomas_server";
+        depends_on.keycloak.condition = "process_healthy";
+      };
+    };
+
     # Keycloak requires a postgres
     services.postgres = {
       enable = true;
@@ -168,15 +184,6 @@ in
 
     # cheeky override of postgres statup command to force a clean start
     processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
-
-    # Keycloak setup for lomas
-    processes.keycloak_setup = {
-      exec = "lomas-keycloak-setup";
-      process-compose = {
-        working_dir = "$DEVENV_ROOT/server/lomas_server";
-        depends_on.keycloak.condition = "process_healthy";
-      };
-    };
 
   };
 }

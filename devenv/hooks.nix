@@ -6,8 +6,9 @@
 }:
 
 let
-  inherit (lib) types;
   cfg = config.hooks;
+
+  inherit (lib) types;
 in
 {
   options.hooks = {

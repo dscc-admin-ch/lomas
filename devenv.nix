@@ -12,8 +12,6 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
-  minio_port = 19000;
-  minio_console_port = 19001;
   rabbitmq_port = 5672;
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   rabbitmq_addr = "localhost";
@@ -51,10 +49,6 @@ let
   mongo_min_pool_size = 2;
   mongo_max_connecting = 2;
 
-  # Minio
-  minio_root_user = "admin";
-  minio_root_pwd = "admin123";
-
   # Jupyter
   jupyter_pwd = "dprocks";
 
@@ -70,6 +64,7 @@ in
   # import our modules
   imports = [
     ./devenv/hooks.nix
+    ./devenv/minio.nix
     ./devenv/keycloak.nix
     ./devenv/mongodb.nix
     ./devenv/telemetry.nix
@@ -78,6 +73,33 @@ in
   lomasHooks = {
     enable = true;
     projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+  };
+
+  lomasMinio = {
+    enable = true;
+    addr = "localhost";
+    port = 19000;
+    console_port = 19001;
+    rootUser = "admin";
+    rootPassword = "admin123";
+    initFilesCopy = [
+      {
+        src = ./server/lomas_server/tests/test_data/test_penguin.csv;
+        dst = "/data/test_penguin.csv";
+      }
+      {
+        src = ./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml;
+        dst = "/metadata/penguin_metadata.yaml";
+      }
+      {
+        src = ./server/data/datasets/titanic.csv;
+        dst = "/data/titanic.csv";
+      }
+      {
+        src = ./server/data/collections/metadata/titanic_metadata.yaml;
+        dst = "/metadata/titanic_metadata.yaml";
+      }
+    ];
   };
 
   lomasKeycloak = {
@@ -182,8 +204,8 @@ in
     LOMAS_SERVICE_authenticator__realm = lomas_realm;
     LOMAS_SERVICE_private_db_credentials__0__credentials_name = "minio";
     LOMAS_SERVICE_private_db_credentials__0__db_type = "S3_DB";
-    LOMAS_SERVICE_private_db_credentials__0__access_key_id = minio_root_user;
-    LOMAS_SERVICE_private_db_credentials__0__secret_access_key = minio_root_pwd;
+    LOMAS_SERVICE_private_db_credentials__0__access_key_id = config.lomasMinio.rootUser;
+    LOMAS_SERVICE_private_db_credentials__0__secret_access_key = config.lomasMinio.rootPassword;
 
     LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
@@ -343,40 +365,6 @@ in
     };
   };
 
-  #########
-  # MINIO #
-  #########
-
-  services.minio =
-    let
-      listenAddress = "127.0.0.1:${toString minio_port}";
-    in
-    {
-      enable = true;
-      browser = false;
-      accessKey = minio_root_user;
-      secretKey = minio_root_pwd;
-      inherit listenAddress;
-      buckets = [ "example" ];
-      afterStart = ''
-        mc cp ${./server/lomas_server/tests/test_data/test_penguin.csv} myminio/example/data/test_penguin.csv
-        mc cp ${./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml}  myminio/example/metadata/penguin_metadata.yaml
-        mc cp ${./server/data/datasets/titanic.csv} myminio/example/data/titanic.csv
-        mc cp ${./server/data/collections/metadata/titanic_metadata.yaml}  myminio/example/metadata/titanic_metadata.yaml
-        mc ls --recursive --versions myminio/example
-      '';
-      # Configure myminio alias
-      clientConfig = {
-        aliases.myminio = {
-          url = "http://${listenAddress}"; # <scheme>:// is mandatory
-          accessKey = minio_root_user;
-          secretKey = minio_root_pwd;
-          api = "S3v4";
-          path = "auto";
-        };
-      };
-    };
-
   enterShell = ''
     echo hello from $GREET
 
@@ -436,10 +424,10 @@ in
         LOMAS_DASHBOARD_PORT=${toString dashboard_port}
 
         # MinIO
-        LOMAS_MINIO_PORT=${toString minio_port}
-        LOMAS_MINIO_CONSOLE_PORT=${toString minio_console_port}
-        LOMAS_MINIO_ROOT_USER=${minio_root_user}
-        LOMAS_MINIO_ROOT_PWD=${minio_root_pwd}
+        LOMAS_MINIO_PORT=${toString config.lomasMinio.port}
+        LOMAS_MINIO_CONSOLE_PORT=${toString config.lomasMinio.console_port}
+        LOMAS_MINIO_ROOT_USER=${config.lomasMinio.rootUser}
+        LOMAS_MINIO_ROOT_PWD=${config.lomasMinio.rootPassword}
 
         # Telemetry
         LOMAS_OTEL_PORT=${toString config.lomasTelemetry.services.otlp.ports.grpc}

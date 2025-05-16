@@ -100,8 +100,10 @@ in
     ./devenv/mongodb.nix
   ];
 
-  hooks.enable = true;
-  hooks.projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+  lomasHooks = {
+    enable = true;
+    projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+  };
 
   lomasKeycloak = {
     enable = true;

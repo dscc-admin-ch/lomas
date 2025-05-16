@@ -6,19 +6,19 @@
 }:
 
 let
-  cfg = config.hooks;
+  cfg = config.lomasHooks;
 
   inherit (lib) types;
 in
 {
-  options.hooks = {
+  options.lomasHooks = {
     enable = lib.mkEnableOption "Enable Lomas Git pre-commit hooks";
 
     projectConfigFile = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "pyproject.toml";
-      description = "path to the project config/rcfile";
+      description = "path to the project config/rcfile if any";
     };
   };
 

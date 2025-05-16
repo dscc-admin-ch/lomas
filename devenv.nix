@@ -12,8 +12,6 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
-  mongo_addr = "localhost";
-  mongo_port = 27017;
   minio_port = 19000;
   minio_console_port = 19001;
   rabbitmq_port = 5672;
@@ -27,8 +25,6 @@ let
   kc_management_port = 4441;
   kc_hostname = "localhost";
   dashboard_port = 8501;
-  otel_port = 4317; # Must keep this value
-  otel_port_http = 4318; # Must keep this value
   mongo_collector_port = 9216;
   jupyter_port = 8888;
 
@@ -51,11 +47,6 @@ let
   lomas_api_client_secret = "lomas_api";
 
   # MongoDB
-  mongo_root_user = "root";
-  mongo_root_password = "root_pwd";
-  mongo_db_name = "defaultdb";
-  mongo_user = "user";
-  mongo_password = "password";
   mongo_max_pool_size = 100;
   mongo_min_pool_size = 2;
   mongo_max_connecting = 2;
@@ -71,23 +62,6 @@ let
   admin_path_prefix = "${config.devenv.root}/server/data/";
   user_yaml_path = "/collections/user_collection.yaml";
   dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
-
-  # Telemetry
-  grafanaHost = "localhost";
-  grafanaPort = 3000;
-  prometheus_host = "localhost";
-  prometheus_port = 19090;
-  tempo_host = "localhost";
-  tempo_http_port = 13200;
-  tempo_grpc_port = 19095;
-  tempo_otlp_grpc_port = 14317;
-  loki_host = "localhost";
-  loki_http_port = 13100;
-  # loki_grpc_port = 19096;
-  otlp_host = "localhost";
-  otlp_metrics_port = 29090;
-  mongodb_exporter_addr = "localhost";
-  mongodb_exporter_port = 19216;
 in
 {
   # overlay our packages (pkgs) set
@@ -98,6 +72,7 @@ in
     ./devenv/hooks.nix
     ./devenv/keycloak.nix
     ./devenv/mongodb.nix
+    ./devenv/telemetry.nix
   ];
 
   lomasHooks = {
@@ -120,14 +95,53 @@ in
 
   lomasMongo = {
     enable = true;
-    addr = mongo_addr;
-    port = mongo_port;
-    dbName = mongo_db_name;
+    addr = "localhost";
+    port = 27017;
+    dbName = "defaultdb";
     extraDbNames = [ "testdb" ];
-    initialUser = mongo_root_user;
-    initialPassword = mongo_root_password;
-    user = mongo_user;
-    password = mongo_password;
+    initialUser = "root";
+    initialPassword = "root_pwd";
+    user = "user";
+    password = "password";
+  };
+
+  lomasTelemetry = {
+    enable = true;
+    namespace = "telemetry";
+    services = {
+      grafana = {
+        host = "localhost";
+        port = 3000;
+      };
+      prometheus = {
+        host = "localhost";
+        port = 19090;
+      };
+      tempo = {
+        host = "localhost";
+        ports = {
+          http = 13200;
+          grpc = 19095;
+          otlp_grpc = 14317;
+        };
+      };
+      loki = {
+        host = "localhost";
+        port = 13100;
+      };
+      otlp = {
+        host = "localhost";
+        ports = {
+          grpc = 4317; # Must keep this value
+          http = 4318; # Must keep this value
+          metrics = 29090;
+        };
+      };
+      mongodbExporter = {
+        host = "localhost";
+        port = 19216;
+      };
+    };
   };
 
   # Environment variable available inside devenv
@@ -158,8 +172,8 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database__url = config.lomasMongo.dsn;
-    LOMAS_SERVICE_admin_database__username = mongo_user;
-    LOMAS_SERVICE_admin_database__password = mongo_password;
+    LOMAS_SERVICE_admin_database__username = config.lomasMongo.user;
+    LOMAS_SERVICE_admin_database__password = config.lomasMongo.password;
     LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
     LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
     LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
@@ -174,7 +188,7 @@ in
     LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
     LOMAS_SERVICE_telemetry__service_id = "default-host";
-    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";
+    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
     LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
     # Lomas client environment
@@ -185,7 +199,7 @@ in
     LOMAS_CLIENT_telemetry__enabled = "false";
     LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
     LOMAS_CLIENT_telemetry__service_id = "default-host";
-    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString otel_port}";
+    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Keycloak setup
@@ -205,8 +219,8 @@ in
     LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
     LOMAS_ADMIN_MG_CONFIG__url = config.lomasMongo.dsn;
-    LOMAS_ADMIN_MG_CONFIG__username = mongo_user;
-    LOMAS_ADMIN_MG_CONFIG__password = mongo_password;
+    LOMAS_ADMIN_MG_CONFIG__username = config.lomasMongo.user;
+    LOMAS_ADMIN_MG_CONFIG__password = config.lomasMongo.password;
     LOMAS_ADMIN_KC_CONFIG__URL = "http://${kc_hostname}:${toString kc_http_port}";
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
@@ -329,129 +343,6 @@ in
     };
   };
 
-  ########
-  # OTLP #
-  ########
-
-  # tune down default namespace from "all" to "default" to make telemetry namespace optional, see @yelp
-  process.manager.args = {
-    namespace = "default";
-  };
-
-  services.opentelemetry-collector = {
-    enable = true;
-    settings = {
-      receivers.otlp.protocols = {
-        grpc.endpoint = "localhost:${toString otel_port}";
-        http.endpoint = "localhost:${toString otel_port_http}";
-      };
-
-      processors.batch.timeout = "5s";
-
-      exporters = {
-        debug.verbosity = "detailed";
-
-        prometheus = {
-          endpoint = "${otlp_host}:${toString otlp_metrics_port}";
-          namespace = "lomas_server";
-        };
-
-        "otlp/tempo" = {
-          endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
-          tls.insecure = true;
-        };
-
-        "otlphttp/loki" = {
-          endpoint = "http://${loki_host}:${toString loki_http_port}/otlp";
-          tls.insecure = true;
-        };
-      };
-
-      extensions = {
-        health_check.endpoint = "localhost:13133";
-        pprof.endpoint = "localhost:1777";
-        zpages.endpoint = "localhost:55679";
-      };
-
-      service = {
-        extensions = [
-          "health_check"
-          "pprof"
-          "zpages"
-        ];
-        pipelines = {
-          traces = {
-            receivers = [ "otlp" ];
-            processors = [ "batch" ];
-            exporters = [
-              "debug"
-              "otlp/tempo"
-            ];
-          };
-          metrics = {
-            receivers = [ "otlp" ];
-            processors = [ "batch" ];
-            exporters = [
-              "debug"
-              "prometheus"
-            ];
-          };
-          logs = {
-            receivers = [ "otlp" ];
-            processors = [ "batch" ];
-            exporters = [
-              "debug"
-              "otlphttp/loki"
-            ];
-          };
-        };
-      };
-
-    };
-  };
-
-  processes.opentelemetry-collector.process-compose = {
-    namespace = "telemetry";
-    depends_on = {
-      tempo.condition = "process_started";
-      loki.condition = "process_started";
-      prometheus.condition = "process_started";
-    };
-  };
-
-  services.prometheus = {
-    enable = true;
-    port = prometheus_port;
-    globalConfig = {
-      evaluation_interval = "10s";
-      scrape_interval = "10s";
-      scrape_timeout = "10s";
-    };
-    scrapeConfigs = [
-      {
-        job_name = "prometheus";
-        static_configs = [ { targets = [ "localhost:${toString prometheus_port}" ]; } ];
-      }
-      {
-        job_name = "tempo";
-        static_configs = [ { targets = [ "localhost:${toString tempo_http_port}" ]; } ];
-      }
-      {
-        job_name = "otel-collector";
-        static_configs = [ { targets = [ "localhost:${toString otlp_metrics_port}" ]; } ];
-      }
-      {
-        job_name = "loki";
-        static_configs = [ { targets = [ "localhost:${toString loki_http_port}" ]; } ];
-      }
-      {
-        job_name = "mongodb";
-        static_configs = [ { targets = [ "localhost:${toString mongodb_exporter_port}" ]; } ];
-      }
-    ];
-  };
-  processes.prometheus.process-compose.namespace = "telemetry";
-
   #########
   # MINIO #
   #########
@@ -484,212 +375,6 @@ in
           path = "auto";
         };
       };
-    };
-
-  ##############
-  # Monitoring #
-  ##############
-
-  processes.grafana =
-    let
-      working_dir = "${config.env.DEVENV_STATE}/grafana";
-
-      datasources = pkgs.writeText "grafana-config.yaml" ''
-        datasources:
-        - name: Prometheus
-          type: prometheus
-          uid: prometheus
-          access: proxy
-          orgId: 1
-          url: 'http://${prometheus_host}:${toString prometheus_port}'
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: true
-          jsonData:
-            httpMethod: GET
-
-        - name: Tempo
-          type: tempo
-          uid: tempo
-          access: proxy
-          orgId: 1
-          url: 'http://${tempo_host}:${toString tempo_http_port}'
-          basicAuth: false
-          isDefault: true
-          version: 1
-          editable: true
-          apiVersion: 1
-          stream_over_http_enabled: false
-
-        - name: Loki
-          type: loki
-          uid: loki
-          access: proxy
-          orgId: 1
-          url: 'http://${loki_host}:${toString loki_http_port}'
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: true
-          jsonData:
-            httpHeaderName1: X-Scope-OrgID
-          secureJsonData:
-            httpHeaderValue1: tenant1
-      '';
-
-      conf = pkgs.writeText "config.ini" ''
-        [server]
-        domain=${grafanaHost}
-        enforce_domain=false
-        http_port=${toString grafanaPort}
-        enable_gzip=false
-
-        [paths]
-        enable_gzip=true
-        http_addr=${grafanaHost}
-        http_port=${toString grafanaPort}
-        plugins=${working_dir}/plugins
-        provisioning=${working_dir}/provisioning
-        server=http
-
-        [snapshots]
-        external_enabled=false
-        public_mode=false
-
-        [security]
-        admin_user=admin
-        admin_password=admin
-        disable_initial_admin_creation=true
-      '';
-
-      dashboardProvision = writeYAML "dashboard.yaml" {
-        apiVersion = 1;
-        providers = [
-          {
-            name = "Lomas";
-            folder = "Services";
-            type = "file";
-            options.path = "${working_dir}/dashboards";
-          }
-        ];
-      };
-
-      extraFlags = [ ];
-    in
-    {
-      exec = ''
-        mkdir -p ${working_dir}/dashboards
-        mkdir -p ${working_dir}/provisioning/{datasources,dashboards}
-
-        ln -fs ${pkgs.grafana}/share/grafana/conf ${working_dir}
-        ln -fs ${pkgs.grafana}/share/grafana/public ${working_dir}
-
-        ln -sf ${datasources} ${working_dir}/provisioning/datasources/datasource.yaml
-        ln -sf ${dashboardProvision} ${working_dir}/provisioning/dashboards/dashboard.yaml
-        ln -sf ${./server/configs/observability/grafana/example_dashboard_config.json} ${working_dir}/dashboards
-        ln -sf ${conf} ${working_dir}/grafana.ini
-
-        ${pkgs.grafana}/bin/grafana server -homepath=${working_dir} -config=${conf} ${lib.escapeShellArgs extraFlags}
-      '';
-      process-compose.namespace = "telemetry";
-    };
-
-  processes.tempo =
-    let
-      working_dir = "${config.env.DEVENV_STATE}/tempo";
-      conf = writeYAML "config-tempo.yaml" {
-        stream_over_http_enabled = true;
-        server = {
-          http_listen_port = tempo_http_port;
-          http_listen_address = tempo_host;
-          grpc_listen_port = tempo_grpc_port;
-          grpc_listen_address = tempo_host;
-          log_level = "info";
-        };
-        # query_frontend.search.duration_slo = "5s";
-        # query_frontend.search.throughput_bytes_slo = 1.073741824e+09;
-        # query_frontend.search.metadata_slo.duration_slo = "5s";
-        # query_frontend.search.metadata_slo.throughput_bytes_slo = 1.073741824e+09;
-        # query_frontend.trace_by_id.duration_slo = "5s";
-        distributor.receivers.otlp.protocols.grpc.endpoint = "${tempo_host}:${toString tempo_otlp_grpc_port}";
-        ingester.max_block_duration = "5m";
-        compactor.compaction.block_retention = "1h";
-        metrics_generator.registry.external_labels.source = "tempo";
-        metrics_generator.storage.path = "${working_dir}/generator/wal";
-        metrics_generator.storage.remote_write = [
-          {
-            url = "http://${prometheus_host}:${toString prometheus_port}/api/v1/write";
-            send_exemplars = true;
-          }
-        ];
-        metrics_generator.traces_storage.path = "${working_dir}/generator/traces";
-        storage.trace.backend = "local";
-        storage.trace.wal.path = "${working_dir}/wal";
-        storage.trace.local.path = "${working_dir}/blocks";
-        overrides.defaults.metrics_generator.processors = [
-          "service-graphs"
-          "span-metrics"
-          "local-blocks"
-        ];
-        overrides.defaults.metrics_generator.generate_native_histograms = "both";
-      };
-      extraFlags = [ ];
-    in
-    {
-      exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
-      process-compose.namespace = "telemetry";
-    };
-
-  processes.loki =
-    let
-      working_dir = "${config.env.DEVENV_STATE}/loki";
-      conf = writeYAML "config-loki.yaml" {
-        auth_enabled = false;
-        limits_config.allow_structured_metadata = true;
-        limits_config.volume_enabled = true;
-        server.http_listen_port = loki_http_port;
-        # server.grpc_listen_port = loki_grpc_port;
-        common.ring.instance_addr = loki_host;
-        common.ring.kvstore.store = "inmemory";
-        common.replication_factor = 1;
-        common.path_prefix = working_dir;
-        schema_config.configs = [
-          {
-            from = "2025-01-10";
-            store = "tsdb";
-            object_store = "filesystem";
-            schema = "v13";
-            index.prefix = "loki_index_";
-            index.period = "24h";
-          }
-        ];
-        storage_config.tsdb_shipper.active_index_directory = "${working_dir}/index";
-        storage_config.tsdb_shipper.cache_location = "${working_dir}/index_cache";
-        storage_config.filesystem.directory = "${working_dir}/chunks";
-        pattern_ingester.enabled = true;
-      };
-      extraFlags = [ ];
-    in
-    {
-      exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
-      process-compose.namespace = "telemetry";
-    };
-
-  processes.mongodb-exporter =
-    let
-      inherit (config.services.mongodb) initDatabaseUsername initDatabasePassword;
-      uri = "mongodb://${initDatabaseUsername}:${initDatabasePassword}@${mongo_addr}:${toString mongo_port}";
-    in
-    {
-      exec = ''
-        ${lib.getExe pkgs.prometheus-mongodb-exporter} \
-        --mongodb.uri="${uri}" \
-        --collect-all \
-        --web.listen-address="${mongodb_exporter_addr}:${toString mongodb_exporter_port}" \
-        --web.telemetry-path="/metrics"
-      '';
-      process-compose.namespace = "telemetry";
     };
 
   enterShell = ''
@@ -742,10 +427,10 @@ in
         LOMAS_RABBIT_MQ_PASS=${rabbitmq_pass}
 
         # MongoDB
-        LOMAS_MONGO_PORT=${toString mongo_port}
-        LOMAS_MONGO_ROOT_USER=${mongo_root_user}
-        LOMAS_MONGO_ROOT_PWD=${mongo_root_password}
-        LOMAS_MONGO_DATABASE=${mongo_db_name}
+        LOMAS_MONGO_PORT=${toString config.lomasMongo.port}
+        LOMAS_MONGO_ROOT_USER=${config.lomasMongo.initialUser}
+        LOMAS_MONGO_ROOT_PWD=${config.lomasMongo.initialPassword}
+        LOMAS_MONGO_DATABASE=${config.lomasMongo.dbName}
 
         # Dashboard
         LOMAS_DASHBOARD_PORT=${toString dashboard_port}
@@ -757,7 +442,7 @@ in
         LOMAS_MINIO_ROOT_PWD=${minio_root_pwd}
 
         # Telemetry
-        LOMAS_OTEL_PORT=${toString otel_port}
+        LOMAS_OTEL_PORT=${toString config.lomasTelemetry.services.otlp.ports.grpc}
         LOMAS_MONGO_COLLECTOR_PORT=${toString mongo_collector_port}
 
         # Client
@@ -772,8 +457,8 @@ in
         kcEnvVarFinal = kcEnvVar // {
           LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq_port}";
           LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString kc_http_port}";
-          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
-          LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
+          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
+          LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
         };
       in
       {
@@ -792,7 +477,7 @@ in
         kcEnvVarFinal = kcEnvVar // {
           LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString lomas_port}";
           LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString kc_http_port}";
-          LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString otel_port}";
+          LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
         };
       in
       {
@@ -827,7 +512,7 @@ in
         adminVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_ADMIN_" name) config.env;
         adminVarFinal = adminVar // {
           LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
-          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
           LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
           LOMAS_ADMIN_PATH_PREFIX = "/data";
         };
@@ -848,9 +533,9 @@ in
         cat > $DEVENV_ROOT/server/configs/mongodb_init.js <<EOF
         // This file was autogenerated by devenv.
         db.createUser({
-          user: "${mongo_user}",
-          pwd: "${mongo_password}",
-          roles: [{ role: "readWrite", db: "${mongo_db_name}" }]}
+          user: "${config.lomasMongo.user}",
+          pwd: "${config.lomasMongo.password}",
+          roles: [{ role: "readWrite", db: "${config.lomasMongo.dbName}" }]}
         );
         EOF
       '';

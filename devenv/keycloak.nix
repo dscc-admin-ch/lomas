@@ -16,7 +16,7 @@ let
 
   # We need some kind of certificates to start Keycloak in production mode
   certSelfSigned = pkgs.runCommand "selfSignedCerts" { buildInputs = [ pkgs.openssl ]; } ''
-    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -subj '/CN=${cfg.kc_hostname}'
+    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -nodes -subj '/CN=${cfg.host}'
     mkdir -p $out
     cp key.pem cert.pem $out
   '';
@@ -32,15 +32,15 @@ let
     db-url-port=${toString cfg.postgres_port}
     db-url-properties=
     db-username=keycloak
-    hostname=${cfg.kc_hostname}
+    hostname=${cfg.host}
     hostname-backchannel-dynamic=false
     http-relative-path=/
     https-certificate-file=${cfg.homeDir}/ssl/cert.pem
     https-certificate-key-file=${cfg.homeDir}/ssl/key.pem
-    https-port=${toString cfg.kc_https_port}
+    https-port=${toString cfg.httpsPort}
     http-enabled=true
-    http-port=${toString cfg.kc_http_port}
-    http-management-port=${toString cfg.kc_management_port}
+    http-port=${toString cfg.httpPort}
+    http-management-port=${toString cfg.httpManagementPort}
     https-management-certificate-file=
     https-management-certificate-key-file=
     health-enabled=true
@@ -67,36 +67,36 @@ in
       description = "PostgreSQL address";
     };
 
-    kc_http_port = mkOption {
+    httpPort = mkOption {
       type = types.int;
       description = "Keycloak http port";
     };
 
-    kc_https_port = mkOption {
+    httpsPort = mkOption {
       type = types.int;
       description = "Keycloak https port";
     };
 
-    kc_management_port = mkOption {
+    httpManagementPort = mkOption {
       type = types.int;
       description = "Keycloak Management port";
     };
 
-    kc_hostname = mkOption {
+    host = mkOption {
       type = types.str;
       default = "localhost";
       example = "keycloak.domain";
       description = "Keycloak Hostname";
     };
 
-    kc_bootstrapAdminUser = mkOption {
+    bootstrapAdminUser = mkOption {
       type = types.str;
       default = "admin";
       example = "admin";
       description = "Keycloak boostrap Admin Username";
     };
 
-    kc_bootstrapAdminPass = mkOption {
+    bootstrapAdminPass = mkOption {
       type = types.str;
       description = "Keycloak boostrap Admin Password";
     };
@@ -120,8 +120,8 @@ in
       KC_HOME_DIR = cfg.homeDir;
       KC_CONF_DIR = cfg.confDir;
       # Theses are used by lomas-keycloak-setup
-      KC_BOOTSTRAP_ADMIN_USERNAME = cfg.kc_bootstrapAdminUser;
-      KC_BOOTSTRAP_ADMIN_PASSWORD = cfg.kc_bootstrapAdminPass;
+      KC_BOOTSTRAP_ADMIN_USERNAME = cfg.bootstrapAdminUser;
+      KC_BOOTSTRAP_ADMIN_PASSWORD = cfg.bootstrapAdminPass;
     };
 
     packages = [ pkgs.openssl ];
@@ -137,7 +137,7 @@ in
         ln -fs ${keycloakPkg}/lib ${cfg.homeDir}/
 
         install -D -m 0600 ${confFile} ${cfg.homeDir}/conf/keycloak.conf
-        echo ${cfg.kc_bootstrapAdminPass} > ${dbPassword}
+        echo ${cfg.bootstrapAdminPass} > ${dbPassword}
 
         mkdir -p ${cfg.homeDir}/ssl
         cp -u ${certSelfSigned}/{cert,key}.pem ${cfg.homeDir}/ssl/
@@ -150,7 +150,7 @@ in
           http_get = {
             scheme = "http";
             host = "127.0.0.1";
-            port = cfg.kc_management_port;
+            port = cfg.httpManagementPort;
             path = "/health/ready";
           };
           initial_delay_seconds = 15;
@@ -177,7 +177,7 @@ in
         {
           name = "keycloak";
           user = "keycloak";
-          pass = cfg.kc_bootstrapAdminPass;
+          pass = cfg.bootstrapAdminPass;
         }
       ];
     };

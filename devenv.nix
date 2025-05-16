@@ -16,12 +16,6 @@ let
   rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
   rabbitmq_addr = "localhost";
   lomas_port = 48080;
-  postgres_addr = "localhost";
-  postgres_port = 5432;
-  kc_https_port = 4443;
-  kc_http_port = 4442;
-  kc_management_port = 4441;
-  kc_hostname = "localhost";
   dashboard_port = 8501;
   mongo_collector_port = 9216;
   jupyter_port = 8888;
@@ -33,8 +27,6 @@ let
   # Keycloak
   kc_auth_realm = "master";
   kc_admin_client_id = "admin-cli";
-  kc_setup_admin_user = "admin";
-  kc_setup_admin_pwd = "admin";
   kc_setup_overwrite_realm = "true";
 
   lomas_realm = "lomas";
@@ -104,15 +96,14 @@ in
 
   lomasKeycloak = {
     enable = true;
-    inherit
-      postgres_port
-      postgres_addr
-      kc_http_port
-      kc_https_port
-      kc_management_port
-      kc_hostname
-      ;
-    kc_bootstrapAdminPass = kc_setup_admin_pwd;
+    host = "localhost";
+    httpPort = 4442;
+    httpsPort = 4443;
+    httpManagementPort = 4441;
+    bootstrapAdminUser = "admin";
+    bootstrapAdminPass = "admin";
+    postgres_addr = "localhost";
+    postgres_port = 5432;
   };
 
   lomasMongo = {
@@ -200,7 +191,7 @@ in
     LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
     LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
     LOMAS_SERVICE_authenticator__authentication_type = "jwt";
-    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString kc_http_port}";
+    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomasKeycloak.httpPort}";
     LOMAS_SERVICE_authenticator__realm = lomas_realm;
     LOMAS_SERVICE_private_db_credentials__0__credentials_name = "minio";
     LOMAS_SERVICE_private_db_credentials__0__db_type = "S3_DB";
@@ -214,7 +205,7 @@ in
     LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
     # Lomas client environment
-    LOMAS_CLIENT_KEYCLOAK_URL = "http://${kc_hostname}:${toString kc_http_port}";
+    LOMAS_CLIENT_KEYCLOAK_URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
     LOMAS_CLIENT_REALM = lomas_realm;
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString lomas_port}";
 
@@ -225,11 +216,11 @@ in
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Keycloak setup
-    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${kc_hostname}:${toString kc_http_port}";
+    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
     LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = kc_setup_admin_user;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = kc_setup_admin_pwd;
+    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomasKeycloak.bootstrapAdminUser;
+    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomasKeycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = lomas_realm;
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = lomas_admin_client_id;
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = lomas_admin_client_secret;
@@ -243,7 +234,7 @@ in
     LOMAS_ADMIN_MG_CONFIG__url = config.lomasMongo.dsn;
     LOMAS_ADMIN_MG_CONFIG__username = config.lomasMongo.user;
     LOMAS_ADMIN_MG_CONFIG__password = config.lomasMongo.password;
-    LOMAS_ADMIN_KC_CONFIG__URL = "http://${kc_hostname}:${toString kc_http_port}";
+    LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = lomas_admin_client_secret;
@@ -287,11 +278,13 @@ in
     uv.enable = true;
   };
 
-  devcontainer.enable = true;
-  devcontainer.settings.customizations.vscode.extensions = [
-    "mkhl.direnv"
-    "jnoortheen.nix-ide"
-  ];
+  devcontainer = {
+    enable = true;
+    settings.customizations.vscode.extensions = [
+      "mkhl.direnv"
+      "jnoortheen.nix-ide"
+    ];
+  };
 
   ############
   # RABBITMQ #
@@ -404,9 +397,9 @@ in
         LOMAS_SERVICE_PORT=${toString lomas_port}
 
         # Keycloak
-        LOMAS_KC_PORT=${toString kc_http_port}
-        LOMAS_KC_ADMIN_USER=${kc_setup_admin_user}
-        LOMAS_KC_ADMIN_PWD=${kc_setup_admin_pwd}
+        LOMAS_KC_PORT=${toString config.lomasKeycloak.httpPort}
+        LOMAS_KC_ADMIN_USER=${config.lomasKeycloak.bootstrapAdminUser}
+        LOMAS_KC_ADMIN_PWD=${config.lomasKeycloak.bootstrapAdminPass}
 
         # RabbitMQ
         LOMAS_RABBIT_MQ_PORT=${toString rabbitmq_port}
@@ -444,7 +437,7 @@ in
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
           LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq_port}";
-          LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString kc_http_port}";
+          LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
           LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
           LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
         };
@@ -464,7 +457,7 @@ in
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_CLIENT_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
           LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString lomas_port}";
-          LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString kc_http_port}";
+          LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
           LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
         };
       in
@@ -482,7 +475,7 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_KC_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_KC_SETUP_KEYCLOAK_URL = "http://keycloak:${toString kc_http_port}";
+          LOMAS_KC_SETUP_KEYCLOAK_URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
         };
       in
       {
@@ -499,7 +492,7 @@ in
       let
         adminVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_ADMIN_" name) config.env;
         adminVarFinal = adminVar // {
-          LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
+          LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
           LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
           LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
           LOMAS_ADMIN_PATH_PREFIX = "/data";

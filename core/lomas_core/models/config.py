@@ -176,17 +176,7 @@ class Telemetry(BaseModel):
             ValueError: If any of the fields is not specified while enabled is True.
         """
         if self.enabled:
-            missing = [
-                e
-                for e in [
-                    self.service_name,
-                    self.service_id,
-                    self.collector_endpoint,
-                    self.collector_insecure,
-                    self.collector_log_correlation,
-                ]
-                if e is None
-            ]
+            missing = {k for k, v in dict(self).items if v is None}
             if len(missing) > 0:
                 raise ValueError(
                     f"If enabled set to True, all other fields must be specified. Missing fields: {missing}"

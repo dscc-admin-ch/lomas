@@ -43,37 +43,74 @@ spec:
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         ports:
           - name: http
-            containerPort: {{ .Values.server.runtime_args.settings.server.host_port }}
+            containerPort: {{ .Values.server.runtime_args.server.host_port }}
             protocol: TCP
         env:
-          - name: SERVER_SERVICE_NAME
-            value: lomas-server-app
-          - name: OTEL_COLLECTOR_ENDPOINT
+          - name: LOMAS_SERVICE_SERVER__HOST_IP
+            value: "0.0.0.0"
+          - name: LOMAS_SERVICE_SERVER__HOST_PORT
+            value: "{{ .Values.server.runtime_args.server.host_port }}"
+          - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.log_level }}"
+          - name: LOMAS_SERVICE_SERVER__RELOAD
+            value: "false"
+          - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT
+            value: "{{ .Values.server.runtime_args.server.submit_limit }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__METHOD
+            value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
+            value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__URL
+            value: "mongodb://{{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__USERNAME
+            value: "{{ index .Values.mongodb.auth.usernames 0 }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "mongodb.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
+                key: mongodb-passwords
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__MAX_POOL_SIZE
+            value: "{{ .Values.mongodb.max_pool_size }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__MIN_POOL_SIZE
+            value: "{{ .Values.mongodb.min_pool_size }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE__MAX_CONNECTING
+            value: "{{ .Values.mongodb.max_connecting }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
+            value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__KEYCLOAK_URL
+            value: "https://{{ .Values.keycloak.ingress.hostname }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__REALM
+            value: "{{ .Values.admin.realm }}"
+          {{- range $i, $credSecretName := (include "lomas-service.private-db-credentials-secrets" $) | fromYamlArray }}
+          - name: LOMAS_SERVICE_PRIVATE_DB_CREDENTIALS__{{ $i }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $credSecretName }}
+                key: private-db-credentials
+          {{- end }}
+          - name: LOMAS_SERVICE_TELEMETRY__ENABLED
+            value: "{{ .Values.server.runtime_args.telemetry.enabled }}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_NAME
+            value: "{{ .Values.server.runtime_args.telemetry.service_name}}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
+            value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
             value: "http://{{ .Values.otel.fullnameOverride }}:{{ .Values.otel.service.port }}"
-          - name: OTEL_LOG_LEVEL
-            value: {{ .Values.server.runtime_args.settings.server.log_level }}
-          - name: LOMAS_AMQP_USER
-            value: {{ .Values.rabbitmq.auth.username }}
-          - name: LOMAS_AMQP_PASS
-            value: {{ .Values.rabbitmq.auth.password }}
-          - name: LOMAS_AMQP_ADDR
-            value: {{ .Values.rabbitmq.fullnameOverride }}
-          - name: LOMAS_AMQP_PORT
-            value: "{{ .Values.rabbitmq.service.ports.amqp }}"
-        volumeMounts:
-          - name: config-and-secrets
-            readOnly: True
-            mountPath: "/usr/lomas_server/"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
+            value: "true"
+          - name: LOMAS_SERVICE_AMQP__URL
+            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
+          - name: LOMAS_SERVICE_AMQP__USERNAME
+            value: "{{ .Values.rabbitmq.auth.username }}"
+          - name: LOMAS_SERVICE_AMQP__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}
+                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}
+          - name: LOMAS_SERVICE_OPENDP_FEATURES
+            value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
         resources:
             {{- toYaml .Values.server.resources | nindent 12 }}
-      volumes:
-        - name: config-and-secrets
-          projected:
-            sources:
-            - secret:
-                name: {{ include "lomas.server.fullname" . }}
-            - configMap:
-                name: {{ include "lomas.server.fullname" . }}
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

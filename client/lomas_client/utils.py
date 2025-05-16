@@ -1,4 +1,5 @@
 import warnings
+from json import JSONDecodeError
 from typing import Any, NoReturn, TypeVar
 
 import requests
@@ -23,8 +24,9 @@ def raise_error(response: requests.Response) -> NoReturn:
     """
     try:
         error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
-    except ValidationError as e:
+    except (ValidationError, JSONDecodeError) as e:
         raise InternalServerException(f"Could not parse server error: {response.content}") from e
+
     raise_error_from_model(error_model)
 
 

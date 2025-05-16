@@ -12,7 +12,7 @@ icon: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/i
 
 dependencies:
   - name: mongodb
-    version: "13.18.1"
+    version: "16.5.6"
     repository: oci://registry-1.docker.io/bitnamicharts
   - name: rabbitmq
     condition: rabbitmq.create

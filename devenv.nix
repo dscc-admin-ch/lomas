@@ -70,7 +70,7 @@ let
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
   admin_path_prefix = "${config.devenv.root}/server/data/";
   user_yaml_path = "/collections/user_collection.yaml";
-  dataset_yaml_path = "/collections/dataset_collection.yaml";
+  dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
 
   # Telemetry
   grafanaHost = "localhost";
@@ -293,7 +293,7 @@ in
       depends_on.rabbitmq.condition = "process_healthy";
       replicas = 2;
       # Un-comment to observe worker logs.
-      # log_location = "$DEVENV_ROOT/worker.log";
+      # log_location = "$DEVENV_ROOT/logs/worker.log";
     };
   };
 
@@ -884,6 +884,7 @@ in
         adminVarFinal = adminVar // {
           LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString kc_http_port}";
           LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString mongo_port}/${mongo_db_name}";
+          LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
           LOMAS_ADMIN_PATH_PREFIX = "/data";
         };
       in
@@ -948,6 +949,7 @@ in
             inherit working_dir;
             replicas = 1;
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
+            log_location = "$DEVENV_ROOT/logs/worker.log";
           };
           keycloak_setup = {
             inherit working_dir;
@@ -968,6 +970,8 @@ in
               keycloak_setup.condition = "process_completed_successfully";
               lomas-server.condition = "process_started";
             };
+            log_location = "$DEVENV_ROOT/logs/pytest.log";
+            log_configuration.flush_each_line = true;
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;
           };

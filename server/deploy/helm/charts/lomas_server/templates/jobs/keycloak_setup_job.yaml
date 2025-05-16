@@ -1,6 +1,6 @@
 apiVersion: batch/v1
 kind: Job
-metadata: 
+metadata:
   name: {{ include "lomas.admin.keycloak-setup.fullname" . }}
 spec:
   template:
@@ -31,12 +31,8 @@ spec:
           imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
           command: ["python", "-m", "lomas_server.administration.scripts.keycloak_setup"]
           env:
-            - name: LOMAS_KC_SETUP_KEYCLOAK_ADDRESS
-              value: {{ .Values.keycloak.fullnameOverride }}
-            - name: LOMAS_KC_SETUP_KEYCLOAK_PORT
-              value: {{ .Values.keycloak.service.ports.http | quote }}
-            - name: LOMAS_KC_SETUP_KEYCLOAK_USE_TLS
-              value: {{ .Values.admin.keycloak.use_tls_setup | quote }}
+            - name: LOMAS_KC_SETUP_KEYCLOAK_URL
+              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
             - name: LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM
               value: {{ .Values.keycloak.adminRealm }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID
@@ -44,17 +40,26 @@ spec:
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER
               value: {{ .Values.keycloak.auth.adminUser }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD
-              value: {{ .Values.keycloak.auth.adminPassword }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
+                  key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
             - name: LOMAS_KC_SETUP_LOMAS_REALM
               value: {{ .Values.admin.realm }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID
               value: {{ .Values.admin.client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET
-              value: {{ .Values.admin.client_secret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-admin.secretName" . }}
+                  key: {{ template "lomas-admin.secretKey" . }}
             - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID
               value: {{ .Values.admin.lomas_service_client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET
-              value: {{ .Values.admin.lomas_service_client_secret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-service.secretName" . }}
+                  key: {{ template "lomas-service.secretKey" . }}
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
           resources:

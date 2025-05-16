@@ -25,9 +25,15 @@ class LomasHttpClient:
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.config = config
 
-        if not self.config.keycloak_use_tls:
-            logging.info("Keycloak configured without TLS -> using oauthlib insecure transport")
+        if not self.config.keycloak_use_tls or not self.config.lomas_service_use_tls:
+            logging.info(
+                "Keycloak or Lomas service configured without TLS -> using oauthlib insecure transport"
+            )
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        else:
+            # Reset in case it was changed before
+            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
+
         oauth_client = BackendApplicationClient(client_id=self.config.client_id)
         self._oauth2_session = OAuth2Session(client=oauth_client)
 

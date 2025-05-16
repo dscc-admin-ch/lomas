@@ -1,5 +1,5 @@
 import abc
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     AmqpDsn,
@@ -10,6 +10,7 @@ from pydantic import (
     HttpUrl,
     UrlConstraints,
     computed_field,
+    model_validator,
 )
 from pydantic_core import Url
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -149,18 +150,39 @@ class AmqpConfig(BaseModel):
     @computed_field
     def base_url(self) -> str:
         """Queue base URL."""
-        return f"{self.url.host}:{self.url.port}"
+        base_url = Url.build(
+            scheme=self.url.scheme,
+            host=self.url.host,
+            port=self.url.port,
+        )
+        return str(base_url)
 
 
 class Telemetry(BaseModel):
     """Telemetry config."""
 
     enabled: bool
-    service_name: str = Field(default="lomas-server-app")
-    service_id: str = Field(default="default-host")
-    collector_endpoint: Annotated[HttpUrl, UrlConstraints(default_port=4317)]
-    collector_insecure: bool = Field(default=False)
-    collector_log_correlation: bool = Field(default=False)
+    service_name: Annotated[str | None, Field(default="lomas-server-app")]
+    service_id: Annotated[str | None, Field(default="default-host")]
+    collector_endpoint: Annotated[HttpUrl | None, UrlConstraints(default_port=4317)] = None
+    collector_insecure: Annotated[bool | None, Field(default=False)]
+    collector_log_correlation: Annotated[bool | None, Field(default=False)]
+
+    @model_validator(mode="after")
+    def options_set_if_enabled(self) -> Self:
+        """Ensures that if enabled is set to True, all other fields are specified.
+
+        Raises:
+            ValueError: If any of the fields is not specified while enabled is True.
+        """
+        if self.enabled:
+            missing = [k for k, v in dict(self).items() if v is None]
+            if len(missing) > 0:
+                raise ValueError(
+                    f"If enabled set to True, all other fields must be specified. Missing fields: {missing}"
+                )
+
+        return self
 
 
 class Config(BaseSettings):
@@ -182,7 +204,7 @@ class Config(BaseSettings):
 
     admin_database: MongoDBConfig
 
-    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]]
+    private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
     logging_config: dict = Field(default=DefaultLoggingConf)
 

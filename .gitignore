@@ -4,6 +4,7 @@ server/venv/*
 client/notebooks/personal_notebooks/*
 client/configs/lab/*
 client/venv/*
+logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

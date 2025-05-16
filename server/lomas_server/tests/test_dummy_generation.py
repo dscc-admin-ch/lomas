@@ -21,6 +21,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.metadata["columns"] = {
             "col_card_cat": {  # cardinality + categories
                 "type": "string",
+                "nullable_proportion": 0.0,
                 "cardinality": 3,
                 "categories": ["x", "y", "z"],
             }
@@ -37,11 +38,12 @@ class TestMakeDummyDataset(unittest.TestCase):
         assert df["col_card_cat"].nunique() == 3
         assert set(df["col_card_cat"].values) == {"x", "y", "z"}
         assert isinstance(df["col_card_cat"], object)
+        assert not df["col_card_cat"].isnull().any()
 
     def test_boolean_column(self) -> None:
         """Test_boolean_column."""
         # Test a boolean column
-        self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable": True}}
+        self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable_proportion": 0.5}}
         metadata = Metadata.model_validate(self.metadata)
         df = make_dummy_dataset(metadata)
 
@@ -51,6 +53,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         # Test col generated is boolean
         assert "col_bool" in df.columns
         assert df.col_bool.dtypes.name == "boolean"
+        assert df.col_bool.isnull().any()
 
     def test_float_column(self) -> None:
         """Test_float_column."""
@@ -117,9 +120,9 @@ class TestMakeDummyDataset(unittest.TestCase):
     def test_nullable_column(self) -> None:
         """Test_nullable_column."""
         self.metadata["columns"] = {
-            "col_nullable": {
+            "col_nullable_proportion": {
                 "type": "datetime",
-                "nullable": True,
+                "nullable_proportion": 0.5,
                 "lower": "2000-01-01",
                 "upper": "2010-01-01",
             }
@@ -128,7 +131,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Should have null values
-        assert df.col_nullable.isnull().values.any()
+        assert df.col_nullable_proportion.isnull().values.any()
 
     def test_seed(self) -> None:
         """Test_seed."""
@@ -136,7 +139,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.metadata["columns"] = {
             "col_int": {
                 "type": "int",
-                "nullable": True,
+                "nullable_proportion": 0.5,
                 "precision": 32,
                 "lower": 0,
                 "upper": 100,

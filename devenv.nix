@@ -12,17 +12,10 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
-  rabbitmq_port = 5672;
-  rabbitmq_mgmt_port = 15672; # spin the management interface http://localhost:15672 guest/guest
-  rabbitmq_addr = "localhost";
   lomas_port = 48080;
   dashboard_port = 8501;
   mongo_collector_port = 9216;
   jupyter_port = 8888;
-
-  # RabbitMQ
-  rabbitmq_user = "guest";
-  rabbitmq_pass = "guest";
 
   # Keycloak
   kc_auth_realm = "master";
@@ -56,6 +49,7 @@ in
   # import our modules
   imports = [
     ./devenv/hooks.nix
+    ./devenv/rabbit.nix
     ./devenv/minio.nix
     ./devenv/keycloak.nix
     ./devenv/mongodb.nix
@@ -67,9 +61,21 @@ in
     projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
   };
 
+  lomasRabbit = {
+    enable = true;
+    host = "localhost";
+    port = 5672;
+    nodeName = "rabbit@localhost";
+    # spin the management interface http://localhost:15672 guest/guest
+    portManagement = 15672;
+    user = "guest";
+    password = "guest";
+    heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
+  };
+
   lomasMinio = {
     enable = true;
-    addr = "localhost";
+    host = "localhost";
     port = 19000;
     console_port = 19001;
     rootUser = "admin";
@@ -108,7 +114,7 @@ in
 
   lomasMongo = {
     enable = true;
-    addr = "localhost";
+    host = "localhost";
     port = 27017;
     dbName = "defaultdb";
     extraDbNames = [ "testdb" ];
@@ -176,9 +182,9 @@ in
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
 
-    LOMAS_SERVICE_amqp__url = "amqp://${rabbitmq_addr}:${toString rabbitmq_port}";
-    LOMAS_SERVICE_amqp__username = rabbitmq_user;
-    LOMAS_SERVICE_amqp__password = rabbitmq_pass;
+    LOMAS_SERVICE_amqp__url = "amqp://${config.lomasRabbit.host}:${toString config.lomasRabbit.port}";
+    LOMAS_SERVICE_amqp__username = config.lomasRabbit.user;
+    LOMAS_SERVICE_amqp__password = config.lomasRabbit.password;
     LOMAS_SERVICE_opendp_features = toPydanticSetting [
       "contrib"
       "floating-point"
@@ -286,36 +292,6 @@ in
     ];
   };
 
-  ############
-  # RABBITMQ #
-  ############
-
-  services.rabbitmq = {
-    enable = true;
-    listenAddress = "127.0.0.1";
-    port = rabbitmq_port;
-    nodeName = "rabbit@localhost";
-    managementPlugin = {
-      enable = true;
-      port = rabbitmq_mgmt_port;
-    };
-    configItems = {
-      "default_user" = rabbitmq_user;
-      "default_pass" = rabbitmq_pass;
-      "heartbeat" = "1800"; # Extra super duper long hearbeat timeout for long running tasks in workersss
-    };
-  };
-
-  processes.rabbitmq.process-compose = {
-    readiness_probe = {
-      initial_delay_seconds = 20;
-      timeout_seconds = 5;
-      period_seconds = 5;
-      success_threshold = 2;
-      failure_threshold = 10;
-    };
-  };
-
   ##########
   # SERVER #
   ##########
@@ -402,10 +378,10 @@ in
         LOMAS_KC_ADMIN_PWD=${config.lomasKeycloak.bootstrapAdminPass}
 
         # RabbitMQ
-        LOMAS_RABBIT_MQ_PORT=${toString rabbitmq_port}
-        LOMAS_RABBIT_MQ_MGMT_PORT=${toString rabbitmq_mgmt_port}
-        LOMAS_RABBIT_MQ_USER=${rabbitmq_user}
-        LOMAS_RABBIT_MQ_PASS=${rabbitmq_pass}
+        LOMAS_RABBIT_MQ_PORT=${toString config.lomasRabbit.port}
+        LOMAS_RABBIT_MQ_MGMT_PORT=${toString config.lomasRabbit.portManagement}
+        LOMAS_RABBIT_MQ_USER=${config.lomasRabbit.user}
+        LOMAS_RABBIT_MQ_PASS=${config.lomasRabbit.password}
 
         # MongoDB
         LOMAS_MONGO_PORT=${toString config.lomasMongo.port}
@@ -436,7 +412,7 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq_port}";
+          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString config.lomasRabbit.port}";
           LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
           LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
           LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";

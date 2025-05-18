@@ -21,7 +21,7 @@ in
   options.lomasMongo = {
     enable = mkEnableOption "Enable Lomas MongoDB";
 
-    addr = mkOption {
+    host = mkOption {
       type = types.str;
       default = "localhost";
       example = "mongo.domain";
@@ -70,7 +70,7 @@ in
     dsn = mkOption {
       readOnly = true;
       type = types.str;
-      default = "mongodb://${cfg.addr}:${toString cfg.port}/${cfg.dbName}";
+      default = "mongodb://${cfg.host}:${toString cfg.port}/${cfg.dbName}";
       description = "MongoDB url/dsn format";
     };
   };

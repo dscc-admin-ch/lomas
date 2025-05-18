@@ -24,7 +24,7 @@ in
   options.lomasMinio = {
     enable = mkEnableOption "Enable Lomas Minio";
 
-    addr = mkOption {
+    host = mkOption {
       type = types.str;
       default = "localhost";
       example = "minio.domain";
@@ -81,7 +81,7 @@ in
     services.minio = {
       enable = true;
       browser = false;
-      listenAddress = "${cfg.addr}:${toString cfg.port}";
+      listenAddress = "${cfg.host}:${toString cfg.port}";
       accessKey = cfg.rootUser;
       secretKey = cfg.rootPassword;
       buckets = lib.singleton cfg.bucketName;
@@ -92,7 +92,7 @@ in
 
       clientConfig = {
         aliases.${cfg.serviceHost} = {
-          url = "http://${cfg.addr}:${toString cfg.port}"; # <scheme>:// is mandatory
+          url = "http://${cfg.host}:${toString cfg.port}"; # <scheme>:// is mandatory
           accessKey = cfg.rootUser;
           secretKey = cfg.rootPassword;
           api = "S3v4";

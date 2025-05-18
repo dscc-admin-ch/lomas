@@ -9,6 +9,7 @@ let
 
   toYAML = lib.generators.toYAML { };
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
+  mongodbUri = with config.lomasMongo; "mongodb://${initialUser}:${initialPassword}@${host}:${toString port}";
 
   inherit (lib)
     types
@@ -378,26 +379,16 @@ in
         process-compose.namespace = cfg.namespace;
       };
 
-    processes.mongodb-exporter =
-      let
-        inherit (config.lomasMongo)
-          initialUser
-          initialPassword
-          addr
-          port
-          ;
-        uri = "mongodb://${initialUser}:${initialPassword}@${addr}:${toString port}";
-      in
-      {
-        exec = ''
-          ${lib.getExe pkgs.prometheus-mongodb-exporter} \
-          --mongodb.uri="${uri}" \
-          --collect-all \
-          --web.listen-address="${cfg.services.mongodbExporter.host}:${toString cfg.services.mongodbExporter.port}" \
-          --web.telemetry-path="/metrics"
-        '';
-        process-compose.namespace = cfg.namespace;
-      };
+    processes.mongodb-exporter = {
+      exec = ''
+        ${lib.getExe pkgs.prometheus-mongodb-exporter} \
+        --mongodb.uri="${mongodbUri}" \
+        --collect-all \
+        --web.listen-address="${cfg.services.mongodbExporter.host}:${toString cfg.services.mongodbExporter.port}" \
+        --web.telemetry-path="/metrics"
+      '';
+      process-compose.namespace = cfg.namespace;
+    };
 
   };
 }

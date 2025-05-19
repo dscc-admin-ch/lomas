@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.lomasKeycloak;
+  cfg = config.lomas.keycloak;
 
   inherit (lib)
     types
@@ -51,7 +51,7 @@ let
 in
 {
 
-  options.lomasKeycloak = {
+  options.lomas.keycloak = {
     enable = mkEnableOption "Enable lomas Keycloak Service";
 
     postgres_port = mkOption {

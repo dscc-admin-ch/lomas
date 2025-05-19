@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.lomasRabbit;
+  cfg = config.lomas.rabbitmq;
 
   inherit (lib)
     types
@@ -24,7 +24,7 @@ let
   };
 in
 {
-  options.lomasRabbit = {
+  options.lomas.rabbitmq = {
     enable = mkEnableOption "Enable Lomas RabbitMQ";
 
     host = mkOption {

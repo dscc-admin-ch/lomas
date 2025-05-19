@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.lomasMongo;
+  cfg = config.lomas.mongo;
 
   inherit (lib)
     types
@@ -18,7 +18,7 @@ let
     ;
 in
 {
-  options.lomasMongo = {
+  options.lomas.mongo = {
     enable = mkEnableOption "Enable Lomas MongoDB";
 
     host = mkOption {

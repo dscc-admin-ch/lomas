@@ -58,12 +58,12 @@ in
     ./devenv/telemetry.nix
   ];
 
-  lomasHooks = {
+  lomas.hooks = {
     enable = true;
     projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
   };
 
-  lomasRabbit = {
+  lomas.rabbitmq = {
     enable = true;
     host = "localhost";
     port = 5672;
@@ -75,7 +75,7 @@ in
     heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 
-  lomasMinio = {
+  lomas.minio = {
     enable = true;
     host = "localhost";
     port = 19000;
@@ -102,7 +102,7 @@ in
     ];
   };
 
-  lomasKeycloak = {
+  lomas.keycloak = {
     enable = true;
     host = "localhost";
     httpPort = 4442;
@@ -114,7 +114,7 @@ in
     postgres_port = 5432;
   };
 
-  lomasMongo = {
+  lomas.mongo = {
     enable = true;
     host = "localhost";
     port = 27017;
@@ -126,7 +126,7 @@ in
     password = "password";
   };
 
-  lomasTelemetry = {
+  lomas.telemetry = {
     enable = true;
     namespace = "telemetry";
     services = {
@@ -184,51 +184,51 @@ in
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
 
-    LOMAS_SERVICE_amqp__url = "amqp://${config.lomasRabbit.host}:${toString config.lomasRabbit.port}";
-    LOMAS_SERVICE_amqp__username = config.lomasRabbit.user;
-    LOMAS_SERVICE_amqp__password = config.lomasRabbit.password;
+    LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.port}";
+    LOMAS_SERVICE_amqp__username = config.lomas.rabbitmq.user;
+    LOMAS_SERVICE_amqp__password = config.lomas.rabbitmq.password;
     LOMAS_SERVICE_opendp_features = toPydanticSetting [
       "contrib"
       "floating-point"
       "honest-but-curious"
     ];
-    LOMAS_SERVICE_admin_database__url = config.lomasMongo.dsn;
-    LOMAS_SERVICE_admin_database__username = config.lomasMongo.user;
-    LOMAS_SERVICE_admin_database__password = config.lomasMongo.password;
+    LOMAS_SERVICE_admin_database__url = config.lomas.mongo.dsn;
+    LOMAS_SERVICE_admin_database__username = config.lomas.mongo.user;
+    LOMAS_SERVICE_admin_database__password = config.lomas.mongo.password;
     LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
     LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
     LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
     LOMAS_SERVICE_authenticator__authentication_type = "jwt";
-    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomasKeycloak.httpPort}";
+    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomas.keycloak.httpPort}";
     LOMAS_SERVICE_authenticator__realm = lomas_realm;
     LOMAS_SERVICE_private_db_credentials__0__credentials_name = "minio";
     LOMAS_SERVICE_private_db_credentials__0__db_type = "S3_DB";
-    LOMAS_SERVICE_private_db_credentials__0__access_key_id = config.lomasMinio.rootUser;
-    LOMAS_SERVICE_private_db_credentials__0__secret_access_key = config.lomasMinio.rootPassword;
+    LOMAS_SERVICE_private_db_credentials__0__access_key_id = config.lomas.minio.rootUser;
+    LOMAS_SERVICE_private_db_credentials__0__secret_access_key = config.lomas.minio.rootPassword;
 
     LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
     LOMAS_SERVICE_telemetry__service_id = "default-host";
-    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
+    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
     LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
     # Lomas client environment
-    LOMAS_CLIENT_KEYCLOAK_URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
+    LOMAS_CLIENT_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_CLIENT_REALM = lomas_realm;
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString lomas_port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";
     LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
     LOMAS_CLIENT_telemetry__service_id = "default-host";
-    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
+    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Keycloak setup
-    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
+    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomasKeycloak.bootstrapAdminUser;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomasKeycloak.bootstrapAdminPass;
+    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
+    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = lomas_realm;
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = lomas_admin_client_id;
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = lomas_admin_client_secret;
@@ -239,10 +239,10 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
-    LOMAS_ADMIN_MG_CONFIG__url = config.lomasMongo.dsn;
-    LOMAS_ADMIN_MG_CONFIG__username = config.lomasMongo.user;
-    LOMAS_ADMIN_MG_CONFIG__password = config.lomasMongo.password;
-    LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomasKeycloak.host}:${toString config.lomasKeycloak.httpPort}";
+    LOMAS_ADMIN_MG_CONFIG__url = config.lomas.mongo.dsn;
+    LOMAS_ADMIN_MG_CONFIG__username = config.lomas.mongo.user;
+    LOMAS_ADMIN_MG_CONFIG__password = config.lomas.mongo.password;
+    LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = lomas_admin_client_secret;
@@ -386,33 +386,33 @@ in
         LOMAS_SERVICE_PORT=${toString lomas_port}
 
         # Keycloak
-        LOMAS_KC_PORT=${toString config.lomasKeycloak.httpPort}
-        LOMAS_KC_ADMIN_USER=${config.lomasKeycloak.bootstrapAdminUser}
-        LOMAS_KC_ADMIN_PWD=${config.lomasKeycloak.bootstrapAdminPass}
+        LOMAS_KC_PORT=${toString config.lomas.keycloak.httpPort}
+        LOMAS_KC_ADMIN_USER=${config.lomas.keycloak.bootstrapAdminUser}
+        LOMAS_KC_ADMIN_PWD=${config.lomas.keycloak.bootstrapAdminPass}
 
         # RabbitMQ
-        LOMAS_RABBIT_MQ_PORT=${toString config.lomasRabbit.port}
-        LOMAS_RABBIT_MQ_MGMT_PORT=${toString config.lomasRabbit.portManagement}
-        LOMAS_RABBIT_MQ_USER=${config.lomasRabbit.user}
-        LOMAS_RABBIT_MQ_PASS=${config.lomasRabbit.password}
+        LOMAS_RABBIT_MQ_PORT=${toString config.lomas.rabbitmq.port}
+        LOMAS_RABBIT_MQ_MGMT_PORT=${toString config.lomas.rabbitmq.portManagement}
+        LOMAS_RABBIT_MQ_USER=${config.lomas.rabbitmq.user}
+        LOMAS_RABBIT_MQ_PASS=${config.lomas.rabbitmq.password}
 
         # MongoDB
-        LOMAS_MONGO_PORT=${toString config.lomasMongo.port}
-        LOMAS_MONGO_ROOT_USER=${config.lomasMongo.initialUser}
-        LOMAS_MONGO_ROOT_PWD=${config.lomasMongo.initialPassword}
-        LOMAS_MONGO_DATABASE=${config.lomasMongo.dbName}
+        LOMAS_MONGO_PORT=${toString config.lomas.mongo.port}
+        LOMAS_MONGO_ROOT_USER=${config.lomas.mongo.initialUser}
+        LOMAS_MONGO_ROOT_PWD=${config.lomas.mongo.initialPassword}
+        LOMAS_MONGO_DATABASE=${config.lomas.mongo.dbName}
 
         # Dashboard
         LOMAS_DASHBOARD_PORT=${toString dashboard_port}
 
         # MinIO
-        LOMAS_MINIO_PORT=${toString config.lomasMinio.port}
-        LOMAS_MINIO_CONSOLE_PORT=${toString config.lomasMinio.console_port}
-        LOMAS_MINIO_ROOT_USER=${config.lomasMinio.rootUser}
-        LOMAS_MINIO_ROOT_PWD=${config.lomasMinio.rootPassword}
+        LOMAS_MINIO_PORT=${toString config.lomas.minio.port}
+        LOMAS_MINIO_CONSOLE_PORT=${toString config.lomas.minio.console_port}
+        LOMAS_MINIO_ROOT_USER=${config.lomas.minio.rootUser}
+        LOMAS_MINIO_ROOT_PWD=${config.lomas.minio.rootPassword}
 
         # Telemetry
-        LOMAS_OTEL_PORT=${toString config.lomasTelemetry.services.otlp.ports.grpc}
+        LOMAS_OTEL_PORT=${toString config.lomas.telemetry.services.otlp.ports.grpc}
         LOMAS_MONGO_COLLECTOR_PORT=${toString mongo_collector_port}
 
         # Client
@@ -425,10 +425,10 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_SERVICE_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString config.lomasRabbit.port}";
-          LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
-          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
-          LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
+          LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString config.lomas.rabbitmq.port}";
+          LOMAS_SERVICE_authenticator__keycloak_url = "http://keycloak:${toString config.lomas.keycloak.httpPort}";
+          LOMAS_SERVICE_admin_database__url = "mongodb://mongodb:${toString config.lomas.mongo.port}/${config.lomas.mongo.dbName}";
+          LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
         };
       in
       {
@@ -446,8 +446,8 @@ in
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_CLIENT_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
           LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString lomas_port}";
-          LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
-          LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomasTelemetry.services.otlp.ports.grpc}";
+          LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString config.lomas.keycloak.httpPort}";
+          LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
         };
       in
       {
@@ -464,7 +464,7 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_KC_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_KC_SETUP_KEYCLOAK_URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
+          LOMAS_KC_SETUP_KEYCLOAK_URL = "http://keycloak:${toString config.lomas.keycloak.httpPort}";
         };
       in
       {
@@ -481,8 +481,8 @@ in
       let
         adminVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_ADMIN_" name) config.env;
         adminVarFinal = adminVar // {
-          LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString config.lomasKeycloak.httpPort}";
-          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString config.lomasMongo.port}/${config.lomasMongo.dbName}";
+          LOMAS_ADMIN_KC_CONFIG__URL = "http://keycloak:${toString config.lomas.keycloak.httpPort}";
+          LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString config.lomas.mongo.port}/${config.lomas.mongo.dbName}";
           LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
           LOMAS_ADMIN_PATH_PREFIX = "/data";
         };
@@ -503,9 +503,9 @@ in
         cat > $DEVENV_ROOT/server/configs/mongodb_init.js <<EOF
         // This file was autogenerated by devenv.
         db.createUser({
-          user: "${config.lomasMongo.user}",
-          pwd: "${config.lomasMongo.password}",
-          roles: [{ role: "readWrite", db: "${config.lomasMongo.dbName}" }]}
+          user: "${config.lomas.mongo.user}",
+          pwd: "${config.lomas.mongo.password}",
+          roles: [{ role: "readWrite", db: "${config.lomas.mongo.dbName}" }]}
         );
         EOF
       '';

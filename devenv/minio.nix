@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.lomasMinio;
+  cfg = config.lomas.minio;
 
   inherit (lib)
     types
@@ -21,7 +21,7 @@ let
 
 in
 {
-  options.lomasMinio = {
+  options.lomas.minio = {
     enable = mkEnableOption "Enable Lomas Minio";
 
     host = mkOption {

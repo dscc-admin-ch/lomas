@@ -6,15 +6,20 @@
 }:
 
 let
-  cfg = config.lomasHooks;
+  cfg = config.lomas.hooks;
 
-  inherit (lib) types;
+  inherit (lib)
+    types
+    mkIf
+    mkOption
+    mkEnableOption
+    ;
 in
 {
-  options.lomasHooks = {
-    enable = lib.mkEnableOption "Enable Lomas Git pre-commit hooks";
+  options.lomas.hooks = {
+    enable = mkEnableOption "Enable Lomas Git pre-commit hooks";
 
-    projectConfigFile = lib.mkOption {
+    projectConfigFile = mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "pyproject.toml";
@@ -22,7 +27,7 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
     git-hooks.hooks = {
       trim-trailing-whitespace.enable = true;
 

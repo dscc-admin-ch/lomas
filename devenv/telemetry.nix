@@ -5,11 +5,11 @@
   ...
 }:
 let
-  cfg = config.lomasTelemetry;
+  cfg = config.lomas.telemetry;
 
   toYAML = lib.generators.toYAML { };
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
-  mongodbUri = with config.lomasMongo; "mongodb://${initialUser}:${initialPassword}@${host}:${toString port}";
+  mongodbUri = with config.lomas.mongo; "mongodb://${initialUser}:${initialPassword}@${host}:${toString port}";
 
   inherit (lib)
     types
@@ -46,7 +46,7 @@ let
     };
 in
 {
-  options.lomasTelemetry = {
+  options.lomas.telemetry = {
     enable = mkEnableOption "Enable lomas Telemetry Stack";
 
     namespace = mkOption {

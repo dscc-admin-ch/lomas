@@ -67,6 +67,21 @@ in
       description = "MongoDB default user password";
     };
 
+    minPoolSize = mkOption {
+      type = types.int;
+      default = 2;
+    };
+
+    maxPoolSize = mkOption {
+      type = types.int;
+      default = 100;
+    };
+
+    maxConnecting = mkOption {
+      type = types.int;
+      default = 2;
+    };
+
     dsn = mkOption {
       readOnly = true;
       type = types.str;

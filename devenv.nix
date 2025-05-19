@@ -11,32 +11,13 @@ let
   toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
-  # Networking
-  lomas_host = "localhost";
-  lomas_port = 48080;
-  dashboard_host = "localhost";
-  dashboard_port = 8501;
-  mongo_collector_port = 9216;
-  jupyter_port = 8888;
-
   # Keycloak
   kc_auth_realm = "master";
   kc_admin_client_id = "admin-cli";
   kc_setup_overwrite_realm = "true";
 
-  lomas_realm = "lomas";
-  lomas_admin_client_id = "lomas_admin";
-  lomas_admin_client_secret = "lomas_admin";
-
-  lomas_api_client_id = "lomas_api";
-  lomas_api_client_secret = "lomas_api";
-
-  # MongoDB
-  mongo_max_pool_size = 100;
-  mongo_min_pool_size = 2;
-  mongo_max_connecting = 2;
-
   # Jupyter
+  jupyter_port = 8888;
   jupyter_pwd = "dprocks";
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
@@ -50,6 +31,7 @@ in
 
   # import our modules
   imports = [
+    ./devenv/lomas.nix
     ./devenv/hooks.nix
     ./devenv/rabbit.nix
     ./devenv/minio.nix
@@ -57,6 +39,22 @@ in
     ./devenv/mongodb.nix
     ./devenv/telemetry.nix
   ];
+
+  lomas = {
+    enable = true;
+    host = "localhost";
+    port = 48080;
+    dashboard.host = "localhost";
+    dashboard.port = 8501;
+    admin = {
+      client_id = "lomas_admin";
+      client_secret = "lomas_admin";
+    };
+    api = {
+      client_id = "lomas_api";
+      client_secret = "lomas_api";
+    };
+  };
 
   lomas.hooks = {
     enable = true;
@@ -160,7 +158,7 @@ in
       };
       mongodbExporter = {
         host = "localhost";
-        port = 19216;
+        port = 9216;
       };
     };
   };
@@ -177,7 +175,7 @@ in
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = "0.0.0.0";
-    LOMAS_SERVICE_server__host_port = lomas_port;
+    LOMAS_SERVICE_server__host_port = config.lomas.port;
     LOMAS_SERVICE_server__log_level = "info";
     LOMAS_SERVICE_server__reload = "true";
     LOMAS_SERVICE_server__submit_limit = 300;
@@ -195,12 +193,12 @@ in
     LOMAS_SERVICE_admin_database__url = config.lomas.mongo.dsn;
     LOMAS_SERVICE_admin_database__username = config.lomas.mongo.user;
     LOMAS_SERVICE_admin_database__password = config.lomas.mongo.password;
-    LOMAS_SERVICE_admin_database__max_pool_size = mongo_max_pool_size;
-    LOMAS_SERVICE_admin_database__min_pool_size = mongo_min_pool_size;
-    LOMAS_SERVICE_admin_database__max_connecting = mongo_max_connecting;
+    LOMAS_SERVICE_admin_database__max_pool_size = config.lomas.mongo.maxPoolSize;
+    LOMAS_SERVICE_admin_database__min_pool_size = config.lomas.mongo.minPoolSize;
+    LOMAS_SERVICE_admin_database__max_connecting = config.lomas.mongo.maxConnecting;
     LOMAS_SERVICE_authenticator__authentication_type = "jwt";
     LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_SERVICE_authenticator__realm = lomas_realm;
+    LOMAS_SERVICE_authenticator__realm = config.lomas.realm;
     LOMAS_SERVICE_private_db_credentials__0__credentials_name = "minio";
     LOMAS_SERVICE_private_db_credentials__0__db_type = "S3_DB";
     LOMAS_SERVICE_private_db_credentials__0__access_key_id = config.lomas.minio.rootUser;
@@ -214,8 +212,8 @@ in
 
     # Lomas client environment
     LOMAS_CLIENT_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_CLIENT_REALM = lomas_realm;
-    LOMAS_CLIENT_APP_URL = "http://localhost:${toString lomas_port}";
+    LOMAS_CLIENT_REALM = config.lomas.realm;
+    LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";
     LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
@@ -229,23 +227,23 @@ in
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
-    LOMAS_KC_SETUP_LOMAS_REALM = lomas_realm;
-    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = lomas_admin_client_id;
-    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = lomas_admin_client_secret;
-    LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = lomas_api_client_id;
-    LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = lomas_api_client_secret;
+    LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
+    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;
+    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = config.lomas.admin.client_secret;
+    LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = config.lomas.api.client_id;
+    LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = config.lomas.api.client_secret;
     LOMAS_KC_SETUP_OVERWRITE_REALM = kc_setup_overwrite_realm;
 
     # Lomas demo setup
-    LOMAS_ADMIN_server_url = "http://localhost:${toString lomas_port}"; # public lomas service url from dashboard
-    LOMAS_ADMIN_server_service = "http://localhost:${toString lomas_port}";
+    LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
     LOMAS_ADMIN_MG_CONFIG__url = config.lomas.mongo.dsn;
     LOMAS_ADMIN_MG_CONFIG__username = config.lomas.mongo.user;
     LOMAS_ADMIN_MG_CONFIG__password = config.lomas.mongo.password;
     LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_ADMIN_KC_CONFIG__REALM = lomas_realm;
-    LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = lomas_admin_client_id;
-    LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = lomas_admin_client_secret;
+    LOMAS_ADMIN_KC_CONFIG__REALM = config.lomas.realm;
+    LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = config.lomas.admin.client_id;
+    LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = config.lomas.admin.client_secret;
     LOMAS_ADMIN_PATH_PREFIX = admin_path_prefix;
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
@@ -292,44 +290,6 @@ in
       "mkhl.direnv"
       "jnoortheen.nix-ide"
     ];
-  };
-
-  ##########
-  # SERVER #
-  ##########
-
-  processes.lomas-server = {
-    exec = "python uvicorn_serve.py";
-    process-compose = {
-      working_dir = "$DEVENV_ROOT/server/lomas_server";
-      depends_on.mongodb.condition = "process_healthy";
-      readiness_probe.http_get = {
-        scheme = "http";
-        host = lomas_host;
-        port = lomas_port;
-        path = "/live";
-      };
-    };
-  };
-
-  #############
-  # DASHBOARD #
-  #############
-
-  processes.admin-dashboad = {
-    exec = "streamlit run --server.headless true lomas_server/administration/dashboard/about.py";
-    process-compose = {
-      working_dir = "$DEVENV_ROOT/server";
-      environment = [
-        "STREAMLIT_SERVER_PORT=${toString dashboard_port}"
-        "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
-      ];
-      readiness_probe.http_get = {
-        host = dashboard_host;
-        port = dashboard_port;
-        path = "/ping";
-      };
-    };
   };
 
   ##########
@@ -383,7 +343,7 @@ in
         # This file was autogenerated by devenv
 
         # Lomas service
-        LOMAS_SERVICE_PORT=${toString lomas_port}
+        LOMAS_SERVICE_PORT=${toString config.lomas.port}
 
         # Keycloak
         LOMAS_KC_PORT=${toString config.lomas.keycloak.httpPort}
@@ -403,7 +363,7 @@ in
         LOMAS_MONGO_DATABASE=${config.lomas.mongo.dbName}
 
         # Dashboard
-        LOMAS_DASHBOARD_PORT=${toString dashboard_port}
+        LOMAS_DASHBOARD_PORT=${toString config.lomas.dashboard.port}
 
         # MinIO
         LOMAS_MINIO_PORT=${toString config.lomas.minio.port}
@@ -413,7 +373,7 @@ in
 
         # Telemetry
         LOMAS_OTEL_PORT=${toString config.lomas.telemetry.services.otlp.ports.grpc}
-        LOMAS_MONGO_COLLECTOR_PORT=${toString mongo_collector_port}
+        LOMAS_MONGO_COLLECTOR_PORT=${toString config.lomas.telemetry.services.mongodbExporter.port}
 
         # Client
         LOMAS_CLIENT_PORT=${toString jupyter_port}
@@ -445,7 +405,7 @@ in
       let
         kcEnvVar = lib.filterAttrs (name: value: lib.strings.hasPrefix "LOMAS_CLIENT_" name) config.env;
         kcEnvVarFinal = kcEnvVar // {
-          LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString lomas_port}";
+          LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString config.lomas.port}";
           LOMAS_CLIENT_KEYCLOAK_URL = "http://keycloak:${toString config.lomas.keycloak.httpPort}";
           LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
         };

@@ -10,11 +10,18 @@ let
 
   inherit (lib)
     types
-    strings
     mkIf
     mkOption
     mkEnableOption
     ;
+
+  ipAddress = lib.mkOptionType {
+    name = "ipAddress";
+    check = x: types.str.check x && builtins.match "[.0-9:A-Fa-f]+" x != null;
+    merge = types.str.merge;
+    description = "IPv4 or IPv6 address";
+    descriptionClass = "conjunction";
+  };
 in
 {
   options.lomasRabbit = {
@@ -25,6 +32,13 @@ in
       default = "localhost";
       example = "rabbitmq.domain";
       description = "RabbitMQ address";
+    };
+
+    bindAddr = mkOption {
+      type = ipAddress;
+      default = "127.0.0.1";
+      example = "0.0.0.0";
+      description = "RabbitMQ Erlang server binding IP";
     };
 
     port = mkOption {
@@ -64,7 +78,7 @@ in
   config = mkIf cfg.enable {
     services.rabbitmq = {
       enable = true;
-      listenAddress = strings.optionalString (cfg.host == "localhost") "127.0.0.1";
+      listenAddress = cfg.bindAddr;
       port = cfg.port;
       nodeName = cfg.nodeName;
       managementPlugin = {

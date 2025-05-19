@@ -100,6 +100,15 @@ in
         };
       };
     };
+
+    processes.minio.process-compose = {
+      readiness_probe.http_get = {
+        scheme = "http";
+        host = cfg.host;
+        port = cfg.port;
+        path = "/minio/health/ready";
+      };
+    };
   };
 
 }

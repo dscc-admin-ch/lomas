@@ -12,7 +12,9 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Networking
+  lomas_host = "localhost";
   lomas_port = 48080;
+  dashboard_host = "localhost";
   dashboard_port = 8501;
   mongo_collector_port = 9216;
   jupyter_port = 8888;
@@ -301,6 +303,12 @@ in
     process-compose = {
       working_dir = "$DEVENV_ROOT/server/lomas_server";
       depends_on.mongodb.condition = "process_healthy";
+      readiness_probe.http_get = {
+        scheme = "http";
+        host = lomas_host;
+        port = lomas_port;
+        path = "/live";
+      };
     };
   };
 
@@ -316,6 +324,11 @@ in
         "STREAMLIT_SERVER_PORT=${toString dashboard_port}"
         "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
       ];
+      readiness_probe.http_get = {
+        host = dashboard_host;
+        port = dashboard_port;
+        path = "/ping";
+      };
     };
   };
 
@@ -548,13 +561,13 @@ in
             command = "pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} \"$@\"";
             depends_on = {
               worker.condition = "process_started";
-              minio.condition = "process_started";
-              mongodb.condition = "process_started";
+              minio.condition = "process_ready";
+              mongodb.condition = "process_ready";
               mongodb-configure.condition = "process_completed_successfully";
               keycloak.condition = "process_ready";
               rabbitmq.condition = "process_ready";
               keycloak_setup.condition = "process_completed_successfully";
-              lomas-server.condition = "process_started";
+              lomas-server.condition = "process_ready";
             };
             log_location = "$DEVENV_ROOT/logs/pytest.log";
             log_configuration.flush_each_line = true;

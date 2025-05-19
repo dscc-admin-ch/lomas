@@ -49,7 +49,7 @@ def test_a_server_overview_page(dashbord_dir: Path) -> None:
 
     # Check Server configurations
     assert "Server configurations" in at.subheader[0].value
-    assert "The host IP of the server is: 0.0.0.0" in at.markdown[3].value
+    assert "The host IP of the server is: localhost" in at.markdown[3].value
     assert "The method against timing attack is: jitter" in at.markdown[5].value
 
     # Check Administration Database information

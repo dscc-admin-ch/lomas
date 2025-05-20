@@ -82,8 +82,9 @@ async def status_handler(
         if job.status == "failed":
             response.status_code = job.status_code
 
-        # Delete job from state once returned to user.
-        del jobs[str(uid)]
+        if job.status == "complete":
+            # Delete completed job from state once returned to user.
+            del jobs[str(uid)]
 
         return job
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This job does not exist.")

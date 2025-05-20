@@ -45,9 +45,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     config = Config()
 
     # Set some app state
-    lomas_app.state.admin_database = None
     lomas_app.state.jobs = {}
-    lomas_app.state.private_credentials = config.private_db_credentials
 
     # Load admin database
     try:

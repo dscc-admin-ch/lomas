@@ -2,7 +2,7 @@ import logging
 import os
 
 from mantelo import HttpException, KeycloakAdmin
-from pydantic import HttpUrl, computed_field
+from pydantic import Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,10 +31,9 @@ class Config(BaseSettings):
     lomas_api_client_id: str = "lomas_api"
     lomas_api_client_secret: str
 
-    overwrite_realm: bool = True
+    overwrite_realm: bool = Field(default=True)
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
+    @computed_field
     def keycloak_use_tls(self) -> bool:
         """Using TLS ?"""
         return self.keycloak_url.scheme == "https"

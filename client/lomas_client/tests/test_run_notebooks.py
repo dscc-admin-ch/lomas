@@ -12,7 +12,7 @@ def mark_notebook(notebooks: list[Path]) -> list[NamedTuple]:
         "Demo_Client_Notebook.ipynb": pytest.mark.long,  # ~33s
         "Demo_Client_Notebook_OpenDP_Polars.ipynb": pytest.mark.long,  # ~33s
         "Demo_Client_Notebook_Smartnoise-SQL.ipynb": pytest.mark.long,  # ~36s
-        "Demo_Client_Notebook_Smartnoise-Synth.ipynb": pytest.mark.skip,  # TODO issue 423
+        "Demo_Client_Notebook_Smartnoise-Synth.ipynb": pytest.mark.skip(reason="Issue #423"),
         "income_minimal.ipynb": pytest.mark.long,  # ~12s
         "Minimalist_Demo_Client_Notebook.ipynb": [],  # ~8s
         "Penguin_Research.ipynb": [],  # ~9s

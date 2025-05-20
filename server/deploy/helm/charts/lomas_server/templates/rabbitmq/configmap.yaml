@@ -51,9 +51,9 @@ kind: ConfigMap
 metadata:
   name: lomas-rabbitmq-config
   labels:
-    helm.sh/chart: lomas-server-0.4.1
+    helm.sh/chart: lomas-server-0.5.0
     app.kubernetes.io/name: rabbitmq
     app.kubernetes.io/instance: release-name
-    app.kubernetes.io/version: "0.4.1"
+    app.kubernetes.io/version: "0.5.0"
     app.kubernetes.io/managed-by: Helm
 */}}

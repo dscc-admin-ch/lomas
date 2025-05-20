@@ -2,7 +2,6 @@ import logging
 import logging.config
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from contextvars import ContextVar
 
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -47,7 +46,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
 
     # Set some app state
     lomas_app.state.admin_database = None
-    lomas_app.state.jobs_var = ContextVar("jobs", default={})
+    lomas_app.state.jobs = {}
     lomas_app.state.private_credentials = config.private_db_credentials
 
     # Load admin database

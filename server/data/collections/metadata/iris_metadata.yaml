@@ -3,26 +3,31 @@ row_privacy: true
 columns:
   petal_length:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 0.5
     upper: 10.0
   petal_width:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 0.05
     upper: 5.0
   sepal_length:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 2.0
     upper: 10.0
   sepal_width:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 1.0
     upper: 6.0
   species:
     type: string
+    nullable_proportion: 0.0
     cardinality: 3
     categories:
     - setosa

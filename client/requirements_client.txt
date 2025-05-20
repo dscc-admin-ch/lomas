@@ -1,3 +1,0 @@
-jupyter==1.0.0
-requests==2.32.0
-opentelemetry-instrumentation-requests==0.50b0

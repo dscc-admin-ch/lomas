@@ -4,43 +4,53 @@ rows: 887
 columns:
   Pclass:
     type: int
+    nullable_proportion: 0.0
     precision: 32
     lower: 1
     upper: 3
   Name:
     type: string
+    nullable_proportion: 0.0
   Sex:
     type: string
+    nullable_proportion: 0.0
     cardinality: 2
     categories:
     - male
     - female
   Age:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 0.1
     upper: 100.0
   SibSp:
     type: int
+    nullable_proportion: 0.0
     precision: 32
     lower: 0
     upper: 10
   Parch:
     type: int
+    nullable_proportion: 0.0
     precision: 32
     lower: 0
     upper: 10
   Ticket:
     type: string
+    nullable_proportion: 0.0
   Fare:
     type: float
+    nullable_proportion: 0.0
     precision: 64
     lower: 0.0
     upper: 1000
   Cabin:
     type: string
+    nullable_proportion: 0.0
   Embarked:
     type: string
+    nullable_proportion: 0.0
     cardinality: 3
     categories:
     - C
@@ -48,3 +58,4 @@ columns:
     - S
   Survived:
     type: boolean
+    nullable_proportion: 0.0

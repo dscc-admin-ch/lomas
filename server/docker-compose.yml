@@ -7,21 +7,59 @@ services:
       context: ../
     container_name: lomas_server_dev
     ports:
-      - 80:80
+      - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
-    environment:
-      - SERVER_SERVICE_NAME=lomas-server-app
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_EXPORTER_OTLP_INSECURE=true
-      - OTEL_PYTHON_LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+    env_file: ./configs/.env.lomas_service
     volumes:
-      - ./lomas_server:/code/lomas_server
-      - ../core/lomas_core:/code/lomas_core
+      - ./lomas_server:/code/server/lomas_server
+      - ../core/lomas_core:/code/core/lomas_core
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
-      - ./data/collections/metadata:/data/collections/metadata/
-      - ./data/collections/dataset_collection_local.yaml:/data/collections/dataset_collection.yaml
-      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      minio-client:
+        condition: service_completed_successfully
+        restart: true
+      mongodb:
+        condition: service_started
+        restart: true
+      otel-collector:
+        condition: service_started
+      tempo:
+        condition: service_started
+      loki:
+        condition: service_started
+      keycloak:
+        condition: service_started
+        restart: true
+      keycloak_setup:
+        condition: service_completed_successfully
+        restart: true
+      lomas_demo_setup:
+        condition: service_completed_successfully
+        restart: true
+      lomas_worker:
+        condition: service_started
+    networks:
+      - lomas-network
+
+  lomas_worker:
+    image: dsccadminch/lomas_server_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_server_dev
+      context: ../
+    container_name: lomas_worker_dev
+    restart: always
+    command: "python -m lomas_server.worker"
+    env_file: ./configs/.env.lomas_service
+    volumes:
+      - ./lomas_server:/code/server/lomas_server
+      - ../core/lomas_core:/code/core/lomas_core
+      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
+      - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
+      - ./data/datasets:/data/datasets/
     depends_on:
       minio-client:
         condition: service_completed_successfully
@@ -31,6 +69,28 @@ services:
         restart: true
       otel-collector:
         condition: service_started
+      keycloak:
+        condition: service_started
+        restart: true
+      keycloak_setup:
+        condition: service_completed_successfully
+        restart: true
+      rabbitmq:
+        condition: service_started
+        restart: true
+    networks:
+      - lomas-network
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:4.0-management
+    ports:
+      - ${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
+      - ${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
+    environment:
+      - RABBITMQ_DEFAULT_USER=${LOMAS_RABBIT_MQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${LOMAS_RABBIT_MQ_PASS}
+      - RABBITMQ_NODE_PORT=${LOMAS_RABBIT_MQ_PORT}
     networks:
       - lomas-network
 
@@ -42,46 +102,113 @@ services:
     # Still unclear why just setting chmod 777 ./data does not solve the issue.
     #user: 1000:1000
     ports:
-      - 27017:27017
+      - 127.0.0.1:${LOMAS_MONGO_PORT}:${LOMAS_MONGO_PORT}
     networks:
       - lomas-network
     volumes:
-      - mongodata:/data/db/
+      #- mongodata:/data/db/
       - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
+    command:
+      - "--port"
+      - "${LOMAS_MONGO_PORT}"
     # We use this in docker compose to have a user/password for mongodb
     # Proper deployment on a kubernetes cluster should use a helm chart
     # and parametrize a user specific to the fastAPI server.
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=root
-      - MONGODB_INITDB_ROOT_PASSWORD=root_pwd
-      - MONGODB_INITDB_DATABASE=defaultdb
+      - MONGODB_INITDB_ROOT_USERNAME=${LOMAS_MONGO_ROOT_USER}
+      - MONGODB_INITDB_ROOT_PASSWORD=${LOMAS_MONGO_ROOT_PWD}
+      - MONGODB_INITDB_DATABASE=${LOMAS_MONGO_DATABASE}
       # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
 
   mongodb-exporter:
-    image: bitnami/mongodb-exporter:latest
+    image: bitnami/mongodb-exporter:0.43.1
     container_name: mongodb-exporter
     ports:
-      - 9216:9216
+      - ${LOMAS_MONGO_COLLECTOR_PORT}:${LOMAS_MONGO_COLLECTOR_PORT}
     networks:
       - lomas-network
+    command:
+      - "--web.listen-address"
+      - ":${LOMAS_MONGO_COLLECTOR_PORT}"
     environment:
-      - MONGODB_URI=mongodb://root:root_pwd@mongodb:27017
+      - MONGODB_URI=mongodb://${LOMAS_MONGO_ROOT_USER}:${LOMAS_MONGO_ROOT_PWD}@mongodb:${LOMAS_MONGO_PORT}
     depends_on:
       - mongodb
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.1.0
+    environment:
+      - KC_HTTP_PORT=${LOMAS_KC_PORT}
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${LOMAS_KC_ADMIN_USER}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${LOMAS_KC_ADMIN_PWD}
+    command: start-dev --health-enabled=true # Dev mode is fine for local test deployments
+    ports:
+        - ${LOMAS_KC_PORT}:${LOMAS_KC_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
+    restart: always
+    networks:
+      - lomas-network
+
+  keycloak_setup:
+    container_name: keycloak_setup
+    image: dsccadminch/lomas_admin_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_admin_dev
+      context: ../
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.keycloak_setup"
+    env_file: ./configs/administration/.env.keycloak_setup
+    volumes:
+      - ../core/lomas_core:/code/core/lomas_core
+      - ./lomas_server:/code/core/lomas_server
+    networks:
+      - lomas-network
+
+  lomas_demo_setup:
+    container_name: demo_setup
+    image: dsccadminch/lomas_admin_dev
+    build:
+      dockerfile: ./Dockerfile
+      target: lomas_admin_dev
+      context: ../
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      keycloak_setup:
+        condition: service_completed_successfully
+    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
+    env_file: ./configs/administration/.env.lomas_demo_setup
+    volumes:
+      - ../core/lomas_core:/code/core/lomas_core
+      - ./lomas_server:/code/core/lomas_server
+      - ./data/collections/metadata:/data/collections/metadata/
+      - ./data/collections/dataset_collection_docker_compose.yaml:/data/collections/dataset_collection.yaml
+      - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
+    networks:
+      - lomas-network
 
   minio:
     container_name: minio
     image: minio/minio
     ports:
-      - 9000:9000
-      - 9001:9001
+      - ${LOMAS_MINIO_PORT}:${LOMAS_MINIO_PORT}
+      - ${LOMAS_MINIO_CONSOLE_PORT}:${LOMAS_MINIO_CONSOLE_PORT}
     command: server /data
     environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=admin123
-      - MINIO_CONSOLE_ADDRESS=:9001
-    volumes:
-      - minio-data:/data
+      - MINIO_ROOT_USER=${LOMAS_MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${LOMAS_MINIO_ROOT_PWD}
+      - MINIO_ADDRESS=:${LOMAS_MINIO_PORT}
+      - MINIO_CONSOLE_ADDRESS=:${LOMAS_MINIO_CONSOLE_PORT}
     networks:
       - lomas-network
 
@@ -92,7 +219,7 @@ services:
       - minio
     entrypoint: /bin/sh -c "
       sleep 15 &&
-      mc alias set myminio http://minio:9000 admin admin123 &&
+      mc alias set myminio http://minio:${LOMAS_MINIO_PORT} admin admin123 &&
       mc mb myminio/example || true &&
       mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
       mc cp /data/collections/metadata/titanic_metadata.yaml myminio/example/metadata/titanic_metadata.yaml &&
@@ -103,63 +230,56 @@ services:
       - lomas-network
 
   lomas_admin_dashboard:
-    image: dsccadminch/lomas_admin_dashboard_dev
+    image: dsccadminch/lomas_admin_dev
     build:
       dockerfile: ./Dockerfile
-      target: lomas_admin_dashboard_dev
+      target: lomas_admin_dev
       context: ../
-    container_name: lomas_admin_dashboard_dev
+    container_name: lomas_admin_dev
     ports:
-      - 8501:8501
+      - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
+    env_file: ./configs/administration/.env.lomas_demo_setup
+    environment:
+      - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=0
     volumes:
-      - ../core/lomas_core:/code/lomas_core
-      - ./lomas_server:/code/lomas_server
+      - ../core/lomas_core:/code/core/lomas_core
+      - ./lomas_server:/code/server/lomas_server
       - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
       - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
       - ./configs/example_dashboard_config.yaml:/usr/lomas_dashboard/dashboard.yaml
-      - ./configs/example_dashboard_server_config.toml:/code/.streamlit/config.toml
       - ./data/:/data/
     depends_on:
       - lomas_server
     networks:
       - lomas-network
 
-  client:
+  lomas_client:
     image: dsccadminch/lomas_client_dev
     build:
       dockerfile: ./Dockerfile
       target: lomas_client_dev
       context: ../
     container_name: lomas_client
-    environment:
-      - CLIENT_SERVICE_NAME=lomas-client
+    env_file: ./configs/.env.lomas_client
+    command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
-      - 8888:8888
+      - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}
     volumes:
-      - ../client/lomas_client/:/code/lomas_client
-      - ../core/lomas_core/:/code/lomas_core
+      - ../client/lomas_client/:/code/client/lomas_client
+      - ../core/lomas_core/:/code/core/lomas_core
       - ../client/configs/:/root/.jupyter/
-      - ../client/notebooks/:/code/notebooks/
+      - ../client/notebooks/:/code/client/notebooks/
       - ./data/:/data/
     depends_on:
       - lomas_server
     networks:
       - lomas-network
 
-  init_tempo:
-    image: &tempoImage grafana/tempo:latest
-    container_name: init_tempo
-    user: root
-    entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
-    networks:
-      - lomas-network
-
   tempo:
-    image: *tempoImage
+    image: grafana/tempo:main-265ca32
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
@@ -167,13 +287,11 @@ services:
     expose:
       - 3200
       - 4317
-    depends_on:
-      - init_tempo
     networks:
       - lomas-network
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector:0.119.0
     container_name: otel-collector
     ports:
       - "4317:4317"
@@ -194,7 +312,7 @@ services:
       - lomas-network
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4
     container_name: loki
     ports:
       - "3100:3100"
@@ -206,14 +324,10 @@ services:
       - lomas-network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.2.0
     container_name: prometheus
     command:
       - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
-      - --enable-feature=native-histograms
-      - --enable-feature=otlp-write-receive
     volumes:
       - ./configs/observability/example_prometheus_config.yaml:/etc/prometheus.yaml
     ports:
@@ -230,7 +344,6 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
     ports:
       - "3000:3000"
     networks:
@@ -242,9 +355,5 @@ networks:
     name: lomas-network
 
 volumes:
-  # These volumes needs to be setup only once with "docker volume create <volume_name>"
-  # They will be stored in /var/lib/docker/volumes and managed by docker.
   mongodata:
-    external: true
   minio-data:
-    external: true

@@ -3,8 +3,8 @@
   languages:
     - "en"
 "develop":
-  tag: 'develop' 
-  languages: 
+  tag: 'develop'
+  languages:
     - "en"
 "v0.1.0":
    tag: "v0.1.0"
@@ -36,5 +36,9 @@
     - "en"
 "v0.4.1":
    tag: "v0.4.1"
+   languages:
+    - "en"
+"v0.5.0":
+   tag: "v0.5.0"
    languages:
     - "en"

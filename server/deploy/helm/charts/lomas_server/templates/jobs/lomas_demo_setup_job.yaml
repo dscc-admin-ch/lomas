@@ -1,0 +1,94 @@
+{{- if .Values.admin.demo_setup.enable -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lomas.admin.demo-setup.fullname" . }}
+spec:
+  # backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.admin.podAnnotations | nindent 8 }}
+      labels:
+        {{ include "lomas.admin.keycloak-setup.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: keycloak-check
+          image: curlimages/curl:8.13.0
+          command:
+            - sh
+            - -c
+            - >
+              until curl http://{{- .Values.keycloak.fullnameOverride -}}/realms/master; do
+                echo "Keycloak not ready yet";
+                sleep 10;
+              done;
+              while true; do
+                STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://{{- .Values.keycloak.fullnameOverride -}}/realms/{{- .Values.admin.realm -}})
+                echo "Lomas realm query status: $STATUS"
+                if [[ $STATUS == "200" ]]; then
+                  echo "Lomas realm ready."
+                  exit 0;
+                fi;
+                sleep 10;
+              done;
+        - name: mongo-check
+          image: "{{ .Values.mongodb.image.registry -}}/{{- .Values.mongodb.image.image -}}:{{- .Values.mongodb.image.tag -}}"
+          command:
+            - sh
+            - -c
+            - >
+              until mongosh --host {{ .Values.mongodb.fullnameOverride }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
+                echo "Mongo not ready yet";
+                sleep 10;
+              done;
+              echo "Mongo ready"
+              exit 0;
+      containers:
+        - name: lomas-demo-setup
+          image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          command: ["python", "-m", "lomas_server.administration.scripts.lomas_demo_setup"]
+          env:
+            - name: LOMAS_ADMIN_MG_CONFIG__URL
+              value: "mongodb://{{ .Values.mongodb.fullnameOverride }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
+            - name: LOMAS_ADMIN_MG_CONFIG__USERNAME
+              value: "{{ index .Values.mongodb.auth.usernames 0 }}"
+            - name: LOMAS_ADMIN_MG_CONFIG__PASSWORD
+              value: "{{ index .Values.mongodb.auth.passwords 0 }}"
+            - name: LOMAS_ADMIN_MG_CONFIG__MAX_POOL_SIZE
+              value: "{{ .Values.mongodb.max_pool_size }}"
+            - name: LOMAS_ADMIN_MG_CONFIG__MIN_POOL_SIZE
+              value: "{{ .Values.mongodb.min_pool_size }}"
+            - name: LOMAS_ADMIN_MG_CONFIG__MAX_CONNECTING
+              value: "{{ .Values.mongodb.max_connecting }}"
+            - name: LOMAS_ADMIN_KC_CONFIG__URL
+              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+            - name: LOMAS_ADMIN_KC_CONFIG__REALM
+              value: "{{ .Values.admin.realm }}"
+            - name: LOMAS_ADMIN_KC_CONFIG__CLIENT_ID
+              value: "{{ .Values.admin.client_id }}"
+            - name: LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET
+              value: "{{ .Values.admin.client_secret }}"
+            - name: LOMAS_ADMIN_PATH_PREFIX
+              value: "{{ .Values.admin.demo_setup.path_prefix }}"
+            - name: LOMAS_ADMIN_USER_YAML
+              value: "{{ .Values.admin.demo_setup.user_yaml_path }}"
+            - name: LOMAS_ADMIN_DATASET_YAML
+              value: "{{ .Values.admin.demo_setup.dataset_yaml_path }}"
+            - name: LOMAS_ADMIN_SERVER_URL
+              value: "https://{{ .Values.server.ingress.hostname }}"
+            - name: LOMAS_ADMIN_SERVER_SERVICE
+              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}"
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
+      nodeSelector:
+        {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
+      affinity:
+        {{ toYaml .Values.admin.affinity | nindent 8 }}
+      tolerations:
+        {{ toYaml .Values.admin.tolerations | nindent 8}}
+{{- end}}

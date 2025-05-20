@@ -1,19 +1,12 @@
-import logging
-
 import uvicorn
 
-from lomas_server.utils.config import get_config
+from lomas_core.models.config import Config
 
-if __name__ == "__main__":
 
-    config = get_config()
+def uvicorn_serve() -> None:
+    """Start the ASGI server for lomas."""
 
-    if config.server.workers != 1:
-        logging.warning(  # pylint: disable=W1201
-            "Only supports one server worker."
-            + "Overwriting server.workers config"
-            + f" from {config.server.workers} to 1.",
-        )
+    config = Config()
 
     uvicorn.run(
         "lomas_server.app:app",
@@ -23,3 +16,7 @@ if __name__ == "__main__":
         workers=1,
         reload=config.server.reload,
     )
+
+
+if __name__ == "__main__":
+    uvicorn_serve()

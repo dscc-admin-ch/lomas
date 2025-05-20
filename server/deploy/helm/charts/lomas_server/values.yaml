@@ -4,68 +4,37 @@
 nameOverride: ""
 fullnameOverride: "lomas"
 
-# MongoDB
-##########################################################################
-mongodb:
-  resources: {}
-  fullnameOverride: "lomas-mongodb"
-  max_pool_size: 100
-  min_pool_size: 2
-  max_connecting: 2
-  architecture: standalone
-  image:
-    tag: "6.0.9-debian-11-r5"
-  auth:
-    enabled: true
-    rootUser: root
-    rootPassword: root_pwd # changeme
-    usernames: [user]
-    passwords: [user_pwd] # changeme
-    databases: [defaultdb]
-  replicaCount: 1
-  discoverable:
-    allow: true
-  security:
-    networkPolicy:
-      enabled: true
-  persistence:
-    # Set this to "keep" to disable data pvc deletion when uninstalling the chart.
-    # Subsequent installs will use the same pvc, restoring the state of the server.
-    # Note: if the runtime_args.settings.develop_mode is set to True, the server
-    # state will be reset (default datasets and budgets).
-    resourcePolicy: ""
-
-
-# Fast-API server
+# Server / Worker
 ##########################################################################
 server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: latest
+    tag: sha-3d3b305
   imagePullSecrets: []
 
   # Runtime args for server
   runtime_args:
-    settings:
-      develop_mode: True # !! Set this to false in production mode !!
+    server:
+      host_port: "8080"
+      log_level: "info"
       submit_limit: 300
-      server:
-        host_ip: "0.0.0.0"
-        host_port: "8080"
-        log_level: "info"
-        reload: True
-        workers: 1 # Will be overwritten to one anyway for now.
-        time_attack:
-          method: "jitter" # or "stall"
-          magnitude: 1
-      dp_libraries:
-        opendp:
-          contrib: True
-          floating_point: True
-          honest_but_curious: True
-      private_db_credentials: [] # list of credentials, eg. {credentials_name: "abc", db_type: "S3_DB", ...}
-
+      time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
+    authenticator:
+      authentication_type: jwt
+    opendp_features: ["contrib", "floating-point", "honest-but-curious"]
+    private_db_credentials:
+      # - existing_secret: "" # Set this if there is an existing secret.
+      # - credentials_name: "s3" # Or set the credentials directly.
+      #  db_type: "S3_DB"
+      #  access_key_id: "abc"
+      #  secret_access_key: "def"
+    telemetry:
+      enabled: true
+      service_name: lomas_server_app
+      service_id: default-host
 
   service:
     type: ClusterIP
@@ -76,7 +45,7 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-server.example.com"
+    hostname: "lomas.example.com"
   # Lomas server not meant to be replicated for now
   replicaCount: 1
   # Lomas server not intended to be autoscaled for now
@@ -85,7 +54,7 @@ server:
   #  minReplicas: 1
   #  maxReplicas: 100
   #  targetCPUUtilizationPercentage: 80
-  #  # targetMemoryUtilizationPercentage: 80
+  #  targetMemoryUtilizationPercentage: 80
 
   # We leave unset stuff here
   serviceAccount:
@@ -101,27 +70,64 @@ server:
     #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
-    # fsGroup: 2000
   securityContext: {}
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
-    # runAsUser: 1000
   nodeSelector: {}
   tolerations: []
   affinity: {}
 
-# Lomas Administration Dashboard
+
+# Lomas Administration
 ##########################################################################
+admin:
+  image:
+    repository: dsccadminch/lomas_admin
+    pullPolicy: Always
+    tag: sha-3d3b305
+
+  realm: "lomas"
+  client_id: "lomas_admin"
+  client_secret: "lomas_admin"
+  client_secret_existing_secret: ""
+  client_secret_secret_key: ""
+  lomas_service_client_id: "lomas_service"
+  lomas_service_client_secret: "lomas_service"
+  lomas_service_existing_secret: ""
+  lomas_service_secret_key: ""
+  keycloakSetup:
+    overwrite_realm: true
+    resources: {}
+  demo_setup:
+    enable: true
+    path_prefix: "/data"
+    user_yaml_path: "/collections/user_collection.yaml"
+    dataset_yaml_path: "/collections/dataset_collection.yaml"
+
+  # We leave unset stuff here
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 dashboard:
   create: true
 
   image:
-    repository: dsccadminch/lomas_admin_dashboard
+    repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: latest
+    tag: sha-3d3b305
   imagePullSecrets: []
 
   # Runtime args for server
@@ -138,7 +144,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-admin-dashboard.example.ch"
+    hostname: "lomas-dashboard.example.com"
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -255,7 +261,7 @@ prometheus:
 ##########################################################################
 tempo:
   create: true
-  
+
   service:
     type: ClusterIP
     port: 3000
@@ -340,5 +346,284 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboard.example.ch"
+    hostname: "lomas-grafana-dashboard.example.com"
   replicaCount: 1
+
+##########################################################################
+# Lomas Chart Dependecies
+##########################################################################
+
+# MongoDB
+##########################################################################
+mongodb:
+  resources: {}
+  fullnameOverride: "lomas-mongodb" # Must set for lomas to find the service.
+  max_pool_size: 100
+  min_pool_size: 2
+  max_connecting: 2
+  architecture: standalone
+  image:
+    registry: docker.io
+    image: bitnami/mongodb
+    tag: 8.0.9-debian-12-r0
+  service:
+    ports:
+      mongodb: 27017
+  auth:
+    enabled: true
+    rootUser: root
+    rootPassword: root_pwd # changeme
+    usernames: [user]
+    passwords: [user_pwd] # changeme TODO enforce length of one.
+    databases: [defaultdb]
+    existingSecret: ""
+  replicaCount: 1
+  discoverable:
+    allow: true
+  security:
+    networkPolicy:
+      enabled: true
+  persistence:
+    # Set this to "keep" to disable data pvc deletion when uninstalling the chart.
+    # Subsequent installs will use the same pvc, restoring the state of the server.
+    # Note: if the runtime_args.develop_mode TODO is set to True, the server
+    # state will be reset (default datasets and budgets).
+    resourcePolicy: ""
+
+
+# Keycloak
+##########################################################################
+
+keycloak:
+  create: true # Added by Lomas
+
+  fullnameOverride: "lomas-keycloak"
+
+  global:
+    imageRegistry: ""
+    imagePullSecrets: []
+    defaultStorageClass: ""
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+
+  image:
+    registry: docker.io
+    repository: bitnami/keycloak
+    tag: 26.1.4-debian-12-r0
+    # digest: ""
+    pullPolicy: Always
+    #pullSecrets: []
+    debug: false
+  auth:
+    adminUser: admin
+    adminPassword: admin
+    #existingSecret: ""
+    #passwordSecretKey: ""
+    annotations: {}
+  # We do tls termination at the ingress
+  tls:
+    enabled: false
+
+  adminRealm: "master"
+  production: true
+  proxy: edge
+  proxyHeaders: "forwarded" # or xforwarded, must check with ingress
+
+  replicaCount: 1
+  containerPorts:
+    http: 8080
+    https: 8443
+    metrics: 9000
+
+  statefulsetAnnotations: {}
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001 # TODO this might not work on openshift
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001  # TODO this might not work on openshift
+    runAsGroup: 1001
+    runAsNonRoot: true
+    privileged: false
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  resourcesPreset: "small" # preset, see https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+
+  automountServiceAccountToken: true
+
+  service:
+    http:
+      enabled: true
+    ports:
+      http: 80
+      https: 443
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      ## Resolve HTTP 502 error using ingress-nginx:
+      ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+    # List of rules for the Ingress
+    hostname: "keycloak.example.com"
+    # TLS configuration
+    #tls: true
+    extraTls:
+      - hosts:
+          - "keycloak.example.com"
+
+    # adminIngress:
+
+  postgresql:
+    enabled: true
+    fullnameOverride: lomas-keycloak-postgresql
+    auth:
+      postgresPassword: postgres
+      username: postgres
+      password: postgres
+      database: lomas_keycloak
+      existingSecret: "" # TODO
+      secretKeys:
+        # Still needs to be set because of
+        # https://github.com/bitnami/charts/blob/af06d0b9da2bf9585753a417727a7b67e9467c63/bitnami/keycloak/templates/statefulset.yaml#L166
+        # that references this
+        # https://github.com/bitnami/charts/blob/af06d0b9da2bf9585753a417727a7b67e9467c63/bitnami/keycloak/templates/_helpers.tpl#L180
+        # The postgres subchart sets the secret to postgres-password
+        userPasswordKey: postgres-password
+    architecture: standalone
+    primary:
+      persistence:
+        enabled: false # enable for production!
+
+  logging:
+    output: default
+    level: DEBUG
+
+# RabbitMQ
+##########################################################################
+rabbitmq:
+  create: true # Added by lomas
+
+  fullnameOverride: "lomas-rabbitmq"
+  global:
+    imageRegistry: ""
+    imagePullSecrets: []
+    defaultStorageClass: ""
+    storageClass: ""
+    security:
+      allowInsecureImages: false
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+
+  image:
+    registry: docker.io
+    repository: bitnami/rabbitmq
+    tag: 4.0.8-debian-12-r0
+    digest: ""
+    debug: false
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  auth:
+    username: guest
+    password: guest
+    securePassword: true
+    updatePassword: false
+    existingPasswordSecret: ""
+    existingSecretPasswordKey: ""
+    tls:
+      enabled: false
+
+  plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
+
+  clustering:
+    enabled: false
+
+  containerPorts:
+    amqp: 5672
+    amqpTls: 5671
+    dist: 25672
+    manager: 15672
+    epmd: 4369
+    metrics: 9419
+
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  resourcesPreset: "small"
+  resources: {}
+
+  pdb:
+    create: false
+
+  serviceAccount:
+    create: false
+  rbac:
+    create: false
+  persistence:
+    enabled: false
+  persistentVolumeClaimRetentionPolicy:
+    enabled: false
+
+  service:
+    type: ClusterIP
+    portEnabled: true
+    distPortEnabled: true
+    managerPortEnabled: true
+    epmdPortEnabled: true
+    ports:
+      amqp: 5672
+      amqpTls: 5671
+      dist: 25672
+      manager: 15672
+      metrics: 9419
+      epmd: 4369
+    portNames:
+      amqp: "amqp"
+      amqpTls: "amqp-tls"
+      dist: "dist"
+      manager: "http-stats"
+      metrics: "metrics"
+      epmd: "epmd"
+
+  networkPolicy:
+    enabled: false
+
+  metrics:
+    enabled: false
+    plugins: "rabbitmq_prometheus"
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "{{ .Values.service.ports.metrics }}"
+
+

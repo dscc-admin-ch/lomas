@@ -1,6 +1,7 @@
+from collections.abc import Sequence
 from enum import IntEnum, StrEnum
-
-import pkg_resources
+from importlib import metadata
+from typing import Literal
 
 # Field names
 # -----------------------------------------------------------------------------
@@ -18,8 +19,10 @@ JSON_SCHEMA_EXAMPLES = "examples"
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
-OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
-DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
+OPENDP_VERSION = metadata.version("opendp")
+OpenDPFeatures = Sequence[Literal["contrib", "floating-point", "honest-but-curious"]]
+DIFFPRIVLIB_VERSION = metadata.version("diffprivlib")
+
 
 # Metadata
 # -----------------------------------------------------------------------------
@@ -51,20 +54,6 @@ class Precision(IntEnum):
 # -----------------------------------------------------------------------------
 
 
-class ConfigKeys(StrEnum):
-    """Keys of the configuration file."""
-
-    RUNTIME_ARGS = "runtime_args"
-    SETTINGS = "settings"
-
-
-class AdminDBType(StrEnum):
-    """Types of administration databases."""
-
-    YAML = "yaml"
-    MONGODB = "mongodb"
-
-
 class TimeAttackMethod(StrEnum):
     """Possible methods against timing attacks."""
 
@@ -78,6 +67,42 @@ class PrivateDatabaseType(StrEnum):
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
+
+
+class AuthenticationType(StrEnum):
+    """Type of Authenticator to identify users."""
+
+    FREE_PASS = "free_pass"
+    JWT = "jwt"
+
+
+DefaultLoggingConf = {
+    "disable_existing_loggers": False,
+    "formatters": {"simple": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
+    "handlers": {
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+            "level": "DEBUG",
+            "stream": "ext://sys.stdout",
+        }
+    },
+    "loggers": {
+        "aio_pika.exchange": {"level": "DEBUG"},
+        "aiormq.channel": {"level": "INFO"},
+        "aiormq.connection": {"level": "INFO"},
+        "botocore": {"level": "INFO"},
+        "botocore.endpoint": {"level": "DEBUG"},
+        "faker": {"level": "WARN"},
+        "pymongo.command": {"level": "INFO"},
+        "pymongo.connection": {"level": "INFO"},
+        "pymongo.serverSelection": {"level": "INFO"},
+        "pymongo.topology": {"level": "INFO"},
+        "urllib3": {"level": "INFO"},
+    },
+    "root": {"handlers": ["stdout"], "level": "DEBUG"},
+    "version": 1,
+}
 
 
 # Exceptions

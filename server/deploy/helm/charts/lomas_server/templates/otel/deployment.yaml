@@ -24,7 +24,7 @@ spec:
 
       containers:
       - name: otel-container
-        image: otel/opentelemetry-collector:latest
+        image: otel/opentelemetry-collector:0.119.0
         args:
           - "--config=/conf/otel-collector-config.yaml"
         ports:

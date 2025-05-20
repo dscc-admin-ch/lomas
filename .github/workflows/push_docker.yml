@@ -1,12 +1,12 @@
 name: Build and Push Docker images
 
 on:
+  pull_request:
+    branches: [develop, master]
   push:
-    branches:
-      - develop
+    branches: [develop]
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   docker:
@@ -16,39 +16,34 @@ jobs:
         include:
           - image: dsccadminch/lomas_server
             target: lomas_server
-          - image: dsccadminch/lomas_admin_dashboard
-            target: lomas_admin_dashboard
+          - image: dsccadminch/lomas_admin
+            target: lomas_admin
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images:
-            ${{ matrix.image }} 
+            ${{ matrix.image }}
           tags: |
             type=sha
             type=semver, pattern={{version}}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      -
-        name: Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push image
+      - name: Build and push image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
-          push: true
+          push: ${{ github.event_name == 'push' || github.event_name == 'release' }}
           target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}

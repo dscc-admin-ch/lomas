@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lomas.admin.keycloak-setup.fullname" . }}
+spec:
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.admin.podAnnotations | nindent 8 }}
+      labels:
+        {{ include "lomas.admin.keycloak-setup.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: keycloak-check
+          image: curlimages/curl:8.13.0
+          command:
+            - sh
+            - -c
+            - >
+              until curl http://{{- .Values.keycloak.fullnameOverride -}}/realms/master; do
+                echo "Keycloak not ready yet";
+                sleep 10;
+              done;
+              exit 0;
+      containers:
+        - name: keycloak-setup
+          image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          command: ["python", "-m", "lomas_server.administration.scripts.keycloak_setup"]
+          env:
+            - name: LOMAS_KC_SETUP_KEYCLOAK_URL
+              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+            - name: LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM
+              value: {{ .Values.keycloak.adminRealm }}
+            - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID
+              value: "admin-cli"
+            - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER
+              value: {{ .Values.keycloak.auth.adminUser }}
+            - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "keycloak.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
+                  key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
+            - name: LOMAS_KC_SETUP_LOMAS_REALM
+              value: {{ .Values.admin.realm }}
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID
+              value: {{ .Values.admin.client_id }}
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-admin.secretName" . }}
+                  key: {{ template "lomas-admin.secretKey" . }}
+            - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID
+              value: {{ .Values.admin.lomas_service_client_id }}
+            - name: LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas-service.secretName" . }}
+                  key: {{ template "lomas-service.secretKey" . }}
+            - name: LOMAS_KC_SETUP_OVERWRITE_REALM
+              value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
+      nodeSelector:
+        {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
+      affinity:
+        {{ toYaml .Values.admin.affinity | nindent 8 }}
+      tolerations:
+        {{ toYaml .Values.admin.tolerations | nindent 8}}

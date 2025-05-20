@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Type
+from typing import Any, NoReturn
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -11,6 +11,7 @@ from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
     InvalidQueryExceptionModel,
+    LomasServerExceptionType,
     UnauthorizedAccessExceptionModel,
 )
 
@@ -70,7 +71,7 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
+KNOWN_EXCEPTIONS: tuple[type[BaseException], ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
@@ -132,3 +133,22 @@ SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_403_FORBIDDEN: {"model": UnauthorizedAccessExceptionModel},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": InternalServerExceptionModel},
 }
+
+
+def raise_error_from_model(error_model: LomasServerExceptionType) -> NoReturn:
+    """Raise error message based on Server Error Model.
+
+    Args:
+        error_model
+    Raise:
+        Server Error
+    """
+    match error_model:
+        case InvalidQueryExceptionModel():
+            raise InvalidQueryException(error_model.message)
+        case ExternalLibraryExceptionModel():
+            raise ExternalLibraryException(error_model.library, error_model.message)
+        case UnauthorizedAccessExceptionModel():
+            raise UnauthorizedAccessException(error_model.message)
+        case InternalServerExceptionModel():
+            raise InternalServerException("Internal Server Exception.")

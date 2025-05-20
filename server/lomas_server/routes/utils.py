@@ -1,236 +1,215 @@
+import asyncio
+import logging
+import posix as Status
 import random
+import sys
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from functools import wraps
+from typing import Annotated
 
-from fastapi import Request
+import aio_pika
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
-    InternalServerException,
-    UnauthorizedAccessException,
-)
+from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.models.collections import UserId
+from lomas_core.models.config import Config
+from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_server.data_connector.factory import data_connector_factory
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
-from lomas_server.utils.config import get_config
+from lomas_core.models.responses import CostResponse, Job, QueryResponse
+
+AioPikaInstrumentor().instrument()
 
 
-def timing_protection(func):
+async def process_response(
+    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs_var: ContextVar
+) -> None:
+    """Process responses queue into Jobs."""
+
+    async with queue.iterator() as queue_iter:
+        async for message in queue_iter:
+            async with message.process(ignore_processed=True):
+                jobs = jobs_var.get()
+
+                if message.correlation_id not in jobs:
+                    await message.reject(requeue=True)
+                else:
+                    await message.ack()
+
+                    match message.headers:
+                        case {"type": "exception", "status_code": status_code}:
+                            jobs[message.correlation_id].error = message.body.decode()
+                            jobs[message.correlation_id].status = "failed"
+                            jobs[message.correlation_id].result = None
+                            jobs[message.correlation_id].status_code = status_code
+                        case _:
+                            jobs[message.correlation_id].result = cls.model_validate_json(
+                                message.body.decode()
+                            )
+                            jobs[message.correlation_id].status = "complete"
+
+                    jobs_var.set(jobs)
+
+
+async def rabbitmq_connect_queue(
+    config: Config, reconnect_interval: int = 10, timeout: int = 120
+) -> aio_pika.RobustConnection:
+    """Attempt with retries to connect to the queue."""
+    try:
+        async with asyncio.timeout(timeout):
+            connection = await aio_pika.connect_robust(
+                str(config.amqp.dsn),
+                fail_fast=False,
+                reconnect_interval=reconnect_interval,
+            )
+            return connection
+    except TimeoutError:
+        logging.error(f"Couldn't connect to queue {config.amqp.base_url} in time")
+        sys.exit(Status.EX_UNAVAILABLE)
+
+
+@asynccontextmanager
+async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
+    """RabbitMQ queue context to connect and register callbacks."""
+
+    config = Config()
+
+    connection = await rabbitmq_connect_queue(config)
+    channel = await connection.channel()
+    background_tasks = set()  # Avoid dangling asyncio.Task by storing them here
+
+    await channel.declare_queue("task_queue", auto_delete=True)
+    app.state.task_queue_channel = channel
+    queue = await channel.declare_queue("task_response", auto_delete=True)
+    tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    background_tasks.add(tasks_response_task)
+    tasks_response_task.add_done_callback(background_tasks.discard)
+
+    await channel.declare_queue("cost_queue", auto_delete=True)
+    app.state.cost_queue_channel = channel
+    queue = await channel.declare_queue("cost_response", auto_delete=True)
+    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs_var))
+    background_tasks.add(cost_response_task)
+    cost_response_task.add_done_callback(background_tasks.discard)
+
+    await channel.declare_queue("dummy_queue", auto_delete=True)
+    app.state.dummy_queue_channel = channel
+    queue = await channel.declare_queue("dummy_response", auto_delete=True)
+    dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    background_tasks.add(dummy_response_task)
+    dummy_response_task.add_done_callback(background_tasks.discard)
+
+    yield  # app is handling requests
+
+    await connection.close()
+
+
+def timing_protection(func):  # type: ignore[no-untyped-def]
     """Adds delays to requests response to protect against timing attack."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
+        config = Config()
+
         start_time = time.time()
         response = func(*args, **kwargs)
         process_time = time.time() - start_time
 
-        config = get_config()
-        if config.server.time_attack:
-            match config.server.time_attack.method:
-                case "stall":
-                    # Slows to a minimum response time defined by magnitude
-                    if process_time < config.server.time_attack.magnitude:
-                        time.sleep(config.server.time_attack.magnitude - process_time)
-                case "jitter":
-                    # Adds some time between 0 and magnitude secs
-                    time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
-                case _:
-                    raise InternalServerException("Time attack method not supported.")
+        match config.server.time_attack.method:
+            case TimeAttackMethod.STALL:
+                # Slows to a minimum response time defined by magnitude
+                if process_time < config.server.time_attack.magnitude:
+                    time.sleep(config.server.time_attack.magnitude - process_time)
+            case TimeAttackMethod.JITTER:
+                # Adds some time between 0 and magnitude secs
+                time.sleep(config.server.time_attack.magnitude * random.uniform(0, 1))
         return response
 
     return wrapper
 
 
-async def server_live(request: Request) -> AsyncGenerator:
-    """
-    Checks the server is live and throws an exception otherwise.
+def get_user_id_from_authenticator(
+    request: Request,
+    security_scopes: SecurityScopes,
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+) -> UserId:
+    """Extracts the authenticator from the app state and calls its get_user_id method.
+
+    Also adds the user_name to the request state to annotate the telemetry request span.
 
     Args:
-        request (Request): Raw request
-
-    Raises:
-        InternalServerException: If the server is not live.
+        request (Request): The request to access the app and state.
+        security_scopes (SecurityScopes): The required scopes for the endpoint.
+        auth_creds (Annotated[HTTPAuthorizationCredentials, Depends): The HTTP bearer token.
 
     Returns:
-        AsyncGenerator
+        UserId: A UserId instance extracted from the token.
     """
-    if not request.app.state.server_state["LIVE"]:
-        raise InternalServerException(
-            "Woops, the server did not start correctly. Contact the administrator of this service.",
-        )
-    yield
+    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
+    request.state.user_name = user_id.name
+
+    return user_id
 
 
 @timing_protection
-def handle_query_on_private_dataset(
+async def handle_query_to_job(
     request: Request,
-    query_json: QueryModel,
+    query: DummyQueryModel | QueryModel | LomasRequestModel,
     user_name: str,
     dp_library: DPLibraries,
-) -> QueryResponse:
+) -> Job:
     """
-    Handles queries on private datasets for all supported libraries.
+    Submit Job to handles queries on private, dummy and cost datasets on a worker.
 
     Args:
         request (Request): Raw request object
-        query_model (DummyQueryModel): An instance of DummyQueryModel,
-            specific to the library.
+        query (DummyQueryModel|QueryModel|LomasRequestModel): A Request or Query to be scheduled
         user_name (str): The user name
         dp_library (DPLibraries): Name of the DP library to use for the request
 
     Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
         UnauthorizedAccessException: A query is already ongoing for this user,
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A QueryResponse model containing the result of the query
+        Job: A scheduled Job resulting in a QueryResponse containing the result of the query
             (specific to the library) as well as the cost of the query.
+            or a CostResponse containing the epsilon, delta and privacy-loss budget cost for the request.
     """
     app = request.app
 
-    data_connector = data_connector_factory(
-        query_json.dataset_name,
-        app.state.admin_database,
-        app.state.private_credentials,
-    )
-    dp_querier = querier_factory(
-        dp_library,
-        data_connector=data_connector,
-        admin_database=app.state.admin_database,
-    )
-    try:
-        response = dp_querier.handle_query(query_json, user_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return response
-
-
-def handle_query_on_dummy_dataset(
-    request: Request,
-    query_model: DummyQueryModel,
-    user_name: str,
-    dp_library: DPLibraries,
-) -> QueryResponse:
-    """
-    Handles queries on dummy datasets for all supported libraries.
-
-    Args:
-        request (Request): Raw request object
-        query_model (DummyQueryModel): An instance of DummyQueryModel,
-            specific to the library.
-        user_name (str): The user name
-        dp_library (DPLibraries): Name of the DP library to use for the request
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
-
-    Returns:
-        QueryResponse: A QueryResponse model containing the result of the query
-            (specific to the library) as well as the cost of such a query if it was
-            executed on a private dataset.
-    """
-    app = request.app
-
-    dataset_name = query_model.dataset_name
+    dataset_name = query.dataset_name
     if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
+        raise UnauthorizedAccessException(f"{user_name} does not have access to {dataset_name}.")
 
-    ds_data_connector = get_dummy_dataset_for_query(app.state.admin_database, query_model)
-    dummy_querier = querier_factory(
-        dp_library,
-        data_connector=ds_data_connector,
-        admin_database=app.state.admin_database,
+    match query:
+        case DummyQueryModel():
+            queue_name = "dummy_queue"
+        case QueryModel():
+            queue_name = "task_queue"
+        case LomasRequestModel():
+            queue_name = "cost_queue"
+
+    new_task = Job(requested_by=user_name)
+
+    jobs = app.state.jobs_var.get()
+    jobs[str(new_task.uid)] = new_task
+    app.state.jobs_var.set(jobs)
+
+    await app.state.cost_queue_channel.default_exchange.publish(
+        aio_pika.Message(
+            body=f"{user_name}:{dp_library}:{query.model_dump_json()}".encode(), correlation_id=new_task.uid
+        ),
+        routing_key=queue_name,
     )
 
-    try:
-        eps_cost, delta_cost = dummy_querier.cost(query_model)
-        result = dummy_querier.query(query_model)
-        response = QueryResponse(requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return response
-
-
-@timing_protection
-def handle_cost_query(
-    request: Request,
-    request_model: LomasRequestModel,
-    user_name: str,
-    dp_library: DPLibraries,
-) -> CostResponse:
-    """
-    Handles cost queries for DP libraries.
-
-    Args:
-        request (Request): Raw request object
-        request_model (LomasRequestModel): An instance of LomasRequestModel,
-            specific to the library.
-        user_name (str): The user name
-        dp_library (DPLibraries): Name of the DP library to use for the request
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
-
-    Returns:
-        CostResponse: A cost response containing the epsilon and delta
-            privacy-loss budget cost for the request.
-    """
-    app = request.app
-
-    dataset_name = request_model.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_name} does not have access to {dataset_name}.",
-        )
-
-    data_connector = data_connector_factory(
-        request_model.dataset_name,
-        app.state.admin_database,
-        app.state.private_credentials,
-    )
-    dp_querier = querier_factory(
-        dp_library,
-        data_connector=data_connector,
-        admin_database=app.state.admin_database,
-    )
-    try:
-        eps_cost, delta_cost = dp_querier.cost(request_model)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
-
-    return CostResponse(epsilon=eps_cost, delta=delta_cost)
+    return new_task

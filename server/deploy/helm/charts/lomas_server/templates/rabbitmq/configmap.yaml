@@ -1,0 +1,59 @@
+{{/* apiVersion: v1
+data:
+  load_definition.json: |2
+    {
+      "users": [
+        {
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "name": "guest",
+          "password_hash": "Y4HqHubJjL5U/jVlJY0JwITpwf2XSPRKqgqDAfHwESKogiAg",
+          "tags": []
+        },
+        {
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "name": "admin",
+          "password_hash": "aXlCdkmQ8TcGyx4P76xfCnnNppVSU3/huH2RQn/RxGU28mFW",
+          "tags": [ "administrator" ]
+        }
+      ],
+      "permissions": [
+        {
+          "configure": ".*",
+          "read": ".*",
+          "user": "admin",
+          "vhost": "/",
+          "write": ".*"
+        },
+        {
+          "configure": ".*",
+          "read": ".*",
+          "user": "guest",
+          "vhost": "/",
+          "write": ".*"
+        }
+      ],
+      "vhosts": [
+        {
+          "default_queue_type": "classic",
+          "name": "/"
+        }
+      ],
+      "global_parameters": [
+        {
+          "name": "cluster_tags",
+          "value": []
+        }
+      ],
+      "topic_permissions": []
+    }
+  rabbitmq.conf: |2+
+kind: ConfigMap
+metadata:
+  name: lomas-rabbitmq-config
+  labels:
+    helm.sh/chart: lomas-server-0.5.0
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.5.0"
+    app.kubernetes.io/managed-by: Helm
+*/}}

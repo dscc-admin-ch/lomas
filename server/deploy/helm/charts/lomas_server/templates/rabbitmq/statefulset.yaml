@@ -1,0 +1,77 @@
+{{/*
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  labels:
+    helm.sh/chart: lomas-server-0.5.0
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.5.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+      app.kubernetes.io/instance: release-name
+  serviceName: rabbitmq-headless
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/instance: release-name
+    spec:
+      containers:
+        - env:
+            - name: BITNAMI_DEBUG
+              value: "true"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RABBITMQ_DEFINITIONS_FILE
+              value: /conf/load_definition.json
+            - name: RABBITMQ_ERL_COOKIE
+              value: OHZMUXdiQkdpY2x2V3p4MDhnMVhkTXFXSkhhUUJDVTM=
+            - name: RABBITMQ_FORCE_BOOT
+              value: "no"
+            - name: RABBITMQ_LDAP_ENABLE
+              value: "no"
+            - name: RABBITMQ_LOAD_DEFINITIONS
+              value: "yes"
+            - name: RABBITMQ_LOGS
+              value: '-'
+            - name: RABBITMQ_MNESIA_DIR
+              value: /opt/bitnami/rabbitmq/.rabbitmq/mnesia/$(RABBITMQ_NODE_NAME)
+            - name: RABBITMQ_NODE_NAME
+              value: rabbit@$(MY_POD_NAME).rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local
+            - name: RABBITMQ_PASSWORD
+              value: admin
+            - name: RABBITMQ_PLUGINS
+              value: rabbitmq_management, rabbitmq_peer_discovery_k8s, rabbitmq_auth_backend_ldap
+            - name: RABBITMQ_ULIMIT_NOFILES
+              value: "65535"
+            - name: RABBITMQ_UPDATE_PASSWORD
+              value: "no"
+            - name: RABBITMQ_USERNAME
+              value: admin
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+          image: docker.io/bitnami/rabbitmq:4.0.7-debian-12-r0
+          name: rabbitmq-container
+          volumeMounts:
+            - mountPath: /conf
+              name: rabbitmq-config
+      volumes:
+        - configMap:
+            name: lomas-rabbitmq-config
+          name: rabbitmq-config
+*/}}

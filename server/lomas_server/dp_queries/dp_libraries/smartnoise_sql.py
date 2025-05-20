@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
@@ -33,7 +31,7 @@ class SmartnoiseSQLQuerier(
         admin_database: AdminDatabase,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.reader: Optional[Reader] = None
+        self.reader: Reader | None = None
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -64,10 +62,7 @@ class SmartnoiseSQLQuerier(
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
         except Exception as e:
-            raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SQL,
-                "Error obtaining cost: " + str(e),
-            ) from e
+            raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
         return epsilon, delta
 
@@ -115,7 +110,7 @@ class SmartnoiseSQLQuerier(
                 "Error executing query:" + str(e),
             ) from e
         if not query_json.postprocess:
-            result = list(result)[0]
+            result = next(iter(result))
             cols = [f"res_{i}" for i in range(len(result))]
             result = [result]
         else:
@@ -130,7 +125,7 @@ class SmartnoiseSQLQuerier(
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        if df_res.isnull().values.any():
+        if df_res.isna().to_numpy().any():
             # Try again up to SSQL_MAX_ITERATION
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
@@ -158,7 +153,7 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
         Privacy: The updated Privacy object.
     """
     for stat in SSQL_STATS:
-        if stat in mechanisms.keys():
+        if stat in mechanisms:
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
 

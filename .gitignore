@@ -4,6 +4,7 @@ server/venv/*
 client/notebooks/personal_notebooks/*
 client/configs/lab/*
 client/venv/*
+logs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -134,3 +135,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# devenv / direnv
+.devenv*
+devenv.local.nix
+.direnv
+.pre-commit-config.yaml

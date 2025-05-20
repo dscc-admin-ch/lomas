@@ -1,8 +1,10 @@
-from typing import Dict
-
 from pydantic import JsonValue
 
-from lomas_core.constants import SSynthGanSynthesizer
+from lomas_core.constants import (
+    OpenDpMechanism,
+    OpenDpPipelineType,
+    SSynthGanSynthesizer,
+)
 from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
     DUMMY_NB_ROWS,
@@ -12,6 +14,8 @@ from lomas_core.models.constants import (
 
 # Query constants
 PENGUIN_DATASET: str = "PENGUIN"
+FSO_INCOME_DATASET: str = "FSO_INCOME_SYNTHETIC"
+COVID_DATASET: str = "COVID_SYNTHETIC"
 QUERY_EPSILON: float = 0.1
 QUERY_DELTA: float = 0.00001
 SQL_QUERY: str = "SELECT COUNT(*) AS NB_ROW FROM df"
@@ -29,7 +33,7 @@ IMPUTER_STRATEGY: str = "drop"
 SNSYNTH_NB_SAMPLES: int = 200
 
 
-def make_dummy(example_query: Dict[str, JsonValue]) -> Dict[str, JsonValue]:
+def make_dummy(example_query: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """Make dummy example dummy query based on example query."""
     example_query_dummy = dict(example_query)
     example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
@@ -40,11 +44,11 @@ def make_dummy(example_query: Dict[str, JsonValue]) -> Dict[str, JsonValue]:
 # Lomas logic
 # -----------------------------------------------------------------------------
 
-example_get_admin_db_data: Dict[str, JsonValue] = {
+example_get_admin_db_data: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
 }
 
-example_get_dummy_dataset: Dict[str, JsonValue] = {
+example_get_dummy_dataset: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "dummy_nb_rows": DUMMY_NB_ROWS,
     "dummy_seed": DUMMY_SEED,
@@ -53,7 +57,7 @@ example_get_dummy_dataset: Dict[str, JsonValue] = {
 # Smartnoise-SQL
 # -----------------------------------------------------------------------------
 
-example_smartnoise_sql_cost: Dict[str, JsonValue] = {
+example_smartnoise_sql_cost: dict[str, JsonValue] = {
     "query_str": SQL_QUERY,
     "dataset_name": PENGUIN_DATASET,
     "epsilon": QUERY_EPSILON,
@@ -61,15 +65,15 @@ example_smartnoise_sql_cost: Dict[str, JsonValue] = {
     "mechanisms": DP_MECHANISM,
 }
 
-example_smartnoise_sql: Dict[str, JsonValue] = dict(example_smartnoise_sql_cost)
+example_smartnoise_sql: dict[str, JsonValue] = dict(example_smartnoise_sql_cost)
 example_smartnoise_sql["postprocess"] = True
 
-example_dummy_smartnoise_sql: Dict[str, JsonValue] = make_dummy(example_smartnoise_sql)
+example_dummy_smartnoise_sql: dict[str, JsonValue] = make_dummy(example_smartnoise_sql)
 
 # Smartnoise-Synth
 # -----------------------------------------------------------------------------
 
-example_smartnoise_synth_cost: Dict[str, JsonValue] = {
+example_smartnoise_synth_cost: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "synth_name": SSynthGanSynthesizer.DP_CTGAN,
     "epsilon": QUERY_EPSILON,
@@ -83,12 +87,12 @@ example_smartnoise_synth_cost: Dict[str, JsonValue] = {
     "nullable": True,
     "constraints": "",
 }
-example_smartnoise_synth_query: Dict[str, JsonValue] = dict(example_smartnoise_synth_cost)
+example_smartnoise_synth_query: dict[str, JsonValue] = dict(example_smartnoise_synth_cost)
 example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
 
-example_dummy_smartnoise_synth_query: Dict[str, JsonValue] = make_dummy(example_smartnoise_synth_query)
+example_dummy_smartnoise_synth_query: dict[str, JsonValue] = make_dummy(example_smartnoise_synth_query)
 
 # OpenDP
 # -----------------------------------------------------------------------------
@@ -150,12 +154,69 @@ OPENDP_PIPELINE: str = (
     "}}}"
 )
 
-example_opendp: Dict[str, JsonValue] = {
+example_opendp: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": OPENDP_PIPELINE,
     "fixed_delta": QUERY_DELTA,
+    "pipeline_type": OpenDpPipelineType.LEGACY,
+    "mechanism": None,
 }
-example_dummy_opendp: Dict[str, JsonValue] = make_dummy(example_opendp)
+example_dummy_opendp: dict[str, JsonValue] = make_dummy(example_opendp)
+
+# OpenDP Polars
+# -----------------------------------------------------------------------------
+OPENDP_POLARS_PIPELINE: str = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32","bit_settings":'
+    '"","values":[1,6,5,4,4]},{"name":"eco_branch","datatype":"Int32","bit_settings":"",'
+    '"values":[85,16,71,25,16]},{"name":"profession","datatype":"Int32","bit_settings":"",'
+    '"values":[52,94,73,74,73]},{"name":"education","datatype":"Int32","bit_settings":"",'
+    '"values":[7,5,2,7,4]},{"name":"age","datatype":"Int32","bit_settings":"","values":'
+    '[60,44,22,112,94]},{"name":"sex","datatype":"Int32","bit_settings":"","values":'
+    '[1,0,1,1,0]},{"name":"income","datatype":"Float64","bit_settings":"","values":'
+    "[23496.63345669291,55903.89391456765,7317.908354313357,82935.48602726562,63534."
+    '775513084416]}]},"schema":{"fields":{"region":"Int32","eco_branch":"Int32",'
+    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32",'
+    '"income":"Float64"}}}}'
+)
+
+OPENDP_POLARS_PIPELINE_COVID: str = (
+    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
+    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
+    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
+    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
+    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
+    '"bit_settings":"","values":["BS","VS"]},{"name":"agegroup","datatype":'
+    '"String","bit_settings":"","values":["70 - 79","unknown"]},{"name":'
+    '"sex","datatype":"String","bit_settings":"","values":["other","other"]},'
+    '{"name":"testType","datatype":"String","bit_settings":"","values":'
+    '["rapid_antigen_test","rapid_antigen_test"]},{"name":"testResult","datatype"'
+    ':"String","bit_settings":"","values":["other","other"]},{"name":"country",'
+    '"datatype":"String","bit_settings":"","values":["other","unknown"]},{"name":'
+    '"subType","datatype":"String","bit_settings":"","values":["BA.2.75","XBB"]},'
+    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"","values":'
+    '[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"","values":'
+    '[true,false]}]},"schema":{"fields":{"patient_id":"Int32","id":"Int32","date":'
+    '"String","temporal":"Int32","georegion":"String","agegroup":"String","sex":'
+    '"String","testType":"String","testResult":"String","country":"String",'
+    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}}}}'
+)
+
+example_opendp_polars: dict[str, JsonValue] = {
+    "dataset_name": FSO_INCOME_DATASET,
+    "opendp_json": OPENDP_POLARS_PIPELINE,
+    "pipeline_type": OpenDpPipelineType.POLARS,
+    "fixed_delta": QUERY_DELTA,
+    "mechanism": OpenDpMechanism.LAPLACE,
+}
+
+example_opendp_polars_datetime: dict[str, JsonValue] = {
+    "dataset_name": COVID_DATASET,
+    "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
+    "pipeline_type": OpenDpPipelineType.POLARS,
+    "fixed_delta": QUERY_DELTA,
+    "mechanism": OpenDpMechanism.LAPLACE,
+}
+
 
 # DiffPrivLib
 # -----------------------------------------------------------------------------
@@ -201,7 +262,7 @@ DIFFPRIVLIB_PIPELINE: str = (
     "}"
 )
 
-example_diffprivlib: Dict[str, JsonValue] = {
+example_diffprivlib: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_PIPELINE,
     "feature_columns": FEATURE_COLUMNS,
@@ -210,4 +271,4 @@ example_diffprivlib: Dict[str, JsonValue] = {
     "test_train_split_seed": SPLIT_SEED,
     "imputer_strategy": IMPUTER_STRATEGY,
 }
-example_dummy_diffprivlib: Dict[str, JsonValue] = make_dummy(example_diffprivlib)
+example_dummy_diffprivlib: dict[str, JsonValue] = make_dummy(example_diffprivlib)

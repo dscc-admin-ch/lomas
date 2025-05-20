@@ -1,36 +1,12 @@
-import os
 import string
 from enum import StrEnum
 
-# Config
-# -----------------------------------------------------------------------------
+from opendp import measures as ms, typing as tp
 
-# Get config and secrets from correct location
-if "LOMAS_CONFIG_PATH" in os.environ:
-    CONFIG_PATH = f"""{os.environ.get("LOMAS_CONFIG_PATH")}"""
-    print(CONFIG_PATH)
-else:
-    CONFIG_PATH = "/usr/lomas_server/runtime.yaml"
-
-if "LOMAS_SECRETS_PATH" in os.environ:
-    SECRETS_PATH = f"""{os.environ.get("LOMAS_SECRETS_PATH")}"""
-else:
-    SECRETS_PATH = "/usr/lomas_server/secrets.yaml"
-
-SERVER_SERVICE_NAME = os.getenv("SERVER_SERVICE_NAME", "lomas-server-app")
-SERVICE_ID = os.getenv("HOSTNAME", "default-host")
-
+from lomas_core.constants import OpenDpMechanism
 
 # Misc
 # -----------------------------------------------------------------------------
-
-# Server states
-DB_NOT_LOADED = "User database not loaded"
-CONFIG_NOT_LOADED = "Config not loaded"
-SERVER_LIVE = "LIVE"
-
-# General values
-SECONDS_IN_A_DAY = 60 * 60 * 24
 
 # DP constants (max budget per user per dataset)
 EPSILON_LIMIT: float = 10.0
@@ -38,10 +14,17 @@ DELTA_LIMIT: float = 0.01
 
 # Dummy dataset generation
 RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
-NB_RANDOM_NONE = 5  # if nullable, how many random none to add
 
 # Data preprocessing
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
+
+
+class KCAttributeNames(StrEnum):
+    """Keycloak attribute names, also used as claim names in JWT token."""
+
+    USER_NAME = "user_name"
+    USER_EMAIL = "user_email"
+    LOMAS_USER_CLIENT = "lomas_user_client"
 
 
 # DP Libraries
@@ -100,3 +83,18 @@ class OpenDPDatasetInputMetric(StrEnum):
     HAMMING_DISTANCE = "HammingDistance"
 
     INT_DISTANCE = "u32"  # opendp type for distance between datasets
+
+
+OPENDP_TYPE_MAPPING = {
+    "int32": tp.i32,
+    "float32": tp.f32,
+    "int64": tp.i64,
+    "float64": tp.f64,
+    "string": tp.String,
+    "boolean": bool,
+}
+
+OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
+    OpenDpMechanism.LAPLACE: ms.max_divergence(),
+    OpenDpMechanism.GAUSSIAN: ms.zero_concentrated_divergence(),
+}

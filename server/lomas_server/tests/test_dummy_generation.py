@@ -1,5 +1,5 @@
 import unittest
-from typing import Any
+from typing import Any, ClassVar
 
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
@@ -9,7 +9,7 @@ from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 class TestMakeDummyDataset(unittest.TestCase):
     """Tests for the generation of dummy datasets."""
 
-    metadata: dict[str, Any] = {
+    metadata: ClassVar[dict[str, Any]] = {
         "max_ids": 1,
         "rows": 100,
         "row_privacy": True,
@@ -21,6 +21,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.metadata["columns"] = {
             "col_card_cat": {  # cardinality + categories
                 "type": "string",
+                "nullable_proportion": 0.0,
                 "cardinality": 3,
                 "categories": ["x", "y", "z"],
             }
@@ -29,29 +30,30 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Test shape
-        self.assertEqual(df.shape[0], DUMMY_NB_ROWS)
-        self.assertEqual(df.shape[1], 1)
+        assert df.shape[0] == DUMMY_NB_ROWS
+        assert df.shape[1] == 1
 
         # Test cardinality type and categories
-        self.assertIn("col_card_cat", df.columns)
-        self.assertEqual(df["col_card_cat"].nunique(), 3)
-        self.assertEqual(set(df["col_card_cat"].values), {"x", "y", "z"})
+        assert "col_card_cat" in df.columns
+        assert df["col_card_cat"].nunique() == 3
+        assert set(df["col_card_cat"].values) == {"x", "y", "z"}
         assert isinstance(df["col_card_cat"], object)
+        assert not df["col_card_cat"].isnull().any()
 
     def test_boolean_column(self) -> None:
         """Test_boolean_column."""
-
         # Test a boolean column
-        self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable": True}}
+        self.metadata["columns"] = {"col_bool": {"type": "boolean", "nullable_proportion": 0.5}}
         metadata = Metadata.model_validate(self.metadata)
         df = make_dummy_dataset(metadata)
 
         # Test length
-        self.assertEqual(len(df), DUMMY_NB_ROWS)
+        assert len(df) == DUMMY_NB_ROWS
 
         # Test col generated is boolean
-        self.assertIn("col_bool", df.columns)
-        self.assertEqual(df.col_bool.dtypes.name, "boolean")
+        assert "col_bool" in df.columns
+        assert df.col_bool.dtypes.name == "boolean"
+        assert df.col_bool.isnull().any()
 
     def test_float_column(self) -> None:
         """Test_float_column."""
@@ -69,11 +71,11 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Test col generated is of type float
-        self.assertEqual(df.col_float.dtypes.name, "float32")
+        assert df.col_float.dtypes.name == "float32"
 
         # Test within bounds
-        self.assertTrue((df["col_float"] >= lower_bound).all())
-        self.assertTrue((df["col_float"] <= upper_bound).all())
+        assert (df["col_float"] >= lower_bound).all()
+        assert (df["col_float"] <= upper_bound).all()
 
     def test_int_column(self) -> None:
         """Test_int_column."""
@@ -91,11 +93,11 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Test col generated is of type int
-        self.assertIn(df.col_int.dtypes.name, ["int64"])
+        assert df.col_int.dtypes.name in ["int64"]
 
         # Test within bounds
-        self.assertTrue((df["col_int"] >= lower_bound).all())
-        self.assertTrue((df["col_int"] <= upper_bound).all())
+        assert (df["col_int"] >= lower_bound).all()
+        assert (df["col_int"] <= upper_bound).all()
 
     def test_datetime_column(self) -> None:
         """Test_datetime_column."""
@@ -110,17 +112,17 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Test col generated is of type datetime
-        self.assertEqual(df.col_datetime.dtypes.name, "datetime64[ns]")
+        assert df.col_datetime.dtypes.name == "datetime64[ns]"
 
         # Should not have any null values
-        self.assertFalse(df.col_datetime.isnull().values.any())
+        assert not df.col_datetime.isnull().values.any()
 
     def test_nullable_column(self) -> None:
         """Test_nullable_column."""
         self.metadata["columns"] = {
-            "col_nullable": {
+            "col_nullable_proportion": {
                 "type": "datetime",
-                "nullable": True,
+                "nullable_proportion": 0.5,
                 "lower": "2000-01-01",
                 "upper": "2010-01-01",
             }
@@ -129,7 +131,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Should have null values
-        self.assertTrue(df.col_nullable.isnull().values.any())
+        assert df.col_nullable_proportion.isnull().values.any()
 
     def test_seed(self) -> None:
         """Test_seed."""
@@ -137,7 +139,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         self.metadata["columns"] = {
             "col_int": {
                 "type": "int",
-                "nullable": True,
+                "nullable_proportion": 0.5,
                 "precision": 32,
                 "lower": 0,
                 "upper": 100,
@@ -151,8 +153,8 @@ class TestMakeDummyDataset(unittest.TestCase):
         df2 = make_dummy_dataset(metadata, seed=seed2)
 
         # Check if datasets generated with different seeds are different
-        self.assertFalse(df1.equals(df2))
+        assert not df1.equals(df2)
 
         # Check if datasets generated with the same seed are identical
         df1_copy = make_dummy_dataset(metadata, seed=seed1)
-        self.assertTrue(df1.equals(df1_copy))
+        assert df1.equals(df1_copy)

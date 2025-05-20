@@ -1,26 +1,19 @@
 import warnings
-from typing import Any
+from json import JSONDecodeError
+from typing import Any, NoReturn, TypeVar
 
 import requests
 from fastapi import status
+from pydantic import ValidationError
 
+from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-    UnauthorizedAccessException,
-)
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InternalServerExceptionModel,
-    InvalidQueryExceptionModel,
-    LomasServerExceptionTypeAdapter,
-    UnauthorizedAccessExceptionModel,
-)
+from lomas_core.error_handler import InternalServerException, raise_error_from_model
+from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response) -> str:
+def raise_error(response: requests.Response) -> NoReturn:
     """Raise error message based on the HTTP response.
 
     Args:
@@ -29,21 +22,15 @@ def raise_error(response: requests.Response) -> str:
     Raise:
         Server Error
     """
-    error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
-    match error_model:
-        case InvalidQueryExceptionModel():
-            raise InvalidQueryException(error_model.message)
-        case ExternalLibraryExceptionModel():
-            raise ExternalLibraryException(error_model.library, error_model.message)
-        case UnauthorizedAccessExceptionModel():
-            raise UnauthorizedAccessException(error_model.message)
-        case InternalServerExceptionModel():
-            raise InternalServerException("Internal Server Exception.")
-        case _:
-            raise InternalServerException(f"Unknown {InternalServerException}")
+    try:
+        error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+    except (ValidationError, JSONDecodeError) as e:
+        raise InternalServerException(f"Could not parse server error: {response.content}") from e
+
+    raise_error_from_model(error_model)
 
 
-def validate_synthesizer(synth_name: str, return_model: bool = False):
+def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
     """Validate smartnoise synthesizer (some model are not accepted).
 
     Args:
@@ -71,7 +58,7 @@ def validate_synthesizer(synth_name: str, return_model: bool = False):
         raise ValueError(f"{synth_name} synthesizer not supported. Please choose another synthesizer.")
 
 
-def validate_model_response(response: requests.Response, response_model: Any) -> Any:
+def validate_model_response_direct(response: requests.Response, response_model: Any) -> Any:
     """Validate and process a HTTP response.
 
     Args:
@@ -86,4 +73,29 @@ def validate_model_response(response: requests.Response, response_model: Any) ->
         return r_model
 
     raise_error(response)
-    return None
+
+
+ResponseT = TypeVar("ResponseT", bound=ResponseModel)
+
+
+def validate_model_response(
+    client: LomasHttpClient, response: requests.Response, response_model: type[ResponseT]
+) -> ResponseT:
+    """Validate and process a HTTP response.
+
+    Args:
+        response (requests.Response): The response object from an HTTP request.
+
+    Returns:
+        response_model: Model for responses requests.
+    """
+    if response.status_code != status.HTTP_202_ACCEPTED:
+        raise_error(response)
+
+    job_uid = response.json()["uid"]
+    job = client.wait_for_job(job_uid)
+    if job.status == "failed":
+        assert job.error is not None, f"job {job_uid} failed without error !"
+        raise_error_from_model(job.error)
+
+    return response_model.model_validate(job.result)

@@ -14,54 +14,50 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-from lomas_core.constants import OTLP_COLLECTOR_ENDPOINT
+from lomas_core.models.config import Telemetry
 
 
-def get_ressource(service_name: str, host_name: str):
-    """
-    Creates a Resource object with metadata describing the service.
-
-    Returns:
-        Resource: The resource object containing service metadata.
-    """
-    return Resource.create({"service.name": service_name, "service.instance.id": host_name})
-
-
-def init_traces_exporter(resource: Resource) -> None:
+def init_traces_exporter(resource: Resource, telemetry_config: Telemetry) -> None:
     """
     Initializes the OpenTelemetry trace exporter with a given resource.
 
     Args:
         resource (Resource): The resource to associate with the trace telemetry.
     """
-    exporter = OTLPSpanExporter(endpoint=OTLP_COLLECTOR_ENDPOINT, insecure=True)
+    exporter = OTLPSpanExporter(
+        endpoint=str(telemetry_config.collector_endpoint), insecure=telemetry_config.collector_insecure
+    )
     span_processor = BatchSpanProcessor(exporter)
     tracer_provider = TracerProvider(resource=resource)
     tracer_provider.add_span_processor(span_processor)
     trace.set_tracer_provider(tracer_provider)
 
 
-def init_metrics_exporter(resource: Resource) -> None:
+def init_metrics_exporter(resource: Resource, telemetry_config: Telemetry) -> None:
     """
     Initializes the OpenTelemetry metrics exporter with a given resource.
 
     Args:
         resource (Resource): The resource to associate with the metric telemetry.
     """
-    exporter = OTLPMetricExporter(endpoint=OTLP_COLLECTOR_ENDPOINT, insecure=True)
+    exporter = OTLPMetricExporter(
+        endpoint=str(telemetry_config.collector_endpoint), insecure=telemetry_config.collector_insecure
+    )
     reader = PeriodicExportingMetricReader(exporter)
     meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
     metrics.set_meter_provider(meter_provider)
 
 
-def init_logs_exporter(resource: Resource) -> None:
+def init_logs_exporter(resource: Resource, telemetry_config: Telemetry) -> None:
     """
     Initializes the OpenTelemetry logs exporter with a given resource.
 
     Args:
         resource (Resource): The resource to associate with the log telemetry.
     """
-    exporter = OTLPLogExporter(endpoint=OTLP_COLLECTOR_ENDPOINT, insecure=True)
+    exporter = OTLPLogExporter(
+        endpoint=str(telemetry_config.collector_endpoint), insecure=telemetry_config.collector_insecure
+    )
     logger_provider = LoggerProvider(resource=resource)
     set_logger_provider(logger_provider)
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
@@ -71,14 +67,17 @@ def init_logs_exporter(resource: Resource) -> None:
     logging.getLogger().addHandler(handler)
 
 
-def init_telemetry(resource: Resource) -> None:
+def init_telemetry(telemetry_config: Telemetry) -> None:
     """
     Initializes all OpenTelemetry exporters with a shared resource.
 
     Args:
         resource (Resource): The resource to associate with the app and instance.
     """
+    resource = Resource.create(
+        {"service.name": telemetry_config.service_name, "service.instance.id": telemetry_config.service_id}
+    )
 
-    init_traces_exporter(resource)
-    init_metrics_exporter(resource)
-    init_logs_exporter(resource)
+    init_traces_exporter(resource, telemetry_config)
+    init_metrics_exporter(resource, telemetry_config)
+    init_logs_exporter(resource, telemetry_config)

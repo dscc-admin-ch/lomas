@@ -4,13 +4,21 @@ description: Lomas deployment chart
 
 type: application
 
-version: 0.4.1
+version: 0.5.0
 
-appVersion: "0.4.1"
+appVersion: "0.5.0"
 
 icon: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/images/lomas_logo.svg"
 
 dependencies:
   - name: mongodb
-    version: "13.18.1"
-    repository: https://charts.bitnami.com/bitnami
+    version: "16.5.6"
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: rabbitmq
+    condition: rabbitmq.create
+    version: 15.5.0 # rabbitmq 4.0.8
+    repository: oci://registry-1.docker.io/bitnamicharts
+  - name: keycloak
+    condition: keycloak.create
+    version: 24.4.13 # Keycloak 26.1.4
+    repository: oci://registry-1.docker.io/bitnamicharts

@@ -1,11 +1,14 @@
-from typing import Annotated, Dict, List, Literal, Union
+from typing import Annotated, Any, Literal
+from uuid import UUID, uuid4
 
 import pandas as pd
+import polars as pl
 from diffprivlib.validation import DiffprivlibMixin
 from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
+    Field,
     PlainSerializer,
     PlainValidator,
     ValidationInfo,
@@ -14,16 +17,27 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.config import Config
+from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
     deserialize_model,
+    polars_df_from_str,
+    polars_df_to_str,
     serialize_model,
 )
 
 
 class ResponseModel(BaseModel):
     """Base model for any response from the server."""
+
+
+class ConfigResponse(BaseModel):
+    """Model for response to server config queries."""
+
+    config: Config = Field(default_factory=Config)
+    """The server config."""
 
 
 class InitialBudgetResponse(ResponseModel):
@@ -58,9 +72,9 @@ class DummyDsResponse(ResponseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    dtypes: Dict[str, str]
+    dtypes: Any
     """The dummy_df column data types."""
-    datetime_columns: List[str]
+    datetime_columns: list[str]
     """The list of columns with datetime type."""
     dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
     """The dummy dataframe."""
@@ -172,18 +186,34 @@ class OpenDPQueryResult(BaseModel):
 
     res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
-    value: Union[int, float, List[Union[int, float]]]
+    value: int | float | list[int | float]
+    """The result value of the query."""
+
+
+class OpenDPPolarsQueryResult(BaseModel):
+    """Type for opendp Polars result."""
+
+    res_type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
+    """Result type description."""
+    # order of PlainValidator and PlainSerializer matters in that case:
+    # https://github.com/pydantic/pydantic/issues/8512
+    value: Annotated[
+        pl.DataFrame,
+        PlainValidator(polars_df_from_str),
+        PlainSerializer(polars_df_to_str),
+    ]
     """The result value of the query."""
 
 
 # Response object
-QueryResultTypeAlias = Union[
-    DiffPrivLibQueryResult,
-    SmartnoiseSQLQueryResult,
-    SmartnoiseSynthModel,
-    SmartnoiseSynthSamples,
-    OpenDPQueryResult,
-]
+QueryResultTypeAlias = (
+    DiffPrivLibQueryResult
+    | SmartnoiseSQLQueryResult
+    | SmartnoiseSynthModel
+    | SmartnoiseSynthSamples
+    | OpenDPQueryResult
+    | OpenDPPolarsQueryResult
+)
 
 
 class QueryResponse(CostResponse):
@@ -196,3 +226,20 @@ class QueryResponse(CostResponse):
         Discriminator("res_type"),
     ]
     """The query result object."""
+
+
+class Job(ResponseModel):
+    """Scheduled Job Response."""
+
+    uid: UUID = Field(default_factory=uuid4)
+    """Job unique identifier."""
+    requested_by: str | None = None
+    """Name of the user that requested this job."""
+    status: str = "in_progress"
+    """Job status."""
+    result: QueryResponse | CostResponse | None = None
+    """Job result, if available."""
+    error: LomasServerExceptionType | None = None
+    """Job error, if any."""
+    status_code: int = 200
+    """Status code for job response."""

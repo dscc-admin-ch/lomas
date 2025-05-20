@@ -24,7 +24,7 @@ spec:
 
       containers:
       - name: prometheus-container
-        image: prom/prometheus:latest
+        image: prom/prometheus:v3.2.0
         args:
           - "--config.file=/conf/prometheus.yaml"
           - "--web.listen-address=:{{ .Values.prometheus.service.port}}"

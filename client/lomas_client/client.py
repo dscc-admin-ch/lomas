@@ -1,27 +1,28 @@
 import base64
 import json
 import pickle
-from typing import List, Optional
 
 import pandas as pd
+import polars as pl
 from fastapi import status
 from opendp.mod import enable_features
 from opendp_logger import enable_logging, make_load_json
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from pydantic import ValidationError
 
 from lomas_client.constants import (
-    CLIENT_SERVICE_NAME,
     DUMMY_NB_ROWS,
     DUMMY_SEED,
-    SERVICE_ID,
 )
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
-from lomas_client.utils import raise_error, validate_model_response
+from lomas_client.models.config import ClientConfig
+from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
-from lomas_core.instrumentation import get_ressource, init_telemetry
+from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import (
     GetDummyDataset,
     LomasRequestModel,
@@ -44,34 +45,41 @@ class Client:
     Handle all serialisation and deserialisation steps
     """
 
-    def __init__(self, url: str, user_name: str, dataset_name: str) -> None:
-        """Initializes the Client with the specified URL, user name, and dataset name.
+    def __init__(self, **kwargs: ClientConfig.model_config):
+        """Initializes the Client with the specified URL, dataset name and authentication parameters.
 
         Args:
-            url (str): The base URL for the API server.
-            user_name (str): The name of the user allowed to perform queries.
-            dataset_name (str): The name of the dataset to be accessed or manipulated.
+            kwargs: All keyword arguments will be forwarded to the ClientConfig
         """
 
-        resource = get_ressource(CLIENT_SERVICE_NAME, SERVICE_ID)
-        init_telemetry(resource)
+        try:
+            self.config = ClientConfig(**kwargs)
+        except ValidationError as exc:
+            raise ValueError(
+                "Missing one of or invalid: client_id, client_secret, keycloak_url"
+                "or realm when using jwt authentication method."
+                "If you are using this library from a managed environment and don't know "
+                "about your credentials, please contact your system administrator."
+            ) from exc
 
-        self.http_client = LomasHttpClient(url, user_name, dataset_name)
+        if self.config.telemetry.enabled:
+            LoggingInstrumentor().instrument(set_logging_format=True)
+            init_telemetry(self.config.telemetry)
+
+        self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
-    def get_dataset_metadata(
-        self,
-    ) -> Optional[LomasRequestModel]:
+    def get_dataset_metadata(self) -> LomasRequestModel:
         """This function retrieves metadata for the dataset.
 
         Returns:
             Optional[LomasRequestModel]:
                 A dictionary containing dataset metadata.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_dataset_metadata", body)
         if res.status_code == status.HTTP_200_OK:
@@ -80,13 +88,12 @@ class Client:
             return metadata
 
         raise_error(res)
-        return None
 
     def get_dummy_dataset(
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[DummyDsResponse]:
+    ) -> DummyDsResponse:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
@@ -103,7 +110,7 @@ class Client:
                 representing the dummy dataset.
         """
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.config.dataset_name,
             "dummy_nb_rows": nb_rows,
             "dummy_seed": seed,
         }
@@ -116,9 +123,24 @@ class Client:
             return res_model.dummy_df
 
         raise_error(res)
-        return None
 
-    def get_initial_budget(self) -> Optional[InitialBudgetResponse]:
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
+        """
+        Returns the polars LazyFrame for the dummy dataset with.
+
+        optional parameters.
+        Args:
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+                Defaults to DUMMY_SEED.
+        Returns:
+            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
+        """
+        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
+        return pl.from_pandas(dummy_pandas).lazy()
+
+    def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.
 
         Returns:
@@ -126,42 +148,42 @@ class Client:
                 containing the initial budget.
         """
 
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_initial_budget", body)
 
-        return validate_model_response(res, InitialBudgetResponse)
+        return validate_model_response_direct(res, InitialBudgetResponse)
 
-    def get_total_spent_budget(self) -> Optional[SpentBudgetResponse]:
+    def get_total_spent_budget(self) -> SpentBudgetResponse:
         """This function retrieves the total spent budget.
 
         Returns:
             Optional[SpentBudgetResponse]: A dictionary containing
                 the total spent budget.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_total_spent_budget", body)
 
-        return validate_model_response(res, SpentBudgetResponse)
+        return validate_model_response_direct(res, SpentBudgetResponse)
 
-    def get_remaining_budget(self) -> Optional[RemainingBudgetResponse]:
+    def get_remaining_budget(self) -> RemainingBudgetResponse:
         """This function retrieves the remaining budget.
 
         Returns:
             Optional[RemainingBudgetResponse]: A dictionary
                 containing the remaining budget.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_remaining_budget", body)
 
-        return validate_model_response(res, RemainingBudgetResponse)
+        return validate_model_response_direct(res, RemainingBudgetResponse)
 
-    def get_previous_queries(self) -> Optional[List[dict]]:
+    def get_previous_queries(self) -> list[dict]:
         """This function retrieves the previous queries of the user.
 
         Raises:
@@ -172,7 +194,7 @@ class Client:
             Optional[List[dict]]: A list of dictionary containing
             the different queries on the private dataset.
         """
-        body_dict = {"dataset_name": self.http_client.dataset_name}
+        body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_previous_queries", body)
@@ -185,7 +207,7 @@ class Client:
 
             deserialised_queries = []
             for query in queries:
-                match query["dp_librairy"]:
+                match query["dp_library"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.SMARTNOISE_SYNTH:
@@ -202,11 +224,10 @@ class Client:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)
                     case _:
-                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_librairy']}")
+                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_library']}")
 
                 deserialised_queries.append(query)
 
             return deserialised_queries
 
         raise_error(res)
-        return None

@@ -1,8 +1,8 @@
 import argparse
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Dict, List
 
 from lomas_core.error_handler import (
     InvalidQueryException,
@@ -14,7 +14,7 @@ from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
 
-def user_must_exist(func: Callable) -> Callable:  # type: ignore
+def user_must_exist(func: Callable) -> Callable:
     """
     Decorator function to verify that a user exists.
 
@@ -32,7 +32,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
         user_name = args[0]
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
@@ -43,7 +43,7 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     return wrapper_decorator
 
 
-def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
+def dataset_must_exist(func: Callable) -> Callable:
     """
     Decorator function to verify that a dataset exists.
 
@@ -61,7 +61,7 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
         dataset_name = args[0]
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
@@ -75,7 +75,7 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
 
 def user_must_have_access_to_dataset(
     func: Callable,
-) -> Callable:  # type: ignore
+) -> Callable:
     """
     Decorator function to enforce a user has access to a dataset.
 
@@ -95,7 +95,7 @@ def user_must_have_access_to_dataset(
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
+    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
         user_name = args[0]
         dataset_name = args[1]
         if not self.has_user_access_to_dataset(user_name, dataset_name):
@@ -111,7 +111,7 @@ class AdminDatabase(ABC):
     """Overall database management for server state."""
 
     @abstractmethod
-    def __init__(self, **connection_parameters: Dict[str, str]) -> None:
+    def __init__(self, **connection_parameters: dict[str, str]) -> None:
         """
         Connects to the DB.
 
@@ -224,7 +224,7 @@ class AdminDatabase(ABC):
         """
 
     @user_must_have_access_to_dataset
-    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the total spent epsilon and delta spent by user on dataset.
 
@@ -244,7 +244,7 @@ class AdminDatabase(ABC):
         ]
 
     @user_must_have_access_to_dataset
-    def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the initial epsilon and delta budget.
 
@@ -264,7 +264,7 @@ class AdminDatabase(ABC):
         ]
 
     @user_must_have_access_to_dataset
-    def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the remaining epsilon and delta budget (initial - total spent).
 
@@ -365,7 +365,7 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Retrieves and return the queries already done by a user.
 
@@ -397,7 +397,7 @@ class AdminDatabase(ABC):
         to_archive = {
             "user_name": user_name,
             "dataset_name": query.dataset_name,
-            "dp_librairy": model_input_to_lib(query),
+            "dp_library": model_input_to_lib(query),
             "client_input": query.model_dump(),
             "response": response.model_dump(),
             "timestamp": time.time(),

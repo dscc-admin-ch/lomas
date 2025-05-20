@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Request, Security, status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
+from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
@@ -18,12 +19,10 @@ from lomas_core.models.requests import (
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
 )
-from lomas_core.models.responses import CostResponse, QueryResponse
+from lomas_core.models.responses import Job
 from lomas_server.routes.utils import (
-    handle_cost_query,
-    handle_query_on_dummy_dataset,
-    handle_query_on_private_dataset,
-    server_live,
+    get_user_id_from_authenticator,
+    handle_query_to_job,
 )
 
 router = APIRouter()
@@ -34,22 +33,21 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+async def smartnoise_sql_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the SmartNoiseSQL library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLQueryModel): The smartnoise_sql query body.
 
@@ -63,31 +61,28 @@ def smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_private_dataset(
-        request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL
-    )
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_sql_handler(
-    user_name: Annotated[str, Header()],
+async def dummy_smartnoise_sql_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSQL library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLDummyQueryModel):
             The smartnoise_sql query body.
@@ -102,29 +97,28 @@ def dummy_smartnoise_sql_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSQLQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_sql_cost(
-    user_name: Annotated[str, Header()],
+async def estimate_smartnoise_sql_cost(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_sql_query: SmartnoiseSQLRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_sql_query (SmartnoiseSQLRequestModel):
             The smartnoise_sql request body.
@@ -138,9 +132,9 @@ def estimate_smartnoise_sql_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_sql_query, user_name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -149,22 +143,21 @@ def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+async def smartnoise_synth_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the SmartNoiseSynth library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthQueryModel):
             The smartnoise_synth query body.
@@ -179,32 +172,31 @@ def smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_private_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_smartnoise_synth_handler(
-    user_name: Annotated[str, Header()],
+async def dummy_smartnoise_synth_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the SmartNoiseSynth library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthDummyQueryModel):
             The smartnoise_synth query body.
@@ -219,32 +211,31 @@ def dummy_smartnoise_synth_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a SmartnoiseSynthModel
+        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return handle_query_on_dummy_dataset(
-        request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
     )
 
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_smartnoise_synth_cost(
-    user_name: Annotated[str, Header()],
+async def estimate_smartnoise_synth_cost(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     smartnoise_synth_query: SmartnoiseSynthRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Computes the privacy loss budget cost of a SmartNoiseSynth query.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         smartnoise_synth_query (SmartnoiseSynthRequestModel):
             The smartnoise_synth query body.
@@ -259,9 +250,11 @@ def estimate_smartnoise_synth_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, smartnoise_synth_query, user_name, DPLibraries.SMARTNOISE_SYNTH)
+    return await handle_query_to_job(
+        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
+    )
 
 
 # OpenDP
@@ -270,22 +263,21 @@ def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def opendp_query_handler(
-    user_name: Annotated[str, Header()],
+async def opendp_query_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries for the OpenDP Library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -299,29 +291,28 @@ def opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_on_private_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 @router.post(
     "/dummy_opendp_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_opendp_query_handler(
-    user_name: Annotated[str, Header()],
+async def dummy_opendp_query_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the OpenDP library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPQueryModel): The opendp query object.
 
@@ -335,29 +326,28 @@ def dummy_opendp_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing an OpenDPQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 @router.post(
     "/estimate_opendp_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_opendp_cost(
-    user_name: Annotated[str, Header()],
+async def estimate_opendp_cost(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     opendp_query: OpenDPRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object.
         opendp_query (OpenDPRequestModel): The opendp query object.
 
@@ -371,9 +361,9 @@ def estimate_opendp_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, opendp_query, user_name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -382,22 +372,21 @@ def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+async def diffprivlib_query_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibQueryModel,
-):
+) -> Job:
     """
     Handles queries for the DiffPrivLib Library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibQueryModel): The diffprivlib query body.
 
@@ -411,29 +400,28 @@ def diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_private_dataset(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
     "/dummy_diffprivlib_query",
-    dependencies=[Depends(server_live)],
-    response_model=QueryResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def dummy_diffprivlib_query_handler(
-    user_name: Annotated[str, Header()],
+async def dummy_diffprivlib_query_handler(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     query_json: DiffPrivLibDummyQueryModel,
-) -> QueryResponse:
+) -> Job:
     """
     Handles queries on dummy datasets for the DiffPrivLib library.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibDummyQueryModel): The diffprivlib query body.
 
@@ -447,29 +435,28 @@ def dummy_diffprivlib_query_handler(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        QueryResponse: A query response containing a DiffPrivLibQueryResult.
+        Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return handle_query_on_dummy_dataset(request, query_json, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, query_json, user_id.name, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    dependencies=[Depends(server_live)],
-    response_model=CostResponse,
     responses=SERVER_QUERY_ERROR_RESPONSES,
     tags=["USER_QUERY"],
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def estimate_diffprivlib_cost(
-    user_name: Annotated[str, Header()],
+async def estimate_diffprivlib_cost(
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
     diffprivlib_query: DiffPrivLibRequestModel,
-) -> CostResponse:
+) -> Job:
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.
 
     \f
     Args:
-        user_name (str): The user name.
+        user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
         diffprivlib_query (DiffPrivLibRequestModel): The diffprivlib query body.
         A JSON object containing the following:
@@ -492,6 +479,6 @@ def estimate_diffprivlib_cost(
             the user does not exist or does not have access to the dataset.
 
     Returns:
-        CostResponse: The privacy loss cost of the input query.
+        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return handle_cost_query(request, diffprivlib_query, user_name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)

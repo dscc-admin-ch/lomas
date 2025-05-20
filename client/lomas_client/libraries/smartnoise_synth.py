@@ -1,5 +1,3 @@
-from typing import List, Optional, Type
-
 from smartnoise_synth_logger import serialise_constraints
 
 from lomas_client.constants import (
@@ -24,19 +22,19 @@ from lomas_core.models.responses import CostResponse, QueryResponse
 class SmartnoiseSynthClient:
     """A client for executing and estimating the cost of SmartNoiseSynth queries."""
 
-    def __init__(self, http_client: LomasHttpClient):
+    def __init__(self, http_client: LomasHttpClient) -> None:
         self.http_client = http_client
 
     def cost(
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
+        delta: float | None = None,
+        select_cols: list[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
-    ) -> Optional[CostResponse]:
+    ) -> CostResponse | None:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -81,7 +79,7 @@ class SmartnoiseSynthClient:
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,
@@ -93,14 +91,14 @@ class SmartnoiseSynthClient:
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, CostResponse)
+        return validate_model_response(self.http_client, res, CostResponse)
 
     def query(
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
+        delta: float | None = None,
+        select_cols: list[str] = [],
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
@@ -110,7 +108,7 @@ class SmartnoiseSynthClient:
         nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse | None:
         """This function executes a SmartNoise Synthetic query.
 
         Args:
@@ -169,7 +167,7 @@ class SmartnoiseSynthClient:
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,
@@ -181,7 +179,7 @@ class SmartnoiseSynthClient:
             "condition": condition,
             "nb_samples": nb_samples,
         }
-        request_model: Type[SmartnoiseSynthRequestModel]
+        request_model: type[SmartnoiseSynthRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
             body_dict["dummy_nb_rows"] = nb_rows
@@ -194,4 +192,4 @@ class SmartnoiseSynthClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, QueryResponse)
+        return validate_model_response(self.http_client, res, QueryResponse)

@@ -1,5 +1,7 @@
 import unittest
 
+import pytest
+
 from lomas_core.models.collections import (
     BooleanMetadata,
     BoundedColumnMetadata,
@@ -27,8 +29,8 @@ class TestMetadataModel(unittest.TestCase):
 
         str_categorical_metadata = StrCategoricalMetadata.model_validate(input_str)
 
-        self.assertIsInstance(str_categorical_metadata, StrCategoricalMetadata)
-        self.assertIsInstance(str_categorical_metadata, CategoricalColumnMetadata)
+        assert isinstance(str_categorical_metadata, StrCategoricalMetadata)
+        assert isinstance(str_categorical_metadata, CategoricalColumnMetadata)
 
         input_int = {
             "type": "int",
@@ -39,14 +41,14 @@ class TestMetadataModel(unittest.TestCase):
 
         int_categorical_metadata = IntCategoricalMetadata.model_validate(input_int)
 
-        self.assertIsInstance(int_categorical_metadata, IntCategoricalMetadata)
-        self.assertIsInstance(int_categorical_metadata, CategoricalColumnMetadata)
+        assert isinstance(int_categorical_metadata, IntCategoricalMetadata)
+        assert isinstance(int_categorical_metadata, CategoricalColumnMetadata)
 
     def test_categories_required(self) -> None:
         """Test categories required."""
         input_str = {"type": "string", "cardinality": 4}
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             StrCategoricalMetadata.model_validate(input_str)
 
     def test_categories_match_type(self) -> None:
@@ -57,14 +59,14 @@ class TestMetadataModel(unittest.TestCase):
             "categories": [1, 2, 3, 4],
         }
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             StrCategoricalMetadata.model_validate(input_str)
 
     def test_categories_match_cardinality(self) -> None:
         """Test categories match cardinality."""
         input_int = {"type": "int", "cardinality": 4, "categories": [1, 2, 3]}
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             IntCategoricalMetadata.model_validate(input_int)
 
     def test_boolean_column(self) -> None:
@@ -74,15 +76,15 @@ class TestMetadataModel(unittest.TestCase):
         }
 
         metadata = BooleanMetadata.model_validate(input_bool)
-        self.assertIsInstance(metadata, BooleanMetadata)
+        assert isinstance(metadata, BooleanMetadata)
 
     def test_int_column(self) -> None:
         """Test_int_column."""
         input_int = {"type": "int", "precision": 32, "lower": 0, "upper": 10}
 
         metadata = IntMetadata.model_validate(input_int)
-        self.assertIsInstance(metadata, IntMetadata)
-        self.assertIsInstance(metadata, BoundedColumnMetadata)
+        assert isinstance(metadata, IntMetadata)
+        assert isinstance(metadata, BoundedColumnMetadata)
 
     def test_float_column(self) -> None:
         """Test_float_column."""
@@ -94,8 +96,8 @@ class TestMetadataModel(unittest.TestCase):
         }
 
         metadata = FloatMetadata.model_validate(input_float)
-        self.assertIsInstance(metadata, FloatMetadata)
-        self.assertIsInstance(metadata, BoundedColumnMetadata)
+        assert isinstance(metadata, FloatMetadata)
+        assert isinstance(metadata, BoundedColumnMetadata)
 
     def test_datetime_column(self) -> None:
         """Test_datetime_column."""
@@ -106,36 +108,36 @@ class TestMetadataModel(unittest.TestCase):
         }
 
         metadata = DatetimeMetadata.model_validate(input_datetime)
-        self.assertIsInstance(metadata, DatetimeMetadata)
-        self.assertIsInstance(metadata, BoundedColumnMetadata)
+        assert isinstance(metadata, DatetimeMetadata)
+        assert isinstance(metadata, BoundedColumnMetadata)
 
         input_datetime = {
             "type": "datetime",
             "lower": "2001-01-01",
             "upper": "2000-01-01",
         }
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             DatetimeMetadata.model_validate(input_datetime)
 
     def test_precision(self) -> None:
         """Test precision can only be 32 or 64."""
         input_int = {"type": int, "precision": 20, "lower": 0, "upper": 10}
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             IntMetadata.model_validate(input_int)
 
     def test_lower_upper_bounded(self) -> None:
         """Test lower is smaller than upper and of right type."""
         input_int = {"type": "int", "precision": 32, "lower": 0, "upper": -1}
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             IntMetadata.model_validate(input_int)
 
         input_int["upper"] = 10.5
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             IntMetadata.model_validate(input_int)
 
-    def test_standard_metadata_fields(self):
+    def test_standard_metadata_fields(self) -> None:
         """Test standard metadata fields."""
         input_metadata = {
             "max_ids": 1,
@@ -145,20 +147,20 @@ class TestMetadataModel(unittest.TestCase):
         }
 
         metadata = Metadata.model_validate(input_metadata)
-        self.assertIsInstance(metadata, Metadata)
-        self.assertFalse(metadata.censor_dims)
+        assert isinstance(metadata, Metadata)
+        assert not metadata.censor_dims
 
         input_metadata["censor_dims"] = True
         metadata = Metadata.model_validate(input_metadata)
-        self.assertTrue(metadata.censor_dims)
+        assert metadata.censor_dims
 
         input_metadata["rows"] = 0
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Metadata.model_validate(input_metadata)
 
         input_metadata["rows"] = 100
         input_metadata["max_ids"] = -1
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Metadata.model_validate(input_metadata)
 
     def test_metadata_columns_discriminator(self) -> None:
@@ -203,14 +205,14 @@ class TestMetadataModel(unittest.TestCase):
 
         metadata = Metadata.model_validate(input_metadata)
 
-        self.assertIsInstance(metadata.columns["str"], StrMetadata)
-        self.assertIsInstance(metadata.columns["str_cat"], StrCategoricalMetadata)
-        self.assertIsInstance(metadata.columns["int"], IntMetadata)
-        self.assertIsInstance(metadata.columns["int_cat"], IntCategoricalMetadata)
-        self.assertIsInstance(metadata.columns["float"], FloatMetadata)
-        self.assertIsInstance(metadata.columns["boolean"], BooleanMetadata)
-        self.assertIsInstance(metadata.columns["datetime"], DatetimeMetadata)
+        assert isinstance(metadata.columns["str"], StrMetadata)
+        assert isinstance(metadata.columns["str_cat"], StrCategoricalMetadata)
+        assert isinstance(metadata.columns["int"], IntMetadata)
+        assert isinstance(metadata.columns["int_cat"], IntCategoricalMetadata)
+        assert isinstance(metadata.columns["float"], FloatMetadata)
+        assert isinstance(metadata.columns["boolean"], BooleanMetadata)
+        assert isinstance(metadata.columns["datetime"], DatetimeMetadata)
 
         input_metadata["columns"]["some_type"] = {"type": "some_type"}  # type: ignore
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Metadata.model_validate(input_metadata)

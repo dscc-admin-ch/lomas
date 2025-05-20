@@ -29,18 +29,18 @@ For a detailed description, please see the links below.
 
 Client
 ========
-The ``lomas_client`` library is a client to interact with the Lomas server. It is available on 
-Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will 
+The ``lomas_client`` library is a client to interact with the Lomas server. It is available on
+Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will
 only interact with the client and never with the server.
 
-Utilizing this client library is strongly advised for querying and interacting with the 
-server, as it takes care of all the necessary tasks such as serialization, deserialization, 
-REST API calls, and ensures the correct installation of other required libraries. In short, 
+Utilizing this client library is strongly advised for querying and interacting with the
+server, as it takes care of all the necessary tasks such as serialization, deserialization,
+REST API calls, and ensures the correct installation of other required libraries. In short,
 it enables a seamless interaction with the server.
 
-For additional informations about the client, please see the 
-`README.md <https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md>`_ of 
-the client and for additional examples please see the 
+For additional informations about the client, please see the
+`README.md <https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md>`_ of
+the client and for additional examples please see the
 :doc:`examples <client_examples>` section.
 
 
@@ -48,24 +48,24 @@ Server
 ========
 The server side, implemented in a micro-service architecture, is composed of two main services:
 
-- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. 
-Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different 
+- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries.
+Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different
 queries (SmartnoiseSQL, OpenDP, etc.).
 
 - A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
 
 
-The server connects to external databases, typically deployed by a data owner, to download the 
-sensitive datasets for query execution. Currently, the server can manage adapters to S3, 
+The server connects to external databases, typically deployed by a data owner, to download the
+sensitive datasets for query execution. Currently, the server can manage adapters to S3,
 http file download and local files.
 
-For extensive informations about how to administrate the MongoDB database, 
+For extensive informations about how to administrate the MongoDB database,
 please refer to :doc:`Administration <server_administration>` section.
 
-We aim to facilitate the platform configuration, deployment and testing on commonly available 
+We aim to facilitate the platform configuration, deployment and testing on commonly available
 IT infrastructure for NSOs and other potential users.
 
-In this regard, we provide two Helm charts for deploying the server components (server and 
+In this regard, we provide two Helm charts for deploying the server components (server and
 MongoDB database) and a client development environment in a Kubernetes cluster.
 
 For extensive informations about how to deploy, please refer to :doc:`Deployment <server_deployment>`
@@ -78,7 +78,7 @@ It contains code that both these libraries rely on such as request and response 
 
 Disclaimer
 ========
-Lomas is a Proof of Concept that is still under development. 
+Lomas is a Proof of Concept that is still under development.
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
 
@@ -127,7 +127,6 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
    :hidden:
 
    CONTRIBUTING.md
-   CONTRIBUTING_CLIENT.md
    CONTRIBUTING_SERVER.md
 
 .. toctree::

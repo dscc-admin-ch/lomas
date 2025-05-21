@@ -109,6 +109,7 @@ class JWTAuthenticator(UserAuthenticator):
             key = self.jwk_client.get_signing_key_from_jwt(auth_creds.credentials)
             # Decodes and validates JWT
             token_content = jwt.decode(auth_creds.credentials, key=key)
+
             if Scopes.ADMIN in security_scopes.scopes:
                 # We use only one generic admin for now
                 if (
@@ -121,7 +122,8 @@ class JWTAuthenticator(UserAuthenticator):
                     name=token_content[KCAttributeNames.USER_NAME],
                     email=token_content[KCAttributeNames.USER_EMAIL],
                 )
-
+        except UnauthorizedAccessException as e:
+            raise e
         except Exception as e:
             # TODO problematic to add e into error message to client?
             raise UnauthorizedAccessException("Failed bearer token verification.") from e

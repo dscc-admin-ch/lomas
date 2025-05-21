@@ -235,7 +235,7 @@ class Job(ResponseModel):
     """Job unique identifier."""
     requested_by: str | None = None
     """Name of the user that requested this job."""
-    status: str = "in_progress"
+    status: Literal["in_progress", "failed", "complete"] = "in_progress"
     """Job status."""
     result: QueryResponse | CostResponse | None = None
     """Job result, if available."""

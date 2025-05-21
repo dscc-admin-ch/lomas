@@ -74,13 +74,18 @@ async def status_handler(
     Returns:
         Job: The Job model for this uid.
     """
-    jobs = request.app.state.jobs_var.get()
+    jobs = request.app.state.jobs
     if (job := jobs.get(str(uid))) is not None:
         if job.requested_by != user_id.name:
             raise UnauthorizedAccessException(f"{user_id.name} does not have access to job with uid {uid}.")
 
         if job.status == "failed":
             response.status_code = job.status_code
+
+        if job.status == "complete":
+            # Delete completed job from state once returned to user.
+            del jobs[str(uid)]
+
         return job
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This job does not exist.")
 

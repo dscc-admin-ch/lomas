@@ -6,9 +6,9 @@ import sys
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from contextvars import ContextVar
 from functools import wraps
 from typing import Annotated
+from uuid import UUID
 
 import aio_pika
 from fastapi import Depends, FastAPI, Request
@@ -31,15 +31,13 @@ AioPikaInstrumentor().instrument()
 
 
 async def process_response(
-    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs_var: ContextVar
+    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs: dict[UUID, Job]
 ) -> None:
     """Process responses queue into Jobs."""
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process(ignore_processed=True):
-                jobs = jobs_var.get()
-
                 if message.correlation_id not in jobs:
                     await message.reject(requeue=True)
                 else:
@@ -56,8 +54,6 @@ async def process_response(
                                 message.body.decode()
                             )
                             jobs[message.correlation_id].status = "complete"
-
-                    jobs_var.set(jobs)
 
 
 async def rabbitmq_connect_queue(
@@ -90,21 +86,21 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
     await channel.declare_queue("task_queue", auto_delete=True)
     app.state.task_queue_channel = channel
     queue = await channel.declare_queue("task_response", auto_delete=True)
-    tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
     background_tasks.add(tasks_response_task)
     tasks_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("cost_queue", auto_delete=True)
     app.state.cost_queue_channel = channel
     queue = await channel.declare_queue("cost_response", auto_delete=True)
-    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs_var))
+    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs))
     background_tasks.add(cost_response_task)
     cost_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("dummy_queue", auto_delete=True)
     app.state.dummy_queue_channel = channel
     queue = await channel.declare_queue("dummy_response", auto_delete=True)
-    dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs_var))
+    dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
     background_tasks.add(dummy_response_task)
     dummy_response_task.add_done_callback(background_tasks.discard)
 
@@ -201,9 +197,7 @@ async def handle_query_to_job(
 
     new_task = Job(requested_by=user_name)
 
-    jobs = app.state.jobs_var.get()
-    jobs[str(new_task.uid)] = new_task
-    app.state.jobs_var.set(jobs)
+    app.state.jobs[str(new_task.uid)] = new_task
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(

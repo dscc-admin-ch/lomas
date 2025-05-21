@@ -382,7 +382,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
 
     def test3_lf_domain(self) -> None:
         """Test lazyframe with different types."""
-        by_config = []  # type: ignore
+        by_config: list[str] = []
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
         RAW_METADATA["columns"] = col_int
         metadata = dict(Metadata.model_validate(RAW_METADATA))

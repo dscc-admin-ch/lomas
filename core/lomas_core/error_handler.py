@@ -1,5 +1,5 @@
 import logging
-from typing import Any, NoReturn
+from typing import Any, Never
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -135,7 +135,7 @@ SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 
 
-def raise_error_from_model(error_model: LomasServerExceptionType) -> NoReturn:
+def raise_error_from_model(error_model: LomasServerExceptionType) -> Never:
     """Raise error message based on Server Error Model.
 
     Args:

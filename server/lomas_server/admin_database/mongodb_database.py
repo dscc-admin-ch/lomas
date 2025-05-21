@@ -108,7 +108,7 @@ class AdminMongoDatabase(AdminDatabase):
         return Metadata.model_validate(metadatas[dataset_name])
 
     @user_must_exist
-    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+    def set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """Sets if a user may query the server.
 
         (Set False before querying and True after updating budget)
@@ -130,6 +130,7 @@ class AdminMongoDatabase(AdminDatabase):
             {"$set": {"may_query": may_query}},
         )
         check_result_acknowledged(res)
+        return False
 
     @user_must_exist
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:

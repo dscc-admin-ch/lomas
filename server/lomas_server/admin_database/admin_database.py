@@ -2,7 +2,9 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import wraps
-from typing import Concatenate
+from typing import Concatenate, TypeVar
+
+from typing_extensions import ParamSpec
 
 from lomas_core.error_handler import (
     InvalidQueryException,
@@ -13,8 +15,12 @@ from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
+P = ParamSpec("P")
+T = TypeVar("T")
+DB = TypeVar("DB", bound="AdminDatabase")
 
-def user_must_exist[**P, T, DB: AdminDatabase](
+
+def user_must_exist(
     func: Callable[Concatenate[DB, str, P], T],
 ) -> Callable[Concatenate[DB, str, P], T]:
     """
@@ -44,7 +50,7 @@ def user_must_exist[**P, T, DB: AdminDatabase](
     return wrapper_decorator
 
 
-def dataset_must_exist[**P, T, DB: AdminDatabase](
+def dataset_must_exist(
     func: Callable[Concatenate[DB, str, P], T],
 ) -> Callable[Concatenate[DB, str, P], T]:
     """
@@ -75,7 +81,7 @@ def dataset_must_exist[**P, T, DB: AdminDatabase](
     return wrapper_decorator
 
 
-def user_must_have_access_to_dataset[**P, T, DB: AdminDatabase](
+def user_must_have_access_to_dataset(
     func: Callable[Concatenate[DB, str, str, P], T],
 ) -> Callable[Concatenate[DB, str, str, P], T]:
     """

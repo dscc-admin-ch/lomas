@@ -19,7 +19,7 @@ from lomas_server.constants import RANDOM_STRINGS
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 
 
-def make_dummy_dataset(  # pylint: disable=too-many-locals
+def make_dummy_dataset(
     metadata: Metadata, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED
 ) -> pd.DataFrame:
     """

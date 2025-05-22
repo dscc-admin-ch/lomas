@@ -18,7 +18,7 @@ INITIAL_DELTA = 0.005
 enable_features("floating-point")
 
 
-class TestSetupRootAPIEndpoint(unittest.TestCase):  # pylint: disable=R0904
+class TestSetupRootAPIEndpoint(unittest.TestCase):
     """
     End-to-end tests of the api endpoints.
 

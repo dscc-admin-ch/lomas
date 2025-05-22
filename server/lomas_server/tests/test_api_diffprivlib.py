@@ -47,7 +47,7 @@ def validate_pipeline(client, response) -> QueryResponse:
     return r_model
 
 
-class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
     """Test DiffPrivLib Endpoint with different models."""
 
     @pytest.mark.long

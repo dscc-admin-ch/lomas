@@ -7,20 +7,20 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.requests import (  # pylint: disable=W0611
+from lomas_core.models.requests import (
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import (  # pylint: disable=W0611
+from lomas_core.models.responses import (
     QueryResponse,
     QueryResultTypeAlias,
 )
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 
-RequestModelGeneric = TypeVar("RequestModelGeneric", bound="LomasRequestModel")
-QueryModelGeneric = TypeVar("QueryModelGeneric", bound="QueryModel")
-QueryResultGeneric = TypeVar("QueryResultGeneric", bound="QueryResultTypeAlias")
+RequestModelGeneric = TypeVar("RequestModelGeneric", bound=LomasRequestModel)
+QueryModelGeneric = TypeVar("QueryModelGeneric", bound=QueryModel)
+QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultTypeAlias)
 
 
 class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]):

@@ -36,7 +36,7 @@ from lomas_server.tests.test_api_root import (
 from lomas_server.tests.utils import submit_job_wait
 
 
-class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
     """End-to-end tests of the api endpoints."""
 
     def test_root(self) -> None:

@@ -124,7 +124,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
     return plan.serialize(format="json")
 
 
-class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
     """Test OpenDP Endpoint with different polars plans."""
 
     def test_opendp_polars_query(self) -> None:
@@ -273,7 +273,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
-class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
+class TestOpenDPpolarsFunctions(unittest.TestCase):
     """Test OpenDP Polars functions."""
 
     def test1_margin(self) -> None:

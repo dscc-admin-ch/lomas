@@ -24,13 +24,13 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
-class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):
     """Test OpenDP Endpoint."""
 
     enable_logging()
 
     @pytest.mark.long
-    def test_opendp_query(self) -> None:  # pylint: disable=R0915
+    def test_opendp_query(self) -> None:
         """Test_opendp_query."""
         with TestClient(app, headers=self.headers) as client:
             # Basic test based on example with max divergence (Pure DP)

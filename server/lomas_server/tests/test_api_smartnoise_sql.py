@@ -27,7 +27,7 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
-class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 
     @pytest.mark.long

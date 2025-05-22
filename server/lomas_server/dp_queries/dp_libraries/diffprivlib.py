@@ -109,7 +109,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
     def query(
         self,
-        query_json: DiffPrivLibQueryModel,  # pylint: disable=unused-argument
+        query_json: DiffPrivLibQueryModel,
     ) -> DiffPrivLibQueryResult:
         """Perform the query and return the response.
 

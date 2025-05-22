@@ -244,11 +244,13 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             # Should fail: user does not have access to dataset
             body = dict(example_smartnoise_sql_cost)
             body["dataset_name"] = "IRIS"
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/estimate_smartnoise_sql_cost",
                 json=body,
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            # assert job.error == UnauthorizedAccessExceptionModel(
-            #     message=f"{self.user_name} does not have access to IRIS."
-            # )
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_403_FORBIDDEN
+            assert job.error == UnauthorizedAccessExceptionModel(
+                message=f"{self.user_name} does not have access to IRIS."
+            )

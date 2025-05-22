@@ -51,8 +51,8 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         self.test_data_dir = str(Path(__file__).parent / "test_data")
 
         # Disable Keycloak for UTs
-        self.previous_auth_method = os.environ.get("lomas_service_authenticator__authentication_type", "")
-        os.environ["lomas_service_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
+        self.previous_auth_method = os.environ.get("LOMAS_SERVICE_authenticator__authentication_type", "")
+        os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
         # Access to MongoDB
         self.mongo_config = Config().admin_database
         self.db: Database = get_mongodb(self.mongo_config)
@@ -64,7 +64,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         drop_collection(self.mongo_config, "users")
         drop_collection(self.mongo_config, "queries_archives")
         # reset env
-        os.environ["lomas_service_authenticator__authentication_type"] = self.previous_auth_method
+        os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = self.previous_auth_method
 
     def update_dataset_paths(self, dataset: dict) -> dict:
         """Update dataset paths with prefix.

@@ -1,6 +1,6 @@
 import warnings
 from json import JSONDecodeError
-from typing import Any, NoReturn, TypeVar
+from typing import Any, Never, TypeVar
 
 import requests
 from fastapi import status
@@ -13,7 +13,7 @@ from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response) -> NoReturn:
+def raise_error(response: requests.Response) -> Never:
     """Raise error message based on the HTTP response.
 
     Args:

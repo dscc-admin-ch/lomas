@@ -1,4 +1,5 @@
 import unittest
+from typing import Any
 
 import pytest
 
@@ -165,7 +166,7 @@ class TestMetadataModel(unittest.TestCase):
 
     def test_metadata_columns_discriminator(self) -> None:
         """Test metadata column discriminator."""
-        input_metadata = {
+        input_metadata: dict[str, Any] = {
             "max_ids": 1,
             "rows": 100,
             "row_privacy": False,
@@ -213,6 +214,6 @@ class TestMetadataModel(unittest.TestCase):
         assert isinstance(metadata.columns["boolean"], BooleanMetadata)
         assert isinstance(metadata.columns["datetime"], DatetimeMetadata)
 
-        input_metadata["columns"]["some_type"] = {"type": "some_type"}  # type: ignore
+        input_metadata["columns"]["some_type"] = {"type": "some_type"}
         with pytest.raises(ValueError):
             Metadata.model_validate(input_metadata)

@@ -1,5 +1,3 @@
-# pylint: disable=C0103
-
 from pathlib import Path
 
 import streamlit as st
@@ -421,7 +419,7 @@ with dataset_tab:
     match ad_meta_type:
         case PrivateDatabaseType.PATH:
             uploaded_metadata = st.file_uploader("Import your related metadata file", key="uploaded_metadata")
-            ad_meta_path = None
+            ad_meta_path = None  # pylint: disable=invalid-name
             if uploaded_metadata is not None:
                 # Save the file
                 ad_meta_path = (

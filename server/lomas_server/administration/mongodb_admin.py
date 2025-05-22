@@ -517,7 +517,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
 ###################  DATASET TO DATABASE  ###################
 @with_mongodb
 @check_dataset_and_metadata_exist(False)
-def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
+def add_dataset(
     db: Database,
     dataset_name: str,
     database_type: str,
@@ -642,7 +642,7 @@ def add_dataset(  # pylint: disable=too-many-arguments, too-many-locals
 
 
 @with_mongodb
-def add_datasets_via_yaml(  # pylint: disable=R0912, R0914, R0915
+def add_datasets_via_yaml(  # pylint: disable=too-many-branches, too-many-statements
     db: Database,
     yaml_file: str | dict,
     clean: bool,

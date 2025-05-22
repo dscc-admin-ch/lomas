@@ -1,8 +1,10 @@
-import argparse
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import wraps
+from typing import Concatenate, TypeVar
+
+from typing_extensions import ParamSpec
 
 from lomas_core.error_handler import (
     InvalidQueryException,
@@ -13,8 +15,14 @@ from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
+P = ParamSpec("P")
+T = TypeVar("T")
+DB = TypeVar("DB", bound="AdminDatabase")
 
-def user_must_exist(func: Callable) -> Callable:
+
+def user_must_exist(
+    func: Callable[Concatenate[DB, str, P], T],
+) -> Callable[Concatenate[DB, str, P], T]:
     """
     Decorator function to verify that a user exists.
 
@@ -32,18 +40,19 @@ def user_must_exist(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
-        user_name = args[0]
+    def wrapper_decorator(self: DB, user_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
                 f"User {user_name} does not exist. Please, verify the client object initialisation.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, user_name, *args, **kwargs)
 
     return wrapper_decorator
 
 
-def dataset_must_exist(func: Callable) -> Callable:
+def dataset_must_exist(
+    func: Callable[Concatenate[DB, str, P], T],
+) -> Callable[Concatenate[DB, str, P], T]:
     """
     Decorator function to verify that a dataset exists.
 
@@ -61,21 +70,20 @@ def dataset_must_exist(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
-        dataset_name = args[0]
+    def wrapper_decorator(self: DB, dataset_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
                 f"Dataset {dataset_name} does not exist. "
                 + "Please, verify the client object initialisation.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, dataset_name, *args, **kwargs)
 
     return wrapper_decorator
 
 
 def user_must_have_access_to_dataset(
-    func: Callable,
-) -> Callable:
+    func: Callable[Concatenate[DB, str, str, P], T],
+) -> Callable[Concatenate[DB, str, str, P], T]:
     """
     Decorator function to enforce a user has access to a dataset.
 
@@ -95,14 +103,14 @@ def user_must_have_access_to_dataset(
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: dict[str, str]) -> None:  # type: ignore
-        user_name = args[0]
-        dataset_name = args[1]
+    def wrapper_decorator(
+        self: DB, user_name: str, dataset_name: str, *args: P.args, **kwargs: P.kwargs
+    ) -> T:
         if not self.has_user_access_to_dataset(user_name, dataset_name):
             raise UnauthorizedAccessException(
                 f"{user_name} does not have access to {dataset_name}.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, user_name, dataset_name, *args, **kwargs)
 
     return wrapper_decorator
 
@@ -146,7 +154,6 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @dataset_must_exist
-    @user_must_have_access_to_dataset
     def get_dataset_metadata(self, dataset_name: str) -> Metadata:
         """
         Returns the metadata dictionnary of the dataset.
@@ -162,7 +169,7 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @user_must_exist
-    def set_may_user_query(self, user_name: str, may_query: bool) -> bool:
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server..
 

@@ -1,4 +1,3 @@
-# pylint: disable=C0302
 import os
 import unittest
 from pathlib import Path
@@ -38,7 +37,7 @@ from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig
 from lomas_server.administration.utils import absolute_path
 
 
-class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
+class TestMongoDBAdmin(unittest.TestCase):
     """
     Tests for the functions in mongodb_admin.py.
 
@@ -118,7 +117,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
         delta = 0.02
 
         add_user_with_budget(self.mongo_config, user, email, dataset, epsilon, delta)
-        expected_user = {  # pylint: disable=duplicate-code
+        expected_user = {
             "id": {"name": user, "email": email},
             "may_query": True,
             "datasets_list": [
@@ -596,7 +595,7 @@ class TestMongoDBAdmin(unittest.TestCase):  # pylint: disable=R0904
                 metadata_path=metadata_path,
             )
 
-    def test_add_s3_dataset(self) -> None:  # pylint: disable=R0914
+    def test_add_s3_dataset(self) -> None:
         """Test adding a dataset stored on S3."""
         dataset = "TINTIN_S3_TEST"
         database_type = PrivateDatabaseType.S3

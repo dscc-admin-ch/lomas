@@ -60,7 +60,7 @@ def validate_response(client, response, headers=None) -> QueryResponse:
     return r_model
 
 
-class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise Synth Endpoints with different Synthesizers."""
 
     @pytest.mark.long

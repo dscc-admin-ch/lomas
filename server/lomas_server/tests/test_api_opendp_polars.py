@@ -124,7 +124,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
     return plan.serialize(format="json")
 
 
-class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
     """Test OpenDP Endpoint with different polars plans."""
 
     def test_opendp_polars_query(self) -> None:
@@ -273,7 +273,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R09
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
-class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
+class TestOpenDPpolarsFunctions(unittest.TestCase):
     """Test OpenDP Polars functions."""
 
     def test1_margin(self) -> None:
@@ -382,7 +382,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):  # pylint: disable=R0904
 
     def test3_lf_domain(self) -> None:
         """Test lazyframe with different types."""
-        by_config = []  # type: ignore
+        by_config: list[str] = []
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
         RAW_METADATA["columns"] = col_int
         metadata = dict(Metadata.model_validate(RAW_METADATA))

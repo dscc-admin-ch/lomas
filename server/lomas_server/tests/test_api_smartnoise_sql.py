@@ -27,7 +27,7 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
-class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0904
+class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 
     @pytest.mark.long
@@ -244,9 +244,13 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):  # pylint: disable=R0
             # Should fail: user does not have access to dataset
             body = dict(example_smartnoise_sql_cost)
             body["dataset_name"] = "IRIS"
-            response = client.post(
+            job = submit_job_wait(
+                client,
                 "/estimate_smartnoise_sql_cost",
                 json=body,
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert UnauthorizedAccessExceptionModel(message=f"{self.user_name} does not have access to IRIS.")
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_403_FORBIDDEN
+            assert job.error == UnauthorizedAccessExceptionModel(
+                message=f"{self.user_name} does not have access to IRIS."
+            )

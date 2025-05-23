@@ -51,7 +51,7 @@ dependencies = [
 [project.optional-dependencies]
 all = [
   "mantelo==2.2.0",
-  "streamlit==1.39.0",
+  "streamlit==1.45.1",
   "st-pages==0.5.0",
 ]
 

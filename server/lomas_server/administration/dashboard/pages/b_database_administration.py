@@ -67,7 +67,6 @@ if "list_datasets" not in st.session_state:
 ###############################################################################
 
 # Initialization
-st.set_page_config(layout="wide")
 st.title("Admin Database Management")
 
 user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(

@@ -6,11 +6,10 @@ import streamlit as st
 
 def main() -> None:
     """Main function for the streamlit lomas dashboard."""
-    st.set_page_config(page_title="Lomas Dashboard")
-    folder = Path(__file__).parent
-    st.navigation(
+    folder = Path(__file__).parent.resolve()
+    page = st.navigation(
         [
-            st.Page(folder / "about.py", title="Home Page", icon="🏠"),
+            st.Page(about, title="Home Page", icon="🏠"),
             st.Page(
                 folder / "pages/a_server_overview.py",
                 title="Lomas server overview",
@@ -23,6 +22,12 @@ def main() -> None:
             ),
         ]
     )
+    page.run()
+
+
+def about() -> None:
+    """About page"""
+    st.set_page_config(page_title="Lomas Dashboard")
 
     st.title("Welcome!")
 

@@ -1670,7 +1670,7 @@ requires-dist = [
     { name = "pydantic", specifier = "==2.8.2" },
     { name = "pyjwt", specifier = "==2.10.1" },
     { name = "smartnoise-sql", specifier = "==1.0.6" },
-    { name = "st-pages", marker = "extra == 'all'", specifier = "==0.5.0" },
+    { name = "st-pages", marker = "extra == 'all'", specifier = "==1.0.1" },
     { name = "streamlit", marker = "extra == 'all'", specifier = "==1.45.1" },
     { name = "uvicorn", specifier = "==0.29.0" },
 ]
@@ -3583,14 +3583,14 @@ wheels = [
 
 [[package]]
 name = "st-pages"
-version = "0.5.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "streamlit" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8a/0d/983cf5b99729979640854169925241200926b962ce4285f41efd17261905/st_pages-0.5.0.tar.gz", hash = "sha256:4a49b87e8661a9bd5df229d40bcc550f354f7ba83d79abc8940b546fcc617774", size = 23924, upload_time = "2024-06-25T16:55:59.883Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/60/f9516698fc3952bba1d1b6c1cb0795aa82dac12473f5fb678066532268e0/st_pages-1.0.1.tar.gz", hash = "sha256:2641cfbff1c768ff146858ed742d282b30a3a4c3e4f7717898705bbaee717736", size = 21341, upload_time = "2024-08-08T19:58:58.378Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/64/57af4a64364da3ce5e85e43b4d1188224282bfa0a7ea025c85b82cb5afeb/st_pages-0.5.0-py3-none-any.whl", hash = "sha256:3b6ba6bd419be78e4e8c7133a2032fee7a0bdbf56fb6b45bf72089b316c6e68b", size = 22366, upload_time = "2024-06-25T16:55:58.039Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/04/77c5f0cdc21deb6eadd77bdbf88157632178865e71adffed728fa9e5b48b/st_pages-1.0.1-py3-none-any.whl", hash = "sha256:9098fb4d96bc1dfa56cc2c56ef6fe44e607c69261ff4bceee1f6e9c1e0c2acb4", size = 20099, upload_time = "2024-08-08T19:58:56.991Z" },
 ]
 
 [[package]]

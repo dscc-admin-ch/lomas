@@ -38,7 +38,7 @@ dependencies = [
   "opentelemetry-instrumentation-fastapi>=0.50b0",
   "opentelemetry-instrumentation-logging>=0.50b0",
   "opentelemetry-instrumentation-pymongo>=0.50b0",
-  "opentelemetry-instrumentation-aio-pika==0.50b0",
+  "opentelemetry-instrumentation-aio-pika>=0.50b0",
   "pyaml==23.9.5",
   "pydantic==2.8.2",
   "pyjwt==2.10.1",
@@ -50,9 +50,8 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
-  "mantelo==2.2.0",
-  "streamlit==1.39.0",
-  "st-pages==0.5.0",
+  "mantelo>=2.2",
+  "st-pages==1.0",
 ]
 
 [project.scripts]

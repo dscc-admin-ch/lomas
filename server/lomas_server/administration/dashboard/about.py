@@ -2,28 +2,32 @@ import sys
 from pathlib import Path
 
 import streamlit as st
-from st_pages import Page, show_pages
 
 
 def main() -> None:
     """Main function for the streamlit lomas dashboard."""
-    st.set_page_config(page_title="Lomas Dashboard")
-    folder = "./lomas_server/administration/dashboard"  # TODO 352 move
-    show_pages(
+    folder = Path(__file__).parent.resolve()
+    page = st.navigation(
         [
-            Page(f"{folder}/about.py", "Home Page", "🏠"),
-            Page(
-                f"{folder}/pages/a_server_overview.py",
-                "Lomas server overview",
-                ":computer:",
+            st.Page(about, title="Home Page", icon="🏠"),
+            st.Page(
+                folder / "pages/a_server_overview.py",
+                title="Lomas server overview",
+                icon="💻",
             ),
-            Page(
-                f"{folder}/pages/b_database_administration.py",
-                "Admin database management",
-                ":file_folder:",
+            st.Page(
+                folder / "pages/b_database_administration.py",
+                title="Admin database management",
+                icon="📁",
             ),
         ]
     )
+    page.run()
+
+
+def about() -> None:
+    """About page"""
+    st.set_page_config(page_title="Lomas Dashboard")
 
     st.title("Welcome!")
 

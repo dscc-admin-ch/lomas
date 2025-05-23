@@ -5,7 +5,6 @@ from lomas_core.models.config import AdminConfig
 from lomas_server.administration.dashboard.utils import get_server_config, get_server_data
 
 # Initialization
-st.set_page_config(layout="wide")
 st.title("Lomas configurations")
 
 ###############################################################################

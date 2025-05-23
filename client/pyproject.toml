@@ -42,7 +42,7 @@ classifiers = [
 ]
 dependencies = [
     "lomas-core==0.4.1",
-    "jupyter==1.0.0",
+    "jupyter>=1.1,<2",
     "requests>=2.32.0",
     "requests-oauthlib==2.0.0",
     "oauthlib==3.2.2",

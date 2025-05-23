@@ -1243,19 +1243,19 @@ wheels = [
 
 [[package]]
 name = "jupyter"
-version = "1.0.0"
+version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ipykernel" },
     { name = "ipywidgets" },
     { name = "jupyter-console" },
+    { name = "jupyterlab" },
     { name = "nbconvert" },
     { name = "notebook" },
-    { name = "qtconsole" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/a9/371d0b8fe37dd231cf4b2cff0a9f0f25e98f3a73c3771742444be27f2944/jupyter-1.0.0.tar.gz", hash = "sha256:d9dc4b3318f310e34c82951ea5d6683f67bed7def4b259fafbfe4f1beb1d8e5f", size = 12916, upload_time = "2015-08-12T00:43:08.537Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/f3/af28ea964ab8bc1e472dba2e82627d36d470c51f5cd38c37502eeffaa25e/jupyter-1.1.1.tar.gz", hash = "sha256:d55467bceabdea49d7e3624af7e33d59c37fff53ed3a350e1ac957bed731de7a", size = 5714959, upload_time = "2024-08-30T07:15:48.299Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/df/0f5dd132200728a86190397e1ea87cd76244e42d39ec5e88efd25b2abd7e/jupyter-1.0.0-py2.py3-none-any.whl", hash = "sha256:5b290f93b98ffbc21c0c7e749f054b3267782166d72fa5e3ed1ed4eaf34a2b78", size = 2736, upload_time = "2015-08-12T00:42:58.951Z" },
+    { url = "https://files.pythonhosted.org/packages/38/64/285f20a31679bf547b75602702f7800e74dbabae36ef324f716c02804753/jupyter-1.1.1-py2.py3-none-any.whl", hash = "sha256:7a59533c22af65439b24bbe60373a4e95af8f16ac65a6c00820ad378e3f7cc83", size = 2657, upload_time = "2024-08-30T07:15:47.045Z" },
 ]
 
 [[package]]
@@ -1565,7 +1565,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jupyter", specifier = "==1.0.0" },
+    { name = "jupyter", specifier = ">=1.1,<2" },
     { name = "lomas-core", editable = "core" },
     { name = "oauthlib", specifier = "==3.2.2" },
     { name = "opentelemetry-instrumentation-logging", specifier = ">=0.50b0" },
@@ -3177,36 +3177,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/76/0c/3a633acd762aa6655fcb71fa841907eae0ab1e8582ff494b137266de341d/pyzmq-26.4.0-pp311-pypy311_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:43b03c1ceea27c6520124f4fb2ba9c647409b9abdf9a62388117148a90419494", size = 798248, upload_time = "2025-04-04T12:05:17.376Z" },
     { url = "https://files.pythonhosted.org/packages/cd/cc/6c99c84aa60ac1cc56747bed6be8ce6305b9b861d7475772e7a25ce019d3/pyzmq-26.4.0-pp311-pypy311_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7731abd23a782851426d4e37deb2057bf9410848a4459b5ede4fe89342e687a9", size = 756757, upload_time = "2025-04-04T12:05:19.19Z" },
     { url = "https://files.pythonhosted.org/packages/13/9c/d8073bd898eb896e94c679abe82e47506e2b750eb261cf6010ced869797c/pyzmq-26.4.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:a222ad02fbe80166b0526c038776e8042cd4e5f0dec1489a006a1df47e9040e0", size = 555371, upload_time = "2025-04-04T12:05:20.702Z" },
-]
-
-[[package]]
-name = "qtconsole"
-version = "5.6.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ipykernel" },
-    { name = "jupyter-client" },
-    { name = "jupyter-core" },
-    { name = "packaging" },
-    { name = "pygments" },
-    { name = "qtpy" },
-    { name = "traitlets" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/83/d2b11f2f737c276d8650a04ad3bf478d10fbcd55fe39f129cdb9e6843d31/qtconsole-5.6.1.tar.gz", hash = "sha256:5cad1c7e6c75d3ef8143857fd2ed28062b4b92b933c2cc328252d18a9cfd0be5", size = 435808, upload_time = "2024-10-28T23:59:26.449Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/8a/635610fb6131bc702229e2780d7b042416866ab78f8ed1ff24c4b23a2f4c/qtconsole-5.6.1-py3-none-any.whl", hash = "sha256:3d22490d9589bace566ad4f3455b61fa2209156f40e87e19e2c3cb64e9264950", size = 125035, upload_time = "2024-10-28T23:59:24.191Z" },
-]
-
-[[package]]
-name = "qtpy"
-version = "2.4.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/70/01/392eba83c8e47b946b929d7c46e0f04b35e9671f8bb6fc36b6f7945b4de8/qtpy-2.4.3.tar.gz", hash = "sha256:db744f7832e6d3da90568ba6ccbca3ee2b3b4a890c3d6fbbc63142f6e4cdf5bb", size = 66982, upload_time = "2025-02-11T15:09:25.759Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/76/37c0ccd5ab968a6a438f9c623aeecc84c202ab2fabc6a8fd927580c15b5a/QtPy-2.4.3-py3-none-any.whl", hash = "sha256:72095afe13673e017946cc258b8d5da43314197b741ed2890e563cf384b51aa1", size = 95045, upload_time = "2025-02-11T15:09:24.162Z" },
 ]
 
 [[package]]

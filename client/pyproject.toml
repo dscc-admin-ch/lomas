@@ -43,12 +43,12 @@ classifiers = [
 dependencies = [
     "lomas-core==0.4.1",
     "jupyter>=1.1,<2",
-    "requests>=2.32.0",
-    "requests-oauthlib==2.0.0",
-    "oauthlib==3.2.2",
+    "requests>=2.32",
+    "requests-oauthlib>=2.0",
+    "oauthlib>=3.2",
     "opentelemetry-instrumentation-logging>=0.50b0",
     "opentelemetry-instrumentation-requests>=0.50b0",
-    "seaborn>=0.13.2",
+    "seaborn>=0.13",
 ]
 
 [project.urls]

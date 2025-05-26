@@ -23,7 +23,11 @@ def raise_error(response: requests.Response) -> Never:
         Server Error
     """
     try:
-        error_model = LomasServerExceptionTypeAdapter.validate_json(response.json())
+        response_j = response.json()
+        if isinstance(response_j, dict):
+            error_model = LomasServerExceptionTypeAdapter.validate_python(response_j)
+        else:
+            error_model = LomasServerExceptionTypeAdapter.validate_json(response_j)
     except (ValidationError, JSONDecodeError) as e:
         raise InternalServerException(f"Could not parse server error: {response.content}") from e
 

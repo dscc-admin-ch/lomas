@@ -21,10 +21,12 @@ spec:
       serviceAccountName: {{ include "lomas.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
       # TODO: remove once the server supports connection retries to the mongodb issue 424.
       - name: mongo-check
-        image: "{{ .Values.mongodb.image.registry -}}/{{- .Values.mongodb.image.image -}}:{{- .Values.mongodb.image.tag -}}"
+        image: {{ include "mongodb.image" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
         command:
           - sh
           - -c

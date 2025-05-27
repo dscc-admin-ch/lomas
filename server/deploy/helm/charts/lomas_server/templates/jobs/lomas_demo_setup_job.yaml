@@ -15,9 +15,12 @@ spec:
       restartPolicy: Never
       securityContext:
         {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
         - name: keycloak-check
-          image: curlimages/curl:8.13.0
+          image: {{.Values.admin.curlImage.repository -}}:{{- .Values.admin.curlImage.tag }}
+          imagePullPolicy: {{ .Values.admin.curlImage.pullPolicy }}
           command:
             - sh
             - -c
@@ -35,8 +38,11 @@ spec:
                 fi;
                 sleep 10;
               done;
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
         - name: mongo-check
-          image: "{{ .Values.mongodb.image.registry -}}/{{- .Values.mongodb.image.image -}}:{{- .Values.mongodb.image.tag -}}"
+          image: {{ include "mongodb.image" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
           command:
             - sh
             - -c
@@ -47,6 +53,8 @@ spec:
               done;
               echo "Mongo ready"
               exit 0;
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       containers:
         - name: lomas-demo-setup
           image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}

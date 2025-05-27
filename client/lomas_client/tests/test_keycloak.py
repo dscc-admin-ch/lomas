@@ -12,18 +12,27 @@ from lomas_server.administration.keycloak_admin import (
     del_all_kc_users,
     get_kc_admin,
 )
+from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
+
+
+@pytest.fixture
+def demo_setup():
+    lomas_demo_setup()
 
 
 @dataclass
-class TestClient:
+class Aria:
     user_name: str = "aria"
     user_email: str = "aria.stark@winterfell.no"
     client_secret: str = "secret_aria"
 
+    def as_client(self, dataset_name="anyName") -> Client:
+        return Client(client_id=self.user_name, client_secret=self.client_secret, dataset_name=dataset_name)
+
 
 @pytest.fixture
-def testClient():
-    return TestClient()
+def aria():
+    return Aria()
 
 
 @dataclass(frozen=True)
@@ -50,28 +59,67 @@ def test_missing_configs() -> None:
         Client()
 
 
-def test_oauth2_fail_fetch_token() -> None:
-    username = "Dr.Antartica"
+def test_oauth2(aria, kc) -> None:
     with pytest.raises(oauth2.InvalidClientError, match=r"Invalid client credentials"):
-        Client(client_id=username, client_secret=username.lower(), dataset_name="anyName")
+        aria.as_client()
 
-
-def test_oauth2_success(testClient, kc) -> None:
     # Add a user
-    add_kc_user(kc.config, testClient.user_name, testClient.user_email, testClient.client_secret)
-    client = Client(
-        client_id=testClient.user_name, client_secret=testClient.client_secret, dataset_name="anyName"
-    )
+    add_kc_user(kc.config, aria.user_name, aria.user_email, aria.client_secret)
 
-    with pytest.raises(UnauthorizedAccessException, match=f"User {testClient.user_name} does not exist"):
+    client = aria.as_client()
+
+    with pytest.raises(UnauthorizedAccessException, match=f"User {aria.user_name} does not exist"):
         client.get_dataset_metadata()
 
 
-# Missing
-# get_dataset_metadata success
-# get_dummy_dataset
-# get_dummy_lf
-# get_initial_budget
-# get_total_spent_budget
-# get_remaining_budget
-# get_previous_queries
+def test_oauth2_demo(kc, demo_setup) -> None:
+    client = Client(client_id="Jack", client_secret="jack", dataset_name="TITANIC")
+
+    init_budget = client.get_initial_budget()
+    assert init_budget.initial_delta == 0.2
+    assert init_budget.initial_epsilon == 45
+
+    assert set(client.get_dataset_metadata().keys()) == {
+        "censor_dims",
+        "columns",
+        "max_ids",
+        "rows",
+        "row_privacy",
+    }
+
+    df_dummy = client.get_dummy_dataset()
+    assert df_dummy.shape == (100, 11)
+
+    df_dummy_lz = client.get_dummy_dataset(lazy=True)
+    assert df_dummy_lz.collect().shape == (100, 11)
+
+    # Dummy Query
+    query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
+    dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
+
+    avg_age = dummy_res.result.df["avg_age"][0]
+    assert avg_age == pytest.approx(51.5, 0.5)
+
+    rem_budget = client.get_remaining_budget()
+    assert rem_budget.remaining_delta == 0.2
+    assert rem_budget.remaining_epsilon == 45
+    tot_spent = client.get_total_spent_budget()
+    assert tot_spent.total_spent_delta == 0
+    assert tot_spent.total_spent_epsilon == 0
+
+    # True Query
+    res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
+
+    avg_age = res.result.df["avg_age"][0]
+    assert avg_age == pytest.approx(51.5, 0.5)
+
+    rem_budget = client.get_remaining_budget()
+    assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
+    assert rem_budget.remaining_epsilon == 43.5
+    tot_spent = client.get_total_spent_budget()
+    assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
+    assert tot_spent.total_spent_epsilon == 1.5
+
+    prev_queries = client.get_previous_queries()
+    assert len(prev_queries) == 1
+    assert prev_queries[0]["dataset_name"] == "TITANIC"

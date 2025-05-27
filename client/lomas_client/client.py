@@ -93,21 +93,18 @@ class Client:
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> DummyDsResponse:
+        lazy: bool = False,
+    ) -> pd.DataFrame | pl.LazyFrame:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
             nb_rows (int, optional): The number of rows in the dummy dataset.
-
                 Defaults to DUMMY_NB_ROWS.
-
             seed (int, optional): The random seed for generating the dummy dataset.
-
                 Defaults to DUMMY_SEED.
-
         Returns:
-            Optional[DummyDsResponse]: A Pandas DataFrame
-                representing the dummy dataset.
+            pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing
+                the dummy dataset (optionally in LazyFrame format).
         """
         body_dict = {
             "dataset_name": self.config.dataset_name,
@@ -119,26 +116,12 @@ class Client:
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
-            res_model = DummyDsResponse.model_validate_json(data)
-            return res_model.dummy_df
+            dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
+            if lazy:
+                return pl.from_pandas(dummy_df).lazy()
+            return dummy_df
 
         raise_error(res)
-
-    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
-        """
-        Returns the polars LazyFrame for the dummy dataset with.
-
-        optional parameters.
-        Args:
-            nb_rows (int, optional): The number of rows in the dummy dataset.
-                Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.
-                Defaults to DUMMY_SEED.
-        Returns:
-            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
-        """
-        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
-        return pl.from_pandas(dummy_pandas).lazy()
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.

@@ -13,9 +13,12 @@ spec:
       restartPolicy: Never
       securityContext:
         {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
         - name: keycloak-check
-          image: curlimages/curl:8.13.0
+          image: {{.Values.admin.curlImage.repository -}}:{{- .Values.admin.curlImage.tag }}
+          imagePullPolicy: {{ .Values.admin.curlImage.pullPolicy }}
           command:
             - sh
             - -c
@@ -25,6 +28,8 @@ spec:
                 sleep 10;
               done;
               exit 0;
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       containers:
         - name: keycloak-setup
           image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}

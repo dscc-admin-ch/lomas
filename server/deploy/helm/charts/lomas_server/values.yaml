@@ -1,5 +1,10 @@
 # Default values for lomas_server.
 
+# Globals
+global:
+    imagePullSecrets: [] # list of name: secret.
+    
+
 # General stuff
 nameOverride: ""
 fullnameOverride: "lomas"
@@ -11,7 +16,6 @@ server:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
     tag: sha-3d3b305
-  imagePullSecrets: []
 
   # Runtime args for server
   runtime_args:
@@ -83,6 +87,10 @@ admin:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
     tag: sha-3d3b305
+  curlImage:
+    repository: curlimages/curl
+    tag: 8.13.0
+    pullPolicy: Always
 
   realm: "lomas"
   client_id: "lomas_admin"
@@ -108,8 +116,7 @@ admin:
     annotations: {}
     name: ""
   resources: {}
-    # limits:
-    #   cpu: 100m
+    # limits:    #   cpu: 100m
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
@@ -128,7 +135,6 @@ dashboard:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
     tag: sha-3d3b305
-  imagePullSecrets: []
 
   # Runtime args for server
   serverConfig:
@@ -364,7 +370,7 @@ mongodb:
   architecture: standalone
   image:
     registry: docker.io
-    image: bitnami/mongodb
+    repository: bitnami/mongodb
     tag: 8.0.9-debian-12-r0
   service:
     ports:
@@ -389,6 +395,12 @@ mongodb:
     # Note: if the runtime_args.develop_mode TODO is set to True, the server
     # state will be reset (default datasets and budgets).
     resourcePolicy: ""
+  global:
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
 
 # Keycloak
@@ -400,12 +412,11 @@ keycloak:
   fullnameOverride: "lomas-keycloak"
 
   global:
-    imageRegistry: ""
-    imagePullSecrets: []
-    defaultStorageClass: ""
     compatibility:
       openshift:
         adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
   image:
     registry: docker.io
@@ -517,16 +528,13 @@ rabbitmq:
   create: true # Added by lomas
 
   fullnameOverride: "lomas-rabbitmq"
+
   global:
-    imageRegistry: ""
-    imagePullSecrets: []
-    defaultStorageClass: ""
-    storageClass: ""
-    security:
-      allowInsecureImages: false
     compatibility:
       openshift:
         adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
   image:
     registry: docker.io

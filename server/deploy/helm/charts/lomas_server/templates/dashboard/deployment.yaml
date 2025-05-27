@@ -22,7 +22,8 @@ spec:
       serviceAccountName: {{ include "lomas.dashboard.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.dashboard.podSecurityContext | nindent 8 }}
-
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       containers:
       - name: {{ .Chart.Name }}
         securityContext:

@@ -76,7 +76,7 @@ class Client:
         """This function retrieves metadata for the dataset.
 
         Returns:
-            Optional[LomasRequestModel]:
+            LomasRequestModel:
                 A dictionary containing dataset metadata.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -127,7 +127,7 @@ class Client:
         """This function retrieves the initial budget.
 
         Returns:
-            Optional[InitialBudgetResponse]: A dictionary
+            InitialBudgetResponse: A dictionary
                 containing the initial budget.
         """
 
@@ -142,7 +142,7 @@ class Client:
         """This function retrieves the total spent budget.
 
         Returns:
-            Optional[SpentBudgetResponse]: A dictionary containing
+            SpentBudgetResponse: A dictionary containing
                 the total spent budget.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -156,7 +156,7 @@ class Client:
         """This function retrieves the remaining budget.
 
         Returns:
-            Optional[RemainingBudgetResponse]: A dictionary
+            RemainingBudgetResponse: A dictionary
                 containing the remaining budget.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
@@ -174,7 +174,7 @@ class Client:
                 during deserialization.
 
         Returns:
-            Optional[List[dict]]: A list of dictionary containing
+            List[dict]: A list of dictionary containing
             the different queries on the private dataset.
         """
         body_dict = {"dataset_name": self.config.dataset_name}

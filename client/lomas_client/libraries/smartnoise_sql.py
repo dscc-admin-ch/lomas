@@ -35,7 +35,7 @@ class SmartnoiseSQLClient:
                 Defaults to {}.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+            CostResponse: The estimated cost.
         """
         body_dict = {
             "query_str": query,
@@ -88,7 +88,7 @@ class SmartnoiseSQLClient:
                 Defaults to DUMMY_SEED.
 
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            QueryResponse: A Pandas DataFrame containing the query results.
         """
         body_dict = {
             "query_str": query,

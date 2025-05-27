@@ -29,7 +29,7 @@ class DiffPrivLibClient:
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
-    ) -> CostResponse | None:
+    ) -> CostResponse:
         """This function estimates the cost of executing a DiffPrivLib query.
 
         Args:
@@ -83,7 +83,7 @@ class DiffPrivLibClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse | None:
+    ) -> QueryResponse:
         """Trains a DiffPrivLib pipeline and return a trained Pipeline.
 
         Args:

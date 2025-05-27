@@ -69,7 +69,7 @@ class OpenDPClient:
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
         fixed_delta: float | None = None,
         mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
-    ) -> CostResponse | None:
+    ) -> CostResponse:
         """This function estimates the cost of executing an OpenDP query.
 
         Args:
@@ -87,7 +87,7 @@ class OpenDPClient:
             Exception: If the opendp_pipeline type is not suppported.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+            CostResponse: The estimated cost.
         """
 
         body_json = self._get_opendp_request_body(
@@ -108,7 +108,7 @@ class OpenDPClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse | None:
+    ) -> QueryResponse:
         """This function executes an OpenDP query.
 
         Args:
@@ -134,8 +134,7 @@ class OpenDPClient:
             Exception: If the opendp_pipeline type is not suppported.
 
         Returns:
-            Optional[dict]: Optional[dict]: A dictionary of the response body\
-                containing the deserialized pipeline result.
+            QueryResponse: A dictionary of the response body containing the deserialized pipeline result.
         """
         body_json = self._get_opendp_request_body(
             opendp_pipeline,

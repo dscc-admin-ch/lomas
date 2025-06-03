@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [develop, master]
   push:
-    branches: [develop]
+    branches: [develop, wip_437_helm_improvements]
   release:
     types: [published]
 

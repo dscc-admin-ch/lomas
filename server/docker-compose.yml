@@ -13,8 +13,6 @@ services:
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
-      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
-      - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
     depends_on:
       rabbitmq:
         condition: service_started
@@ -57,8 +55,6 @@ services:
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
-      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
-      - ./configs/example_secrets_local.yaml:/usr/lomas_server/secrets.yaml
       - ./data/datasets:/data/datasets/
     depends_on:
       minio-client:
@@ -247,9 +243,6 @@ services:
     volumes:
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/server/lomas_server
-      - ./configs/example_config.yaml:/usr/lomas_server/runtime.yaml
-      - ./configs/example_secrets.yaml:/usr/lomas_server/secrets.yaml
-      - ./configs/example_dashboard_config.yaml:/usr/lomas_dashboard/dashboard.yaml
       - ./data/:/data/
     depends_on:
       - lomas_server

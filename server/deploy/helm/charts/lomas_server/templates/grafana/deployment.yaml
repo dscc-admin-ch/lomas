@@ -21,10 +21,12 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.grafana.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
 
       containers:
       - name: grafana-container
-        image: grafana/grafana:11.0.0
+        image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}"
         ports:
           - containerPort: {{ .Values.grafana.service.port }}
         volumeMounts:

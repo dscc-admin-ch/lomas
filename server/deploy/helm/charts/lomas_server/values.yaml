@@ -50,6 +50,14 @@ server:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   # Lomas server not meant to be replicated for now
   replicaCount: 1
   # Lomas server not intended to be autoscaled for now
@@ -151,6 +159,14 @@ dashboard:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas-dashboard.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas-dashboard.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -369,6 +385,14 @@ grafana:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas-grafana-dashboard.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas-grafana-dashboard.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   replicaCount: 1
 
 ##########################################################################
@@ -511,7 +535,16 @@ keycloak:
       - hosts:
           - "keycloak.example.com"
 
-    # adminIngress:
+  # Openshift route for Openshift clusters, not part of bitnami chart.
+  route:
+    enabled: false
+    servicePort: http
+    labels: {}
+    annotations: {}
+    hostname: "lomas-keycloak.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: None
+      termination: edge
 
   postgresql:
     enabled: true

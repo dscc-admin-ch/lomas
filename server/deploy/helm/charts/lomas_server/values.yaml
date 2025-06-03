@@ -192,6 +192,10 @@ dashboard:
 loki:
   create: true
 
+  image:
+    repository: grafana/loki
+    tag: 3.4
+  
   service:
     port: 3100
     target_port: 3100
@@ -233,6 +237,9 @@ loki:
 ##########################################################################
 otel:
   create: true
+  image:
+    repository: otel/opentelemetry-collector
+    tag: 0.119.0
   service:
     type: ClusterIP
     port: 4317
@@ -254,6 +261,9 @@ otel:
 ##########################################################################
 prometheus:
   create: true
+  image:
+    repository: prom/prometheus
+    tag: v3.2.0
   service:
     port: 9091
     target_port: 9091
@@ -267,7 +277,9 @@ prometheus:
 ##########################################################################
 tempo:
   create: true
-
+  image:
+    repository: grafana/tempo
+    tag: main-265ca32
   service:
     type: ClusterIP
     port: 3000
@@ -295,6 +307,10 @@ tempo:
 grafana:
   create: true
 
+  image:
+    repository: grafana/grafana
+    tag: 11.0.0
+  
   service:
     type: ClusterIP
     port: 3000

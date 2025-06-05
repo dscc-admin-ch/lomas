@@ -1,7 +1,7 @@
 {{- if .Values.dashboard.create -}}
 {{- if .Values.dashboard.route.enabled -}}
 {{- $fullName := include "lomas.dashboard.fullname" . -}}
-{{- $svcPort := .Values.dashboard.service.port -}}
+{{- $svcPort := .Values.dashboard.service.portName -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

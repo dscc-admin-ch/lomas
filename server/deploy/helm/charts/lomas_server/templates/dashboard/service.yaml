@@ -11,7 +11,7 @@ spec:
   - port: {{ .Values.dashboard.service.port}}
     targetPort: {{ .Values.dashboard.serverConfig.port }}
     protocol: TCP
-    name: http
+    name: {{ .Values.dashboard.service.portName }}
   selector:
     {{- include "lomas.dashboard.selectorLabels" . | nindent 4 }}
 {{- end }}

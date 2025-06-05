@@ -10,6 +10,6 @@ spec:
   - port: {{ .Values.server.service.port}}
     targetPort: {{ .Values.server.runtime_args.server.host_port }}
     protocol: TCP
-    name: http
+    name: {{ .Values.server.service.portName }}
   selector:
     {{- include "lomas.server.selectorLabels" . | nindent 4 }}

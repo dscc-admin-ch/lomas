@@ -43,6 +43,7 @@ server:
   service:
     type: ClusterIP
     port: 80
+    portName: http
 
   ingress:
     enabled: true
@@ -152,6 +153,7 @@ dashboard:
   service:
     type: ClusterIP
     port: 80
+    portName: http
 
   ingress:
     enabled: true

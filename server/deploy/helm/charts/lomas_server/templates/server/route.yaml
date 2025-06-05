@@ -1,6 +1,6 @@
 {{- if .Values.server.route.enabled -}}
 {{- $fullName := include "lomas.server.fullname" . -}}
-{{- $svcPort := .Values.server.service.port -}}
+{{- $svcPort := .Values.server.service.portName -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

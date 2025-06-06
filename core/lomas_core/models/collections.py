@@ -135,7 +135,7 @@ class CategoricalColumnMetadata(ColumnMetadata):
 class StrCategoricalMetadata(CategoricalColumnMetadata):
     """Model for categorical string metadata."""
 
-    type: Literal[MetadataColumnType.STRING]
+    type: Literal[MetadataColumnType.CAT_STRING]
     cardinality: int
     categories: list[str]
 
@@ -164,7 +164,7 @@ class IntMetadata(BoundedColumnMetadata):
 class IntCategoricalMetadata(CategoricalColumnMetadata):
     """Model for integer categorical column metadata."""
 
-    type: Literal[MetadataColumnType.INT]
+    type: Literal[MetadataColumnType.CAT_INT]
     precision: Precision
     cardinality: int
     categories: list[int]

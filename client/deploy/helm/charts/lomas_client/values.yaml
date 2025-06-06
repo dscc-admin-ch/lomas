@@ -15,7 +15,7 @@ image:
   pullPolicy: Always
   tag: latest
 
-password: "'dprocks'"
+password: "'demo_test'"
 
 imagePullSecrets: []
 nameOverride: "lomas-client"

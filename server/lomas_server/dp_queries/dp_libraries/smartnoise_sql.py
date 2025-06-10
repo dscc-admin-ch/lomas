@@ -9,6 +9,7 @@ from lomas_core.error_handler import (
     InvalidQueryException,
 )
 from lomas_core.models.collections import Metadata
+from lomas_core.models.constants import MetadataColumnType
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -167,6 +168,12 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
         dict: metadata of the dataset in smartnoise-sql format
     """
     metadata_dict = metadata.model_dump()
+    for _, val in metadata_dict["columns"].items():
+        if val["type"] == MetadataColumnType.DATETIME:
+            for k in ["lower", "upper"]:
+                if val.get(k) is not None:
+                    del val[k]
+
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]
     return {"": {"": {"df": metadata_dict}}}

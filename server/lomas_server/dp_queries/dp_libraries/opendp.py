@@ -16,7 +16,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.models.constants import OpenDPFeatures
+from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures
 from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -54,8 +54,8 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
             if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
                 series_bounds = (series_info.lower, series_info.upper)
         # TODO 392: release opendp 0.12 (adapt with type date)
-        elif series_info.type == "datetime":
-            series_type = "string"
+        elif series_info.type == MetadataColumnType.DATETIME:
+            series_type = MetadataColumnType.STRING
         else:
             series_type = series_info.type
 
@@ -69,7 +69,7 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
         series_type = OPENDP_TYPE_MAPPING[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = series_info.nullable_proportion > 0.0
+        series_nullable = series_info.nullable_proportion > 0.0 and series_type != MetadataColumnType.STRING
 
         series_domain = dp.domains.series_domain(
             name,
@@ -286,6 +286,11 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 f"""Invalid pipeline type: '{query_json.pipeline_type}.'
                                         Should be legacy or polars"""
             )
+
+        # OpenDP does not allow None on string columns
+        for col, val in self.metadata["columns"].items():
+            if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+                input_data[col] = input_data[col].fillna("")
 
         try:
             release_data = opendp_pipe(input_data)

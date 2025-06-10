@@ -26,7 +26,7 @@ def demo_setup():
     lomas_demo_setup()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Aria:
     user_name: str = "aria"
     user_email: str = "aria.stark@winterfell.no"
@@ -79,7 +79,8 @@ def test_oauth2(aria, kc) -> None:
 
 
 def test_oauth2_demo(kc, demo_setup) -> None:
-    client = Client(client_id="Jack", client_secret="jack", dataset_name="TITANIC")
+    user_name = "Jack"
+    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="TITANIC")
 
     init_budget = client.get_initial_budget()
     assert init_budget.initial_delta == 0.2

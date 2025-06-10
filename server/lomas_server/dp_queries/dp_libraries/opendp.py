@@ -33,12 +33,12 @@ from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
+def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
 
     Args:
-        metadata (dict): The metadata dictionary
+        metadata_dict (dict): The metadata dictionary
         plan (LazyFrame): The polars query plan as a Polars LazyFrame
     Raises:
         Exception: If there is missing information in the metadata.
@@ -47,17 +47,17 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     series_domains = []
     # Series domains
-    for name, series_info in metadata["columns"].items():
+    for name, series_info in metadata_dict["columns"].items():
         series_bounds = None
-        if series_info.type in ["float", "int"]:
-            series_type = f"{series_info.type}{series_info.precision}"
+        if series_info["type"] in [MetadataColumnType.FLOAT, MetadataColumnType.INT]:
+            series_type = f"{series_info['type']}{series_info['precision']}"
             if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
-                series_bounds = (series_info.lower, series_info.upper)
+                series_bounds = (series_info["lower"], series_info["upper"])
         # TODO 392: release opendp 0.12 (adapt with type date)
-        elif series_info.type == MetadataColumnType.DATETIME:
+        elif series_info["type"] == MetadataColumnType.DATETIME:
             series_type = MetadataColumnType.STRING
         else:
-            series_type = series_info.type
+            series_type = series_info["type"]
 
         if series_type not in OPENDP_TYPE_MAPPING:
             # For valid metadata, only datetime would fail here
@@ -69,7 +69,9 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
         series_type = OPENDP_TYPE_MAPPING[series_type]
 
         # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = series_info.nullable_proportion > 0.0 and series_type != MetadataColumnType.STRING
+        series_nullable = (
+            series_info["nullable_proportion"] > 0.0 and series_type != MetadataColumnType.STRING
+        )
 
         series_domain = dp.domains.series_domain(
             name,
@@ -82,12 +84,12 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
 
     # Global margin parameters
-    margin_params = get_global_params(metadata)
+    margin_params = get_global_params(metadata_dict)
 
     # If grouping in the query, we update the margin params
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) >= 1:
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
 
     # TODO 323: Multiple margins?
     # What if two group_by's in one query?
@@ -130,7 +132,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
     margin_params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
-        series_info = metadata["columns"].get(column)
+        series_info = metadata["columns"][column]
 
         # max_partitions_length logic:
         # When two columns in the grouping
@@ -139,8 +141,8 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
 
         # Get max_partition_length from series_info, defaulting to metadata["rows"] if not set
         series_max_partition_length = (
-            series_info.max_partition_length
-            if series_info.max_partition_length is not None
+            series_info["max_partition_length"]
+            if series_info["max_partition_length"] is not None
             else metadata["rows"]
         )
 
@@ -161,7 +163,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # If None are defined, max_influenced_partitions is equal to None
         if series_info.max_influenced_partitions:
             margin_params["max_influenced_partitions"] = (
-                margin_params.get("max_influenced_partitions", 1) * series_info.max_influenced_partitions
+                margin_params.get("max_influenced_partitions", 1) * series_info["max_influenced_partitions"]
             )
 
         # max_partition_contributions logic:
@@ -169,7 +171,8 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # If None are defined, max_partition_contributions is equal to None
         if series_info.max_partition_contributions:
             margin_params["max_partition_contributions"] = (
-                margin_params.get("max_partition_contributions", 1) * series_info.max_partition_contributions
+                margin_params.get("max_partition_contributions", 1)
+                * series_info["max_partition_contributions"]
             )
 
     # If max_influenced_partitions > max_ids:
@@ -206,7 +209,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = dict(self.data_connector.get_metadata())
+        self.metadata = self.data_connector.get_metadata().model_dump()
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -235,7 +238,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = self.metadata["max_ids"]
+        max_ids = self.metadata.max_ids
         try:
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
@@ -288,8 +291,8 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             )
 
         # OpenDP does not allow None on string columns
-        for col, val in self.metadata["columns"].items():
-            if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+        for col, val in self.metadata.columns.items():
+            if val.type in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
                 input_data[col] = input_data[col].fillna("")
 
         try:
@@ -386,7 +389,7 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
 
     Args:
         query_json (BaseModel): The JSON request object for the query.
-        metadata (dict): The dataset metadata dictionary.\
+        metadata (dict): The dataset metadata.\
             Only used for polars pipelines.
 
     Raises:

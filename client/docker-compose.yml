@@ -3,7 +3,7 @@ services:
   client:
     image: dsccadminch/lomas_client_dev
     build:
-      dockerfile: ./Dockerfile_client
+      dockerfile: ./Dockerfile
       target: lomas_client_dev
       context: ../
     container_name: lomas_client_dev

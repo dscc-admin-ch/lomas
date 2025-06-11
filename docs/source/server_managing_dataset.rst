@@ -86,11 +86,3 @@ Column options:
 * `max_partition_length`: Optional. Default is set to 1. An upper bound on the number of records in any one partition. (in %). (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
 * `max_influenced_partitions:` Optional. The greatest number of partitions any one individual can contribute to. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
 * `max_partition_contributions`: Optional. The greatest number of records an individual may contribute to any one partition. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
-* `max_num_partitions`: Optional. The greatest number of distinct partitions (similar to cardinality) (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
-
-
-
-
-Code
-----------
-TODO

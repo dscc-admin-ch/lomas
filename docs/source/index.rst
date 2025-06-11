@@ -106,6 +106,7 @@ They originally developed a client/server platform for the `UN PET Lab Hackathon
 
    server_deployment
    server_administration
+   server_managing_dataset
 
 .. toctree::
    :maxdepth: 2

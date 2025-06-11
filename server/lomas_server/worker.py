@@ -16,7 +16,6 @@ from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
@@ -60,10 +59,16 @@ private_credentials = config.private_db_credentials
 set_opendp_features_config(config.opendp_features)
 
 
-def handle_known_exceptions(exc: BaseException) -> JSONResponse:
-    """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization."""
+def handle_exceptions(exc: BaseException) -> JSONResponse:
+    """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization.
+
+    In case of unkown exception, wraps it up as if it were an InternalServerException.
+    In case of internal exception, the error message is forwarded to avoid potentially
+    disclosing sensitive information.
+    """
     match exc:
         case ExternalLibraryException():
+            logging.error(f" [-] ExternalLibraryExeption : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content=jsonable_encoder(
@@ -71,19 +76,28 @@ def handle_known_exceptions(exc: BaseException) -> JSONResponse:
                 ),
             )
         case InternalServerException():
+            logging.error(f" [-] InternalException: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(InternalServerExceptionModel()),
             )
         case InvalidQueryException():
+            logging.error(f" [-] InvalidQueryException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
             )
         case UnauthorizedAccessException():
+            logging.error(f" [-] UnauthorizedAccessException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
+            )
+        case _:
+            logging.error(f" [-] Unknown internal exception: {exc}")
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content=jsonable_encoder(InternalServerExceptionModel()),
             )
 
 
@@ -122,12 +136,9 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         elapsed = time.time() - start_sec
         logging.warning(f" [x] Done ({elapsed:.2f})")
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
-    except KNOWN_EXCEPTIONS as exc:
-        known_exc = handle_known_exceptions(exc)
-        logging.info(f" [-] KNOWN_EXCEPTIONS ({exc})")
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        known_exc = handle_exceptions(exc)
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
 
 
 def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
@@ -166,12 +177,9 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         elapsed = time.time() - start_sec
         logging.info(f" [x] Done ({elapsed:.2f})")
         return query_response
-    except KNOWN_EXCEPTIONS as exc:
-        known_exc = handle_known_exceptions(exc)
-        logging.warning(f" [-] KNOWN_EXCEPTIONS ({exc})")
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        known_exc = handle_exceptions(exc)
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
 
 
 def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
@@ -206,12 +214,9 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         elapsed = time.time() - start_sec
         logging.info(f" [x] Done ({elapsed:.2f})")
         return dummy_query_response
-    except KNOWN_EXCEPTIONS as exc:
-        known_exc = handle_known_exceptions(exc)
-        logging.warning(f" [-] KNOWN_EXCEPTIONS ({exc})")
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        known_exc = handle_exceptions(exc)
         return known_exc.body, known_exc.status_code
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
 
 
 async def process_message(

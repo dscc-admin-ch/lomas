@@ -3,7 +3,7 @@
 # Globals
 global:
     imagePullSecrets: [] # list of name: secret.
-    
+
 
 # General stuff
 nameOverride: ""
@@ -39,6 +39,14 @@ server:
       enabled: true
       service_name: lomas_server_app
       service_id: default-host
+  pvc:
+    storageClassName: "" # is not set if empty string
+    sizeLimit: 500Mi
+    sizeRequest: 500Mi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
 
   service:
     type: ClusterIP
@@ -213,7 +221,7 @@ loki:
   image:
     repository: grafana/loki
     tag: 3.4
-  
+
   service:
     port: 3100
     target_port: 3100
@@ -328,7 +336,7 @@ grafana:
   image:
     repository: grafana/grafana
     tag: 11.0.0
-  
+
   service:
     type: ClusterIP
     port: 3000

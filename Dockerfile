@@ -43,9 +43,7 @@ COPY ./client/README.md /code/client/README.md
 COPY ./client/notebooks/images/ /code/client/notebooks/images/
 COPY ./client/notebooks/Demo_Client_Notebook.ipynb /code/client/notebooks/Demo_Client_Notebook.ipynb
 COPY ./client/LICENSE /code/client/LICENSE
-COPY ./server/lomas_server/ /code/server/lomas_server/
 RUN uv sync --package lomas-client --no-cache
-ENV PYTHONPATH="${PYTHONPATH}:/code/core:/code/client:/code/server"
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]
 
 ### SERVER

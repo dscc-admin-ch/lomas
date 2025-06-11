@@ -38,7 +38,7 @@ spec:
             echo "Mongo ready"
             exit 0;
       containers:
-      - name: {{ .Chart.Name }}
+      - name: {{ include "lomas.server.fullname" . }}
         securityContext:
             {{- toYaml .Values.server.securityContext | nindent 12 }}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
@@ -48,6 +48,9 @@ spec:
           - name: http
             containerPort: {{ .Values.server.runtime_args.server.host_port }}
             protocol: TCP
+        volumeMounts:
+          - name: data
+            mountPath: /persistent-storage
         env:
           - name: LOMAS_SERVICE_SERVER__HOST_IP
             value: "0.0.0.0"
@@ -114,6 +117,10 @@ spec:
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
         resources:
             {{- toYaml .Values.server.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.fullname" . }}
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

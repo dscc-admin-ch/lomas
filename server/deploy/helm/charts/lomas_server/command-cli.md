@@ -18,7 +18,7 @@ spec:
       storage: 100Mi
 ```
 
-kubectl apply -f lomas-pvc.yaml 
+kubectl apply -f lomas-pvc.yaml
 
 
 Then patch the worker and server deployments with the new pvc
@@ -39,8 +39,8 @@ spec:
             claimName: lomas-pvc-gs
 ```
 
-kubectl patch deployment lomas-server --patch-file patch.yaml 
-kubectl patch deployment lomas-worker --patch-file patch.yaml 
+kubectl patch deployment lomas-server --patch-file patch.yaml
+kubectl patch deployment lomas-worker --patch-file patch.yaml
 
 
 Then add the data in the pvc (copy folder data WITH datasets you want to add)

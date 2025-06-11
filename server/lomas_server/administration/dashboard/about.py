@@ -26,7 +26,7 @@ def main() -> None:
 
 
 def about() -> None:
-    """About page"""
+    """About page."""
     st.set_page_config(page_title="Lomas Dashboard")
 
     st.title("Welcome!")

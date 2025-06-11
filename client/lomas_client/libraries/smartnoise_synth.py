@@ -34,7 +34,7 @@ class SmartnoiseSynthClient:
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
-    ) -> CostResponse | None:
+    ) -> CostResponse:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -73,7 +73,7 @@ class SmartnoiseSynthClient:
                 https://docs.smartnoise.org/synth/transforms/index.html.
                 Note: lambda function in `AnonimizationTransformer` are not supported.
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+            CostResponse: The estimated cost.
         """
         validate_synthesizer(synth_name)
         constraints_str = serialise_constraints(constraints) if constraints else ""
@@ -108,7 +108,7 @@ class SmartnoiseSynthClient:
         nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse | None:
+    ) -> QueryResponse:
         """This function executes a SmartNoise Synthetic query.
 
         Args:
@@ -161,7 +161,7 @@ class SmartnoiseSynthClient:
             seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            QueryResponse: A Pandas DataFrame containing the query results.
         """
         validate_synthesizer(synth_name, return_model)
         constraints_str = serialise_constraints(constraints) if constraints else ""

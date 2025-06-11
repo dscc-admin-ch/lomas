@@ -121,6 +121,7 @@ pretty = true
 
 [[tool.mypy.overrides]]
 module = [
+  "lomas_client.tests.*",
   "lomas_server.tests.*",
   "lomas_server.administration.tests.*"
 ]

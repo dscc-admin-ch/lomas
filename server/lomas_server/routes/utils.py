@@ -74,7 +74,7 @@ async def rabbitmq_connect_queue(
 
 
 @asynccontextmanager
-async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator:
+async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     """RabbitMQ queue context to connect and register callbacks."""
 
     config = Config()

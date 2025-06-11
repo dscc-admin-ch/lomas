@@ -26,7 +26,7 @@ from lomas_server.routes.utils import rabbitmq_ctx
 
 
 @asynccontextmanager
-async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
+async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     Lifespan function for the server.
 

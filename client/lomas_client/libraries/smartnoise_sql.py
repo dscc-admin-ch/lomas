@@ -21,7 +21,7 @@ class SmartnoiseSQLClient:
         epsilon: float,
         delta: float,
         mechanisms: dict[str, str] = {},
-    ) -> CostResponse | None:
+    ) -> CostResponse:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -35,7 +35,7 @@ class SmartnoiseSQLClient:
                 Defaults to {}.
 
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+            CostResponse: The estimated cost.
         """
         body_dict = {
             "query_str": query,
@@ -59,7 +59,7 @@ class SmartnoiseSQLClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse | None:
+    ) -> QueryResponse:
         """This function executes a SmartNoise SQL query.
 
         Args:
@@ -88,7 +88,7 @@ class SmartnoiseSQLClient:
                 Defaults to DUMMY_SEED.
 
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            QueryResponse: A Pandas DataFrame containing the query results.
         """
         body_dict = {
             "query_str": query,

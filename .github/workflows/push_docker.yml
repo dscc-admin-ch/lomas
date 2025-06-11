@@ -18,6 +18,8 @@ jobs:
             target: lomas_server
           - image: dsccadminch/lomas_admin
             target: lomas_admin
+          - image: dsccadminch/lomas_client
+            target: lomas_client
     steps:
       - uses: actions/checkout@v4
       - name: Docker meta

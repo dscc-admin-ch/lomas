@@ -66,12 +66,11 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
                 f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
             )
 
-        series_type = OPENDP_TYPE_MAPPING[series_type]
-
         # Note: Same as using option_domain (at least how I understand it)
         series_nullable = (
             series_info["nullable_proportion"] > 0.0 and series_type != MetadataColumnType.STRING
         )
+        series_type = OPENDP_TYPE_MAPPING[series_type]
 
         series_domain = dp.domains.series_domain(
             name,
@@ -161,7 +160,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
         # If None are defined, max_influenced_partitions is equal to None
-        if series_info.max_influenced_partitions:
+        if hasattr(series_info, "max_influenced_partitions"):
             margin_params["max_influenced_partitions"] = (
                 margin_params.get("max_influenced_partitions", 1) * series_info["max_influenced_partitions"]
             )
@@ -169,7 +168,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_partition_contributions logic:
         # We multiply the max_partition_contributions defined in each column
         # If None are defined, max_partition_contributions is equal to None
-        if series_info.max_partition_contributions:
+        if hasattr(series_info, "max_partition_contributions"):
             margin_params["max_partition_contributions"] = (
                 margin_params.get("max_partition_contributions", 1)
                 * series_info["max_partition_contributions"]
@@ -177,14 +176,14 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
 
     # If max_influenced_partitions > max_ids:
     # Then max_influenced_partitions = max_ids
-    if "max_influenced_partitions" in margin_params:
+    if hasattr(margin_params, "max_influenced_partitions"):
         margin_params["max_influenced_partitions"] = min(
             metadata["max_ids"], margin_params["max_influenced_partitions"]
         )
 
     # If max_partition_contributions > max_ids:
     # Then max_partition_contributions = max_ids
-    if "max_partition_contributions" in margin_params:
+    if hasattr(margin_params, "max_partition_contributions"):
         margin_params["max_partition_contributions"] = min(
             metadata["max_ids"],
             margin_params.get("max_partition_contributions"),

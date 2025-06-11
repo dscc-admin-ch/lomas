@@ -4,13 +4,13 @@ from pathlib import Path
 
 from opendp.mod import enable_features
 
-from lomas_core.models.config import Config
 from lomas_core.models.constants import AuthenticationType
 from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     add_users_via_yaml,
     drop_collection,
 )
+from lomas_server.models.config import Config
 
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005

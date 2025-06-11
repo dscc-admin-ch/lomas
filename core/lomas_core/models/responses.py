@@ -26,18 +26,10 @@ from lomas_core.models.utils import (
     polars_df_to_str,
     serialize_model,
 )
-from lomas_server.models.config import Config
 
 
 class ResponseModel(BaseModel):
     """Base model for any response from the server."""
-
-
-class ConfigResponse(BaseModel):
-    """Model for response to server config queries."""
-
-    config: Config = Field(default_factory=Config)
-    """The server config."""
 
 
 class InitialBudgetResponse(ResponseModel):

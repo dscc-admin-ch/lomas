@@ -4,9 +4,9 @@ import yaml
 from mantelo import HttpException, KeycloakAdmin
 
 from lomas_core.models.collections import UserCollection
-from lomas_core.models.config import KeycloakClientConfig
 from lomas_server.administration.utils import absolute_path
 from lomas_server.constants import KCAttributeNames
+from lomas_server.models.config import KeycloakClientConfig
 
 
 def get_kc_admin(kc_config: KeycloakClientConfig) -> KeycloakAdmin:

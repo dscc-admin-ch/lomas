@@ -18,7 +18,6 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
-from lomas_core.models.config import Config
 from lomas_core.models.constants import TimeAttackMethod
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -26,6 +25,7 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_server.models.config import Config
 
 AioPikaInstrumentor().instrument()
 

@@ -4,7 +4,6 @@ import streamlit as st
 import yaml
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.config import AdminConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.administration.keycloak_admin import get_kc_user_client_secret, set_kc_user_client_secret
@@ -33,6 +32,7 @@ from lomas_server.administration.mongodb_admin import (
     set_may_query,
 )
 from lomas_server.constants import DELTA_LIMIT, EPSILON_LIMIT
+from lomas_server.models.config import AdminConfig
 
 EPSILON_STEP = 0.01
 DELTA_STEP = 0.00001

@@ -1,8 +1,8 @@
 import streamlit as st
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.config import AdminConfig
 from lomas_server.administration.dashboard.utils import get_server_config, get_server_data
+from lomas_server.models.config import AdminConfig
 
 # Initialization
 st.title("Lomas configurations")

@@ -12,11 +12,11 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.config import Config
 from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
+from lomas_server.models.config import Config
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,

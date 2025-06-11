@@ -23,7 +23,6 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.config import Config
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -50,6 +49,7 @@ from lomas_server.data_connector.factory import data_connector_factory
 from lomas_server.dp_queries.dp_libraries.factory import querier_factory
 from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
+from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
 AioPikaInstrumentor().instrument()

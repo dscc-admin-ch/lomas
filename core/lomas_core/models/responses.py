@@ -17,7 +17,6 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.config import Config
 from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
@@ -27,6 +26,7 @@ from lomas_core.models.utils import (
     polars_df_to_str,
     serialize_model,
 )
+from lomas_server.models.config import Config
 
 
 class ResponseModel(BaseModel):

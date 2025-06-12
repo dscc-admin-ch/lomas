@@ -21,10 +21,12 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
 
       containers:
       - name: prometheus-container
-        image: prom/prometheus:v3.2.0
+        image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
         args:
           - "--config.file=/conf/prometheus.yaml"
           - "--web.listen-address=:{{ .Values.prometheus.service.port}}"

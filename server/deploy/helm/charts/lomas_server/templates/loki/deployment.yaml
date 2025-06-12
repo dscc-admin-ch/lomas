@@ -21,10 +21,12 @@ spec:
     spec:
       securityContext:
         {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
 
       containers:
       - name: loki-container
-        image: grafana/loki:3.4
+        image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag }}"
         args:
           - "-config.file=/etc/loki/loki-config.yaml"
         ports:

@@ -1,5 +1,10 @@
 # Default values for lomas_server.
 
+# Globals
+global:
+    imagePullSecrets: [] # list of name: secret.
+
+
 # General stuff
 nameOverride: ""
 fullnameOverride: "lomas"
@@ -11,7 +16,6 @@ server:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
     tag: sha-3d3b305
-  imagePullSecrets: []
 
   # Runtime args for server
   runtime_args:
@@ -35,10 +39,19 @@ server:
       enabled: true
       service_name: lomas_server_app
       service_id: default-host
+  pvc:
+    storageClassName: "" # is not set if empty string
+    sizeLimit: 500Mi
+    sizeRequest: 500Mi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
 
   service:
     type: ClusterIP
     port: 80
+    portName: http
 
   ingress:
     enabled: true
@@ -46,6 +59,14 @@ server:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   # Lomas server not meant to be replicated for now
   replicaCount: 1
   # Lomas server not intended to be autoscaled for now
@@ -83,6 +104,10 @@ admin:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
     tag: sha-3d3b305
+  curlImage:
+    repository: curlimages/curl
+    tag: 8.13.0
+    pullPolicy: Always
 
   realm: "lomas"
   client_id: "lomas_admin"
@@ -108,8 +133,7 @@ admin:
     annotations: {}
     name: ""
   resources: {}
-    # limits:
-    #   cpu: 100m
+    # limits:    #   cpu: 100m
     #   memory: 128Mi
     # requests:
     #   cpu: 100m
@@ -128,7 +152,6 @@ dashboard:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
     tag: sha-3d3b305
-  imagePullSecrets: []
 
   # Runtime args for server
   serverConfig:
@@ -138,6 +161,7 @@ dashboard:
   service:
     type: ClusterIP
     port: 80
+    portName: http
 
   ingress:
     enabled: true
@@ -145,6 +169,14 @@ dashboard:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas-dashboard.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas-dashboard.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -185,6 +217,10 @@ dashboard:
 ##########################################################################
 loki:
   create: true
+
+  image:
+    repository: grafana/loki
+    tag: 3.4
 
   service:
     port: 3100
@@ -227,6 +263,9 @@ loki:
 ##########################################################################
 otel:
   create: true
+  image:
+    repository: otel/opentelemetry-collector
+    tag: 0.119.0
   service:
     type: ClusterIP
     port: 4317
@@ -248,6 +287,9 @@ otel:
 ##########################################################################
 prometheus:
   create: true
+  image:
+    repository: prom/prometheus
+    tag: v3.2.0
   service:
     port: 9091
     target_port: 9091
@@ -261,7 +303,9 @@ prometheus:
 ##########################################################################
 tempo:
   create: true
-
+  image:
+    repository: grafana/tempo
+    tag: main-265ca32
   service:
     type: ClusterIP
     port: 3000
@@ -288,6 +332,10 @@ tempo:
 ##########################################################################
 grafana:
   create: true
+
+  image:
+    repository: grafana/grafana
+    tag: 11.0.0
 
   service:
     type: ClusterIP
@@ -347,6 +395,14 @@ grafana:
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas-grafana-dashboard.example.com"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    hostname: "lomas-grafana-dashboard.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
   replicaCount: 1
 
 ##########################################################################
@@ -364,7 +420,7 @@ mongodb:
   architecture: standalone
   image:
     registry: docker.io
-    image: bitnami/mongodb
+    repository: bitnami/mongodb
     tag: 8.0.9-debian-12-r0
   service:
     ports:
@@ -389,6 +445,12 @@ mongodb:
     # Note: if the runtime_args.develop_mode TODO is set to True, the server
     # state will be reset (default datasets and budgets).
     resourcePolicy: ""
+  global:
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
 
 # Keycloak
@@ -400,12 +462,11 @@ keycloak:
   fullnameOverride: "lomas-keycloak"
 
   global:
-    imageRegistry: ""
-    imagePullSecrets: []
-    defaultStorageClass: ""
     compatibility:
       openshift:
         adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
   image:
     registry: docker.io
@@ -484,7 +545,16 @@ keycloak:
       - hosts:
           - "keycloak.example.com"
 
-    # adminIngress:
+  # Openshift route for Openshift clusters, not part of bitnami chart.
+  route:
+    enabled: false
+    servicePort: http
+    labels: {}
+    annotations: {}
+    hostname: "lomas-keycloak.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: None
+      termination: edge
 
   postgresql:
     enabled: true
@@ -517,16 +587,13 @@ rabbitmq:
   create: true # Added by lomas
 
   fullnameOverride: "lomas-rabbitmq"
+
   global:
-    imageRegistry: ""
-    imagePullSecrets: []
-    defaultStorageClass: ""
-    storageClass: ""
-    security:
-      allowInsecureImages: false
     compatibility:
       openshift:
         adaptSecurityContext: auto
+    security:
+      allowInsecureImages: true
 
   image:
     registry: docker.io

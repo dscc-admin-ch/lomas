@@ -89,6 +89,9 @@
                         },
                         "type": {
                             "type": "string"
+                        },
+                        "portName": {
+                            "type": "string"
                         }
                     }
                 },
@@ -403,6 +406,9 @@
                             "type": "integer"
                         },
                         "type": {
+                            "type": "string"
+                        },
+                        "portName": {
                             "type": "string"
                         }
                     }

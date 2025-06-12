@@ -138,6 +138,8 @@ in
             LOMAS_ADMIN_MG_CONFIG__URL = "mongodb://mongodb:${toString config.lomas.mongo.port}/${config.lomas.mongo.dbName}";
             LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
             LOMAS_ADMIN_PATH_PREFIX = "/data";
+            LOMAS_ADMIN_server_service = "http://lomas_server:48080";
+            LOMAS_ADMIN_server_url = "http://lomas_server:48080";
           };
         in
         {

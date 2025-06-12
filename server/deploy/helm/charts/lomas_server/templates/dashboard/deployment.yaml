@@ -22,7 +22,8 @@ spec:
       serviceAccountName: {{ include "lomas.dashboard.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.dashboard.podSecurityContext | nindent 8 }}
-
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       containers:
       - name: {{ .Chart.Name }}
         securityContext:
@@ -67,7 +68,8 @@ spec:
           - name: LOMAS_ADMIN_SERVER_URL
             value: "https://{{ .Values.server.ingress.hostname }}"
           - name: LOMAS_ADMIN_SERVER_SERVICE
-            value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}"
+            value: "https://{{ .Values.server.ingress.hostname }}"
+            # value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}"
         resources:
             {{- toYaml .Values.dashboard.resources | nindent 12 }}
       volumes:

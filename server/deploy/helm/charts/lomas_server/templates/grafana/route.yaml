@@ -1,0 +1,26 @@
+{{- if .Values.grafana.create -}}
+{{- if .Values.grafana.route.enabled -}}
+{{- $fullName := include "lomas.grafana.fullname" . -}}
+{{- $svcPort := .Values.grafana.service.port -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "lomas.grafana.labels" . | nindent 4 }}
+  {{- with .Values.grafana.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.grafana.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: {{ $svcPort }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.grafana.route.tls | nindent 4 }}
+{{- end }}
+{{- end }}

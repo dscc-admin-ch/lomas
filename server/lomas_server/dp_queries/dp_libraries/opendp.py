@@ -237,7 +237,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
             measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        max_ids = self.metadata.max_ids
+        max_ids = self.metadata["max_ids"]
         try:
             # d_in is int as input metric is a dataset metric
             cost = opendp_pipe.map(d_in=int(max_ids))
@@ -388,7 +388,7 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
 
     Args:
         query_json (BaseModel): The JSON request object for the query.
-        metadata (dict): The dataset metadata.\
+        metadata (dict): The dataset metadata dictionary.\
             Only used for polars pipelines.
 
     Raises:

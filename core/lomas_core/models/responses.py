@@ -90,18 +90,8 @@ class DummyDsResponse(ResponseModel):
         dtypes = info.data["dtypes"]
         datetime_columns = info.data["datetime_columns"]
         dummy_df = dataframe_from_dict(v)
+        dummy_df = dummy_df.astype(dtypes)
 
-        # Types of columns
-        try:
-            for col, dtype in dtypes.items():
-                if dtype.startswith("int") and dummy_df[col].isna().any():
-                    dummy_df[col] = dummy_df[col].astype("Int64")
-                else:
-                    dummy_df[col] = dummy_df[col].astype(dtype)
-        except Exception as e:
-            raise ValueError(f"Error while type casting for column '{col}': {e}") from e
-
-        # Datetime
         for col in datetime_columns:
             dummy_df[col] = pd.to_datetime(dummy_df[col])
         return dummy_df

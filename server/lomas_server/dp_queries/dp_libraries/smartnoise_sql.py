@@ -168,6 +168,7 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
         dict: metadata of the dataset in smartnoise-sql format
     """
     metadata_dict = metadata.model_dump()
+    # No bounds on datetime for Smartnoise-SQL
     for _, val in metadata_dict["columns"].items():
         if val["type"] == MetadataColumnType.DATETIME:
             for k in ["lower", "upper"]:

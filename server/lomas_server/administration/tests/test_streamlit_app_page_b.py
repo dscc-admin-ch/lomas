@@ -6,9 +6,9 @@ from unittest.mock import patch
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.config import AdminConfig, MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.administration.mongodb_admin import drop_collection, get_mongodb
+from lomas_server.models.config import AdminConfig, MongoDBConfig
 
 
 @pytest.fixture

@@ -6,7 +6,6 @@ from pymongo.results import _WriteResult
 
 from lomas_core.error_handler import InternalServerException, InvalidQueryException
 from lomas_core.models.collections import DSInfo, Metadata
-from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.admin_database import (
@@ -16,6 +15,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
+from lomas_server.models.config import MongoDBConfig
 from lomas_server.utils.metrics import (
     MONGO_ERROR_COUNTER,
     MONGO_INSERT_COUNTER,

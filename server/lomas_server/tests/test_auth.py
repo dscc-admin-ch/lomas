@@ -7,12 +7,12 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
 from lomas_client.models.config import ClientConfig
-from lomas_core.models.config import AdminConfig
 from lomas_core.models.requests_examples import example_get_admin_db_data
 from lomas_server.administration.keycloak_admin import del_all_kc_users
 from lomas_server.administration.lomas_admin import drop_lomas_collection
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
+from lomas_server.models.config import AdminConfig
 
 
 @pytest.fixture

@@ -17,7 +17,6 @@ from pydantic import (
 from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.config import Config
 from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
@@ -31,13 +30,6 @@ from lomas_core.models.utils import (
 
 class ResponseModel(BaseModel):
     """Base model for any response from the server."""
-
-
-class ConfigResponse(BaseModel):
-    """Model for response to server config queries."""
-
-    config: Config = Field(default_factory=Config)
-    """The server config."""
 
 
 class InitialBudgetResponse(ResponseModel):

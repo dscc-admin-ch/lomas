@@ -21,11 +21,11 @@ from lomas_core.models.collections import (
     User,
     UserCollection,
 )
-from lomas_core.models.config import MongoDBConfig
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.mongodb_database import check_result_acknowledged, get_mongodb
 from lomas_server.administration.utils import absolute_path
+from lomas_server.models.config import MongoDBConfig
 
 
 def check_user_exists(enforce_true: bool) -> Callable:

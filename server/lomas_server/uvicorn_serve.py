@@ -1,6 +1,6 @@
 import uvicorn
 
-from lomas_core.models.config import Config
+from lomas_server.models.config import Config
 
 
 def uvicorn_serve() -> None:

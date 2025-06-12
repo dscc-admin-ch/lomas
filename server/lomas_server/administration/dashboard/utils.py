@@ -4,7 +4,7 @@ import streamlit as st
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
-from lomas_core.models.config import AdminConfig, Config, KeycloakClientConfig
+from lomas_server.models.config import AdminConfig, Config, KeycloakClientConfig
 
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds

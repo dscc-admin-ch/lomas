@@ -6,7 +6,6 @@ import yaml
 from mantelo import KeycloakAdmin
 from pydantic import ValidationError
 
-from lomas_core.models.config import AdminConfig, KeycloakClientConfig
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
     add_kc_users_via_yaml,
@@ -18,6 +17,7 @@ from lomas_server.administration.keycloak_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig
 from lomas_server.administration.utils import absolute_path
+from lomas_server.models.config import AdminConfig, KeycloakClientConfig
 
 
 @dataclass

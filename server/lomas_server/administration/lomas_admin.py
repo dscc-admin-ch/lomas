@@ -1,4 +1,3 @@
-from lomas_core.models.config import AdminConfig
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
     add_kc_users_via_yaml,
@@ -12,6 +11,7 @@ from lomas_server.administration.mongodb_admin import (
     del_user,
     drop_collection,
 )
+from lomas_server.models.config import AdminConfig
 
 
 def add_lomas_user(

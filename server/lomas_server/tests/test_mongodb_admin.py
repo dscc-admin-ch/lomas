@@ -8,7 +8,6 @@ import yaml
 from pymongo.database import Database
 
 from lomas_core.models.collections import DSInfo, DSPathAccess, Metadata
-from lomas_core.models.config import Config
 from lomas_core.models.constants import AuthenticationType, PrivateDatabaseType
 from lomas_server.admin_database.mongodb_database import get_mongodb
 from lomas_server.administration.mongodb_admin import (
@@ -35,6 +34,7 @@ from lomas_server.administration.mongodb_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig, add_lomas_demo_data
 from lomas_server.administration.utils import absolute_path
+from lomas_server.models.config import Config
 
 
 class TestMongoDBAdmin(unittest.TestCase):

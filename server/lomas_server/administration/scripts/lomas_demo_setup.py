@@ -2,12 +2,12 @@ import logging
 
 from pydantic_settings import SettingsConfigDict
 
-from lomas_core.models.config import AdminConfig
 from lomas_server.administration.lomas_admin import add_lomas_users_via_yaml
 from lomas_server.administration.mongodb_admin import (
     add_datasets_via_yaml,
     drop_collection,
 )
+from lomas_server.models.config import AdminConfig
 
 
 class DemoAdminConfig(AdminConfig):

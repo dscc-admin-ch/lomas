@@ -135,7 +135,10 @@ class CategoricalColumnMetadata(ColumnMetadata):
 class StrCategoricalMetadata(CategoricalColumnMetadata):
     """Model for categorical string metadata."""
 
-    type: Literal[MetadataColumnType.CAT_STRING]
+    # The type must be kept to string (NOT categorical_string).
+    # Some functions rely on this attribute
+    # (e.g. data_connector when building pandas dataframe).
+    type: Literal[MetadataColumnType.STRING]
     cardinality: int
     categories: list[str]
 
@@ -164,7 +167,10 @@ class IntMetadata(BoundedColumnMetadata):
 class IntCategoricalMetadata(CategoricalColumnMetadata):
     """Model for integer categorical column metadata."""
 
-    type: Literal[MetadataColumnType.CAT_INT]
+    # The type must be kept to int (NOT categorical_int).
+    # Some functions rely on this attribute
+    # (e.g. data_connector when building pandas dataframe).
+    type: Literal[MetadataColumnType.INT]
     precision: Precision
     cardinality: int
     categories: list[int]
@@ -232,6 +238,12 @@ class Metadata(BaseModel):
     rows: Annotated[int, Field(gt=0)]
     row_privacy: bool
     censor_dims: bool | None = False
+    # When parsing input data, pydantic first calls the discriminator function with the input data.
+    # The model to build is then selected by matching the returned discriminator
+    # with the tag that annotates each possible model.
+    # The discriminator function is used to differentiate between int and categorical_int
+    # or string and categorical_string columns.
+    # The integer and string models always keep their type to int or string (not categorical_**).
     columns: dict[
         str,
         Annotated[

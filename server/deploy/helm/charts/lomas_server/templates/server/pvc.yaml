@@ -6,7 +6,7 @@ metadata:
     {{- include "lomas.server.labels" . | nindent 4 }}
   annotations:
     {{- if .Values.server.pvc.persistence.resourcePolicy }}
-    "helm.sh/resource-policy": {{ .Values.server.pvc.persistence.resourcePolicy}}
+    "helm.sh/resource-policy": {{ .Values.server.pvc.persistence.resourcePolicy }}
     {{- end }}
 spec:
   accessModes:

@@ -32,12 +32,14 @@ class MetadataColumnType(StrEnum):
     """Column types for metadata."""
 
     STRING = "string"
-    CAT_STRING = "categorical_string"
     INT = "int"
-    CAT_INT = "categorical_int"
     FLOAT = "float"
     BOOLEAN = "boolean"
     DATETIME = "datetime"
+    # These two are only used by pydantic to select the model to parse.
+    # The pydantic models for the metadata columns never set their type to either one of these values.
+    CAT_INT = "categorical_int"
+    CAT_STRING = "categorical_string"
 
 
 CATEGORICAL_TYPE_PREFIX = "categorical_"

@@ -11,7 +11,6 @@ from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
 from lomas_core.error_handler import UnauthorizedAccessException
-from lomas_core.models.config import AdminConfig, KeycloakClientConfig
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -19,6 +18,7 @@ from lomas_server.administration.keycloak_admin import (
     get_kc_admin,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
+from lomas_server.models.config import AdminConfig, KeycloakClientConfig
 
 
 @pytest.fixture

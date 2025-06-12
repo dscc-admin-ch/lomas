@@ -290,8 +290,8 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             )
 
         # OpenDP does not allow None on string columns
-        for col, val in self.metadata.columns.items():
-            if val.type in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+        for col, val in self.metadata["columns"].items():
+            if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
                 input_data[col] = input_data[col].fillna("")
 
         try:

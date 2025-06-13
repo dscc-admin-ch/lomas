@@ -22,7 +22,7 @@ spec:
       securityContext:
         {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
       imagePullSecrets:
-        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
 
       containers:
       - name: loki-container
@@ -30,12 +30,13 @@ spec:
         args:
           - "-config.file=/etc/loki/loki-config.yaml"
         ports:
-          - containerPort: {{ .Values.loki.service.port}}
+          - containerPort: {{ .Values.loki.service.port }}
         volumeMounts:
           - name: loki-config
             readOnly: True
             mountPath: /etc/loki
-
+          - name: data
+            mountPath: {{ .Values.loki.config.common.path_prefix }}
       volumes:
       {{- $fullname := include "lomas.loki.fullname" . }}
       - name: loki-config
@@ -43,4 +44,7 @@ spec:
           sources:
             - configMap:
                 name: {{ printf "%s-loki-config" $fullname }}
+      - name: data
+          persistentVolumeClaim:
+            claimName: {{ $fullname }}
 {{- end }}

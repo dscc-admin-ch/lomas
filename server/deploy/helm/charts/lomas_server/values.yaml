@@ -356,6 +356,17 @@ tempo:
         # so that the pvc is not deleted across reinstalls.
         resourcePolicy: ""
 
+  pvc:
+    storageClassName: "" # is not set if empty string
+    tracesSizeLimit: 1Gi
+    tracesSizeRequest: 1Gi
+    walSizeLimit: 1Gi
+    walSizeRequest: 1Gi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
+
 # Grafana
 ##########################################################################
 grafana:

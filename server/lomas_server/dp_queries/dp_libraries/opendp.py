@@ -290,9 +290,15 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             )
 
         # OpenDP does not allow None on string columns
+
+        # Build expressions to update the LazyFrame. LazyFrames are immutable
+        # and do not support direct item assignment (not supported: input_data[col] = ...)
+        expressions = []
         for col, val in self.metadata["columns"].items():
             if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
-                input_data[col] = input_data[col].fillna("")
+                expressions.append(pl.col(col).fill_null("").alias(col))
+
+        input_data = input_data.with_columns(expressions)
 
         try:
             release_data = opendp_pipe(input_data)

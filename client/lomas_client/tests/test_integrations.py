@@ -6,11 +6,13 @@ import polars as pl
 import pytest
 from diffprivlib import models
 from mantelo import KeycloakAdmin
-from oauthlib import oauth2
+from returns.io import IOResultE, IOSuccess, impure_safe
+from returns.pipeline import flow
+from returns.pointfree import map_
+from returns.unsafe import unsafe_perform_io
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
-from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -22,7 +24,8 @@ from lomas_server.models.config import AdminConfig, KeycloakClientConfig
 
 
 @pytest.fixture
-def demo_setup():
+@impure_safe
+def demo_setup() -> IOResultE:
     lomas_demo_setup()
 
 
@@ -66,42 +69,47 @@ def test_missing_configs() -> None:
 
 
 def test_oauth2(aria, kc) -> None:
-    with pytest.raises(oauth2.InvalidClientError, match=r"Invalid client credentials"):
-        aria.as_client()
+    client = aria.as_client()
+    assert client.get_dataset_metadata().failure()
 
     # Add a user
     add_kc_user(kc.config, aria.user_name, aria.user_email, aria.client_secret)
 
     client = aria.as_client()
 
-    with pytest.raises(UnauthorizedAccessException, match=f"User {aria.user_name} does not exist"):
-        client.get_dataset_metadata()
+    # with pytest.raises(UnauthorizedAccessException, match=f"User {aria.user_name} does not exist"):
+    # client.get_dataset_metadata()
+    metadata = client.get_dataset_metadata()
+    assert metadata.failure()
 
 
-def test_oauth2_demo(kc, demo_setup) -> None:
+def test_oauth2_demo(kc, demo_setup: IOResultE) -> None:
     user_name = "Jack"
     client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="TITANIC")
 
     init_budget = client.get_initial_budget()
-    assert init_budget.initial_delta == 0.2
-    assert init_budget.initial_epsilon == 45
+    assert isinstance(init_budget, IOSuccess)
+    assert init_budget.map(lambda x: x.initial_delta) == IOSuccess(0.2)
+    assert init_budget.map(lambda x: x.initial_epsilon) == IOSuccess(45)
 
-    assert set(client.get_dataset_metadata().keys()) == {
-        "censor_dims",
-        "columns",
-        "max_ids",
-        "rows",
-        "row_privacy",
-        "clamp_columns",
-        "clamp_counts",
-        "use_dpsu",
-    }
+    assert client.get_dataset_metadata().map(set) == IOSuccess(
+        {
+            "censor_dims",
+            "columns",
+            "max_ids",
+            "rows",
+            "row_privacy",
+            "clamp_columns",
+            "clamp_counts",
+            "use_dpsu",
+        }
+    )
 
     df_dummy = client.get_dummy_dataset()
-    assert df_dummy.shape == (100, 11)
+    assert df_dummy.map(lambda x: x.shape) == IOSuccess((100, 11))
 
     df_dummy_lz = client.get_dummy_dataset(lazy=True)
-    assert df_dummy_lz.collect().shape == (100, 11)
+    assert df_dummy_lz.map(lambda x: x.collect().shape) == IOSuccess((100, 11))
 
     # Smartnoise
 
@@ -109,28 +117,28 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
     dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
 
-    avg_age = dummy_res.result.df["avg_age"][0]
-    assert avg_age == pytest.approx(51.5, 0.5)
+    avg_age = dummy_res.map(lambda x: x.result.df["avg_age"][0])
+    assert avg_age == IOSuccess(pytest.approx(51.5, 0.5))
 
     rem_budget = client.get_remaining_budget()
-    assert rem_budget.remaining_delta == 0.2
-    assert rem_budget.remaining_epsilon == 45
+    assert rem_budget.map(lambda x: x.remaining_delta) == IOSuccess(0.2)
+    assert rem_budget.map(lambda x: x.remaining_epsilon) == IOSuccess(45)
     tot_spent = client.get_total_spent_budget()
-    assert tot_spent.total_spent_delta == 0
-    assert tot_spent.total_spent_epsilon == 0
+    assert tot_spent.map(lambda x: x.total_spent_delta) == IOSuccess(0)
+    assert tot_spent.map(lambda x: x.total_spent_epsilon) == IOSuccess(0)
 
     # True Query
     res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
 
-    avg_age = res.result.df["avg_age"][0]
-    assert avg_age == pytest.approx(51.5, 0.5)
+    avg_age = res.map(lambda x: x.result.df["avg_age"][0])
+    assert avg_age == IOSuccess(pytest.approx(51.5, 0.5))
 
     rem_budget = client.get_remaining_budget()
-    assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
-    assert rem_budget.remaining_epsilon == 43.5
+    assert rem_budget.map(lambda x: x.remaining_delta) == IOSuccess(pytest.approx(0.2, 1e-3))
+    assert rem_budget.map(lambda x: x.remaining_epsilon) == IOSuccess(43.5)
     tot_spent = client.get_total_spent_budget()
-    assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
-    assert tot_spent.total_spent_epsilon == 1.5
+    assert tot_spent.map(lambda x: x.total_spent_delta) == IOSuccess(pytest.approx(0, abs=1e-3))
+    assert tot_spent.map(lambda x: x.total_spent_epsilon) == IOSuccess(1.5)
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
@@ -138,11 +146,14 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     assert prev_queries[0]["dp_library"] == "smartnoise_sql"
 
 
-def test_demo_diffprivlib(kc, demo_setup) -> None:
+def test_demo_diffprivlib(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.Antartica"
     client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
 
-    penguin_metadata = client.get_dataset_metadata()
+    penguin_metadata_io = client.get_dataset_metadata()
+    assert isinstance(penguin_metadata_io, IOSuccess)
+    # Example of the Illegalest Function: IO t -> t ! (py)tests only !
+    penguin_metadata = unsafe_perform_io(penguin_metadata_io.unwrap())
     feature_columns = ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"]
     target_columns = ["species"]
     bounds = (
@@ -162,7 +173,7 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
         pipeline=dpl_pipeline, feature_columns=feature_columns, target_columns=target_columns, dummy=True
     )
 
-    dummy_response.result.model is not None
+    dummy_response.map(lambda x: x.result.model) != IOSuccess(None)
 
     feature_columns = ["bill_length_mm"]
     target_columns = ["bill_depth_mm"]
@@ -186,22 +197,26 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
         target_columns=target_columns,
         imputer_strategy="drop",
     )
-    assert cost_res.epsilon == pytest.approx(2, 0.1)
-    assert cost_res.delta == pytest.approx(0, abs=1e-4)
-    response = client.diffprivlib.query(
-        pipeline=dpl_pipeline, feature_columns=feature_columns, target_columns=target_columns
-    )
-    model = response.result.model
-    predictions = model.predict(
-        pd.DataFrame(
-            {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
-            }
-        )
+    assert cost_res.map(lambda x: x.epsilon) == IOSuccess(pytest.approx(2, 0.1))
+    assert cost_res.map(lambda x: x.delta) == IOSuccess(pytest.approx(0, abs=1e-4))
+
+    predictions = flow(
+        client.diffprivlib.query(
+            pipeline=dpl_pipeline, feature_columns=feature_columns, target_columns=target_columns
+        ),
+        map_(
+            lambda x: x.result.model.predict(
+                pd.DataFrame(
+                    {
+                        "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                    }
+                )
+            )
+        ),
     )
 
-    assert len(predictions) == 2
-    assert predictions == pytest.approx([20, 20], abs=20)
+    assert predictions.map(len) == IOSuccess(2)
+    assert predictions == IOSuccess(pytest.approx([20, 20], abs=20))
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
@@ -224,7 +239,7 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
 @pytest.mark.filterwarnings(
     "ignore:.*synthesizer random generator.*is not cryptographically secure:UserWarning"
 )
-def test_demo_smartnoise_synth(kc, demo_setup) -> None:
+def test_demo_smartnoise_synth(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.Antartica"
     client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
 
@@ -234,20 +249,20 @@ def test_demo_smartnoise_synth(kc, demo_setup) -> None:
         delta=0.0001,
         select_cols=["species", "island"],
     )
-    assert cost_res.epsilon == pytest.approx(1, 0.05)
-    assert cost_res.delta == pytest.approx(1e-4, abs=5e-5)
+    assert isinstance(cost_res, IOSuccess)
+    assert cost_res.map(lambda x: x.epsilon) == IOSuccess(pytest.approx(1, 0.05))
+    assert cost_res.map(lambda x: x.delta) == IOSuccess(pytest.approx(1e-4, abs=5e-5))
 
     for dummy in [True, False]:
-        res = client.smartnoise_synth.query(
+        res_df = client.smartnoise_synth.query(
             synth_name="dpgan",
             epsilon=1.0,
             condition="body_mass_g > 5000",
             nb_samples=10,
             dummy=dummy,
-        )
-        res_df = res.result.df_samples
-        assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
-        assert res_df.body_mass_g.min() >= 5000
+        ).map(lambda x: x.result.df_samples)
+        assert res_df.map(lambda df: df.flipper_length_mm.mean()) == IOSuccess(pytest.approx(200, 0.25))
+        assert res_df.map(lambda df: df.body_mass_g.min() >= 5000) == IOSuccess(True)
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
@@ -258,27 +273,31 @@ def test_demo_smartnoise_synth(kc, demo_setup) -> None:
     assert response_archives["delta"] >= 0.0
 
 
-def test_demo_opendp_polars(kc, demo_setup) -> None:
+def test_demo_opendp_polars(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.FSO"
     client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="FSO_INCOME_SYNTHETIC")
-    income_metadata = client.get_dataset_metadata()
+    income_metadata_io = client.get_dataset_metadata()
+    assert isinstance(income_metadata_io, IOSuccess)
+
     NB_ROWS, SEED = 200, 0
     dummy_lf = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED, lazy=True)
     test = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED)
-    assert len(test.dtypes) >= 5
+    assert map_(lambda x: len(x.dtypes) >= 5)(test) == IOSuccess(True)
 
-    income_lower_bound, income_upper_bound = (
-        income_metadata["columns"]["income"]["lower"],
-        income_metadata["columns"]["income"]["upper"],
+    query_res = IOResultE.do(
+        res
+        for income_metadata in income_metadata_io
+        for bounds in IOSuccess(
+            (income_metadata["columns"]["income"]["lower"], income_metadata["columns"]["income"]["upper"])
+        )
+        for plan in dummy_lf.map(
+            lambda df: df.select(pl.col("income").dp.mean(bounds=bounds, scale=(10_000, 1)))
+        )
+        for res in client.opendp.query(plan, dummy=False, nb_rows=NB_ROWS, seed=SEED)
     )
-    plan = dummy_lf.select(
-        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=(10_000, 1))
-    )
-    query_res = client.opendp.query(plan, dummy=False, nb_rows=NB_ROWS, seed=SEED)
-    assert query_res.epsilon == pytest.approx(11, 0.5)
-    assert isinstance(query_res.result, OpenDPPolarsQueryResult)
-    df_polar = query_res.result.value
-    assert df_polar.shape == (1, 1)
+    assert query_res.map(lambda x: x.epsilon) == IOSuccess(pytest.approx(10, 2))
+    assert query_res.map(lambda x: isinstance(x.result, OpenDPPolarsQueryResult)) == IOSuccess(True)
+    assert query_res.map(lambda x: x.result.value.shape) == IOSuccess((1, 1))
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1

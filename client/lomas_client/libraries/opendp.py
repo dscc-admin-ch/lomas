@@ -1,5 +1,9 @@
 import opendp as dp
 import polars as pl
+from returns.curry import partial
+from returns.io import IOResultE
+from returns.pipeline import flow
+from returns.pointfree import map_
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
@@ -109,7 +113,7 @@ class OpenDPClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse:
+    ) -> IOResultE[QueryResponse]:
         """This function executes an OpenDP query.
 
         Args:
@@ -137,23 +141,22 @@ class OpenDPClient:
         Returns:
             QueryResponse: A dictionary of the response body containing the deserialized pipeline result.
         """
-        body_json = self._get_opendp_request_body(
+        body_dict = self._get_opendp_request_body(
             opendp_pipeline,
             fixed_delta=fixed_delta,
             mechanism=mechanism,
         )
 
-        request_model: type[OpenDPRequestModel]
         if dummy:
-            endpoint = "dummy_opendp_query"
-            body_json["dummy_nb_rows"] = nb_rows
-            body_json["dummy_seed"] = seed
-            request_model = OpenDPDummyQueryModel
-        else:
-            endpoint = "opendp_query"
-            request_model = OpenDPQueryModel
-
-        body = request_model.model_validate(body_json)
-        res = self.http_client.post(endpoint, body)
-
-        return validate_model_response(self.http_client, res, QueryResponse)
+            return flow(
+                {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
+                OpenDPDummyQueryModel.model_validate,
+                partial(self.http_client.post, "dummy_opendp_query"),
+                map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+            )
+        return flow(
+            body_dict,
+            OpenDPQueryModel.model_validate,
+            partial(self.http_client.post, "opendp_query"),
+            map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+        )

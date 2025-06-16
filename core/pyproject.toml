@@ -31,6 +31,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "returns[compatible-mypy]>=0.25",
     "diffprivlib==0.6.5",
     "diffprivlib_logger==0.0.3",
     "fastapi==0.115.12",

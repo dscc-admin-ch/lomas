@@ -5,6 +5,7 @@ from typing import Any, Never, TypeVar
 import requests
 from fastapi import status
 from pydantic import ValidationError
+from returns.io import impure_safe
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
@@ -13,6 +14,7 @@ from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import ResponseModel
 
 
+@impure_safe
 def raise_error(response: requests.Response) -> Never:
     """Raise error message based on the HTTP response.
 
@@ -30,6 +32,7 @@ def raise_error(response: requests.Response) -> Never:
     raise_error_from_model(error_model)
 
 
+@impure_safe
 def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
     """Validate smartnoise synthesizer (some model are not accepted).
 

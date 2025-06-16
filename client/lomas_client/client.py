@@ -4,11 +4,15 @@ import pickle
 
 import pandas as pd
 import polars as pl
+import requests
 from fastapi import status
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
+from returns.io import IOFailure, IOResultE, IOSuccess
+from returns.pipeline import flow
+from returns.pointfree import bind, map_
 
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
@@ -20,7 +24,6 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
-from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
@@ -35,6 +38,12 @@ from lomas_core.opendp_utils import reconstruct_measurement_pipeline
 # Opendp_logger
 enable_logging()
 enable_features("contrib")
+
+
+def parse_if_OK(res: requests.Response) -> IOResultE[str]:
+    if res.status_code == status.HTTP_200_OK:
+        return IOSuccess(res.content.decode("utf8"))
+    return IOFailure(ValueError(f"Unexpected response code: {res.status_code}: {res.content}"))
 
 
 class Client:
@@ -70,29 +79,33 @@ class Client:
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
-    def get_dataset_metadata(self) -> LomasRequestModel:
+    def get_dataset_metadata(self) -> IOResultE[LomasRequestModel]:
         """This function retrieves metadata for the dataset.
 
         Returns:
             LomasRequestModel:
                 A dictionary containing dataset metadata.
         """
-        body_dict = {"dataset_name": self.config.dataset_name}
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_dataset_metadata", body)
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            metadata = json.loads(data)
-            return metadata
 
-        raise_error(res)
+        return flow(
+            # construct request body
+            {"dataset_name": self.config.dataset_name},
+            # validate request model
+            LomasRequestModel.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_dataset_metadata", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            # load successful response as json
+            map_(json.loads),
+        )
 
     def get_dummy_dataset(
         self,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
         lazy: bool = False,
-    ) -> pd.DataFrame | pl.LazyFrame:
+    ) -> IOResultE[pd.DataFrame | pl.LazyFrame]:
         """This function retrieves a dummy dataset with optional parameters.
 
         Args:
@@ -107,32 +120,25 @@ class Client:
             pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing
             the dummy dataset (optionally in LazyFrame format).
         """
-        body_dict = {
-            "dataset_name": self.config.dataset_name,
-            "dummy_nb_rows": nb_rows,
-            "dummy_seed": seed,
-        }
-        body = GetDummyDataset.model_validate(body_dict)
-        res = self.http_client.post("get_dummy_dataset", body)
-
-        if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
-            if lazy:
-                # Temporary: we use type string for datetime in polars
-                # Will be fixed in 0.13
-                for col in dummy_df.select_dtypes(include=["datetime"]):
-                    dummy_df[col] = dummy_df[col].astype("string[python]")
-                print(
-                    "Datetime type mismatch: The Polars LazyFrame currently uses 'str' for datetime fields, "
-                    "which may not match the expected metadata types. This is a temporary workaround "
-                    "and will be resolved in a future release (>=0.13)."
-                )
-                return pl.from_pandas(dummy_df).lazy()
-
-            return dummy_df
-
-        raise_error(res)
+        return flow(
+            # construct request body
+            {
+                "dataset_name": self.config.dataset_name,
+                "dummy_nb_rows": nb_rows,
+                "dummy_seed": seed,
+            },
+            # validate request model
+            GetDummyDataset.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_dummy_dataset", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            # load successful response as json
+            map_(DummyDsResponse.model_validate_json),
+            map_(
+                lambda dummyDsRes: pl.from_pandas(dummyDsRes.dummy_df).lazy() if lazy else dummyDsRes.dummy_df
+            ),
+        )
 
     def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
         """
@@ -154,7 +160,7 @@ class Client:
             dummy_pandas[col] = dummy_pandas[col].astype(str)
         return pl.from_pandas(dummy_pandas).lazy()
 
-    def get_initial_budget(self) -> InitialBudgetResponse:
+    def get_initial_budget(self) -> IOResultE[InitialBudgetResponse]:
         """This function retrieves the initial budget.
 
         Returns:
@@ -162,42 +168,60 @@ class Client:
                 containing the initial budget.
         """
 
-        body_dict = {"dataset_name": self.config.dataset_name}
+        return flow(
+            # construct request body
+            {"dataset_name": self.config.dataset_name},
+            # validate request model
+            LomasRequestModel.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_initial_budget", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            # build Budget Response from successful json payload
+            map_(InitialBudgetResponse.model_validate_json),
+        )
 
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_initial_budget", body)
-
-        return validate_model_response_direct(res, InitialBudgetResponse)
-
-    def get_total_spent_budget(self) -> SpentBudgetResponse:
+    def get_total_spent_budget(self) -> IOResultE[SpentBudgetResponse]:
         """This function retrieves the total spent budget.
 
         Returns:
             SpentBudgetResponse: A dictionary containing
                 the total spent budget.
         """
-        body_dict = {"dataset_name": self.config.dataset_name}
+        return flow(
+            # construct request body
+            {"dataset_name": self.config.dataset_name},
+            # validate request model
+            LomasRequestModel.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_total_spent_budget", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            # build Budget Response from successful json payload
+            map_(SpentBudgetResponse.model_validate_json),
+        )
 
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_total_spent_budget", body)
-
-        return validate_model_response_direct(res, SpentBudgetResponse)
-
-    def get_remaining_budget(self) -> RemainingBudgetResponse:
+    def get_remaining_budget(self) -> IOResultE[RemainingBudgetResponse]:
         """This function retrieves the remaining budget.
 
         Returns:
             RemainingBudgetResponse: A dictionary
                 containing the remaining budget.
         """
-        body_dict = {"dataset_name": self.config.dataset_name}
+        return flow(
+            # construct request body
+            {"dataset_name": self.config.dataset_name},
+            # validate request model
+            LomasRequestModel.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_remaining_budget", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            # build Budget Response from successful json payload
+            map_(RemainingBudgetResponse.model_validate_json),
+        )
 
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_remaining_budget", body)
-
-        return validate_model_response_direct(res, RemainingBudgetResponse)
-
-    def get_previous_queries(self) -> list[dict]:
+    def get_previous_queries(self) -> IOResultE[list[dict]]:
         """This function retrieves the previous queries of the user.
 
         Raises:
@@ -208,17 +232,8 @@ class Client:
             List[dict]: A list of dictionary containing
             the different queries on the private dataset.
         """
-        body_dict = {"dataset_name": self.config.dataset_name}
 
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_previous_queries", body)
-
-        if res.status_code == status.HTTP_200_OK:
-            queries = json.loads(res.content.decode("utf8"))["previous_queries"]
-
-            if not queries:
-                return queries
-
+        def post_processes_queries(queries: list[dict]) -> list[dict]:
             deserialised_queries = []
             for query in queries:
                 match query["dp_library"]:
@@ -246,4 +261,15 @@ class Client:
 
             return deserialised_queries
 
-        raise_error(res)
+        return flow(
+            # construct request body
+            {"dataset_name": self.config.dataset_name},
+            # validate request model
+            LomasRequestModel.model_validate,
+            # post to the validated body to the corresponding endpoint
+            lambda body: self.http_client.post("get_previous_queries", body),
+            # parse reply if HTTP 200
+            bind(parse_if_OK),
+            bind(lambda content: json.loads(content)["previous_queries"]),
+            post_processes_queries,
+        )

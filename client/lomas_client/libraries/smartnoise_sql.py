@@ -1,3 +1,7 @@
+from returns.io import IOResultE
+from returns.pipeline import flow
+from returns.pointfree import map_
+
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
@@ -21,7 +25,7 @@ class SmartnoiseSQLClient:
         epsilon: float,
         delta: float,
         mechanisms: dict[str, str] = {},
-    ) -> CostResponse:
+    ) -> IOResultE[CostResponse]:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -37,17 +41,18 @@ class SmartnoiseSQLClient:
         Returns:
             CostResponse: The estimated cost.
         """
-        body_dict = {
-            "query_str": query,
-            "dataset_name": self.http_client.config.dataset_name,
-            "epsilon": epsilon,
-            "delta": delta,
-            "mechanisms": mechanisms,
-        }
-        body = SmartnoiseSQLRequestModel.model_validate(body_dict)
-        res = self.http_client.post("estimate_smartnoise_sql_cost", body)
-
-        return validate_model_response(self.http_client, res, CostResponse)
+        return flow(
+            {
+                "query_str": query,
+                "dataset_name": self.http_client.config.dataset_name,
+                "epsilon": epsilon,
+                "delta": delta,
+                "mechanisms": mechanisms,
+            },
+            SmartnoiseSQLRequestModel.model_validate,
+            lambda body: self.http_client.post("estimate_smartnoise_sql_cost", body),
+            map_(lambda res: validate_model_response(self.http_client, res, CostResponse)),
+        )
 
     def query(
         self,
@@ -59,7 +64,7 @@ class SmartnoiseSQLClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse:
+    ) -> IOResultE[QueryResponse]:
         """This function executes a SmartNoise SQL query.
 
         Args:
@@ -98,18 +103,16 @@ class SmartnoiseSQLClient:
             "mechanisms": mechanisms,
             "postprocess": postprocess,
         }
-
-        request_model: type[SmartnoiseSQLRequestModel]
         if dummy:
-            endpoint = "dummy_smartnoise_sql_query"
-            body_dict["dummy_nb_rows"] = nb_rows
-            body_dict["dummy_seed"] = seed
-            request_model = SmartnoiseSQLDummyQueryModel
-        else:
-            endpoint = "smartnoise_sql_query"
-            request_model = SmartnoiseSQLQueryModel
-
-        body = request_model.model_validate(body_dict)
-        res = self.http_client.post(endpoint, body)
-
-        return validate_model_response(self.http_client, res, QueryResponse)
+            return flow(
+                {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
+                SmartnoiseSQLDummyQueryModel.model_validate,
+                lambda body: self.http_client.post("dummy_smartnoise_sql_query", body),
+                map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+            )
+        return flow(
+            body_dict,
+            SmartnoiseSQLQueryModel.model_validate,
+            lambda body: self.http_client.post("smartnoise_sql_query", body),
+            map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+        )

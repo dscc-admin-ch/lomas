@@ -458,9 +458,17 @@ in
     popd
   '';
 
-  scripts.demo_setup.exec = ''
+  scripts.demo-setup.exec = ''
     pushd $DEVENV_ROOT/server/lomas_server
     lomas-demo-setup
+    popd
+  '';
+
+  scripts.restart-lomas.exec = ''
+    pushd $DEVENV_ROOT
+    process-compose process restart lomas-server
+    process-compose process restart worker-0
+    process-compose process restart worker-1
     popd
   '';
 

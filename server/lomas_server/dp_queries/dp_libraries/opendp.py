@@ -153,14 +153,14 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
-        if hasattr(series_info, "cardinality"):
-            if series_info.cardinality:
-                margin_params["max_num_partitions"] *= series_info.cardinality
+        if "cardinality" in series_info:
+            if series_info["cardinality"]:
+                margin_params["max_num_partitions"] *= series_info["cardinality"]
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
         # If None are defined, max_influenced_partitions is equal to None
-        if hasattr(series_info, "max_influenced_partitions"):
+        if series_info["max_influenced_partitions"]:
             margin_params["max_influenced_partitions"] = (
                 margin_params.get("max_influenced_partitions", 1) * series_info["max_influenced_partitions"]
             )
@@ -168,7 +168,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_partition_contributions logic:
         # We multiply the max_partition_contributions defined in each column
         # If None are defined, max_partition_contributions is equal to None
-        if hasattr(series_info, "max_partition_contributions"):
+        if series_info["max_partition_contributions"]:
             margin_params["max_partition_contributions"] = (
                 margin_params.get("max_partition_contributions", 1)
                 * series_info["max_partition_contributions"]
@@ -176,14 +176,14 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
 
     # If max_influenced_partitions > max_ids:
     # Then max_influenced_partitions = max_ids
-    if hasattr(margin_params, "max_influenced_partitions"):
+    if "max_influenced_partitions" in margin_params:
         margin_params["max_influenced_partitions"] = min(
             metadata["max_ids"], margin_params["max_influenced_partitions"]
         )
 
     # If max_partition_contributions > max_ids:
     # Then max_partition_contributions = max_ids
-    if hasattr(margin_params, "max_partition_contributions"):
+    if "max_partition_contributions" in margin_params:
         margin_params["max_partition_contributions"] = min(
             metadata["max_ids"],
             margin_params.get("max_partition_contributions"),
@@ -283,23 +283,21 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
         elif query_json.pipeline_type == "polars":
             input_data = self.data_connector.get_polars_lf()
+            # OpenDP does not allow None on string columns
+
+            # Build expressions to update the LazyFrame. LazyFrames are immutable
+            # and do not support direct item assignment (not supported: input_data[col] = ...)
+            expressions = []
+            for col, val in self.metadata["columns"].items():
+                if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+                    expressions.append(pl.col(col).fill_null("").alias(col))
+
+            input_data = input_data.with_columns(expressions)
         else:  # TODO 401 validate input in json model instead of with if-else statements
             raise InternalServerException(
                 f"""Invalid pipeline type: '{query_json.pipeline_type}.'
                                         Should be legacy or polars"""
             )
-
-        # OpenDP does not allow None on string columns
-
-        # Build expressions to update the LazyFrame. LazyFrames are immutable
-        # and do not support direct item assignment (not supported: input_data[col] = ...)
-        expressions = []
-        for col, val in self.metadata["columns"].items():
-            if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
-                expressions.append(pl.col(col).fill_null("").alias(col))
-
-        input_data = input_data.with_columns(expressions)
-
         try:
             release_data = opendp_pipe(input_data)
         except Exception as e:

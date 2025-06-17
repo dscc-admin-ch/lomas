@@ -36,11 +36,8 @@ spec:
             mountPath: /etc/tempo.yaml
             subPath: tempo.yaml
             readOnly: true
-          - name: data-traces
-            mountPath: {{ .Values.tempo.storage.trace.local.path }}
-          - name: data-wal
-            mountPath: {{ .Values.tempo.storage.trace.wal.path }}
-
+          - name: data
+            mountPath: {{ .Values.tempo.config.storage.trace.basepath }}
       volumes:
       {{- $fullname := include "lomas.tempo.fullname" . }}
       - name: tempo-config
@@ -48,10 +45,7 @@ spec:
           sources:
             - configMap:
                 name: {{ printf "%s-tempo-config" $fullname }}
-      - name: data-traces
-          persistentVolumeClaim:
-            claimName: {{ printf "%s-traces" $fullname }}
-      - name: data-wal
-          persistentVolumeClaim:
-            claimName: {{ printf "%s-wal" $fullname }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ $fullname }}
 {{- end }}

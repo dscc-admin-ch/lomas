@@ -46,6 +46,6 @@ spec:
             - configMap:
                 name: {{ printf "%s-prometheus-config" $fullname }}
       - name: data
-          persistentVolumeClaim:
-            claimName: {{ $fullname }}
+        persistentVolumeClaim:
+          claimName: {{ $fullname }}
 {{- end }}

@@ -23,7 +23,7 @@ data:
         trace:
           backend: {{ .Values.tempo.config.storage.trace.backend }}
           wal:
-            path: {{ .Values.tempo.config.storage.trace.wal.path }}
+            path: {{ printf "%s/traces" .Values.tempo.config.storage.trace.basepath }}
           local:
-            path: {{ .Values.tempo.config.storage.trace.local.path }}
+            path: {{ printf "%s/wal" .Values.tempo.config.storage.trace.basepath }}
 {{- end }}

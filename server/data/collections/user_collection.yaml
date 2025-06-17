@@ -80,3 +80,14 @@ users:
     initial_delta: 0.2
     total_spent_epsilon: 0.0
     total_spent_delta: 0.0
+- id:
+    name: Pauline
+    email: pauline@example.com
+    client_secret: pauline
+  may_query: True
+  datasets_list:
+  - dataset_name: "UZH"
+    initial_epsilon: 100.0
+    initial_delta: 0.2
+    total_spent_epsilon: 0.0
+    total_spent_delta: 0.0

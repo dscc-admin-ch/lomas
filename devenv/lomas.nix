@@ -117,11 +117,6 @@ in
           "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
           "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
         ];
-        readiness_probe.http_get = {
-          host = cfg.dashboard.host;
-          port = cfg.dashboard.port;
-          path = "/ping";
-        };
       };
     };
 

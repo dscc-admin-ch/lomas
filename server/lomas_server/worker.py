@@ -295,7 +295,9 @@ async def process_all_queues() -> None:
             await connection.close()
 
 
-if __name__ == "__main__":
+def run() -> None:
+    """Start the Worker loop"""
+
     logging.config.dictConfig(config.logging_config)
 
     if config.telemetry.enabled:
@@ -304,3 +306,7 @@ if __name__ == "__main__":
 
     logging.info(" [*] Waiting for messages. To exit press CTRL+C")
     asyncio.run(process_all_queues())
+
+
+if __name__ == "__main__":
+    run()

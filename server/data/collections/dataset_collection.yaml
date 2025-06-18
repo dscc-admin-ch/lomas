@@ -48,10 +48,3 @@ datasets:
   metadata_access:
     database_type: "PATH_DB"
     path: "collections/metadata/birthday_metadata.yaml"
-- dataset_name: "UZH"
-  dataset_access:
-    database_type: "PATH_DB"
-    path: "datasets/uzh_data.csv"
-  metadata_access:
-    database_type: "PATH_DB"
-    path: "collections/metadata/uzh_metadata.yaml"

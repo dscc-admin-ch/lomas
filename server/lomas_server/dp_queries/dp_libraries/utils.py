@@ -59,4 +59,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
         raise InvalidQueryException(f"Imputation strategy {imputer_strategy} not supported.")
 
     df = df.astype(dtype=dtypes)
+
+    if df.shape[0] == 0:
+        raise InvalidQueryException("Empty dataframe, please try another imputation strategy.")
     return df

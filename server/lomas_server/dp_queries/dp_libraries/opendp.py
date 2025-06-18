@@ -16,7 +16,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.models.constants import OpenDPFeatures
+from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures
 from lomas_core.models.requests import (
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -33,12 +33,12 @@ from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
+def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
 
     Args:
-        metadata (dict): The metadata dictionary
+        metadata_dict (dict): The metadata dictionary
         plan (LazyFrame): The polars query plan as a Polars LazyFrame
     Raises:
         Exception: If there is missing information in the metadata.
@@ -47,17 +47,17 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
     series_domains = []
     # Series domains
-    for name, series_info in metadata["columns"].items():
+    for name, series_info in metadata_dict["columns"].items():
         series_bounds = None
-        if series_info.type in ["float", "int"]:
-            series_type = f"{series_info.type}{series_info.precision}"
+        if series_info["type"] in [MetadataColumnType.FLOAT, MetadataColumnType.INT]:
+            series_type = f"{series_info['type']}{series_info['precision']}"
             if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
-                series_bounds = (series_info.lower, series_info.upper)
+                series_bounds = (series_info["lower"], series_info["upper"])
         # TODO 392: release opendp 0.12 (adapt with type date)
-        elif series_info.type == "datetime":
-            series_type = "string"
+        elif series_info["type"] == MetadataColumnType.DATETIME:
+            series_type = MetadataColumnType.STRING
         else:
-            series_type = series_info.type
+            series_type = series_info["type"]
 
         if series_type not in OPENDP_TYPE_MAPPING:
             # For valid metadata, only datetime would fail here
@@ -66,10 +66,11 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
                 f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
             )
 
-        series_type = OPENDP_TYPE_MAPPING[series_type]
-
         # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = series_info.nullable_proportion > 0.0
+        series_nullable = (
+            series_info["nullable_proportion"] > 0.0 and series_type != MetadataColumnType.STRING
+        )
+        series_type = OPENDP_TYPE_MAPPING[series_type]
 
         series_domain = dp.domains.series_domain(
             name,
@@ -82,12 +83,12 @@ def get_lf_domain(metadata: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
 
     # Global margin parameters
-    margin_params = get_global_params(metadata)
+    margin_params = get_global_params(metadata_dict)
 
     # If grouping in the query, we update the margin params
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) >= 1:
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
 
     # TODO 323: Multiple margins?
     # What if two group_by's in one query?
@@ -130,7 +131,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
     margin_params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
-        series_info = metadata["columns"].get(column)
+        series_info = metadata["columns"][column]
 
         # max_partitions_length logic:
         # When two columns in the grouping
@@ -139,8 +140,8 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
 
         # Get max_partition_length from series_info, defaulting to metadata["rows"] if not set
         series_max_partition_length = (
-            series_info.max_partition_length
-            if series_info.max_partition_length is not None
+            series_info["max_partition_length"]
+            if series_info["max_partition_length"] is not None
             else metadata["rows"]
         )
 
@@ -152,24 +153,25 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
-        if hasattr(series_info, "cardinality"):
-            if series_info.cardinality:
-                margin_params["max_num_partitions"] *= series_info.cardinality
+        if "cardinality" in series_info:
+            if series_info["cardinality"]:
+                margin_params["max_num_partitions"] *= series_info["cardinality"]
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
         # If None are defined, max_influenced_partitions is equal to None
-        if series_info.max_influenced_partitions:
+        if series_info["max_influenced_partitions"]:
             margin_params["max_influenced_partitions"] = (
-                margin_params.get("max_influenced_partitions", 1) * series_info.max_influenced_partitions
+                margin_params.get("max_influenced_partitions", 1) * series_info["max_influenced_partitions"]
             )
 
         # max_partition_contributions logic:
         # We multiply the max_partition_contributions defined in each column
         # If None are defined, max_partition_contributions is equal to None
-        if series_info.max_partition_contributions:
+        if series_info["max_partition_contributions"]:
             margin_params["max_partition_contributions"] = (
-                margin_params.get("max_partition_contributions", 1) * series_info.max_partition_contributions
+                margin_params.get("max_partition_contributions", 1)
+                * series_info["max_partition_contributions"]
             )
 
     # If max_influenced_partitions > max_ids:
@@ -206,7 +208,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = dict(self.data_connector.get_metadata())
+        self.metadata = self.data_connector.get_metadata().model_dump()
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -281,12 +283,21 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
         elif query_json.pipeline_type == "polars":
             input_data = self.data_connector.get_polars_lf()
+            # OpenDP does not allow None on string columns
+
+            # Build expressions to update the LazyFrame. LazyFrames are immutable
+            # and do not support direct item assignment (not supported: input_data[col] = ...)
+            expressions = []
+            for col, val in self.metadata["columns"].items():
+                if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+                    expressions.append(pl.col(col).fill_null("").alias(col))
+
+            input_data = input_data.with_columns(expressions)
         else:  # TODO 401 validate input in json model instead of with if-else statements
             raise InternalServerException(
                 f"""Invalid pipeline type: '{query_json.pipeline_type}.'
                                         Should be legacy or polars"""
             )
-
         try:
             release_data = opendp_pipe(input_data)
         except Exception as e:

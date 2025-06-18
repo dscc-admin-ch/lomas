@@ -91,6 +91,7 @@ class DummyDsResponse(ResponseModel):
         datetime_columns = info.data["datetime_columns"]
         dummy_df = dataframe_from_dict(v)
         dummy_df = dummy_df.astype(dtypes)
+
         for col in datetime_columns:
             dummy_df[col] = pd.to_datetime(dummy_df[col])
         return dummy_df

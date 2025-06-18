@@ -123,6 +123,26 @@ class Client:
 
         raise_error(res)
 
+    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
+        """
+        Returns the polars LazyFrame for the dummy dataset with.
+
+        optional parameters.
+        Args:
+            nb_rows (int, optional): The number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): The random seed for generating the dummy dataset.
+                Defaults to DUMMY_SEED.
+        Returns:
+            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
+        """
+        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
+
+        # TODO: fix when pandas can handle datetime
+        for col in dummy_pandas.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns:
+            dummy_pandas[col] = dummy_pandas[col].astype(str)
+        return pl.from_pandas(dummy_pandas).lazy()
+
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.
 

@@ -280,7 +280,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         """Test margins created."""
 
         RAW_METADATA["rows"] = 100
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int"]
         margin_params = get_global_params(metadata)
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
@@ -291,23 +291,23 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         assert margin_params == expected_margin
 
         # max_partition_length is given: then we use it instead of rows
-        metadata["columns"]["column_int"].max_partition_length = 50
+        metadata["columns"]["column_int"]["max_partition_length"] = 50
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 50
         assert margin_params == expected_margin
 
-        metadata["columns"]["column_int"].max_influenced_partitions = 1
+        metadata["columns"]["column_int"]["max_influenced_partitions"] = 1
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 1
         assert margin_params == expected_margin
 
-        metadata["columns"]["column_int"].max_partition_contributions = 1
+        metadata["columns"]["column_int"]["max_partition_contributions"] = 1
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 1
         assert margin_params == expected_margin
 
         # Minimum between max_ids and max_partition_contributions should be taken
-        metadata["columns"]["column_int"].max_partition_contributions = 4
+        metadata["columns"]["column_int"]["max_partition_contributions"] = 4
         metadata["max_ids"] = 2
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 2
@@ -316,15 +316,15 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
     def test2_margin_grouping(self) -> None:
         """Test margins with grouping."""
         RAW_METADATA["rows"] = 100
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         margin_params = get_global_params(metadata)
 
         # Test multi grouping
         new_col = {"type": "int", "precision": 32, "upper": 100, "lower": 1}
         RAW_METADATA["columns"]["new_col"] = new_col  # type: ignore[index]
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int", "new_col"]
-        metadata["columns"]["column_int"].max_partition_length = None
+        metadata["columns"]["column_int"]["max_partition_length"] = None
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin = {
             "max_num_partitions": 4,  # from col_int cardinality
@@ -332,16 +332,16 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         }  # from max_ids
         assert margin_params == expected_margin
 
-        metadata["columns"]["column_int"].max_partition_length = 30
-        metadata["columns"]["new_col"].max_partition_length = 50
+        metadata["columns"]["column_int"]["max_partition_length"] = 30
+        metadata["columns"]["new_col"]["max_partition_length"] = 50
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_length"] = 30  # min between two col
         assert margin_params == expected_margin
 
         # Check max_influenced_partitions (max should be multiple of each group)
         metadata["max_ids"] = 20
-        metadata["columns"]["column_int"].max_influenced_partitions = 3
-        metadata["columns"]["new_col"].max_influenced_partitions = 5
+        metadata["columns"]["column_int"]["max_influenced_partitions"] = 3
+        metadata["columns"]["new_col"]["max_influenced_partitions"] = 5
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_influenced_partitions"] = 15
         assert margin_params == expected_margin
@@ -355,7 +355,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         # Test multi grouping (cardinality)
         new_col_str = {"type": "string", "cardinality": 2, "categories": ["a", "b"]}
         RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()  # max_ids = 1
         by_config = ["column_int", "new_col_str"]
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         # Since card1 = 4 and card2 = 2, card_tot = 8
@@ -368,8 +368,8 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
 
         # Check max_partition_contributions
         metadata["max_ids"] = 10
-        metadata["columns"]["column_int"].max_partition_contributions = 5
-        metadata["columns"]["new_col"].max_partition_contributions = 4
+        metadata["columns"]["column_int"]["max_partition_contributions"] = 5
+        metadata["columns"]["new_col"]["max_partition_contributions"] = 4
         margin_params = multiple_group_update_params(metadata, by_config, margin_params)
         expected_margin["max_partition_contributions"] = 5
         assert margin_params == expected_margin
@@ -385,7 +385,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         by_config: list[str] = []
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
         RAW_METADATA["columns"] = col_int
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         margin_params = get_global_params(metadata)
         # lf with int
         expected_series_type = ms.i32
@@ -411,7 +411,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         # TODO 392: Adapt this test with v0.12 datetime
         col_datetime = {"col_datetime": {"type": "datetime", "upper": "2050-01-01", "lower": "1900-01-01"}}
         RAW_METADATA["columns"] = col_datetime
-        metadata = dict(Metadata.model_validate(RAW_METADATA))
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
 
         expected_series_type = ms.String
         expected_series_domain = dp.domains.series_domain(
@@ -430,6 +430,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         assert lf_domain == expected_lf_domain
 
         # Test that unknown type raises an error
-        metadata["columns"]["col_datetime"].type = "new_type"
+        metadata["columns"]["col_datetime"]["type"] = "new_type"
         with pytest.raises(InvalidQueryException):
             get_lf_domain(metadata, plan)

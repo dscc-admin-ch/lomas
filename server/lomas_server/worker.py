@@ -296,7 +296,7 @@ async def process_all_queues() -> None:
 
 
 def run() -> None:
-    """Start the Worker loop"""
+    """Start the Worker loop."""
 
     logging.config.dictConfig(config.logging_config)
 

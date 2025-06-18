@@ -259,6 +259,15 @@ loki:
     pattern_ingester:
       enabled: true
 
+  pvc:
+    storageClassName: "" # is not set if empty string
+    sizeLimit: 1Gi
+    sizeRequest: 1Gi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
+
 # Opentelemetry-Collector
 ##########################################################################
 otel:
@@ -298,6 +307,14 @@ prometheus:
   config:
     scrape_interval: 5s
     evaluation_interval: 5s
+  pvc:
+    storageClassName: "" # is not set if empty string
+    sizeLimit: 1Gi
+    sizeRequest: 1Gi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
 
 # Tempo
 ##########################################################################
@@ -323,10 +340,17 @@ tempo:
     storage:
       trace:
         backend: local
-        local:
-          path: /var/tempo/traces
-        wal:
-          path: /var/tempo/wal
+        # traces will be stored in <basepath>/traces and wal will be in <basepath>/wal
+        basepath: /var/tempo/
+
+    pvc:
+      storageClassName: "" # is not set if empty string
+      sizeLimit: 1Gi
+      sizeRequest: 1Gi
+      persistence:
+        # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+        # so that the pvc is not deleted across reinstalls.
+        resourcePolicy: ""
 
 # Grafana
 ##########################################################################

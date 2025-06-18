@@ -38,6 +38,9 @@ spec:
           - name: dashboard-server-config
             readOnly: True
             mountPath: "/code/.streamlit/"
+        volumeMounts:
+          - name: data
+            mountPath: /persistent-storage
         env:
           - name: LOMAS_ADMIN_MG_CONFIG__URL
             value: "mongodb://{{ .Values.mongodb.fullnameOverride }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
@@ -79,6 +82,9 @@ spec:
             sources:
             - configMap:
                 name: {{ printf "%s-server-config" $fullname }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.fullname" . }}
       {{- with .Values.dashboard.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

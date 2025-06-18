@@ -16,6 +16,6 @@ spec:
   {{- end }}
   resources:
     limits:
-      storage: {{ .Values.server.pvc.sizeLimit | quote}}
+      storage: {{ .Values.server.pvc.sizeLimit | quote }}
     requests:
       storage: {{ .Values.server.pvc.sizeRequest | quote }}

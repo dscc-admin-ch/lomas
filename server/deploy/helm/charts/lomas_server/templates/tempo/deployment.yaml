@@ -30,13 +30,14 @@ spec:
         args:
           - "--config.file=/etc/tempo.yaml"
         ports:
-          - containerPort: {{ .Values.tempo.service.port}}
+          - containerPort: {{ .Values.tempo.service.port }}
         volumeMounts:
           - name: tempo-config
             mountPath: /etc/tempo.yaml
             subPath: tempo.yaml
             readOnly: true
-
+          - name: data
+            mountPath: {{ .Values.tempo.config.storage.trace.basepath }}
       volumes:
       {{- $fullname := include "lomas.tempo.fullname" . }}
       - name: tempo-config
@@ -44,4 +45,7 @@ spec:
           sources:
             - configMap:
                 name: {{ printf "%s-tempo-config" $fullname }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ $fullname }}
 {{- end }}

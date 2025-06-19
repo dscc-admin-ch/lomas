@@ -420,10 +420,19 @@ with dataset_tab:
             uploaded_metadata = st.file_uploader("Import your related metadata file", key="uploaded_metadata")
             ad_meta_path = None  # pylint: disable=invalid-name
             if uploaded_metadata is not None:
+                possible_paths = [
+                    Path("/persistent_storage"),  # pvc path
+                    Path(__file__).parent / "../../../../data/collections/metadata",
+                ]
+
                 # Save the file
-                ad_meta_path = (
-                    Path(__file__).parent / "../../../../data/collections/metadata" / uploaded_metadata.name
-                ).resolve()
+                for base_path in possible_paths:
+                    resolved_path = base_path.resolve()
+                    if resolved_path.exists():
+                        ad_meta_path = resolved_path / uploaded_metadata.name
+                        break
+                else:
+                    raise FileNotFoundError("No valid metadata path found in known locations.")
                 ad_meta_path.write_bytes(uploaded_metadata.getbuffer())
                 st.success(f"File {uploaded_metadata.name} uploaded successfully!")
 

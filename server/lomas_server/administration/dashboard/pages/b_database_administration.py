@@ -420,10 +420,7 @@ with dataset_tab:
             uploaded_metadata = st.file_uploader("Import your related metadata file", key="uploaded_metadata")
             ad_meta_path = None  # pylint: disable=invalid-name
             if uploaded_metadata is not None:
-                # Save the file
-                ad_meta_path = (
-                    Path(__file__).parent / "../../../../data/collections/metadata" / uploaded_metadata.name
-                ).resolve()
+                ad_meta_path = Path("/tmp/metadata.yaml")
                 ad_meta_path.write_bytes(uploaded_metadata.getbuffer())
                 st.success(f"File {uploaded_metadata.name} uploaded successfully!")
 

@@ -15,7 +15,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-3d3b305
+    tag: sha-3940708
 
   # Runtime args for server
   runtime_args:
@@ -103,7 +103,7 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-3d3b305
+    tag: sha-3940708
   curlImage:
     repository: curlimages/curl
     tag: 8.13.0
@@ -151,7 +151,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-3d3b305
+    tag: sha-3940708
 
   # Runtime args for server
   serverConfig:
@@ -259,6 +259,8 @@ loki:
     pattern_ingester:
       enabled: true
 
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -298,7 +300,7 @@ prometheus:
   create: true
   image:
     repository: prom/prometheus
-    tag: v3.2.0
+    tag: v3.4.0
   service:
     port: 9091
     target_port: 9091
@@ -307,6 +309,8 @@ prometheus:
   config:
     scrape_interval: 5s
     evaluation_interval: 5s
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -322,7 +326,7 @@ tempo:
   create: true
   image:
     repository: grafana/tempo
-    tag: main-265ca32
+    tag: main-2765828
   service:
     type: ClusterIP
     port: 3000

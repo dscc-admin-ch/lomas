@@ -420,7 +420,7 @@ in
   scripts.run-worker-debug.exec = ''
     process-compose process stop -v worker-0 worker-1
     pushd $DEVENV_ROOT
-    python -m pdb lomas_server.worker
+    python -m pdb -m lomas_server.worker
     popd
   '';
 

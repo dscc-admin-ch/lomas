@@ -122,7 +122,7 @@ spec:
           - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
             value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
-            value: "http://{{ .Values.otel.fullname }}:{{ .Values.otel.service.port }}"
+            value: "http://{{ include "lomas.otel.fullname" . }}:{{ .Values.otel.service.port }}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
             value: "true"
           - name: LOMAS_SERVICE_AMQP__URL

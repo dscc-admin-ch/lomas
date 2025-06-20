@@ -25,12 +25,12 @@ spec:
             - sh
             - -c
             - >
-              until curl http://{{- .Values.keycloak.fullnameOverride -}}/realms/master; do
+              until curl http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/master; do
                 echo "Keycloak not ready yet";
                 sleep 10;
               done;
               while true; do
-                STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://{{- .Values.keycloak.fullnameOverride -}}/realms/{{- .Values.admin.realm -}})
+                STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/{{- .Values.admin.realm -}})
                 echo "Lomas realm query status: $STATUS"
                 if [[ $STATUS == "200" ]]; then
                   echo "Lomas realm ready."
@@ -41,13 +41,13 @@ spec:
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
         - name: mongo-check
-          image: {{ include "mongodb.image" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
+          image: {{ include "mongodb.image" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
           imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
           command:
             - sh
             - -c
             - >
-              until mongosh --host {{ .Values.mongodb.fullnameOverride }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
+              until mongosh --host {{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
                 echo "Mongo not ready yet";
                 sleep 10;
               done;
@@ -62,7 +62,7 @@ spec:
           command: ["python", "-m", "lomas_server.administration.scripts.lomas_demo_setup"]
           env:
             - name: LOMAS_ADMIN_MG_CONFIG__URL
-              value: "mongodb://{{ .Values.mongodb.fullnameOverride }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
+              value: "mongodb://{{- include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) -}}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
             - name: LOMAS_ADMIN_MG_CONFIG__USERNAME
               value: "{{ index .Values.mongodb.auth.usernames 0 }}"
             - name: LOMAS_ADMIN_MG_CONFIG__PASSWORD

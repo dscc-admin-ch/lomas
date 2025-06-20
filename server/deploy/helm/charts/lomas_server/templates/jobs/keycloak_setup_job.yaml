@@ -23,7 +23,7 @@ spec:
             - sh
             - -c
             - >
-              until curl http://{{- .Values.keycloak.fullnameOverride -}}/realms/master; do
+              until curl http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/master; do
                 echo "Keycloak not ready yet";
                 sleep 10;
               done;
@@ -47,8 +47,8 @@ spec:
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "keycloak.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
-                  key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.keycloak) }}
+                  name: {{ include "keycloak.secretName" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) }}
+                  key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) }}
             - name: LOMAS_KC_SETUP_LOMAS_REALM
               value: {{ .Values.admin.realm }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID

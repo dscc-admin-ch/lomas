@@ -346,15 +346,16 @@ tempo:
         backend: local
         # traces will be stored in <basepath>/traces and wal will be in <basepath>/wal
         basepath: /var/tempo/
-
-    pvc:
-      storageClassName: "" # is not set if empty string
-      sizeLimit: 1Gi
-      sizeRequest: 1Gi
-      persistence:
-        # If set to "keep", sets the helm/resource-policy of the pvc to keep,
-        # so that the pvc is not deleted across reinstalls.
-        resourcePolicy: ""
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
+  pvc:
+    storageClassName: "" # is not set if empty string
+    sizeLimit: 1Gi
+    sizeRequest: 1Gi
+    persistence:
+      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+      # so that the pvc is not deleted across reinstalls.
+      resourcePolicy: ""
 
 # Grafana
 ##########################################################################

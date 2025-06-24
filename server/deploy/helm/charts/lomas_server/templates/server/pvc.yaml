@@ -10,7 +10,7 @@ metadata:
     {{- end }}
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   {{- if .Values.server.pvc.storageClassName }}
   storageClassName: {{ .Values.server.pvc.storageClassName | quote }}
   {{- end }}

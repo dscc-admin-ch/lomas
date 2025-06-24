@@ -21,7 +21,7 @@ data:
             verbosity: detailed
 
         otlp/tempo:
-            endpoint: {{ .Values.tempo.fullnameOverride }}:{{ .Values.otel.service.port }}
+            endpoint: {{ include "lomas.tempo.fullname" . }}:{{ .Values.otel.service.port }}
             tls:
                 insecure: true
 
@@ -29,7 +29,7 @@ data:
             endpoint: "0.0.0.0:{{ .Values.otel.config.exporters.prometheus.port }}"
 
         otlphttp/loki:
-            endpoint: "http://{{ .Values.loki.fullnameOverride }}:{{ .Values.loki.service.target_port }}/otlp"
+            endpoint: "http://{{ include "lomas.loki.fullname" . }}:{{ .Values.loki.service.target_port }}/otlp"
 
     extensions:
         health_check:

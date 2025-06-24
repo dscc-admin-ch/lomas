@@ -24,14 +24,36 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
-      # TODO: remove once the server supports connection retries to the mongodb issue 424.
-      - name: mongo-check
-        image: {{ include "mongodb.image" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
+      - name: keycloak-check
+        image: {{.Values.admin.curlImage.repository -}}:{{- .Values.admin.curlImage.tag }}
+        imagePullPolicy: {{ .Values.admin.curlImage.pullPolicy }}
         command:
           - sh
           - -c
           - >
-            until mongosh --host {{ .Values.mongodb.fullnameOverride }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
+            until curl http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/master; do
+              echo "Keycloak not ready yet";
+              sleep 10;
+            done;
+            while true; do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/{{- .Values.admin.realm -}})
+              echo "Lomas realm query status: $STATUS"
+              if [[ $STATUS == "200" ]]; then
+                echo "Lomas realm ready."
+                exit 0;
+              fi;
+              sleep 10;
+            done;
+        resources:
+          {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
+      # TODO: remove once the server supports connection retries to the mongodb issue 424.
+      - name: mongo-check
+        image: {{ include "mongodb.image" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
+        command:
+          - sh
+          - -c
+          - >
+            until mongosh --host {{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
               echo "Mongo not ready yet";
               sleep 10;
             done;
@@ -67,13 +89,13 @@ spec:
           - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
           - name: LOMAS_SERVICE_ADMIN_DATABASE__URL
-            value: "mongodb://{{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
+            value: "mongodb://{{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
           - name: LOMAS_SERVICE_ADMIN_DATABASE__USERNAME
             value: "{{ index .Values.mongodb.auth.usernames 0 }}"
           - name: LOMAS_SERVICE_ADMIN_DATABASE__PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ include "mongodb.secretName" (dict "Release" .Release "Chart" .Chart "Values" .Values.mongodb) }}
+                name: {{ include "mongodb.secretName" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
                 key: mongodb-passwords
           - name: LOMAS_SERVICE_ADMIN_DATABASE__MAX_POOL_SIZE
             value: "{{ .Values.mongodb.max_pool_size }}"
@@ -101,18 +123,18 @@ spec:
           - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
             value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
-            value: "http://{{ .Values.otel.fullnameOverride }}:{{ .Values.otel.service.port }}"
+            value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.otel.service.port }}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
             value: "true"
           - name: LOMAS_SERVICE_AMQP__URL
-            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
+            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
           - name: LOMAS_SERVICE_AMQP__USERNAME
             value: "{{ .Values.rabbitmq.auth.username }}"
           - name: LOMAS_SERVICE_AMQP__PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}
-                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" .Chart "Values" .Values.rabbitmq) }}
+                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
+                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
         resources:

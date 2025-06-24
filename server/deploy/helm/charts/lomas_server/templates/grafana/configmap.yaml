@@ -16,7 +16,7 @@ data:
         uid: {{ .Values.grafana.datasources.prometheus.uid }}
         access: {{ .Values.grafana.datasources.prometheus.access }}
         orgId: {{ .Values.grafana.datasources.prometheus.orgId }}
-        url: 'http://{{ .Values.prometheus.fullnameOverride }}:{{ .Values.prometheus.service.port }}'
+        url: 'http://{{ include "lomas.prometheus.fullname" . }}:{{ .Values.prometheus.service.port }}'
         basicAuth: {{ .Values.grafana.datasources.prometheus.basicAuth }}
         isDefault: {{ .Values.grafana.datasources.prometheus.isDefault }}
         version: {{ .Values.grafana.datasources.prometheus.version }}
@@ -29,7 +29,7 @@ data:
         uid: {{ .Values.grafana.datasources.tempo.uid }}
         access: {{ .Values.grafana.datasources.tempo.access }}
         orgId: {{ .Values.grafana.datasources.tempo.orgId }}
-        url: 'http://{{ .Values.tempo.fullnameOverride }}:{{ .Values.tempo.service.port }}'
+        url: 'http://{{ include "lomas.tempo.fullname" . }}:{{ .Values.tempo.service.port }}'
         basicAuth: {{ .Values.grafana.datasources.tempo.basicAuth }}
         isDefault: {{ .Values.grafana.datasources.tempo.isDefault }}
         version: {{ .Values.grafana.datasources.tempo.version }}
@@ -42,7 +42,7 @@ data:
         uid: {{ .Values.grafana.datasources.loki.uid }}
         access: {{ .Values.grafana.datasources.loki.access }}
         orgId: {{ .Values.grafana.datasources.loki.orgId }}
-        url: 'http://{{ .Values.loki.fullnameOverride }}:{{ .Values.loki.service.port }}'
+        url: 'http://{{ include "lomas.loki.fullname" . }}:{{ .Values.loki.service.port }}'
         basicAuth: {{ .Values.grafana.datasources.loki.basicAuth }}
         isDefault: {{ .Values.grafana.datasources.loki.isDefault }}
         version: {{ .Values.grafana.datasources.loki.version }}

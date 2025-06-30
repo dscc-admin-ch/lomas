@@ -118,6 +118,10 @@ class Client:
             data = res.content.decode("utf8")
             dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
             if lazy:
+                # Temporary: we use type string for datetime in polars
+                # Will be fixed in 0.13
+                for col in dummy_df.select_dtypes(include=["datetime"]):
+                    dummy_df[col] = dummy_df[col].astype("string[python]")
                 return pl.from_pandas(dummy_df).lazy()
             return dummy_df
 

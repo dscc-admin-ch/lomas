@@ -10,7 +10,7 @@ metadata:
     {{- end }}
 spec:
   accessModes:
-    - {{ .Values.server.pvc.accessmode }}
+    - {{ .Values.server.pvc.accessMode }}
   {{- if .Values.server.pvc.storageClassName }}
   storageClassName: {{ .Values.server.pvc.storageClassName | quote }}
   {{- end }}

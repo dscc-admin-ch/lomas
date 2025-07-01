@@ -725,7 +725,6 @@ rabbitmq:
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:
     enabled: false
-    #servicePort: http
     labels: {}
     annotations: {}
     hostname: "rabbitmq.example.com"

@@ -8,10 +8,10 @@ spec:
   selector:
     matchLabels:
       {{- include "lomas.worker.selectorLabels" . | nindent 6 }}
-  replicas: {{ .Values.server.replicas }}
+  replicas: {{ .Values.worker.replicaCount }}
   template:
     metadata:
-      {{- with .Values.server.podAnnotations }}
+      {{- with .Values.worker.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -20,7 +20,7 @@ spec:
     spec:
       serviceAccountName: {{ include "lomas.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.worker.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
@@ -60,9 +60,9 @@ spec:
             echo "Mongo ready"
             exit 0;
       containers:
-      - name: {{ include "lomas.server.fullname" . }}
+      - name: {{ include "lomas.worker.fullname" . }}
         securityContext:
-            {{- toYaml .Values.server.securityContext | nindent 12 }}
+            {{- toYaml .Values.worker.securityContext | nindent 12 }}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         command: ["python", "-m", "lomas_server.worker"]
@@ -138,20 +138,20 @@ spec:
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
         resources:
-            {{- toYaml .Values.server.resources | nindent 12 }}
+            {{- toYaml .Values.worker.resources | nindent 12 }}
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.fullname" . }}
-      {{- with .Values.server.nodeSelector }}
+      {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.server.affinity }}
+      {{- with .Values.worker.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.server.tolerations }}
+      {{- with .Values.worker.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

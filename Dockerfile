@@ -41,7 +41,7 @@ COPY --from=lomas_core /code/ /code/
 COPY ./client/lomas_client/ /code/client/lomas_client/
 COPY ./client/README.md /code/client/README.md
 COPY ./client/notebooks/images/ /code/client/notebooks/images/
-COPY ./client/notebooks/Demo_Client_Notebook.ipynb /code/client/notebooks/Demo_Client_Notebook.ipynb
+COPY ./client/notebooks/ /code/client/notebooks/
 COPY ./client/LICENSE /code/client/LICENSE
 RUN uv sync --package lomas-client --no-cache
 CMD ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root"]

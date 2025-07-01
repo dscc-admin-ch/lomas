@@ -43,6 +43,7 @@ server:
     storageClassName: "" # is not set if empty string
     sizeLimit: 500Mi
     sizeRequest: 500Mi
+    accessMode: "ReadWriteOnce" # ReadWriteMany if supported, otherwise use affinity to colocate server, worker and dashboard.
     persistence:
       # If set to "keep", sets the helm/resource-policy of the pvc to keep,
       # so that the pvc is not deleted across reinstalls.
@@ -67,16 +68,7 @@ server:
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
-  # Lomas server not meant to be replicated for now
-  replicaCount: 1
-  # Lomas server not intended to be autoscaled for now
-  # autoscaling:
-  #  enabled: false
-  #  minReplicas: 1
-  #  maxReplicas: 100
-  #  targetCPUUtilizationPercentage: 80
-  #  targetMemoryUtilizationPercentage: 80
-
+  
   # We leave unset stuff here
   serviceAccount:
     create: false
@@ -89,6 +81,20 @@ server:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+worker:
+  replicaCount: 1
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+  resources: {}
   podAnnotations: {}
   podSecurityContext: {}
   securityContext: {}
@@ -568,16 +574,10 @@ keycloak:
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
     # List of rules for the Ingress
     hostname: "keycloak.example.com"
-    # TLS configuration
-    #tls: true
-    extraTls:
-      - hosts:
-          - "keycloak.example.com"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:
     enabled: false
-    servicePort: http
     labels: {}
     annotations: {}
     hostname: "lomas-keycloak.example.com"
@@ -645,6 +645,9 @@ rabbitmq:
 
   plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
 
+  extraConfiguration: |-
+      heartbeat = 1800
+
   clustering:
     enabled: false
 
@@ -711,6 +714,24 @@ rabbitmq:
       manager: "http-stats"
       metrics: "metrics"
       epmd: "epmd"
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+    # List of rules for the Ingress
+    hostname: "rabbitmq.example.com"
+
+  # Openshift route for Openshift clusters, not part of bitnami chart.
+  route:
+    enabled: false
+    #servicePort: http
+    labels: {}
+    annotations: {}
+    hostname: "rabbitmq.example.com"
+    tls:
+      insecureEdgeTerminationPolicy: None
+      termination: edge
 
   networkPolicy:
     enabled: false

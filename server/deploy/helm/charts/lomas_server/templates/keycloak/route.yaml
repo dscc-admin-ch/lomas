@@ -1,7 +1,6 @@
 {{- if .Values.keycloak.create -}}
 {{- if .Values.keycloak.route.enabled -}}
 {{- $fullName := include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}
-{{- $svcPort := .Values.keycloak.route.servicePort -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -17,7 +16,7 @@ spec:
   host: {{ .Values.keycloak.route.hostname | quote }}
   path: /
   port:
-    targetPort: {{ $svcPort }}
+    targetPort: http
   to:
     kind: Service
     name: {{ $fullName }}

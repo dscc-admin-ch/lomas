@@ -122,6 +122,11 @@ class Client:
                 # Will be fixed in 0.13
                 for col in dummy_df.select_dtypes(include=["datetime"]):
                     dummy_df[col] = dummy_df[col].astype("string[python]")
+                print(
+                    "Datetime type mismatch: The Polars LazyFrame currently uses 'str' for datetime fields, "
+                    "which may not match the expected metadata types. This is a temporary workaround and will be "
+                    "resolved in a future release (>=0.13)."
+                )
                 return pl.from_pandas(dummy_df).lazy()
             return dummy_df
 

@@ -62,7 +62,6 @@ def init_logs_exporter(resource: Resource, telemetry_config: Telemetry) -> None:
     set_logger_provider(logger_provider)
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
 
-    logging.getLogger().setLevel(logging.DEBUG)
     handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
     logging.getLogger().addHandler(handler)
 

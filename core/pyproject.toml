@@ -42,6 +42,7 @@ dependencies = [
     "opentelemetry-sdk>=1.29.0",
     "pandas>=2.2.2",
     "polars==1.12.0",
+    "pyarrow>=20.0.0",
     "pydantic==2.8.2",
     "pydantic-settings==2.8.1",
     "pymongo>=4.6.3",

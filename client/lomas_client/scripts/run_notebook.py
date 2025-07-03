@@ -1,8 +1,16 @@
 import argparse
+import importlib.util
 from pathlib import Path
 
 import nbformat
 from nbclient import NotebookClient
+
+try:
+    from lomas_server.administration.scripts.lomas_demo_setup import (
+        lomas_demo_setup,
+    )
+except ImportError:
+    pass
 
 
 def get_client_notebook_files() -> list[Path]:
@@ -36,10 +44,8 @@ def run_notebook(
 
     # Reset demo users and budgets
     if run_demo_setup:
-        # Import this here so that the script can still be run in environments without the server lib.
-        from lomas_server.administration.scripts.lomas_demo_setup import (  # noqa: PLC0415 pylint: disable=C0415
-            lomas_demo_setup,
-        )
+        if importlib.util.find_spec("lomas_server") is None:
+            raise ImportError("lomas_server library not found, cannot run lomas_demo_setup.")
 
         lomas_demo_setup()
 

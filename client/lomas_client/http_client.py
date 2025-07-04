@@ -13,6 +13,8 @@ from lomas_client.models.config import ClientConfig
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
+logger = logging.getLogger(__name__)
+
 
 class LomasHttpClient:
     """A client for interacting with the Lomas API."""
@@ -26,7 +28,7 @@ class LomasHttpClient:
         self.config = config
 
         if not self.config.keycloak_use_tls or not self.config.lomas_service_use_tls:
-            logging.info(
+            logger.info(
                 "Keycloak or Lomas service configured without TLS -> using oauthlib insecure transport"
             )
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -72,7 +74,7 @@ class LomasHttpClient:
             requests.Response: The response object resulting from the POST request.
         """
 
-        logging.info(
+        logger.info(
             f"User (with client id '{self.config.client_id}') is making a request "
             + f"to url '{self.config.app_url}' "
             + f"at the endpoint '{endpoint}' "

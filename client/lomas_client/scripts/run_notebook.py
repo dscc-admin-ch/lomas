@@ -1,8 +1,16 @@
 import argparse
+import importlib.util
 from pathlib import Path
 
 import nbformat
 from nbclient import NotebookClient
+
+try:
+    from lomas_server.administration.scripts.lomas_demo_setup import (
+        lomas_demo_setup,
+    )
+except ImportError:
+    pass
 
 
 def get_client_notebook_files() -> list[Path]:
@@ -16,7 +24,7 @@ def get_client_notebook_files() -> list[Path]:
 
 
 def run_notebook(
-    file: Path, run_demo_setup: bool, save_output: bool = False, skip_smartnoise_synth: bool = True
+    notebook_file: Path, run_demo_setup: bool, save_output: bool = False, skip_smartnoise_synth: bool = True
 ) -> None:
     """Runs the notebook in the given file.
 
@@ -24,29 +32,31 @@ def run_notebook(
     the file layout is same as in the code repository.
 
     Args:
-        file (str): _description_
+        notebook_file (str): _description_
         run_demo_setup (bool): Runs the lomas_demo_setup before running the notebook.
         save_output (bool, optional): Saves the output to the original file. Defaults to False.
         skip_smartnoise_synth (bool, optional): Skip smartnoise synth demo notebook
     """
     # TODO issue 423
-    if skip_smartnoise_synth and file.name == "Demo_Client_Notebook_Smartnoise-Synth.ipynb":
+    if skip_smartnoise_synth and notebook_file.name == "Demo_Client_Notebook_Smartnoise-Synth.ipynb":
         print("Skiping smartnoise synth notebook.")
         return
 
     # Reset demo users and budgets
     if run_demo_setup:
-        # Import this here so that the script can still be run in environments without the server lib.
-        from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
+        if importlib.util.find_spec("lomas_server") is None:
+            raise ImportError("lomas_server library not found, cannot run lomas_demo_setup.")
 
         lomas_demo_setup()
 
-    nb = nbformat.read(file, as_version=4)
-    nb_client = NotebookClient(nb, resources={"metadata": {"path": str(file.parent)}}, timeout=60 * 5)
+    nb = nbformat.read(notebook_file, as_version=4)
+    nb_client = NotebookClient(
+        nb, resources={"metadata": {"path": str(notebook_file.parent)}}, timeout=60 * 5
+    )
     nb_client.execute()
 
     if save_output:
-        nbformat.write(nb, file)
+        nbformat.write(nb, notebook_file)
 
 
 if __name__ == "__main__":

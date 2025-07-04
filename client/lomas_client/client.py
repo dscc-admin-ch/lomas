@@ -1,7 +1,5 @@
 import base64
 import json
-import logging
-import logging.config
 import pickle
 
 import pandas as pd
@@ -63,23 +61,6 @@ class Client:
                 "If you are using this library from a managed environment and don't know "
                 "about your credentials, please contact your system administrator."
             ) from exc
-
-        # TODO update with issue 467, for now, set basic logging config.
-        logging_conf = {
-            "disable_existing_loggers": False,
-            "formatters": {"simple": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
-            "handlers": {
-                "stdout": {
-                    "class": "logging.StreamHandler",
-                    "formatter": "simple",
-                    "level": "INFO",
-                    "stream": "ext://sys.stdout",
-                }
-            },
-            "root": {"handlers": ["stdout"], "level": "DEBUG"},
-            "version": 1,
-        }
-        logging.config.dictConfig(logging_conf)
 
         if self.config.telemetry.enabled:
             LoggingInstrumentor().instrument(set_logging_format=True)

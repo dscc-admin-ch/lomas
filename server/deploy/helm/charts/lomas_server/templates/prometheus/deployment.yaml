@@ -23,7 +23,6 @@ spec:
         {{- toYaml .Values.prometheus.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
-
       containers:
       - name: prometheus-container
         image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
@@ -32,6 +31,8 @@ spec:
           - "--web.listen-address=:{{ .Values.prometheus.service.port }}"
         ports:
           - containerPort: {{ .Values.prometheus.service.port }}
+        resources:
+          {{- toYaml .Values.prometheus.resources | nindent 10 }}
         volumeMounts:
           - name: prometheus-config
             mountPath: /conf

@@ -23,7 +23,6 @@ spec:
         {{- toYaml .Values.tempo.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
-
       containers:
       - name: tempo-container
         image: "{{ .Values.tempo.image.repository }}:{{ .Values.tempo.image.tag }}"
@@ -31,6 +30,8 @@ spec:
           - "--config.file=/etc/tempo.yaml"
         ports:
           - containerPort: {{ .Values.tempo.service.port }}
+        resources:
+          {{- toYaml .Values.tempo.resources | nindent 10 }}
         volumeMounts:
           - name: tempo-config
             mountPath: /etc/tempo.yaml

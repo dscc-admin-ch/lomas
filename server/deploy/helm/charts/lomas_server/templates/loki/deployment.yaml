@@ -23,7 +23,6 @@ spec:
         {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
-
       containers:
       - name: loki-container
         image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag }}"
@@ -31,6 +30,8 @@ spec:
           - "-config.file=/etc/loki/loki-config.yaml"
         ports:
           - containerPort: {{ .Values.loki.service.port }}
+        resources:
+          {{- toYaml .Values.loki.resources | nindent 10 }}
         volumeMounts:
           - name: loki-config
             readOnly: True

@@ -34,6 +34,8 @@ spec:
             name: otlp-grpc
           - containerPort: {{ .Values.otel.config.exporters.prometheus.port }}
             name: metrics
+        resources:
+          {{- toYaml .Values.otel.resources | nindent 10 }}
         volumeMounts:
           - name: otel-config
             readOnly: True

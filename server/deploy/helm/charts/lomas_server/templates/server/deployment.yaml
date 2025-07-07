@@ -27,6 +27,8 @@ spec:
       - name: keycloak-check
         image: {{.Values.admin.curlImage.repository -}}:{{- .Values.admin.curlImage.tag }}
         imagePullPolicy: {{ .Values.admin.curlImage.pullPolicy }}
+        resources:
+          {{- toYaml .Values.admin.initContainers.resources | nindent 10 }}
         command:
           - sh
           - -c
@@ -44,11 +46,11 @@ spec:
               fi;
               sleep 10;
             done;
-        resources:
-          {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       # TODO: remove once the server supports connection retries to the mongodb issue 424.
       - name: mongo-check
         image: {{ include "mongodb.image" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
+        resources:
+          {{- toYaml .Values.admin.initContainers.resources | nindent 10 }}
         command:
           - sh
           - -c
@@ -63,6 +65,8 @@ spec:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:
             {{- toYaml .Values.server.securityContext | nindent 12 }}
+        resources:
+          {{- toYaml .Values.server.resources | nindent 10}}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         ports:
@@ -136,8 +140,6 @@ spec:
                 key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
-        resources:
-            {{- toYaml .Values.server.resources | nindent 12 }}
       volumes:
         - name: data
           persistentVolumeClaim:

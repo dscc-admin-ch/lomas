@@ -83,7 +83,6 @@ server:
     #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
-  securityContext: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -97,7 +96,6 @@ worker:
   resources: {}
   podAnnotations: {}
   podSecurityContext: {}
-  securityContext: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -124,6 +122,14 @@ admin:
   lomas_service_client_secret: "lomas_service"
   lomas_service_existing_secret: ""
   lomas_service_secret_key: ""
+  initContainers:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 400Mi
+      requests:
+        cpu: 50m
+        memory: 400Mi
   keycloakSetup:
     overwrite_realm: true
     resources: {}
@@ -146,7 +152,6 @@ admin:
     #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
-  securityContext: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -265,8 +270,8 @@ loki:
     pattern_ingester:
       enabled: true
 
-  podSecurityContext:
-    fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext: {}
+    # fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -275,6 +280,8 @@ loki:
       # If set to "keep", sets the helm/resource-policy of the pvc to keep,
       # so that the pvc is not deleted across reinstalls.
       resourcePolicy: ""
+
+  resources: {}
 
 # Opentelemetry-Collector
 ##########################################################################
@@ -299,6 +306,7 @@ otel:
       health_check_port: 13133
       pprof_port: 1777
       zpages_port: 55679
+  resources: {}
 
 # Prometheus
 ##########################################################################
@@ -315,8 +323,8 @@ prometheus:
   config:
     scrape_interval: 5s
     evaluation_interval: 5s
-  podSecurityContext:
-    fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext: {}
+    # fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -325,6 +333,7 @@ prometheus:
       # If set to "keep", sets the helm/resource-policy of the pvc to keep,
       # so that the pvc is not deleted across reinstalls.
       resourcePolicy: ""
+  resources: {}
 
 # Tempo
 ##########################################################################
@@ -352,8 +361,8 @@ tempo:
         backend: local
         # traces will be stored in <basepath>/traces and wal will be in <basepath>/wal
         basepath: /var/tempo/
-  podSecurityContext:
-    fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext: {}
+    # fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -362,6 +371,7 @@ tempo:
       # If set to "keep", sets the helm/resource-policy of the pvc to keep,
       # so that the pvc is not deleted across reinstalls.
       resourcePolicy: ""
+  resources: {}
 
 # Grafana
 ##########################################################################
@@ -439,6 +449,7 @@ grafana:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
   replicaCount: 1
+  resources: {}
 
 ##########################################################################
 # Lomas Chart Dependecies

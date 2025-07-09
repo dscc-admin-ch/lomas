@@ -183,6 +183,7 @@ class FloatMetadata(BoundedColumnMetadata):
     precision: Precision
     lower: float
     upper: float
+    int_with_nulls: Optional[bool] = False
 
 
 class BooleanMetadata(ColumnMetadata):

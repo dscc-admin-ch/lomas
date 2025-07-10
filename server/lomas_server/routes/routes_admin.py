@@ -221,7 +221,7 @@ def get_dummy_dataset(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes, datetime_columns = get_column_dtypes(ds_metadata)
+        dtypes, datetime_columns, _ = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
             ds_metadata,

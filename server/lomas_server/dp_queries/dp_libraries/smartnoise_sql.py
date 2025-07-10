@@ -16,7 +16,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS, INT64_PRECISION
+from lomas_server.constants import INT64_PRECISION, SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -182,8 +182,8 @@ def convert_to_smartnoise_metadata(metadata: Metadata, int_with_nulls_columns: l
                 if val.get(k) is not None:
                     del val[k]
         if col in int_with_nulls_columns:
-            val["type"] == MetadataColumnType.INT
-            val["precision"] == INT64_PRECISION
+            val["type"] = MetadataColumnType.INT
+            val["precision"] = INT64_PRECISION
 
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]

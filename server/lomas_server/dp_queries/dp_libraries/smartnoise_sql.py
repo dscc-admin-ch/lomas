@@ -6,7 +6,6 @@ from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
-    InvalidQueryException,
 )
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import MetadataColumnType
@@ -16,7 +15,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import INT64_PRECISION, SSQL_MAX_ITERATION, SSQL_STATS
+from lomas_server.constants import INT64_PRECISION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -74,25 +73,10 @@ class SmartnoiseSQLQuerier(
         return epsilon, delta
 
     def query(self, query_json: SmartnoiseSQLQueryModel) -> SmartnoiseSQLQueryResult:
-        """Performs the query and returns the response.
-
-        Args:
-            query_json (SmartnoiseSQLQueryModel): The request model object.
-
-        Returns:
-            dict: The dictionary encoding of the result pd.DataFrame.
-        """
-        return self.query_with_iter(query_json)
-
-    def query_with_iter(
-        self, query_json: SmartnoiseSQLQueryModel, nb_iter: int = 0
-    ) -> SmartnoiseSQLQueryResult:
         """Perform the query and return the response.
 
         Args:
             query_json (SmartnoiseSQLQueryModel): Request object for the query.
-            nb_iter (int, optional): Number of trials if output is Nan.
-                Defaults to 0.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -132,17 +116,6 @@ class SmartnoiseSQLQuerier(
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        if df_res.isna().to_numpy().any():
-            # Try again up to SSQL_MAX_ITERATION
-            if nb_iter < SSQL_MAX_ITERATION:
-                nb_iter += 1
-                return self.query_with_iter(query_json, nb_iter)
-
-            raise InvalidQueryException(
-                f"SQL Reader generated NAN results. "
-                f"Epsilon: {epsilon} and Delta: {delta} are too small "
-                "to generate output.",
-            )
         return SmartnoiseSQLQueryResult(df=df_res)
 
 

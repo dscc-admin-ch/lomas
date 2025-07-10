@@ -42,6 +42,7 @@ columns:
     precision: 64
     lower: 2000.0
     upper: 7000.0
+    int_with_nulls: true
   sex:
     type: string
     nullable_proportion: 0.0

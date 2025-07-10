@@ -4,6 +4,7 @@ import pandas as pd
 import polars as pl
 
 from lomas_core.models.collections import DatetimeMetadata, Metadata
+from lomas_core.models.constants import MetadataColumnType
 
 
 class DataConnector(ABC):
@@ -19,9 +20,10 @@ class DataConnector(ABC):
         """
         self.metadata: Metadata = metadata
 
-        dtypes, datetime_columns = get_column_dtypes(self.metadata)
+        dtypes, datetime_columns, int_with_nulls_columns = get_column_dtypes(self.metadata)
         self.dtypes: dict[str, str] = dtypes
         self.datetime_columns: list[str] = datetime_columns
+        self.int_with_nulls_columns: list[str] = int_with_nulls_columns
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:
@@ -50,20 +52,22 @@ class DataConnector(ABC):
         return self.metadata
 
 
-def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
+def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str], list[str]]:
     """Extracts and returns the column types from the metadata.
 
     Args:
         metadata (Metadata): The metadata.
 
     Returns:
-        Tuple[Dict[str, str], List[str]]:
+        Tuple[Dict[str, str], List[str], List[str]]:
            dict: The dictionary of the column type.
             list: The list of columns of datetime type
+            list: The list of float columns that are int with null values
     """
 
     dtypes = {}
     datetime_columns = []
+    int_with_nulls_columns = []
     for col_name, data in metadata.columns.items():
         if isinstance(data, DatetimeMetadata):
             dtypes[col_name] = "string"
@@ -72,4 +76,8 @@ def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
             dtypes[col_name] = f"{data.type}{data.precision}"
         else:
             dtypes[col_name] = data.type
-    return dtypes, datetime_columns
+
+        if data.type == MetadataColumnType.FLOAT and data.int_with_nulls:
+            int_with_nulls_columns.append(col_name)
+
+    return dtypes, datetime_columns, int_with_nulls_columns

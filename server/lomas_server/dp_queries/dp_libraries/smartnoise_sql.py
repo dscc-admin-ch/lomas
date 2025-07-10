@@ -16,7 +16,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
+from lomas_server.constants import INT64_PRECISION, SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -52,10 +52,16 @@ class SmartnoiseSQLQuerier(
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
         metadata = self.data_connector.get_metadata()
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
+        int_with_nulls_columns = self.data_connector.int_with_nulls_columns
+        smartnoise_metadata = convert_to_smartnoise_metadata(metadata, int_with_nulls_columns)
+
+        # Convert float columns that are int with nulls to Int64
+        df = self.data_connector.get_pandas_df()
+        for col in int_with_nulls_columns:
+            df[col] = df[col].where(~pd.isna(df[col]), other=pd.NA).round().astype("Int64")
 
         self.reader = from_connection(
-            self.data_connector.get_pandas_df(),
+            df,
             privacy=privacy,
             metadata=smartnoise_metadata,
         )
@@ -159,21 +165,25 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     return privacy
 
 
-def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
+def convert_to_smartnoise_metadata(metadata: Metadata, int_with_nulls_columns: list[str]) -> dict:
     """Convert Lomas metadata to smartnoise metadata format (for SQL).
 
     Args:
         metadata (Metadata): Dataset metadata from admin database
+        int_with_nulls_columns (list[str]): List of float columns that are int with nulls
     Returns:
         dict: metadata of the dataset in smartnoise-sql format
     """
     metadata_dict = metadata.model_dump()
     # No bounds on datetime for Smartnoise-SQL
-    for _, val in metadata_dict["columns"].items():
+    for col, val in metadata_dict["columns"].items():
         if val["type"] == MetadataColumnType.DATETIME:
             for k in ["lower", "upper"]:
                 if val.get(k) is not None:
                     del val[k]
+        if col in int_with_nulls_columns:
+            val["type"] = MetadataColumnType.INT
+            val["precision"] = INT64_PRECISION
 
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]

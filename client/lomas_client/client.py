@@ -102,6 +102,8 @@ class Client:
                 Defaults to DUMMY_NB_ROWS.
             seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
+            lazy (bool, optional): If True, return a polars LazyFrame.
+                Defaults to False (pandas DataFrame)
         Returns:
             pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing
                 the dummy dataset (optionally in LazyFrame format).
@@ -116,7 +118,8 @@ class Client:
 
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
-            dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
+            validated_response = DummyDsResponse.model_validate_json(data)
+            dummy_df = validated_response.dummy_df
             if lazy:
                 # Temporary: we use type string for datetime in polars
                 # Will be fixed in 0.13
@@ -128,6 +131,11 @@ class Client:
                     "and will be resolved in a future release (>=0.13)."
                 )
                 return pl.from_pandas(dummy_df).lazy()
+
+            for col in validated_response.int_with_nulls_columns:
+                dummy_df[col] = (
+                    dummy_df[col].where(~pd.isna(dummy_df[col]), other=pd.NA).round().astype("Int64")
+                )
             return dummy_df
 
         raise_error(res)

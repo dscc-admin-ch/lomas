@@ -77,7 +77,7 @@ def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str], li
         else:
             dtypes[col_name] = data.type
 
-        if data.type == MetadataColumnType.FLOAT and getattr(data, "int_with_nulls", False):
+        if data.type == MetadataColumnType.FLOAT and data.int_with_nulls:
             int_with_nulls_columns.append(col_name)
 
     return dtypes, datetime_columns, int_with_nulls_columns

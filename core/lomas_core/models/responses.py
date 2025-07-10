@@ -68,6 +68,8 @@ class DummyDsResponse(ResponseModel):
     """The dummy_df column data types."""
     datetime_columns: list[str]
     """The list of columns with datetime type."""
+    int_with_nulls_columns: list[str]
+    """The list of columns that have dtype float but are int with nulls."""
     dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
     """The dummy dataframe."""
 

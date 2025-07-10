@@ -221,7 +221,7 @@ def get_dummy_dataset(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes, datetime_columns, _ = get_column_dtypes(ds_metadata)
+        dtypes, datetime_columns, int_with_nulls_columns = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
             ds_metadata,
@@ -237,7 +237,12 @@ def get_dummy_dataset(
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return DummyDsResponse(dtypes=dtypes, datetime_columns=datetime_columns, dummy_df=dummy_df)
+    return DummyDsResponse(
+        dtypes=dtypes,
+        datetime_columns=datetime_columns,
+        int_with_nulls_columns=int_with_nulls_columns,
+        dummy_df=dummy_df,
+    )
 
 
 # MongoDB get initial budget

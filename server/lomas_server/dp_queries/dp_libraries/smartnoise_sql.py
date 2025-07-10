@@ -58,7 +58,7 @@ class SmartnoiseSQLQuerier(
         # Convert float columns that are int with nulls to Int64
         df = self.data_connector.get_pandas_df()
         for col in int_with_nulls_columns:
-            df[col] = df[col].astype("Int64")
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
 
         self.reader = from_connection(
             df,

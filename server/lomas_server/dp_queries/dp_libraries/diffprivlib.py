@@ -57,7 +57,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         # Prepare data
         df = self.data_connector.get_pandas_df()
         for col in self.data_connector.int_with_nulls_columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce").round().astype("Int64")
+            df[col] = df[col].where(~pd.isna(df[col]), other=pd.NA).round().astype("Int64")
         data = handle_missing_data(df, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
 

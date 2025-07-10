@@ -133,7 +133,9 @@ class Client:
                 return pl.from_pandas(dummy_df).lazy()
 
             for col in validated_response.int_with_nulls_columns:
-                dummy_df[col] = pd.to_numeric(dummy_df[col], errors="coerce").round().astype("Int64")
+                dummy_df[col] = (
+                    dummy_df[col].where(~pd.isna(dummy_df[col]), other=pd.NA).round().astype("Int64")
+                )
             return dummy_df
 
         raise_error(res)

@@ -94,7 +94,6 @@ class Client:
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
         lazy: bool = False,
-        smartnoise_sql: bool = True,
     ) -> pd.DataFrame | pl.LazyFrame:
         """This function retrieves a dummy dataset with optional parameters.
 
@@ -105,15 +104,10 @@ class Client:
                 Defaults to DUMMY_SEED.
             lazy (bool, optional): If True, return a polars LazyFrame.
                 Defaults to False (pandas DataFrame)
-            smartnoise_sql (bool, optional): If True, return a pandas DataFrame
-                with 'Int64' in columns flagged as int_with_nulls (instead of float).
-                Defaults to True.
         Returns:
             pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing
                 the dummy dataset (optionally in LazyFrame format).
         """
-        if lazy and smartnoise_sql:
-            raise ValueError("The options `lazy=True` and `smartnoise_sql=True` cannot be used together.")
         body_dict = {
             "dataset_name": self.config.dataset_name,
             "dummy_nb_rows": nb_rows,
@@ -138,9 +132,8 @@ class Client:
                 )
                 return pl.from_pandas(dummy_df).lazy()
 
-            if smartnoise_sql:
-                for col in validated_response.int_with_nulls_columns:
-                    dummy_df[col] = dummy_df[col].astype("Int64")
+            for col in validated_response.int_with_nulls_columns:
+                dummy_df[col] = dummy_df[col].astype("Int64")
             return dummy_df
 
         raise_error(res)

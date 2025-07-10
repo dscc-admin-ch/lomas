@@ -60,7 +60,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
     # Force int type on int columns (after mean)
     for col in df.columns:
-        if pd.api.types.is_integer_dtype(dtypes[col]):
+        if pd.api.types.is_integer_dtype(dtypes[col]) or pd.api.types.is_integer_dtype(dtypes[col]):
             df[col] = df[col].round().astype(dtypes[col])
 
     df = df.astype(dtype=dtypes)

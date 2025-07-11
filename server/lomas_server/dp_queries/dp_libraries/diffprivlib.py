@@ -59,13 +59,16 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         df = self.data_connector.get_pandas_df()
 
         # Check for overlap
-        if query_json.target_columns:
+        useful_columns = query_json.feature_columns.copy()
+        if query_json.target_columns is not None:
             for target in query_json.target_columns:
                 if target in query_json.feature_columns:
                     raise InvalidQueryException(
                         f"A column may only be in one of features and target. {target} is in both."
                     )
+                useful_columns.append(target)
 
+        df = df[useful_columns]
         data = handle_missing_data(df, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
 

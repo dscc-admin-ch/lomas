@@ -61,9 +61,6 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         useful_columns = (query_json.feature_columns or []) + (query_json.target_columns or [])
         df = df[useful_columns]
 
-        for col in self.data_connector.int_with_nulls_columns:
-            df[col] = df[col].where(~pd.isna(df[col]), other=pd.NA).round().astype("Int64")
-
         data = handle_missing_data(df, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
 

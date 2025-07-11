@@ -73,6 +73,8 @@ def make_dummy_dataset(
                 serie = pd.Series(
                     data.lower + (data.upper - data.lower) * rng.random(size=nb_rows, dtype=np.dtype(dtype))
                 )
+                if data.int_with_nulls:
+                    serie = serie.round(0)
             case DatetimeMetadata():
                 serie = pd.Series(
                     rng.choice(

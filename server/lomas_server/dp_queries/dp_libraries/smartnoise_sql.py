@@ -3,10 +3,7 @@ from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-)
+from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import MetadataColumnType
 from lomas_core.models.requests import (
@@ -15,7 +12,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.constants import SSQL_STATS
+from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -32,6 +29,7 @@ class SmartnoiseSQLQuerier(
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.reader: Reader | None = None
+        self.original_columns: list[str] = []
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -53,8 +51,10 @@ class SmartnoiseSQLQuerier(
         metadata = self.data_connector.get_metadata()
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
 
+        df = self.data_connector.get_pandas_df()
+        self.original_columns = df.columns
         self.reader = from_connection(
-            self.data_connector.get_pandas_df(),
+            df,
             privacy=privacy,
             metadata=smartnoise_metadata,
         )
@@ -67,10 +67,24 @@ class SmartnoiseSQLQuerier(
         return epsilon, delta
 
     def query(self, query_json: SmartnoiseSQLQueryModel) -> SmartnoiseSQLQueryResult:
+        """Performs the query and returns the response.
+
+        Args:
+            query_json (SmartnoiseSQLQueryModel): The request model object.
+        Returns:
+            dict: The dictionary encoding of the result pd.DataFrame.
+        """
+        return self.query_with_iter(query_json)
+
+    def query_with_iter(
+        self, query_json: SmartnoiseSQLQueryModel, nb_iter: int = 0
+    ) -> SmartnoiseSQLQueryResult:
         """Perform the query and return the response.
 
         Args:
             query_json (SmartnoiseSQLQueryModel): Request object for the query.
+            nb_iter (int, optional): Number of trials if output is Nan.
+                Defaults to 0.
 
         Raises:
             ExternalLibraryException: For exceptions from libraries
@@ -109,6 +123,18 @@ class SmartnoiseSQLQuerier(
             )
 
         df_res = pd.DataFrame(result, columns=cols)
+
+        # Check for NaNs in any of the new columns
+        new_columns = [col for col in df_res.columns if col not in self.original_columns]
+        if df_res[new_columns].isna().any().any():
+            if nb_iter < SSQL_MAX_ITERATION:
+                nb_iter += 1
+                return self.query_with_iter(query_json, nb_iter)
+
+            raise InvalidQueryException(
+                f"SQL Reader generated NaN results. "
+                f"Epsilon: {epsilon}, Delta: {delta} — too small to generate valid output."
+            )
 
         return SmartnoiseSQLQueryResult(df=df_res)
 

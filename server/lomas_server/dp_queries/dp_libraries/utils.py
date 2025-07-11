@@ -39,7 +39,8 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
         imp_most_frequent = SimpleImputer(strategy="most_frequent")
         df[categorical_cols] = df[categorical_cols].astype("object")
         df[categorical_cols] = df[categorical_cols].replace({pd.NA: np.nan})
-        df_cat_imputed = imp_most_frequent.fit_transform(df[categorical_cols])
+        df[df.select_dtypes(bool).columns] = df.select_dtypes(bool).astype("boolean")
+        df_cat_imputed = imp_most_frequent.fit_transform(df[categorical_cols]) if categorical_cols else []
 
         # Combine imputed dataframes
         df = pd.concat(

@@ -23,6 +23,8 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
     Returns:
         df (pd.DataFrame): dataframe with the imputed data
     """
+    dtypes = df.dtypes
+
     if imputer_strategy == "drop":
         df = df.dropna()
     elif imputer_strategy in ["mean", "median"]:
@@ -55,6 +57,13 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
         df = pd.DataFrame(imp_most_frequent.fit_transform(df), columns=df.columns)
     else:
         raise InvalidQueryException(f"Imputation strategy {imputer_strategy} not supported.")
+
+    # Force int and bool type on int and bool columns
+    for col in df.columns:
+        if pd.api.types.is_integer_dtype(dtypes[col]) or pd.api.types.is_bool_dtype(dtypes[col]):
+            df[col] = df[col].round().astype(dtypes[col])
+
+    df = df.astype(dtype=dtypes)
 
     if df.shape[0] == 0:
         raise InvalidQueryException("Empty dataframe, please try another imputation strategy.")

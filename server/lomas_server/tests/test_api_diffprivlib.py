@@ -179,7 +179,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                         models.LinearRegression(
                             epsilon=2.0,
                             bounds_X=(30.0, 65.0),
-                            bounds_y=(13.0, 23.0),
+                            bounds_y=(150.0, 250.0),
                         ),
                     ),
                 ]
@@ -187,13 +187,46 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             diffprivlib_body = dict(example_diffprivlib)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             diffprivlib_body["feature_columns"] = ["bill_length_mm"]
-            diffprivlib_body["target_columns"] = ["bill_length_mm"]
+            diffprivlib_body["target_columns"] = ["flipper_length_mm"]
             response = client.post(
                 "/diffprivlib_query",
                 json=diffprivlib_body,
                 headers=self.headers,
             )
             validate_pipeline(client, response)
+
+    def test_linear_regression_models_same_columns(self) -> None:
+        """Test diffprivlib query: Same columns."""
+        with TestClient(app, headers=self.headers) as client:
+            # Test Linear Regression
+            pipeline = Pipeline(
+                [
+                    (
+                        "lr",
+                        models.LinearRegression(
+                            epsilon=2.0,
+                            bounds_X=(30.0, 65.0),
+                            bounds_y=(150.0, 250.0),
+                        ),
+                    ),
+                ]
+            )
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            # Should fail (same column in target and feature)
+            diffprivlib_body["feature_columns"] = ["bill_length_mm"]
+            diffprivlib_body["target_columns"] = ["bill_length_mm"]
+            job = submit_job_wait(
+                client,
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="A column may only be in one of features and target. " + "bill_length_mm is in both."
+            )
 
     def test_naives_bayes_model(self) -> None:
         """Test diffprivlib query: Gaussian Naives Bayes."""

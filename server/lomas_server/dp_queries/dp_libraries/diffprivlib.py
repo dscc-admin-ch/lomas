@@ -10,6 +10,7 @@ from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
+    InvalidQueryException,
 )
 from lomas_core.models.requests import (
     DiffPrivLibQueryModel,
@@ -56,8 +57,18 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         """
         # Prepare data
         df = self.data_connector.get_pandas_df()
-        for col in self.data_connector.int_with_nulls_columns:
-            df[col] = df[col].where(~pd.isna(df[col]), other=pd.NA).round().astype("Int64")
+
+        # Check for overlap
+        useful_columns = query_json.feature_columns.copy()
+        if query_json.target_columns is not None:
+            for target in query_json.target_columns:
+                if target in query_json.feature_columns:
+                    raise InvalidQueryException(
+                        f"A column may only be in one of features and target. {target} is in both."
+                    )
+                useful_columns.append(target)
+
+        df = df[useful_columns]
         data = handle_missing_data(df, query_json.imputer_strategy)
         x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
 

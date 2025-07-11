@@ -33,7 +33,6 @@ class KCAttributeNames(StrEnum):
 # Smartnoise sql
 SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 SSQL_MAX_ITERATION = 5
-INT64_PRECISION = 64
 
 
 # Smartnoise synth

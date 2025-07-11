@@ -58,7 +58,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
     else:
         raise InvalidQueryException(f"Imputation strategy {imputer_strategy} not supported.")
 
-    # Force int type on int columns (after mean)
+    # Force int and bool type on int and bool columns
     for col in df.columns:
         if pd.api.types.is_integer_dtype(dtypes[col]) or pd.api.types.is_bool_dtype(dtypes[col]):
             df[col] = df[col].round().astype(dtypes[col])

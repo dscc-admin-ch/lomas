@@ -1,0 +1,60 @@
+FROM alpine:3.22
+
+RUN apk add --no-cache \
+  ca-certificates \
+  libcap \
+  mailcap \
+  go
+
+# https://github.com/caddyserver/caddy/releases
+ENV CADDY_VERSION=v2.10.0
+ENV GOBIN=/usr/local/bin
+
+RUN set -eux; \
+  mkdir -p \
+    /config/caddy \
+    /data/caddy \
+    /etc/caddy \
+    /usr/share/caddy \
+  ; \
+  wget -O /etc/caddy/Caddyfile "https://github.com/caddyserver/dist/raw/33ae08ff08d168572df2956ed14fbc4949880d94/config/Caddyfile"; \
+  wget -O /usr/share/caddy/index.html "https://github.com/caddyserver/dist/raw/33ae08ff08d168572df2956ed14fbc4949880d94/welcome/index.html"
+
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest; \
+    xcaddy build $CADDY_VERSION;\
+    mv -v /caddy /usr/bin/caddy; \
+    setcap cap_net_bind_service=+ep /usr/bin/caddy; \
+    chmod +x /usr/bin/caddy; \
+    caddy version
+
+# RUN set -eux; \
+#   checksum='626682d623ca04356ab3c9a93a82386cfde6d8243b11f2d0eea9e97ba630c7ada62373401e96b72c6690c98ae8dd004d61fafe477f5249690d5cb251ebbfd2d9'; \
+#   wget -O /tmp/caddy.tar.gz "https://github.com/caddyserver/caddy/releases/download/v2.10.0/caddy_2.10.0_linux_amd64.tar.gz"; \
+#   echo "$checksum  /tmp/caddy.tar.gz" | sha512sum -c; \
+#   tar x -z -f /tmp/caddy.tar.gz -C /usr/bin caddy; \
+#   rm -f /tmp/caddy.tar.gz; \
+#   setcap cap_net_bind_service=+ep /usr/bin/caddy; \
+#   chmod +x /usr/bin/caddy; \
+#   caddy version
+
+# See https://caddyserver.com/docs/conventions#file-locations for details
+ENV XDG_CONFIG_HOME=/config
+ENV XDG_DATA_HOME=/data
+
+LABEL org.opencontainers.image.version=v2.10.0
+LABEL org.opencontainers.image.title=Caddy
+LABEL org.opencontainers.image.description="a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go"
+LABEL org.opencontainers.image.url=https://caddyserver.com
+LABEL org.opencontainers.image.documentation=https://caddyserver.com/docs
+LABEL org.opencontainers.image.vendor="Light Code Labs"
+LABEL org.opencontainers.image.licenses=Apache-2.0
+LABEL org.opencontainers.image.source="https://github.com/caddyserver/caddy-docker"
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 443/udp
+EXPOSE 2019
+
+WORKDIR /srv
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

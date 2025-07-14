@@ -8,4 +8,39 @@ metadata:
     {{- toYaml .Values.caddy.configAnnotations | nindent 4 }}
 data:
   Caddyfile: |
-{{ .Values.caddy.caddyfile | indent 4 }}
+    {
+      debug
+    }
+
+    {{ .Values.caddy.hostname }}:80 {
+      @alice {
+        header_regexp X-Auth-Request-Preferred-Username [aA]lice
+      }
+
+      handle /auth/* {
+        reverse_proxy lomas-keycloak:80
+      }
+
+      handle /oauth2/* {
+        reverse_proxy oauth2-proxy:4180 {
+          header_up X-Real-IP {remote_host}
+          header_up X-Forwarded-Uri {uri}
+        }
+      }
+
+      handle {
+        forward_auth oauth2-proxy:4180 {
+          uri /oauth2/auth
+          header_up X-Real-IP {remote_host}
+          copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username
+
+          @error status 401
+          handle_response @error {
+            redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+          }
+        }
+
+        respond @alice "Hello ... Alice"
+        respond "Hello World"
+      }
+    }

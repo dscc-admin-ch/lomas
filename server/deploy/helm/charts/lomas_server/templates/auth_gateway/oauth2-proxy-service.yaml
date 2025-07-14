@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "lomas.oauth2-proxy.fullname" . }}
+  name: {{ include "lomas.oauth2Proxy.fullname" . }}
   labels:
-    {{- include "lomas.oauth2-proxy.labels" . | nindent 4 }}
+    {{- include "lomas.oauth2Proxy.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.oauth2-proxy.service.type }}
+  type: {{ .Values.oauth2Proxy.service.type }}
   ports:
-  - port: {{ .Values.oauth2-proxy.service.port}}
-    targetPort: {{ .Values.oauth2-proxy.port }}
+  - port: {{ .Values.oauth2Proxy.service.port}}
+    targetPort: {{ .Values.oauth2Proxy.port }}
     protocol: TCP
-    name: {{ .Values.oauth2-proxy.service.portName }}
+    name: {{ .Values.oauth2Proxy.service.portName }}
   selector:
-    {{- include "lomas.oauth2-proxy.selectorLabels" . | nindent 4 }}
+    {{- include "lomas.oauth2Proxy.selectorLabels" . | nindent 4 }}

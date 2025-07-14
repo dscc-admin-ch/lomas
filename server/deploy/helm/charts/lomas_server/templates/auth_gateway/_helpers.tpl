@@ -1,7 +1,7 @@
 {{/*Name of the components ------------------------------------------------------------*/}}
 
 {{- define "lomas.caddy.name" -}}caddy{{- end }}
-{{- define "lomas.oauth2-proxy.name" -}}oauth2-proxy{{- end }}
+{{- define "lomas.oauth2Proxy.name" -}}oauth2Proxy{{- end }}
 
 
 {{/*Fullnames ------------------------------------------------------------*/}}
@@ -10,8 +10,8 @@
 {{- printf "%s-caddy" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "lomas.oauth2-proxy.fullname" -}}
-{{- printf "%s-oauth2-proxy" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- define "lomas.oauth2Proxy.fullname" -}}
+{{- printf "%s-oauth2Proxy" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 
@@ -21,36 +21,36 @@
 {{ include "lomas.selectorLabels" . }}
 app.kubernetes.io/component: {{ include "lomas.caddy.name" . }}
 {{- end }}
-{{- define "lomas.oauth2-proxy.selectorLabels" -}}
+{{- define "lomas.oauth2Proxy.selectorLabels" -}}
 {{ include "lomas.selectorLabels" . }}
-app.kubernetes.io/component: {{ include "lomas.oauth2-proxy.name" . }}
+app.kubernetes.io/component: {{ include "lomas.oauth2Proxy.name" . }}
 {{- end }}
 
 
-{{/*Labels* ------------------------------------------------------------/}}
+{{/*Labels* ------------------------------------------------------------*/}}
 
 {{- define "lomas.caddy.labels" -}}
 {{ include "lomas.labels" . }}
 app.kubernetes.io/component: {{ include "lomas.caddy.name" . }}
 {{- end }}
-{{- define "lomas.oauth2-proxy.labels" -}}
+{{- define "lomas.oauth2Proxy.labels" -}}
 {{ include "lomas.labels" . }}
-app.kubernetes.io/component: {{ include "lomas.oauth2-proxy.name" . }}
+app.kubernetes.io/component: {{ include "lomas.oauth2Proxy.name" . }}
 {{- end }}
 
 
 {{/* Secrets  ------------------------------------------------------------*/}}
 
-{{- define "lomas.oauth2-proxy.cookieSecretName" -}}
+{{- define "lomas.oauth2Proxy.cookieSecretName" -}}
 {{- $secretName := .Values.admin.cookieSecretExistingSecretName -}}
 {{- if $secretName -}}
     {{- printf "%s" (tpl $secretName $) -}}
 {{- else -}}
-    {{- printf "%s-cookie-secret" (include "lomas.oauth2-proxy.fullname" .) | trunc 63 | trimSuffix "-" -}}
+    {{- printf "%s-cookie-secret" (include "lomas.oauth2Proxy.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
-{{- define "lomas.oauth2-proxy.cookieSecretKey" -}}
+{{- define "lomas.oauth2Proxy.cookieSecretKey" -}}
     {{- if and .Values.admin.cookieSecretExistingSecretName .Values.admin.cookieSecretExistingSecretKey -}}
         {{- printf "%s" (tpl .Values.admin.cookieSecretExistingSecretKey $) -}}
     {{- else -}}
@@ -58,19 +58,24 @@ app.kubernetes.io/component: {{ include "lomas.oauth2-proxy.name" . }}
     {{- end -}}
 {{- end -}}
 
-{{- define "lomas.oauth2-proxy.clientSecretName" -}}
+{{- define "lomas.oauth2Proxy.clientSecretName" -}}
 {{- $secretName := .Values.admin.clientSecretExistingSecretName -}}
 {{- if $secretName -}}
     {{- printf "%s" (tpl $secretName $) -}}
 {{- else -}}
-    {{- printf "%s-cookie-secret" (include "lomas.oauth2-proxy.fullname" .) | trunc 63 | trimSuffix "-" -}}
+    {{- printf "%s-cookie-secret" (include "lomas.oauth2Proxy.fullname" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
-{{- define "lomas.oauth2-proxy.clientSecretKey" -}}
+{{- define "lomas.oauth2Proxy.clientSecretKey" -}}
     {{- if and .Values.admin.clientSecretExistingSecretName .Values.admin.clientSecretExistingSecretKey -}}
         {{- printf "%s" (tpl .Values.admin.clientSecretExistingSecretKey $) -}}
     {{- else -}}
         {{- printf "client-secret" -}}
     {{- end -}}
 {{- end -}}
+
+{{/* ConfigMap  ------------------------------------------------------------*/}}
+{{- define "lomas.caddy.configMapName" -}}
+{{ include "lomas.caddy.fullname" . }}-config
+{{- end }}

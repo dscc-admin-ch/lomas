@@ -106,6 +106,11 @@ worker:
 ##########################################################################
 
 caddy:
+  image:
+    repository: dsccadminch/caddy
+    imagePullPolicy: Always
+    tag: sha-76663a3
+
   hostname: caddy.example.com
   ingress:
     enabled: true
@@ -131,45 +136,7 @@ caddy:
   configmap:
     configMapName: caddy-config
     configAnnotations: {}
-    caddyfile: |
-      {
-        debug
-      }
 
-      {{ .Values.caddy.hostname }}:80 {
-        @alice {
-          header_regexp X-Auth-Request-Preferred-Username [aA]lice
-        }
-
-        handle /auth/* {
-          reverse_proxy lomas-keycloak:80
-        }
-
-        handle /oauth2/* {
-          reverse_proxy oauth2-proxy:4180 {
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-Uri {uri}
-          }
-        }
-
-        handle {
-          forward_auth oauth2-proxy:4180 {
-            uri /oauth2/auth
-            header_up X-Real-IP {remote_host}
-            copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username
-
-            @error status 401
-            handle_response @error {
-              redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
-            }
-          }
-
-          respond @alice "Hello ... Alice"
-          respond "Hello World"
-        }
-      }
-
-  
   resources: {}
     # limits:
     #   cpu: 100m
@@ -183,11 +150,11 @@ caddy:
   tolerations: []
   affinity: {}
 
-oauth2-proxy:
+oauth2Proxy:
   image:
-    repository: dsccadminch/lomas_server
+    repository: bitnami/oauth2-proxy
     imagePullPolicy: Always
-    tag: sha-3940708
+    tag: 7.8.2-debian-12-r4
 
   config:
     cookieSecure: "false"

@@ -92,6 +92,9 @@ def test_oauth2_demo(kc, demo_setup) -> None:
         "max_ids",
         "rows",
         "row_privacy",
+        "clamp_columns",
+        "clamp_counts",
+        "use_dpsu",
     }
 
     df_dummy = client.get_dummy_dataset()

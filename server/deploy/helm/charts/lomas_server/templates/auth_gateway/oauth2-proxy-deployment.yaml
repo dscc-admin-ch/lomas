@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.oauth2-proxy.fullname" . }}
+  labels:
+    {{- include "lomas.oauth2-proxy.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.oauth2-proxy.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.oauth2-proxy.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.oauth2-proxy.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.oauth2-proxy.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      {{- with .Values.oauth2-proxy.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.oauth2-proxy.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.oauth2-proxy.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: oauth2-proxy
+        image: "{{ .Values.oauth2-proxy.image.repository }}:{{ .Values.oauth2-proxy.image.tag }}"
+        imagePullPolicy: {{ .Values.oauth2-proxy.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.oauth2-proxy.port }}
+            protocol: TCP
+        args:
+          - --provider=keycloak-oidc
+          - --http-address=0.0.0.0:{{ .Values.oauth2-proxy.port }}
+        env:
+          - name: OAUTH2_PROXY_COOKIE_SECURE
+            value: "false"
+          - name: OAUTH2_PROXY_COOKIE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "lomas.oauth2-proxy.cookieSecretName" . }}
+                key: {{ template "lomas.oauth2-proxy.cookieSecretKey" . }}
+          - name: OAUTH2_PROXY_PASS_USER_HEADERS
+            value: "true"
+          - name: OAUTH2_PROXY_EMAIL_DOMAINS
+            value: {{ .Values.oauth2-proxy.config.emailDomains }}
+          - name: OAUTH2_PROXY_REVERSE_PROXY
+            value: "true"
+          - name: OAUTH2_PROXY_SET_XAUTHREQUEST
+            value: "true"
+          - name: OAUTH2_PROXY_CLIENT_ID
+            value: {{ .Values.oauth2-proxy.config.clientId }}
+          - name: OAUTH2_PROXY_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "lomas.oauth2-proxy.clientSecretName" . }}
+                key: {{ template "lomas.oauth2-proxy.clientSecretKey" . }}
+          - name: OAUTH2_PROXY_PROVIDER
+            value: keycloak-oidc
+          - name: OAUTH2_PROXY_REDIRECT_URL
+            value: {{ .Values.caddy.hostname }}/oauth2/callback
+          - name: OAUTH2_PROXY_OIDC_ISSUER_URL
+            value: {{ .Values.caddy.hostname }}/auth/realms/lomas
+          - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
+            value: {{ .Values.oauth2-proxy.config.codeChallengeMethod }}
+          - name: OAUTH2_PROXY_WHITELIST_DOMAIN
+            value: {{ .Values.oauth2-proxy.config.whitelistDomains }}
+        resources:
+          {{- toYaml .Values.oauth2-proxy.resources | nindent 10 }}

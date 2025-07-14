@@ -20,5 +20,5 @@ dependencies:
     repository: oci://registry-1.docker.io/bitnamicharts
   - name: keycloak
     condition: keycloak.create
-    version: 24.4.13 # Keycloak 26.1.4
+    version: 24.7.6 # Keycloak 26.3.1
     repository: oci://registry-1.docker.io/bitnamicharts

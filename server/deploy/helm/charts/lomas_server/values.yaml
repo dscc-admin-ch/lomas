@@ -83,6 +83,7 @@ server:
     #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
+  securityContext: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -100,6 +101,62 @@ worker:
   tolerations: []
   affinity: {}
 
+
+# Lomas Gateway
+##########################################################################
+
+caddy:
+  hostname: xyz
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  # Openshift route for Openshift clusters.
+  route:
+    enabled: false
+    annotations: {}
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+
+oauth2-proxy:
+  image:
+    repository: dsccadminch/lomas_server
+    imagePullPolicy: Always
+    tag: sha-3940708
+
+  config:
+    cookieSecure: "false"
+    cookieSecret: "abc"
+    cookieSecretExistingSecretName: ""
+    cookieSecretExistingSecretKey: ""
+    emailDomains: "*"
+    whitelistDomains: "*"
+    clientId: "oauth2-proxy"
+    clientSecret: "superCliendID"
+    clientSecretExistingSecretName: ""
+    clientSecretExistingSecretKey: ""
+    codeChallengeMethod: "S256"
+
+  port: 4180
+  service:
+    type: ClusterIP
+    port: 4180
+    portName: http
+
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  podAnnotations: {}
+  podSecurityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 # Lomas Administration
 ##########################################################################

@@ -173,8 +173,7 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
             for k in ["lower", "upper"]:
                 if val.get(k) is not None:
                     del val[k]
-        if hasattr(val, "nullable_proportion"):
-            val["nullable"] = val["nullable_proportion"] > 0
+        val["nullable"] = val["nullable_proportion"] > 0
 
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]

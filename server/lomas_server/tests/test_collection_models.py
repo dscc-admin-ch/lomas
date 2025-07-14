@@ -149,11 +149,11 @@ class TestMetadataModel(unittest.TestCase):
 
         metadata = Metadata.model_validate(input_metadata)
         assert isinstance(metadata, Metadata)
-        assert not metadata.censor_dims
-
-        input_metadata["censor_dims"] = True
-        metadata = Metadata.model_validate(input_metadata)
         assert metadata.censor_dims
+
+        input_metadata["censor_dims"] = False
+        metadata = Metadata.model_validate(input_metadata)
+        assert not metadata.censor_dims
 
         input_metadata["rows"] = 0
         with pytest.raises(ValueError):

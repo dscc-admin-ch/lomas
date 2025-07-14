@@ -21,11 +21,13 @@ columns:
     precision: 64
     lower: 30.0
     upper: 65.0
+    nullable_proportion: 0.3
   bill_depth_mm:
     type: float
     precision: 64
     lower: 13.0
     upper: 23.0
+    nullable_proportion: 0.2
   flipper_length_mm:
     type: float
     precision: 64

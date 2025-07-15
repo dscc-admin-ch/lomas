@@ -27,6 +27,13 @@ spec:
         - name: caddy
           image: "{{ .Values.caddy.image.repository }}:{{ .Values.caddy.image.tag }}"
           imagePullPolicy: {{ .Values.caddy.image.pullPolicy }}
+          ports:
+          - name: http
+            containerPort: {{ .Values.caddy.port }}
+            protocol: TCP
+          - name: https
+            containerPort: {{ .Values.caddy.httpsPort }}
+            protocol: TCP
           securityContext:
             capabilities:
               add:

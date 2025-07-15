@@ -1,4 +1,3 @@
-{{- if .Values.caddy.create -}}
 {{- if .Values.caddy.ingress.enabled -}}
 {{/*
   These two are defined as such because calling . within a range loop
@@ -54,4 +53,3 @@ spec:
               servicePort: {{ $svcPort }}
               {{- end }}
 {{- end}}
-{{- end }}

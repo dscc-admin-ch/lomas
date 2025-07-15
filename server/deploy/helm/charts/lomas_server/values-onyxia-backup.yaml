@@ -7,7 +7,7 @@ global:
 
 # General stuff
 nameOverride: ""
-fullnameOverride: "lomas-v2"
+fullnameOverride: "lomas"
 
 # Server / Worker
 ##########################################################################
@@ -131,7 +131,7 @@ caddy:
     imagePullPolicy: Always
     tag: sha-76663a3
 
-  hostname: caddy.example.com
+  hostname: lomas-caddylance-v2.lab.sspcloud.fr
   ingress:
     enabled: true
     className: "nginx"
@@ -157,7 +157,6 @@ caddy:
     configMapName: caddy-config
     configAnnotations: {}
 
-  
   resources: {}
     # limits:
     #   cpu: 100m
@@ -171,7 +170,7 @@ caddy:
   tolerations: []
   affinity: {}
 
-oauth2Proxy:
+oauth2proxy:
   image:
     repository: bitnami/oauth2-proxy
     imagePullPolicy: Always
@@ -179,13 +178,13 @@ oauth2Proxy:
 
   config:
     cookieSecure: "false"
-    cookieSecret: "abc"
+    cookieSecret: "thisisasecret123"
     cookieSecretExistingSecretName: ""
     cookieSecretExistingSecretKey: ""
     emailDomains: "*"
     whitelistDomains: "*"
     clientId: "oauth2-proxy"
-    clientSecret: "superCliendID"
+    clientSecret: "thisisasecret123"
     clientSecretExistingSecretName: ""
     clientSecretExistingSecretKey: ""
     codeChallengeMethod: "S256"
@@ -288,12 +287,12 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-dashboardlance.lab.sspcloud.fr"
+    hostname: "lomas-dashboardlance-v2.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-dashboardlance.lab.sspcloud.fr"
+    hostname: "lomas-dashboardlance-v2.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -559,12 +558,12 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboardlance.lab.sspcloud.fr"
+    hostname: "lomas-grafana-dashboardlance-v2.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-grafana-dashboardlance.lab.sspcloud.fr"
+    hostname: "lomas-grafana-dashboardlance-v2.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -704,12 +703,12 @@ keycloak:
       ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
     # List of rules for the Ingress
-    hostname: "keycloaklance.lab.sspcloud.fr"
+    hostname: "keycloaklance-v2.lab.sspcloud.fr"
     # TLS configuration
     #tls: true
     extraTls:
       - hosts:
-          - "keycloaklance.lab.sspcloud.fr"
+          - "keycloaklance-v2.lab.sspcloud.fr"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:
@@ -717,7 +716,7 @@ keycloak:
     servicePort: http
     labels: {}
     annotations: {}
-    hostname: "lomas-keycloaklance.lab.sspcloud.fr"
+    hostname: "lomas-keycloaklance-v2.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: None
       termination: edge
@@ -857,7 +856,7 @@ rabbitmq:
     ingressClassName: nginx
     annotations:
     # List of rules for the Ingress
-    hostname: "lomas-rabbitmqlance.lab.sspcloud.fr"
+    hostname: "lomas-rabbitmqlance-v2.lab.sspcloud.fr"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:

@@ -39,4 +39,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ .Values.caddy.configMapName }}
+            name: {{ .Values.caddy.configmap.configMapName }}

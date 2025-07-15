@@ -42,7 +42,7 @@ app.kubernetes.io/component: {{ include "lomas.oauth2Proxy.name" . }}
 {{/* Secrets  ------------------------------------------------------------*/}}
 
 {{- define "lomas.oauth2Proxy.cookieSecretName" -}}
-{{- $secretName := .Values.admin.cookieSecretExistingSecretName -}}
+{{- $secretName := .Values.oauth2Proxy.config.cookieSecretExistingSecretName -}}
 {{- if $secretName -}}
     {{- printf "%s" (tpl $secretName $) -}}
 {{- else -}}
@@ -51,15 +51,15 @@ app.kubernetes.io/component: {{ include "lomas.oauth2Proxy.name" . }}
 {{- end -}}
 
 {{- define "lomas.oauth2Proxy.cookieSecretKey" -}}
-    {{- if and .Values.admin.cookieSecretExistingSecretName .Values.admin.cookieSecretExistingSecretKey -}}
-        {{- printf "%s" (tpl .Values.admin.cookieSecretExistingSecretKey $) -}}
+    {{- if and .Values.oauth2Proxy.config.cookieSecretExistingSecretName .Values.oauth2Proxy.config.cookieSecretExistingSecretKey -}}
+        {{- printf "%s" (tpl .Values.oauth2Proxy.config.cookieSecretExistingSecretKey $) -}}
     {{- else -}}
         {{- printf "cookie-secret" -}}
     {{- end -}}
 {{- end -}}
 
 {{- define "lomas.oauth2Proxy.clientSecretName" -}}
-{{- $secretName := .Values.admin.clientSecretExistingSecretName -}}
+{{- $secretName := .Values.oauth2Proxy.config.clientSecretExistingSecretName -}}
 {{- if $secretName -}}
     {{- printf "%s" (tpl $secretName $) -}}
 {{- else -}}
@@ -68,8 +68,8 @@ app.kubernetes.io/component: {{ include "lomas.oauth2Proxy.name" . }}
 {{- end -}}
 
 {{- define "lomas.oauth2Proxy.clientSecretKey" -}}
-    {{- if and .Values.admin.clientSecretExistingSecretName .Values.admin.clientSecretExistingSecretKey -}}
-        {{- printf "%s" (tpl .Values.admin.clientSecretExistingSecretKey $) -}}
+    {{- if and .Values.oauth2Proxy.config.clientSecretExistingSecretName .Values.oauth2Proxy.config.clientSecretExistingSecretKey -}}
+        {{- printf "%s" (tpl .Values.oauth2Proxy.config.clientSecretExistingSecretKey $) -}}
     {{- else -}}
         {{- printf "client-secret" -}}
     {{- end -}}

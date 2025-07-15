@@ -25,6 +25,10 @@ class Config(BaseSettings):
 
     lomas_realm: str = "lomas"
 
+    lomas_gateway_url: HttpUrl
+    lomas_gateway_client_id: str = "lomas_oauth_proxy"
+    lomas_gateway_client_secret: str
+
     lomas_admin_client_id: str = "lomas_admin"
     lomas_admin_client_secret: str
 
@@ -101,6 +105,10 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
     )
     create_confidential_client(kc_admin, config.lomas_api_client_id, config.lomas_api_client_secret)
 
+    create_gateway_client(
+        kc_admin, config.lomas_gateway_client_id, config.lomas_gateway_client_secret, config.lomas_gateway_url
+    )
+
 
 def create_confidential_client(
     kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] = {}
@@ -153,6 +161,65 @@ def create_confidential_client(
         kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(roles_to_add)
 
     logging.info("Created new confidential client.")
+
+
+def create_gateway_client(
+    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, gateway_hostname: HttpUrl
+) -> None:
+    """Create a confidential client for the gateway.
+
+    This client will handle auth of the admin users to the various dashboards.
+
+    Args:
+        kc_admin (KeycloakAdmin): The KeycloakAdmin instance.
+        client_id (str): The client id.
+        client_secret (str): The client secret.
+        gateway_hostname (HttpUrl): The hostname (url) of the gateway.
+    """
+    kc_admin.clients.post(
+        {
+            "clientId": client_id,
+            "secret": client_secret,
+            "name": client_id,
+            "rootUrl": str(gateway_hostname),
+            "clientAuthenticatorType": "client-secret",
+            "redirectUris": ["/oauth2/callback"],
+            "webOrigins": ["/*"],
+            "standardFlowEnabled": True,
+            "implicitFlowEnabled": False,
+            "directAccessGrantsEnabled": False,
+            "serviceAccountsEnabled": False,
+            "publicClient": False,
+            "frontchannelLogout": True,
+            "protocol": "openid-connect",
+            "attributes": {
+                "realm_client": "false",
+                "oidc.ciba.grant.enabled": "false",
+                "backchannel.logout.session.required": "true",
+                "frontchannel.logout.session.required": "true",
+                "display.on.consent.screen": "false",
+                "oauth2.device.authorization.grant.enabled": "false",
+                "backchannel.logout.revoke.offline.tokens": "false",
+            },
+            "fullScopeAllowed": True,
+            "protocolMappers": [
+                {
+                    "name": "aud-mapper",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-audience-mapper",
+                    "consentRequired": False,
+                    "config": {
+                        "id.token.claim": "true",
+                        "lightweight.claim": "false",
+                        "access.token.claim": "true",
+                        "introspection.token.claim": "true",
+                    },
+                }
+            ],
+        }
+    )
+
+    logging.info("Created client for lomas gateway.")
 
 
 def kc_setup() -> None:

@@ -169,7 +169,7 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
     metadata_dict = metadata.model_dump()
     # No bounds on datetime for Smartnoise-SQL
     for _, val in metadata_dict["columns"].items():
-        if val["type"] == MetadataColumnType.DATETIME:
+        if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
             for k in ["lower", "upper"]:
                 if val.get(k) is not None:
                     del val[k]

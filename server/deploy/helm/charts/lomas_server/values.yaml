@@ -150,7 +150,7 @@ caddy:
   tolerations: []
   affinity: {}
 
-oauth2Proxy:
+oauth2proxy:
   image:
     repository: bitnami/oauth2-proxy
     imagePullPolicy: Always

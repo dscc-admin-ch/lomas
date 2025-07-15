@@ -57,13 +57,13 @@ spec:
           - name: OAUTH2_PROXY_PASS_USER_HEADERS
             value: "true"
           - name: OAUTH2_PROXY_EMAIL_DOMAINS
-            value: {{ .Values.oauth2Proxy.config.emailDomains }}
+            value: "{{ .Values.oauth2Proxy.config.emailDomains }}"
           - name: OAUTH2_PROXY_REVERSE_PROXY
             value: "true"
           - name: OAUTH2_PROXY_SET_XAUTHREQUEST
             value: "true"
           - name: OAUTH2_PROXY_CLIENT_ID
-            value: {{ .Values.oauth2Proxy.config.clientId }}
+            value: "{{ .Values.oauth2Proxy.config.clientId }}"
           - name: OAUTH2_PROXY_CLIENT_SECRET
             valueFrom:
               secretKeyRef:
@@ -72,12 +72,12 @@ spec:
           - name: OAUTH2_PROXY_PROVIDER
             value: keycloak-oidc
           - name: OAUTH2_PROXY_REDIRECT_URL
-            value: {{ .Values.caddy.hostname }}/oauth2/callback
+            value: "{{ .Values.caddy.hostname }}/oauth2/callback"
           - name: OAUTH2_PROXY_OIDC_ISSUER_URL
-            value: {{ .Values.caddy.hostname }}/auth/realms/lomas
+            value: "{{ .Values.caddy.hostname }}/auth/realms/lomas"
           - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
-            value: {{ .Values.oauth2Proxy.config.codeChallengeMethod }}
+            value: "{{ .Values.oauth2Proxy.config.codeChallengeMethod }}"
           - name: OAUTH2_PROXY_WHITELIST_DOMAIN
-            value: {{ .Values.oauth2Proxy.config.whitelistDomains }}
+            value: "{{ .Values.oauth2Proxy.config.whitelistDomains }}"
         resources:
           {{- toYaml .Values.oauth2Proxy.resources | nindent 10 }}

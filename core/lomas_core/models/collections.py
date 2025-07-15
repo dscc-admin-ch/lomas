@@ -233,12 +233,19 @@ def get_column_metadata_discriminator(v: Any) -> str:
 
 
 class Metadata(BaseModel):
-    """BaseModel for a metadata format."""
+    """
+    BaseModel for a metadata format.
+
+    See Smartnoise-SQL documentation https://docs.smartnoise.org/sql/metadata.html
+    """
 
     max_ids: Annotated[int, Field(gt=0)]
     rows: Annotated[int, Field(gt=0)]
     row_privacy: bool
-    censor_dims: bool | None = False
+    censor_dims: bool = True
+    clamp_counts: bool = True
+    clamp_columns: bool = True
+    use_dpsu: bool = False
     # When parsing input data, pydantic first calls the discriminator function with the input data.
     # The model to build is then selected by matching the returned discriminator
     # with the tag that annotates each possible model.

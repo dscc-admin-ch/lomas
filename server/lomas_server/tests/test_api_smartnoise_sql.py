@@ -160,25 +160,21 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
 
     def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime."""
-        # Will be solved in issue 340
-        # with TestClient(app, headers=self.headers) as client:
-        #     # Expect to work: query with datetimes and another user
-        #     fake_user_token =
-        #       'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
-        #     new_headers = self.headers
-        #     new_headers["Authorization"] = fake_user_token
-        #     body = dict(example_smartnoise_sql)
-        #     body["dataset_name"] = "BIRTHDAYS"
-        # body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
-        #     response = client.post(
-        #         "/smartnoise_sql_query",
-        #         json=body,
-        #         headers=new_headers,
-        #     )
-        #     data = response
-        # assert data ==
-        # df = pd.read_csv(StringIO(data))
-        # assert isinstance(df, pd.DataFrame), "Response should be a pd.DataFrame"
+        with TestClient(app, headers=self.headers) as client:
+            # Expect to work: query with datetimes and another user
+            real_user_token = 'Bearer {"name": "BirthdayGirl", "email": "birthdaygirl@example.com"}'
+            new_headers = self.headers
+            new_headers["Authorization"] = real_user_token
+            body = dict(example_smartnoise_sql)
+            body["dataset_name"] = "BIRTHDAYS"
+            body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
+            job = submit_job_wait(client, "/smartnoise_sql_query", json=body, headers=new_headers)
+            assert job.status == "complete"
+            assert job.status_code == status.HTTP_200_OK
+            r_model = QueryResponse.model_validate(job.result)
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.requested_by == "BirthdayGirl"
+            assert r_model.result.df.shape[1] == 1
 
     def test_smartnoise_sql_query_on_s3_dataset(self) -> None:
         """Test smartnoise-sql on s3 dataset."""

@@ -35,6 +35,29 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: keycloak-check
+          image: {{.Values.admin.curlImage.repository -}}:{{- .Values.admin.curlImage.tag }}
+          imagePullPolicy: {{ .Values.admin.curlImage.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - >
+              until curl http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/master; do
+                echo "Keycloak not ready yet";
+                sleep 10;
+              done;
+              while true; do
+                STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://{{- include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}/realms/{{- .Values.admin.realm -}})
+                echo "Lomas realm query status: $STATUS"
+                if [[ $STATUS == "200" ]]; then
+                  echo "Lomas realm ready."
+                  exit 0;
+                fi;
+                sleep 10;
+              done;
+          resources:
+            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       containers:
       - name: oauth2proxy
         image: "{{ .Values.oauth2proxy.image.repository }}:{{ .Values.oauth2proxy.image.tag }}"

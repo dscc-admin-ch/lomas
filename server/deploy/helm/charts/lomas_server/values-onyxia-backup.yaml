@@ -15,7 +15,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-f5ad3f4
+    tag: sha-88c42b4
 
   # Runtime args for server
   runtime_args:
@@ -214,7 +214,7 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-f5ad3f4
+    tag: sha-88c42b4
   curlImage:
     repository: curlimages/curl
     tag: 8.13.0
@@ -270,7 +270,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-f5ad3f4
+    tag: sha-88c42b4
 
   # Runtime args for server
   serverConfig:
@@ -696,7 +696,7 @@ keycloak:
       https: 443
 
   #httpRelativePath: "/auth/"
-  extraStartupArgs: "--hostname https://lomas-dada-caddy.lab.sspcloud.fr/auth/ --hostname-backchannel-dynamic true"
+  extraStartupArgs: "--hostname https://lomas-dada-caddy.lab.sspcloud.fr/auth"
 
   ingress:
     enabled: false

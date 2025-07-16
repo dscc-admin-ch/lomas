@@ -57,10 +57,9 @@ spec:
               value: {{ .Values.oauth2proxy.config.clientId }}
             - name: LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET
               valueFrom:
-              secretKeyRef:
-                name: {{ template "lomas.oauth2proxy.clientSecretName" . }}
-                key: {{ template "lomas.oauth2proxy.clientSecretKey" . }}
-
+                secretKeyRef:
+                  name: {{ template "lomas.oauth2proxy.clientSecretName" . }}
+                  key: {{ template "lomas.oauth2proxy.clientSecretKey" . }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID
               value: {{ .Values.admin.client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET

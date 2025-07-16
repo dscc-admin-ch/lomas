@@ -181,7 +181,7 @@ def create_gateway_client(
             "clientId": client_id,
             "secret": client_secret,
             "name": client_id,
-            "rootUrl": str(gateway_hostname),
+            "rootUrl": str(gateway_hostname).rstrip("/"),
             "clientAuthenticatorType": "client-secret",
             "redirectUris": ["/oauth2/callback"],
             "webOrigins": ["/*"],
@@ -209,6 +209,8 @@ def create_gateway_client(
                     "protocolMapper": "oidc-audience-mapper",
                     "consentRequired": False,
                     "config": {
+                        "included.client.audience": client_id,
+                        "included.custom.audience": client_id,
                         "id.token.claim": "true",
                         "lightweight.claim": "false",
                         "access.token.claim": "true",

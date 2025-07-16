@@ -59,12 +59,12 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomaslance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomaslance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -131,7 +131,7 @@ caddy:
     imagePullPolicy: Always
     tag: sha-76663a3
 
-  hostname: lomas-caddylance-v2.lab.sspcloud.fr
+  hostname: lomas-dada-caddy.lab.sspcloud.fr
   ingress:
     enabled: true
     className: "nginx"
@@ -287,12 +287,12 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-dashboardlance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada-dashboard.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-dashboardlance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada-dashboard.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -558,12 +558,12 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboardlance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada-grafana.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-grafana-dashboardlance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada-grafana.lab.sspcloud.fr"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -696,7 +696,7 @@ keycloak:
       https: 443
 
   #httpRelativePath: "/auth/"
-  extraStartupArgs: "--hostname https://lomas-caddylance-v2.lab.sspcloud.fr/auth/ --hostname-backchannel-dynamic true"
+  extraStartupArgs: "--hostname https://lomas-dada-caddy.lab.sspcloud.fr/auth/ --hostname-backchannel-dynamic true"
 
   ingress:
     enabled: false
@@ -859,7 +859,7 @@ rabbitmq:
     ingressClassName: nginx
     annotations:
     # List of rules for the Ingress
-    hostname: "lomas-rabbitmqlance-v2.lab.sspcloud.fr"
+    hostname: "lomas-dada-rabbitmq.lab.sspcloud.fr"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:

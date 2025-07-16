@@ -110,7 +110,7 @@ spec:
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__KEYCLOAK_URL
-            value: "https://{{ .Values.keycloak.ingress.hostname }}"
+            value: "https://{{ .Values.caddy.hostname }}/auth"
           - name: LOMAS_SERVICE_AUTHENTICATOR__REALM
             value: "{{ .Values.admin.realm }}"
           {{- range $i, $credSecretName := (include "lomas-service.private-db-credentials-secrets" $) | fromYamlArray }}

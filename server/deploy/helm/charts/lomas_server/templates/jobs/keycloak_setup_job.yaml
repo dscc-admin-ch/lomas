@@ -37,7 +37,7 @@ spec:
           command: ["python", "-m", "lomas_server.administration.scripts.keycloak_setup"]
           env:
             - name: LOMAS_KC_SETUP_KEYCLOAK_URL
-              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+              value: "https://{{ .Values.caddy.hostname }}/auth"
             - name: LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM
               value: {{ .Values.keycloak.adminRealm }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID

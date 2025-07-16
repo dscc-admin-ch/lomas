@@ -95,7 +95,7 @@ spec:
           - name: LOMAS_ADMIN_MG_CONFIG__MAX_CONNECTING
             value: "{{ .Values.mongodb.max_connecting }}"
           - name: LOMAS_ADMIN_KC_CONFIG__URL
-            value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+            value: "https://{{ .Values.caddy.hostname }}/auth"
           - name: LOMAS_ADMIN_KC_CONFIG__REALM
             value: "{{ .Values.admin.realm }}"
           - name: LOMAS_ADMIN_KC_CONFIG__CLIENT_ID

@@ -210,7 +210,6 @@ def create_gateway_client(
                     "consentRequired": False,
                     "config": {
                         "included.client.audience": client_id,
-                        "included.custom.audience": client_id,
                         "id.token.claim": "true",
                         "lightweight.claim": "false",
                         "access.token.claim": "true",

@@ -10,9 +10,9 @@ data:
   Caddyfile: |
     {
       debug
-      servers {
-        trusted_proxies static private_ranges
-      }
+      # servers {
+      #   trusted_proxies static private_ranges
+      # }
     }
 
     {{ .Values.caddy.hostname }}:{{ .Values.caddy.port }} {

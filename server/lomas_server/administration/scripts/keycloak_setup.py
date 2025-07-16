@@ -242,4 +242,6 @@ def kc_setup() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
+    logging.root.setLevel(logging.DEBUG)
     kc_setup()

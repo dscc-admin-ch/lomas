@@ -20,8 +20,12 @@ data:
         header_regexp X-Auth-Request-Preferred-Username [aA]lice
       }
 
-      handle /test/* {
-        respond "Hello tester"
+      handle_path /dashboard/* {
+        reverse_proxy {{ include "lomas.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }}
+      }
+
+      handle_path /grafana/* {
+        reverse_proxy {{ include "lomas.grafana.fullname" . }}:{{ .Values.grafana.service.port }}
       }
 
       handle_path /auth/* {
@@ -43,7 +47,7 @@ data:
 
           @error status 401
           handle_response @error {
-            redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+            redir * /oauth2/sign_in?rd=https://{host}{uri}
           }
         }
 

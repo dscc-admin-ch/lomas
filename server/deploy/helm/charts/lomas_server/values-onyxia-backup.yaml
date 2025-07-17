@@ -15,7 +15,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-88c42b4
+    tag: sha-59c2b85
 
   # Runtime args for server
   runtime_args:
@@ -136,6 +136,7 @@ caddy:
     enabled: true
     className: "nginx"
     annotations:
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   # Openshift route for Openshift clusters.
   route:
@@ -174,15 +175,14 @@ oauth2proxy:
   image:
     repository: bitnami/oauth2-proxy
     imagePullPolicy: Always
-    tag: 7.8.2-debian-12-r4
+    tag: 7.9.0-debian-12-r7
 
   config:
-    cookieSecure: "false"
     cookieSecret: "thisisasecret123"
     cookieSecretExistingSecretName: ""
     cookieSecretExistingSecretKey: ""
     emailDomains: "*"
-    whitelistDomains: "*"
+    whitelistDomains: ".lab.sspcloud.fr:*"
     clientId: "oauth2-proxy"
     clientSecret: "thisisasecret123"
     clientSecretExistingSecretName: ""
@@ -214,7 +214,7 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-88c42b4
+    tag: sha-59c2b85
   curlImage:
     repository: curlimages/curl
     tag: 8.13.0
@@ -270,7 +270,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-88c42b4
+    tag: sha-59c2b85
 
   # Runtime args for server
   serverConfig:
@@ -283,7 +283,7 @@ dashboard:
     portName: http
 
   ingress:
-    enabled: true
+    enabled: false
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -636,7 +636,7 @@ keycloak:
   image:
     registry: docker.io
     repository: bitnami/keycloak
-    tag: 26.1.4-debian-12-r0
+    tag: 26.3.1-debian-12-r0
     # digest: ""
     pullPolicy: Always
     #pullSecrets: []
@@ -705,6 +705,7 @@ keycloak:
       ## Resolve HTTP 502 error using ingress-nginx:
       ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     # List of rules for the Ingress
     hostname: "keycloaklance-v2.lab.sspcloud.fr"
     # TLS configuration

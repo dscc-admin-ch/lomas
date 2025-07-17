@@ -75,13 +75,11 @@ spec:
             containerPort: {{ .Values.dashboard.serverConfig.port }}
             protocol: TCP
         volumeMounts:
-          - name: dashboard-server-config
-            readOnly: True
-            mountPath: "/code/.streamlit/"
-        volumeMounts:
           - name: data
             mountPath: /persistent-storage
         env:
+          - name: STREAMLIT_BASE_URL_PATH
+            value: https://{{ .Values.caddy.hostname }}/dashboard
           - name: LOMAS_ADMIN_MG_CONFIG__URL
             value: "mongodb://{{- include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) -}}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
           - name: LOMAS_ADMIN_MG_CONFIG__USERNAME
@@ -112,14 +110,7 @@ spec:
             value: "https://{{ .Values.server.ingress.hostname }}"
           - name: LOMAS_ADMIN_SERVER_SERVICE
             value: "https://{{ .Values.server.ingress.hostname }}"
-            # value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}"
-      volumes:
-        {{- $fullname := include "lomas.dashboard.fullname" . }}
-        - name: dashboard-server-config
-          projected:
-            sources:
-            - configMap:
-                name: {{ printf "%s-server-config" $fullname }}
+      volumes:        
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.fullname" . }}

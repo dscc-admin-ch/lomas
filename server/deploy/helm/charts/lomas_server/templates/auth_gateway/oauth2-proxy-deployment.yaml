@@ -71,7 +71,7 @@ spec:
           - --http-address=0.0.0.0:{{ .Values.oauth2proxy.port }}
         env:
           - name: OAUTH2_PROXY_COOKIE_SECURE
-            value: "false"
+            value: "true"
           - name: OAUTH2_PROXY_COOKIE_SECRET
             valueFrom:
               secretKeyRef:
@@ -100,11 +100,7 @@ spec:
             value: "https://{{ .Values.caddy.hostname }}/auth/realms/lomas"
           - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
             value: "{{ .Values.oauth2proxy.config.codeChallengeMethod }}"
-          - name: OAUTH2_PROXY_WHITELIST_DOMAIN
+          - name: OAUTH2_PROXY_WHITELIST_DOMAINS
             value: "{{ .Values.oauth2proxy.config.whitelistDomains }}"
-          - name: OAUTH2_SESSION_COOKIE_MINIMAL
-            value: "true"
-          - name: OAUTH2_SCOPE
-            value: "openid email"
         resources:
           {{- toYaml .Values.oauth2proxy.resources | nindent 10 }}

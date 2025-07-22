@@ -110,6 +110,30 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
     )
 
 
+def create_lomas_users(config: Config, kc_admin: KeycloakAdmin) -> None:
+    """Creates standard User"""
+    # TODO: how do we want to allow configuration for initUsers ENVVAR/ENVFILE-like
+    username = "alice"
+
+    # Idempotent creation
+    match kc_admin.users.get(username=username):
+        case [{"id": user_id, **_rest}]:
+            getattr(kc_admin.users, user_id).delete()
+
+    kc_admin.users.post(
+        {
+            "username": username,
+            "enabled": True,
+            "emailVerified": True,
+            "firstName": "Alice",
+            "lastName": "Wonder",
+            "email": "alice.wonder@gmail.com",
+            "groups": [],
+            "credentials": [{"type": "password", "value": "1234"}],
+        }
+    )
+
+
 def create_confidential_client(
     kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] = {}
 ) -> None:
@@ -127,6 +151,11 @@ def create_confidential_client(
         roles (Dict[str, List[str]]): A dictionary mapping of (realm, list of roles) pairs
             to assign to the associated service account.
     """
+    # Idempotent creation
+    match kc_admin.clients.get(clientId=client_id):
+        case [{"id": client_id, **_rest}]:
+            getattr(kc_admin.clients, client_id).delete()
+
     # Create client
     kc_admin.clients.post(
         {
@@ -145,8 +174,10 @@ def create_confidential_client(
     )
 
     # Fetch service account uid
-    lomas_admin_uid = kc_admin.clients.get(clientId="lomas_admin")[0]["id"]
-    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin_uid).service_account_user.get()["id"]
+    lomas_admin = kc_admin.clients.get(clientId="lomas_admin")
+    if len(lomas_admin) == 0:
+        return
+    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin[0]["id"]).service_account_user.get()["id"]
 
     for client, roles_list in roles.items():
         # Fetch realm management and manage-clients role uids
@@ -176,6 +207,11 @@ def create_gateway_client(
         client_secret (str): The client secret.
         gateway_hostname (HttpUrl): The hostname (url) of the gateway.
     """
+    # Idempotent creation
+    match kc_admin.clients.get(clientId=client_id):
+        case [{"id": client_id, **_rest}]:
+            getattr(kc_admin.clients, client_id).delete()
+
     kc_admin.clients.post(
         {
             "clientId": client_id,
@@ -240,6 +276,9 @@ def kc_setup() -> None:
 
     # 2. Create clients
     create_lomas_clients(config, kc_admin)
+
+    # 3. Create users
+    create_lomas_users(config, kc_admin)
 
 
 if __name__ == "__main__":

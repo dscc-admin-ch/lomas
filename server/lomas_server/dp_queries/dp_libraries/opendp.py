@@ -80,13 +80,11 @@ def get_raw_lf_domain(metadata_dict: dict):
 
 
 def add_global_margin(lf_domain, metadata: dict):
-    """
-    Builds the "global" (by = []) margin from the metadata
-    """
+    """Builds the "global" (by = []) margin from the metadata"""
     lf_domain = dp.domains.with_margin(
         lf_domain,
         by=[],
-        public_info="keys",  # TODO: keys is fine, length may also lead to cost=0.0 even without groupby
+        public_info=None,
         max_partition_length=metadata["rows"],
         max_num_partitions=None,
         max_partition_contributions=metadata["max_ids"],
@@ -104,7 +102,6 @@ def add_group_by_margin(plan, lf_domain, metadata: dict) -> dict:
         by_config (list): List of columns used for grouping.
     """
     # Only works with single group-by! See issue 323.
-    
     # If grouping in the query, we add a margin for the group-by columns
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) == 0:
@@ -177,7 +174,7 @@ def add_group_by_margin(plan, lf_domain, metadata: dict) -> dict:
     return dp.domains.with_margin(
         lf_domain,
         by=by_config,
-        public_info="keys",  # TODO: enforce not happening on id cols for instance
+        public_info=None,
         **margin_params
     )
 

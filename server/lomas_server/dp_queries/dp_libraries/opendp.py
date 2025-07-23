@@ -33,12 +33,17 @@ from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 
-def get_raw_lf_domain(metadata_dict: dict):
+def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     """
-    Builds the "raw" lf domain from the metadata.
+    Returns the OpenDP LazyFrame domain given a metadata dictionary.
 
-    The domain in considered "raw" because it does not contain any margin.
-    The domain is built by putting together series domains from each column.
+    Args:
+        metadata_dict (dict): The metadata dictionary
+        plan (LazyFrame): The polars query plan as a Polars LazyFrame
+    Raises:
+        Exception: If there is missing information in the metadata.
+    Returns:
+        dp.mod.Domain: The OpenDP domain for the metadata.
     """
     series_domains = []
     # Series domains
@@ -73,42 +78,55 @@ def get_raw_lf_domain(metadata_dict: dict):
         )
         series_domains.append(series_domain)
 
-    # Build domain from series domain
-    raw_lf_domain = dp.domains.lazyframe_domain(series_domains)
+    # Margins
+    # TODO 400: Check lengths vs. keys for public info
+    # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
 
-    return raw_lf_domain
+    # Global margin parameters
+    margin_params = get_global_params(metadata_dict)
 
+    # If grouping in the query, we update the margin params
+    by_config = extract_group_by_columns(plan.explain())
+    if len(by_config) >= 1:
+        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
 
-def add_global_margin(lf_domain, metadata: dict):
-    """Builds the "global" (by = []) margin from the metadata"""
+    # TODO 323: Multiple margins?
+    # What if two group_by's in one query?
     lf_domain = dp.domains.with_margin(
-        lf_domain,
-        by=[],
+        dp.domains.lazyframe_domain(series_domains),
+        by=by_config,
         public_info=None,
-        max_partition_length=metadata["rows"],
-        max_num_partitions=None,
-        max_partition_contributions=metadata["max_ids"],
-        max_influenced_partitions=None
+        **margin_params,
     )
+
     return lf_domain
 
 
-def add_group_by_margin(plan, lf_domain, metadata: dict) -> dict:
+def get_global_params(metadata: dict) -> dict:
+    """Get global parameters for margin.
+
+    Args:
+        metadata (dict): The metadata dictionary
+    Returns:
+        dict: Parameters for margin
     """
-    Adds a margin for the columns in the by_configs
+    margin_params = {}
+    margin_params["max_num_partitions"] = 1
+    margin_params["max_partition_length"] = metadata["rows"]
+
+    return margin_params
+
+
+def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> dict:
+    """
+    Updates parameters for multiple-column grouping configuration.
 
     Args:
         metadata (dict): The metadata dictionary.
         by_config (list): List of columns used for grouping.
+        margin_params (dict): Current parameters dictionary to update.
     """
-    # Only works with single group-by! See issue 323.
-    # If grouping in the query, we add a margin for the group-by columns
-    by_config = extract_group_by_columns(plan.explain())
-    if len(by_config) == 0:
-        return lf_domain
-
     # Initialize max_numpartitions/max_partition_length to 1
-    margin_params = {}
     margin_params["max_num_partitions"] = 1
     margin_params["max_partition_length"] = metadata["rows"]
 
@@ -170,37 +188,7 @@ def add_group_by_margin(plan, lf_domain, metadata: dict) -> dict:
             metadata["max_ids"],
             margin_params.get("max_partition_contributions"),
         )
-
-    return dp.domains.with_margin(
-        lf_domain,
-        by=by_config,
-        public_info=None,
-        **margin_params
-    )
-
-
-def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
-    """
-    Returns the OpenDP LazyFrame domain given a metadata dictionary.
-
-    Args:
-        metadata_dict (dict): The metadata dictionary
-        plan (LazyFrame): The polars query plan as a Polars LazyFrame
-    Raises:
-        Exception: If there is missing information in the metadata.
-    Returns:
-        dp.mod.Domain: The OpenDP domain for the metadata.
-    """
-    # Get raw lf domain (without margins)
-    lf_domain = get_raw_lf_domain(metadata_dict)
-
-    # Add global margin to domain (for by=[])
-    lf_domain = add_global_margin(lf_domain, metadata_dict)
-
-    # Add group-by margin (if any)
-    lf_domain = add_group_by_margin(plan, lf_domain, metadata_dict)
-
-    return lf_domain
+    return margin_params
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):

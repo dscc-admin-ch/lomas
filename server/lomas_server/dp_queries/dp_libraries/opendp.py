@@ -86,7 +86,7 @@ def add_global_margin(lf_domain, metadata: dict):
     lf_domain = dp.domains.with_margin(
         lf_domain,
         by=[],
-        public_info="keys", # keys
+        public_info="keys",  # TODO: keys is fine, length may also lead to cost=0.0 even without groupby
         max_partition_length=metadata["rows"],
         max_num_partitions=None,
         max_partition_contributions=metadata["max_ids"],
@@ -177,7 +177,7 @@ def add_group_by_margin(plan, lf_domain, metadata: dict) -> dict:
     return dp.domains.with_margin(
         lf_domain,
         by=by_config,
-        public_info="keys",
+        public_info="keys",  # TODO: enforce not happening on id cols for instance
         **margin_params
     )
 

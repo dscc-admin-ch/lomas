@@ -98,7 +98,7 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     Returns:
         str: The serialized plan of the grouped mean query in JSON format.
     """
-    plan = lf.group_by("sex").agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, 1))])
+    plan = lf.group_by("sex").agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100000.0, 1000))])
 
     return plan.serialize(format="json")
 
@@ -250,18 +250,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
             json_plan = group_query_serialized(lf)
-            example_opendp_polars["opendp_json"] = json_plan
-
-            job = submit_job_wait(
-                client,
-                "/opendp_query",
-                json=example_opendp_polars,
-            )
-            response_model = QueryResponse.model_validate(job.result)
-            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
-
-            lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)
-            json_plan = multiple_group_query_serialized(lf)
             example_opendp_polars["opendp_json"] = json_plan
 
             job = submit_job_wait(

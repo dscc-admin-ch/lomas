@@ -95,7 +95,7 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     lf_domain = dp.domains.with_margin(
         dp.domains.lazyframe_domain(series_domains),
         by=by_config,
-        public_info=None,
+        public_info="keys",
         **margin_params,
     )
 

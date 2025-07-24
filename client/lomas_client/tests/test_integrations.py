@@ -247,10 +247,10 @@ def test_demo_opendp_polars(kc, demo_setup) -> None:
         income_metadata["columns"]["income"]["upper"],
     )
     plan = dummy_lf.select(
-        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=(100_000, 1))
+        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=(10_000, 1))
     )
     query_res = client.opendp.query(plan, dummy=False, nb_rows=NB_ROWS, seed=SEED)
-    assert query_res.epsilon == pytest.approx(2, 0.5)
+    assert query_res.epsilon == pytest.approx(11, 0.5)
     assert isinstance(query_res.result, OpenDPPolarsQueryResult)
     df_polar = query_res.result.value
     assert df_polar.shape == (1, 1)

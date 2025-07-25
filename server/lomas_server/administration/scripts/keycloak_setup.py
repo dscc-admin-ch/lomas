@@ -2,8 +2,16 @@ import logging
 import os
 
 from mantelo import HttpException, KeycloakAdmin
-from pydantic import Field, HttpUrl, computed_field
+from pydantic import BaseModel, Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class User(BaseModel):
+    username: str
+    email: str
+
+    firstName: str
+    lastName: str
 
 
 class Config(BaseSettings):
@@ -34,6 +42,8 @@ class Config(BaseSettings):
 
     lomas_api_client_id: str = "lomas_api"
     lomas_api_client_secret: str
+
+    lomas_admin_users: list[User]
 
     overwrite_realm: bool = Field(default=True)
 
@@ -110,28 +120,25 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
     )
 
 
-def create_lomas_users(config: Config, kc_admin: KeycloakAdmin) -> None:
-    """Creates standard User"""
-    # TODO: how do we want to allow configuration for initUsers ENVVAR/ENVFILE-like
-    username = "alice"
+def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
+    """Creates standard User."""
 
-    # Idempotent creation
-    match kc_admin.users.get(username=username):
-        case [{"id": user_id, **_rest}]:
-            getattr(kc_admin.users, user_id).delete()
+    kc_admin.groups.post({"name": "lomas-admin"})
 
-    kc_admin.users.post(
-        {
-            "username": username,
-            "enabled": True,
-            "emailVerified": True,
-            "firstName": "Alice",
-            "lastName": "Wonder",
-            "email": "alice.wonder@gmail.com",
-            "groups": [],
-            "credentials": [{"type": "password", "value": "1234"}],
-        }
-    )
+    for user in config.lomas_admin_users:
+        kc_admin.users.post(
+            {
+                "username": user.username,
+                "enabled": True,
+                "emailVerified": True,
+                "firstName": user.firstName,
+                "lastName": user.lastName,
+                "email": user.email,
+                "requiredActions": ["UPDATE_PASSWORD", "CONFIGURE_TOTP"],
+                "groups": ["lomas-admin"],
+                # "credentials": [{"type": "password", "value": "1234"}],
+            }
+        )
 
 
 def create_confidential_client(
@@ -278,7 +285,7 @@ def kc_setup() -> None:
     create_lomas_clients(config, kc_admin)
 
     # 3. Create users
-    create_lomas_users(config, kc_admin)
+    create_lomas_admin_users(config, kc_admin)
 
 
 if __name__ == "__main__":

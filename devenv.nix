@@ -237,6 +237,7 @@ in
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = config.lomas.admin.client_secret;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = config.lomas.api.client_id;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = config.lomas.api.client_secret;
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS = "[{\"username\":\"admin\", \"email\": \"admin@example.com\", \"firstName\":\"admin\", \"lastName\":\"ofAllAdmins\"}]";
     LOMAS_KC_SETUP_OVERWRITE_REALM = "true";
 
     # Lomas demo setup

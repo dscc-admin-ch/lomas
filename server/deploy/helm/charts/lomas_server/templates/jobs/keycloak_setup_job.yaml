@@ -76,6 +76,8 @@ spec:
                   key: {{ template "lomas-service.secretKey" . }}
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS
+              values: {{ .Values.admin.admin_users | toJson }}
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       nodeSelector:

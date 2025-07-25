@@ -15,7 +15,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-59c2b85
+    tag: sha-ba9711c
 
   # Runtime args for server
   runtime_args:
@@ -214,7 +214,7 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-59c2b85
+    tag: sha-ba9711c
   curlImage:
     repository: curlimages/curl
     tag: 8.13.0
@@ -229,6 +229,11 @@ admin:
   lomas_service_client_secret: "lomas_service"
   lomas_service_existing_secret: ""
   lomas_service_secret_key: ""
+  lomas_admin_users:
+    - name: admin
+      email: admin@example.com
+      firstName: admin
+      lastName: admin
   initContainers:
     resources:
       limits:
@@ -270,7 +275,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-59c2b85
+    tag: sha-ba9711c
 
   # Runtime args for server
   serverConfig:

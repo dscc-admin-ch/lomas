@@ -16,17 +16,11 @@ data:
     }
 
     {{ .Values.caddy.hostname }}:{{ .Values.caddy.port }} {
-      @alice {
-        header_regexp X-Auth-Request-Preferred-Username [aA]lice
+      @admin {
+        header_regexp X-Auth-Request-Groups *"lomas-admin"
       }
 
-      handle_path /dashboard/* {
-        reverse_proxy {{ include "lomas.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }}
-      }
-
-      handle_path /grafana/* {
-        reverse_proxy {{ include "lomas.grafana.fullname" . }}:{{ .Values.grafana.service.port }}
-      }
+      
 
       handle_path /auth/* {
         reverse_proxy {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}:{{ .Values.keycloak.service.ports.http }}
@@ -51,7 +45,14 @@ data:
           }
         }
 
-        respond @alice "Hello ... Alice"
+        handle_path @admin /dashboard/* {
+          reverse_proxy {{ include "lomas.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }}
+        }
+
+        handle_path @admin /grafana/* {
+          reverse_proxy {{ include "lomas.grafana.fullname" . }}:{{ .Values.grafana.service.port }}
+        }
+
         respond "Hello World"
       }
     }

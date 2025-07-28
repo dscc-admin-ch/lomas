@@ -107,10 +107,10 @@ spec:
           - name: LOMAS_ADMIN_DATASET_YAML
             value: "{{ .Values.admin.demo_setup.dataset_yaml_path }}"
           - name: LOMAS_ADMIN_SERVER_URL
-            value: "https://{{ .Values.server.ingress.hostname }}"
+            value: "https://{{ .Values.caddy.hostname }}/api/"
           - name: LOMAS_ADMIN_SERVER_SERVICE
-            value: "https://{{ .Values.server.ingress.hostname }}"
-      volumes:        
+            value: "https://{{ .Values.caddy.hostname }}/api/"
+      volumes:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.fullname" . }}

@@ -8,7 +8,7 @@ The Lomas service was successfully deployed!
 
 Since server ingress was enabled, the application is also reachable from the internet at:
 
-  http{{ if $.Values.server.ingress.tls }}s{{ end }}://{{ .Values.server.ingress.hostname }}
+  http{{ if $.Values.server.ingress.tls }}s{{ end }}://{{ .Values.caddy.hostname }}/api/
 {{- end }}
 
 

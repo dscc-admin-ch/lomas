@@ -76,7 +76,7 @@ spec:
                   key: {{ template "lomas-service.secretKey" . }}
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
-            {{- range $i, $credSecretName := (include "lomas-service.private-db-credentials-secrets" $) | fromYamlArray }}
+            {{- range $i, $credSecretName := (include "lomas.admin.keycloak-setup.admin-user-secrets" $) | fromYamlArray }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}
               valueFrom:
                 secretKeyRef:
@@ -84,8 +84,6 @@ spec:
                   key: lomas-admin-user
             - name:
             {{- end }}
-            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS
-              value: {{ .Values.admin.lomas_admin_users | toJson | quote }}
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       nodeSelector:

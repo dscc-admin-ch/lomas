@@ -16,9 +16,6 @@ data:
     }
 
     {{ .Values.caddy.hostname }}:{{ .Values.caddy.port }} {
-      @admin {
-        header_regexp X-Auth-Request-Groups lomas-admin
-      }
 
       handle_path /auth/* {
         reverse_proxy {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}:{{ .Values.keycloak.service.ports.http }}
@@ -29,6 +26,16 @@ data:
           header_up X-Real-IP {remote_host}
           header_up X-Forwarded-Uri {uri}
         }
+      }
+
+      # Server handles auth/authz by itself so simply forward
+      handle /api/* {
+        reverse_proxy {{ include "lomas.server.fullname" .}}:{{ .Values.server.service.port }}
+      }
+
+      # Recognize admin users
+      @admin {
+        header_regexp X-Auth-Request-Groups lomas-admin
       }
 
       handle {
@@ -50,6 +57,10 @@ data:
 
           handle_path /grafana/* {
             reverse_proxy {{ include "lomas.grafana.fullname" . }}:{{ .Values.grafana.service.port }}
+          }
+
+          handle_path /rabbitmq/* {
+            # todo rabbitmq
           }
         }
 

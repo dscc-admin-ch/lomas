@@ -17,10 +17,8 @@ data:
 
     {{ .Values.caddy.hostname }}:{{ .Values.caddy.port }} {
       @admin {
-        header_regexp X-Auth-Request-Groups *lomas-admin
+        header_regexp X-Auth-Request-Groups lomas-admin
       }
-
-      
 
       handle_path /auth/* {
         reverse_proxy {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) -}}:{{ .Values.keycloak.service.ports.http }}

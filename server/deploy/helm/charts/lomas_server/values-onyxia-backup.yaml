@@ -230,10 +230,12 @@ admin:
   lomas_service_existing_secret: ""
   lomas_service_secret_key: ""
   lomas_admin_users:
-    - name: admin
+    - username: admin
       email: admin@example.com
-      firstName: admin
-      lastName: admin
+      first_name: admin
+      last_name: admin
+      temp_password: admin
+    # - existing_secret: xyz
   initContainers:
     resources:
       limits:

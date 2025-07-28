@@ -62,3 +62,20 @@
 {{- end }}
 {{- toYaml $result }}
 {{- end }}
+
+
+{{/* Admin users ----------------------------------------------------*/}}
+
+{{- define "lomas.admin.keycloak-setup.admin-user-secrets" -}}
+{{- $result := list }}
+{{- range $i, $cred := .Values.admin.lomas_admin_users }}
+  {{- $name := "" }}
+  {{- if $cred.existing_secret }}
+    {{- $name = $cred.existing_secret }}
+  {{- else }}
+    {{- $name = printf "%s-lomas-admin-user-%d" (include "lomas.fullname" $) $i }}
+  {{- end }}
+  {{- $result = append $result (tpl $name $) }}
+{{- end }}
+{{- toYaml $result }}
+{{- end }}

@@ -9,9 +9,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class User(BaseModel):
     username: str
     email: str
+    temp_password: str
 
-    firstName: str
-    lastName: str
+    first_name: str
+    last_name: str
 
 
 class Config(BaseSettings):
@@ -43,7 +44,8 @@ class Config(BaseSettings):
     lomas_api_client_id: str = "lomas_api"
     lomas_api_client_secret: str
 
-    lomas_admin_users: list[User]
+    # We make this a dict to be able to split it into multiple env variables.
+    lomas_admin_users: dict[int, User]
 
     overwrite_realm: bool = Field(default=True)
 
@@ -125,18 +127,18 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
 
     kc_admin.groups.post({"name": "lomas-admin"})
 
-    for user in config.lomas_admin_users:
+    for user in config.lomas_admin_users.values():
         kc_admin.users.post(
             {
                 "username": user.username,
                 "enabled": True,
                 "emailVerified": True,
-                "firstName": user.firstName,
-                "lastName": user.lastName,
+                "firstName": user.first_name,
+                "lastName": user.last_name,
                 "email": user.email,
                 "requiredActions": ["UPDATE_PASSWORD", "CONFIGURE_TOTP"],
                 "groups": ["lomas-admin"],
-                # "credentials": [{"type": "password", "value": "1234"}],
+                "credentials": [{"type": "password", "value": user.temp_password, "temporary": True}],
             }
         )
 

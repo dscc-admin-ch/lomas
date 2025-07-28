@@ -237,7 +237,12 @@ in
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = config.lomas.admin.client_secret;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = config.lomas.api.client_id;
     LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = config.lomas.api.client_secret;
-    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS = "[{\"username\":\"admin\", \"email\": \"admin@example.com\", \"firstName\":\"admin\", \"lastName\":\"ofAllAdmins\"}]";
+    #LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__USERNAME = "[{\"username\":\"admin\", \"email\": \"admin@example.com\", \"firstName\":\"admin\", \"lastName\":\"ofAllAdmins\"}]";
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__USERNAME = "admin";
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__EMAIL = "admin@example.com";
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__TEMP_PASSWORD = "admin";
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__FIRST_NAME = "admin";
+    LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__0__LAST_NAME = "ofAllAdmins";
     LOMAS_KC_SETUP_OVERWRITE_REALM = "true";
 
     # Lomas demo setup

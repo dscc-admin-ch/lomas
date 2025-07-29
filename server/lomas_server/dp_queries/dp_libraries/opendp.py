@@ -111,7 +111,6 @@ def get_global_params(metadata: dict) -> dict:
         dict: Parameters for margin
     """
     margin_params = {}
-    margin_params["max_num_partitions"] = 1
     margin_params["max_partition_length"] = metadata["rows"]
 
     return margin_params
@@ -126,8 +125,7 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         by_config (list): List of columns used for grouping.
         margin_params (dict): Current parameters dictionary to update.
     """
-    # Initialize max_numpartitions/max_partition_length to 1
-    margin_params["max_num_partitions"] = 1
+    # Initialize max_partition_length to 1
     margin_params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
@@ -153,9 +151,13 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
+        # if "cardinality" in series_info:
+        #     if series_info["cardinality"]:
+        #         margin_params["max_num_partitions"] *= series_info["cardinality"]
         if "cardinality" in series_info:
-            if series_info["cardinality"]:
-                margin_params["max_num_partitions"] *= series_info["cardinality"]
+            margin_params["max_num_partitions"] = (
+                margin_params.get("max_num_partitions", 1) * series_info["cardinality"]
+            )
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column

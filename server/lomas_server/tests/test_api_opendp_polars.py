@@ -271,7 +271,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int"]
         margin_params = get_global_params(metadata)
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
 
         # Since no max_partition length: rows is taken
         # Since no max_num_partitions: cardinality is taken
@@ -280,25 +280,36 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
 
         # max_partition_length is given: then we use it instead of rows
         metadata["columns"]["column_int"]["max_partition_length"] = 50
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_length"] = 50
         assert margin_params == expected_margin
 
         metadata["columns"]["column_int"]["max_influenced_partitions"] = 1
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_influenced_partitions"] = 1
         assert margin_params == expected_margin
 
         metadata["columns"]["column_int"]["max_partition_contributions"] = 1
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_contributions"] = 1
         assert margin_params == expected_margin
 
         # Minimum between max_ids and max_partition_contributions should be taken
         metadata["columns"]["column_int"]["max_partition_contributions"] = 4
         metadata["max_ids"] = 2
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_contributions"] = 2
+        assert margin_params == expected_margin
+
+        # Check that only max_partition_length is used when no info on other parameters
+        new_col_int = {"type": "int", "precision": 32, "upper": 10, "lower": 1}
+        RAW_METADATA["columns"]["new_col_int"] = new_col_int  # type: ignore[index]
+        metadata = Metadata.model_validate(RAW_METADATA).model_dump()
+        by_config = ["new_col_int"]
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
+        # Since no cardinality or any other margin parameters, only max_partition_length is kept (from global parameter
+        # Max_partition_length = rows = 100
+        expected_margin = {"max_partition_length": 100}
         assert margin_params == expected_margin
 
     def test2_margin_grouping(self) -> None:
@@ -313,7 +324,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int", "new_col"]
         metadata["columns"]["column_int"]["max_partition_length"] = None
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin = {
             "max_num_partitions": 4,  # from col_int cardinality
             "max_partition_length": 100,  # since all are none, rows taken
@@ -322,7 +333,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
 
         metadata["columns"]["column_int"]["max_partition_length"] = 30
         metadata["columns"]["new_col"]["max_partition_length"] = 50
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_length"] = 30  # min between two col
         assert margin_params == expected_margin
 
@@ -330,13 +341,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata["max_ids"] = 20
         metadata["columns"]["column_int"]["max_influenced_partitions"] = 3
         metadata["columns"]["new_col"]["max_influenced_partitions"] = 5
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_influenced_partitions"] = 15
         assert margin_params == expected_margin
 
         # Should never be bigger than max_ids global
         metadata["max_ids"] = 10
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_influenced_partitions"] = 10
         assert margin_params == expected_margin
 
@@ -345,7 +356,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()  # max_ids = 1
         by_config = ["column_int", "new_col_str"]
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         # Since card1 = 4 and card2 = 2, card_tot = 8
         expected_margin = {
             "max_num_partitions": 8,
@@ -358,13 +369,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata["max_ids"] = 10
         metadata["columns"]["column_int"]["max_partition_contributions"] = 5
         metadata["columns"]["new_col"]["max_partition_contributions"] = 4
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_contributions"] = 5
         assert margin_params == expected_margin
 
         # Check max_partition_contributions (should never be bigger than max_ids)
         metadata["max_ids"] = 2
-        margin_params = multiple_group_update_params(metadata, by_config, margin_params)
+        margin_params = multiple_group_update_params(metadata, by_config, get_global_params(metadata))
         expected_margin["max_partition_contributions"] = 2
         assert margin_params == expected_margin
 

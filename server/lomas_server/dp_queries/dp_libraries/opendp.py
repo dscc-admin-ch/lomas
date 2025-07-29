@@ -45,6 +45,43 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     Returns:
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
+
+    # Get raw lf domain (without margins)
+    raw_lf_domain = get_raw_lf_domain(metadata_dict)
+
+    # Add global margin to domain (for by=[])
+    lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
+
+    # Add group-by margin (if Any)
+    margin_params = get_global_params(metadata_dict)
+
+    # If grouping in the query, we update the margin params
+    by_config = extract_group_by_columns(plan.explain())
+    if len(by_config) >= 1:
+        public_info = None
+        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
+        public_info = get_public_info(metadata_dict, by_config)
+
+        # TODO 323: Multiple margins?
+        # What if two group_by's in one query?
+        # Update margin with group_margin
+        lf_domain = dp.domains.with_margin(
+            lf_domain,
+            by=by_config,
+            public_info=public_info,
+            **margin_params,
+        )
+
+    return lf_domain
+
+
+def get_raw_lf_domain(metadata_dict: dict):
+    """
+    Builds the "raw" lf domain from the metadata.
+
+    The domain in considered "raw" because it does not contain any margin.
+    The domain is built by putting together series domains from each column.
+    """
     series_domains = []
     # Series domains
     for name, series_info in metadata_dict["columns"].items():
@@ -78,27 +115,21 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
         )
         series_domains.append(series_domain)
 
-    # Margins
-    # TODO 400: Check lengths vs. keys for public info
-    # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
+    # Build domain from series domain
+    raw_lf_domain = dp.domains.lazyframe_domain(series_domains)
 
-    # Global margin parameters
-    margin_params = get_global_params(metadata_dict)
+    return raw_lf_domain
 
-    # If grouping in the query, we update the margin params
-    by_config = extract_group_by_columns(plan.explain())
-    if len(by_config) >= 1:
-        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
 
-    # TODO 323: Multiple margins?
-    # What if two group_by's in one query?
+def add_global_margin(lf_domain, metadata: dict):
+    """Builds the "global" (by = []) margin from the metadata"""
     lf_domain = dp.domains.with_margin(
-        dp.domains.lazyframe_domain(series_domains),
-        by=by_config,
-        public_info="keys",
-        **margin_params,
+        lf_domain,
+        by=[],
+        public_info="lengths",
+        max_partition_length=metadata["rows"],
+        # max_partition_contributions already managed in the input_distance
     )
-
     return lf_domain
 
 
@@ -191,6 +222,42 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
             margin_params.get("max_partition_contributions"),
         )
     return margin_params
+
+
+def get_public_info(metadata_dict: dict, by_config: list) -> str:
+    """
+    Determine the most restrictive `public_info` level across a set of grouping columns.
+
+    The hierarchy of restriction is defined as:
+        None > "keys" > "lengths"
+
+    - If any column has `public_info` set to None, the result is None.
+    - If all columns have "lengths", the result is "lengths".
+    - If at least one column has "keys" (and none have None), the result is "keys".
+
+    Args:
+        metadata_dict (dict): The metadata dictionary
+        by_config (list): List of columns used for grouping.
+
+    Returns:
+        str: public_info type
+    """
+
+    public_info = "lengths"
+    # Key idea: None > keys > lengths
+    for col in by_config:
+        col_public_info = metadata_dict["columns"][col]["public_info"]
+
+        # If public_info is not set for one of the grouping column, we set it to None
+        if col_public_info is None:
+            public_info = None
+            break
+        # If any column has "keys", we downgrade to "keys"
+        # If all columns are lengths, public_info stays "lengths"
+        if col_public_info == "keys" and public_info == "lengths":
+            public_info = "keys"
+
+    return public_info
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
@@ -416,7 +483,11 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
         lf_domain = get_lf_domain(metadata, plan)
 
         opendp_pipe = dp.measurements.make_private_lazyframe(
-            lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
+            lf_domain,
+            dp.metrics.symmetric_distance(),
+            output_measure,
+            plan,
+            threshold=100,
         )
     else:
         raise InternalServerException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")

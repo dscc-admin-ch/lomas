@@ -113,6 +113,7 @@ class ColumnMetadata(BaseModel):
     max_partition_length: Annotated[int, Field(gt=0)] | None = None
     max_influenced_partitions: Annotated[int, Field(gt=0)] | None = None
     max_partition_contributions: Annotated[int, Field(gt=0)] | None = None
+    public_info: Literal["keys", "lengths"] | None = None
 
 
 class StrMetadata(ColumnMetadata):

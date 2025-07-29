@@ -36,6 +36,7 @@ columns:
     precision: 32
     cardinality: 2 # Added by Lomas
     categories: [1, 2]
+    public_info: "keys"
     max_partition_length : 1_397_824
     # max_influenced_partitions: 1
     # max_partition_contributions: 1

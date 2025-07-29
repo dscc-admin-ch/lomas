@@ -14,6 +14,7 @@ columns:
     upper: 2000
   date:
     type: string
+    public_info: "keys"
     # TODO: opendp 0.12
     # type: datetime
     # lower: "2022-08-01"

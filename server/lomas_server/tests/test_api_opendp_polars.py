@@ -8,6 +8,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp import measures as ms
 
+# from opendp.extras.polars import dp_len
 from lomas_core.error_handler import (
     InvalidQueryException,
 )
@@ -98,7 +99,12 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     Returns:
         str: The serialized plan of the grouped mean query in JSON format.
     """
-    plan = lf.group_by("sex").agg([pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100_000.0, 1))])
+    plan = lf.group_by("sex").agg(
+        [
+            pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100_000.0, 1)),
+            #    dp_len(scale=1.0)
+        ]
+    )
 
     return plan.serialize(format="json")
 

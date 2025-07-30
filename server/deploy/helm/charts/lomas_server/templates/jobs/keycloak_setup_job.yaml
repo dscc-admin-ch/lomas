@@ -77,12 +77,31 @@ spec:
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
             {{- range $i, $credSecretName := (include "lomas.admin.keycloak-setup.admin-user-secrets" $) | fromYamlArray }}
-            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__USERNAME
               valueFrom:
                 secretKeyRef:
                   name: {{ $credSecretName }}
                   key: lomas-admin-user
-            - name:
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-email
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__FIRST_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-firstname
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__LAST_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-lastname
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__TEMP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-temp-password
             {{- end }}
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}

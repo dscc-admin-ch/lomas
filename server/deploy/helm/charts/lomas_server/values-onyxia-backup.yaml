@@ -117,7 +117,7 @@ caddy:
     imagePullPolicy: Always
     tag: sha-76663a3
 
-  hostname: lomas-dada-caddy.lab.sspcloud.fr
+  hostname: lomas-lancelot-caddy.lab.sspcloud.fr
   ingress:
     enabled: true
     className: "nginx"
@@ -218,11 +218,11 @@ admin:
   lomas_service_existing_secret: ""
   lomas_service_secret_key: ""
   lomas_admin_users:
-    - username: admin
-      email: admin@example.com
-      first_name: admin
-      last_name: admin
-      temp_password: admin
+    - username: "admin"
+      email: "admin@example.com"
+      first_name: "admin"
+      last_name: "admin"
+      temp_password: "admin"
     # - existing_secret: xyz
   initContainers:
     resources:
@@ -663,7 +663,7 @@ keycloak:
       https: 443
 
   #httpRelativePath: "/auth/"
-  extraStartupArgs: "--hostname https://lomas-dada.lab.sspcloud.fr/auth"
+  extraStartupArgs: "--hostname https://lomas-lancelot-caddy.lab.sspcloud.fr/auth"
 
   postgresql:
     enabled: true
@@ -800,7 +800,7 @@ rabbitmq:
     ingressClassName: nginx
     annotations:
     # List of rules for the Ingress
-    hostname: "lomas-dada-rabbitmq.lab.sspcloud.fr"
+    hostname: "lomas-lancelot-rabbitmq.lab.sspcloud.fr"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:

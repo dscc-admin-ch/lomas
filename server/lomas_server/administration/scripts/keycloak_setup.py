@@ -125,7 +125,11 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
 def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
     """Creates standard User."""
 
-    kc_admin.groups.post({"name": "lomas-admin"})
+    try:
+        kc_admin.groups.post({"name": "lomas-admin"})
+    except HttpException as e:
+        if e.status_code == 409:
+            logging.info("Lomas Admins group already exists")
 
     for user in config.lomas_admin_users.values():
         kc_admin.users.post(
@@ -268,6 +272,13 @@ def create_gateway_client(
     logging.info("Created client for lomas gateway.")
 
 
+def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
+    kc_admin.realm_name = realm
+    for kp in kc_admin.components.get(type="org.keycloak.keys.KeyProvider"):
+        if kp["name"] != "rsa-generated":
+            getattr(kc_admin.components, kp["id"]).delete()
+
+
 def kc_setup() -> None:
     """Lomas keycloak setup script."""
     # Load config and get admin session
@@ -288,6 +299,9 @@ def kc_setup() -> None:
 
     # 3. Create users
     create_lomas_admin_users(config, kc_admin)
+
+    # 4. Misc cleanup
+    misc_realm_cleanup(config.lomas_realm, kc_admin)
 
 
 if __name__ == "__main__":

@@ -125,26 +125,56 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
 def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
     """Creates standard User."""
 
+    realm_role_name = "authp/admin"
+
+    try:
+        kc_admin.realms(config.lomas_realm).roles.post(
+            {"name": realm_role_name, "description": "admin role", "attributes": {}}
+        )
+    except HttpException as e:
+        if e.status_code == 409:
+            logging.info("Realm role authp/admin already exists")
+
+    roles = kc_admin.realms(config.lomas_realm).roles.get()
+
     try:
         kc_admin.groups.post({"name": "lomas-admin"})
     except HttpException as e:
         if e.status_code == 409:
             logging.info("Lomas Admins group already exists")
 
+    for group in kc_admin.realms(config.lomas_realm).groups.get():
+        match group:
+            case {"name": "lomas-admin", "id": gid, **_rest}:
+                try:
+                    role = next(r for r in roles if r["name"] == realm_role_name)
+                    getattr(kc_admin.realms(config.lomas_realm).groups, gid).role_mappings.realm.post(
+                        data=[role]
+                    )
+                except HttpException as e:
+                    if e.status_code == 409:
+                        logging.info("Lomas Admins role-mappings already exists")
+            case _:
+                pass
+
     for user in config.lomas_admin_users.values():
-        kc_admin.users.post(
-            {
-                "username": user.username,
-                "enabled": True,
-                "emailVerified": True,
-                "firstName": user.first_name,
-                "lastName": user.last_name,
-                "email": user.email,
-                "requiredActions": ["UPDATE_PASSWORD", "CONFIGURE_TOTP"],
-                "groups": ["lomas-admin"],
-                "credentials": [{"type": "password", "value": user.temp_password, "temporary": True}],
-            }
-        )
+        try:
+            kc_admin.users.post(
+                {
+                    "username": user.username,
+                    "enabled": True,
+                    "emailVerified": True,
+                    "firstName": user.first_name,
+                    "lastName": user.last_name,
+                    "email": user.email,
+                    "requiredActions": ["UPDATE_PASSWORD", "CONFIGURE_TOTP"],
+                    "groups": ["lomas-admin"],
+                    "credentials": [{"type": "password", "value": user.temp_password, "temporary": True}],
+                }
+            )
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"User {user.username} group already exists")
 
 
 def create_confidential_client(

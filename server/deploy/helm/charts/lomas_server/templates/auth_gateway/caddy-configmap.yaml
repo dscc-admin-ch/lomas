@@ -33,16 +33,11 @@ data:
         reverse_proxy {{ include "lomas.server.fullname" .}}:{{ .Values.server.service.port }}
       }
 
-      # Recognize admin users
-      @admin {
-        header_regexp X-Auth-Request-Groups lomas-admin
-      }
-
       handle {
         forward_auth {{ include "lomas.oauth2proxy.fullname" . }}:{{ .Values.oauth2proxy.service.port }} {
           uri /oauth2/auth
           header_up X-Real-IP {remote_host}
-          copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username
+          copy_headers X-Auth-Request-User X-Auth-Request-Email X-Auth-Request-Preferred-Username X-Auth-Request-Groups
 
           @error status 401
           handle_response @error {
@@ -50,16 +45,20 @@ data:
           }
         }
 
+        # Recognize admin users
+        # The **realm-role** assign to the lomas-admin **Group** (via role-mappings)
+        @admin header X-Auth-Request-Groups *role:authp/admin*
+
         handle @admin {
-          handle_path /dashboard/* {
+          handle_path /dashboard* {
             reverse_proxy {{ include "lomas.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }}
           }
 
-          handle_path /grafana/* {
+          handle_path /grafana* {
             reverse_proxy {{ include "lomas.grafana.fullname" . }}:{{ .Values.grafana.service.port }}
           }
 
-          handle_path /rabbitmq/* {
+          handle_path /rabbitmq* {
              reverse_proxy {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) -}}:{{ .Values.rabbitmq.service.ports.manager }}
           }
         }

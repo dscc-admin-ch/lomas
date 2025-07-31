@@ -60,7 +60,7 @@ data:
           }
 
           handle_path /rabbitmq/* {
-            # todo rabbitmq
+             reverse_proxy {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) -}}:{{ .Values.rabbitmq.service.ports.manager }}
           }
         }
 

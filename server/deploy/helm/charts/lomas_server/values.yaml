@@ -124,11 +124,11 @@ caddy:
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
-  port: 4280
+  port: 80
   httpsPort: 42443
   service:
     type: ClusterIP
-    port: 4280
+    port: 80
     httpsPort: 42443
     portName: http
     httpsPortName: https

@@ -125,7 +125,7 @@ caddy:
       ## Resolve HTTP 502 error using ingress-nginx:
       ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
-      nginx.ingress.kubernetes.io/proxy-read-timeout: 3600
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -134,11 +134,11 @@ caddy:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
   port: 80
-  httpsPort: 42443
+  httpsPort: 443
   service:
     type: ClusterIP
     port: 80
-    httpsPort: 42443
+    httpsPort: 443
     portName: http
     httpsPortName: https
 

@@ -125,7 +125,7 @@ caddy:
       ## Resolve HTTP 502 error using ingress-nginx:
       ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: 3600
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -798,7 +798,7 @@ rabbitmq:
   ingress:
     enabled: true
     ingressClassName: nginx
-    annotations:
+    annotations: {}
     # List of rules for the Ingress
     hostname: "lomas-lancelot-rabbitmq.lab.sspcloud.fr"
 

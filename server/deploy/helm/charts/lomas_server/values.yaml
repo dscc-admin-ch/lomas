@@ -68,7 +68,7 @@ server:
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
-  
+
   # We leave unset stuff here
   serviceAccount:
     create: false
@@ -816,7 +816,7 @@ rabbitmq:
   ingress:
     enabled: true
     ingressClassName: nginx
-    annotations:
+    annotations: {}
     # List of rules for the Ingress
     hostname: "rabbitmq.example.com"
 

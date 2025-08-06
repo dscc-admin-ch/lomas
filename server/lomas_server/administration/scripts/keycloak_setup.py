@@ -8,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class User(BaseModel):
     """BaseModel for informations of a keycloak user."""
+
     username: str
     email: str
     temp_password: str
@@ -304,8 +305,7 @@ def create_gateway_client(
 
 
 def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
-    """Remove deprecated key Provider
-    """
+    """Remove deprecated key Provider."""
     kc_admin.realm_name = realm
     for kp in kc_admin.components.get(type="org.keycloak.keys.KeyProvider"):
         if kp["name"] != "rsa-generated":

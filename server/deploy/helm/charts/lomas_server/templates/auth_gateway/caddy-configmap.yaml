@@ -29,8 +29,13 @@ data:
         }
       }
 
+      # Need to redirect openapi.json in order for docs to work (needed json for swagger)
+      handle /openapi.json {
+        reverse_proxy {{ include "lomas.server.fullname" .}}:{{ .Values.server.service.port }}
+      }
+
       # Server handles auth/authz by itself so simply forward
-      handle /api/* {
+      handle_path /api/* {
         reverse_proxy {{ include "lomas.server.fullname" .}}:{{ .Values.server.service.port }}
       }
 

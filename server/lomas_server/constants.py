@@ -96,5 +96,5 @@ OPENDP_TYPE_MAPPING = {
 
 OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
     OpenDpMechanism.LAPLACE: ms.max_divergence(),
-    OpenDpMechanism.GAUSSIAN: ms.fixed_smoothed_max_divergence(),
+    OpenDpMechanism.GAUSSIAN: ms.smoothed_max_divergence(),
 }

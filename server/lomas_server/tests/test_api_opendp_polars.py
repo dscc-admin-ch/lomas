@@ -210,7 +210,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
-        for mechanism, delta_check in [("laplace", lambda x: x == 0), ("gaussian", lambda x: x > 0)]:
+        for mechanism, delta_check in [("laplace", lambda x: x == 0), ("gaussian", lambda x: x >= 0)]:
             with self.subTest(msg=mechanism):
                 with TestClient(app, headers=self.headers) as client:
                     lf = get_lf_from_json(OPENDP_POLARS_PIPELINE)

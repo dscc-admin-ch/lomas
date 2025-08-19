@@ -45,6 +45,41 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     Returns:
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
+
+    # Get raw lf domain (without margins)
+    raw_lf_domain = get_raw_lf_domain(metadata_dict)
+
+    # Add global margin to domain (for by=[])
+    lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
+
+    # Add group-by margin (if Any)
+    margin_params = get_global_params(metadata_dict)
+
+    # If grouping in the query, we update the margin params
+    by_config = extract_group_by_columns(plan.explain())
+    if len(by_config) >= 1:
+        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
+
+        # TODO 323: Multiple margins?
+        # What if two group_by's in one query?
+        # Update margin with group_margin
+        lf_domain = dp.domains.with_margin(
+            lf_domain,
+            by=by_config,
+            public_info="keys",
+            **margin_params,
+        )
+
+    return lf_domain
+
+
+def get_raw_lf_domain(metadata_dict: dict):
+    """
+    Builds the "raw" lf domain from the metadata.
+
+    The domain in considered "raw" because it does not contain any margin.
+    The domain is built by putting together series domains from each column.
+    """
     series_domains = []
     # Series domains
     for name, series_info in metadata_dict["columns"].items():
@@ -78,27 +113,21 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
         )
         series_domains.append(series_domain)
 
-    # Margins
-    # TODO 400: Check lengths vs. keys for public info
-    # https://docs.opendp.org/en/stable/getting-started/tabular-data/grouping.html
+    # Build domain from series domain
+    raw_lf_domain = dp.domains.lazyframe_domain(series_domains)
 
-    # Global margin parameters
-    margin_params = get_global_params(metadata_dict)
+    return raw_lf_domain
 
-    # If grouping in the query, we update the margin params
-    by_config = extract_group_by_columns(plan.explain())
-    if len(by_config) >= 1:
-        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
 
-    # TODO 323: Multiple margins?
-    # What if two group_by's in one query?
+def add_global_margin(lf_domain, metadata: dict):
+    """Builds the "global" (by = []) margin from the metadata"""
     lf_domain = dp.domains.with_margin(
-        dp.domains.lazyframe_domain(series_domains),
-        by=by_config,
+        lf_domain,
+        by=[],
         public_info="keys",
-        **margin_params,
+        max_partition_length=metadata["rows"],
+        # max_partition_contributions already managed in the input_distance
     )
-
     return lf_domain
 
 
@@ -111,7 +140,6 @@ def get_global_params(metadata: dict) -> dict:
         dict: Parameters for margin
     """
     margin_params = {}
-    margin_params["max_num_partitions"] = 1
     margin_params["max_partition_length"] = metadata["rows"]
 
     return margin_params
@@ -127,7 +155,6 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         margin_params (dict): Current parameters dictionary to update.
     """
     # Initialize max_numpartitions/max_partition_length to 1
-    margin_params["max_num_partitions"] = 1
     margin_params["max_partition_length"] = metadata["rows"]
 
     for column in by_config:
@@ -153,9 +180,13 @@ def multiple_group_update_params(metadata: dict, by_config: list, margin_params:
         # max_num_partitions logic:
         # We multiply the cardinality defined in each column
         # If None are defined, max_num_partitions is equal to None
+        # if "cardinality" in series_info:
+        #     if series_info["cardinality"]:
+        #         margin_params["max_num_partitions"] *= series_info["cardinality"]
         if "cardinality" in series_info:
-            if series_info["cardinality"]:
-                margin_params["max_num_partitions"] *= series_info["cardinality"]
+            margin_params["max_num_partitions"] = (
+                margin_params.get("max_num_partitions", 1) * series_info["cardinality"]
+            )
 
         # max_influenced_partitions logic:
         # We multiply the max_influenced_partitions defined in each column
@@ -414,7 +445,11 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
         lf_domain = get_lf_domain(metadata, plan)
 
         opendp_pipe = dp.measurements.make_private_lazyframe(
-            lf_domain, dp.metrics.symmetric_distance(), output_measure, plan
+            lf_domain,
+            dp.metrics.symmetric_distance(),
+            output_measure,
+            plan,
+            threshold=100,
         )
     else:
         raise InternalServerException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")

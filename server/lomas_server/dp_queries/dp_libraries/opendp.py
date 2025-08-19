@@ -196,7 +196,7 @@ def multiple_group_params(metadata: dict, by_config: list) -> dict:
     # We multiply the cardinality, max_influenced_partitions and max_partition_contributions
     # of each groupby column. If any None, then no margin.
     max_num_partitions = multiply_or_none(max_num_partitions_l)
-    max_influenced_partitions = multiply_or_none(max_num_partitions_l)
+    max_influenced_partitions = multiply_or_none(max_influenced_partitions_l)
     max_partition_contributions = multiply_or_none(max_partition_contributions_l)
 
     # Make margin

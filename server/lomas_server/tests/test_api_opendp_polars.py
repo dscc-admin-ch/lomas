@@ -295,11 +295,10 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         RAW_METADATA["rows"] = 100
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int"]
-        margin_params = get_global_params(metadata)
         margin_params = multiple_group_params(metadata, by_config)
 
         # Since no max_partition length: rows is taken
-        # Since no max_num_partitions: cardinality is taken
+        # Since no max_num_partitions: None
         expected_margin = {"max_num_partitions": 4, "max_partition_length": 100}
         assert margin_params == expected_margin
 
@@ -351,7 +350,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata["columns"]["column_int"]["max_partition_length"] = None
         margin_params = multiple_group_params(metadata, by_config)
         expected_margin = {
-            "max_num_partitions": 4,  # from col_int cardinality
             "max_partition_length": 100,  # since all are none, rows taken
         }  # from max_ids
         assert margin_params == expected_margin
@@ -376,8 +374,13 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         expected_margin["max_influenced_partitions"] = 10
         assert margin_params == expected_margin
 
-        # Test multi grouping (cardinality)
-        new_col_str = {"type": "string", "cardinality": 2, "categories": ["a", "b"]}
+        # Test multi grouping (cardinality), "max_influenced_partitions" with one None
+        new_col_str = {
+            "type": "string",
+            "cardinality": 2,
+            "categories": ["a", "b"],
+            "max_influenced_partitions": 1,
+        }
         RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()  # max_ids = 1
         by_config = ["column_int", "new_col_str"]
@@ -386,7 +389,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         expected_margin = {
             "max_num_partitions": 8,
             "max_partition_length": 100,  # Since none for col_str
-            "max_influenced_partitions": 1,  # max_ids
         }
         assert margin_params == expected_margin
 
@@ -394,8 +396,12 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         metadata["max_ids"] = 10
         metadata["columns"]["column_int"]["max_partition_contributions"] = 5
         metadata["columns"]["new_col"]["max_partition_contributions"] = 4
+        by_config = ["column_int", "new_col"]
         margin_params = multiple_group_params(metadata, by_config)
-        expected_margin["max_partition_contributions"] = 5
+        expected_margin = {
+            "max_partition_contributions": 10,
+            "max_partition_length": 100,  # Since none for col_str
+        }
         assert margin_params == expected_margin
 
         # Check max_partition_contributions (should never be bigger than max_ids)

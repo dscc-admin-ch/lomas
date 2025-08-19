@@ -101,7 +101,10 @@ def add_lomas_users_via_yaml(
     add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
 
     if admin_config.kc_config is not None:
-        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
+        # TODO: do we want to expose KC clean ?
+        add_kc_users_via_yaml(
+            admin_config.kc_config, yaml_file, clean=False, overwrite=overwrite, path_prefix=path_prefix
+        )
 
 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:

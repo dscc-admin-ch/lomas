@@ -13,6 +13,6 @@ spec:
   # - name: {{ .Values.caddy.service.httpsPortName }}
   #   port: {{ .Values.caddy.service.httpsPort}}
   #   targetPort: {{ .Values.caddy.httpsPort }}
-    
+
   selector:
     {{- include "lomas.caddy.selectorLabels" . | nindent 4 }}

@@ -73,7 +73,7 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     return lf_domain
 
 
-def get_raw_lf_domain(metadata_dict: dict):
+def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
     """
     Builds the "raw" lf domain from the metadata.
 
@@ -119,7 +119,7 @@ def get_raw_lf_domain(metadata_dict: dict):
     return raw_lf_domain
 
 
-def add_global_margin(lf_domain, metadata: dict):
+def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain:
     """Builds the "global" (by = []) margin from the metadata"""
     lf_domain = dp.domains.with_margin(
         lf_domain,

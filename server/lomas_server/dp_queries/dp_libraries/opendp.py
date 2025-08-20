@@ -45,21 +45,16 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     Returns:
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
-
     # Get raw lf domain (without margins)
     raw_lf_domain = get_raw_lf_domain(metadata_dict)
 
     # Add global margin to domain (for by=[])
     lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
 
-    # Add group-by margin (if Any)
-    margin_params = get_global_params(metadata_dict)
-
     # If grouping in the query, we update the margin params
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) >= 1:
         margin_params = multiple_group_params(metadata_dict, by_config)
-
         # TODO 323: Multiple margins?
         # What if two group_by's in one query?
         # Update margin with group_margin
@@ -69,7 +64,6 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
             public_info="keys",
             **margin_params,
         )
-
     return lf_domain
 
 
@@ -129,20 +123,6 @@ def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain
         # max_partition_contributions already managed in the input_distance
     )
     return lf_domain
-
-
-def get_global_params(metadata: dict) -> dict:
-    """Get global parameters for margin.
-
-    Args:
-        metadata (dict): The metadata dictionary
-    Returns:
-        dict: Parameters for margin
-    """
-    margin_params = {}
-    margin_params["max_partition_length"] = metadata["rows"]
-
-    return margin_params
 
 
 def multiply_or_none(values: list[int | None]) -> int | None:

@@ -32,7 +32,6 @@ from lomas_core.models.responses import (
 )
 from lomas_server.app import app
 from lomas_server.dp_queries.dp_libraries.opendp import (
-    get_global_params,
     get_lf_domain,
     multiple_group_params,
 )
@@ -100,7 +99,7 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     """
     plan = lf.group_by("sex").agg(
         [
-            pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100.0, 1)),
+            pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100_000.0, 1)),
             #    dp_len(scale=1.0)
         ]
     )
@@ -123,7 +122,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
         str: The serialized plan of the grouped mean query in JSON format.
     """
     plan = lf.group_by(["sex", "region"]).agg(
-        [pl.col("income").dp.mean(bounds=(1000, 100000), scale=(10000.0, 1.0))]
+        [pl.col("income").dp.mean(bounds=(1000, 100000), scale=(100_000.0, 1.0))]
     )
 
     return plan.serialize(format="json")
@@ -340,7 +339,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         """Test margins with grouping."""
         RAW_METADATA["rows"] = 100
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-        margin_params = get_global_params(metadata)
 
         # Test multi grouping
         new_col = {"type": "int", "precision": 32, "upper": 100, "lower": 1}
@@ -416,7 +414,7 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
         RAW_METADATA["columns"] = col_int
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-        margin_params = get_global_params(metadata)
+
         # lf with int
         expected_series_type = ms.i32
         expected_series_bounds = None
@@ -427,6 +425,8 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
                 T=expected_series_type, nullable=expected_series_nullable, bounds=expected_series_bounds
             ),
         )
+        margin_params = {}
+        margin_params["max_partition_length"] = metadata["rows"]
         expected_lf_domain = dp.domains.with_margin(
             dp.domains.lazyframe_domain([expected_series_domain]),
             by=by_config,

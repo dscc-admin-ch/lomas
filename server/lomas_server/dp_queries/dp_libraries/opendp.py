@@ -45,21 +45,16 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     Returns:
         dp.mod.Domain: The OpenDP domain for the metadata.
     """
-
     # Get raw lf domain (without margins)
     raw_lf_domain = get_raw_lf_domain(metadata_dict)
 
     # Add global margin to domain (for by=[])
     lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
 
-    # Add group-by margin (if Any)
-    margin_params = get_global_params(metadata_dict)
-
     # If grouping in the query, we update the margin params
     by_config = extract_group_by_columns(plan.explain())
     if len(by_config) >= 1:
-        margin_params = multiple_group_update_params(metadata_dict, by_config, margin_params)
-
+        margin_params = multiple_group_params(metadata_dict, by_config)
         # TODO 323: Multiple margins?
         # What if two group_by's in one query?
         # Update margin with group_margin
@@ -69,7 +64,6 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
             public_info="keys",
             **margin_params,
         )
-
     return lf_domain
 
 
@@ -120,7 +114,7 @@ def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
 
 
 def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain:
-    """Builds the "global" (by = []) margin from the metadata"""
+    """Builds the "global" (by = []) margin from the metadata."""
     lf_domain = dp.domains.with_margin(
         lf_domain,
         by=[],
@@ -131,94 +125,76 @@ def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain
     return lf_domain
 
 
-def get_global_params(metadata: dict) -> dict:
-    """Get global parameters for margin.
+def multiply_or_none(values: list[int | None]) -> int | None:
+    """
+    Multiply all values in the list, return None if any value is None.
 
     Args:
-        metadata (dict): The metadata dictionary
+        values (list[Optional[int]]): A list of int or None
+
     Returns:
-        dict: Parameters for margin
+        None if any None in the list, multiplied values of list otherwise.
     """
-    margin_params = {}
-    margin_params["max_partition_length"] = metadata["rows"]
+    if any(v is None for v in values):
+        return None
+    result = 1
+    for v in (v for v in values if v is not None):
+        result *= v
+    return result
 
-    return margin_params
 
-
-def multiple_group_update_params(metadata: dict, by_config: list, margin_params: dict) -> dict:
+def multiple_group_params(metadata: dict, by_config: list) -> dict:
     """
     Updates parameters for multiple-column grouping configuration.
 
     Args:
         metadata (dict): The metadata dictionary.
         by_config (list): List of columns used for grouping.
-        margin_params (dict): Current parameters dictionary to update.
-    """
-    # Initialize max_numpartitions/max_partition_length to 1
-    margin_params["max_partition_length"] = metadata["rows"]
 
+    Returns:
+        (dict) updated margin_params for the groupby
+    """
+    # Initialize values
+    max_partition_length = metadata["rows"]
+    max_num_partitions_l = []
+    max_influenced_partitions_l = []
+    max_partition_contributions_l = []
+
+    # Iterate through grouping columns
     for column in by_config:
         series_info = metadata["columns"][column]
 
-        # max_partitions_length logic:
-        # When two columns in the grouping
-        # We use as max_partition_length the smaller value
-        # at the column level. If None are defined, dataset length is used.
-
-        # Get max_partition_length from series_info, defaulting to metadata["rows"] if not set
-        series_max_partition_length = (
-            series_info["max_partition_length"]
-            if series_info["max_partition_length"] is not None
-            else metadata["rows"]
-        )
-
         # Update the max_partition_length
-        margin_params["max_partition_length"] = min(
-            margin_params["max_partition_length"], series_max_partition_length
-        )
+        if series_info["max_partition_length"] is not None:
+            max_partition_length = min(max_partition_length, series_info["max_partition_length"])
 
-        # max_num_partitions logic:
-        # We multiply the cardinality defined in each column
-        # If None are defined, max_num_partitions is equal to None
-        # if "cardinality" in series_info:
-        #     if series_info["cardinality"]:
-        #         margin_params["max_num_partitions"] *= series_info["cardinality"]
-        if "cardinality" in series_info:
-            margin_params["max_num_partitions"] = (
-                margin_params.get("max_num_partitions", 1) * series_info["cardinality"]
-            )
+        # Get all groupby parameters in a list
+        max_num_partitions_l.append(series_info.get("cardinality", None))
+        max_influenced_partitions_l.append(series_info.get("max_influenced_partitions", None))
+        max_partition_contributions_l.append(series_info.get("max_partition_contributions", None))
 
-        # max_influenced_partitions logic:
-        # We multiply the max_influenced_partitions defined in each column
-        # If None are defined, max_influenced_partitions is equal to None
-        if series_info["max_influenced_partitions"]:
-            margin_params["max_influenced_partitions"] = (
-                margin_params.get("max_influenced_partitions", 1) * series_info["max_influenced_partitions"]
-            )
+    # We multiply the cardinality, max_influenced_partitions and max_partition_contributions
+    # of each groupby column. If any None, then no margin.
+    max_num_partitions = multiply_or_none(max_num_partitions_l)
+    max_influenced_partitions = multiply_or_none(max_influenced_partitions_l)
+    max_partition_contributions = multiply_or_none(max_partition_contributions_l)
 
-        # max_partition_contributions logic:
-        # We multiply the max_partition_contributions defined in each column
-        # If None are defined, max_partition_contributions is equal to None
-        if series_info["max_partition_contributions"]:
-            margin_params["max_partition_contributions"] = (
-                margin_params.get("max_partition_contributions", 1)
-                * series_info["max_partition_contributions"]
-            )
+    # Make margin
+    margin_params = {}
+    margin_params["max_partition_length"] = max_partition_length
+    if max_num_partitions:
+        margin_params["max_num_partitions"] = max_num_partitions
 
-    # If max_influenced_partitions > max_ids:
-    # Then max_influenced_partitions = max_ids
-    if "max_influenced_partitions" in margin_params:
-        margin_params["max_influenced_partitions"] = min(
-            metadata["max_ids"], margin_params["max_influenced_partitions"]
-        )
+    # If max_influenced_partitions > max_ids: then max_influenced_partitions = max_ids
+    if max_influenced_partitions:
+        max_influenced_partitions = min(metadata["max_ids"], max_influenced_partitions)
+        margin_params["max_influenced_partitions"] = max_influenced_partitions
 
-    # If max_partition_contributions > max_ids:
-    # Then max_partition_contributions = max_ids
-    if "max_partition_contributions" in margin_params:
-        margin_params["max_partition_contributions"] = min(
-            metadata["max_ids"],
-            margin_params.get("max_partition_contributions"),
-        )
+    # If max_partition_contributions > max_ids: then max_partition_contributions = max_ids
+    if max_partition_contributions:
+        max_partition_contributions = min(metadata["max_ids"], max_partition_contributions)
+        margin_params["max_partition_contributions"] = max_partition_contributions
+
     return margin_params
 
 

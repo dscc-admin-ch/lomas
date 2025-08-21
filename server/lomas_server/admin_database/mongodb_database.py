@@ -1,3 +1,7 @@
+import json
+import sys
+
+from gridfs import GridFS
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
 from pymongo.database import Database
@@ -14,7 +18,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.admin_database.constants import WRITE_CONCERN_LEVEL, BudgetDBKey
+from lomas_server.admin_database.constants import MAX_BSON_SIZE, WRITE_CONCERN_LEVEL, BudgetDBKey
 from lomas_server.models.config import MongoDBConfig
 from lomas_server.utils.metrics import (
     MONGO_ERROR_COUNTER,
@@ -60,6 +64,7 @@ class AdminMongoDatabase(AdminDatabase):
         """
         PymongoInstrumentor().instrument()
         self.db: Database = get_mongodb(config)
+        self.fs = GridFS(self.db)
 
     def does_user_exist(self, user_name: str) -> bool:
         """Checks if user exist in the database.
@@ -260,6 +265,23 @@ class AdminMongoDatabase(AdminDatabase):
         dataset.pop("id", None)
         return DSInfo.model_validate(dataset)
 
+    def _resolve_gridfs(self, field: dict) -> dict:
+        """
+        If the field is a GridFS reference, load it, otherwise return as is.
+
+        Args:
+        field (dict): A dictionary that may either be the original stored value
+                      or a GridFS reference in the form {"gridfs_id": ObjectId}.
+
+        Returns:
+            dict: The original dictionary stored inline, or the dictionary loaded
+                from GridFS if it was stored as a reference.
+        """
+        if isinstance(field, dict) and "gridfs_id" in field:
+            data = self.fs.get(field["gridfs_id"]).read().decode("utf-8")
+            return json.loads(data)
+        return field
+
     @user_must_have_access_to_dataset
     def get_user_previous_queries(
         self,
@@ -284,7 +306,39 @@ class AdminMongoDatabase(AdminDatabase):
             },
             {"_id": 0},
         )
-        return list(queries)
+
+        results = []
+        for q in queries:
+            q["client_input"] = self._resolve_gridfs(q["client_input"])
+            q["response"] = self._resolve_gridfs(q["response"])
+            results.append(q)
+
+        return results
+
+    def _store_if_too_large(self, field_value: dict, filename: str) -> dict:
+        """
+        Store a dictionary either inline or in GridFS if it exceeds MongoDB's document size limit.
+
+        This method checks the serialized size of the given dictionary. If it is smaller
+        than MongoDB's maximum BSON document size (16 MB), the dictionary is returned
+        unchanged. If it exceeds the limit, the data is stored as a JSON file in GridFS
+        and a lightweight reference containing the GridFS file ID is returned instead.
+
+        Args:
+            field_value (dict): The dictionary to be stored.
+            filename (str): A descriptive filename for storing the object in GridFS.
+
+        Returns:
+            dict: The original dictionary if it fits within MongoDB's size limit,
+                  otherwise a reference in the form {"gridfs_id": ObjectId}.
+        """
+        json_str = json.dumps(field_value)
+        size_bytes = sys.getsizeof(json_str)
+
+        if size_bytes >= MAX_BSON_SIZE:
+            file_id = self.fs.put(json_str.encode("utf-8"), filename=filename)
+            return {"gridfs_id": file_id}
+        return field_value
 
     def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         """
@@ -300,6 +354,11 @@ class AdminMongoDatabase(AdminDatabase):
         """
         MONGO_INSERT_COUNTER.add(1, {"operation": "save_query"})
         to_archive = super().prepare_save_query(user_name, query, response)
+
+        # Check big fields before saving
+        to_archive["client_input"] = self._store_if_too_large(to_archive["client_input"], "query.json")
+        to_archive["response"] = self._store_if_too_large(to_archive["response"], "response.json")
+
         res = self.db.with_options(
             write_concern=WriteConcern(w=WRITE_CONCERN_LEVEL, j=True)
         ).queries_archives.insert_one(to_archive)

@@ -15,3 +15,4 @@ class BudgetDBKey(StrEnum):
 
 
 WRITE_CONCERN_LEVEL = "majority"
+MAX_BSON_SIZE = 16 * 1024 * 1024  # 16 MB

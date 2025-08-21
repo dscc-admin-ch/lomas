@@ -1,5 +1,6 @@
 import argparse
 import functools
+import json
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -7,6 +8,7 @@ from warnings import warn
 
 import boto3
 import yaml
+from gridfs import GridFS
 from pymongo.database import Database
 from pymongo.results import _WriteResult
 
@@ -475,6 +477,12 @@ def get_archives_of_user(db: Database, user: str) -> list[dict]:
         archives (List): list of previous queries from the user
     """
     archives_infos: list[dict] = list(db.queries_archives.find({"user_name": user}))
+    fs = GridFS(db)
+    for doc in archives_infos:
+        for key in ["client_input", "response"]:
+            if isinstance(doc.get(key), dict) and "gridfs_id" in doc[key]:
+                data = fs.get(doc[key]["gridfs_id"]).read().decode("utf-8")
+                doc[key] = json.loads(data)
     logging.info(archives_infos)
     return archives_infos
 

@@ -46,6 +46,6 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          push: ${{ github.event_name == 'push' || github.event_name == 'release' || github.head_ref == 'wip_templates-oauth-caddy' }}
+          push: ${{ github.event_name == 'push' || github.event_name == 'release' }}
           target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}

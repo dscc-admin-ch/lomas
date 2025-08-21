@@ -1,8 +1,7 @@
 import pandas as pd
-import sqlglot
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
-from sqlglot.expressions import Column
+from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
@@ -207,9 +206,9 @@ def get_query_columns(query: str) -> list[str]:
         list[str]: List of unique column names used in the query.
     """
     # Parse SQL into an expression tree
-    expression = sqlglot.parse_one(query)
+    expression = parse_one(query)
 
     # Extract all column references from anywhere in the query
-    columns = {col.name for col in expression.find_all(Column)}
+    columns = [col.name for col in expression.find_all(exp.Column)]
 
-    return sorted(columns)
+    return columns

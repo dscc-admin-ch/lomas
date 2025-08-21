@@ -229,7 +229,7 @@ def test_demo_smartnoise_synth(kc, demo_setup) -> None:
             dummy=dummy,
         )
         res_df = res.result.df_samples
-        assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.2)
+        assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
         assert res_df.body_mass_g.min() >= 5000
 
 

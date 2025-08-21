@@ -1,6 +1,7 @@
 import pandas as pd
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
+from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
@@ -29,7 +30,7 @@ class SmartnoiseSQLQuerier(
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.reader: Reader | None = None
-        self.original_columns: list[str] = []
+        self.query_columns: list[str] = []
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -48,11 +49,21 @@ class SmartnoiseSQLQuerier(
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
-        metadata = self.data_connector.get_metadata()
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
-
         df = self.data_connector.get_pandas_df()
-        self.original_columns = df.columns
+
+        # Extract query columns, fallback to the first column if none are found
+        self.query_columns = get_query_columns(query_json.query_str) or [df.columns[0]]
+        missing = [col for col in self.query_columns if col not in df.columns]
+        if missing:
+            raise InvalidQueryException(f"Query requested columns not found in DataFrame: {missing}")
+
+        # Subset DataFrame to only the relevant columns
+        df = df[self.query_columns]
+
+        # Prepare metadata in smartnoise-sql format
+        metadata = self.data_connector.get_metadata()
+        smartnoise_metadata = convert_to_smartnoise_metadata(metadata, self.query_columns)
+
         self.reader = from_connection(
             df,
             privacy=privacy,
@@ -125,7 +136,7 @@ class SmartnoiseSQLQuerier(
         df_res = pd.DataFrame(result, columns=cols)
 
         # Check for NaNs in any of the new columns
-        new_columns = [col for col in df_res.columns if col not in self.original_columns]
+        new_columns = [col for col in df_res.columns if col not in self.query_columns]
         if df_res[new_columns].isna().any().any():
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
@@ -158,15 +169,23 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     return privacy
 
 
-def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
+def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
     """Convert Lomas metadata to smartnoise metadata format (for SQL).
 
     Args:
         metadata (Metadata): Dataset metadata from admin database
+        query_columns (list[str]): List of column names used in the query
+
     Returns:
         dict: metadata of the dataset in smartnoise-sql format
     """
     metadata_dict = metadata.model_dump()
+
+    # Keep only query columns in metadata
+    metadata_dict["columns"] = {
+        col: val for col, val in metadata_dict["columns"].items() if col in query_columns
+    }
+
     # No bounds on datetime for Smartnoise-SQL
     for _, val in metadata_dict["columns"].items():
         if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
@@ -178,3 +197,26 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]
     return {"": {"": {"df": metadata_dict}}}
+
+
+def get_query_columns(query: str) -> list[str]:
+    """
+    Extract all column names used in a SQL query.
+
+    Traverses the query AST (Abstract Syntax Tree) to find every
+    column reference across SELECT, WHERE, GROUP BY, ORDER BY, etc.
+    Assumes only one table is present in the query.
+
+    Args:
+        query (str): SQL query string.
+
+    Returns:
+        list[str]: List of unique column names used in the query.
+    """
+    # Parse SQL into an expression tree
+    expression = parse_one(query)
+
+    # Extract all column references from anywhere in the query
+    columns = [col.name for col in expression.find_all(exp.Column)]
+
+    return list(set(columns))

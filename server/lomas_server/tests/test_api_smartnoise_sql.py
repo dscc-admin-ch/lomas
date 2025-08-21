@@ -31,7 +31,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 
     @pytest.mark.long
-    def test_smartnoise_sql_query(self) -> None:
+    def test_smartnoise_sql_query_base(self) -> None:
         """Test smartnoise-sql query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
@@ -83,9 +83,9 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise["query_str"] = "SELECT AVG(bill) FROM df"  # no 'bill' column
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-            assert job.error == ExternalLibraryExceptionModel(
-                message="Error obtaining cost: " + "Column cannot be found bill",
+            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.error == InvalidQueryExceptionModel(
+                message="Query requested columns not found in DataFrame: ['bill']",
                 library="smartnoise_sql",
             )
 
@@ -125,6 +125,19 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 message="User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             )
+
+    def test_smartnoise_sql_query_double_same_column(self) -> None:
+        """Test smartnoise-sql query with multiple queries on same column."""
+        with TestClient(app, headers=self.headers) as client:
+            input_smartnoise = dict(example_smartnoise_sql)
+            input_smartnoise["query_str"] = (
+                "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
+            )
+            job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            r_model = QueryResponse.model_validate(job.result)
+
+            assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
+            assert r_model.requested_by == self.user_name
 
     @pytest.mark.long
     def test_smartnoise_sql_query_parameters(self) -> None:

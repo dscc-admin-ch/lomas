@@ -1,6 +1,8 @@
 import pandas as pd
+import sqlglot
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
+from sqlglot.expressions import Column
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
@@ -29,7 +31,7 @@ class SmartnoiseSQLQuerier(
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.reader: Reader | None = None
-        self.original_columns: list[str] = []
+        self.query_columns: list[str] = []
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -52,7 +54,8 @@ class SmartnoiseSQLQuerier(
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
 
         df = self.data_connector.get_pandas_df()
-        self.original_columns = df.columns
+        self.query_columns = get_query_columns(query_json.query_str)
+        df = df[self.query_columns]
         self.reader = from_connection(
             df,
             privacy=privacy,
@@ -125,7 +128,7 @@ class SmartnoiseSQLQuerier(
         df_res = pd.DataFrame(result, columns=cols)
 
         # Check for NaNs in any of the new columns
-        new_columns = [col for col in df_res.columns if col not in self.original_columns]
+        new_columns = [col for col in df_res.columns if col not in self.query_columns]
         if df_res[new_columns].isna().any().any():
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
@@ -178,3 +181,26 @@ def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
     metadata_dict.update(metadata_dict["columns"])
     del metadata_dict["columns"]
     return {"": {"": {"df": metadata_dict}}}
+
+
+def get_query_columns(query: str) -> list[str]:
+    """
+    Extract all column names used in a SQL query.
+
+    Traverses the query AST (Abstract Syntax Tree) to find every
+    column reference across SELECT, WHERE, GROUP BY, ORDER BY, etc.
+    Assumes only one table is present in the query.
+
+    Args:
+        query (str): SQL query string.
+
+    Returns:
+        list[str]: Sorted list of unique column names used in the query.
+    """
+    # Parse SQL into an expression tree
+    expression = sqlglot.parse_one(query)
+
+    # Extract all column references from anywhere in the query
+    columns = {col.name for col in expression.find_all(Column)}
+
+    return sorted(columns)

@@ -17,4 +17,4 @@ class BudgetDBKey(StrEnum):
 WRITE_CONCERN_LEVEL = "majority"
 
 # Limit each element to a max MAX_BSON_SIZE (inserted document must be < 16MB)
-MAX_BSON_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_BSON_SIZE = 5  # 5 * 1024 * 1024  # 5 MB

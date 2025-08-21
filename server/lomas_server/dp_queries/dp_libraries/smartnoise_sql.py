@@ -53,6 +53,9 @@ class SmartnoiseSQLQuerier(
 
         # Extract query columns, fallback to the first column if none are found
         self.query_columns = get_query_columns(query_json.query_str) or [df.columns[0]]
+        missing = [col for col in self.query_columns if col not in df.columns]
+        if missing:
+            raise InvalidQueryException(f"Query requested columns not found in DataFrame: {missing}")
 
         # Subset DataFrame to only the relevant columns
         df = df[self.query_columns]

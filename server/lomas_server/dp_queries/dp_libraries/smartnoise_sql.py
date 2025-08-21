@@ -50,12 +50,13 @@ class SmartnoiseSQLQuerier(
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
-        metadata = self.data_connector.get_metadata()
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
-
         df = self.data_connector.get_pandas_df()
         self.query_columns = get_query_columns(query_json.query_str)
         df = df[self.query_columns]
+
+        metadata = self.data_connector.get_metadata()
+        smartnoise_metadata = convert_to_smartnoise_metadata(metadata, self.query_columns)
+
         self.reader = from_connection(
             df,
             privacy=privacy,
@@ -161,15 +162,23 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     return privacy
 
 
-def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
+def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
     """Convert Lomas metadata to smartnoise metadata format (for SQL).
 
     Args:
         metadata (Metadata): Dataset metadata from admin database
+        query_columns (list[str]): List of column names used in the query
+
     Returns:
         dict: metadata of the dataset in smartnoise-sql format
     """
     metadata_dict = metadata.model_dump()
+
+    # Keep only query columns in metadata
+    metadata_dict["columns"] = {
+        col: val for col, val in metadata_dict["columns"].items() if col in query_columns
+    }
+
     # No bounds on datetime for Smartnoise-SQL
     for _, val in metadata_dict["columns"].items():
         if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
@@ -195,7 +204,7 @@ def get_query_columns(query: str) -> list[str]:
         query (str): SQL query string.
 
     Returns:
-        list[str]: Sorted list of unique column names used in the query.
+        list[str]: List of unique column names used in the query.
     """
     # Parse SQL into an expression tree
     expression = sqlglot.parse_one(query)

@@ -219,4 +219,4 @@ def get_query_columns(query: str) -> list[str]:
     # Extract all column references from anywhere in the query
     columns = [col.name for col in expression.find_all(exp.Column)]
 
-    return columns
+    return list(set(columns))

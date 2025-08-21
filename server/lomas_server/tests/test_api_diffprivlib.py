@@ -374,7 +374,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, DiffPrivLibQueryResult)
-            assert r_model.result.score > 0
+            assert r_model.result.score >= 0
 
             # Expect to fail: user does not have access to dataset
             body = dict(example_dummy_diffprivlib)

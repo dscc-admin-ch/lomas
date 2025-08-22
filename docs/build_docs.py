@@ -27,7 +27,9 @@ hmtl to create links between versions.
 import argparse
 import os
 import re
+import shutil
 import subprocess
+from pathlib import Path
 
 import yaml
 
@@ -64,6 +66,24 @@ def git_ref_exists(git_ref: str) -> bool:
     except subprocess.CalledProcessError as e:
         print(f"Error checking ref: {e}")
         return False
+
+
+def copy_notebook_to_source(path: str) -> None:
+    """
+    Copy notebook from '../client/' or '../server/' to './source/'.
+
+    Args:
+      notebook_path (str): Path to notebook to copy
+    """
+    notebook_path = Path(path)
+    destination_path = path.replace("../client/", "./source/").replace("../server/", "./source/")
+
+    if not notebook_path.exists():
+        print(f"Notebook not found at {notebook_path}, skipping copy.")
+        return
+
+    destination = Path(destination_path)
+    shutil.copy2(notebook_path, destination)
 
 
 def build_doc(version: str, language: str, tag: str, local: bool = False) -> None:
@@ -128,41 +148,13 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
             check=False,
         )
         subprocess.run("mkdir -p ./source/notebooks", shell=True, check=False)
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook.ipynb ./source/notebooks/Demo_Client_Notebook.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb ./source/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb ./source/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb",
-            shell=True,
-            check=False,
-        )
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb")
+        copy_notebook_to_source("../client/notebooks/s3_example_notebook.ipynb")
+        copy_notebook_to_source("../server/notebooks/local_admin_notebook.ipynb")
 
     # Build the html doc
     os.environ["SPHINXOPTS"] = f"-D language='{language}'"
@@ -201,41 +193,13 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
             check=False,
         )
         subprocess.run("mkdir -p ./source/notebooks", shell=True, check=False)
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook.ipynb ./source/notebooks/Demo_Client_Notebook.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb ./source/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb ./source/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb ./source/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb",
-            shell=True,
-            check=False,
-        )
-        subprocess.run(
-            "cp -r ../server/notebooks/local_admin_notebook.ipynb ./source/notebooks/local_admin_notebook.ipynb",
-            shell=True,
-            check=False,
-        )
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb")
+        copy_notebook_to_source("../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb")
+        copy_notebook_to_source("../client/notebooks/s3_example_notebook.ipynb")
+        copy_notebook_to_source("../server/notebooks/local_admin_notebook.ipynb")
 
 
 # a move dir method because we run multiple builds and bring the html folders to a

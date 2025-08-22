@@ -12,9 +12,7 @@
 #
 import os
 import sys
-from unittest.mock import MagicMock
 
-import pkg_resources
 import yaml
 
 sys.path.insert(0, os.path.abspath("../../server"))
@@ -36,9 +34,9 @@ with open(requirements_path) as f:
             continue
         # Take the package name only (strip version specifiers)
         pkg_name = s_line.split("==")[0].split(">=")[0].split("<=")[0]
-        mock_imports.append(pkg_name)
+        if pkg_name != "opendp":
+            mock_imports.append(pkg_name)
 autodoc_mock_imports = mock_imports
-pkg_resources.get_distribution = lambda name: MagicMock(version="0.0.0")
 
 
 # -- Project information -----------------------------------------------------

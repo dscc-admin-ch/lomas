@@ -18,7 +18,9 @@ jobs:
           python-version: 3.12
 
       - name: Install dependencies
-        run: sudo apt-get install pandoc
+        run: |
+          pip install opendp==0.12.0
+          sudo apt-get install pandoc
 
       - name: Build with sphinx
         run: |

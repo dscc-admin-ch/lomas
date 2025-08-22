@@ -24,28 +24,29 @@ Example with our fake dataset, the administrator needs to add this information (
 .. code-block:: yaml
 
    datasets:
-   - dataset_name: "FAKE"
-     database_type: "PATH_DB"
-     dataset_path: "../data/datasets/fake.csv"
-     metadata:
+    - dataset_name: "FAKE"
       database_type: "PATH_DB"
-      metadata_path: "../data/collections/metadata/fake.yaml"
+      dataset_path: "../data/datasets/fake.csv"
+      metadata:
+        database_type: "PATH_DB"
+        metadata_path: "../data/collections/metadata/fake.yaml"
+
 
 * dataset_name: Name of the given dataset
 * database_type: "S3_DB" if dataset stored on a S3 bucket, otherwise "PATH_DB"
 * dataset_path: Needed if database_type is "PATH_DB". For local dataset, one needs to privide the directory path to access the dataset. If HTTP, one should give the url where the dataset is stored.
 
-Note that if your dataset is stored on a S3 bucket, other parameters should be used instead of `dataset_path`
+Note that if your dataset is stored on a S3 bucket, other parameters should be used instead of `dataset_path`.
 
 .. code-block:: yaml
 
    datasets:
-   - dataset_name: "FAKE"
-     database_type: "S3_DB"
-     bucket: your_bucket_name
-     key: your_path_to_dataset #data/fake.csv
-     endpoint_url: your_s3_url
-     crendentials_name: your_credentials
+    - dataset_name: "FAKE"
+      database_type: "S3_DB"
+      bucket: your_bucket_name
+      key: your_path_to_dataset #data/fake.csv
+      endpoint_url: your_s3_url
+      crendentials_name: your_credentials
 
 
 Metadata

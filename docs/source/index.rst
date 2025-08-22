@@ -4,11 +4,12 @@
    contain the root `toctree` directive.
 
 Lomas: The Data Oases Hidden Behind the Mist.
-=============================================
+==============================================
+
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
 Technical Overview:
--------------------
+--------------------
 
 The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
@@ -18,7 +19,7 @@ The server is responsible for processing the client requests and updating its ow
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
 Detailed description:
----------------------
+----------------------
 
 For a detailed description, please see the links below.
 
@@ -27,8 +28,9 @@ For a detailed description, please see the links below.
 * **GitHub repository**: https://github.com/dscc-admin-ch/lomas/tree/master/
 
 
+
 Client
-========
+=======
 The ``lomas_client`` library is a client to interact with the Lomas server. It is available on
 Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will
 only interact with the client and never with the server.
@@ -75,7 +77,7 @@ The ``lomas_core`` library serves as a base for both the ``lomas_client`` and ``
 It contains code that both these libraries rely on such as request and response models.
 
 Disclaimer
-==========
+===========
 Lomas is a Proof of Concept that is still under development.
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.

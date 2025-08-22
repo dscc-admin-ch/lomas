@@ -149,6 +149,11 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
             check=False,
         )
         subprocess.run(
+            "cp -r ../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb ./source/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
+            shell=True,
+            check=False,
+        )
+        subprocess.run(
             "cp -r ../client/notebooks/s3_example_notebook.ipynb ./source/notebooks/s3_example_notebook.ipynb",
             shell=True,
             check=False,

@@ -15,7 +15,7 @@ server:
   image:
     repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-3940708
+    tag: sha-4027eb1
 
   # Runtime args for server
   runtime_args:
@@ -54,20 +54,15 @@ server:
     port: 80
     portName: http
 
-  ingress:
-    enabled: true
-    className: "nginx"
-    annotations:
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas.example.com"
-  # Openshift route for Openshift clusters.
-  route:
-    enabled: false
-    annotations: {}
-    hostname: "lomas.example.com"
-    tls:
-      insecureEdgeTerminationPolicy: Redirect
-      termination: edge
+  # Lomas server not meant to be replicated for now
+  replicaCount: 1
+  # Lomas server not intended to be autoscaled for now
+  # autoscaling:
+  #  enabled: false
+  #  minReplicas: 1
+  #  maxReplicas: 100
+  #  targetCPUUtilizationPercentage: 80
+  #  targetMemoryUtilizationPercentage: 80
 
   # We leave unset stuff here
   serviceAccount:
@@ -86,7 +81,18 @@ server:
   securityContext: {}
   nodeSelector: {}
   tolerations: []
-  affinity: {}
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/component
+            operator: In
+            values:
+            - worker
+            - server
+            - dashboard
+        topologyKey: "kubernetes.io/hostname"
 
 worker:
   replicaCount: 1
@@ -111,11 +117,14 @@ caddy:
     imagePullPolicy: Always
     tag: sha-76663a3
 
-  hostname: caddy.example.com
+  hostname: lomas-lancelot-caddy.lab.sspcloud.fr
   ingress:
     enabled: true
     className: "nginx"
     annotations:
+      ## Resolve HTTP 502 error using ingress-nginx:
+      ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
   # Openshift route for Openshift clusters.
   route:
@@ -125,16 +134,16 @@ caddy:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
   port: 80
-  httpsPort: 42443
+  httpsPort: 443
   service:
     type: ClusterIP
     port: 80
-    httpsPort: 42443
+    httpsPort: 443
     portName: http
     httpsPortName: https
 
   configmap:
-    configMapName: caddy-config
+    configMapName: lomas-caddy-config
     configAnnotations: {}
 
   resources: {}
@@ -154,17 +163,16 @@ oauth2proxy:
   image:
     repository: bitnami/oauth2-proxy
     imagePullPolicy: Always
-    tag: 7.8.2-debian-12-r4
+    tag: 7.9.0-debian-12-r7
 
   config:
-    cookieSecure: "false"
-    cookieSecret: "abc"
+    cookieSecret: "thisisasecret123"
     cookieSecretExistingSecretName: ""
     cookieSecretExistingSecretKey: ""
     emailDomains: "*"
-    whitelistDomains: "*"
+    whitelistDomains: ".lab.sspcloud.fr:*"
     clientId: "oauth2-proxy"
-    clientSecret: "superCliendID"
+    clientSecret: "thisisasecret123"
     clientSecretExistingSecretName: ""
     clientSecretExistingSecretKey: ""
     codeChallengeMethod: "S256"
@@ -194,7 +202,7 @@ admin:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-3940708
+    tag: sha-4027eb1
   curlImage:
     repository: curlimages/curl
     tag: 8.13.0
@@ -209,6 +217,13 @@ admin:
   lomas_service_client_secret: "lomas_service"
   lomas_service_existing_secret: ""
   lomas_service_secret_key: ""
+  lomas_admin_users:
+    - username: "admin"
+      email: "admin@example.com"
+      first_name: "admin"
+      last_name: "admin"
+      temp_password: "admin"
+    # - existing_secret: xyz
   initContainers:
     resources:
       limits:
@@ -239,6 +254,7 @@ admin:
     #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
+  securityContext: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -249,7 +265,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas_admin
     pullPolicy: Always
-    tag: sha-3940708
+    tag: sha-4027eb1
 
   # Runtime args for server
   serverConfig:
@@ -261,20 +277,6 @@ dashboard:
     port: 80
     portName: http
 
-  ingress:
-    enabled: true
-    className: "nginx"
-    annotations:
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-dashboard.example.com"
-  # Openshift route for Openshift clusters.
-  route:
-    enabled: false
-    annotations: {}
-    hostname: "lomas-dashboard.example.com"
-    tls:
-      insecureEdgeTerminationPolicy: Redirect
-      termination: edge
   # Lomas dashboard not meant to be replicated for now
   replicaCount: 1
   # Lomas dashboard not intended to be autoscaled for now
@@ -309,7 +311,18 @@ dashboard:
     # runAsUser: 1000
   nodeSelector: {}
   tolerations: []
-  affinity: {}
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/component
+            operator: In
+            values:
+            - worker
+            - server
+            - dashboard
+        topologyKey: "kubernetes.io/hostname"
 
 # Loki
 ##########################################################################
@@ -357,8 +370,8 @@ loki:
     pattern_ingester:
       enabled: true
 
-  podSecurityContext: {}
-    # fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -410,8 +423,8 @@ prometheus:
   config:
     scrape_interval: 5s
     evaluation_interval: 5s
-  podSecurityContext: {}
-    # fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -448,8 +461,8 @@ tempo:
         backend: local
         # traces will be stored in <basepath>/traces and wal will be in <basepath>/wal
         basepath: /var/tempo/
-  podSecurityContext: {}
-    # fsGroup: 10001 # Match container group rights for volume access
+  podSecurityContext:
+    fsGroup: 10001 # Match container group rights for volume access
   pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 1Gi
@@ -521,20 +534,6 @@ grafana:
     admin_user: "admin"
     admin_password: "admin"
 
-  ingress:
-    enabled: true
-    className: "nginx"
-    annotations:
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboard.example.com"
-  # Openshift route for Openshift clusters.
-  route:
-    enabled: false
-    annotations: {}
-    hostname: "lomas-grafana-dashboard.example.com"
-    tls:
-      insecureEdgeTerminationPolicy: Redirect
-      termination: edge
   replicaCount: 1
   resources: {}
 
@@ -604,7 +603,7 @@ keycloak:
   image:
     registry: docker.io
     repository: bitnami/keycloak
-    tag: 26.1.4-debian-12-r0
+    tag: 26.3.1-debian-12-r0
     # digest: ""
     pullPolicy: Always
     #pullSecrets: []
@@ -622,7 +621,7 @@ keycloak:
   adminRealm: "master"
   production: true
   proxy: edge
-  proxyHeaders: "forwarded" # or xforwarded, must check with ingress
+  proxyHeaders: "xforwarded" # or xforwarded, must check with ingress
 
   replicaCount: 1
   containerPorts:
@@ -663,25 +662,8 @@ keycloak:
       http: 80
       https: 443
 
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      ## Resolve HTTP 502 error using ingress-nginx:
-      ## See https://www.ibm.com/support/pages/502-error-ingress-keycloak-response
-      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
-    # List of rules for the Ingress
-    hostname: "keycloak.example.com"
-
-  # Openshift route for Openshift clusters, not part of bitnami chart.
-  route:
-    enabled: false
-    labels: {}
-    annotations: {}
-    hostname: "lomas-keycloak.example.com"
-    tls:
-      insecureEdgeTerminationPolicy: None
-      termination: edge
+  #httpRelativePath: "/auth/"
+  extraStartupArgs: "--hostname https://lomas-lancelot-caddy.lab.sspcloud.fr/auth"
 
   postgresql:
     enabled: true
@@ -818,7 +800,7 @@ rabbitmq:
     ingressClassName: nginx
     annotations: {}
     # List of rules for the Ingress
-    hostname: "rabbitmq.example.com"
+    hostname: "lomas-lancelot-rabbitmq.lab.sspcloud.fr"
 
   # Openshift route for Openshift clusters, not part of bitnami chart.
   route:
@@ -839,5 +821,3 @@ rabbitmq:
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "{{ .Values.service.ports.metrics }}"
-
-

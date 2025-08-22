@@ -75,21 +75,25 @@ def add_kc_user(
 
     try:
         # TODO remove this? or update when federation is activated. see issue #408
-        kc_admin.users.post(
-            {
-                "username": user_name,
-                "email": user_email,
-                "enabled": True,
-                # TODO 399.
-                # The following does not work on standard users and is silently ignored by keycloak.
-                # One would have to add the attribute name to the managed attributes of the realm.
-                # This is probably best implemented once we have proper groups/roles in lomas.
-                "attributes": {
-                    # flag to indicate this client is linked to a lomas user.
-                    KCAttributeNames.LOMAS_USER_CLIENT: [True]
-                },
-            }
-        )
+        try:
+            kc_admin.users.post(
+                {
+                    "username": user_name,
+                    "email": user_email,
+                    "enabled": True,
+                    # TODO 399.
+                    # The following does not work on standard users and is silently ignored by keycloak.
+                    # One would have to add the attribute name to the managed attributes of the realm.
+                    # This is probably best implemented once we have proper groups/roles in lomas.
+                    "attributes": {
+                        # flag to indicate this client is linked to a lomas user.
+                        KCAttributeNames.LOMAS_USER_CLIENT: [True]
+                    },
+                }
+            )
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"User {user_name} already exists")
 
         # Create client for user
         client_dict = {
@@ -112,7 +116,11 @@ def add_kc_user(
         if client_secret is not None:
             client_dict["secret"] = client_secret
 
-        kc_admin.clients.post(client_dict)
+        try:
+            kc_admin.clients.post(client_dict)
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"User {user_name} already exists")
 
         # We want to add user info as claims in all tokens requested by this client.
         # Only attributes from the service account user can be mapped as claims,
@@ -135,12 +143,19 @@ def add_kc_user(
         )
 
         # Map attributes into OIDC claims
-        kc_admin.clients(user_client_uid).protocol_mappers.models.post(
-            get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_NAME)
-        )
-        kc_admin.clients(user_client_uid).protocol_mappers.models.post(
-            get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_EMAIL)
-        )
+        try:
+            pm = get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_NAME)
+            kc_admin.clients(user_client_uid).protocol_mappers.models.post(pm)
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"Protocol Mapper {pm['name']} already exists")
+
+        try:
+            pm = get_user_attr_protocol_mapper_dict(KCAttributeNames.USER_EMAIL)
+            kc_admin.clients(user_client_uid).protocol_mappers.models.post(pm)
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"Protocol Mapper {pm['name']} already exists")
 
         log_name = user_name.replace("\\r\\n", "").replace("\\n", "")
         logging.info(f"Added keycloak user {log_name} and associated client.\\n")

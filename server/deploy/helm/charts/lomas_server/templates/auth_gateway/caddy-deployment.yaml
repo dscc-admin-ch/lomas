@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.caddy.fullname" . }}
+  labels:
+    {{- include "lomas.caddy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.caddy.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lomas.caddy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.caddy.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.caddy.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.caddy.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: caddy
+          image: "{{ .Values.caddy.image.repository }}:{{ .Values.caddy.image.tag }}"
+          imagePullPolicy: {{ .Values.caddy.image.pullPolicy }}
+          ports:
+          - name: http
+            containerPort: {{ .Values.caddy.port }}
+            protocol: TCP
+          - name: https
+            containerPort: {{ .Values.caddy.httpsPort }}
+            protocol: TCP
+          securityContext:
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+          volumeMounts:
+            - mountPath: /etc/caddy
+              name: config
+          resources:
+            {{- toYaml .Values.caddy.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.caddy.configmap.configMapName }}

@@ -54,7 +54,9 @@ data:
 
     grafana.ini: |
       [server]
-      domain = {{ .Values.grafana.ingress.hostname }}
+      domain = {{ .Values.caddy.hostname }}
+      root_url = https://{{ .Values.caddy.hostname }}:80/grafana
+      server_from_sub_path = true
       http_port = {{ .Values.grafana.service.port }}
 
       [security]

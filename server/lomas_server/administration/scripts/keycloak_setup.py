@@ -2,8 +2,19 @@ import logging
 import os
 
 from mantelo import HttpException, KeycloakAdmin
-from pydantic import Field, HttpUrl, computed_field
+from pydantic import BaseModel, Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class User(BaseModel):
+    """BaseModel for informations of a keycloak user."""
+
+    username: str
+    email: str
+    temp_password: str
+
+    first_name: str
+    last_name: str
 
 
 class Config(BaseSettings):
@@ -25,11 +36,18 @@ class Config(BaseSettings):
 
     lomas_realm: str = "lomas"
 
+    lomas_gateway_url: HttpUrl
+    lomas_gateway_client_id: str = "lomas_oauth_proxy"
+    lomas_gateway_client_secret: str
+
     lomas_admin_client_id: str = "lomas_admin"
     lomas_admin_client_secret: str
 
     lomas_api_client_id: str = "lomas_api"
     lomas_api_client_secret: str
+
+    # We make this a dict to be able to split it into multiple env variables.
+    lomas_admin_users: dict[int, User]
 
     overwrite_realm: bool = Field(default=True)
 
@@ -101,6 +119,65 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
     )
     create_confidential_client(kc_admin, config.lomas_api_client_id, config.lomas_api_client_secret)
 
+    create_gateway_client(
+        kc_admin, config.lomas_gateway_client_id, config.lomas_gateway_client_secret, config.lomas_gateway_url
+    )
+
+
+def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
+    """Creates standard User."""
+
+    realm_role_name = "authp/admin"
+
+    try:
+        kc_admin.realms(config.lomas_realm).roles.post(
+            {"name": realm_role_name, "description": "admin role", "attributes": {}}
+        )
+    except HttpException as e:
+        if e.status_code == 409:
+            logging.info("Realm role authp/admin already exists")
+
+    roles = kc_admin.realms(config.lomas_realm).roles.get()
+
+    try:
+        kc_admin.groups.post({"name": "lomas-admin"})
+    except HttpException as e:
+        if e.status_code == 409:
+            logging.info("Lomas Admins group already exists")
+
+    for group in kc_admin.realms(config.lomas_realm).groups.get():
+        match group:
+            case {"name": "lomas-admin", "id": gid, **_rest}:
+                try:
+                    role = next(r for r in roles if r["name"] == realm_role_name)
+                    getattr(kc_admin.realms(config.lomas_realm).groups, gid).role_mappings.realm.post(
+                        data=[role]
+                    )
+                except HttpException as e:
+                    if e.status_code == 409:
+                        logging.info("Lomas Admins role-mappings already exists")
+            case _:
+                pass
+
+    for user in config.lomas_admin_users.values():
+        try:
+            kc_admin.users.post(
+                {
+                    "username": user.username,
+                    "enabled": True,
+                    "emailVerified": True,
+                    "firstName": user.first_name,
+                    "lastName": user.last_name,
+                    "email": user.email,
+                    "requiredActions": ["UPDATE_PASSWORD", "CONFIGURE_TOTP"],
+                    "groups": ["lomas-admin"],
+                    "credentials": [{"type": "password", "value": user.temp_password, "temporary": True}],
+                }
+            )
+        except HttpException as e:
+            if e.status_code == 409:
+                logging.info(f"User {user.username} group already exists")
+
 
 def create_confidential_client(
     kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] = {}
@@ -119,6 +196,11 @@ def create_confidential_client(
         roles (Dict[str, List[str]]): A dictionary mapping of (realm, list of roles) pairs
             to assign to the associated service account.
     """
+    # Idempotent creation
+    match kc_admin.clients.get(clientId=client_id):
+        case [{"id": client_id, **_rest}]:
+            getattr(kc_admin.clients, client_id).delete()
+
     # Create client
     kc_admin.clients.post(
         {
@@ -137,8 +219,10 @@ def create_confidential_client(
     )
 
     # Fetch service account uid
-    lomas_admin_uid = kc_admin.clients.get(clientId="lomas_admin")[0]["id"]
-    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin_uid).service_account_user.get()["id"]
+    lomas_admin = kc_admin.clients.get(clientId="lomas_admin")
+    if len(lomas_admin) == 0:
+        return
+    lomas_admin_service_account_uid = kc_admin.clients(lomas_admin[0]["id"]).service_account_user.get()["id"]
 
     for client, roles_list in roles.items():
         # Fetch realm management and manage-clients role uids
@@ -153,6 +237,79 @@ def create_confidential_client(
         kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(roles_to_add)
 
     logging.info("Created new confidential client.")
+
+
+def create_gateway_client(
+    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, gateway_hostname: HttpUrl
+) -> None:
+    """Create a confidential client for the gateway.
+
+    This client will handle auth of the admin users to the various dashboards.
+
+    Args:
+        kc_admin (KeycloakAdmin): The KeycloakAdmin instance.
+        client_id (str): The client id.
+        client_secret (str): The client secret.
+        gateway_hostname (HttpUrl): The hostname (url) of the gateway.
+    """
+    # Idempotent creation
+    match kc_admin.clients.get(clientId=client_id):
+        case [{"id": client_id, **_rest}]:
+            getattr(kc_admin.clients, client_id).delete()
+
+    kc_admin.clients.post(
+        {
+            "clientId": client_id,
+            "secret": client_secret,
+            "name": client_id,
+            "rootUrl": str(gateway_hostname).rstrip("/"),
+            "clientAuthenticatorType": "client-secret",
+            "redirectUris": ["/oauth2/callback"],
+            "webOrigins": ["/*"],
+            "standardFlowEnabled": True,
+            "implicitFlowEnabled": False,
+            "directAccessGrantsEnabled": False,
+            "serviceAccountsEnabled": False,
+            "publicClient": False,
+            "frontchannelLogout": True,
+            "protocol": "openid-connect",
+            "attributes": {
+                "realm_client": "false",
+                "oidc.ciba.grant.enabled": "false",
+                "backchannel.logout.session.required": "true",
+                "frontchannel.logout.session.required": "true",
+                "display.on.consent.screen": "false",
+                "oauth2.device.authorization.grant.enabled": "false",
+                "backchannel.logout.revoke.offline.tokens": "false",
+            },
+            "fullScopeAllowed": True,
+            "protocolMappers": [
+                {
+                    "name": "aud-mapper",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-audience-mapper",
+                    "consentRequired": False,
+                    "config": {
+                        "included.client.audience": client_id,
+                        "id.token.claim": "true",
+                        "lightweight.claim": "false",
+                        "access.token.claim": "true",
+                        "introspection.token.claim": "true",
+                    },
+                }
+            ],
+        }
+    )
+
+    logging.info("Created client for lomas gateway.")
+
+
+def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
+    """Remove deprecated key Provider."""
+    kc_admin.realm_name = realm
+    for kp in kc_admin.components.get(type="org.keycloak.keys.KeyProvider"):
+        if kp["name"] != "rsa-generated":
+            getattr(kc_admin.components, kp["id"]).delete()
 
 
 def kc_setup() -> None:
@@ -173,6 +330,15 @@ def kc_setup() -> None:
     # 2. Create clients
     create_lomas_clients(config, kc_admin)
 
+    # 3. Create users
+    create_lomas_admin_users(config, kc_admin)
+
+    # 4. Misc cleanup
+    misc_realm_cleanup(config.lomas_realm, kc_admin)
+
 
 if __name__ == "__main__":
+    logging.basicConfig()
+    logging.root.setLevel(logging.DEBUG)
+
     kc_setup()

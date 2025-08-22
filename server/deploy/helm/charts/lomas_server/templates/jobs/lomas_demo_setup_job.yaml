@@ -74,7 +74,7 @@ spec:
             - name: LOMAS_ADMIN_MG_CONFIG__MAX_CONNECTING
               value: "{{ .Values.mongodb.max_connecting }}"
             - name: LOMAS_ADMIN_KC_CONFIG__URL
-              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+              value: "https://{{ .Values.caddy.hostname }}/auth"
             - name: LOMAS_ADMIN_KC_CONFIG__REALM
               value: "{{ .Values.admin.realm }}"
             - name: LOMAS_ADMIN_KC_CONFIG__CLIENT_ID
@@ -88,9 +88,9 @@ spec:
             - name: LOMAS_ADMIN_DATASET_YAML
               value: "{{ .Values.admin.demo_setup.dataset_yaml_path }}"
             - name: LOMAS_ADMIN_SERVER_URL
-              value: "https://{{ .Values.server.ingress.hostname }}"
+              value: "https://{{ .Values.caddy.hostname }}/api/"
             - name: LOMAS_ADMIN_SERVER_SERVICE
-              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}"
+              value: "https://{{ .Values.caddy.hostname }}/api/"
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       nodeSelector:

@@ -37,7 +37,7 @@ spec:
           command: ["python", "-m", "lomas_server.administration.scripts.keycloak_setup"]
           env:
             - name: LOMAS_KC_SETUP_KEYCLOAK_URL
-              value: "https://{{ .Values.keycloak.ingress.hostname }}:{{ .Values.keycloak.service.ports.https }}"
+              value: "https://{{ .Values.caddy.hostname }}/auth"
             - name: LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM
               value: {{ .Values.keycloak.adminRealm }}
             - name: LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID
@@ -51,6 +51,15 @@ spec:
                   key: {{ include "keycloak.secretKey" (dict "Release" .Release "Chart" (dict "Name" "keycloak") "Values" .Values.keycloak) }}
             - name: LOMAS_KC_SETUP_LOMAS_REALM
               value: {{ .Values.admin.realm }}
+            - name: LOMAS_KC_SETUP_LOMAS_GATEWAY_URL
+              value: https://{{ .Values.caddy.hostname }}
+            - name: LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID
+              value: {{ .Values.oauth2proxy.config.clientId }}
+            - name: LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "lomas.oauth2proxy.clientSecretName" . }}
+                  key: {{ template "lomas.oauth2proxy.clientSecretKey" . }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID
               value: {{ .Values.admin.client_id }}
             - name: LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET
@@ -67,6 +76,33 @@ spec:
                   key: {{ template "lomas-service.secretKey" . }}
             - name: LOMAS_KC_SETUP_OVERWRITE_REALM
               value: {{ .Values.admin.keycloakSetup.overwrite_realm | quote }}
+            {{- range $i, $credSecretName := (include "lomas.admin.keycloak-setup.admin-user-secrets" $) | fromYamlArray }}
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-user
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-email
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__FIRST_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-firstname
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__LAST_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-lastname
+            - name: LOMAS_KC_SETUP_LOMAS_ADMIN_USERS__{{ $i }}__TEMP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $credSecretName }}
+                  key: lomas-admin-temp-password
+            {{- end }}
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       nodeSelector:

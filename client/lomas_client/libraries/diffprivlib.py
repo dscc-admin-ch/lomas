@@ -35,24 +35,27 @@ class DiffPrivLibClient:
         Args:
             pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
                 - The pipeline MUST start with a `models.StandardScaler`.
-                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
-                  is treated as an error in lomas server.
+                Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
+                is treated as an error in lomas server.
+
                 - `random_state` fields can only be int (`RandomState` will not work).
                 - `accountant` fields must be None.
+
                 Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
                 to ensure that the pipeline does what is intended.
             feature_columns (list[str]): the list of feature column to train
-            target_columns (list[str], optional): the list of target column to predict \
+            target_columns (list[str], optional): the list of target column to predict
                 May be None for certain models.
-            test_size (float, optional): proportion of the test set \
+            test_size (float, optional): proportion of the test set
                 Defaults to 0.2.
-            test_train_split_seed (int, optional): seed for random train test split \
+            test_train_split_seed (int, optional): seed for random train test split
                 Defaults to 1.
             imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
                 "drop": will drop all rows with missing values
                 "mean": will replace values by the mean of the column values
                 "median": will replace values by the median of the column values
-                "most_frequent": : will replace values by the most frequent values
+                "most_frequent": will replace values by the most frequent values
+
 
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
@@ -89,18 +92,19 @@ class DiffPrivLibClient:
         Args:
             pipeline (sklearn.pipeline): DiffPrivLib pipeline with three conditions:
                 - The pipeline MUST start with a `models.StandardScaler`.
-                  Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
-                  is treated as an error in lomas server.
+                Otherwise a PrivacyLeakWarning is raised by DiffPrivLib library and
+                is treated as an error in lomas server.
                 - `random_state` fields can only be int (`RandomState` will not work).
                 - `accountant` fields must be None.
+
                 Note: as in DiffPrivLib, avoid any DiffprivlibCompatibilityWarning
                 to ensure that the pipeline does what is intended.
             feature_columns (list[str]): the list of feature column to train
-            target_columns (list[str], optional): the list of target column to predict \
+            target_columns (list[str], optional): the list of target column to predict
                 May be None for certain models.
-            test_size (float, optional): proportion of the test set \
+            test_size (float, optional): proportion of the test set
                 Defaults to 0.2.
-            test_train_split_seed (int, optional): seed for random train test split \
+            test_train_split_seed (int, optional): seed for random train test split
                 Defaults to 1.
             imputer_strategy (str, optional): imputation strategy. Defaults to "drop".
                 "drop": will drop all rows with missing values
@@ -108,9 +112,9 @@ class DiffPrivLibClient:
                 "median": will replace values by the median of the column values
                 "most_frequent": : will replace values by the most frequent values
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
-            nb_rows (int, optional): The number of rows in the dummy dataset.\
+            nb_rows (int, optional): The number of rows in the dummy dataset.
                 Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.\
+            seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
 
         Returns:

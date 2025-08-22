@@ -20,6 +20,12 @@ test = [
   "pytest>=8.3",
   "pytest-cov>=6.0",
 ]
+docs = [
+  "sphinx>=7.0",
+  "sphinx-rtd-theme>=2.0",
+  "myst-parser>=3.0",
+  "sphinx-autodoc-typehints>=2.0",
+]
 
 # workspace setup for uv
 [tool.uv.sources]

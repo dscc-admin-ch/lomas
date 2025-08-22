@@ -86,10 +86,12 @@ class TestMongoDBDatabase(unittest.TestCase):
         # Make big df
         rng = np.random.default_rng()
         n_rows = 100_000  # enough to comfortably exceed 16MB
+        date_range = pd.date_range(start="2023-01-01", end="2023-12-31")
         df_large = pd.DataFrame(
             {
                 "id": np.arange(n_rows),
                 "name": rng.choice(["Alice", "Bob", "Charlie", "David", "Eve"], size=n_rows),
+                "dates": np.random.choice(date_range, size=n_rows),  # noqa: NPY002
                 "score": rng.random(n_rows) * 100,
                 "passed": rng.choice([True, False], size=n_rows),
                 "notes": rng.choice(["Good", "Average", "Poor", "Excellent"], size=n_rows),

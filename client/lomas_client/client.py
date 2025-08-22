@@ -104,9 +104,10 @@ class Client:
                 Defaults to DUMMY_SEED.
             lazy (bool, optional): If True, return a polars LazyFrame.
                 Defaults to False (pandas DataFrame)
+
         Returns:
             pd.DataFrame | pl.LazyFrame: A Pandas DataFrame representing
-                the dummy dataset (optionally in LazyFrame format).
+            the dummy dataset (optionally in LazyFrame format).
         """
         body_dict = {
             "dataset_name": self.config.dataset_name,
@@ -137,14 +138,14 @@ class Client:
 
     def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
         """
-        Returns the polars LazyFrame for the dummy dataset with.
+        Returns the polars LazyFrame for the dummy dataset with optional parameters.
 
-        optional parameters.
         Args:
             nb_rows (int, optional): The number of rows in the dummy dataset.
                 Defaults to DUMMY_NB_ROWS.
             seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
+
         Returns:
             Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
         """

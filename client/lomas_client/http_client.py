@@ -116,11 +116,17 @@ class LomasHttpClient:
                     f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
                 ).json()
 
-            if job_query["status"] == "complete":
+            # Check for error before accessing "status"
+            if "status" in job_query and job_query["status"] == "complete":
                 return Job.model_validate(job_query)
 
             if (job_err := job_query.get("error")) is not None:
                 return Job.model_validate(job_query | {"error": loads(job_err)})
+
+            elif "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
+                # Handle unauthorized specifically
+                self._fetch_token()  # refresh token
+                continue  # retry the request
 
             sleep(sleep_sec)
 

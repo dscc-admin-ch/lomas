@@ -12,7 +12,9 @@
 #
 import os
 import sys
+from unittest.mock import MagicMock
 
+import pkg_resources
 import yaml
 
 sys.path.insert(0, os.path.abspath("../../server"))
@@ -23,6 +25,20 @@ if scripts_client not in sys.path:
     sys.path.append(os.path.abspath(scripts_client))
 if scripts_server not in sys.path:
     sys.path.append(os.path.abspath(scripts_server))
+
+# Tell Sphinx to mock packages of requirements.txt
+requirements_path = "../../requirements.txt"
+mock_imports = []
+with open(requirements_path) as f:
+    for line in f:
+        s_line = line.strip()
+        if not s_line or line.startswith("#"):
+            continue
+        # Take the package name only (strip version specifiers)
+        pkg_name = s_line.split("==")[0].split(">=")[0].split("<=")[0]
+        mock_imports.append(pkg_name)
+autodoc_mock_imports = mock_imports
+pkg_resources.get_distribution = lambda name: MagicMock(version="0.0.0")
 
 
 # -- Project information -----------------------------------------------------

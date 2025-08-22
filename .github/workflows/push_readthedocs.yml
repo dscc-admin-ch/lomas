@@ -34,10 +34,7 @@ jobs:
         run: sudo apt-get install pandoc
 
       - name: Build with sphinx
-        run: |
-          cd docs
-          nix run nixpkgs#devenv -- python build_docs.py
-          ls -l ../pages
+        run: devenv shell -- build-docs
 
       - name: Pushes to another repository
         if: github.event_name == 'push' || github.event_name == 'release'

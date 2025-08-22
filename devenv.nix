@@ -399,6 +399,13 @@ in
     popd
   '';
 
+  scripts.build-docs.exec = ''
+    pushd $DEVENV_ROOT
+    cd docs/
+    python build_docs.py
+    popd
+  '';
+
   scripts.run-notebooks.exec = ''
     pushd $DEVENV_ROOT
     python -m lomas_client.scripts.run_notebook -a -s -d

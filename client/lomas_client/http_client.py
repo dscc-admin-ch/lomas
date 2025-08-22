@@ -123,7 +123,7 @@ class LomasHttpClient:
             if (job_err := job_query.get("error")) is not None:
                 return Job.model_validate(job_query | {"error": loads(job_err)})
 
-            elif "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
+            if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
                 # Handle unauthorized specifically
                 self._fetch_token()  # refresh token
                 continue  # retry the request

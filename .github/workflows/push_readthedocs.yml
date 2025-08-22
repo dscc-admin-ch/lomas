@@ -36,7 +36,7 @@ jobs:
       - name: Build with sphinx
         run: |
           cd docs
-          uv run build_docs.py
+          devenv shell -- uv run build_docs.py
           ls -l ../pages
 
       - name: Pushes to another repository

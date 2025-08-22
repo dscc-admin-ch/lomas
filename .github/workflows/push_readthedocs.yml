@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install pandoc
-          uv pip install -r requirements-docs.txt
+          uv pip install -r requirements.txt
 
       - name: Build with sphinx
         run: |

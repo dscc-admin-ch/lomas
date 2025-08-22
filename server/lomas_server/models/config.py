@@ -55,6 +55,7 @@ class AmqpConfig(BaseModel):
             password=self.password,
             host=self.url.host,
             port=self.url.port,
+            query="heartbeat=1800",
         )
         return str(dsn)
 

@@ -17,26 +17,17 @@ import yaml
 
 sys.path.insert(0, os.path.abspath("../../server"))
 sys.path.insert(0, os.path.abspath("../../client"))
+sys.path.insert(0, os.path.abspath("../../core"))
 scripts_client = "../../client/lomas_client"
 scripts_server = "../../server/lomas_server"
+scripts_core = "../../server/lomas_core"
+
 if scripts_client not in sys.path:
     sys.path.append(os.path.abspath(scripts_client))
 if scripts_server not in sys.path:
     sys.path.append(os.path.abspath(scripts_server))
-
-# Tell Sphinx to mock packages of requirements.txt
-requirements_path = "../../requirements.txt"
-mock_imports = []
-with open(requirements_path) as f:
-    for line in f:
-        s_line = line.strip()
-        if not s_line or line.startswith("#"):
-            continue
-        # Take the package name only (strip version specifiers)
-        pkg_name = s_line.split("==")[0].split(">=")[0].split("<=")[0]
-        if pkg_name != "opendp":
-            mock_imports.append(pkg_name)
-autodoc_mock_imports = mock_imports
+if scripts_core not in sys.path:
+    sys.path.append(os.path.abspath(scripts_core))
 
 
 # -- Project information -----------------------------------------------------

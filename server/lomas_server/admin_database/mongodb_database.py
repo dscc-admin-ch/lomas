@@ -1,6 +1,7 @@
 import json
 import sys
 
+from bson import json_util
 from gridfs import GridFS
 from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 from pymongo import MongoClient, ReturnDocument, WriteConcern
@@ -332,7 +333,7 @@ class AdminMongoDatabase(AdminDatabase):
             dict: The original dictionary if it fits within MongoDB's size limit,
                   otherwise a reference in the form {"gridfs_id": ObjectId}.
         """
-        json_str = json.dumps(field_value)
+        json_str = json_util.dumps(field_value)
         size_bytes = sys.getsizeof(json_str)
 
         if size_bytes >= MAX_BSON_SIZE:

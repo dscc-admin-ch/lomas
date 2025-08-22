@@ -48,6 +48,13 @@ extensions = [
     "myst_parser",
 ]
 
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+}
+autodoc_typehints = "signature"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

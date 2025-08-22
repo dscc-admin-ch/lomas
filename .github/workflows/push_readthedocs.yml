@@ -36,7 +36,7 @@ jobs:
       - name: Build with sphinx
         run: |
           cd docs
-          nix run nixpkgs#devenv -- uv run build_docs.py
+          nix run nixpkgs#devenv -- python build_docs.py
           ls -l ../pages
 
       - name: Pushes to another repository

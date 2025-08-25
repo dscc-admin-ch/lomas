@@ -123,27 +123,24 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         Processes HTTP request, records metrics and returns the HTTP response.
 
         This method performs the following steps:
-        1. Tracks the current request in progress using the
-            `fastapi_requests_in_progress` gauge.
-        2. Records the request count with the `fastapi_requests_total` counter.
-        3. Records the time taken to process the request using the
-            `fastapi_requests_duration_seconds` histogram.
-        4. Handles exceptions, if raised, and records the exception details using the
-            `fastapi_exceptions_total` counter.
-        5. Records the response status code with the `fastapi_responses_total` counter.
+        1. Tracks the current request in progress using `fastapi_requests_in_progress` gauge.
+        2. Records the request count with `fastapi_requests_total` counter.
+        3. Records the time taken to process the request using
+        `fastapi_requests_duration_seconds` histogram.
+        4. Handles exceptions, if raised, and records the exception details using
+        `fastapi_exceptions_total` counter.
+        5. Records the response status code with `fastapi_responses_total` counter.
         6. Decrements the in-progress request gauge after processing.
 
         Args:
             request (Request): The incoming HTTP request to be processed.
-            call_next (RequestResponseEndpoint): The endpoint function that processes
-                                                 the request and returns a response.
+            call_next (RequestResponseEndpoint): Endpoint that processes the request and returns a response.
 
         Returns:
             Response: The HTTP response after processing the request.
 
         Raises:
-            BaseException: If an exception occurs during request processing, it is
-                           raised after logging it.
+            BaseException: If an exception occurs during request processing, it is raised after logging it.
         """
         method = request.method
         path, is_handled_path = self.get_path(request)

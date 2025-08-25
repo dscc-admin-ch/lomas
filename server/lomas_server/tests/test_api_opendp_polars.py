@@ -57,11 +57,10 @@ RAW_METADATA = {
 def get_lf_from_json(pipeline: str) -> pl.LazyFrame:
     """Deserialize a JSON string to create a Polars LazyFrame.
 
-    This function deserializes a JSON string into a Polars
-    `LazyFrame`.
+    This function deserializes a JSON string into a Polars `LazyFrame`.
+
     Returns:
-        pl.LazyFrame: The deserialized LazyFrame containing the data
-        from the JSON string.
+        pl.LazyFrame: The deserialized LazyFrame containing the data from the JSON string.
     """
     lf = pl.LazyFrame.deserialize(io.StringIO(pipeline), format="json")
 

@@ -56,7 +56,6 @@ class DiffPrivLibClient:
                 "median": will replace values by the median of the column values
                 "most_frequent": will replace values by the most frequent values
 
-
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """

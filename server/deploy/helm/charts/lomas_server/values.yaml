@@ -712,6 +712,7 @@ keycloak:
 ##########################################################################
 rabbitmq:
   create: true # Added by lomas
+  heartbeat_client: 1800 # Added by lomas
 
   fullnameOverride: "lomas-rabbitmq"
 

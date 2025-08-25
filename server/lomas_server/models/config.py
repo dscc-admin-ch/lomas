@@ -45,6 +45,7 @@ class AmqpConfig(BaseModel):
     url: AmqpDsn
     username: str
     password: str
+    heartbeat: str
 
     @computed_field
     def dsn(self) -> str:
@@ -55,6 +56,7 @@ class AmqpConfig(BaseModel):
             password=self.password,
             host=self.url.host,
             port=self.url.port,
+            query=f"heartbeat={self.heartbeat}",
         )
         return str(dsn)
 

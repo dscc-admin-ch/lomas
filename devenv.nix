@@ -205,6 +205,7 @@ in
       LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.port}";
       LOMAS_SERVICE_amqp__username = config.lomas.rabbitmq.user;
       LOMAS_SERVICE_amqp__password = config.lomas.rabbitmq.password;
+      LOMAS_SERVICE_amqp__heartbeat = config.lomas.rabbitmq.heartbeat;
       LOMAS_SERVICE_opendp_features = toPydanticSetting [
         "contrib"
         "floating-point"

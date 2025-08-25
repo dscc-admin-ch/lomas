@@ -174,9 +174,6 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
         subprocess.run("cp ../images/poster.pdf ./source/_static/poster.pdf", shell=True, check=False)
         subprocess.run("cp ../CONTRIBUTING.md ./source/CONTRIBUTING.md", shell=True, check=False)
         subprocess.run(
-            "cp ../client/CONTRIBUTING.md ./source/CONTRIBUTING_CLIENT.md", shell=True, check=False
-        )
-        subprocess.run(
             "cp ../server/CONTRIBUTING.md ./source/CONTRIBUTING_SERVER.md", shell=True, check=False
         )
         subprocess.run(

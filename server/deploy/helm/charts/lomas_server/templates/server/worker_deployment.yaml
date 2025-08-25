@@ -132,6 +132,8 @@ spec:
             value: "true"
           - name: LOMAS_SERVICE_AMQP__URL
             value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
+          - name: LOMAS_SERVICE_AMQP__HEARTBEAT
+            value: "{{ .Values.rabbitmq.heartbeat_client }}"
           - name: LOMAS_SERVICE_AMQP__USERNAME
             value: "{{ .Values.rabbitmq.auth.username }}"
           - name: LOMAS_SERVICE_AMQP__PASSWORD

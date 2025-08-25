@@ -31,9 +31,7 @@ jobs:
           restore-keys: uv-store-3.12-
 
       - name: Install dependencies
-        run: |
-          sudo apt-get install pandoc
-          devenv shell -- uv pip install ".[docs]"
+        run: devenv shell -- uv pip install ".[docs]"
 
       - name: Build with sphinx
         run: devenv shell -- build-docs

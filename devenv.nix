@@ -403,7 +403,6 @@ in
     pushd $DEVENV_ROOT
     cd docs/
     python build_docs.py
-    ls -l ../pages
     popd
   '';
 

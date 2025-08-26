@@ -262,8 +262,6 @@ if __name__ == "__main__":
         # manually build the master branch
         build_doc("stable", "en", "master")
         move_dir("./build/html/", "../pages/")
-        r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE, check=False)
-        print(r.stdout)
 
         # reading the yaml file
         with open("versions.yaml") as yaml_file:
@@ -277,5 +275,3 @@ if __name__ == "__main__":
             for language in details.get("languages", []):
                 build_doc(version, language, tag)
                 move_dir("./build/html/", "../pages/" + version + "/" + language + "/")
-                r = subprocess.run(["ls", "-al", "../pages"], text=True, stdout=subprocess.PIPE, check=False)
-                print(r.stdout)

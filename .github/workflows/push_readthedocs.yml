@@ -38,6 +38,9 @@ jobs:
       - name: Build with sphinx
         run: devenv shell -- build-docs
 
+      - name: Set TMPDIR for mktemp
+        run: echo "TMPDIR=/tmp" >> $GITHUB_ENV
+
       - name: Pushes to another repository
         if: github.event_name == 'push' || github.event_name == 'release'
         uses: cpina/github-action-push-to-another-repository@main

@@ -411,7 +411,7 @@ in
     pushd $DEVENV_ROOT
     cd docs/
     python build_docs.py -l
-    ls -l ../pages
+    xdg-open build/html/index.html
     popd
   '';
 

@@ -40,19 +40,20 @@ class SmartnoiseSynthClient:
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
-                    - "aim",
-                    - "mwem",
-                    - "dpctgan" with `disabled_dp` always forced to False and a
-                    warning due to not cryptographically secure random generator
-                    - "patectgan"
-                    - "dpgan" with a warning due to not cryptographically secure
-                    random generator
+                - "aim",
+                - "mwem",
+                - "dpctgan" with `disabled_dp=False` and warning (cryptographically secure random generator)
+                - "patectgan"
+                - "dpgan" with warning (cryptographically secure random generator)
+
                 Available under certain conditions:
-                    - "mst" if `return_model=False`
-                    - "pategan" if the dataset has enough rows
+                - "mst" if `return_model=False`
+                - "pategan" if the dataset has enough rows
+
                 Not available:
-                    - "pacsynth" due to Rust panic error
-                    - "quail" currently unavailable in Smartnoise Synth
+                - "pacsynth" due to Rust panic error
+                - "quail" currently unavailable in Smartnoise Synth
+
                 For further documentation on models, please see here:
                 https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
@@ -72,6 +73,7 @@ class SmartnoiseSynthClient:
                 For further documentation on constraints, please see here:
                 https://docs.smartnoise.org/synth/transforms/index.html.
                 Note: lambda function in `AnonimizationTransformer` are not supported.
+
         Returns:
             CostResponse: The estimated cost.
         """
@@ -114,19 +116,20 @@ class SmartnoiseSynthClient:
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
-                    - "aim",
-                    - "mwem",
-                    - "dpctgan" with `disabled_dp` always forced to False and a
-                    warning due to not cryptographically secure random generator
-                    - "patectgan"
-                    - "dpgan" with a warning due to not cryptographically secure
-                    random generator
+                - "aim",
+                - "mwem",
+                - "dpctgan" with `disabled_dp=False` and warning (cryptographically secure random generator)
+                - "patectgan"
+                - "dpgan" with warning (cryptographically secure random generator)
+
                 Available under certain conditions:
-                    - "mst" if `return_model=False`
-                    - "pategan" if the dataset has enough rows
+                - "mst" if `return_model=False`
+                - "pategan" if the dataset has enough rows
+
                 Not available:
-                    - "pacsynth" due to Rust panic error
-                    - "quail" currently unavailable in Smartnoise Synth
+                - "pacsynth" due to Rust panic error
+                - "quail" currently unavailable in Smartnoise Synth
+
                 For further documentation on models, please see here:
                 https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
@@ -160,6 +163,7 @@ class SmartnoiseSynthClient:
                 Defaults to DUMMY_NB_ROWS.
             seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
+
         Returns:
             QueryResponse: A Pandas DataFrame containing the query results.
         """

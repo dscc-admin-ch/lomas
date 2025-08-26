@@ -82,28 +82,21 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         Handle DP query.
 
         Args:
-            query_json (LomasRequestModel): The input object of the query.
-              Must be a subclass of QueryModel.
+            query_json (QueryModel): The input object of the query.
             user_name (str, optional): User name.
 
         Raises:
-            UnauthorizedAccessException: A query is already
-                ongoing for this user,
+            UnauthorizedAccessException: A query is already ongoing for this user,
             the user does not exist or does not have access to the dataset.
             InvalidQueryException: If the query is not valid.
             InternalServerException: For any other unforseen exceptions.
 
         Returns:
             QueryResponse: The response object. # TODO remove what is next.
-
-            A dictionary containing:
                 - requested_by (str): The user name.
-                - query_response (pd.DataFrame): A DataFrame containing
-                  the query response.
-                - spent_epsilon (float): The amount of epsilon budget spent
-                for the query.
-                - spent_delta (float): The amount of delta budget spent
-                  for the query.
+                - query_response (pd.DataFrame): A DataFrame containing the query response.
+                - spent_epsilon (float): The amount of epsilon budget spent for the query.
+                - spent_delta (float): The amount of delta budget spent for the query.
         """
         # Block access to other queries to user
         if not self.admin_database.get_and_set_may_user_query(user_name, False):

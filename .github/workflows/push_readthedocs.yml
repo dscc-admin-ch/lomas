@@ -13,18 +13,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: cachix/install-nix-action@v30
+      - uses: cachix/cachix-action@v15
         with:
-          python-version: 3.12
+          name: lomas
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+      - name: Install devenv.sh
+        run: nix profile install nixpkgs#devenv
+
+      - name: Restore UV cache
+        uses: actions/cache@v4
+        id: uv-cache
+        with:
+          path: /home/runner/.cache/uv
+          key: uv-store-3.12-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-store-3.12-
 
       - name: Install dependencies
-        run: sudo apt-get install pandoc
+        run: |
+          sudo apt-get install pandoc
+          devenv shell -- uv pip install ".[docs]"
 
       - name: Build with sphinx
-        run: |
-          cd docs
-          uv run build_docs.py
-          ls -l ../pages
+        run: devenv shell -- build-docs
 
       - name: Pushes to another repository
         if: github.event_name == 'push' || github.event_name == 'release'

@@ -200,6 +200,7 @@ def get_dummy_dataset(
                   dummy dataset (default: 100).
                 - seed (int, optional): The random seed for generating
                   the dummy dataset (default: 42).
+
             Defaults to Body(example_get_dummy_dataset).
 
     Raises:

@@ -40,6 +40,9 @@ The following utilities are now available in your shell:
 - `uv sync --all-extras [-U]` will fix broken/out of sync/missing packages.
 - `uv add <packages>` will add new packages.
 - `run-linter` will run all the Linting suit (black/ruff/pylint/pydocstringformatter/mypy)
+- `build-docs` builds all version of the docs (requires `uv sync --all-extras` first)
+- `build-docs-local` builds the local version of the doc (requires `uv sync --all-extras` first), the htlm will open automatically.
+
 
 Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely black/ruff/pylint).
 

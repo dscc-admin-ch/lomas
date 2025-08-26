@@ -32,6 +32,7 @@ Accessing the Helm Chart
 The Helm chart for deploying the service on Kubernetes is available here:
 
 .. code-block:: sh
+
     helm repo add lomas https://dscc-admin-ch.github.io/helm-charts
 
 Modifying ``values.yaml``

@@ -1,14 +1,3 @@
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-# "pandoc==2.4",
-# "sphinx==8.1.3",
-# "nbsphinx==0.9.6",
-# "sphinx-rtd-theme==3.0.2",
-# "sphinxcontrib.napoleon==0.7",
-# "myst-parser==4.0.0",
-# ]
-# ///
 """
 This file is largely inspired from this blog post.
 
@@ -166,7 +155,7 @@ def copy_sources() -> None:
         "../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
         "../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
         "../client/notebooks/s3_example_notebook.ipynb",
-        "../server/notebooks/local_admin_notebook.ipynb",
+        # "../server/notebooks/local_admin_notebook.ipynb",  # not in doc for now
     ]
     for nb_path in notebook_paths:
         copy_notebook_to_source(nb_path)

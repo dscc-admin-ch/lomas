@@ -1,6 +1,7 @@
 import warnings
 
 import pandas as pd
+from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
 from sklearn.model_selection import train_test_split
@@ -37,10 +38,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.dpl_pipeline: Pipeline | None = None
         self.x_test: pd.DataFrame | None = None
         self.y_test: pd.DataFrame | None = None
+        self.accountant = BudgetAccountant()
 
-    def fit_model_on_data(
-        self, query_json: DiffPrivLibRequestModel
-    ) -> tuple[Pipeline, pd.DataFrame, pd.DataFrame]:
+    def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """Perform necessary steps to fit the model on the data.
 
         Args:
@@ -49,11 +49,6 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         Raises:
             ExternalLibraryException: For exceptions from libraries
                 external to this package.
-
-        Returns:
-            dpl_pipeline (dpl model): the fitted model on the training data
-            x_test (pd.DataFrame): test data feature
-            y_test (pd.DataFrame): test data target
         """
         # Prepare data
         df = self.data_connector.get_pandas_df()
@@ -70,17 +65,22 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
         df = df[useful_columns]
         data = handle_missing_data(df, query_json.imputer_strategy)
-        x_train, x_test, y_train, y_test = split_train_test_data(data, query_json)
+        x_train, self.x_test, y_train, self.y_test = split_train_test_data(data, query_json)
 
         # Prepare DiffPrivLib pipeline
-        dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
+        self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
+
+        # Add budget accountant
+        for _, step in self.dpl_pipeline.steps:
+            if hasattr(step, "accountant"):
+                step.accountant = self.accountant
 
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
         try:
             if y_train is not None:
                 y_train = y_train.to_numpy().ravel()
-            dpl_pipeline = dpl_pipeline.fit(x_train, y_train)
+            self.dpl_pipeline = self.dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB,
@@ -93,8 +93,6 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
                 DPLibraries.DIFFPRIVLIB,
                 f"Cannot fit pipeline on data because {e}",
             ) from e
-
-        return dpl_pipeline, x_test, y_test
 
     def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -110,15 +108,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        self.dpl_pipeline, self.x_test, self.y_test = self.fit_model_on_data(query_json)
-
-        # Compute budget
-        spent_epsilon = 0.0
-        spent_delta = 0.0
-        for step in self.dpl_pipeline.steps:
-            spent_epsilon += step[1].accountant.spent_budget[0][0]
-            spent_delta += step[1].accountant.spent_budget[0][1]
-        return spent_epsilon, spent_delta
+        self.fit_model_on_data(query_json)
+        spent_budget = self.accountant.total()
+        return spent_budget[0], spent_budget[1]
 
     def query(
         self,

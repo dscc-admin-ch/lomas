@@ -40,7 +40,8 @@ enable_logging()
 enable_features("contrib")
 
 
-def parse_if_OK(res: requests.Response) -> IOResultE[str]:
+def parse_if_ok(res: requests.Response) -> IOResultE[str]:
+    """Only continues if Response is OK (200)."""
     if res.status_code == status.HTTP_200_OK:
         return IOSuccess(res.content.decode("utf8"))
     return IOFailure(ValueError(f"Unexpected response code: {res.status_code}: {res.content}"))
@@ -95,7 +96,7 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_dataset_metadata", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             # load successful response as json
             map_(json.loads),
         )
@@ -132,11 +133,13 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_dummy_dataset", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             # load successful response as json
             map_(DummyDsResponse.model_validate_json),
             map_(
-                lambda dummyDsRes: pl.from_pandas(dummyDsRes.dummy_df).lazy() if lazy else dummyDsRes.dummy_df
+                lambda dummy_ds_res: (
+                    pl.from_pandas(dummy_ds_res.dummy_df).lazy() if lazy else dummy_ds_res.dummy_df
+                )
             ),
         )
 
@@ -176,7 +179,7 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_initial_budget", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             # build Budget Response from successful json payload
             map_(InitialBudgetResponse.model_validate_json),
         )
@@ -196,7 +199,7 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_total_spent_budget", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             # build Budget Response from successful json payload
             map_(SpentBudgetResponse.model_validate_json),
         )
@@ -216,7 +219,7 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_remaining_budget", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             # build Budget Response from successful json payload
             map_(RemainingBudgetResponse.model_validate_json),
         )
@@ -269,7 +272,7 @@ class Client:
             # post to the validated body to the corresponding endpoint
             lambda body: self.http_client.post("get_previous_queries", body),
             # parse reply if HTTP 200
-            bind(parse_if_OK),
+            bind(parse_if_ok),
             bind(lambda content: json.loads(content)["previous_queries"]),
             post_processes_queries,
         )

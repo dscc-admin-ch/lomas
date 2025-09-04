@@ -12,7 +12,7 @@ from returns.pointfree import map_
 from returns.unsafe import unsafe_perform_io
 from sklearn.pipeline import Pipeline
 
-from lomas_client import Client
+from lomas_client import ClientIO
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -35,8 +35,8 @@ class Aria:
     user_email: str = "aria.stark@winterfell.no"
     client_secret: str = "secret_aria"
 
-    def as_client(self, dataset_name="anyName") -> Client:
-        return Client(client_id=self.user_name, client_secret=self.client_secret, dataset_name=dataset_name)
+    def as_client(self, dataset_name="anyName") -> ClientIO:
+        return ClientIO(client_id=self.user_name, client_secret=self.client_secret, dataset_name=dataset_name)
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def kc():
 
 def test_missing_configs() -> None:
     with pytest.raises(ValueError, match=r"Missing one of or invalid:"):
-        Client()
+        ClientIO()
 
 
 def test_oauth2(aria, kc) -> None:
@@ -85,7 +85,7 @@ def test_oauth2(aria, kc) -> None:
 
 def test_oauth2_demo(kc, demo_setup: IOResultE) -> None:
     user_name = "Jack"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="TITANIC")
+    client = ClientIO(client_id=user_name, client_secret=user_name.lower(), dataset_name="TITANIC")
 
     init_budget = client.get_initial_budget()
     assert isinstance(init_budget, IOSuccess)
@@ -148,7 +148,7 @@ def test_oauth2_demo(kc, demo_setup: IOResultE) -> None:
 
 def test_demo_diffprivlib(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.Antartica"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
+    client = ClientIO(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
 
     penguin_metadata_io = client.get_dataset_metadata()
     assert isinstance(penguin_metadata_io, IOSuccess)
@@ -241,7 +241,7 @@ def test_demo_diffprivlib(kc, demo_setup: IOResultE) -> None:
 )
 def test_demo_smartnoise_synth(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.Antartica"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
+    client = ClientIO(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
 
     cost_res = client.smartnoise_synth.cost(
         synth_name="aim",
@@ -275,7 +275,9 @@ def test_demo_smartnoise_synth(kc, demo_setup: IOResultE) -> None:
 
 def test_demo_opendp_polars(kc, demo_setup: IOResultE) -> None:
     user_name = "Dr.FSO"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="FSO_INCOME_SYNTHETIC")
+    client = ClientIO(
+        client_id=user_name, client_secret=user_name.lower(), dataset_name="FSO_INCOME_SYNTHETIC"
+    )
     income_metadata_io = client.get_dataset_metadata()
     assert isinstance(income_metadata_io, IOSuccess)
 

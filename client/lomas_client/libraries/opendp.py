@@ -94,16 +94,18 @@ class OpenDPClient:
         Returns:
             CostResponse: The estimated cost.
         """
-
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
             fixed_delta=fixed_delta,
             mechanism=mechanism,
         )
-        body = OpenDPRequestModel.model_validate(body_json)
-        res = self.http_client.post("estimate_opendp_cost", body)
 
-        return validate_model_response(self.http_client, res, CostResponse)
+        return flow(
+            body_json,
+            OpenDPRequestModel.model_validate,
+            partial(self.http_client.post, "estimate_opendp_cost"),
+            map_(lambda res: validate_model_response(self.http_client, res, CostResponse)),
+        )
 
     def query(
         self,

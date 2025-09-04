@@ -1,6 +1,7 @@
 import base64
 import json
 import pickle
+from functools import wraps
 
 import pandas as pd
 import polars as pl
@@ -13,6 +14,7 @@ from pydantic import ValidationError
 from returns.io import IOFailure, IOResultE, IOSuccess
 from returns.pipeline import flow
 from returns.pointfree import bind, map_
+from returns.unsafe import unsafe_perform_io
 
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
@@ -47,7 +49,7 @@ def parse_if_ok(res: requests.Response) -> IOResultE[str]:
     return IOFailure(ValueError(f"Unexpected response code: {res.status_code}: {res.content}"))
 
 
-class Client:
+class ClientIO:
     """Client class to send requests to the server.
 
     Handle all serialisation and deserialisation steps
@@ -276,3 +278,65 @@ class Client:
             bind(lambda content: json.loads(content)["previous_queries"]),
             post_processes_queries,
         )
+
+
+# FIXME: how to cleanly shadow Client without to much python __darkmagic__ ...
+
+
+def call_and_unwrap_wrapper(method):
+    @wraps(method)
+    def call_and_unwrap(*args, **kwargs):
+        result = method(*args, **kwargs)
+        if hasattr(result, "unwrap"):
+            return unsafe_perform_io(result.unwrap())
+        return result
+
+    return call_and_unwrap
+
+
+class SmartnoiseSQLClientU(SmartnoiseSQLClient):
+    def __getattribute__(self, name, *args):
+        attr = super().__getattribute__(name)
+        if callable(attr):
+            return call_and_unwrap_wrapper(attr)
+        return attr
+
+
+class OpenDPClientU(OpenDPClient):
+    def __getattribute__(self, name, *args):
+        attr = super().__getattribute__(name)
+        if callable(attr):
+            return call_and_unwrap_wrapper(attr)
+        return attr
+
+
+class SmartnoiseSynthClientU(SmartnoiseSynthClient):
+    def __getattribute__(self, name, *args):
+        attr = super().__getattribute__(name)
+        if callable(attr):
+            return call_and_unwrap_wrapper(attr)
+        return attr
+
+
+class DiffPrivLibClientU(DiffPrivLibClient):
+    def __getattribute__(self, name, *args):
+        attr = super().__getattribute__(name)
+        if callable(attr):
+            return call_and_unwrap_wrapper(attr)
+        return attr
+
+
+class Client(ClientIO):
+    def __getattribute__(self, name, *args):
+        attr = super().__getattribute__(name)
+        if callable(attr):
+            return call_and_unwrap_wrapper(attr)
+        return attr
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.smartnoise_sql = SmartnoiseSQLClientU(self.http_client)
+        self.smartnoise_synth = SmartnoiseSynthClientU(self.http_client)
+        self.opendp = OpenDPClientU(self.http_client)
+        self.diffprivlib = DiffPrivLibClientU(self.http_client)

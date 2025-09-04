@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, ORJSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
 from lomas_core.error_handler import (
@@ -432,5 +432,4 @@ def get_user_previous_queries(
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
-
-    return JSONResponse(content={"previous_queries": previous_queries})
+    return ORJSONResponse(content={"previous_queries": previous_queries})

@@ -7,6 +7,7 @@ dependencies = [
   "lomas-client",
   "lomas-server[all]",
   "torch>=2.6", # explicit torch dependency to get cpu-only impl. see: uv.sources
+  "orjson>=3.11.3",
 ]
 
 [project.optional-dependencies]

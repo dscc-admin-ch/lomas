@@ -93,50 +93,54 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
             first_step.bounds_y = get_dpl_bounds(target_metadata, feature_columns=target_columns)
 
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
-        """Perform necessary steps to fit the model on the data.
+        """
+        Fit the DiffPrivLib pipeline on the dataset provided by the data connector.
+
+        Steps:
+            1. Validate inputs (no overlap between feature and target columns).
+            2. Select and preprocess relevant columns (handle missing data).
+            3. Split data into training and test sets.
+            4. Deserialize the pipeline and inject server parameters.
+            5. Fit the pipeline while treating PrivacyLeakWarning as an error.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            query_json: Request object describing feature/target columns,
+                        pipeline definition, and preprocessing options.
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
+            InvalidQueryException: If feature/target columns overlap.
+            ExternalLibraryException: If DiffPrivLib fitting fails.
         """
-        # Prepare data
-        df = self.data_connector.get_pandas_df()
+        # 1. Validate feature/target columns
+        feature_columns = query_json.feature_columns.copy()
+        target_columns = query_json.target_columns or []
 
-        # Check for overlap
-        useful_columns = query_json.feature_columns.copy()
-        if query_json.target_columns is not None:
-            for target in query_json.target_columns:
-                if target in query_json.feature_columns:
-                    raise InvalidQueryException(
-                        f"A column may only be in one of features and target. {target} is in both."
-                    )
-                useful_columns.append(target)
+        overlap = set(feature_columns) & set(target_columns)
+        if overlap:
+            raise InvalidQueryException(f"Columns cannot be both feature and target: {', '.join(overlap)}")
 
-        df = df[useful_columns]
-        data = handle_missing_data(df, query_json.imputer_strategy)
-        x_train, self.x_test, y_train, self.y_test = split_train_test_data(data, query_json)
+        # 2. Select and preprocess data
+        useful_columns = feature_columns + target_columns
+        df = self.data_connector.get_pandas_df()[useful_columns]
+        df = handle_missing_data(df, query_json.imputer_strategy)
 
-        # Prepare DiffPrivLib pipeline
+        # 3. Split data
+        x_train, self.x_test, y_train, self.y_test = split_train_test_data(df, query_json)
+
+        # 4. Deserialize and configure pipeline
         self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
+        self.complete_pipeline(feature_columns, query_json.target_columns)
 
-        # Add arguments and parameters to the pipeline
-        self.complete_pipeline(query_json.feature_columns, query_json.target_columns)
-
-        # Fit the pipeline on the training set
+        # 5. Fit pipeline with strict warning handling
         warnings.simplefilter("error", PrivacyLeakWarning)
         try:
-            if y_train is not None:
-                y_train = y_train.to_numpy().ravel()
+            y_train = None if y_train is None else y_train.to_numpy().ravel()
             self.dpl_pipeline = self.dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB,
                 f"PrivacyLeakWarning: {e} "
-                + "Lomas server cannot fit pipeline on data, "
-                + "PrivacyLeakWarning is a blocker.",
+                + "Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker.",
             ) from e
         except Exception as e:
             raise ExternalLibraryException(
@@ -145,40 +149,47 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
             ) from e
 
     def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
-        """Estimate cost of query.
+        """
+        Estimate the privacy budget cost of running a DiffPrivLib query.
+
+        Steps:
+            1. Fit the model on the dataset (including accountant injection).
+            2. Retrieve the total budget consumed from the accountant.
 
         Args:
-            query_json (DiffPrivLibRequestModel): The request model object.
+            query_json: The request object describing the query (features, targets, pipeline JSON).
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
+            ExternalLibraryException: If the pipeline fitting fails.
 
         Returns:
-            tuple[float, float]: The tuple of costs, the first value
-                is the epsilon cost, the second value is the delta value.
+            A tuple of (epsilon, delta) costs.
         """
+        # 1. Fit model (this will attach accountant and configure constraints)
         self.fit_model_on_data(query_json)
-        spent_budget = self.accountant.total()
-        return spent_budget[0], spent_budget[1]
+
+        # 2. Retrieve total budget
+        epsilon, delta = self.accountant.total()
+        return epsilon, delta
 
     def query(
         self,
         query_json: DiffPrivLibQueryModel,
     ) -> DiffPrivLibQueryResult:
-        """Perform the query and return the response.
+        """
+        Run the query on the fitted DiffPrivLib pipeline and return the results.
 
         Args:
-            query_json (DiffPrivLibQueryModel): The request model object.
+            query_json: The request object describing the query parameters.
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
-            InvalidQueryException: If the budget values are too small to
-                perform the query.
+            InternalServerException: If `query` is called before `cost` (pipeline not initialized).
+            ExternalLibraryException: If the underlying pipeline evaluation fails.
 
         Returns:
-            dict: The dictionary encoding of the resulting pd.DataFrame.
+            DiffPrivLibQueryResult containing:
+                - score: Model accuracy on the test set.
+                - model: The trained DiffPrivLib pipeline.
         """
         if self.dpl_pipeline is None:
             raise InternalServerException("DiffPrivLib `query` method called before `cost` method")

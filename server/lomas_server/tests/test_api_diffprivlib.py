@@ -299,7 +299,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
-                message="A column may only be in one of features and target. " + "bill_length_mm is in both."
+                message="Columns cannot be both feature and target: bill_length_mm"
             )
 
     def test_naives_bayes_model(self) -> None:

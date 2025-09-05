@@ -62,22 +62,27 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
         # Add bounds from metadata for the first step of the pipeline
         columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
-        columns_metadata = {col: val for col, val in columns_metadata.items() if col in feature_columns}
+        feature_columns_metadata = {
+            col: val for col, val in columns_metadata.items() if col in feature_columns
+        }
         first_step = self.dpl_pipeline.steps[0][1]
         if hasattr(first_step, "data_norm"):
             data_norm = np.sqrt(sum(v["upper"] ** 2 for v in columns_metadata.values()))
             first_step.data_norm = data_norm
         if hasattr(first_step, "bounds"):
-            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
+            feature_bounds = get_dpl_bounds(feature_columns_metadata, feature_columns=feature_columns)
             first_step.bounds = feature_bounds
         if hasattr(first_step, "bounds_X"):
-            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
+            feature_bounds = get_dpl_bounds(feature_columns_metadata, feature_columns=feature_columns)
             first_step.bounds_X = feature_bounds
-        if hasattr(first_step, "bounds_Y"):
+        if hasattr(first_step, "bounds_y"):
             if target_columns is None:
                 raise InvalidQueryException("target_columns must be provided with LinearRegression")
-            target_bounds = get_dpl_bounds(columns_metadata, feature_columns=target_columns)
-            first_step.bounds_Y = target_bounds
+            target_columns_metadata = {
+                col: val for col, val in columns_metadata.items() if col in target_columns
+            }
+            target_bounds = get_dpl_bounds(target_columns_metadata, feature_columns=target_columns)
+            first_step.bounds_y = target_bounds
 
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """Perform necessary steps to fit the model on the data.

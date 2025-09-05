@@ -51,6 +51,9 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         Args:
             - feature_columns (list[str]): list of feature columns
         """
+        if self.dpl_pipeline is None:
+            raise InternalServerException("Pipeline must be initialized before calling complete_pipeline")
+
         # Add budget accountant
         for _, step in self.dpl_pipeline.steps:
             if hasattr(step, "accountant"):
@@ -98,7 +101,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
 
         # Add arguments and parameters to the pipeline
-        self.complete_pipeline(useful_columns)
+        self.complete_pipeline(query_json.feature_columns)
 
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
@@ -109,7 +112,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB,
-                f"PrivacyLeakWarning: {e}. "
+                f"PrivacyLeakWarning: {e} "
                 + "Lomas server cannot fit pipeline on data, "
                 + "PrivacyLeakWarning is a blocker.",
             ) from e
@@ -204,7 +207,7 @@ def split_train_test_data(
     return x_train, x_test, y_train, y_test
 
 
-def get_dpl_bounds(columns_metadata: dict, feature_columns: list[str]) -> tuple[list[float]]:
+def get_dpl_bounds(columns_metadata: dict, feature_columns: list[str]) -> tuple[list[float], list[float]]:
     """
     Format metadata bounds of feature columns in format expected by DiffPrivLib.
 

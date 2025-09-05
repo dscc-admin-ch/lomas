@@ -1,5 +1,6 @@
 import warnings
 
+import numpy as np
 import pandas as pd
 from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
@@ -40,6 +41,32 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.y_test: pd.DataFrame | None = None
         self.accountant = BudgetAccountant()
 
+    def complete_pipeline(self, feature_columns: list[str]) -> None:
+        """
+        Complete pipeline with parameters from server.
+
+        - Add budget accountant (to compute budget in cost)
+        - Force correct metadata bounds or data_norm (privacy constraints)
+
+        Args:
+            - feature_columns (list[str]): list of feature columns
+        """
+        # Add budget accountant
+        for _, step in self.dpl_pipeline.steps:
+            if hasattr(step, "accountant"):
+                step.accountant = self.accountant
+
+        # Add bounds from metadata for the first step of the pipeline
+        columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
+        columns_metadata = {col: val for col, val in columns_metadata.items() if col in feature_columns}
+        first_step = self.dpl_pipeline.steps[0][1]
+        if hasattr(first_step, "bounds"):
+            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
+            first_step.bounds = feature_bounds
+        if hasattr(first_step, "data_norm"):
+            data_norm = np.sqrt(sum(v["upper"] ** 2 for v in columns_metadata.values()))
+            first_step.data_norm = data_norm
+
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """Perform necessary steps to fit the model on the data.
 
@@ -70,10 +97,8 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         # Prepare DiffPrivLib pipeline
         self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
 
-        # Add budget accountant
-        for _, step in self.dpl_pipeline.steps:
-            if hasattr(step, "accountant"):
-                step.accountant = self.accountant
+        # Add arguments and parameters to the pipeline
+        self.complete_pipeline(useful_columns)
 
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)
@@ -177,3 +202,19 @@ def split_train_test_data(
             random_state=query_json.test_train_split_seed,
         )
     return x_train, x_test, y_train, y_test
+
+
+def get_dpl_bounds(columns_metadata: dict, feature_columns: list[str]) -> tuple[list[float]]:
+    """
+    Format metadata bounds of feature columns in format expected by DiffPrivLib.
+
+    Args:
+        - columns_metadata: metadata
+        - feature_columns (list[str]): list of feature columns
+
+    Return:
+        tuple of lower and upper bounds as expected by DiffPrivLib
+    """
+    lower = [columns_metadata[col]["lower"] for col in feature_columns]
+    upper = [columns_metadata[col]["upper"] for col in feature_columns]
+    return (lower, upper)

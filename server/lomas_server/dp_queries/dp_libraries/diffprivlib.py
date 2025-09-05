@@ -67,7 +67,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         }
         first_step = self.dpl_pipeline.steps[0][1]
         if hasattr(first_step, "data_norm"):
-            data_norm = np.sqrt(sum(v["upper"] ** 2 for v in columns_metadata.values()))
+            data_norm = np.sqrt(sum(v["upper"] ** 2 for v in feature_columns_metadata.values()))
             first_step.data_norm = data_norm
         if hasattr(first_step, "bounds"):
             feature_bounds = get_dpl_bounds(feature_columns_metadata, feature_columns=feature_columns)

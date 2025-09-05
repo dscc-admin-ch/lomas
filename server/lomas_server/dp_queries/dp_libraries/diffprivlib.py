@@ -41,7 +41,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.y_test: pd.DataFrame | None = None
         self.accountant = BudgetAccountant()
 
-    def complete_pipeline(self, feature_columns: list[str]) -> None:
+    def complete_pipeline(self, feature_columns: list[str], target_columns: list[str] | None) -> None:
         """
         Complete pipeline with parameters from server.
 
@@ -50,6 +50,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
         Args:
             - feature_columns (list[str]): list of feature columns
+            - target_columns (Optional[list[str]]): list of target columns (for LinearRegression)
         """
         if self.dpl_pipeline is None:
             raise InternalServerException("Pipeline must be initialized before calling complete_pipeline")
@@ -63,12 +64,20 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
         columns_metadata = {col: val for col, val in columns_metadata.items() if col in feature_columns}
         first_step = self.dpl_pipeline.steps[0][1]
-        if hasattr(first_step, "bounds"):
-            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
-            first_step.bounds = feature_bounds
         if hasattr(first_step, "data_norm"):
             data_norm = np.sqrt(sum(v["upper"] ** 2 for v in columns_metadata.values()))
             first_step.data_norm = data_norm
+        if hasattr(first_step, "bounds"):
+            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
+            first_step.bounds = feature_bounds
+        if hasattr(first_step, "bounds_X"):
+            feature_bounds = get_dpl_bounds(columns_metadata, feature_columns=feature_columns)
+            first_step.bounds_X = feature_bounds
+        if hasattr(first_step, "bounds_Y"):
+            if target_columns is None:
+                raise InvalidQueryException("target_columns must be provided with LinearRegression")
+            target_bounds = get_dpl_bounds(columns_metadata, feature_columns=target_columns)
+            first_step.bounds_Y = target_bounds
 
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """Perform necessary steps to fit the model on the data.
@@ -101,7 +110,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
 
         # Add arguments and parameters to the pipeline
-        self.complete_pipeline(query_json.feature_columns)
+        self.complete_pipeline(query_json.feature_columns, query_json.target_columns)
 
         # Fit the pipeline on the training set
         warnings.simplefilter("error", PrivacyLeakWarning)

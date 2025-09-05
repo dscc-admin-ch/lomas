@@ -247,6 +247,28 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             validate_pipeline(client, response)
 
+            # Test Linear Regression: no bounds should also work
+            pipeline = Pipeline(
+                [
+                    (
+                        "lr",
+                        models.LinearRegression(
+                            epsilon=2.0,
+                        ),
+                    ),
+                ]
+            )
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            diffprivlib_body["feature_columns"] = ["bill_length_mm"]
+            diffprivlib_body["target_columns"] = ["flipper_length_mm"]
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(client, response)
+
     def test_linear_regression_models_same_columns(self) -> None:
         """Test diffprivlib query: Same columns."""
         with TestClient(app, headers=self.headers) as client:

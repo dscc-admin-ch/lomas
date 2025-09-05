@@ -43,46 +43,54 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
     def complete_pipeline(self, feature_columns: list[str], target_columns: list[str] | None) -> None:
         """
-        Complete pipeline with parameters from server.
+        Finalize the DiffPrivLib pipeline by injecting accountant and privacy constraints.
 
-        - Add budget accountant (to compute budget in cost)
-        - Force correct metadata bounds or data_norm (privacy constraints)
+        Steps:
+            1. Attach the shared budget accountant to all compatible steps.
+            2. Add metadata-driven privacy constraints (`data_norm`, `bounds`, `bounds_X`, `bounds_y`)
+            to the first pipeline step when supported.
 
         Args:
-            - feature_columns (list[str]): list of feature columns
-            - target_columns (Optional[list[str]]): list of target columns (for LinearRegression)
+            feature_columns: List of feature columns used for training.
+            target_columns: Optional list of target columns (required if `bounds_y` is needed).
+
+        Raises:
+            InternalServerException: If pipeline is not initialized.
+            InvalidQueryException: If target bounds are required but not provided.
         """
         if self.dpl_pipeline is None:
             raise InternalServerException("Pipeline must be initialized before calling complete_pipeline")
 
-        # Add budget accountant
+        # 1. Add budget accountant
         for _, step in self.dpl_pipeline.steps:
             if hasattr(step, "accountant"):
                 step.accountant = self.accountant
 
-        # Add bounds from metadata for the first step of the pipeline
+        # 2. Get metadata for features
         columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
-        feature_columns_metadata = {
-            col: val for col, val in columns_metadata.items() if col in feature_columns
-        }
+        feature_metadata = {col: columns_metadata[col] for col in feature_columns}
+
         first_step = self.dpl_pipeline.steps[0][1]
+
+        # --- Handle feature constraints ---
+        feature_bounds: tuple[list[float], list[float]] | None = None
         if hasattr(first_step, "data_norm"):
-            data_norm = np.sqrt(sum(v["upper"] ** 2 for v in feature_columns_metadata.values()))
-            first_step.data_norm = data_norm
+            first_step.data_norm = np.sqrt(sum(meta["upper"] ** 2 for meta in feature_metadata.values()))
+
+        if hasattr(first_step, "bounds") or hasattr(first_step, "bounds_X"):
+            feature_bounds = get_dpl_bounds(feature_metadata, feature_columns)
+
         if hasattr(first_step, "bounds"):
-            feature_bounds = get_dpl_bounds(feature_columns_metadata, feature_columns=feature_columns)
             first_step.bounds = feature_bounds
         if hasattr(first_step, "bounds_X"):
-            feature_bounds = get_dpl_bounds(feature_columns_metadata, feature_columns=feature_columns)
             first_step.bounds_X = feature_bounds
+
+        # --- Handle target constraints ---
         if hasattr(first_step, "bounds_y"):
-            if target_columns is None:
-                raise InvalidQueryException("target_columns must be provided with LinearRegression")
-            target_columns_metadata = {
-                col: val for col, val in columns_metadata.items() if col in target_columns
-            }
-            target_bounds = get_dpl_bounds(target_columns_metadata, feature_columns=target_columns)
-            first_step.bounds_y = target_bounds
+            if not target_columns:
+                raise InvalidQueryException("target_columns must be provided when bounds_y is required")
+            target_metadata = {col: columns_metadata[col] for col in target_columns}
+            first_step.bounds_y = get_dpl_bounds(target_metadata, feature_columns=target_columns)
 
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """Perform necessary steps to fit the model on the data.

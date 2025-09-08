@@ -135,6 +135,7 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
     assert prev_queries[0]["dataset_name"] == "TITANIC"
+    assert prev_queries[0]["dp_library"] == "smartnoise_sql"
 
 
 def test_demo_diffprivlib(kc, demo_setup) -> None:
@@ -202,6 +203,22 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
     assert len(predictions) == 2
     assert predictions == pytest.approx([20, 20], abs=20)
 
+    prev_queries = client.get_previous_queries()
+    assert len(prev_queries) == 1
+    assert prev_queries[0]["dataset_name"] == "PENGUIN"
+    assert prev_queries[0]["dp_library"] == "diffprivlib"
+    returned_model = prev_queries[0]["response"]["result"]["model"]
+    predictions = returned_model.predict(
+        pd.DataFrame(
+            {
+                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+            }
+        )
+    )
+
+    assert len(predictions) == 2
+    assert predictions == pytest.approx([20, 20], abs=20)
+
 
 @pytest.mark.long
 @pytest.mark.filterwarnings(
@@ -232,6 +249,14 @@ def test_demo_smartnoise_synth(kc, demo_setup) -> None:
         assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
         assert res_df.body_mass_g.min() >= 5000
 
+    prev_queries = client.get_previous_queries()
+    assert len(prev_queries) == 1
+    assert prev_queries[0]["dataset_name"] == "PENGUIN"
+    assert prev_queries[0]["dp_library"] == "smartnoise_synth"
+    response_archives = prev_queries[0]["response"]
+    assert response_archives["epsilon"] == 1.0
+    assert response_archives["delta"] >= 0.0
+
 
 def test_demo_opendp_polars(kc, demo_setup) -> None:
     user_name = "Dr.FSO"
@@ -254,3 +279,13 @@ def test_demo_opendp_polars(kc, demo_setup) -> None:
     assert isinstance(query_res.result, OpenDPPolarsQueryResult)
     df_polar = query_res.result.value
     assert df_polar.shape == (1, 1)
+
+    prev_queries = client.get_previous_queries()
+    assert len(prev_queries) == 1
+    assert prev_queries[0]["dataset_name"] == "FSO_INCOME_SYNTHETIC"
+    assert prev_queries[0]["dp_library"] == "opendp"
+    assert prev_queries[0]["client_input"]["pipeline_type"] == "polars"
+    assert prev_queries[0]["client_input"]["mechanism"] == "laplace"
+    response_archives = prev_queries[0]["response"]
+    assert response_archives["epsilon"] >= 1.0
+    assert response_archives["delta"] >= 0.0

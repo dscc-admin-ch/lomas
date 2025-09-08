@@ -1,7 +1,6 @@
 import base64
 import json
 import pickle
-from functools import wraps
 
 import pandas as pd
 import polars as pl
@@ -12,7 +11,6 @@ from pydantic import ValidationError
 from returns.io import IOResultE
 from returns.pipeline import flow
 from returns.pointfree import bind, map_
-from returns.unsafe import unsafe_perform_io
 
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
@@ -24,7 +22,7 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
-from lomas_client.utils import parse_if_ok
+from lomas_client.utils import parse_if_ok, unwrap_all_clsmethods
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
@@ -272,63 +270,20 @@ class ClientIO:
         )
 
 
-# FIXME: how to cleanly shadow Client without to much python __darkmagic__ ...
-
-
-def call_and_unwrap_wrapper(method):
-    @wraps(method)
-    def call_and_unwrap(*args, **kwargs):
-        result = method(*args, **kwargs)
-        if hasattr(result, "unwrap"):
-            return unsafe_perform_io(result.unwrap())
-        return result
-
-    return call_and_unwrap
-
-
-class SmartnoiseSQLClientU(SmartnoiseSQLClient):
-    def __getattribute__(self, name, *args):
-        attr = super().__getattribute__(name)
-        if callable(attr):
-            return call_and_unwrap_wrapper(attr)
-        return attr
-
-
-class OpenDPClientU(OpenDPClient):
-    def __getattribute__(self, name, *args):
-        attr = super().__getattribute__(name)
-        if callable(attr):
-            return call_and_unwrap_wrapper(attr)
-        return attr
-
-
-class SmartnoiseSynthClientU(SmartnoiseSynthClient):
-    def __getattribute__(self, name, *args):
-        attr = super().__getattribute__(name)
-        if callable(attr):
-            return call_and_unwrap_wrapper(attr)
-        return attr
-
-
-class DiffPrivLibClientU(DiffPrivLibClient):
-    def __getattribute__(self, name, *args):
-        attr = super().__getattribute__(name)
-        if callable(attr):
-            return call_and_unwrap_wrapper(attr)
-        return attr
-
-
+@unwrap_all_clsmethods
 class Client(ClientIO):
-    def __getattribute__(self, name, *args):
-        attr = super().__getattribute__(name)
-        if callable(attr):
-            return call_and_unwrap_wrapper(attr)
-        return attr
+    """Original Client interface to shadow ClientIO whilst unwrapping results (for now)."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs: ClientConfig.model_config):
+        super().__init__(**kwargs)
 
-        self.smartnoise_sql = SmartnoiseSQLClientU(self.http_client)
-        self.smartnoise_synth = SmartnoiseSynthClientU(self.http_client)
-        self.opendp = OpenDPClientU(self.http_client)
-        self.diffprivlib = DiffPrivLibClientU(self.http_client)
+        self.smartnoise_sql = unwrap_all_clsmethods(type("SmartnoiseSQLClientU", (SmartnoiseSQLClient,), {}))(
+            self.http_client
+        )
+        self.smartnoise_synth = unwrap_all_clsmethods(
+            type("SmartnoiseSynthClientU", (SmartnoiseSynthClient,), {})
+        )(self.http_client)
+        self.opendp = unwrap_all_clsmethods(type("OpenDPClientU", (OpenDPClient,), {}))(self.http_client)
+        self.diffprivlib = unwrap_all_clsmethods(type("DiffPrivLibClientU", (DiffPrivLibClient,), {}))(
+            self.http_client
+        )

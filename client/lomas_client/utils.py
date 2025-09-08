@@ -1,35 +1,41 @@
 import warnings
 from json import JSONDecodeError
-from typing import Any, Never, TypeVar
+from typing import TypeVar
 
 import requests
 from fastapi import status
 from pydantic import ValidationError
-from returns.io import impure_safe
+from returns.functions import raise_exception
+from returns.io import IOFailure, IOResultE, IOSuccess, impure_safe
 
 from lomas_client.http_client import LomasHttpClient
 from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
-from lomas_core.error_handler import InternalServerException, raise_error_from_model
-from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.error_handler import InternalServerException, specify_error_from_model
+from lomas_core.models.exceptions import LomasServerExceptionType, LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import ResponseModel
 
 
-@impure_safe
-def raise_error(response: requests.Response) -> Never:
-    """Raise error message based on the HTTP response.
+def parse_if_ok(res: requests.Response) -> IOResultE[str]:
+    """Only continues if Response is OK (200)."""
+    if res.status_code == status.HTTP_200_OK:
+        return IOSuccess(res.content.decode("utf8"))
+    return parse_server_error(res).bind_result(specify_error_from_model)
+
+
+def parse_server_error(response: requests.Response) -> LomasServerExceptionType:
+    """Parse a server error message based on the HTTP response.
 
     Args:
         res (requests.Response): The response object from an HTTP request.
 
-    Raise:
-        Server Error
+    Return:
+        ResultE[LomasServerExceptionType]
     """
     try:
         error_model = LomasServerExceptionTypeAdapter.validate_python(response.json())
-    except (ValidationError, JSONDecodeError) as e:
-        raise InternalServerException(f"Could not parse server error: {response.content}") from e
-
-    raise_error_from_model(error_model)
+        return IOSuccess(error_model)
+    except (ValidationError, JSONDecodeError):
+        return IOFailure(InternalServerException(f"Could not parse server error: {response.content}"))
 
 
 @impure_safe
@@ -61,23 +67,6 @@ def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
         raise ValueError(f"{synth_name} synthesizer not supported. Please choose another synthesizer.")
 
 
-def validate_model_response_direct(response: requests.Response, response_model: Any) -> Any:
-    """Validate and process a HTTP response.
-
-    Args:
-        response (requests.Response): The response object from an HTTP request.
-
-    Returns:
-        response_model: Model for responses requests.
-    """
-    if response.status_code == status.HTTP_200_OK:
-        data = response.content.decode("utf8")
-        r_model = response_model.model_validate_json(data)
-        return r_model
-
-    raise_error(response)
-
-
 ResponseT = TypeVar("ResponseT", bound=ResponseModel)
 
 
@@ -93,12 +82,12 @@ def validate_model_response(
         response_model: Model for responses requests.
     """
     if response.status_code != status.HTTP_202_ACCEPTED:
-        raise_error(response)
+        parse_server_error(response).bind_result(specify_error_from_model).alt(raise_exception)
 
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
     if job.status == "failed":
         assert job.error is not None, f"job {job_uid} failed without error !"
-        raise_error_from_model(job.error)
+        specify_error_from_model(job.error)
 
     return response_model.model_validate(job.result)

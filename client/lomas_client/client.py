@@ -5,13 +5,11 @@ from functools import wraps
 
 import pandas as pd
 import polars as pl
-import requests
-from fastapi import status
 from opendp.mod import enable_features
 from opendp_logger import enable_logging
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
-from returns.io import IOFailure, IOResultE, IOSuccess
+from returns.io import IOResultE
 from returns.pipeline import flow
 from returns.pointfree import bind, map_
 from returns.unsafe import unsafe_perform_io
@@ -26,6 +24,7 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
+from lomas_client.utils import parse_if_ok
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
@@ -40,13 +39,6 @@ from lomas_core.opendp_utils import reconstruct_measurement_pipeline
 # Opendp_logger
 enable_logging()
 enable_features("contrib")
-
-
-def parse_if_ok(res: requests.Response) -> IOResultE[str]:
-    """Only continues if Response is OK (200)."""
-    if res.status_code == status.HTTP_200_OK:
-        return IOSuccess(res.content.decode("utf8"))
-    return IOFailure(ValueError(f"Unexpected response code: {res.status_code}: {res.content}"))
 
 
 class ClientIO:

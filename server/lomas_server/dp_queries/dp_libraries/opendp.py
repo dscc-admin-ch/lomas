@@ -7,7 +7,7 @@ from opendp._lib import lib_path
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
 
-from lomas_core.constants import DPLibraries
+from lomas_core.constants import DPLibraries, OpenDpPipelineType
 from lomas_core.error_handler import (
     ExternalLibraryException,
     InternalServerException,
@@ -113,9 +113,9 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
         validate_measurement_pipeline(opendp_pipe)
 
-        if query_json.pipeline_type == "legacy":
+        if query_json.pipeline_type == OpenDpPipelineType.LEGACY:
             input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
-        elif query_json.pipeline_type == "polars":
+        elif query_json.pipeline_type == OpenDpPipelineType.POLARS:
             input_data = self.data_connector.get_polars_lf()
             # OpenDP does not allow None on string columns
 

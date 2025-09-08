@@ -4,7 +4,8 @@ import polars as pl
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
-from lomas_core.constants import OpenDpMechanism
+from lomas_core.constants import OpenDpMechanism, OpenDpPipelineType
+from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
@@ -53,12 +54,12 @@ class OpenDPClient:
 
         if isinstance(opendp_pipeline, dp.Measurement):
             body_json["opendp_json"] = opendp_pipeline.to_json()
-            body_json["pipeline_type"] = "legacy"
+            body_json["pipeline_type"] = OpenDpPipelineType.LEGACY
         elif isinstance(opendp_pipeline, pl.LazyFrame):
             body_json["opendp_json"] = opendp_pipeline.serialize(format="json")
-            body_json["pipeline_type"] = "polars"
+            body_json["pipeline_type"] = OpenDpPipelineType.POLARS
         else:
-            raise TypeError(
+            raise InvalidQueryException(
                 f"Opendp_pipeline must either of type Measurement or LazyFrame, found {type(opendp_pipeline)}"
             )
 

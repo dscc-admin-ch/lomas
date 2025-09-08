@@ -8,17 +8,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from opendp import measures as ms
 
-from lomas_core.error_handler import (
-    InvalidQueryException,
-)
+from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import Metadata
-from lomas_core.models.constants import (
-    DUMMY_NB_ROWS,
-    DUMMY_SEED,
-)
-from lomas_core.models.exceptions import (
-    InvalidQueryExceptionModel,
-)
+from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_core.models.exceptions import InvalidQueryExceptionModel
 from lomas_core.models.requests_examples import (
     OPENDP_POLARS_PIPELINE,
     OPENDP_POLARS_PIPELINE_COVID,
@@ -30,11 +23,8 @@ from lomas_core.models.responses import (
     OpenDPPolarsQueryResult,
     QueryResponse,
 )
+from lomas_core.opendp_utils import get_lf_domain, multiple_group_params
 from lomas_server.app import app
-from lomas_server.dp_queries.dp_libraries.opendp import (
-    get_lf_domain,
-    multiple_group_params,
-)
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 

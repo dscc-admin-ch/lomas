@@ -24,7 +24,7 @@ def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
         series_bounds = None
         if series_info["type"] in [MetadataColumnType.FLOAT, MetadataColumnType.INT]:
             series_type = f"{series_info['type']}{series_info['precision']}"
-            if hasattr(series_info, "lower") and hasattr(series_info, "upper"):
+            if "lower" in series_info and "upper" in series_info:
                 series_bounds = (series_info["lower"], series_info["upper"])
         # TODO 392: release opendp 0.12 (adapt with type date)
         elif series_info["type"] == MetadataColumnType.DATETIME:

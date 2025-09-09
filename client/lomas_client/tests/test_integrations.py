@@ -141,9 +141,9 @@ def test_oauth2_demo(kc, demo_setup: IOResultE) -> None:
     assert tot_spent.map(lambda x: x.total_spent_epsilon) == IOSuccess(1.5)
 
     prev_queries = client.get_previous_queries()
-    assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "TITANIC"
-    assert prev_queries[0]["dp_library"] == "smartnoise_sql"
+    assert prev_queries.map(len) == IOSuccess(1)
+    assert prev_queries.map(lambda query: query[0]["dataset_name"]) == IOSuccess("TITANIC")
+    assert prev_queries.map(lambda query: query[0]["dp_library"]) == IOSuccess("smartnoise_sql")
 
 
 def test_demo_diffprivlib(kc, demo_setup: IOResultE) -> None:
@@ -219,20 +219,22 @@ def test_demo_diffprivlib(kc, demo_setup: IOResultE) -> None:
     assert predictions == IOSuccess(pytest.approx([20, 20], abs=20))
 
     prev_queries = client.get_previous_queries()
-    assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "PENGUIN"
-    assert prev_queries[0]["dp_library"] == "diffprivlib"
-    returned_model = prev_queries[0]["response"]["result"]["model"]
-    predictions = returned_model.predict(
-        pd.DataFrame(
-            {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
-            }
+    assert prev_queries.map(len) == IOSuccess(1)
+    assert prev_queries.map(lambda query: query[0]["dataset_name"]) == IOSuccess("PENGUIN")
+    assert prev_queries.map(lambda query: query[0]["dp_library"]) == IOSuccess("diffprivlib")
+
+    returned_model = prev_queries.map(lambda query: query[0]["response"]["result"]["model"])
+    predictions = returned_model.map(
+        lambda model: model.predict(
+            pd.DataFrame(
+                {
+                    "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                }
+            )
         )
     )
-
-    assert len(predictions) == 2
-    assert predictions == pytest.approx([20, 20], abs=20)
+    assert predictions.map(len) == IOSuccess(2)
+    assert predictions == IOSuccess(pytest.approx([20, 20], abs=20))
 
 
 @pytest.mark.long
@@ -265,12 +267,12 @@ def test_demo_smartnoise_synth(kc, demo_setup: IOResultE) -> None:
         assert res_df.map(lambda df: df.body_mass_g.min() >= 5000) == IOSuccess(True)
 
     prev_queries = client.get_previous_queries()
-    assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "PENGUIN"
-    assert prev_queries[0]["dp_library"] == "smartnoise_synth"
-    response_archives = prev_queries[0]["response"]
-    assert response_archives["epsilon"] == 1.0
-    assert response_archives["delta"] >= 0.0
+    assert prev_queries.map(len) == IOSuccess(1)
+    assert prev_queries.map(lambda query: query[0]["dataset_name"]) == IOSuccess("PENGUIN")
+    assert prev_queries.map(lambda query: query[0]["dp_library"]) == IOSuccess("smartnoise_synth")
+    response_archives = prev_queries.map(lambda query: query[0]["response"])
+    assert response_archives.map(lambda x: x.epsilon) >= IOSuccess(1.0)
+    assert response_archives.map(lambda x: x.delta) >= IOSuccess(0.0)
 
 
 def test_demo_opendp_polars(kc, demo_setup: IOResultE) -> None:
@@ -302,11 +304,11 @@ def test_demo_opendp_polars(kc, demo_setup: IOResultE) -> None:
     assert query_res.map(lambda x: x.result.value.shape) == IOSuccess((1, 1))
 
     prev_queries = client.get_previous_queries()
-    assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "FSO_INCOME_SYNTHETIC"
-    assert prev_queries[0]["dp_library"] == "opendp"
-    assert prev_queries[0]["client_input"]["pipeline_type"] == "polars"
-    assert prev_queries[0]["client_input"]["mechanism"] == "laplace"
-    response_archives = prev_queries[0]["response"]
-    assert response_archives["epsilon"] >= 1.0
-    assert response_archives["delta"] >= 0.0
+    assert prev_queries.map(len) == IOSuccess(1)
+    assert prev_queries.map(lambda query: query[0]["dataset_name"]) == IOSuccess("FSO_INCOME_SYNTHETIC")
+    assert prev_queries.map(lambda query: query[0]["dp_library"]) == IOSuccess("opendp")
+    assert prev_queries.map(lambda query: query[0]["client_input"]["pipeline_type"]) == IOSuccess("polars")
+    assert prev_queries.map(lambda query: query[0]["client_input"]["mechanism"]) == IOSuccess("laplace")
+    response_archives = prev_queries.map(lambda query: query[0]["response"])
+    assert response_archives.map(lambda x: x["epsilon"] >= 1.0) == IOSuccess(True)
+    assert response_archives.map(lambda x: x["delta"] >= 0.0) == IOSuccess(True)

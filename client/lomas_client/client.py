@@ -243,8 +243,8 @@ class ClientIO:
                             query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
                         query_json = OpenDPQueryModel.model_validate(query["client_input"])
-                        query["client_input"]["opendp_json"] = reconstruct_measurement_pipeline(
-                            query_json, self.get_dataset_metadata()
+                        query["client_input"]["opendp_json"] = self.get_dataset_metadata().map(
+                            lambda metadata: reconstruct_measurement_pipeline(query_json, metadata)
                         )
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
@@ -265,8 +265,8 @@ class ClientIO:
             lambda body: self.http_client.post("get_previous_queries", body),
             # parse reply if HTTP 200
             bind(parse_if_ok),
-            bind(lambda content: json.loads(content)["previous_queries"]),
-            post_processes_queries,
+            map_(lambda content: json.loads(content)["previous_queries"]),
+            map_(post_processes_queries),
         )
 
 

@@ -1,6 +1,7 @@
 import base64
 import json
 import pickle
+from functools import partial
 
 import pandas as pd
 import polars as pl
@@ -244,7 +245,7 @@ class ClientIO:
                     case DPLibraries.OPENDP:
                         query_json = OpenDPQueryModel.model_validate(query["client_input"])
                         query["client_input"]["opendp_json"] = self.get_dataset_metadata().map(
-                            lambda metadata: reconstruct_measurement_pipeline(query_json, metadata)
+                            partial(reconstruct_measurement_pipeline, query_json)
                         )
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])

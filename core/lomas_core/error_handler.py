@@ -15,6 +15,8 @@ from lomas_core.models.exceptions import (
     UnauthorizedAccessExceptionModel,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class InvalidQueryException(Exception):
     """
@@ -91,7 +93,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(InvalidQueryException)
     async def invalid_query_exception_handler(_: Request, exc: InvalidQueryException) -> JSONResponse:
-        logging.info(f"InvalidQueryException raised: {exc.error_message}")
+        logger.debug(f"InvalidQueryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
@@ -99,7 +101,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(ExternalLibraryException)
     async def external_library_exception_handler(_: Request, exc: ExternalLibraryException) -> JSONResponse:
-        logging.info(f"ExternalLibraryException raised: {exc.error_message}")
+        logger.debug(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=jsonable_encoder(
@@ -111,7 +113,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def unauthorized_access_exception_handler(
         _: Request, exc: UnauthorizedAccessException
     ) -> JSONResponse:
-        logging.info(f"UnauthorizedAccessException raised: {exc.error_message}")
+        logger.debug(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
@@ -119,7 +121,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(InternalServerException)
     async def internal_server_exception_handler(_: Request, exc: InternalServerException) -> JSONResponse:
-        logging.info(f"InternalServerException  raised: {exc.error_message}")
+        logger.debug(f"InternalServerException  raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(InternalServerExceptionModel()),

@@ -28,7 +28,7 @@ class LomasHttpClient:
         self.config = config
 
         if not self.config.keycloak_use_tls or not self.config.lomas_service_use_tls:
-            logger.info(
+            logger.warning(
                 "Keycloak or Lomas service configured without TLS -> using oauthlib insecure transport"
             )
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -74,7 +74,7 @@ class LomasHttpClient:
             requests.Response: The response object resulting from the POST request.
         """
 
-        logger.info(
+        logger.debug(
             f"User (with client id '{self.config.client_id}') is making a request "
             + f"to url '{self.config.app_url}' "
             + f"at the endpoint '{endpoint}' "

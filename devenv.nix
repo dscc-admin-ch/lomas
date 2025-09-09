@@ -529,26 +529,31 @@ in
   '';
 
   scripts.yelp.exec = ''
+    b=$(tput bold)
+    n=$(tput sgr0)
     cat << EOF
-    - Starting up the environment
+    $b- Starting up the environment$n
     devenv up
 
-    - Starting up the environment *with telemetry*
+    $b- Starting up the environment *with telemetry*$n
     process-compose up
     or
     devenv up -- --namespace=telemetry
 
-    - What the hell is process-compose doing
+    $b- What the hell is process-compose doing$n
     yq \$PC_CONFIG_FILES
 
-    - I just want my UTs / pytest to work !
+    $b- I just want my UTs / pytest to work !$n
     devenv up
     ut / pytest -k ...
 
-    - Just run the coverage alreaaady
+    $b- Trick: seeing my prints whilst pytesting:$n
+    pytest -s / pytest -rA
+
+    $b- Just run the coverage alreaaady$n
     ut-coverage
 
-    - My python packages are broken/out of sync/missing
+    $b- My python packages are broken/out of sync/missing$n
     uv sync --all-extras [-U]
     uv add <packages>
     EOF

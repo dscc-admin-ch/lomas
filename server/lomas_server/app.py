@@ -24,6 +24,8 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
@@ -38,9 +40,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     side effects on the return values of the "depends"
     functions, which check the server state.
     """
-    # Startup
-    logging.info("Startup message")
-
     # Load Config
     config = Config()
 
@@ -49,13 +48,13 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     # Load admin database
     try:
-        logging.info("Loading admin database")
+        logger.debug("Loading admin database")
         lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
-        logging.info("Loading authenticator")
+        logger.debug("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator.user_auth()
 
     except InternalServerException as e:
-        logging.exception(f"Failed at startup: {e!s}")
+        logger.exception(f"Failed at startup: {e!s}")
 
     # Set DP Libraries config
     set_opendp_features_config(config.opendp_features)

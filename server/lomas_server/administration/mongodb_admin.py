@@ -29,6 +29,8 @@ from lomas_server.admin_database.mongodb_database import check_result_acknowledg
 from lomas_server.administration.utils import absolute_path
 from lomas_server.models.config import MongoDBConfig
 
+logger = logging.getLogger(__name__)
+
 
 def check_user_exists(enforce_true: bool) -> Callable:
     """Raises a ValueError if the user does (not) exist in the user collection.
@@ -181,7 +183,7 @@ def add_user(db: Database, user: str, email: str) -> None:
 
     # codeQL : py/log-injection
     user_log = user.replace("\r\n", "").replace("\n", "")
-    logging.info(f"Added user {user_log}.")
+    logger.debug(f"Added user {user_log}.")
 
 
 @with_mongodb
@@ -229,7 +231,7 @@ def add_user_with_budget(
     dataset_log = dataset.replace("\r\n", "").replace("\n", "")
     epsilon_log = str(epsilon).replace("\r\n", "").replace("\n", "")
     delta_log = str(delta).replace("\r\n", "").replace("\n", "")
-    logging.info(
+    logger.debug(
         f"Added access to user {user_log} with dataset {dataset_log}, "
         + f"budget epsilon {epsilon_log} and delta {delta_log}."
     )
@@ -250,7 +252,7 @@ def del_user(db: Database, user: str) -> None:
     res = db.users.delete_many({"id.name": user})
     check_result_acknowledged(res)
 
-    logging.info(f"Deleted user {user}.")
+    logger.debug(f"Deleted user {user}.")
 
 
 @with_mongodb
@@ -295,7 +297,7 @@ def add_dataset_to_user(db: Database, user: str, dataset: str, epsilon: float, d
 
     check_result_acknowledged(res)
 
-    logging.info(
+    logger.debug(
         f"Added access to dataset {dataset} to user {user} with budget epsilon {epsilon} and delta {delta}."
     )
 
@@ -321,7 +323,7 @@ def del_dataset_to_user(db: Database, user: str, dataset: str) -> None:
 
     check_result_acknowledged(res)
 
-    logging.info(f"Remove access to dataset {dataset}" + f" from user {user}.")
+    logger.debug(f"Remove access to dataset {dataset}" + f" from user {user}.")
 
 
 @with_mongodb
@@ -352,7 +354,7 @@ def set_budget_field(db: Database, user: str, dataset: str, field: str, value: f
 
     check_result_acknowledged(res)
 
-    logging.info(f"Set budget of {user} for dataset {dataset} of {field} to {value}.")
+    logger.debug(f"Set budget of {user} for dataset {dataset} of {field} to {value}.")
 
 
 @with_mongodb
@@ -377,7 +379,7 @@ def set_may_query(db: Database, user: str, value: bool) -> None:
 
     check_result_acknowledged(res)
 
-    logging.info(f"Set user {user} may query to {value}.")
+    logger.debug(f"Set user {user} may query to {value}.")
 
 
 @with_mongodb
@@ -394,7 +396,7 @@ def get_user(db: Database, user: str) -> dict:
     """
     user_info = next(iter(db.users.find({"id.name": user})))
     user_info.pop("_id", None)
-    logging.info(user_info)
+    logger.debug(user_info)
     return user_info
 
 
@@ -423,7 +425,7 @@ def add_users_via_yaml(
     if clean:
         # Collection created from scratch
         db.users.drop()
-        logging.info("Cleaning done. \n")
+        logger.debug("Cleaning done. \n")
 
     # Load yaml data and insert it
     if isinstance(yaml_file, str):
@@ -450,7 +452,7 @@ def add_users_via_yaml(
                 update_operation = {"$set": user.model_dump()}
                 res: _WriteResult = db.users.update_many(user_filter, update_operation)
                 check_result_acknowledged(res)
-            logging.info("Existing users updated. ")
+            logger.debug("Existing users updated. ")
         else:
             warn("Some users already present in database. Overwrite is set to False.")
 
@@ -459,9 +461,9 @@ def add_users_via_yaml(
         new_users_dicts = [user.model_dump() for user in new_users]
         res = db.users.insert_many(new_users_dicts)
         check_result_acknowledged(res)
-        logging.info("Added user data from yaml.")
+        logger.debug("Added user data from yaml.")
     else:
-        logging.info("No new users added, they already exist in the server")
+        logger.debug("No new users added, they already exist in the server")
 
 
 @with_mongodb
@@ -483,7 +485,7 @@ def get_archives_of_user(db: Database, user: str) -> list[dict]:
             if isinstance(doc.get(key), dict) and "gridfs_id" in doc[key]:
                 data = fs.get(doc[key]["gridfs_id"]).read().decode("utf-8")
                 doc[key] = json.loads(data)
-    logging.info(archives_infos)
+    logger.debug(archives_infos)
     return archives_infos
 
 
@@ -500,7 +502,7 @@ def get_list_of_users(db: Database) -> list:
     user_names = []
     for elem in db.users.find():
         user_names.append(elem["id"]["name"])
-    logging.info(user_names)
+    logger.debug(user_names)
     return user_names
 
 
@@ -518,7 +520,7 @@ def get_list_of_datasets_from_user(db: Database, user: str) -> list:
     """
     user_data = db.users.find_one({"id.name": user})
     assert user_data is not None, "User must exist"
-    logging.info([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
+    logger.debug([dataset["dataset_name"] for dataset in user_data["datasets_list"]])
     return [dataset["dataset_name"] for dataset in user_data["datasets_list"]]
 
 
@@ -644,7 +646,7 @@ def add_dataset(
     # codeQL : py/log-injection
     dataset_name_log = dataset_name.replace("\r\n", "").replace("\n", "")
     database_type_log = database_type.replace("\r\n", "").replace("\n", "")
-    logging.info(
+    logger.debug(
         f"Added dataset {dataset_name_log} with database {database_type_log} and associated metadata."
     )
 
@@ -682,7 +684,7 @@ def add_datasets_via_yaml(  # pylint: disable=too-many-branches, too-many-statem
         # Collection created from scratch
         db.datasets.drop()
         db.metadata.drop()
-        logging.info("Cleaning done. \n")
+        logger.debug("Cleaning done. \n")
 
     if isinstance(yaml_file, str):
         with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
@@ -715,7 +717,7 @@ def add_datasets_via_yaml(  # pylint: disable=too-many-branches, too-many-statem
                 update_operation = {"$set": d.model_dump()}
                 res: _WriteResult = db.datasets.update_many(dataset_filter, update_operation)
                 check_result_acknowledged(res)
-            logging.info("Existing datasets updated with new collection")
+            logger.debug("Existing datasets updated with new collection")
         else:
             warn("Some datasets already present in database. Overwrite is set to False.")
 
@@ -724,7 +726,7 @@ def add_datasets_via_yaml(  # pylint: disable=too-many-branches, too-many-statem
         new_datasets_dicts = [d.model_dump() for d in new_datasets]
         res = db.datasets.insert_many(new_datasets_dicts)
         check_result_acknowledged(res)
-        logging.info("Added datasets collection from yaml.")
+        logger.debug("Added datasets collection from yaml.")
 
     # Step 2: add metadata collections (one metadata per dataset)
     for d in dataset_dict.datasets:
@@ -762,15 +764,15 @@ def add_datasets_via_yaml(  # pylint: disable=too-many-branches, too-many-statem
         metadata = db.metadata.find_one(metadata_filter)
 
         if metadata and overwrite_metadata:
-            logging.info(f"Metadata updated for dataset : {dataset_name}.")
+            logger.debug(f"Metadata updated for dataset : {dataset_name}.")
             res = db.metadata.update_one(metadata_filter, {"$set": {dataset_name: metadata_dict}})
             check_result_acknowledged(res)
         elif metadata:
-            logging.info("Metadata already exist. Use the command -om to overwrite with new values.")
+            logger.debug("Metadata already exist. Use the command -om to overwrite with new values.")
         else:
             res = db.metadata.insert_one({dataset_name: metadata_dict})
             check_result_acknowledged(res)
-            logging.info(f"Added metadata of {dataset_name} dataset. ")
+            logger.debug(f"Added metadata of {dataset_name} dataset. ")
 
 
 @with_mongodb
@@ -789,7 +791,7 @@ def del_dataset(db: Database, dataset: str) -> None:
     check_result_acknowledged(res)
     res = db.metadata.delete_many({dataset: {"$exists": True}})
     check_result_acknowledged(res)
-    logging.info(f"Deleted dataset and metadata for {dataset}.")
+    logger.debug(f"Deleted dataset and metadata for {dataset}.")
 
 
 @with_mongodb
@@ -806,7 +808,7 @@ def get_dataset(db: Database, dataset: str) -> dict:
     """
     dataset_info = next(iter(db.datasets.find({"dataset_name": dataset})))
     dataset_info.pop("_id", None)
-    logging.info(dataset_info)
+    logger.debug(dataset_info)
     return dataset_info
 
 
@@ -828,7 +830,7 @@ def get_metadata_of_dataset(db: Database, dataset: str) -> dict:
 
     # Extract metadata for the specified dataset
     metadata_info = metadata_document[dataset]
-    logging.info(metadata_info)
+    logger.debug(metadata_info)
     return metadata_info
 
 
@@ -845,7 +847,7 @@ def get_list_of_datasets(db: Database) -> list:
     dataset_names = []
     for elem in db.datasets.find():
         dataset_names.append(elem["dataset_name"])
-    logging.info(dataset_names)
+    logger.debug(dataset_names)
     return dataset_names
 
 
@@ -862,7 +864,7 @@ def drop_collection(db: Database, collection: str) -> None:
         None
     """
     db.drop_collection(collection)
-    logging.info(f"Deleted collection {collection}.")
+    logger.debug(f"Deleted collection {collection}.")
 
 
 @with_mongodb
@@ -881,5 +883,5 @@ def get_collection(db: Database, collection: str) -> list:
     for document in collection_query:
         document.pop("_id", None)
         collections.append(document)
-    logging.info(collections)
+    logger.debug(collections)
     return collections

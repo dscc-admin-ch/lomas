@@ -1,5 +1,6 @@
 import warnings
 
+import numpy as np
 import pandas as pd
 from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
@@ -40,53 +41,106 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         self.y_test: pd.DataFrame | None = None
         self.accountant = BudgetAccountant()
 
-    def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
-        """Perform necessary steps to fit the model on the data.
+    def complete_pipeline(self, feature_columns: list[str], target_columns: list[str] | None) -> None:
+        """
+        Finalize the DiffPrivLib pipeline by injecting accountant and privacy constraints.
+
+        Steps:
+            1. Attach the shared budget accountant to all compatible steps.
+            2. Add metadata-driven privacy constraints (`data_norm`, `bounds`, `bounds_X`, `bounds_y`)
+            to the first pipeline step when supported.
 
         Args:
-            query_json (BaseModel): The JSON request object for the query.
+            feature_columns: List of feature columns used for training.
+            target_columns: Optional list of target columns (required if `bounds_y` is needed).
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
+            InternalServerException: If pipeline is not initialized.
+            InvalidQueryException: If target bounds are required but not provided.
         """
-        # Prepare data
-        df = self.data_connector.get_pandas_df()
+        if self.dpl_pipeline is None:
+            raise InternalServerException("Pipeline must be initialized before calling complete_pipeline")
 
-        # Check for overlap
-        useful_columns = query_json.feature_columns.copy()
-        if query_json.target_columns is not None:
-            for target in query_json.target_columns:
-                if target in query_json.feature_columns:
-                    raise InvalidQueryException(
-                        f"A column may only be in one of features and target. {target} is in both."
-                    )
-                useful_columns.append(target)
-
-        df = df[useful_columns]
-        data = handle_missing_data(df, query_json.imputer_strategy)
-        x_train, self.x_test, y_train, self.y_test = split_train_test_data(data, query_json)
-
-        # Prepare DiffPrivLib pipeline
-        self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
-
-        # Add budget accountant
+        # 1. Add budget accountant
         for _, step in self.dpl_pipeline.steps:
             if hasattr(step, "accountant"):
                 step.accountant = self.accountant
 
-        # Fit the pipeline on the training set
+        # 2. Get metadata for features
+        columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
+        feature_metadata = {col: columns_metadata[col] for col in feature_columns}
+
+        first_step = self.dpl_pipeline.steps[0][1]
+
+        # --- Handle feature constraints ---
+        feature_bounds: tuple[list[float], list[float]] | None = None
+        if hasattr(first_step, "data_norm"):
+            first_step.data_norm = np.sqrt(sum(meta["upper"] ** 2 for meta in feature_metadata.values()))
+
+        if hasattr(first_step, "bounds") or hasattr(first_step, "bounds_X"):
+            feature_bounds = get_dpl_bounds(feature_metadata, feature_columns)
+
+        if hasattr(first_step, "bounds"):
+            first_step.bounds = feature_bounds
+        if hasattr(first_step, "bounds_X"):
+            first_step.bounds_X = feature_bounds
+
+        # --- Handle target constraints ---
+        if hasattr(first_step, "bounds_y"):
+            if not target_columns:
+                raise InvalidQueryException("target_columns must be provided when bounds_y is required")
+            target_metadata = {col: columns_metadata[col] for col in target_columns}
+            first_step.bounds_y = get_dpl_bounds(target_metadata, feature_columns=target_columns)
+
+    def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
+        """
+        Fit the DiffPrivLib pipeline on the dataset provided by the data connector.
+
+        Steps:
+            1. Validate inputs (no overlap between feature and target columns).
+            2. Select and preprocess relevant columns (handle missing data).
+            3. Split data into training and test sets.
+            4. Deserialize the pipeline and inject server parameters.
+            5. Fit the pipeline while treating PrivacyLeakWarning as an error.
+
+        Args:
+            query_json: Request object describing feature/target columns,
+                        pipeline definition, and preprocessing options.
+
+        Raises:
+            InvalidQueryException: If feature/target columns overlap.
+            ExternalLibraryException: If DiffPrivLib fitting fails.
+        """
+        # 1. Validate feature/target columns
+        feature_columns = query_json.feature_columns.copy()
+        target_columns = query_json.target_columns or []
+
+        overlap = set(feature_columns) & set(target_columns)
+        if overlap:
+            raise InvalidQueryException(f"Columns cannot be both feature and target: {', '.join(overlap)}")
+
+        # 2. Select and preprocess data
+        useful_columns = feature_columns + target_columns
+        df = self.data_connector.get_pandas_df()[useful_columns]
+        df = handle_missing_data(df, query_json.imputer_strategy)
+
+        # 3. Split data
+        x_train, self.x_test, y_train, self.y_test = split_train_test_data(df, query_json)
+
+        # 4. Deserialize and configure pipeline
+        self.dpl_pipeline = deserialise_pipeline(query_json.diffprivlib_json)
+        self.complete_pipeline(feature_columns, query_json.target_columns)
+
+        # 5. Fit pipeline with strict warning handling
         warnings.simplefilter("error", PrivacyLeakWarning)
         try:
-            if y_train is not None:
-                y_train = y_train.to_numpy().ravel()
+            y_train = None if y_train is None else y_train.to_numpy().ravel()
             self.dpl_pipeline = self.dpl_pipeline.fit(x_train, y_train)
         except PrivacyLeakWarning as e:
             raise ExternalLibraryException(
                 DPLibraries.DIFFPRIVLIB,
-                f"PrivacyLeakWarning: {e}. "
-                + "Lomas server cannot fit pipeline on data, "
-                + "PrivacyLeakWarning is a blocker.",
+                f"PrivacyLeakWarning: {e} "
+                + "Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker.",
             ) from e
         except Exception as e:
             raise ExternalLibraryException(
@@ -95,40 +149,47 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
             ) from e
 
     def cost(self, query_json: DiffPrivLibRequestModel) -> tuple[float, float]:
-        """Estimate cost of query.
+        """
+        Estimate the privacy budget cost of running a DiffPrivLib query.
+
+        Steps:
+            1. Fit the model on the dataset (including accountant injection).
+            2. Retrieve the total budget consumed from the accountant.
 
         Args:
-            query_json (DiffPrivLibRequestModel): The request model object.
+            query_json: The request object describing the query (features, targets, pipeline JSON).
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
+            ExternalLibraryException: If the pipeline fitting fails.
 
         Returns:
-            tuple[float, float]: The tuple of costs, the first value
-                is the epsilon cost, the second value is the delta value.
+            A tuple of (epsilon, delta) costs.
         """
+        # 1. Fit model (this will attach accountant and configure constraints)
         self.fit_model_on_data(query_json)
-        spent_budget = self.accountant.total()
-        return spent_budget[0], spent_budget[1]
+
+        # 2. Retrieve total budget
+        epsilon, delta = self.accountant.total()
+        return epsilon, delta
 
     def query(
         self,
         query_json: DiffPrivLibQueryModel,
     ) -> DiffPrivLibQueryResult:
-        """Perform the query and return the response.
+        """
+        Run the query on the fitted DiffPrivLib pipeline and return the results.
 
         Args:
-            query_json (DiffPrivLibQueryModel): The request model object.
+            query_json: The request object describing the query parameters.
 
         Raises:
-            ExternalLibraryException: For exceptions from libraries
-                external to this package.
-            InvalidQueryException: If the budget values are too small to
-                perform the query.
+            InternalServerException: If `query` is called before `cost` (pipeline not initialized).
+            ExternalLibraryException: If the underlying pipeline evaluation fails.
 
         Returns:
-            dict: The dictionary encoding of the resulting pd.DataFrame.
+            DiffPrivLibQueryResult containing:
+                - score: Model accuracy on the test set.
+                - model: The trained DiffPrivLib pipeline.
         """
         if self.dpl_pipeline is None:
             raise InternalServerException("DiffPrivLib `query` method called before `cost` method")
@@ -177,3 +238,19 @@ def split_train_test_data(
             random_state=query_json.test_train_split_seed,
         )
     return x_train, x_test, y_train, y_test
+
+
+def get_dpl_bounds(columns_metadata: dict, feature_columns: list[str]) -> tuple[list[float], list[float]]:
+    """
+    Format metadata bounds of feature columns in format expected by DiffPrivLib.
+
+    Args:
+        - columns_metadata: metadata
+        - feature_columns (list[str]): list of feature columns
+
+    Return:
+        tuple of lower and upper bounds as expected by DiffPrivLib
+    """
+    lower = [columns_metadata[col]["lower"] for col in feature_columns]
+    upper = [columns_metadata[col]["upper"] for col in feature_columns]
+    return (lower, upper)

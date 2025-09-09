@@ -96,7 +96,30 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 message="Imputation strategy i_do_not_exist not supported."
             )
 
-            # Should not work: Privacy Leak Warning
+    @pytest.mark.long
+    def test_diffprivlib_privacy_leak(self) -> None:
+        """Test diffprivlib privacy leak error."""
+        with TestClient(app, headers=self.headers) as client:
+
+            # Should still work: automatically added for first step
+            warnings.simplefilter("error", PrivacyLeakWarning)
+            diffprivlib_body = dict(example_diffprivlib)
+            dpl_pipeline = Pipeline(
+                [
+                    ("scaler", models.StandardScaler(epsilon=0.5)),
+                    ("classifier", models.LogisticRegression(epsilon=1.0, data_norm=7000.0)),
+                ]
+            )
+            dpl_string = serialise_pipeline(dpl_pipeline)
+            diffprivlib_body["diffprivlib_json"] = dpl_string
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(client, response)
+
+            # Should not work: Privacy Leak Warning on data norm
             warnings.simplefilter("error", PrivacyLeakWarning)
             diffprivlib_body = dict(example_diffprivlib)
             dpl_pipeline = Pipeline(
@@ -117,29 +140,58 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
             assert job.error == ExternalLibraryExceptionModel(
                 message="PrivacyLeakWarning: "
-                + "Bounds parameter hasn't been specified, so falling back to "
-                + "determining bounds from the data.\n "
-                + "This will result in additional privacy leakage.  "
-                + "To ensure differential privacy with no additional privacy "
-                + "loss, specify `bounds` for each valued returned by "
-                + "np.mean().. "
+                + "Data norm has not been specified and will be calculated on the data provided.  "
+                + "This will result in additional privacy leakage. "
+                + "To ensure differential privacy and no additional privacy leakage, specify "
+                + "`data_norm` at initialisation. "
                 + "Lomas server cannot fit pipeline on data, "
                 + "PrivacyLeakWarning is a blocker.",
                 library=DPLibraries.DIFFPRIVLIB,
             )
 
-            # Should not work: Compatibility Warning
-            warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
-            with pytest.raises(DiffprivlibCompatibilityWarning):
-                Pipeline(
-                    [
-                        ("scaler", models.StandardScaler(epsilon=0.5)),
-                        (
-                            "classifier",
-                            models.LogisticRegression(epsilon=1.0, svd_solver="full"),
-                        ),
-                    ]
-                )
+            # Should not work: Privacy Leak Warning on bounds
+            diffprivlib_body = dict(example_diffprivlib)
+            dpl_pipeline = Pipeline(
+                [
+                    ("scaler", models.StandardScaler(epsilon=0.5)),
+                    ("classifier", models.GaussianNB(epsilon=1.0)),
+                ]
+            )
+            dpl_string = serialise_pipeline(dpl_pipeline)
+            diffprivlib_body["diffprivlib_json"] = dpl_string
+            job = submit_job_wait(
+                client,
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            assert job.status == "failed"
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.error == ExternalLibraryExceptionModel(
+                message="PrivacyLeakWarning: "
+                + "Bounds have not been specified and will be calculated on the data provided. "
+                + "This will result in additional privacy leakage. "
+                + "To ensure differential privacy and no additional privacy leakage, "
+                + "specify bounds for each dimension. "
+                + "Lomas server cannot fit pipeline on data, "
+                + "PrivacyLeakWarning is a blocker.",
+                library=DPLibraries.DIFFPRIVLIB,
+            )
+
+    def test_diffprivlib_compatibility_error(self) -> None:
+        """Test diffprivlib compatibility error."""
+        # Should not work: Compatibility Warning
+        warnings.simplefilter("error", DiffprivlibCompatibilityWarning)
+        with pytest.raises(DiffprivlibCompatibilityWarning):
+            Pipeline(
+                [
+                    ("scaler", models.StandardScaler(epsilon=0.5)),
+                    (
+                        "classifier",
+                        models.LogisticRegression(epsilon=1.0, svd_solver="full"),
+                    ),
+                ]
+            )
 
     def test_logistic_regression_models(self) -> None:
         """Test diffprivlib query: Logistic Regression."""
@@ -195,6 +247,28 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             validate_pipeline(client, response)
 
+            # Test Linear Regression: no bounds should also work
+            pipeline = Pipeline(
+                [
+                    (
+                        "lr",
+                        models.LinearRegression(
+                            epsilon=2.0,
+                        ),
+                    ),
+                ]
+            )
+            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
+            diffprivlib_body["feature_columns"] = ["bill_length_mm"]
+            diffprivlib_body["target_columns"] = ["flipper_length_mm"]
+            response = client.post(
+                "/diffprivlib_query",
+                json=diffprivlib_body,
+                headers=self.headers,
+            )
+            validate_pipeline(client, response)
+
     def test_linear_regression_models_same_columns(self) -> None:
         """Test diffprivlib query: Same columns."""
         with TestClient(app, headers=self.headers) as client:
@@ -225,7 +299,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == InvalidQueryExceptionModel(
-                message="A column may only be in one of features and target. " + "bill_length_mm is in both."
+                message="Columns cannot be both feature and target: bill_length_mm"
             )
 
     def test_naives_bayes_model(self) -> None:

@@ -64,7 +64,7 @@ def kc():
 
 
 def test_missing_configs() -> None:
-    with pytest.raises(ValueError, match=r"Missing one of or invalid:"):
+    with pytest.raises(ValueError, match=r"Missing/Invalid fields"):
         ClientIO()
 
 

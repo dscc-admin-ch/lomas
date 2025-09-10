@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import pickle
 from functools import partial
 
@@ -35,6 +36,8 @@ from lomas_core.models.responses import (
 )
 from lomas_core.opendp_utils import reconstruct_measurement_pipeline
 
+logger = logging.getLogger(__name__)
+
 # Opendp_logger
 enable_logging()
 enable_features("contrib")
@@ -56,9 +59,10 @@ class ClientIO:
         try:
             self.config = ClientConfig(**kwargs)
         except ValidationError as exc:
+            for err in exc.errors():
+                logger.error(f"{err['loc'][0]} --> {err['msg']}")
             raise ValueError(
-                "Missing one of or invalid: client_id, client_secret, keycloak_url"
-                "or realm when using jwt authentication method."
+                "Missing/Invalid fields"
                 "If you are using this library from a managed environment and don't know "
                 "about your credentials, please contact your system administrator."
             ) from exc

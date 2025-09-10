@@ -92,17 +92,6 @@ in
       };
     };
 
-    processes.rabbitmq.process-compose = {
-      readiness_probe = {
-        exec.command = "${config.services.rabbitmq.package}/bin/rabbitmq-diagnostics -q ping";
-        initial_delay_seconds = 20;
-        timeout_seconds = 5;
-        period_seconds = 5;
-        success_threshold = 2;
-        failure_threshold = 10;
-      };
-    };
-
   };
 
 }

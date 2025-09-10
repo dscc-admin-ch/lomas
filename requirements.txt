@@ -2,6 +2,7 @@
 #    uv pip compile pyproject.toml --annotation-style line --all-extras
 aio-pika==9.5.4           # via lomas-server
 aiormq==6.8.1             # via aio-pika
+alabaster==1.0.0          # via sphinx
 altair==5.5.0             # via streamlit
 annotated-types==0.7.0    # via pydantic
 antlr4-python3-runtime==4.9.3  # via smartnoise-sql
@@ -14,24 +15,24 @@ astroid==3.3.11           # via pylint
 asttokens==3.0.0          # via stack-data
 async-lru==2.0.5          # via jupyterlab
 attrs==25.3.0             # via jsonschema, mantelo, referencing
-babel==2.17.0             # via jupyterlab-server
-beautifulsoup4==4.13.4    # via nbconvert
-black==25.1.0             # via lomas (pyproject.toml)
+babel==2.17.0             # via jupyterlab-server, sphinx
+beautifulsoup4==4.13.5    # via nbconvert
+black==25.9.0             # via lomas (pyproject.toml)
 bleach==6.2.0             # via nbconvert
 blinker==1.9.0            # via streamlit
 boto3==1.34.115           # via lomas-server
 botocore==1.34.162        # via boto3, s3transfer
 cachetools==5.5.2         # via streamlit
 certifi==2025.8.3         # via httpcore, httpx, requests
-cffi==1.17.1              # via argon2-cffi-bindings, cryptography
+cffi==2.0.0               # via argon2-cffi-bindings, cryptography
 charset-normalizer==3.4.3  # via requests
-click==8.2.1              # via black, streamlit, uvicorn
+click==8.3.0              # via black, streamlit, uvicorn
 comm==0.2.3               # via ipykernel, ipywidgets
 contourpy==1.3.3          # via matplotlib
-coverage==7.10.4          # via pytest-cov, lomas (pyproject.toml)
+coverage==7.10.6          # via pytest-cov, lomas (pyproject.toml)
 cryptography==44.0.2      # via lomas-server
 cycler==0.12.1            # via matplotlib
-debugpy==1.8.16           # via ipykernel
+debugpy==1.8.17           # via ipykernel
 decorator==5.2.1          # via ipython
 defusedxml==0.7.1         # via nbconvert
 deprecated==1.2.18        # via opendp
@@ -39,30 +40,32 @@ diffprivlib==0.6.5        # via diffprivlib-logger, lomas-core
 diffprivlib-logger==0.0.3  # via lomas-core
 dill==0.4.0               # via pylint
 disjoint-set==0.8.0       # via private-pgm
-dnspython==2.7.0          # via pymongo
+dnspython==2.8.0          # via pymongo
+docutils==0.21.2          # via myst-parser, nbsphinx, sphinx, sphinx-rtd-theme
 exceptiongroup==1.3.0     # via aio-pika
-executing==2.2.0          # via stack-data
-faker==37.5.3             # via smartnoise-synth
+executing==2.2.1          # via stack-data
+faker==37.8.0             # via smartnoise-synth
 fastapi==0.115.12         # via lomas-core
 fastjsonschema==2.21.2    # via nbformat
 filelock==3.19.1          # via torch
-fonttools==4.59.1         # via matplotlib
+fonttools==4.60.0         # via matplotlib
 fqdn==1.5.1               # via jsonschema
-fsspec==2025.7.0          # via torch
+fsspec==2025.9.0          # via torch
 gitdb==4.0.12             # via gitpython
 gitpython==3.1.45         # via streamlit
 googleapis-common-protos==1.70.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
 graphviz==0.21            # via smartnoise-sql
 greenlet==3.2.4           # via sqlalchemy
-grpcio==1.74.0            # via opentelemetry-exporter-otlp-proto-grpc
+grpcio==1.75.0            # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0               # via httpcore, uvicorn
 httpcore==1.0.9           # via httpx
 httpx==0.28.1             # via jupyterlab
 idna==3.10                # via anyio, httpx, jsonschema, requests, yarl
+imagesize==1.4.1          # via sphinx
 importlib-metadata==8.7.0  # via opentelemetry-api
 iniconfig==2.1.0          # via pytest
 ipykernel==6.30.1         # via jupyter, jupyter-console, jupyterlab
-ipython==9.4.0            # via ipykernel, ipywidgets, jupyter-console
+ipython==9.5.0            # via ipykernel, ipywidgets, jupyter-console
 ipython-pygments-lexers==1.1.1  # via ipython
 ipywidgets==8.1.7         # via jupyter
 isoduration==20.11.0      # via jsonschema
@@ -70,42 +73,47 @@ isort==6.0.1              # via pylint
 jax==0.5.3                # via lomas-server
 jaxlib==0.5.3             # via jax
 jedi==0.19.2              # via ipython
-jinja2==3.1.6             # via altair, jupyter-server, jupyterlab, jupyterlab-server, nbconvert, pydeck, torch
+jinja2==3.1.6             # via altair, jupyter-server, jupyterlab, jupyterlab-server, myst-parser, nbconvert, nbsphinx, pydeck, sphinx, torch
 jmespath==1.0.1           # via boto3, botocore
-joblib==1.5.1             # via diffprivlib, scikit-learn
+joblib==1.5.2             # via diffprivlib, scikit-learn
 json5==0.12.1             # via jupyterlab-server
 jsonpointer==3.0.0        # via jsonschema
 jsonschema==4.25.1        # via altair, jupyter-events, jupyterlab-server, nbformat
-jsonschema-specifications==2025.4.1  # via jsonschema
+jsonschema-specifications==2025.9.1  # via jsonschema
 jupyter==1.1.1            # via lomas-client
 jupyter-client==8.6.3     # via ipykernel, jupyter-console, jupyter-server, nbclient
 jupyter-console==6.6.3    # via jupyter
 jupyter-core==5.8.1       # via ipykernel, jupyter-client, jupyter-console, jupyter-server, jupyterlab, lomas-client, nbclient, nbconvert, nbformat
 jupyter-events==0.12.0    # via jupyter-server
-jupyter-lsp==2.2.6        # via jupyterlab
-jupyter-server==2.16.0    # via jupyter-lsp, jupyterlab, jupyterlab-server, notebook, notebook-shim
+jupyter-lsp==2.3.0        # via jupyterlab
+jupyter-server==2.17.0    # via jupyter-lsp, jupyterlab, jupyterlab-server, notebook, notebook-shim
 jupyter-server-terminals==0.5.3  # via jupyter-server
-jupyterlab==4.4.6         # via jupyter, notebook
+jupyterlab==4.4.7         # via jupyter, notebook
 jupyterlab-pygments==0.3.0  # via nbconvert
 jupyterlab-server==2.27.3  # via jupyterlab, notebook
 jupyterlab-widgets==3.0.15  # via ipywidgets
 kiwisolver==1.4.9         # via matplotlib
 lark==1.2.2               # via rfc3987-syntax
 mantelo==2.2.0            # via lomas-server
+markdown-it-py==3.0.0     # via mdit-py-plugins, myst-parser
 markupsafe==3.0.2         # via jinja2, nbconvert
-matplotlib==3.10.5        # via private-pgm, seaborn
+matplotlib==3.10.6        # via private-pgm, seaborn
 matplotlib-inline==0.1.7  # via ipykernel, ipython
 mccabe==0.7.0             # via pylint
-mistune==3.1.3            # via nbconvert
+mdit-py-plugins==0.5.0    # via myst-parser
+mdurl==0.1.2              # via markdown-it-py
+mistune==3.1.4            # via nbconvert
 ml-dtypes==0.5.3          # via jax, jaxlib
 mpmath==1.3.0             # via sympy
 multidict==6.6.4          # via yarl
-mypy==1.17.1              # via lomas (pyproject.toml)
+mypy==1.18.2              # via lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via black, mypy
-narwhals==2.1.2           # via altair
+myst-parser==4.0.0        # via lomas (pyproject.toml)
+narwhals==2.5.0           # via altair
 nbclient==0.10.2          # via nbconvert
-nbconvert==7.16.6         # via jupyter, jupyter-server
-nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert
+nbconvert==7.16.6         # via jupyter, jupyter-server, nbsphinx
+nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert, nbsphinx
+nbsphinx==0.9.6           # via lomas (pyproject.toml)
 nest-asyncio==1.6.0       # via ipykernel
 networkx==3.5             # via private-pgm, torch
 nose==1.3.7               # via private-pgm
@@ -116,87 +124,103 @@ oauthlib==3.3.1           # via lomas-client, lomas-server, requests-oauthlib
 opacus==0.14.0            # via smartnoise-synth
 opendp==0.12.0            # via lomas-core, opendp-logger, smartnoise-sql
 opendp-logger==0.3.0      # via lomas-core
-opentelemetry-api==1.36.0  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-instrumentation, opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests, opentelemetry-sdk, opentelemetry-semantic-conventions
-opentelemetry-exporter-otlp==1.36.0  # via lomas-core
-opentelemetry-exporter-otlp-proto-common==1.36.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-grpc==1.36.0  # via opentelemetry-exporter-otlp
-opentelemetry-exporter-otlp-proto-http==1.36.0  # via opentelemetry-exporter-otlp
-opentelemetry-instrumentation==0.57b0  # via opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests
-opentelemetry-instrumentation-aio-pika==0.57b0  # via lomas-server
-opentelemetry-instrumentation-asgi==0.57b0  # via opentelemetry-instrumentation-fastapi
-opentelemetry-instrumentation-fastapi==0.57b0  # via lomas-server
-opentelemetry-instrumentation-logging==0.57b0  # via lomas-client, lomas-server
-opentelemetry-instrumentation-pymongo==0.57b0  # via lomas-server
-opentelemetry-instrumentation-requests==0.57b0  # via lomas-client
-opentelemetry-proto==1.36.0  # via opentelemetry-exporter-otlp-proto-common, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.36.0  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
-opentelemetry-semantic-conventions==0.57b0  # via opentelemetry-instrumentation, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests, opentelemetry-sdk
-opentelemetry-util-http==0.57b0  # via opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-requests
+opentelemetry-api==1.37.0  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-instrumentation, opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests, opentelemetry-sdk, opentelemetry-semantic-conventions
+opentelemetry-exporter-otlp==1.37.0  # via lomas-core
+opentelemetry-exporter-otlp-proto-common==1.37.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
+opentelemetry-exporter-otlp-proto-grpc==1.37.0  # via opentelemetry-exporter-otlp
+opentelemetry-exporter-otlp-proto-http==1.37.0  # via opentelemetry-exporter-otlp
+opentelemetry-instrumentation==0.58b0  # via opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-aio-pika==0.58b0  # via lomas-server
+opentelemetry-instrumentation-asgi==0.58b0  # via opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-fastapi==0.58b0  # via lomas-server
+opentelemetry-instrumentation-logging==0.58b0  # via lomas-client, lomas-server
+opentelemetry-instrumentation-pymongo==0.58b0  # via lomas-server
+opentelemetry-instrumentation-requests==0.58b0  # via lomas-client
+opentelemetry-proto==1.37.0  # via opentelemetry-exporter-otlp-proto-common, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
+opentelemetry-sdk==1.37.0  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
+opentelemetry-semantic-conventions==0.58b0  # via opentelemetry-instrumentation, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-pymongo, opentelemetry-instrumentation-requests, opentelemetry-sdk
+opentelemetry-util-http==0.58b0  # via opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-requests
 opt-einsum==3.4.0         # via jax
-overrides==7.7.0          # via jupyter-server
+orjson==3.11.3            # via lomas (pyproject.toml)
 pac-synth==0.0.8          # via smartnoise-synth
-packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, nbconvert, opentelemetry-instrumentation, pytest, streamlit
+packaging==24.2           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, nbconvert, opentelemetry-instrumentation, pytest, sphinx, streamlit
 pamqp==3.3.0              # via aiormq
 pandas==2.3.2             # via lomas-core, private-pgm, seaborn, smartnoise-sql, streamlit
+pandoc==2.4               # via lomas (pyproject.toml)
 pandocfilters==1.5.1      # via nbconvert
-parso==0.8.4              # via jedi
+parso==0.8.5              # via jedi
 pathspec==0.12.1          # via black, mypy
 pexpect==4.9.0            # via ipython
 pillow==11.3.0            # via matplotlib, streamlit
-platformdirs==4.3.8       # via black, jupyter-core, pylint
+platformdirs==4.4.0       # via black, jupyter-core, pylint
 pluggy==1.6.0             # via pytest, pytest-cov
+plumbum==1.9.0            # via pandoc
+ply==3.11                 # via pandoc
+pockets==0.9.1            # via sphinxcontrib-napoleon
 polars==1.12.0            # via lomas-core
 private-pgm @ git+https://github.com/ryan112358/private-pgm@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca  # via lomas-core
-prometheus-client==0.22.1  # via jupyter-server
-prompt-toolkit==3.0.51    # via ipython, jupyter-console
+prometheus-client==0.23.1  # via jupyter-server
+prompt-toolkit==3.0.52    # via ipython, jupyter-console
 propcache==0.3.2          # via yarl
-protobuf==6.32.0          # via googleapis-common-protos, opentelemetry-proto, streamlit
-psutil==7.0.0             # via ipykernel
+protobuf==6.32.1          # via googleapis-common-protos, opentelemetry-proto, streamlit
+psutil==7.1.0             # via ipykernel
 ptyprocess==0.7.0         # via pexpect, terminado
 pure-eval==0.2.3          # via stack-data
 pyarrow==21.0.0           # via lomas-core, streamlit
-pycparser==2.22           # via cffi
+pycparser==2.23           # via cffi
 pydantic==2.8.2           # via fastapi, lomas-core, lomas-server, pydantic-settings
 pydantic-core==2.20.1     # via pydantic
 pydantic-settings==2.8.1  # via lomas-core
 pydeck==0.9.1             # via streamlit
 pydocstringformatter==0.7.5  # via lomas (pyproject.toml)
-pygments==2.19.2          # via ipython, ipython-pygments-lexers, jupyter-console, nbconvert, pytest
+pygments==2.19.2          # via ipython, ipython-pygments-lexers, jupyter-console, nbconvert, pytest, sphinx
 pyjwt==2.10.1             # via lomas-server
 pylint==3.3.8             # via lomas (pyproject.toml)
-pymongo==4.14.1           # via lomas-core
-pyparsing==3.2.3          # via matplotlib
-pytest==8.4.1             # via pytest-cov, lomas (pyproject.toml)
-pytest-cov==6.2.1         # via lomas (pyproject.toml)
+pymongo==4.15.1           # via lomas-core
+pyparsing==3.2.4          # via matplotlib
+pytest==8.4.2             # via pytest-cov, lomas (pyproject.toml)
+pytest-cov==7.0.0         # via lomas (pyproject.toml)
 python-dateutil==2.9.0.post0  # via arrow, botocore, jupyter-client, matplotlib, pandas
 python-dotenv==1.1.1      # via pydantic-settings
 python-json-logger==3.3.0  # via jupyter-events
+pytokens==0.1.10          # via black
 pytz==2025.2              # via pandas
-pyyaml==6.0.2             # via jupyter-events, smartnoise-sql
-pyzmq==27.0.2             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
+pyyaml==6.0.2             # via jupyter-events, myst-parser, smartnoise-sql
+pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
 referencing==0.36.2       # via jsonschema, jsonschema-specifications, jupyter-events
-requests==2.32.5          # via jupyterlab-server, lomas-client, mantelo, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, streamlit
+requests==2.32.5          # via jupyterlab-server, lomas-client, mantelo, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, sphinx, streamlit
 requests-oauthlib==2.0.0  # via lomas-client, lomas-server
 rfc3339-validator==0.1.4  # via jsonschema, jupyter-events
 rfc3986-validator==0.1.1  # via jsonschema, jupyter-events
 rfc3987-syntax==1.1.0     # via jsonschema
-rpds-py==0.27.0           # via jsonschema, referencing
-ruff==0.12.9              # via lomas (pyproject.toml)
+rpds-py==0.27.1           # via jsonschema, referencing
+ruff==0.13.1              # via lomas (pyproject.toml)
 s3transfer==0.10.4        # via boto3
 scikit-learn==1.6.1       # via diffprivlib, lomas-core
-scipy==1.16.1             # via diffprivlib, jax, jaxlib, opacus, private-pgm, scikit-learn
+scipy==1.16.2             # via diffprivlib, jax, jaxlib, opacus, private-pgm, scikit-learn
 seaborn==0.13.2           # via lomas-client
 send2trash==1.8.3         # via jupyter-server
 setuptools==80.9.0        # via diffprivlib, jupyterlab, torch
-six==1.17.0               # via python-dateutil, rfc3339-validator
+six==1.17.0               # via pockets, python-dateutil, rfc3339-validator, sphinxcontrib-napoleon
 smartnoise-sql==1.0.6     # via lomas-server, smartnoise-synth
 smartnoise-synth==1.0.4   # via lomas-core, smartnoise-synth-logger
 smartnoise-synth-logger==0.0.4  # via lomas-core
 smmap==5.0.2              # via gitdb
 sniffio==1.3.1            # via anyio
-soupsieve==2.7            # via beautifulsoup4
+snowballstemmer==3.0.1    # via sphinx
+soupsieve==2.8            # via beautifulsoup4
+sphinx==8.1.3             # via myst-parser, nbsphinx, sphinx-rtd-theme, sphinxcontrib-jquery, lomas (pyproject.toml)
+sphinx-rtd-theme==3.0.2   # via lomas (pyproject.toml)
+sphinxcontrib-applehelp==2.0.0  # via sphinx
+sphinxcontrib-devhelp==2.0.0  # via sphinx
+sphinxcontrib-htmlhelp==2.1.0  # via sphinx
+sphinxcontrib-jquery==4.1  # via sphinx-rtd-theme
+sphinxcontrib-jsmath==1.0.1  # via sphinx
+sphinxcontrib-napoleon==0.7  # via lomas (pyproject.toml)
+sphinxcontrib-qthelp==2.0.0  # via sphinx
+sphinxcontrib-serializinghtml==2.0.0  # via sphinx
 sqlalchemy==2.0.43        # via smartnoise-sql
-sqlglot==27.8.0           # via lomas-server
+sqlglot==27.16.3          # via lomas-server
 st-pages==1.0.0           # via lomas-server
 stack-data==0.6.3         # via ipython
 starlette==0.46.2         # via fastapi
@@ -210,9 +234,9 @@ toml==0.10.2              # via streamlit
 tomlkit==0.13.3           # via pylint
 torch==2.8.0+cpu          # via opacus, smartnoise-synth, lomas (pyproject.toml)
 tornado==6.5.2            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, streamlit, terminado
-traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat
-types-python-dateutil==2.9.0.20250809  # via arrow
-typing-extensions==4.14.1  # via altair, anyio, beautifulsoup4, exceptiongroup, fastapi, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, referencing, sqlalchemy, streamlit, torch
+traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, nbsphinx
+types-python-dateutil==2.9.0.20250822  # via arrow
+typing-extensions==4.15.0  # via altair, anyio, beautifulsoup4, exceptiongroup, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, referencing, sqlalchemy, streamlit, torch
 tzdata==2025.2            # via faker, pandas
 uri-template==1.3.0       # via jsonschema
 urllib3==2.5.0            # via botocore, requests

@@ -271,8 +271,8 @@ def test_demo_smartnoise_synth(kc, demo_setup: IOResultE) -> None:
     assert prev_queries.map(lambda query: query[0]["dataset_name"]) == IOSuccess("PENGUIN")
     assert prev_queries.map(lambda query: query[0]["dp_library"]) == IOSuccess("smartnoise_synth")
     response_archives = prev_queries.map(lambda query: query[0]["response"])
-    assert response_archives.map(lambda x: x.epsilon) >= IOSuccess(1.0)
-    assert response_archives.map(lambda x: x.delta) >= IOSuccess(0.0)
+    assert response_archives.map(lambda x: x["epsilon"] >= 1.0) == IOSuccess(True)
+    assert response_archives.map(lambda x: x["delta"] >= 0.0) == IOSuccess(True)
 
 
 def test_demo_opendp_polars(kc, demo_setup: IOResultE) -> None:

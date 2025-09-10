@@ -98,18 +98,27 @@ def validate_model_response(
     return response_model.model_validate(job.result)
 
 
+T = TypeVar("T")
+
+
+def unwrap(result: T | IOResultE[T]) -> T:
+    """Unwrap IOResultE[T] back to T in the unsafest way possible."""
+    if not hasattr(result, "unwrap"):
+        # Nothing to do
+        return result
+
+    # First raise the internal Exception if the container is a failure
+    inner_success = result.alt(raise_exception).unwrap()  # type: ignore
+    # Otherwise force-escape IO
+    return unsafe_perform_io(inner_success)
+
+
 def call_and_unwrap_wrapper(method: Callable) -> Callable:
     """Unwrap IOResultE[T] back to T in the unsafest way possible."""
 
     @wraps(method)
     def call_and_unwrap(*args: argparse.Namespace, **kwargs: dict) -> Callable:
-        result = method(*args, **kwargs)
-        if hasattr(result, "unwrap"):
-            # First raise the internal Exception if the container is a failure
-            inner_success = result.alt(raise_exception).unwrap()
-            # Otherwise force-escape IO
-            return unsafe_perform_io(inner_success)
-        return result
+        return unwrap(method(*args, **kwargs))
 
     return call_and_unwrap
 

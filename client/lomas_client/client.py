@@ -23,7 +23,7 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
-from lomas_client.utils import parse_if_ok, unwrap_all_clsmethods
+from lomas_client.utils import parse_if_ok, unwrap, unwrap_all_clsmethods
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
@@ -271,20 +271,50 @@ class ClientIO:
         )
 
 
-@unwrap_all_clsmethods
-class Client(ClientIO):
+class Client:
     """Original Client interface to shadow ClientIO whilst unwrapping results (for now)."""
 
     def __init__(self, **kwargs: ClientConfig.model_config):
-        super().__init__(**kwargs)
+        self.client_io = ClientIO(**kwargs)
 
         self.smartnoise_sql = unwrap_all_clsmethods(type("SmartnoiseSQLClientU", (SmartnoiseSQLClient,), {}))(
-            self.http_client
+            self.client_io.http_client
         )
         self.smartnoise_synth = unwrap_all_clsmethods(
             type("SmartnoiseSynthClientU", (SmartnoiseSynthClient,), {})
-        )(self.http_client)
-        self.opendp = unwrap_all_clsmethods(type("OpenDPClientU", (OpenDPClient,), {}))(self.http_client)
-        self.diffprivlib = unwrap_all_clsmethods(type("DiffPrivLibClientU", (DiffPrivLibClient,), {}))(
-            self.http_client
+        )(self.client_io.http_client)
+        self.opendp = unwrap_all_clsmethods(type("OpenDPClientU", (OpenDPClient,), {}))(
+            self.client_io.http_client
         )
+        self.diffprivlib = unwrap_all_clsmethods(type("DiffPrivLibClientU", (DiffPrivLibClient,), {}))(
+            self.client_io.http_client
+        )
+
+    def get_dataset_metadata(self) -> LomasRequestModel:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_dataset_metadata())
+
+    def get_dummy_dataset(
+        self,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+        lazy: bool = False,
+    ) -> pd.DataFrame | pl.LazyFrame:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_dummy_dataset(nb_rows, seed, lazy))
+
+    def get_initial_budget(self) -> InitialBudgetResponse:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_initial_budget())
+
+    def get_total_spent_budget(self) -> SpentBudgetResponse:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_total_spent_budget())
+
+    def get_remaining_budget(self) -> RemainingBudgetResponse:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_remaining_budget())
+
+    def get_previous_queries(self) -> list[dict]:
+        """Unwrap proxy."""
+        return unwrap(self.client_io.get_previous_queries())

@@ -51,7 +51,7 @@ class SmartnoiseSQLClient:
             },
             SmartnoiseSQLRequestModel.model_validate,
             lambda body: self.http_client.post("estimate_smartnoise_sql_cost", body),
-            map_(lambda res: validate_model_response(self.http_client, res, CostResponse)),
+            map_(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -108,11 +108,11 @@ class SmartnoiseSQLClient:
                 {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
                 SmartnoiseSQLDummyQueryModel.model_validate,
                 lambda body: self.http_client.post("dummy_smartnoise_sql_query", body),
-                map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+                map_(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             SmartnoiseSQLQueryModel.model_validate,
             lambda body: self.http_client.post("smartnoise_sql_query", body),
-            map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+            map_(validate_model_response(self.http_client, QueryResponse)),
         )

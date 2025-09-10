@@ -97,7 +97,7 @@ class SmartnoiseSynthClient:
             lambda body: self.http_client.post(
                 "estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT
             ),
-            map_(lambda res: validate_model_response(self.http_client, res, CostResponse)),
+            map_(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -195,12 +195,12 @@ class SmartnoiseSynthClient:
                 lambda body: self.http_client.post(
                     "dummy_smartnoise_synth_query", body, SMARTNOISE_SYNTH_READ_TIMEOUT
                 ),
-                map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+                map_(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             # tap(lambda _: validate_synthesizer(synth_name, return_model)),
             SmartnoiseSynthQueryModel.model_validate,
             lambda body: self.http_client.post("smartnoise_synth_query", body, SMARTNOISE_SYNTH_READ_TIMEOUT),
-            map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+            map_(validate_model_response(self.http_client, QueryResponse)),
         )

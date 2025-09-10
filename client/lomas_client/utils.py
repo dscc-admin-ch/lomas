@@ -76,8 +76,8 @@ ResponseT = TypeVar("ResponseT", bound=ResponseModel)
 
 
 def validate_model_response(
-    client: LomasHttpClient, response: requests.Response, response_model: type[ResponseT]
-) -> ResponseT:
+    client: LomasHttpClient, response_model: type[ResponseT]
+) -> Callable[[requests.Response], ResponseT]:
     """Validate and process a HTTP response.
 
     Args:
@@ -86,16 +86,20 @@ def validate_model_response(
     Returns:
         response_model: Model for responses requests.
     """
-    if response.status_code != status.HTTP_202_ACCEPTED:
-        parse_server_error(response).bind_result(specify_error_from_model).alt(raise_exception)
 
-    job_uid = response.json()["uid"]
-    job = client.wait_for_job(job_uid)
-    if job.status == "failed":
-        assert job.error is not None, f"job {job_uid} failed without error !"
-        specify_error_from_model(job.error)
+    def validate(response: requests.Response) -> ResponseT:
+        if response.status_code != status.HTTP_202_ACCEPTED:
+            parse_server_error(response).bind_result(specify_error_from_model).alt(raise_exception)
 
-    return response_model.model_validate(job.result)
+        job_uid = response.json()["uid"]
+        job = client.wait_for_job(job_uid)
+        if job.status == "failed":
+            assert job.error is not None, f"job {job_uid} failed without error !"
+            specify_error_from_model(job.error)
+
+        return response_model.model_validate(job.result)
+
+    return validate
 
 
 T = TypeVar("T")

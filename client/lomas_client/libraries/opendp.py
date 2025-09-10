@@ -104,7 +104,7 @@ class OpenDPClient:
             body_json,
             OpenDPRequestModel.model_validate,
             partial(self.http_client.post, "estimate_opendp_cost"),
-            map_(lambda res: validate_model_response(self.http_client, res, CostResponse)),
+            map_(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -154,11 +154,11 @@ class OpenDPClient:
                 {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
                 OpenDPDummyQueryModel.model_validate,
                 partial(self.http_client.post, "dummy_opendp_query"),
-                map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+                map_(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             OpenDPQueryModel.model_validate,
             partial(self.http_client.post, "opendp_query"),
-            map_(lambda res: validate_model_response(self.http_client, res, QueryResponse)),
+            map_(validate_model_response(self.http_client, QueryResponse)),
         )

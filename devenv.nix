@@ -374,7 +374,7 @@ in
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
             log_location = "$DEVENV_ROOT/logs/worker.log";
           };
-          keycloak_setup = {
+          keycloak-setup = {
             inherit working_dir;
             command = "coverage run --data-file=.coverage.keycloak_setup server/lomas_server/administration/scripts/keycloak_setup.py";
           };
@@ -390,7 +390,7 @@ in
               mongodb-configure.condition = "process_completed_successfully";
               keycloak.condition = "process_ready";
               rabbitmq.condition = "process_ready";
-              keycloak_setup.condition = "process_completed_successfully";
+              keycloak-setup.condition = "process_completed_successfully";
               lomas-server.condition = "process_ready";
             };
             log_location = "$DEVENV_ROOT/logs/pytest.log";

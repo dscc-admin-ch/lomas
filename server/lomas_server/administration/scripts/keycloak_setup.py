@@ -5,6 +5,8 @@ from mantelo import HttpException, KeycloakAdmin
 from pydantic import BaseModel, Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logger = logging.getLogger(__name__)
+
 
 class User(BaseModel):
     """BaseModel for informations of a keycloak user."""
@@ -90,14 +92,14 @@ def create_realm(config: Config, kc_admin: KeycloakAdmin) -> None:
     """
     try:
         kc_admin.realms.post({"realm": config.lomas_realm, "enabled": True})
-        logging.info("Created application realm")
+        logger.info(f"Created application realm: {config.lomas_realm}")
     except HttpException as e:
         if e.status_code == 409 and "Conflict detected" in e.json["errorMessage"]:
-            logging.info("Application realm already exists.")
+            logger.info("Application realm already exists.")
             if config.overwrite_realm:
                 kc_admin.realms(config.lomas_realm).delete()
                 kc_admin.realms.post({"realm": config.lomas_realm, "enabled": True})
-                logging.info("Replaced existing with new application realm.")
+                logger.info(f"Replaced existing realm: {config.lomas_realm}")
 
 
 def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
@@ -135,7 +137,7 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
         )
     except HttpException as e:
         if e.status_code == 409:
-            logging.info("Realm role authp/admin already exists")
+            logger.info("Realm role authp/admin already exists")
 
     roles = kc_admin.realms(config.lomas_realm).roles.get()
 
@@ -143,7 +145,7 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
         kc_admin.groups.post({"name": "lomas-admin"})
     except HttpException as e:
         if e.status_code == 409:
-            logging.info("Lomas Admins group already exists")
+            logger.info("Lomas Admins group already exists")
 
     for group in kc_admin.realms(config.lomas_realm).groups.get():
         match group:
@@ -155,7 +157,7 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
                     )
                 except HttpException as e:
                     if e.status_code == 409:
-                        logging.info("Lomas Admins role-mappings already exists")
+                        logger.info("Lomas Admins role-mappings already exists")
             case _:
                 pass
 
@@ -176,7 +178,7 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
             )
         except HttpException as e:
             if e.status_code == 409:
-                logging.info(f"User {user.username} group already exists")
+                logger.info(f"User {user.username} group already exists")
 
 
 def create_confidential_client(
@@ -200,6 +202,7 @@ def create_confidential_client(
     match kc_admin.clients.get(clientId=client_id):
         case [{"id": client_id, **_rest}]:
             getattr(kc_admin.clients, client_id).delete()
+            logger.info(f"Deleting existing client {client_id}")
 
     # Create client
     kc_admin.clients.post(
@@ -227,16 +230,18 @@ def create_confidential_client(
     for client, roles_list in roles.items():
         # Fetch realm management and manage-clients role uids
         client_uid = kc_admin.clients.get(clientId=client)[0]["id"]
+        logger.debug(f"Setting up client {client_uid}")
 
         # Create role config for user and client combination
         roles_to_add = []
         for role in roles_list:
             role_uid = kc_admin.clients(client_uid).roles(role).get()["id"]
             roles_to_add.append({"id": role_uid, "name": role})
+            logger.debug(f"Adding role: {role} (realm {client})")
 
         kc_admin.users(lomas_admin_service_account_uid).role_mappings.clients(client_uid).post(roles_to_add)
 
-    logging.info("Created new confidential client.")
+    logger.info("Created new confidential client.")
 
 
 def create_gateway_client(
@@ -301,7 +306,7 @@ def create_gateway_client(
         }
     )
 
-    logging.info("Created client for lomas gateway.")
+    logger.info(f"Created client for lomas gateway: {client_id}.")
 
 
 def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
@@ -310,10 +315,14 @@ def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
     for kp in kc_admin.components.get(type="org.keycloak.keys.KeyProvider"):
         if kp["name"] != "rsa-generated":
             getattr(kc_admin.components, kp["id"]).delete()
+            logging.debug(f"Removed bad provider: {kp['name']}")
 
 
 def kc_setup() -> None:
     """Lomas keycloak setup script."""
+    logging.basicConfig()
+    logger.setLevel(logging.DEBUG)
+
     # Load config and get admin session
     config = Config()
     if not config.keycloak_use_tls:
@@ -338,7 +347,4 @@ def kc_setup() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig()
-    logging.root.setLevel(logging.DEBUG)
-
     kc_setup()

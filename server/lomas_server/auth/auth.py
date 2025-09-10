@@ -10,6 +10,8 @@ from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_server.constants import KCAttributeNames
 
+logger = logging.getLogger(__name__)
+
 
 class UserAuthenticator(ABC):
     """Abstract base class for providing user authentification methods."""
@@ -63,7 +65,7 @@ class FreePassAuthenticator(UserAuthenticator):
         except Exception as e:
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
-        logging.info(f"Authenticated user {user.name}")
+        logger.debug(f"Authenticated user {user.name}")
         return user
 
 
@@ -128,5 +130,5 @@ class JWTAuthenticator(UserAuthenticator):
             # TODO problematic to add e into error message to client?
             raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
-        logging.info(f"Authenticated user {user.name}")
+        logger.debug(f"Authenticated user {user.name}")
         return user

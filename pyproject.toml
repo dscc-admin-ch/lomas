@@ -171,10 +171,12 @@ write = true
 exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
 [tool.pytest.ini_options]
+log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
 #syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
   "ignore:'json' serialization format of LazyFrame is deprecated:UserWarning",
-  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger).*:",
+  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger|pkg_resources|jupyter_client).*:",
+  "ignore::UserWarning:opendp_logger:",
 ]
 addopts = [
   "--import-mode=importlib",

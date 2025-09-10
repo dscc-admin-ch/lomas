@@ -160,7 +160,7 @@ in
     };
 
     # Keycloak setup for lomas
-    processes.keycloak_setup = {
+    processes.keycloak-setup = {
       exec = "lomas-keycloak-setup";
       process-compose = {
         working_dir = "$DEVENV_ROOT/server/lomas_server";

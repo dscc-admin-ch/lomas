@@ -374,7 +374,7 @@ in
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
             log_location = "$DEVENV_ROOT/logs/worker.log";
           };
-          keycloak_setup = {
+          keycloak-setup = {
             inherit working_dir;
             command = "coverage run --data-file=.coverage.keycloak_setup server/lomas_server/administration/scripts/keycloak_setup.py";
           };
@@ -390,7 +390,7 @@ in
               mongodb-configure.condition = "process_completed_successfully";
               keycloak.condition = "process_ready";
               rabbitmq.condition = "process_ready";
-              keycloak_setup.condition = "process_completed_successfully";
+              keycloak-setup.condition = "process_completed_successfully";
               lomas-server.condition = "process_ready";
             };
             log_location = "$DEVENV_ROOT/logs/pytest.log";
@@ -529,26 +529,31 @@ in
   '';
 
   scripts.yelp.exec = ''
+    b=$(tput bold)
+    n=$(tput sgr0)
     cat << EOF
-    - Starting up the environment
+    $b- Starting up the environment$n
     devenv up
 
-    - Starting up the environment *with telemetry*
+    $b- Starting up the environment *with telemetry*$n
     process-compose up
     or
     devenv up -- --namespace=telemetry
 
-    - What the hell is process-compose doing
+    $b- What the hell is process-compose doing$n
     yq \$PC_CONFIG_FILES
 
-    - I just want my UTs / pytest to work !
+    $b- I just want my UTs / pytest to work !$n
     devenv up
     ut / pytest -k ...
 
-    - Just run the coverage alreaaady
+    $b- Trick: seeing my prints whilst pytesting:$n
+    pytest -s / pytest -rA
+
+    $b- Just run the coverage alreaaady$n
     ut-coverage
 
-    - My python packages are broken/out of sync/missing
+    $b- My python packages are broken/out of sync/missing$n
     uv sync --all-extras [-U]
     uv add <packages>
     EOF

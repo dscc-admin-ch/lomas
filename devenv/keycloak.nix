@@ -141,7 +141,7 @@ in
 
         mkdir -p ${cfg.homeDir}/ssl
         cp -u ${certSelfSigned}/{cert,key}.pem ${cfg.homeDir}/ssl/
-        ${keycloakPkg}/bin/kc.sh --verbose start --optimized
+        ${keycloakPkg}/bin/kc.sh start --optimized
       '';
 
       process-compose = {
@@ -153,8 +153,8 @@ in
             port = cfg.httpManagementPort;
             path = "/health/ready";
           };
-          initial_delay_seconds = 15;
-          failure_threshold = 10;
+          initial_delay_seconds = 20;
+          failure_threshold = 20;
         };
       };
     };
@@ -182,8 +182,12 @@ in
       ];
     };
 
-    # cheeky override of postgres statup command to force a clean start
-    processes.postgres.process-compose.command = "rm -rvf ${config.env.PGDATA} && ${config.processes.postgres.exec}";
+    tasks = {
+      "devenv:postgres:clean-start" = {
+        exec = "rm -rf ${config.env.PGDATA}";
+        before = [ "devenv:processes:postgres" ];
+      };
+    };
 
   };
 }

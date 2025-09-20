@@ -383,13 +383,13 @@ in
             command = "pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} \"$@\"";
             depends_on = {
               worker.condition = "process_started";
-              minio.condition = "process_ready";
-              mongodb.condition = "process_ready";
+              minio.condition = "process_healthy";
+              mongodb.condition = "process_healthy";
               mongodb-configure.condition = "process_completed_successfully";
-              keycloak.condition = "process_ready";
-              rabbitmq.condition = "process_ready";
+              keycloak.condition = "process_healthy";
+              rabbitmq.condition = "process_healthy";
               keycloak-setup.condition = "process_completed_successfully";
-              lomas-server.condition = "process_ready";
+              lomas-server.condition = "process_healthy";
             };
             log_location = "$DEVENV_ROOT/logs/pytest.log";
             log_configuration.flush_each_line = true;

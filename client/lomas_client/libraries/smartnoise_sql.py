@@ -1,6 +1,6 @@
 from returns.io import IOResultE
 from returns.pipeline import flow
-from returns.pointfree import map_
+from returns.pointfree import bind
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
@@ -51,7 +51,7 @@ class SmartnoiseSQLClient:
             },
             SmartnoiseSQLRequestModel.model_validate,
             lambda body: self.http_client.post("estimate_smartnoise_sql_cost", body),
-            map_(validate_model_response(self.http_client, CostResponse)),
+            bind(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -108,11 +108,11 @@ class SmartnoiseSQLClient:
                 {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
                 SmartnoiseSQLDummyQueryModel.model_validate,
                 lambda body: self.http_client.post("dummy_smartnoise_sql_query", body),
-                map_(validate_model_response(self.http_client, QueryResponse)),
+                bind(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             SmartnoiseSQLQueryModel.model_validate,
             lambda body: self.http_client.post("smartnoise_sql_query", body),
-            map_(validate_model_response(self.http_client, QueryResponse)),
+            bind(validate_model_response(self.http_client, QueryResponse)),
         )

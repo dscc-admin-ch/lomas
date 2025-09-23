@@ -3,7 +3,7 @@ import polars as pl
 from returns.curry import partial
 from returns.io import IOResultE
 from returns.pipeline import flow
-from returns.pointfree import map_
+from returns.pointfree import bind
 
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
@@ -104,7 +104,7 @@ class OpenDPClient:
             body_json,
             OpenDPRequestModel.model_validate,
             partial(self.http_client.post, "estimate_opendp_cost"),
-            map_(validate_model_response(self.http_client, CostResponse)),
+            bind(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -154,11 +154,11 @@ class OpenDPClient:
                 {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
                 OpenDPDummyQueryModel.model_validate,
                 partial(self.http_client.post, "dummy_opendp_query"),
-                map_(validate_model_response(self.http_client, QueryResponse)),
+                bind(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             OpenDPQueryModel.model_validate,
             partial(self.http_client.post, "opendp_query"),
-            map_(validate_model_response(self.http_client, QueryResponse)),
+            bind(validate_model_response(self.http_client, QueryResponse)),
         )

@@ -2,7 +2,7 @@ from diffprivlib_logger import serialise_pipeline
 from returns.curry import partial
 from returns.io import IOResultE
 from returns.pipeline import flow
-from returns.pointfree import map_
+from returns.pointfree import bind
 from sklearn.pipeline import Pipeline
 
 from lomas_client.constants import (
@@ -75,7 +75,7 @@ class DiffPrivLibClient:
             },
             DiffPrivLibRequestModel.model_validate,
             partial(self.http_client.post, "estimate_diffprivlib_cost"),
-            map_(validate_model_response(self.http_client, CostResponse)),
+            bind(validate_model_response(self.http_client, CostResponse)),
         )
 
     def query(
@@ -137,11 +137,11 @@ class DiffPrivLibClient:
                 {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
                 DiffPrivLibDummyQueryModel.model_validate,
                 lambda body: self.http_client.post("dummy_diffprivlib_query", body),
-                map_(validate_model_response(self.http_client, QueryResponse)),
+                bind(validate_model_response(self.http_client, QueryResponse)),
             )
         return flow(
             body_dict,
             DiffPrivLibQueryModel.model_validate,
             lambda body: self.http_client.post("diffprivlib_query", body),
-            map_(validate_model_response(self.http_client, QueryResponse)),
+            bind(validate_model_response(self.http_client, QueryResponse)),
         )

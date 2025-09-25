@@ -186,7 +186,7 @@ in
     enable = true;
     package = pkgs.caddy.withPlugins {
       plugins = [ "github.com/greenpau/caddy-security@v1.1.31" ];
-      hash = "sha256-vxZZqQD+BfKcqWfjL5dkZ7o8m+KoYFeuXQbANcsOP1k=";
+      hash = "sha256-hKPBEGm3wV6t3t1MGqO/yrJIGZf5BhUNlF1erOqW1Wc=";
     };
     config = ''
       {
@@ -199,9 +199,12 @@ in
         security {
           oauth identity provider keycloak {
             driver generic
-            realm keycloak
-            client_id {env.LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID}
-            client_secret {env.LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET}
+            delay_start 10
+            retry_attempts 5
+            retry_interval 10
+            realm ${config.lomas.realm}
+            client_id ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID}
+            client_secret ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET}
             scopes openid email profile
             metadata_url ${config.env.LOMAS_CLIENT_KEYCLOAK_URL}/realms/lomas/.well-known/openid-configuration
           }
@@ -210,11 +213,11 @@ in
             crypto default token lifetime 3600
             crypto key sign-verify {env.JWT_SHARED_KEY}
             enable identity provider keycloak
-            cookie domain localhost.local
+            # cookie domain localhost
             ui {
               links {
-                "My Website" https://assetq.myfiosgateway.com:8443/ icon "las la-star"
-                "My Identity" "/whoami" icon "las la-user"
+                "Dashboard" ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_URL}/dashboard icon "las la-star"
+                "Swagger" ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_URL}/api/docs icon "las la-star"
               }
             }
             transform user {
@@ -224,7 +227,7 @@ in
           }
 
           authorization policy kcpolicy {
-            set auth url http://localhost:8080/auth
+            set auth url ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_URL}
             allow roles authp/admin authp/user
             crypto key verify {env.JWT_SHARED_KEY}
           }
@@ -272,13 +275,18 @@ in
         import security
         import public-header
 
-        handle /auth/* {
+        route /auth/* {
           authenticate with kcportal
         }
-
-        handle {
+        route {
 
           authorize with kcpolicy
+
+          redir /dashboard /dashboard/
+
+          handle_path /api* {
+            reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
+          }
 
           handle_path /dashboard* {
             reverse_proxy http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}
@@ -291,7 +299,7 @@ in
           handle_path /rabbitmq* {
             reverse_proxy http://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.portManagement}
           }
-      }
+        }
 
       }
     '';
@@ -359,7 +367,7 @@ in
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "http://example.com"; # TODO fix this
+    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "http://localhost:8080/auth"; # TODO fix this
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;

@@ -52,6 +52,12 @@ in
       description = "Lomas Dashboard port";
     };
 
+    dashboard.baseUrl = mkOption {
+      type = types.str;
+      default = "/admin";
+      description = "Lomas Dashboard Base Url";
+    };
+
     realm = mkOption {
       type = types.str;
       default = "lomas";
@@ -116,11 +122,12 @@ in
         environment = [
           "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
           "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
+          "STREAMLIT_BASE_URL_PATH=${cfg.dashboard.baseUrl}"
         ];
         readiness_probe.http_get = {
           host = cfg.dashboard.host;
           port = cfg.dashboard.port;
-          path = "/ping";
+          path = "${cfg.dashboard.baseUrl}/ping";
         };
       };
     };

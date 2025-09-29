@@ -13,10 +13,30 @@ let
     mkOption
     mkEnableOption
     ;
+
+  Caddyfile-formatted =
+    pkgs.runCommand "Caddyfile-formatted"
+      {
+        Caddyfile = config.services.caddy.config;
+        passAsFile = [ "Caddyfile" ];
+      }
+      ''
+        mkdir -p $out
+        cp --no-preserve=mode $CaddyfilePath $out/Caddyfile
+        ${lib.getExe cfg.package} fmt --overwrite $out/Caddyfile
+      '';
 in
 {
   options.lomas.caddy = {
     enable = mkEnableOption "Enable Caddy Reverse Proxy";
+
+    package = mkOption {
+      type = types.package;
+      default = pkgs.caddy.withPlugins {
+        plugins = [ "github.com/greenpau/caddy-security@v1.1.31" ];
+        hash = "sha256-hKPBEGm3wV6t3t1MGqO/yrJIGZf5BhUNlF1erOqW1Wc=";
+      };
+    };
 
     debug = mkOption {
       type = types.bool;
@@ -32,12 +52,13 @@ in
   };
 
   config = mkIf cfg.enable {
+    # add caddy in our env, allows to debug with: caddy run --config $Caddyfile
+    packages = [ cfg.package ];
+    env.Caddyfile = "${Caddyfile-formatted}/Caddyfile";
+
     services.caddy = {
       enable = true;
-      package = pkgs.caddy.withPlugins {
-        plugins = [ "github.com/greenpau/caddy-security@v1.1.31" ];
-        hash = "sha256-hKPBEGm3wV6t3t1MGqO/yrJIGZf5BhUNlF1erOqW1Wc=";
-      };
+      package = cfg.package;
       config = ''
         {
           debug ${if cfg.debug then "on" else "off"}

@@ -87,12 +87,12 @@ in
               # cookie domain localhost
               ui {
                 links {
-                  "Dashboard" ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_URL}/dashboard icon "las la-star"
-                  "Swagger" ${config.env.LOMAS_KC_SETUP_LOMAS_GATEWAY_URL}/api/docs icon "las la-star"
+                  "Dashboard" ${config.env.LOMAS_GATEWAY_URL}/dashboard icon "las la-star"
+                  "Swagger" ${config.env.LOMAS_GATEWAY_URL}/api/docs icon "las la-star"
                 }
               }
               transform user {
-                match origin keycloak
+                match origin ${config.lomas.realm}
                 action add role authp/user
               }
             }

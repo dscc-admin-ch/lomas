@@ -241,13 +241,14 @@ in
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Keycloak setup
+    LOMAS_GATEWAY_URL = "http://localhost:8080";
     LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "http://localhost:8080/auth"; # TODO fix this
+    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "${config.env.LOMAS_GATEWAY_URL}/auth"; # TODO fix this
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;

@@ -159,6 +159,10 @@ in
               reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
             }
 
+            handle /openapi.json {
+              reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
+            }
+
             handle_path /dashboard* {
               reverse_proxy http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}
             }
@@ -169,6 +173,10 @@ in
 
             handle_path /rabbitmq* {
               reverse_proxy http://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.portManagement}
+            }
+
+            route {
+              redir * /auth/login
             }
           }
 

@@ -146,31 +146,32 @@ in
           import security
           import public-header
 
-          route /auth/* {
+          @auth_route path /auth /auth/*
+
+          route @auth_route {
             authenticate with kcportal
           }
 
           route {
             authorize with kcpolicy
 
+            @api path /api /api/* /openapi.json
+            handle @api {
+              uri strip_prefix /api
+              reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
+            }
+
             redir /dashboard /dashboard/
-
-            handle_path /api* {
-              reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
-            }
-
-            handle /openapi.json {
-              reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
-            }
-
-            handle_path /dashboard* {
+            handle_path /dashboard/* {
               reverse_proxy http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}
             }
 
-            handle_path /grafana* {
+            redir /grafana /grafana/
+            handle_path /grafana/* {
               reverse_proxy http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}
             }
 
+            redir /rabbitmq /rabbitmq/
             handle_path /rabbitmq* {
               reverse_proxy http://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.portManagement}
             }

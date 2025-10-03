@@ -87,7 +87,7 @@ in
               # cookie domain localhost
               ui {
                 links {
-                  "Dashboard" ${config.env.LOMAS_GATEWAY_URL}/dashboard icon "las la-star"
+                  "Admin Dashboard" ${config.env.LOMAS_GATEWAY_URL}${config.lomas.dashboard.baseUrl} icon "las la-star"
                   "Swagger" ${config.env.LOMAS_GATEWAY_URL}/api/docs icon "las la-star"
                 }
               }
@@ -161,8 +161,8 @@ in
               reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
             }
 
-            redir /dashboard /dashboard/
-            handle_path /dashboard/* {
+            @admin_dashboard path ${config.lomas.dashboard.baseUrl} ${config.lomas.dashboard.baseUrl}/*
+            handle @admin_dashboard {
               reverse_proxy http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}
             }
 

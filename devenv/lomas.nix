@@ -55,6 +55,7 @@ in
     dashboard.baseUrl = mkOption {
       type = types.str;
       default = "/admin";
+      example = "\"\" /admin /dashboard";
       description = "Lomas Dashboard Base Url";
     };
 
@@ -116,13 +117,12 @@ in
     };
 
     processes.admin-dashboad = {
-      exec = "streamlit run --server.headless true lomas_server/administration/dashboard/about.py";
+      exec = "streamlit run --server.headless true --server.baseUrlPath=${cfg.dashboard.baseUrl} lomas_server/administration/dashboard/about.py";
       process-compose = {
         working_dir = "$DEVENV_ROOT/server";
         environment = [
           "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
           "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
-          "STREAMLIT_BASE_URL_PATH=${cfg.dashboard.baseUrl}"
         ];
         readiness_probe.http_get = {
           host = cfg.dashboard.host;

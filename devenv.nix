@@ -248,7 +248,7 @@ in
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "${config.env.LOMAS_GATEWAY_URL}/auth"; # TODO fix this
+    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "${config.env.LOMAS_GATEWAY_URL}/auth";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;

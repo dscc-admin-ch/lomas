@@ -40,6 +40,12 @@ in
       description = "Lomas Server port";
     };
 
+    baseUrl = mkOption {
+      type = types.str;
+      example = "/api, /api/v1, /";
+      description = "Lomas Api base Url";
+    };
+
     dashboard.host = mkOption {
       type = types.str;
       default = "localhost";

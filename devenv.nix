@@ -58,6 +58,7 @@ in
     enable = true;
     host = "localhost";
     port = 48080;
+    baseUrl = "/api";
     dashboard.host = "localhost";
     dashboard.port = 8501;
     admin = {
@@ -200,6 +201,7 @@ in
     LOMAS_SERVICE_server__host_port = config.lomas.port;
     LOMAS_SERVICE_server__log_level = "info";
     LOMAS_SERVICE_server__reload = "true";
+    LOMAS_SERVICE_server__root_path = config.lomas.baseUrl;
     LOMAS_SERVICE_server__submit_limit = 300;
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;

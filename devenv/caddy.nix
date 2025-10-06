@@ -87,8 +87,9 @@ in
               # cookie domain localhost
               ui {
                 links {
-                  "Admin Dashboard" ${config.env.LOMAS_GATEWAY_URL}${config.lomas.dashboard.baseUrl} icon "las la-star"
-                  "Swagger" ${config.env.LOMAS_GATEWAY_URL}/api/docs icon "las la-star"
+                  "Admin Dashboard" ${config.env.LOMAS_GATEWAY_URL}${config.lomas.dashboard.baseUrl} icon "las la-biohazard"
+                  "Swagger" ${config.env.LOMAS_GATEWAY_URL}${config.lomas.baseUrl}/docs icon "las la-tools"
+                  "Whoami" /whoami icon "las la-user"
                 }
               }
               transform user {
@@ -155,9 +156,11 @@ in
           route {
             authorize with kcpolicy
 
-            @api path /api /api/* /openapi.json
+            redir /whoami /auth/whoami
+
+            @api path ${config.lomas.baseUrl} ${config.lomas.baseUrl}/*
             handle @api {
-              uri strip_prefix /api
+              uri strip_prefix ${config.lomas.baseUrl}
               reverse_proxy http://${config.lomas.host}:${toString config.lomas.port}
             }
 

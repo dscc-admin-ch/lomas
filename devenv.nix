@@ -138,7 +138,8 @@ in
     ];
   };
 
-  lomas.caddy.enable = true;
+  # No reverse proxy-ing by default
+  lomas.caddy.enable = false;
 
   lomas.telemetry = {
     enable = true;

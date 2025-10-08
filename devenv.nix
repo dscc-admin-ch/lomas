@@ -51,12 +51,14 @@ in
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
+    ./devenv/caddy.nix
   ];
 
   lomas = {
     enable = true;
     host = "localhost";
     port = 48080;
+    baseUrl = "/api";
     dashboard.host = "localhost";
     dashboard.port = 8501;
     admin = {
@@ -136,6 +138,9 @@ in
     ];
   };
 
+  # No reverse proxy-ing by default
+  lomas.caddy.enable = false;
+
   lomas.telemetry = {
     enable = true;
     namespace = "telemetry";
@@ -197,6 +202,7 @@ in
     LOMAS_SERVICE_server__host_port = config.lomas.port;
     LOMAS_SERVICE_server__log_level = "info";
     LOMAS_SERVICE_server__reload = "true";
+    LOMAS_SERVICE_server__root_path = config.lomas.baseUrl;
     LOMAS_SERVICE_server__submit_limit = 300;
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
@@ -238,13 +244,14 @@ in
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Keycloak setup
+    LOMAS_GATEWAY_URL = "http://localhost:8080";
     LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
     LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
     LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "http://example.com"; # TODO fix this
+    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "${config.env.LOMAS_GATEWAY_URL}/auth";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET = "lomas-oauth-proxy";
     LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;

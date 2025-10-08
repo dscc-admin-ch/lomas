@@ -150,6 +150,8 @@ class Server(BaseModel):
     host_port: int
     log_level: str
     reload: bool = Field(default=False)
+    forwarded_allow_ips: list[str] | str = Field(default="*")
+    root_path: str = Field(default="/api")
 
 
 class Config(BaseSettings):

@@ -269,7 +269,7 @@ def create_gateway_client(
             "name": client_id,
             "rootUrl": str(gateway_hostname).rstrip("/"),
             "clientAuthenticatorType": "client-secret",
-            "redirectUris": ["/oauth2/callback"],
+            "redirectUris": ["/oauth2/callback", "/oauth2/lomas/authorization-code-callback"],
             "webOrigins": ["/*"],
             "standardFlowEnabled": True,
             "implicitFlowEnabled": False,

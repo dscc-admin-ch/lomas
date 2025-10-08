@@ -40,6 +40,12 @@ in
       description = "Lomas Server port";
     };
 
+    baseUrl = mkOption {
+      type = types.str;
+      example = "/api, /api/v1, /";
+      description = "Lomas Api base Url";
+    };
+
     dashboard.host = mkOption {
       type = types.str;
       default = "localhost";
@@ -50,6 +56,13 @@ in
     dashboard.port = mkOption {
       type = types.int;
       description = "Lomas Dashboard port";
+    };
+
+    dashboard.baseUrl = mkOption {
+      type = types.str;
+      default = "/admin";
+      example = "\"\" /admin /dashboard";
+      description = "Lomas Dashboard Base Url";
     };
 
     realm = mkOption {
@@ -110,7 +123,7 @@ in
     };
 
     processes.admin-dashboad = {
-      exec = "streamlit run --server.headless true lomas_server/administration/dashboard/about.py";
+      exec = "streamlit run --server.headless true --server.baseUrlPath=${cfg.dashboard.baseUrl} lomas_server/administration/dashboard/about.py";
       process-compose = {
         working_dir = "$DEVENV_ROOT/server";
         environment = [
@@ -120,7 +133,7 @@ in
         readiness_probe.http_get = {
           host = cfg.dashboard.host;
           port = cfg.dashboard.port;
-          path = "/ping";
+          path = "${cfg.dashboard.baseUrl}/ping";
         };
       };
     };

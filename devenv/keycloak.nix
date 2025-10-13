@@ -21,30 +21,38 @@ let
     cp key.pem cert.pem $out
   '';
 
+  enablePostgres = cfg.db == "postgres";
+
   dbPassword = "${cfg.homeDir}/db_password";
 
   # We have to construct the conf file now to build keycloak package since it's doing a wierd pre-build/configure
-  confFile = pkgs.writeText "keycloak.conf" ''
-    db=postgres
-    db-password=${dbPassword}
-    db-url-database=keycloak
-    db-url-host=${cfg.postgres_addr}
-    db-url-port=${toString cfg.postgres_port}
-    db-url-properties=
-    db-username=keycloak
-    hostname=${cfg.host}
-    hostname-backchannel-dynamic=false
-    http-relative-path=/
-    https-certificate-file=${cfg.homeDir}/ssl/cert.pem
-    https-certificate-key-file=${cfg.homeDir}/ssl/key.pem
-    https-port=${toString cfg.httpsPort}
-    http-enabled=true
-    http-port=${toString cfg.httpPort}
-    http-management-port=${toString cfg.httpManagementPort}
-    https-management-certificate-file=
-    https-management-certificate-key-file=
-    health-enabled=true
-  '';
+  confFile = pkgs.writeText "keycloak.conf" (
+    lib.concatLines [
+      ''
+        db=${cfg.db}
+        hostname=${cfg.host}
+        hostname-backchannel-dynamic=false
+        http-relative-path=/
+        https-certificate-file=${cfg.homeDir}/ssl/cert.pem
+        https-certificate-key-file=${cfg.homeDir}/ssl/key.pem
+        https-port=${toString cfg.httpsPort}
+        http-enabled=true
+        http-port=${toString cfg.httpPort}
+        http-management-port=${toString cfg.httpManagementPort}
+        https-management-certificate-file=
+        https-management-certificate-key-file=
+        health-enabled=true
+      ''
+      (lib.optionalString enablePostgres ''
+        db-password=${dbPassword}
+        db-url-database=keycloak
+        db-url-host=${cfg.postgres_addr}
+        db-url-port=${toString cfg.postgres_port}
+        db-url-properties=
+        db-username=keycloak
+      '')
+    ]
+  );
 
   # Building/setting up package (kc.sh build steps, required for --optimized run)
   keycloakPkg = pkgs.keycloak.override { inherit confFile; };
@@ -53,6 +61,15 @@ in
 
   options.lomas.keycloak = {
     enable = mkEnableOption "Enable lomas Keycloak Service";
+
+    db = mkOption {
+      type = types.enum [
+        "dev-mem"
+        "postgres"
+      ];
+      description = "Backend database type.";
+      default = "dev-mem";
+    };
 
     postgres_port = mkOption {
       type = types.int;
@@ -145,7 +162,7 @@ in
       '';
 
       process-compose = {
-        depends_on.postgres.condition = "process_healthy";
+        depends_on.postgres = lib.mkIf enablePostgres { condition = "process_healthy"; };
         readiness_probe = {
           http_get = {
             scheme = "http";
@@ -170,7 +187,7 @@ in
 
     # Keycloak requires a postgres
     services.postgres = {
-      enable = true;
+      enable = enablePostgres;
       port = cfg.postgres_port;
       listen_addresses = cfg.postgres_addr;
       initialDatabases = [
@@ -182,7 +199,7 @@ in
       ];
     };
 
-    tasks = {
+    tasks = lib.mkIf enablePostgres {
       "devenv:postgres:clean-start" = {
         exec = "rm -rf ${config.env.PGDATA}";
         before = [ "devenv:processes:postgres" ];

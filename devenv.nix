@@ -95,8 +95,6 @@ in
     httpManagementPort = 4441;
     bootstrapAdminUser = "admin";
     bootstrapAdminPass = "admin";
-    postgres_addr = "localhost";
-    postgres_port = 5432;
   };
 
   lomas.mongo = {

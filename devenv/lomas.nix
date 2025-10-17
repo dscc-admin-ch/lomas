@@ -97,6 +97,8 @@ in
     processes.lomas-server = {
       exec = "python uvicorn_serve.py";
       process-compose = {
+        is_tty = true;
+        environment = [ "TTY_COMPATIBLE=1" ];
         working_dir = "$DEVENV_ROOT/server/lomas_server";
         depends_on.mongodb.condition = "process_healthy";
         readiness_probe.failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
@@ -117,6 +119,8 @@ in
       # helpful to investigate/debug watchexec: --print-events
       exec = "${lib.getExe pkgs.watchexec} --watch=$DEVENV_ROOT -e py --restart --no-meta python worker.py";
       process-compose = {
+        is_tty = true;
+        environment = [ "TTY_COMPATIBLE=1" ];
         working_dir = "$DEVENV_ROOT/server/lomas_server";
         depends_on.rabbitmq.condition = "process_healthy";
         replicas = 2;
@@ -128,8 +132,10 @@ in
     processes.admin-dashboad = {
       exec = "streamlit run --server.headless true --server.baseUrlPath=${cfg.dashboard.baseUrl} lomas_server/administration/dashboard/about.py";
       process-compose = {
+        is_tty = true;
         working_dir = "$DEVENV_ROOT/server";
         environment = [
+          "TTY_COMPATIBLE=1"
           "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
           "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
         ];

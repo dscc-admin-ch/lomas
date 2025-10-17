@@ -1,11 +1,12 @@
 import logging
-import logging.config
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import pymongo
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from rich.logging import RichHandler
 
 from lomas_core.error_handler import (
     InternalServerException,
@@ -24,7 +25,15 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
+logging.basicConfig(
+    level="DEBUG",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True, tracebacks_suppress=[pymongo])],
+)
 logger = logging.getLogger(__name__)
+for loggers in ["aio_pika", "aiormq", "botocore", "faker", "pymongo", "urllib3", "httpx"]:
+    logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 @asynccontextmanager
@@ -48,9 +57,9 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     # Load admin database
     try:
-        logger.debug("Loading admin database")
+        logger.info("Loading admin database")
         lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
-        logger.debug("Loading authenticator")
+        logger.info("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator.user_auth()
 
     except InternalServerException as e:
@@ -65,7 +74,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
 # Init config for logging purposes
 initConfig = Config()
-logging.config.dictConfig(initConfig.logging_config)
 
 # Initalise telemetry
 if initConfig.telemetry.enabled:

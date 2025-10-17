@@ -17,7 +17,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from lomas_core.models.config import Telemetry, TimeAttack
 from lomas_core.models.constants import (
     AuthenticationType,
-    DefaultLoggingConf,
     OpenDPFeatures,
     PrivateDatabaseType,
 )
@@ -174,8 +173,6 @@ class Config(BaseSettings):
     admin_database: MongoDBConfig
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
-
-    logging_config: dict = Field(default=DefaultLoggingConf)
 
     amqp: AmqpConfig
 

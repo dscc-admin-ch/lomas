@@ -1,18 +1,19 @@
 import asyncio
 import functools
 import logging
-import logging.config
 import signal
 import time
 from collections.abc import Callable
 from typing import Any, Never
 
 import aio_pika
+import pymongo
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from rich.logging import RichHandler
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -51,12 +52,24 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
+logging.basicConfig(
+    level="DEBUG",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True, tracebacks_suppress=[pymongo])],
+)
 logger = logging.getLogger(__name__)
+for loggers in ["aio_pika", "aiormq", "botocore", "faker", "pymongo", "urllib3", "httpx"]:
+    logging.getLogger(loggers).setLevel(logging.INFO)
+
 
 AioPikaInstrumentor().instrument()
 
 config = Config()
-admin_database = AdminMongoDatabase(config.admin_database)
+try:
+    admin_database = AdminMongoDatabase(config.admin_database)
+except InternalServerException:
+    logger.exception("Failed to connect to the admin database")
 private_credentials = config.private_db_credentials
 set_opendp_features_config(config.opendp_features)
 
@@ -136,7 +149,7 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
 
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
-        logger.warning(f" [x] Done ({elapsed:.2f})")
+        logger.debug(f" [x] Done ({elapsed:.2f})")
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except Exception as exc:  # pylint: disable=broad-exception-caught
         known_exc = handle_exceptions(exc)
@@ -244,6 +257,7 @@ async def process_message(
                         logger.debug(
                             f"Response length: {len(query_response.json())} {message.correlation_id}"
                         )
+                        # logger.debug(query_response.json())
                         body = query_response.json().encode()
 
                 await channel.default_exchange.publish(
@@ -299,8 +313,6 @@ async def process_all_queues() -> None:
 
 def run() -> None:
     """Start the Worker loop."""
-
-    logging.config.dictConfig(config.logging_config)
 
     if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)

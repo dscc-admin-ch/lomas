@@ -149,10 +149,10 @@ in
       readiness_probe = {
         exec.command = "${lib.getExe pkgs.mongosh} --quiet --eval '{ ping: 1 }' --port ${toString cfg.port} &>/dev/null";
         initial_delay_seconds = 10;
-        period_seconds = 3;
+        period_seconds = 10;
         timeout_seconds = 3;
-        success_threshold = 2;
-        failure_threshold = 10;
+        success_threshold = 1;
+        failure_threshold = 5;
       };
     };
 

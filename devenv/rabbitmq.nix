@@ -55,7 +55,8 @@ in
 
     portManagement = mkOption {
       type = types.int;
-      description = "RabbitMQ Management port";
+      default = 15672;
+      description = "RabbitMQ management UI and HTTP API";
     };
 
     user = mkOption {
@@ -89,6 +90,15 @@ in
         "default_user" = cfg.user;
         "default_pass" = cfg.password;
         "heartbeat" = toString cfg.heartbeat;
+      };
+    };
+
+    # official documentation
+    # a TCP port check on the AMQP port as the readinessProbe and no livenessProbe at all.
+    # This should be considered the best practice.
+    processes.rabbitmq.process-compose = {
+      readiness_probe = {
+        exec.command = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
       };
     };
 

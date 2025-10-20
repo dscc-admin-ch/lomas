@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
+from lomas_core.constants import TRACE_LOG_LEVEL
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -64,7 +65,7 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
                 span.set_attribute(f"query_param.{param}", value)
 
             logger.log(
-                5,
+                TRACE_LOG_LEVEL,
                 f"User is making a request to route '{route}' "
                 f"with query params: {query_params}. "
                 f"trace_id={format_trace_id(span.get_span_context().trace_id)}",
@@ -76,21 +77,21 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
                 if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
                     user_name = request.state.user_name
                     logger.log(
-                        5,
+                        TRACE_LOG_LEVEL,
                         f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
                         f" for user '{user_name}' completed.",
                     )
                     span.set_attribute("user_name", request.state.user_name)
 
                 logger.log(
-                    5,
+                    TRACE_LOG_LEVEL,
                     f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
                     " completed successfully",
                 )
 
             else:
                 logger.log(
-                    5,
+                    TRACE_LOG_LEVEL,
                     f"Failed request with trace_id={format_trace_id(span.get_span_context().trace_id)}."
                     f"Status code: {response.status_code}.",
                 )

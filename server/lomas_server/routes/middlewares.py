@@ -9,6 +9,7 @@ from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
+from lomas_core.constants import TRACE_LOG_LEVEL
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -63,10 +64,11 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
             for param, value in query_params.items():
                 span.set_attribute(f"query_param.{param}", value)
 
-            logger.debug(
+            logger.log(
+                TRACE_LOG_LEVEL,
                 f"User is making a request to route '{route}' "
-                + f"with query params: {query_params}. "
-                + f"trace_id={format_trace_id(span.get_span_context().trace_id)}"
+                f"with query params: {query_params}. "
+                f"trace_id={format_trace_id(span.get_span_context().trace_id)}",
             )
 
             response = await call_next(request)
@@ -74,21 +76,24 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
             if response.status_code < 400:  # Run only for successful requests.
                 if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
                     user_name = request.state.user_name
-                    logger.debug(
+                    logger.log(
+                        TRACE_LOG_LEVEL,
                         f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
-                        f" for user '{user_name}' completed."
+                        f" for user '{user_name}' completed.",
                     )
                     span.set_attribute("user_name", request.state.user_name)
 
-                logger.debug(
+                logger.log(
+                    TRACE_LOG_LEVEL,
                     f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
-                    " completed successfully"
+                    " completed successfully",
                 )
 
             else:
-                logger.debug(
+                logger.log(
+                    TRACE_LOG_LEVEL,
                     f"Failed request with trace_id={format_trace_id(span.get_span_context().trace_id)}."
-                    f"Status code: {response.status_code}."
+                    f"Status code: {response.status_code}.",
                 )
 
         return response

@@ -5,6 +5,8 @@ from opendp import measures as ms, typing as tp
 # Server error messages
 INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
 
+TRACE_LOG_LEVEL = 5
+
 
 class DPLibraries(StrEnum):
     """Name of DP Library used in the query."""

@@ -318,6 +318,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 ).model_dump()
             )
 
+    @pytest.mark.xfail(reason="snsynth wrongly call numpy timedelta with an np.float")
     def test_smartnoise_synth_query_datetime(self) -> None:
         """Test smartnoise synth query on other dataset for datetime columns."""
         with TestClient(app) as client:
@@ -361,6 +362,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
             assert list(df.columns) == ["birthday"]
 
     @pytest.mark.long
+    @pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
     def test_smartnoise_synth_query_aim(self) -> None:
         """Test smartnoise synth query AIM Synthesizer."""
         with TestClient(app) as client:
@@ -386,6 +388,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
             assert list(df.columns) == body["select_cols"]
 
     @pytest.mark.long
+    @pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
     def test_smartnoise_synth_query_mwem(self) -> None:
         """Test smartnoise synth query MWEM Synthesizer."""
         with TestClient(app) as client:

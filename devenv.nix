@@ -71,7 +71,7 @@ in
     };
     client.jupyter = {
       port = 8888;
-      password = "dprocks";
+      password = null; # "dprocks";
     };
   };
 
@@ -454,12 +454,6 @@ in
   scripts.run-notebooks.exec = ''
     pushd $DEVENV_ROOT
     python -m lomas_client.scripts.run_notebook -a -s -d
-    popd
-  '';
-
-  scripts.run-jupyter.exec = ''
-    pushd $DEVENV_ROOT/client
-    jupyter notebook --ip 0.0.0.0 --port ${toString config.lomas.client.jupyter.port} --no-browser --allow-root
     popd
   '';
 

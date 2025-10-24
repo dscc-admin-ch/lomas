@@ -7,7 +7,6 @@ dependencies = [
   "lomas-client",
   "lomas-server[all]",
   "torch>=2.6", # explicit torch dependency to get cpu-only impl. see: uv.sources
-  "orjson>=3.11.3",
 ]
 
 [project.optional-dependencies]
@@ -15,7 +14,7 @@ test = [
   "black>=25.0",
   "ruff>=0.11",
   "mypy>=1.15",
-  "pylint>=3.3",
+  "pylint>=4.0",
   "pydocstringformatter>=0.7",
   "coverage>=7.6",
   "pytest>=8.3",

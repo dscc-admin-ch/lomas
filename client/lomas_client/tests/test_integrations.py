@@ -221,9 +221,7 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
 
 
 @pytest.mark.long
-@pytest.mark.filterwarnings(
-    "ignore:.*synthesizer random generator.*is not cryptographically secure:UserWarning"
-)
+@pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
 def test_demo_smartnoise_synth(kc, demo_setup) -> None:
     user_name = "Dr.Antartica"
     client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")

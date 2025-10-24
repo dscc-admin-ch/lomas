@@ -31,10 +31,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "diffprivlib==0.6.5",
+    "diffprivlib==0.6.6",
     "diffprivlib_logger==0.0.3",
-    "fastapi==0.115.12",
-    "numpy==1.26.4",
+    "fastapi[standard-no-fastapi-cloud-cli]==0.119.0",
+    "orjson>=3.11", # for fastapi.ORJSONResponse
     "opendp==0.12.0",
     "opendp_logger==0.3.0",
     "opentelemetry-api>=1.29.0",
@@ -42,11 +42,9 @@ dependencies = [
     "opentelemetry-sdk>=1.29.0",
     "pandas>=2.2.2",
     "polars==1.12.0",
-    "pyarrow>=20.0.0",
-    "pydantic==2.8.2",
-    "pydantic-settings==2.8.1",
+    "pydantic>=2.8,<2.10", # 2.10+ breaks on UrlsContraints for now
+    "pydantic-settings>=2.8,<2.10",
     "pymongo>=4.6.3",
-    "scikit-learn>=1.5,<1.7",  # 1.7 breaks diffprivlib
     "smartnoise-synth>=1.0.4",
     "smartnoise_synth_logger>=0.0.3",
     "private-pgm",

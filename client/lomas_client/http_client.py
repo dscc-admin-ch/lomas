@@ -7,6 +7,7 @@ import requests
 from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from requests_oauthlib import OAuth2Session
+from returns.io import impure_safe
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_client.models.config import ClientConfig
@@ -42,6 +43,7 @@ class LomasHttpClient:
         # Fetch first token:
         self._fetch_token()
 
+    @impure_safe
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(
@@ -50,6 +52,7 @@ class LomasHttpClient:
             client_secret=self.config.client_secret,
         )
 
+    @impure_safe
     def post(
         self,
         endpoint: str,

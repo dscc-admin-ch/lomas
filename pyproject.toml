@@ -114,7 +114,10 @@ include = '\.pyi?$'
 extend_exclude = '\.ipynb'
 
 [tool.mypy]
-plugins = ['pydantic.mypy']
+plugins = [
+  "pydantic.mypy",
+  "returns.contrib.mypy.returns_plugin",
+]
 disable_error_code = ["import-untyped", "import-not-found"]
 enable_error_code = ["truthy-bool"]
 no_site_packages = true

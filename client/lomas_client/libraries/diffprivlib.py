@@ -1,4 +1,8 @@
 from diffprivlib_logger import serialise_pipeline
+from returns.curry import partial
+from returns.io import IOResultE
+from returns.pipeline import flow
+from returns.pointfree import bind
 from sklearn.pipeline import Pipeline
 
 from lomas_client.constants import (
@@ -29,7 +33,7 @@ class DiffPrivLibClient:
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
-    ) -> CostResponse:
+    ) -> IOResultE[CostResponse]:
         """This function estimates the cost of executing a DiffPrivLib query.
 
         Args:
@@ -59,20 +63,20 @@ class DiffPrivLibClient:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
-        body_dict = {
-            "dataset_name": self.http_client.config.dataset_name,
-            "diffprivlib_json": serialise_pipeline(pipeline),
-            "feature_columns": feature_columns,
-            "target_columns": target_columns,
-            "test_size": test_size,
-            "test_train_split_seed": test_train_split_seed,
-            "imputer_strategy": imputer_strategy,
-        }
-
-        body = DiffPrivLibRequestModel.model_validate(body_dict)
-        res = self.http_client.post("estimate_diffprivlib_cost", body)
-
-        return validate_model_response(self.http_client, res, CostResponse)
+        return flow(
+            {
+                "dataset_name": self.http_client.config.dataset_name,
+                "diffprivlib_json": serialise_pipeline(pipeline),
+                "feature_columns": feature_columns,
+                "target_columns": target_columns,
+                "test_size": test_size,
+                "test_train_split_seed": test_train_split_seed,
+                "imputer_strategy": imputer_strategy,
+            },
+            DiffPrivLibRequestModel.model_validate,
+            partial(self.http_client.post, "estimate_diffprivlib_cost"),
+            bind(validate_model_response(self.http_client, CostResponse)),
+        )
 
     def query(
         self,
@@ -85,7 +89,7 @@ class DiffPrivLibClient:
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse:
+    ) -> IOResultE[QueryResponse]:
         """Trains a DiffPrivLib pipeline and return a trained Pipeline.
 
         Args:
@@ -128,18 +132,16 @@ class DiffPrivLibClient:
             "test_train_split_seed": test_train_split_seed,
             "imputer_strategy": imputer_strategy,
         }
-
-        request_model: type[DiffPrivLibRequestModel]
         if dummy:
-            endpoint = "dummy_diffprivlib_query"
-            body_dict["dummy_nb_rows"] = nb_rows
-            body_dict["dummy_seed"] = seed
-            request_model = DiffPrivLibDummyQueryModel
-        else:
-            endpoint = "diffprivlib_query"
-            request_model = DiffPrivLibQueryModel
-
-        body = request_model.model_validate(body_dict)
-        res = self.http_client.post(endpoint, body)
-
-        return validate_model_response(self.http_client, res, QueryResponse)
+            return flow(
+                {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
+                DiffPrivLibDummyQueryModel.model_validate,
+                lambda body: self.http_client.post("dummy_diffprivlib_query", body),
+                bind(validate_model_response(self.http_client, QueryResponse)),
+            )
+        return flow(
+            body_dict,
+            DiffPrivLibQueryModel.model_validate,
+            lambda body: self.http_client.post("diffprivlib_query", body),
+            bind(validate_model_response(self.http_client, QueryResponse)),
+        )

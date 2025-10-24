@@ -2,6 +2,7 @@ import logging
 
 import yaml
 from mantelo import HttpException, KeycloakAdmin
+from returns.io import impure_safe
 
 from lomas_core.models.collections import UserCollection
 from lomas_server.administration.utils import absolute_path
@@ -53,6 +54,7 @@ def get_user_attr_protocol_mapper_dict(attr_name: str) -> dict:
     }
 
 
+@impure_safe
 def add_kc_user(
     kc_config: KeycloakClientConfig, user_name: str, user_email: str, client_secret: str | None = None
 ) -> None:
@@ -164,6 +166,7 @@ def add_kc_user(
         raise RuntimeError("Could not add user to keycloak. Please contact the service administrator.") from e
 
 
+@impure_safe
 def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     """Removes the keycloak user and client associated to the user name.
 
@@ -186,6 +189,7 @@ def del_kc_user(kc_config: KeycloakClientConfig, user: str) -> None:
     logging.info("Deleted keycloak user and associated client.")
 
 
+@impure_safe
 def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
     """Removes all keycloak users and clients associated to lomas users.
 
@@ -276,6 +280,7 @@ def add_kc_users_via_yaml(
     logging.info("Added keycloak users from yaml file.")
 
 
+@impure_safe
 def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -> str:
     """Gets the client secret for making api calls with the client library for a given user.
 
@@ -296,6 +301,7 @@ def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -
     return user_client_secret
 
 
+@impure_safe
 def set_kc_user_client_secret(
     kc_config: KeycloakClientConfig, user_name: str, client_secret: str | None = None
 ) -> None:

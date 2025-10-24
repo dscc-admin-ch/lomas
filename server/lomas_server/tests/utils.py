@@ -1,3 +1,4 @@
+import warnings
 from json import loads
 from test.support import sleeping_retry
 
@@ -33,6 +34,10 @@ def submit_job_wait(
         return Job(status="failed", status_code=query_job_submit.status_code, error=error)
 
     job_uid = query_job_submit.json()["uid"]
-    job = wait_for_job(client, f"/status/{job_uid}", headers=headers)
+
+    # Didn't manage to Job.model_validate without warning from TypeAdapter
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        job = wait_for_job(client, f"/status/{job_uid}", headers=headers)
 
     return job

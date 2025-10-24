@@ -5,6 +5,7 @@ import pytest
 import yaml
 from mantelo import KeycloakAdmin
 from pydantic import ValidationError
+from returns.io import IOSuccess
 
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
@@ -117,7 +118,7 @@ def test_get_kc_user_client_secret(client, kc):
     # check if client secret is retrieved
     client_secret = get_kc_user_client_secret(kc.config, client.user_name)
 
-    assert client_secret == client.client_secret
+    assert client_secret == IOSuccess(client.client_secret)
 
 
 def test_set_kc_user_client_secret(client, kc):

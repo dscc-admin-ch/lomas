@@ -1,3 +1,6 @@
+from returns.io import IOResultE
+from returns.pipeline import flow
+from returns.pointfree import bind
 from smartnoise_synth_logger import serialise_constraints
 
 from lomas_client.constants import (
@@ -9,7 +12,6 @@ from lomas_client.constants import (
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import (
     validate_model_response,
-    validate_synthesizer,
 )
 from lomas_core.models.requests import (
     SmartnoiseSynthDummyQueryModel,
@@ -34,7 +36,7 @@ class SmartnoiseSynthClient:
         synth_params: dict = {},
         nullable: bool = True,
         constraints: dict = {},
-    ) -> CostResponse:
+    ) -> IOResultE[CostResponse]:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
@@ -77,23 +79,26 @@ class SmartnoiseSynthClient:
         Returns:
             CostResponse: The estimated cost.
         """
-        validate_synthesizer(synth_name)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
-        body_dict = {
-            "dataset_name": self.http_client.config.dataset_name,
-            "synth_name": synth_name,
-            "epsilon": epsilon,
-            "delta": delta,
-            "select_cols": select_cols,
-            "synth_params": synth_params,
-            "nullable": nullable,
-            "constraints": constraints_str,
-        }
-        body = SmartnoiseSynthRequestModel.model_validate(body_dict)
-        res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
-
-        return validate_model_response(self.http_client, res, CostResponse)
+        return flow(
+            # validate_synthesizer(synth_name),
+            {
+                "dataset_name": self.http_client.config.dataset_name,
+                "synth_name": synth_name,
+                "epsilon": epsilon,
+                "delta": delta,
+                "select_cols": select_cols,
+                "synth_params": synth_params,
+                "nullable": nullable,
+                "constraints": constraints_str,
+            },
+            SmartnoiseSynthRequestModel.model_validate,
+            lambda body: self.http_client.post(
+                "estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT
+            ),
+            bind(validate_model_response(self.http_client, CostResponse)),
+        )
 
     def query(
         self,
@@ -110,7 +115,7 @@ class SmartnoiseSynthClient:
         nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> QueryResponse:
+    ) -> IOResultE[QueryResponse]:
         """This function executes a SmartNoise Synthetic query.
 
         Args:
@@ -167,7 +172,6 @@ class SmartnoiseSynthClient:
         Returns:
             QueryResponse: A Pandas DataFrame containing the query results.
         """
-        validate_synthesizer(synth_name, return_model)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
@@ -183,17 +187,20 @@ class SmartnoiseSynthClient:
             "condition": condition,
             "nb_samples": nb_samples,
         }
-        request_model: type[SmartnoiseSynthRequestModel]
         if dummy:
-            endpoint = "dummy_smartnoise_synth_query"
-            body_dict["dummy_nb_rows"] = nb_rows
-            body_dict["dummy_seed"] = seed
-            request_model = SmartnoiseSynthDummyQueryModel
-        else:
-            endpoint = "smartnoise_synth_query"
-            request_model = SmartnoiseSynthQueryModel
-
-        body = request_model.model_validate(body_dict)
-        res = self.http_client.post(endpoint, body, SMARTNOISE_SYNTH_READ_TIMEOUT)
-
-        return validate_model_response(self.http_client, res, QueryResponse)
+            return flow(
+                {**body_dict, "dummy_nb_rows": nb_rows, "dummy_seed": seed},
+                # tap(lambda _: validate_synthesizer(synth_name, return_model)),
+                SmartnoiseSynthDummyQueryModel.model_validate,
+                lambda body: self.http_client.post(
+                    "dummy_smartnoise_synth_query", body, SMARTNOISE_SYNTH_READ_TIMEOUT
+                ),
+                bind(validate_model_response(self.http_client, QueryResponse)),
+            )
+        return flow(
+            body_dict,
+            # tap(lambda _: validate_synthesizer(synth_name, return_model)),
+            SmartnoiseSynthQueryModel.model_validate,
+            lambda body: self.http_client.post("smartnoise_synth_query", body, SMARTNOISE_SYNTH_READ_TIMEOUT),
+            bind(validate_model_response(self.http_client, QueryResponse)),
+        )

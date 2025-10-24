@@ -1,10 +1,11 @@
 import logging
-from typing import Any, Never
+from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pymongo.errors import WriteConcernError
+from returns.result import Failure
 
 from lomas_core.constants import DPLibraries
 from lomas_core.models.exceptions import (
@@ -137,20 +138,20 @@ SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 
 
-def raise_error_from_model(error_model: LomasServerExceptionType) -> Never:
-    """Raise error message based on Server Error Model.
+def specify_error_from_model(error_model: LomasServerExceptionType) -> Failure:
+    """Specify error message based on Server Error Model.
 
     Args:
         error_model
-    Raise:
-        Server Error
+    Returns:
+        Failure[LomasServerException]
     """
     match error_model:
         case InvalidQueryExceptionModel():
-            raise InvalidQueryException(error_model.message)
+            return Failure(InvalidQueryException(error_model.message))
         case ExternalLibraryExceptionModel():
-            raise ExternalLibraryException(error_model.library, error_model.message)
+            return Failure(ExternalLibraryException(error_model.library, error_model.message))
         case UnauthorizedAccessExceptionModel():
-            raise UnauthorizedAccessException(error_model.message)
+            return Failure(UnauthorizedAccessException(error_model.message))
         case InternalServerExceptionModel():
-            raise InternalServerException("Internal Server Exception.")
+            return Failure(InternalServerException("Internal Server Exception."))

@@ -55,7 +55,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                     "postprocess": True,
                 },
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
             response_dict = response.json()["detail"]
             assert response_dict[0]["type"] == "missing"
@@ -68,7 +68,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise["epsilon"] = 0.000000001
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error obtaining cost: "
                 + "Noise scale is too large using epsilon=1e-09 "
@@ -235,7 +235,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             response = client.post(
                 "/dummy_smartnoise_sql_query", json={"dataset_name": "IRIS"}, headers=self.headers
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     def test_smartnoise_sql_cost(self) -> None:
         """Test_smartnoise_sql_cost."""

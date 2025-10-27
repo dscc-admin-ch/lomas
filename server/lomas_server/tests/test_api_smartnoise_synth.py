@@ -96,7 +96,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error fitting model: "
                 + "sample_rate=1.4534883720930232 is not a valid value. "
@@ -404,7 +404,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error creating model: "
                 + "MWEMSynthesizer.__init__() got an "
@@ -522,7 +522,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error fitting model: "
                 + "Inputted epsilon parameter is too small to create a private"
@@ -560,7 +560,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="pategan not reliable with this dataset.",
                 library="smartnoise_synth",
@@ -580,7 +580,7 @@ class TestSmartnoiseSynthEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error fitting model: "
                 + "Inputted epsilon and sigma parameters "

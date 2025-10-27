@@ -137,7 +137,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="PrivacyLeakWarning: "
                 + "Data norm has not been specified and will be calculated on the data provided.  "
@@ -166,7 +166,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error == ExternalLibraryExceptionModel(
                 message="PrivacyLeakWarning: "
                 + "Bounds have not been specified and will be calculated on the data provided. "

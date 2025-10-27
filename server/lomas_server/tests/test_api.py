@@ -153,7 +153,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                     "dataset_name": PENGUIN_DATASET,
                 },
             )
-            assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+            assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
             # Expect to fail: user does have access to dataset
             other_dataset = "IRIS"

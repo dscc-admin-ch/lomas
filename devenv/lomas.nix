@@ -15,6 +15,8 @@ let
     mkEnableOption
     ;
 
+  inherit (import ./utils.nix lib) wrapScript;
+
   clientIdSecret = types.submodule {
     options.client_id = mkOption {
       type = types.str;
@@ -139,7 +141,7 @@ in
       };
     };
 
-    scripts.run-jupyter.exec =
+    scripts.run-jupyter =
       let
         # Build argon2 hashed password with jupyter static parameters
         hashed_password_drv = pkgs.runCommand "jupyterHashedPassword" { } ''
@@ -160,11 +162,10 @@ in
           ) "--PasswordIdentityProvider.hashed_password='${hashed_password}'")
         ];
       in
-      ''
-        pushd $DEVENV_ROOT/client
-        jupyter notebook ${builtins.concatStringsSep " " args}
-        popd > /dev/null
-      '';
+      wrapScript {
+        pwd = "client";
+        exec = "jupyter notebook ${builtins.concatStringsSep " " args}";
+      };
 
   };
 }

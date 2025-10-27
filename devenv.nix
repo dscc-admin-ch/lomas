@@ -7,26 +7,11 @@
 }:
 
 let
+  inherit (import ./devenv/utils.nix lib) wrapScript listToPydanticEnvVar;
+
   toYAML = lib.generators.toYAML { };
   toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
-
-  # transform attribute set into pydantic wierd list-parseable format:
-  # Examples
-  ## listToPydanticEnvVar "myPrefix" [{user = "alice"; pin = 1234} {user = "bob"; pin = 789}];
-  # => {
-  # myPrefix__0__USER = "alice";
-  # myPrefix__0__PIN = 1234;
-  # myPrefix__1__USER = "obb";
-  # myPrefix__1__PIN = 789;
-  # }
-  listToPydanticEnvVar =
-    prefix: listOfAttrSets:
-    lib.mergeAttrsList (
-      lib.imap0 (
-        idx: (lib.concatMapAttrs (name: value: { "${prefix}__${toString idx}__${lib.toUpper name}" = value; }))
-      ) listOfAttrSets
-    );
 
   # Keycloak
   kc_auth_realm = "master";
@@ -71,7 +56,7 @@ in
     };
     client.jupyter = {
       port = 8888;
-      password = "dprocks";
+      password = null; # "dprocks";
     };
   };
 
@@ -311,11 +296,11 @@ in
   # Python Env #
   ##############
 
-  scripts.pip-fix.exec = ''
-    pushd $DEVENV_ROOT
-    uv pip compile pyproject.toml --annotation-style line --all-extras $@ | ${pkgs.gnused}/bin/sed -re '/^-e file:/d' > requirements.txt
-    popd
-  '';
+  scripts.pip-fix = wrapScript {
+    exec = ''
+      uv pip compile pyproject.toml --annotation-style line --all-extras $@ | ${pkgs.gnused}/bin/sed -re '/^-e file:/d' > requirements.txt
+    '';
+  };
 
   languages.python = {
     enable = true;
@@ -358,11 +343,9 @@ in
   # Various utilities #
   #####################
 
-  scripts.ut.exec = ''
-    pushd $DEVENV_ROOT/
-    pytest -c $DEVENV_ROOT/pyproject.toml .
-    popd
-  '';
+  scripts.ut = wrapScript {
+    exec = "pytest -c pyproject.toml .";
+  };
 
   scripts.ut-coverage.exec =
     let
@@ -419,110 +402,98 @@ in
         coverage combine -a .coverage.*
       fi
 
-      popd
+      popd > /dev/null
       exit $pytest_return
     '';
 
   # TODO Check this is enough and does not need to run the tools independently in every
-  scripts.run-linter.exec = ''
-    pushd $DEVENV_ROOT
-    path=''${@:-.}
-    [[ "$path" = "." ]] || echo "linting: $path"
-    echo -n 🌑; black "$path"
-    echo -n ⚡️; ruff check --fix "$path"
-    echo -n 🐌; pylint "$path"
-    echo -n 🔧; pydocstringformatter "$path"
-    echo -n 🐍; mypy "$path"
-    popd
-  '';
+  scripts.run-linter = wrapScript {
+    exec = ''
+      path=''${@:-.}
+      [[ "$path" = "." ]] || echo "linting: $path"
+      echo -n 🌑; black "$path"
+      echo -n ⚡️; ruff check --fix "$path"
+      echo -n 🐌; pylint "$path"
+      echo -n 🔧; pydocstringformatter "$path"
+      echo -n 🐍; mypy "$path"
+    '';
+  };
 
-  scripts.build-docs.exec = ''
-    pushd $DEVENV_ROOT
-    cd docs/
-    python build_docs.py
-    popd
-  '';
+  scripts.build-docs = wrapScript {
+    pwd = "docs";
+    exec = "python build_docs.py";
+  };
 
-  scripts.build-docs-local.exec = ''
-    pushd $DEVENV_ROOT
-    cd docs/
-    python build_docs.py -l
-    xdg-open build/html/index.html
-    popd
-  '';
+  scripts.build-docs-local = wrapScript {
+    pwd = "docs";
+    exec = ''
+      python build_docs.py -l
+      xdg-open build/html/index.html
+    '';
+  };
 
-  scripts.run-notebooks.exec = ''
-    pushd $DEVENV_ROOT
-    python -m lomas_client.scripts.run_notebook -a -s -d
-    popd
-  '';
+  scripts.run-notebooks = wrapScript {
+    exec = "python -m lomas_client.scripts.run_notebook -a -s -d";
+  };
 
-  scripts.run-jupyter.exec = ''
-    pushd $DEVENV_ROOT/client
-    jupyter notebook --ip 0.0.0.0 --port ${toString config.lomas.client.jupyter.port} --no-browser --allow-root
-    popd
-  '';
+  scripts.run-fastapi = wrapScript {
+    pwd = "server/lomas_server";
+    exec = "python -m pdb uvicorn_serve.py";
+  };
 
-  scripts.run-fastapi.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    python -m pdb uvicorn_serve.py
-    popd
-  '';
+  scripts.run-worker-debug = wrapScript {
+    exec = ''
+      process-compose process stop -v worker-0 worker-1
+      python -m pdb -m lomas_server.worker
+    '';
+  };
 
-  scripts.run-worker-debug.exec = ''
-    process-compose process stop -v worker-0 worker-1
-    pushd $DEVENV_ROOT
-    python -m pdb -m lomas_server.worker
-    popd
-  '';
+  scripts.run-lomas-dev = wrapScript {
+    pwd = "server/lomas_server";
+    exec = ''
+      python uvicorn_server.py &
+      ${config.scripts.run-worker-debug.exec}
+    '';
+  };
 
-  scripts.run-lomas-dev.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    python uvicorn_server.py &
-    ${config.scripts.run-worker-debug.exec}
-    popd
-  '';
+  scripts.docker-compose-up = wrapScript {
+    pwd = "server";
+    exec = "docker compose --env-file configs/.env.docker-compose up";
+  };
 
-  scripts.docker-compose-up.exec = ''
-    pushd $DEVENV_ROOT/server/
-    docker compose --env-file configs/.env.docker-compose up
-    popd
-  '';
+  scripts.docker-compose-test = wrapScript {
+    pwd = "server";
+    exec = ''
+      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/s3_example_notebook.ipynb
+      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
+    '';
+  };
 
-  scripts.docker-compose-test.exec = ''
-    pushd $DEVENV_ROOT/server/
-    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/s3_example_notebook.ipynb
-    docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
-    popd
-  '';
+  scripts.docker-compose-down = wrapScript {
+    pwd = "server";
+    exec = "docker compose --env-file configs/.env.docker-compose down";
+  };
 
-  scripts.docker-compose-down.exec = ''
-    pushd $DEVENV_ROOT/server/
-    docker compose --env-file configs/.env.docker-compose down
-    popd
-  '';
+  scripts.py-build = wrapScript {
+    exec = ''
+      uv build --sdist core
+      uv build --sdist client
+      uv build --sdist server
+    '';
+  };
 
-  scripts.py-build.exec = ''
-    pushd $DEVENV_ROOT
-    uv build --sdist core
-    uv build --sdist client
-    uv build --sdist server
-    popd
-  '';
+  scripts.demo-setup = wrapScript {
+    pwd = "server/lomas_server";
+    exec = "lomas-demo-setup";
+  };
 
-  scripts.demo-setup.exec = ''
-    pushd $DEVENV_ROOT/server/lomas_server
-    lomas-demo-setup
-    popd
-  '';
-
-  scripts.restart-lomas.exec = ''
-    pushd $DEVENV_ROOT
-    process-compose process restart lomas-server
-    process-compose process restart worker-0
-    process-compose process restart worker-1
-    popd
-  '';
+  scripts.restart-lomas = wrapScript {
+    exec = ''
+      process-compose process restart lomas-server
+      process-compose process restart worker-0
+      process-compose process restart worker-1
+    '';
+  };
 
   enterTest = ''
     echo "Running tests"

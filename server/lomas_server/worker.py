@@ -72,7 +72,7 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
         case ExternalLibraryException():
             logger.error(f" [-] ExternalLibraryExeption : {exc}")
             return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 content=jsonable_encoder(
                     ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
                 ),

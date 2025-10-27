@@ -103,7 +103,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def external_library_exception_handler(_: Request, exc: ExternalLibraryException) -> JSONResponse:
         logger.debug(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content=jsonable_encoder(
                 ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
             ),
@@ -131,7 +131,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 # Server error responses for DP queries
 SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_400_BAD_REQUEST: {"model": InvalidQueryExceptionModel},
-    status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ExternalLibraryExceptionModel},
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ExternalLibraryExceptionModel},
     status.HTTP_403_FORBIDDEN: {"model": UnauthorizedAccessExceptionModel},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": InternalServerExceptionModel},
 }

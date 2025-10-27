@@ -24,11 +24,11 @@ class Telemetry(BaseModel):
     """Telemetry config."""
 
     enabled: bool
-    service_name: Annotated[str | None, Field(default="lomas-server-app")]
-    service_id: Annotated[str | None, Field(default="default-host")]
-    collector_endpoint: Annotated[HttpUrl | None, UrlConstraints(default_port=4317)] = None
-    collector_insecure: Annotated[bool | None, Field(default=False)]
-    collector_log_correlation: Annotated[bool | None, Field(default=False)]
+    service_name: Annotated[str, Field(default="lomas-server-app")]
+    service_id: Annotated[str, Field(default="default-host")]
+    collector_endpoint: Annotated[HttpUrl, UrlConstraints(default_port=4317)] | None = None
+    collector_insecure: Annotated[bool, Field(default=False)]
+    collector_log_correlation: Annotated[bool, Field(default=False)]
 
     @model_validator(mode="after")
     def options_set_if_enabled(self) -> Self:

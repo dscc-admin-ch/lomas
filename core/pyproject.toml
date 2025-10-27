@@ -42,8 +42,8 @@ dependencies = [
     "opentelemetry-sdk>=1.29.0",
     "pandas>=2.2.2",
     "polars==1.12.0",
-    "pydantic>=2.8,<2.10", # 2.10+ breaks on UrlsContraints for now
-    "pydantic-settings>=2.8,<2.10",
+    "pydantic>=2.8,<2.12", # 2.12 breaks with fastapi
+    "pydantic-settings>=2.8",
     "pymongo>=4.6.3",
     "smartnoise-synth>=1.0.4",
     "smartnoise_synth_logger>=0.0.3",

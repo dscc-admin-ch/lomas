@@ -19,6 +19,7 @@ from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.constants import TimeAttackMethod
+from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -43,16 +44,17 @@ async def process_response(
                 else:
                     await message.ack()
 
+                    message_body = message.body.decode()
                     match message.headers:
                         case {"type": "exception", "status_code": status_code}:
-                            jobs[message.correlation_id].error = message.body.decode()
+                            jobs[message.correlation_id].error = (
+                                LomasServerExceptionTypeAdapter.validate_json(message_body)
+                            )
                             jobs[message.correlation_id].status = "failed"
                             jobs[message.correlation_id].result = None
                             jobs[message.correlation_id].status_code = status_code
                         case _:
-                            jobs[message.correlation_id].result = cls.model_validate_json(
-                                message.body.decode()
-                            )
+                            jobs[message.correlation_id].result = cls.model_validate_json(message_body)
                             jobs[message.correlation_id].status = "complete"
 
 

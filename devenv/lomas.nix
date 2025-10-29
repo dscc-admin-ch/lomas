@@ -100,7 +100,6 @@ in
         is_tty = true;
         environment = [ "TTY_COMPATIBLE=1" ];
         working_dir = "$DEVENV_ROOT/server/lomas_server";
-        depends_on.mongodb.condition = "process_healthy";
         readiness_probe.failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
         readiness_probe.http_get = {
           scheme = "http";

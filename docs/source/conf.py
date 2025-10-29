@@ -15,8 +15,8 @@ import yaml
 warnings.filterwarnings("ignore", message="Thread 'MainThread': missing ScriptRunContext!*")
 
 # Force-mock problematic modules so Sphinx autodoc can import code without
-# actually trying to connect to MongoDB or start a Streamlit runtime.
-autodoc_mock_imports = ["gridfs", "pymongo", "streamlit"]
+# actually trying to start a Streamlit runtime.
+autodoc_mock_imports = ["streamlit"]
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

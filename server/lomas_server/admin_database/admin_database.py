@@ -4,6 +4,9 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Concatenate, TypeVar
 
+from pydantic import (
+    BaseModel,
+)
 from typing_extensions import ParamSpec
 
 from lomas_core.error_handler import (
@@ -115,18 +118,8 @@ def user_must_have_access_to_dataset(
     return wrapper_decorator
 
 
-class AdminDatabase(ABC):
+class AdminDatabase(ABC, BaseModel):
     """Overall database management for server state."""
-
-    @abstractmethod
-    def __init__(self, **connection_parameters: dict[str, str]) -> None:
-        """
-        Connects to the DB.
-
-        Args:
-            **connection_parameters (Dict[str, str]): parameters required
-                to access the db
-        """
 
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
@@ -422,3 +415,7 @@ class AdminDatabase(ABC):
             query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
         """
+
+    @abstractmethod
+    def wipe(self) -> None:
+        """Wipe the entire Database."""

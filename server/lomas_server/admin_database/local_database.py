@@ -1,0 +1,486 @@
+import logging
+import operator as op
+import shelve
+from pathlib import Path
+from typing import Any, Self, override
+
+import boto3
+import yaml
+
+from lomas_core.error_handler import InternalServerException
+from lomas_core.models.collections import (
+    DatasetOfUser,
+    DatasetsCollection,
+    DSInfo,
+    DSPathAccess,
+    DSS3Access,
+    Metadata,
+    User,
+    UserCollection,
+    UserId,
+)
+from lomas_core.models.constants import PrivateDatabaseType
+from lomas_core.models.requests import LomasRequestModel
+from lomas_core.models.responses import QueryResponse
+from lomas_server.admin_database.admin_database import (
+    AdminDatabase,
+    dataset_must_exist,
+    user_must_exist,
+    user_must_have_access_to_dataset,
+)
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.administration.utils import absolute_path
+
+logger = logging.getLogger(__name__)
+
+
+def drop_collection(db_path: str, collection: str) -> None:
+    """Delete collection.
+
+    Args:
+        collection (str): Collection name to be deleted.
+    """
+    LocalAdminDatabase(path=db_path).drop_collection(collection)
+    logger.debug(f"Deleted collection {collection}.")
+
+
+class LocalAdminDatabase(AdminDatabase):
+    """Local Admin database in a single file."""
+
+    path: Path
+    """Database accepts existing path or new (creatable) path."""
+
+    def model_post_init(self, _: Any, /) -> None:
+        # create the file if it doesn't exists yet (makes open with flag='r' safe)
+        shelve.open(self.path).close()
+
+    @override
+    def wipe(self) -> None:
+        if (p := Path(self.path)).exists():
+            p.unlink()
+
+    def load_users_collection(self, users: list[User]) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            db["users"] = {user.id.name: user.model_dump() for user in users}
+
+    def users(self) -> list[User]:
+        with shelve.open(self.path, flag="r") as db:
+            return list(map(User.model_validate, db.get("users", {}).values()))
+
+    def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            # Step 1: add datasets
+            new_datasets = []
+            for ds in datasets:
+                # Overwrite path
+                if isinstance(ds.dataset_access, DSPathAccess):
+                    ds.dataset_access.path = absolute_path(ds.dataset_access.path, path_prefix)
+                if isinstance(ds.metadata_access, DSPathAccess):
+                    ds.metadata_access.path = absolute_path(ds.metadata_access.path, path_prefix)
+
+                # Fill datasets_list
+                new_datasets.append(ds)
+
+            # Add dataset collection
+            if new_datasets:
+                new_datasets_dicts = [ds.model_dump() for ds in new_datasets]
+                db["datasets"] = new_datasets_dicts
+
+            db["metadatas"] = {}
+            # Step 2: add metadata collections (one metadata per dataset)
+            for ds in datasets:
+                dataset_name = ds.dataset_name
+                metadata_access = ds.metadata_access
+
+                match metadata_access:
+                    case DSPathAccess():
+                        with open(metadata_access.path, encoding="utf-8") as f:
+                            metadata_dict = yaml.safe_load(f)
+
+                    case DSS3Access():
+                        client = boto3.client(
+                            "s3",
+                            endpoint_url=metadata_access.endpoint_url,
+                            aws_access_key_id=metadata_access.access_key_id,
+                            aws_secret_access_key=metadata_access.secret_access_key,
+                        )
+                        response = client.get_object(
+                            Bucket=metadata_access.bucket,
+                            Key=metadata_access.key,
+                        )
+                        try:
+                            metadata_dict = yaml.safe_load(response["Body"])
+                        except yaml.YAMLError as e:
+                            return e
+
+                    case _:
+                        raise InternalServerException(
+                            f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
+                        )
+
+                db["metadatas"][dataset_name] = metadata_dict
+                logger.debug(f"Added metadata of {dataset_name} dataset. ")
+
+    def datasets(self) -> list[DSInfo]:
+        with shelve.open(self.path, flag="r") as db:
+            return list(map(DSInfo.model_validate, db.get("datasets", [])))
+
+    def add_datasets_via_yaml(
+        self,
+        yaml_file: str | dict,
+        clean: bool,
+        path_prefix: str = "",
+    ) -> None:
+        """Set all database types to datasets in dataset collection based.
+
+        on yaml file.
+
+        Args:
+            yaml_file (Union[str, Dict]):
+                if str: a path to the YAML file location
+                if Dict: a dictionnary containing the collection data
+            clean (bool): Whether to clean the collection before adding.
+            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
+
+        Raises:
+            ValueError: If there are errors in the YAML file format.
+
+        Returns:
+            None
+        """
+        if clean:
+            self.drop_collection("datasets")
+
+        if isinstance(yaml_file, str):
+            with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
+                yaml_dict: dict = yaml.safe_load(f)
+        else:
+            yaml_dict = yaml_file
+
+        self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
+
+    def add_dataset(
+        self,
+        dataset_name: str,
+        database_type: str,
+        metadata_database_type: str,
+        path_prefix: str = "",
+        dataset_path: str | None = "",
+        metadata_path: str | None = "",
+        bucket: str | None = "",
+        key: str | None = "",
+        endpoint_url: str | None = "",
+        credentials_name: str | None = "",
+        metadata_bucket: str | None = "",
+        metadata_key: str | None = "",
+        metadata_endpoint_url: str | None = "",
+        metadata_access_key_id: str | None = "",
+        metadata_secret_access_key: str | None = "",
+        metadata_credentials_name: str | None = "",
+    ) -> None:
+        """Set a database type to a dataset in dataset collection.
+
+        Args:
+            dataset_name (str): Dataset name
+            database_type (str): Type of the database
+            metadata_database_type (str): Metadata database type
+
+            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
+            dataset_path (str): Path to the dataset (for local db type)
+            metadata_path (str): Path to metadata (for local db type)
+
+            bucket (str): S3 bucket name
+            key (str): S3 key
+            endpoint_url (str): S3 endpoint URL
+            credentials_name (str): The name of the credentials in the\
+                server config to retrieve the dataset from S3 storage.
+            metadata_bucket (str): Metadata S3 bucket name
+            metadata_key (str): Metadata S3 key
+            metadata_endpoint_url (str): Metadata S3 endpoint URL
+            metadata_access_key_id (str): Metadata AWS access key ID
+            metadata_secret_access_key (str): Metadata AWS secret access key
+            metadata_credentials_name (str): The name of the credentials in the\
+                server config for retrieving the metadata.
+
+        Raises:
+            ValueError: If the dataset already exists
+                        or if the database type is unknown.
+
+        Returns:
+            None
+        """
+
+        # Step 1: Build dataset
+        dataset: dict[str, Any] = {"dataset_name": dataset_name}
+
+        dataset_access: dict[str, Any] = {
+            "database_type": database_type,
+        }
+
+        if database_type == PrivateDatabaseType.PATH:
+            if dataset_path is None:
+                raise ValueError("Dataset path not set.")
+            dataset_access["path"] = absolute_path(dataset_path, path_prefix)
+        elif database_type == PrivateDatabaseType.S3:
+            dataset_access["bucket"] = bucket
+            dataset_access["key"] = key
+            dataset_access["endpoint_url"] = endpoint_url
+            dataset_access["credentials_name"] = credentials_name
+        else:
+            raise ValueError(f"Unknown database type {database_type}")
+
+        dataset["dataset_access"] = dataset_access
+
+        # Step 2: Build metadata
+        metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
+        if metadata_database_type == PrivateDatabaseType.PATH:
+            # Store metadata from yaml to metadata collection
+            with open(absolute_path(metadata_path, path_prefix), encoding="utf-8") as f:  # type: ignore
+                metadata_dict = yaml.safe_load(f)
+
+            metadata_access["path"] = metadata_path
+
+        elif metadata_database_type == PrivateDatabaseType.S3:
+            client = boto3.client(
+                "s3",
+                endpoint_url=metadata_endpoint_url,
+                aws_access_key_id=metadata_access_key_id,
+                aws_secret_access_key=metadata_secret_access_key,
+            )
+            response = client.get_object(Bucket=metadata_bucket, Key=metadata_key)
+            try:
+                metadata_dict = yaml.safe_load(response["Body"])
+            except yaml.YAMLError as e:
+                raise e
+
+            metadata_access["bucket"] = metadata_bucket
+            metadata_access["key"] = metadata_key
+            metadata_access["endpoint_url"] = metadata_endpoint_url
+            metadata_access["credentials_name"] = metadata_credentials_name
+
+        else:
+            raise ValueError(f"Unknown database type {metadata_database_type}")
+
+        dataset["metadata_access"] = metadata_access
+
+        # Step 3: Validate
+        ds_info = DSInfo.model_validate(dataset)
+        validated_dataset = ds_info.model_dump()
+        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+
+        # Step 4: Insert into db
+        with shelve.open(self.path, writeback=True) as db:
+            db["datasets"] = [*db.get("datasets", []), validated_dataset]
+            db["metadatas"] = db.get("metadatas", {}) | {dataset_name: validated_metadata}
+
+    def del_dataset(self, dataset_name: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            for ds in db["datasets"]:
+                if ds["dataset_name"] == dataset_name:
+                    db["datasets"].remove(ds)
+
+    def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            user = User.model_validate(db["users"][username])
+            ds = DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)
+            user_updated = User(
+                id=user.id,
+                may_query=user.may_query,
+                datasets_list=[*user.datasets_list, ds],
+            )
+            db["users"][username] = user_updated.model_dump()
+
+    def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            user = User.model_validate(db["users"][username])
+            user_updated = User(
+                id=user.id,
+                may_query=user.may_query,
+                datasets_list=[dsu for dsu in user.datasets_list if dsu.dataset_name != dataset_name],
+            )
+            db["users"][username] = user_updated.model_dump()
+
+    def add_users_via_yaml(self, yaml_file: str | dict, clean: bool, path_prefix: str = "") -> None:
+        """Add all users from yaml file to the user collection.
+
+        Args:
+            yaml_file (Union[str, Dict]):
+                if str: a path to the YAML file location
+                if Dict: a dictionnary containing the collection data
+            clean (bool): boolean flag
+                True if drop current user collection
+                False if keep current user collection
+            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
+
+        Returns:
+            None
+        """
+        if clean:
+            self.drop_collection("users")
+
+        # Load yaml data and insert it
+        if isinstance(yaml_file, str):
+            with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
+                yaml_dict: dict = yaml.safe_load(f)
+        else:
+            yaml_dict = yaml_file
+
+        self.load_users_collection(UserCollection(**yaml_dict).users)
+
+    def add_user(
+        self,
+        username: str,
+        email: str,
+        dataset_name: str | None = None,
+        epsilon: float = 0.0,
+        delta: float = 0.0,
+    ) -> None:
+        """Add new user in users collection with default values for all fields.
+
+        Args:
+            username (str): username to be added
+            email (str): email to be added
+
+        Raises:
+            ValueError: If the username already exists.
+            WriteConcernError: If the result is not acknowledged.
+
+        Returns:
+            None
+        """
+
+        validated_user = User(
+            id=UserId(name=username, email=email),
+            may_query=True,
+            datasets_list=(
+                []
+                if dataset_name is None
+                else [DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)]
+            ),
+        ).model_dump()
+
+        with shelve.open(self.path, writeback=True) as db:
+            if "users" not in db:
+                db["users"] = {}
+            db["users"][username] = validated_user
+
+    @user_must_exist
+    def del_user(self, username: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            del db["users"][username]
+
+    @override
+    def does_user_exist(self, user_name: str) -> bool:
+        return user_name in map(lambda user: user.id.name, self.users())
+
+    @override
+    def does_dataset_exist(self, dataset_name: str) -> bool:
+        return dataset_name in map(lambda ds: ds.dataset_name, self.datasets())
+
+    @override
+    @dataset_must_exist
+    def get_dataset(self, dataset_name: str) -> DSInfo:
+        with shelve.open(self.path, flag="r") as db:
+            dataset = next(filter(lambda ds: ds["dataset_name"] == dataset_name, db["datasets"]))
+            return DSInfo.model_validate(dataset)
+
+    @override
+    @dataset_must_exist
+    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
+        with shelve.open(self.path, flag="r") as db:
+            metadatas = db.get("metadatas", {}).get(dataset_name)
+            return Metadata.model_validate(metadatas)
+
+    @override
+    @user_must_exist
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
+        _ = self.get_and_set_may_user_query(user_name, may_query)
+
+    @override
+    @user_must_exist
+    def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
+        with shelve.open(self.path, writeback=True) as db:
+            previous_may_query = db["users"][user_name]["may_query"]
+            db["users"][user_name]["may_query"] = may_query
+            return previous_may_query
+
+    @override
+    @user_must_exist
+    def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
+        @dataset_must_exist
+        def has_access_to_dataset(self: Self, dataset_name: str) -> bool:
+            with shelve.open(self.path, flag="r") as db:
+                return bool(
+                    [
+                        ds
+                        for ds in db["users"][user_name]["datasets_list"]
+                        if ds["dataset_name"] == dataset_name
+                    ]
+                )
+
+        return has_access_to_dataset(self, dataset_name)
+
+    @override
+    def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
+        with shelve.open(self.path, flag="r") as db:
+            return sum(
+                map(
+                    op.itemgetter(parameter),
+                    filter(
+                        lambda ds: ds["dataset_name"] == dataset_name, db["users"][user_name]["datasets_list"]
+                    ),
+                )
+            )
+
+    @override
+    def update_epsilon_or_delta(
+        self,
+        user_name: str,
+        dataset_name: str,
+        parameter: BudgetDBKey,
+        spent_value: float,
+    ) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            datasets = db["users"][user_name]["datasets_list"]
+            for ds in datasets:
+                if ds["dataset_name"] == dataset_name:
+                    ds[parameter] += spent_value
+
+    @override
+    @user_must_have_access_to_dataset
+    def get_user_previous_queries(
+        self,
+        user_name: str,
+        dataset_name: str,
+    ) -> list[dict]:
+        def match(archive: dict[str, str]) -> bool:
+            return (user_name, dataset_name) == op.itemgetter("user_name", "dataset_name")(archive)
+
+        with shelve.open(self.path, flag="r") as db:
+            return list(filter(match, db["queries_archive"]))
+
+    @override
+    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            to_archive = self.prepare_save_query(user_name, query, response)
+            if "queries_archive" not in db:
+                db["queries_archive"] = [to_archive]
+            else:
+                db["queries_archive"].append(to_archive)
+
+    def get_archives_of_user(self, username: str) -> list[dict]:
+        with shelve.open(self.path, flag="r") as db:
+            return [archive for archive in db.get("queries_archive", []) if archive["user_name"] == username]
+
+    def drop_archive(self) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            db["queries_archive"] = []
+
+    def get_collection(self, collection: str) -> dict[str, Any]:
+        with shelve.open(self.path, flag="r") as db:
+            return db.get(collection, {})
+
+    def drop_collection(self, collection: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            if collection in db:
+                del db[collection]

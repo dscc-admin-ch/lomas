@@ -61,14 +61,5 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
         st.subheader("Administration Database")
         st.write(
             "Its address is: ",
-            st.session_state.config.admin_database.url.host,
-        )
-        st.write("Its port is: ", st.session_state.config.admin_database.url.port)
-        st.write(
-            "Its username is: ",
-            st.session_state.config.admin_database.username,
-        )
-        st.write(
-            "Its database name is: ",
-            st.session_state.config.admin_database.db_name,
+            st.session_state.config.admin_database_url,
         )

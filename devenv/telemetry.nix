@@ -9,7 +9,6 @@ let
 
   toYAML = lib.generators.toYAML { };
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
-  mongodbUri = with config.lomas.mongo; "mongodb://${initialUser}:${initialPassword}@${host}:${toString port}";
 
   inherit (lib)
     types
@@ -177,10 +176,6 @@ in
         {
           job_name = "loki";
           static_configs = [ { targets = [ "localhost:${toString cfg.services.loki.port}" ]; } ];
-        }
-        {
-          job_name = "mongodb";
-          static_configs = [ { targets = [ "localhost:${toString cfg.services.mongodbExporter.port}" ]; } ];
         }
       ];
     };
@@ -378,17 +373,6 @@ in
         exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
         process-compose.namespace = cfg.namespace;
       };
-
-    processes.mongodb-exporter = {
-      exec = ''
-        ${lib.getExe pkgs.prometheus-mongodb-exporter} \
-        --mongodb.uri="${mongodbUri}" \
-        --collect-all \
-        --web.listen-address="${cfg.services.mongodbExporter.host}:${toString cfg.services.mongodbExporter.port}" \
-        --web.telemetry-path="/metrics"
-      '';
-      process-compose.namespace = cfg.namespace;
-    };
 
   };
 }

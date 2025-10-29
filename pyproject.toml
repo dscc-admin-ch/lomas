@@ -150,6 +150,7 @@ ignore-paths = ".devenv,docs"
 disable = [
     "fixme",
     "import-error", # fails in git-runner but not locally ?
+    "line-too-long", # handled by ruff
     "duplicate-code", # FIXME
     "too-many-locals", # ruff PLR0914
     "logging-not-lazy",
@@ -160,7 +161,9 @@ disable = [
     "dangerous-default-value",
     "missing-module-docstring",
     "logging-fstring-interpolation",
+    "too-many-public-methods", # ruff PLR0904
     "too-many-positional-arguments", # ruff PLR0917
+    "missing-function-docstring",
 ]
 
 [tool.pydocstringformatter]

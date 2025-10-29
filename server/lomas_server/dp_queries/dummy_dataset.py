@@ -107,20 +107,17 @@ def get_dummy_dataset_for_query(
     """Get a dummy dataset for a given query.
 
     Args:
-        admin_database (AdminDatabase): An initialized instance
-            of AdminDatabase.
+        admin_database (AdminDatabase): An initialized instance of AdminDatabase.
         query_json (RequestModel): The request object for the query.
 
     Returns:
         InMemoryConnector: An in memory dummy dataset instance.
     """
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
-    ds_df = make_dummy_dataset(
-        ds_metadata,
+    metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
+    df = make_dummy_dataset(
+        metadata,
         query_json.dummy_nb_rows,
         query_json.dummy_seed,
     )
-    ds_data_connector = InMemoryConnector(ds_metadata, ds_df)
-
-    return ds_data_connector
+    return InMemoryConnector(metadata=metadata, df=df)

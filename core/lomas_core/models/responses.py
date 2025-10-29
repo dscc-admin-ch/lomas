@@ -118,7 +118,7 @@ class DiffPrivLibQueryResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
+    type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
     """Result type description."""
     score: float
     """The trained model score."""
@@ -136,7 +136,7 @@ class SmartnoiseSQLQueryResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
+    type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
     """Result type description."""
     df: Annotated[
         pd.DataFrame,
@@ -152,10 +152,10 @@ class SmartnoiseSynthModel(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
-    """Result type description."""
     model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
     """Synthetic data generator model."""
+    type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
+    """Result type description."""
 
 
 class SmartnoiseSynthSamples(BaseModel):
@@ -163,7 +163,7 @@ class SmartnoiseSynthSamples(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal["sn_synth_samples"] = "sn_synth_samples"
+    type: Literal["sn_synth_samples"] = "sn_synth_samples"
     """Result type description."""
     df_samples: Annotated[
         pd.DataFrame,
@@ -177,7 +177,7 @@ class SmartnoiseSynthSamples(BaseModel):
 class OpenDPQueryResult(BaseModel):
     """Type for opendp result."""
 
-    res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
+    type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
     value: int | float | list[int | float]
     """The result value of the query."""
@@ -186,7 +186,7 @@ class OpenDPQueryResult(BaseModel):
 class OpenDPPolarsQueryResult(BaseModel):
     """Type for opendp Polars result."""
 
-    res_type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
+    type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
     """Result type description."""
     # order of PlainValidator and PlainSerializer matters in that case:
     # https://github.com/pydantic/pydantic/issues/8512
@@ -199,14 +199,15 @@ class OpenDPPolarsQueryResult(BaseModel):
 
 
 # Response object
-QueryResultTypeAlias = (
+QueryResultT = Annotated[
     DiffPrivLibQueryResult
     | SmartnoiseSQLQueryResult
     | SmartnoiseSynthModel
     | SmartnoiseSynthSamples
     | OpenDPQueryResult
-    | OpenDPPolarsQueryResult
-)
+    | OpenDPPolarsQueryResult,
+    Discriminator("type"),
+]
 
 
 class QueryResponse(CostResponse):
@@ -214,10 +215,7 @@ class QueryResponse(CostResponse):
 
     requested_by: str
     """The user that triggered the query."""
-    result: Annotated[
-        QueryResultTypeAlias,
-        Discriminator("res_type"),
-    ]
+    result: QueryResultT
     """The query result object."""
 
 

@@ -43,10 +43,13 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
-from lomas_server.data_connector.factory import data_connector_factory
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
+from lomas_server.admin_database.local_database import LocalAdminDatabase
+from lomas_server.data_connector import ConnectorUnionTA
+from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
+from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
+from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
+from lomas_server.dp_queries.dp_libraries.smartnoise_synth import SmartnoiseSynthQuerier
+from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
@@ -60,10 +63,9 @@ AioPikaInstrumentor().instrument()
 
 config = Config()
 try:
-    admin_database = AdminMongoDatabase(config.admin_database)
+    admin_database = LocalAdminDatabase(path=config.admin_database_url)
 except InternalServerException:
     logger.exception("Failed to connect to the admin database")
-private_credentials = config.private_db_credentials
 set_opendp_features_config(config.opendp_features)
 
 
@@ -113,33 +115,29 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
     """Handle Cost query into CostResponse."""
     start_sec = time.time()
     message = body.decode()
-    _, dp_library, request_model_str = message.split(":", 2)
+    _, dp_library, data_connector_str, request_model_str = message.split("λ", 3)
 
+    data_connector = ConnectorUnionTA.validate_json(data_connector_str)
+
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 
         case DPLibraries.SMARTNOISE_SYNTH:
             request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model_str)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
 
         case DPLibraries.OPENDP:
             request_model = OpenDPRequestModel.model_validate_json(request_model_str)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
 
         case DPLibraries.DIFFPRIVLIB:
             request_model = DiffPrivLibRequestModel.model_validate_json(request_model_str)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
+
     try:
-        data_connector = data_connector_factory(
-            request_model.dataset_name,
-            admin_database,
-            private_credentials,
-        )
-
-        dp_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
-
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
@@ -154,33 +152,29 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
 
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_json_str = message.split(":", 2)
+    user_name, dp_library, data_connector_str, query_json_str = message.split("λ", 3)
 
+    data_connector = ConnectorUnionTA.validate_json(data_connector_str)
+
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 
         case DPLibraries.SMARTNOISE_SYNTH:
             query_json = SmartnoiseSynthQueryModel.model_validate_json(query_json_str)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
 
         case DPLibraries.OPENDP:
             query_json = OpenDPQueryModel.model_validate_json(query_json_str)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
 
         case DPLibraries.DIFFPRIVLIB:
             query_json = DiffPrivLibQueryModel.model_validate_json(query_json_str)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
-        data_connector = data_connector_factory(
-            query_json.dataset_name,
-            admin_database,
-            private_credentials,
-        )
-
-        dp_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
         query_response = dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
@@ -195,27 +189,30 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
 
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_model_str = message.split(":", 2)
+    user_name, dp_library, data_connector, query_model_str = message.split("λ", 3)
 
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
         case DPLibraries.SMARTNOISE_SYNTH:
             query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
         case DPLibraries.DIFFPRIVLIB:
             query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
-        data_connector = get_dummy_dataset_for_query(admin_database, query_model)
-        dummy_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
-        eps_cost, delta_cost = dummy_querier.cost(query_model)
-        result = dummy_querier.query(query_model)
+        eps_cost, delta_cost = dp_querier.cost(query_model)
+        result = dp_querier.query(query_model)
         dummy_query_response = QueryResponse(
             requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
@@ -248,10 +245,10 @@ async def process_message(
 
                     case query_response:
                         logger.debug(
-                            f"Response length: {len(query_response.json())} {message.correlation_id}"
+                            f"Response length: {len(query_response.model_dump_json())} {message.correlation_id}"
                         )
-                        # logger.debug(query_response.json())
-                        body = query_response.json().encode()
+                        # logger.debug(query_response.model_dump_json())
+                        body = query_response.model_dump_json().encode()
 
                 await channel.default_exchange.publish(
                     aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),

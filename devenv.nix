@@ -23,15 +23,11 @@ let
   dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
 in
 {
-  # overlay our packages (pkgs) set
-  overlays = import ./devenv/overlays.nix;
-
   # import our modules
   imports = [
     ./devenv/lomas.nix
     ./devenv/rabbitmq.nix
     ./devenv/keycloak.nix
-    ./devenv/mongodb.nix
     ./devenv/minio.nix
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
@@ -79,18 +75,6 @@ in
     httpManagementPort = 4441;
     bootstrapAdminUser = "admin";
     bootstrapAdminPass = "admin";
-  };
-
-  lomas.mongo = {
-    enable = true;
-    host = "localhost";
-    port = 27017;
-    dbName = "defaultdb";
-    extraDbNames = [ "testdb" ];
-    initialUser = "root";
-    initialPassword = "root_pwd";
-    user = "user";
-    password = "password";
   };
 
   lomas.minio = {
@@ -155,10 +139,6 @@ in
           metrics = 29090;
         };
       };
-      mongodbExporter = {
-        host = "localhost";
-        port = 9216;
-      };
     };
   };
 
@@ -198,12 +178,7 @@ in
       "floating-point"
       "honest-but-curious"
     ];
-    LOMAS_SERVICE_admin_database__url = config.lomas.mongo.dsn;
-    LOMAS_SERVICE_admin_database__username = config.lomas.mongo.user;
-    LOMAS_SERVICE_admin_database__password = config.lomas.mongo.password;
-    LOMAS_SERVICE_admin_database__max_pool_size = config.lomas.mongo.maxPoolSize;
-    LOMAS_SERVICE_admin_database__min_pool_size = config.lomas.mongo.minPoolSize;
-    LOMAS_SERVICE_admin_database__max_connecting = config.lomas.mongo.maxConnecting;
+    LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
     LOMAS_SERVICE_authenticator__authentication_type = "jwt";
     LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomas.keycloak.httpPort}";
     LOMAS_SERVICE_authenticator__realm = config.lomas.realm;
@@ -245,9 +220,7 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
-    LOMAS_ADMIN_MG_CONFIG__url = config.lomas.mongo.dsn;
-    LOMAS_ADMIN_MG_CONFIG__username = config.lomas.mongo.user;
-    LOMAS_ADMIN_MG_CONFIG__password = config.lomas.mongo.password;
+    LOMAS_ADMIN_database_url = "/tmp/admin.db";
     LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
     LOMAS_ADMIN_KC_CONFIG__REALM = config.lomas.realm;
     LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = config.lomas.admin.client_id;
@@ -371,8 +344,6 @@ in
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_healthy";
-              mongodb.condition = "process_healthy";
-              mongodb-configure.condition = "process_completed_successfully";
               keycloak.condition = "process_healthy";
               rabbitmq.condition = "process_healthy";
               keycloak-setup.condition = "process_completed_successfully";

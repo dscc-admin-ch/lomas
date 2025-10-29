@@ -4,13 +4,6 @@ from lomas_server.administration.keycloak_admin import (
     del_all_kc_users,
     del_kc_user,
 )
-from lomas_server.administration.mongodb_admin import (
-    add_user,
-    add_user_with_budget,
-    add_users_via_yaml,
-    del_user,
-    drop_collection,
-)
 from lomas_server.models.config import AdminConfig
 
 
@@ -28,7 +21,7 @@ def add_lomas_user(
         client_secret (str | None, optional):
             The client secret for the user in case one wants to specify it. Defaults to None.
     """
-    add_user(admin_config.mg_config, user_name, user_email)
+    admin_config.database.add_user(user_name, user_email)
 
     if admin_config.kc_config is not None:
         add_kc_user(admin_config.kc_config, user_name, user_email, client_secret)
@@ -57,7 +50,7 @@ def add_lomas_user_with_budget(
         client_secret (str | None, optional):
             The client secret for the user in case one wants to specify it. Defaults to None.
     """
-    add_user_with_budget(admin_config.mg_config, user_name, user_email, dataset, epsilon, delta)
+    admin_config.database.add_user(user_name, user_email, dataset, epsilon, delta)
 
     if admin_config.kc_config is not None:
         add_kc_user(admin_config.kc_config, user_name, user_email, client_secret)
@@ -72,14 +65,14 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
         admin_config (AdminConfig): The adinistration config
         user_name (str): The name of the user to be deleted.
     """
-    del_user(admin_config.mg_config, user_name)
+    admin_config.database.del_user(user_name)
 
     if admin_config.kc_config is not None:
         del_kc_user(admin_config.kc_config, user_name)
 
 
 def add_lomas_users_via_yaml(
-    admin_config: AdminConfig, yaml_file: str | dict, clean: bool, overwrite: bool, path_prefix: str = ""
+    admin_config: AdminConfig, yaml_file: str | dict, clean: bool, path_prefix: str = ""
 ) -> None:
     """Add all users from a yaml file.
 
@@ -93,17 +86,14 @@ def add_lomas_users_via_yaml(
         clean (bool): boolean flag
             True if drop current user collection
             False if keep current user collection
-        overwrite (bool): boolean flag
-            True if overwrite already existing users
-            False errors if new values for already existing users
         path_prefix (str, optional): path prefix to add to file paths.
     """
-    add_users_via_yaml(admin_config.mg_config, yaml_file, clean, overwrite, path_prefix=path_prefix)
+    admin_config.database.add_users_via_yaml(yaml_file, clean, path_prefix=path_prefix)
 
     if admin_config.kc_config is not None:
         # TODO: do we want to expose KC clean ?
         add_kc_users_via_yaml(
-            admin_config.kc_config, yaml_file, clean=False, overwrite=overwrite, path_prefix=path_prefix
+            admin_config.kc_config, yaml_file, clean=False, overwrite=True, path_prefix=path_prefix
         )
 
 
@@ -118,7 +108,7 @@ def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:
         collection (str): The collection to drop.
     """
 
-    drop_collection(admin_config.mg_config, collection)
+    admin_config.database.drop_collection(collection)
 
     if collection == "users" and admin_config.kc_config is not None:
         del_all_kc_users(admin_config.kc_config)

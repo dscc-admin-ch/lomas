@@ -13,14 +13,14 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import (
     QueryResponse,
-    QueryResultTypeAlias,
+    QueryResultT,
 )
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 
 RequestModelGeneric = TypeVar("RequestModelGeneric", bound=LomasRequestModel)
 QueryModelGeneric = TypeVar("QueryModelGeneric", bound=QueryModel)
-QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultTypeAlias)
+QueryResultGeneric = TypeVar("QueryResultGeneric", bound=QueryResultT)
 
 
 class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResultGeneric]):

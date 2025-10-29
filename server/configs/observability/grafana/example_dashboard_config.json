@@ -760,14 +760,14 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "lomas_server_mongodb_update_count_updates_total{instance=\"otel-collector:9090\"}",
+          "expr": "lomas_server_admindb_update_count_updates_total{instance=\"otel-collector:9090\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "MongoDB: Number of update queries",
+      "title": "AdminDB: Number of update queries",
       "type": "timeseries"
     }
   ],

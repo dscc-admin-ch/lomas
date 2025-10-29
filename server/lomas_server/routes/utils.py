@@ -16,9 +16,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityS
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import UnauthorizedAccessException
-from lomas_core.models.collections import UserId
-from lomas_core.models.constants import TimeAttackMethod
+from lomas_core.error_handler import (
+    InternalServerException,
+    UnauthorizedAccessException,
+)
+from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
+from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -26,7 +29,10 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.models.config import Config
+from lomas_server.auth.auth import get_user_id
+from lomas_server.data_connector.path_connector import PathConnector
+from lomas_server.data_connector.s3_connector import S3Connector
+from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
 
 AioPikaInstrumentor().instrument()
 
@@ -152,10 +158,43 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    user_id = request.app.state.authenticator.get_user_id(security_scopes, auth_creds)
+    user_id = get_user_id(request.app.state.authenticator, security_scopes, auth_creds)
     request.state.user_name = user_id.name
 
     return user_id
+
+
+def get_dataset_credentials(
+    private_db_credentials: dict[int, PrivateDBCredentials],
+    db_type: PrivateDatabaseType,
+    credentials_name: str,
+) -> PrivateDBCredentials:
+    """
+    Search the list of private database credentials and.
+
+    returns the one that matches the database type and
+    credentials name.
+
+    Args:
+        private_db_credentials (Sequence[PrivateDBCredentials]):\
+            The list of private database credentials.
+        db_type (PrivateDatabaseType): The type of the database.
+
+    Raises:
+        InternalServerException: If the credentials are not found.
+
+    Returns:
+        PrivateDBCredentials: The matching credentials.
+    """
+
+    if db_type == PrivateDatabaseType.S3:
+        for c in private_db_credentials.values():
+            if isinstance(c, S3CredentialsConfig) and (credentials_name == c.credentials_name):
+                return c
+
+    raise InternalServerException(
+        "Could not find credentials for private dataset. Please contact server administrator."
+    )
 
 
 @timing_protection
@@ -184,10 +223,38 @@ async def handle_query_to_job(
             or a CostResponse containing the epsilon, delta and privacy-loss budget cost for the request.
     """
     app = request.app
+    admin_database = app.state.admin_database
+    private_db_credentials = app.state.private_db_credentials
 
     dataset_name = query.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_name, dataset_name):
+
+    if not admin_database.has_user_access_to_dataset(user_name, dataset_name):
         raise UnauthorizedAccessException(f"{user_name} does not have access to {dataset_name}.")
+
+    ds_access = admin_database.get_dataset(dataset_name).dataset_access
+    ds_metadata = admin_database.get_dataset_metadata(dataset_name)
+    data_connector = None
+
+    match ds_access:
+        case DSPathAccess():
+            data_connector = PathConnector(metadata=ds_metadata, dataset_path=ds_access.path)
+        case DSS3Access():
+            credentials = get_dataset_credentials(
+                private_db_credentials,
+                ds_access.database_type,
+                ds_access.credentials_name,
+            )
+
+            if not isinstance(credentials, S3CredentialsConfig):
+                raise InternalServerException("Could not get correct credentials")
+
+            ds_access = DSS3Access.model_validate(ds_access)
+            ds_access.access_key_id = credentials.access_key_id
+            ds_access.secret_access_key = credentials.secret_access_key
+
+            data_connector = S3Connector(metadata=ds_metadata, credentials=ds_access)
+        case _:
+            raise InternalServerException(f"Unknown database type: {ds_access.database_type}")
 
     match query:
         case DummyQueryModel():
@@ -203,7 +270,8 @@ async def handle_query_to_job(
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(
-            body=f"{user_name}:{dp_library}:{query.model_dump_json()}".encode(), correlation_id=new_task.uid
+            body=f"{user_name}λ{dp_library}λ{data_connector.model_dump_json()}λ{query.model_dump_json()}".encode(),
+            correlation_id=new_task.uid,
         ),
         routing_key=queue_name,
     )

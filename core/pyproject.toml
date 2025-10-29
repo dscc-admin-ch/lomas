@@ -44,7 +44,6 @@ dependencies = [
     "polars==1.12.0",
     "pydantic>=2.8,<2.12", # 2.12 breaks with fastapi
     "pydantic-settings>=2.8",
-    "pymongo>=4.6.3",
     "smartnoise-synth>=1.0.4",
     "smartnoise_synth_logger>=0.0.3",
     "private-pgm",

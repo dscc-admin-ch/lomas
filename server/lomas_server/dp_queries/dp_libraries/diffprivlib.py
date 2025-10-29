@@ -67,7 +67,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
                 step.accountant = self.accountant
 
         # 2. Get metadata for features
-        columns_metadata = self.data_connector.get_metadata().model_dump()["columns"]
+        columns_metadata = self.data_connector.metadata.model_dump()["columns"]
         feature_metadata = {col: columns_metadata[col] for col in feature_columns}
 
         first_step = self.dpl_pipeline.steps[0][1]

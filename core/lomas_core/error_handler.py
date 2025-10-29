@@ -4,7 +4,6 @@ from typing import Any, Never
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pymongo.errors import WriteConcernError
 
 from lomas_core.constants import DPLibraries
 from lomas_core.models.exceptions import (
@@ -78,7 +77,6 @@ KNOWN_EXCEPTIONS: tuple[type[BaseException], ...] = (
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
-    WriteConcernError,
 )
 
 

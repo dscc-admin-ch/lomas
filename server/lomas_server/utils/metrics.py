@@ -27,28 +27,3 @@ FAST_API_REQUESTS_IN_PROGRESS_GAUGE = meter.create_up_down_counter(
     "requests_in_progress",
     description="Gauge of requests currently being processed",
 )
-
-# MongoDB Metrics
-MONGO_QUERY_COUNTER = meter.create_counter(
-    name="mongodb_query_count",
-    description="Number of MongoDB queries executed",
-    unit="queries",
-)
-
-MONGO_INSERT_COUNTER = meter.create_counter(
-    name="mongodb_insert_count",
-    description="Number of MongoDB insert operations executed",
-    unit="inserts",
-)
-
-MONGO_UPDATE_COUNTER = meter.create_counter(
-    name="mongodb_update_count",
-    description="Number of MongoDB update operations executed",
-    unit="updates",
-)
-
-MONGO_ERROR_COUNTER = meter.create_counter(
-    name="mongodb_error_count",
-    description="Number of MongoDB errors encountered",
-    unit="errors",
-)

@@ -23,8 +23,8 @@ class DatasetOfUser(BaseModel):
     dataset_name: str
     initial_epsilon: float
     initial_delta: float
-    total_spent_epsilon: float
-    total_spent_delta: float
+    total_spent_epsilon: float = Field(default=0.0)
+    total_spent_delta: float = Field(default=0.0)
 
 
 # User

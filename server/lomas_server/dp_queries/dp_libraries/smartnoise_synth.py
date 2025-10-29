@@ -353,7 +353,7 @@ class SmartnoiseSynthQuerier(
             table_transformer_style = SSynthTableTransStyle.GAN
 
         # Preprocessing information from metadata
-        metadata = self.data_connector.get_metadata()
+        metadata = self.data_connector.metadata
         if query_json.synth_name == SSynthGanSynthesizer.PATE_GAN:
             if metadata.rows < SSYNTH_MIN_ROWS_PATE_GAN:
                 raise ExternalLibraryException(

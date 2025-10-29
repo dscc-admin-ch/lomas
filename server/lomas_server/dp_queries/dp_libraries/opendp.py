@@ -42,7 +42,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = self.data_connector.get_metadata().model_dump()
+        self.metadata = self.data_connector.metadata.model_dump()
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """

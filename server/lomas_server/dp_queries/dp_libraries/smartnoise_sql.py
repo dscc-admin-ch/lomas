@@ -61,7 +61,7 @@ class SmartnoiseSQLQuerier(
         df = df[self.query_columns]
 
         # Prepare metadata in smartnoise-sql format
-        metadata = self.data_connector.get_metadata()
+        metadata = self.data_connector.metadata
         smartnoise_metadata = convert_to_smartnoise_metadata(metadata, self.query_columns)
 
         self.reader = from_connection(

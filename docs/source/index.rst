@@ -52,21 +52,21 @@ The server side, implemented in a micro-service architecture, is composed of two
 
 - A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
 
-- A MongoDB administration database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
+- A Admin database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
 
 
 The server connects to external databases, typically deployed by a data owner, to download the
 sensitive datasets for query execution. Currently, the server can manage adapters to S3,
 http file download and local files.
 
-For extensive informations about how to administrate the MongoDB database,
+For extensive informations about how to administrate the Admin database,
 please refer to :doc:`Administration <server_administration>` section.
 
 We aim to facilitate the platform configuration, deployment and testing on commonly available
 IT infrastructure for NSOs and other potential users.
 
 In this regard, we provide two Helm charts for deploying the server components (server and
-MongoDB database) and a client development environment in a Kubernetes cluster.
+Admin database) and a client development environment in a Kubernetes cluster.
 
 For extensive informations about how to deploy, please refer to :doc:`Deployment <server_deployment>`
 documentation.

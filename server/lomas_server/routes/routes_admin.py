@@ -245,7 +245,6 @@ def get_dummy_dataset(
     )
 
 
-# MongoDB get initial budget
 @router.post(
     "/get_initial_budget",
     tags=["USER_BUDGET"],
@@ -293,7 +292,6 @@ def get_initial_budget(
     return InitialBudgetResponse(initial_epsilon=initial_epsilon, initial_delta=initial_delta)
 
 
-# MongoDB get total spent budget
 @router.post(
     "/get_total_spent_budget",
     tags=["USER_BUDGET"],
@@ -341,7 +339,6 @@ def get_total_spent_budget(
     return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
 
 
-# MongoDB get remaining budget
 @router.post(
     "/get_remaining_budget",
     tags=["USER_BUDGET"],
@@ -388,7 +385,6 @@ def get_remaining_budget(
     return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
 
-# MongoDB get archives
 @router.post(
     "/get_previous_queries",
     tags=["USER_BUDGET"],

@@ -2,17 +2,16 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-import pymongo
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from rich.logging import RichHandler
 
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
 from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.constants import init_logging
 from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -25,15 +24,9 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
-logging.basicConfig(
-    level="DEBUG",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True, tracebacks_suppress=[pymongo])],
-)
+init_logging()
+
 logger = logging.getLogger(__name__)
-for loggers in ["aio_pika", "aiormq", "botocore", "faker", "pymongo", "urllib3", "httpx"]:
-    logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 @asynccontextmanager

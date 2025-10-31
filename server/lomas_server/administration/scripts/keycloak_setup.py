@@ -5,6 +5,9 @@ from mantelo import HttpException, KeycloakAdmin
 from pydantic import BaseModel, Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from lomas_core.models.constants import init_logging
+
+init_logging()
 logger = logging.getLogger(__name__)
 
 

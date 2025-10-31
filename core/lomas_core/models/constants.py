@@ -1,7 +1,10 @@
+import logging
 from collections.abc import Sequence
 from enum import IntEnum, StrEnum
 from importlib import metadata
 from typing import Literal
+
+from rich.logging import RichHandler
 
 # Field names
 # -----------------------------------------------------------------------------
@@ -76,6 +79,21 @@ class AuthenticationType(StrEnum):
 
     FREE_PASS = "free_pass"
     JWT = "jwt"
+
+
+# Logging
+# -----------------------------------------------------------------------------
+
+
+def init_logging() -> None:
+    logging.basicConfig(
+        level="DEBUG",
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
+    )
+    for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
+        logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 # Exceptions

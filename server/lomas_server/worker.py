@@ -7,13 +7,11 @@ from collections.abc import Callable
 from typing import Any, Never
 
 import aio_pika
-import pymongo
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from rich.logging import RichHandler
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -23,6 +21,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.constants import init_logging
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -52,15 +51,9 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-logging.basicConfig(
-    level="DEBUG",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True, tracebacks_suppress=[pymongo])],
-)
+init_logging()
+
 logger = logging.getLogger(__name__)
-for loggers in ["aio_pika", "aiormq", "botocore", "faker", "pymongo", "urllib3", "httpx"]:
-    logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 AioPikaInstrumentor().instrument()
@@ -149,7 +142,7 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
 
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
-        logger.debug(f" [x] Done ({elapsed:.2f})")
+        logger.debug(f"Done ({elapsed:.2f})")
         return CostResponse(epsilon=eps_cost, delta=delta_cost)
     except Exception as exc:  # pylint: disable=broad-exception-caught
         known_exc = handle_exceptions(exc)
@@ -190,7 +183,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         )
         query_response = dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
-        logger.debug(f" [x] Done ({elapsed:.2f})")
+        logger.debug(f"Done ({elapsed:.2f})")
         return query_response
     except Exception as exc:  # pylint: disable=broad-exception-caught
         known_exc = handle_exceptions(exc)
@@ -227,7 +220,7 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
             requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
         elapsed = time.time() - start_sec
-        logger.debug(f" [x] Done ({elapsed:.2f})")
+        logger.debug(f"Done ({elapsed:.2f})")
         return dummy_query_response
     except Exception as exc:  # pylint: disable=broad-exception-caught
         known_exc = handle_exceptions(exc)
@@ -318,7 +311,7 @@ def run() -> None:
         LoggingInstrumentor().instrument(set_logging_format=True)
         init_telemetry(config.telemetry)
 
-    logger.info(" [*] Waiting for messages. To exit press CTRL+C")
+    logger.info("Waiting for messages. To exit press CTRL+C")
     asyncio.run(process_all_queues())
 
 

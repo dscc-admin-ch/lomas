@@ -11,6 +11,7 @@ from typing import Annotated
 from uuid import UUID
 
 import aio_pika
+from aio_pika.patterns import RPC
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
@@ -111,6 +112,14 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
     background_tasks.add(dummy_response_task)
     dummy_response_task.add_done_callback(background_tasks.discard)
+
+    rpc = await RPC.create(channel)
+    await rpc.register("get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query)
+    await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query)
+    await rpc.register("get_remaining_budget", app.state.admin_database.get_remaining_budget)
+    await rpc.register("update_budget", app.state.admin_database.update_budget)
+    await rpc.register("save_query", app.state.admin_database.save_query)
+    await rpc.register("get_dataset_metadata", app.state.admin_database.get_dataset_metadata)
 
     yield  # app is handling requests
 

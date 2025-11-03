@@ -393,11 +393,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
-    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
-        _ = self.get_and_set_may_user_query(user_name, may_query)
-
-    @override
-    @user_must_exist
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         with shelve.open(self.path, writeback=True) as db:
             previous_may_query = db["users"][user_name]["may_query"]
@@ -457,7 +452,7 @@ class LocalAdminDatabase(AdminDatabase):
             return (user_name, dataset_name) == op.itemgetter("user_name", "dataset_name")(archive)
 
         with shelve.open(self.path, flag="r") as db:
-            return list(filter(match, db["queries_archive"]))
+            return list(filter(match, db.get("queries_archive", [])))
 
     @override
     def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:

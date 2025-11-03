@@ -160,7 +160,6 @@ class AdminDatabase(ABC, BaseModel):
             Metadata: The metadata object.
         """
 
-    @abstractmethod
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
@@ -174,6 +173,7 @@ class AdminDatabase(ABC, BaseModel):
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
         """
+        _ = self.get_and_set_may_user_query(user_name, may_query)
 
     @abstractmethod
     @user_must_exist

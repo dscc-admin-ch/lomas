@@ -4,9 +4,11 @@ import logging
 import signal
 import time
 from collections.abc import Callable
+from functools import partial
 from typing import Any, Never
 
 import aio_pika
+from aio_pika.patterns.rpc import RPC, Proxy
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -43,7 +45,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.data_connector import ConnectorUnionTA
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
@@ -58,14 +59,9 @@ init_logging()
 
 logger = logging.getLogger(__name__)
 
-
 AioPikaInstrumentor().instrument()
 
 config = Config()
-try:
-    admin_database = LocalAdminDatabase(path=config.admin_database_url)
-except InternalServerException:
-    logger.exception("Failed to connect to the admin database")
 set_opendp_features_config(config.opendp_features)
 
 
@@ -111,7 +107,7 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
             )
 
 
-def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
+async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse | tuple[bytes, int]:
     """Handle Cost query into CostResponse."""
     start_sec = time.time()
     message = body.decode()
@@ -147,7 +143,7 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         return known_exc.body, known_exc.status_code
 
 
-def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
+async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP query into QueryResponse."""
 
     start_sec = time.time()
@@ -175,7 +171,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
             dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
-        query_response = dp_querier.handle_query(query_json, user_name)
+        query_response = await dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
         return query_response
@@ -184,7 +180,7 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return known_exc.body, known_exc.status_code
 
 
-def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
+async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP-dummy query into QueryResponse."""
 
     start_sec = time.time()
@@ -195,19 +191,19 @@ def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
-            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
         case DPLibraries.SMARTNOISE_SYNTH:
             query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model_str)
-            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
             dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
-            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
             dp_querier = OpenDPQuerier(data_connector, admin_database)
         case DPLibraries.DIFFPRIVLIB:
             query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model_str)
-            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
             dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
@@ -237,8 +233,7 @@ async def process_message(
             async with message.process():
                 headers = None
                 body = b""
-
-                match message_handler(message.body):
+                match await message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
                         headers = {"type": "exception", "status_code": status_code}
                         body = exc_body
@@ -281,12 +276,23 @@ async def process_all_queues() -> None:
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
+        rpc = await RPC.create(channel)
 
         try:
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
-                tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
-                tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
+                tg.create_task(
+                    process_message(channel, "task_queue", "task_response", partial(handle_query, rpc.proxy))
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "cost_queue", "cost_response", partial(handle_cost_query, rpc.proxy)
+                    )
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "dummy_queue", "dummy_response", partial(handle_dummy_query, rpc.proxy)
+                    )
+                )
 
                 # register signal for polite TaskGroup termination
                 for signame in ["SIGINT", "SIGTERM"]:

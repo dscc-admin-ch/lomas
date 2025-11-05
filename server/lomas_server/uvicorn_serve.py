@@ -32,6 +32,7 @@ def uvicorn_serve() -> None:
         reload=config.server.reload,
         forwarded_allow_ips=config.server.forwarded_allow_ips,
         root_path=config.server.root_path,
+        use_colors=True,
     )
 
 

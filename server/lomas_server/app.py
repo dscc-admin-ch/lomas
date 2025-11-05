@@ -1,5 +1,4 @@
 import logging
-import logging.config
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -12,6 +11,7 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.constants import init_logging
 from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -23,6 +23,8 @@ from lomas_server.routes.middlewares import (
     LoggingAndTracingMiddleware,
 )
 from lomas_server.routes.utils import rabbitmq_ctx
+
+init_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +50,9 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     # Load admin database
     try:
-        logger.debug("Loading admin database")
+        logger.info("Loading admin database")
         lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
-        logger.debug("Loading authenticator")
+        logger.info("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator.user_auth()
 
     except InternalServerException as e:
@@ -65,7 +67,6 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
 # Init config for logging purposes
 initConfig = Config()
-logging.config.dictConfig(initConfig.logging_config)
 
 # Initalise telemetry
 if initConfig.telemetry.enabled:

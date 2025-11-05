@@ -1,7 +1,10 @@
+import logging
 from collections.abc import Sequence
 from enum import IntEnum, StrEnum
 from importlib import metadata
 from typing import Literal
+
+from rich.logging import RichHandler
 
 # Field names
 # -----------------------------------------------------------------------------
@@ -78,34 +81,19 @@ class AuthenticationType(StrEnum):
     JWT = "jwt"
 
 
-DefaultLoggingConf = {
-    "disable_existing_loggers": False,
-    "formatters": {"simple": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}},
-    "handlers": {
-        "stdout": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-            "level": "DEBUG",
-            "stream": "ext://sys.stdout",
-        }
-    },
-    "loggers": {
-        "aio_pika.exchange": {"level": "INFO"},
-        "aiormq.channel": {"level": "INFO"},
-        "aiormq.connection": {"level": "INFO"},
-        "botocore": {"level": "INFO"},
-        "botocore.endpoint": {"level": "INFO"},
-        "faker": {"level": "WARN"},
-        "pymongo.command": {"level": "INFO"},
-        "pymongo.connection": {"level": "INFO"},
-        "pymongo.serverSelection": {"level": "INFO"},
-        "pymongo.topology": {"level": "INFO"},
-        "urllib3": {"level": "INFO"},
-        "httpx": {"level": "WARN"},
-    },
-    "root": {"handlers": ["stdout"], "level": "DEBUG"},
-    "version": 1,
-}
+# Logging
+# -----------------------------------------------------------------------------
+
+
+def init_logging() -> None:
+    logging.basicConfig(
+        level="DEBUG",
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
+    )
+    for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
+        logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 # Exceptions

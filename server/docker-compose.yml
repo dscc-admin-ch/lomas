@@ -11,6 +11,7 @@ services:
     restart: always
     env_file: ./configs/.env.lomas_service
     volumes:
+      - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
     depends_on:
@@ -136,6 +137,7 @@ services:
     entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
     env_file: ./configs/administration/.env.lomas_demo_setup
     volumes:
+      - admindata:/tmp
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/

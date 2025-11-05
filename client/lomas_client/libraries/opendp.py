@@ -1,3 +1,5 @@
+from base64 import b64encode
+
 import opendp as dp
 import polars as pl
 
@@ -56,7 +58,7 @@ class OpenDPClient:
             body_json["opendp_json"] = opendp_pipeline.to_json()
             body_json["pipeline_type"] = OpenDpPipelineType.LEGACY
         elif isinstance(opendp_pipeline, pl.LazyFrame):
-            body_json["opendp_json"] = opendp_pipeline.serialize(format="json")
+            body_json["opendp_json"] = b64encode(opendp_pipeline.serialize()).decode("utf-8")
             body_json["pipeline_type"] = OpenDpPipelineType.POLARS
         else:
             raise InvalidQueryException(

@@ -40,39 +40,12 @@ spec:
               done;
           resources:
             {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
-        - name: mongo-check
-          image: {{ include "mongodb.image" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
-          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
-          command:
-            - sh
-            - -c
-            - >
-              until mongosh --host {{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
-                echo "Mongo not ready yet";
-                sleep 10;
-              done;
-              echo "Mongo ready"
-              exit 0;
-          resources:
-            {{ toYaml .Values.admin.keycloakSetup.resources | nindent 12}}
       containers:
         - name: lomas-demo-setup
           image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}
           imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
           command: ["python", "-m", "lomas_server.administration.scripts.lomas_demo_setup"]
           env:
-            - name: LOMAS_ADMIN_MG_CONFIG__URL
-              value: "mongodb://{{- include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) -}}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
-            - name: LOMAS_ADMIN_MG_CONFIG__USERNAME
-              value: "{{ index .Values.mongodb.auth.usernames 0 }}"
-            - name: LOMAS_ADMIN_MG_CONFIG__PASSWORD
-              value: "{{ index .Values.mongodb.auth.passwords 0 }}"
-            - name: LOMAS_ADMIN_MG_CONFIG__MAX_POOL_SIZE
-              value: "{{ .Values.mongodb.max_pool_size }}"
-            - name: LOMAS_ADMIN_MG_CONFIG__MIN_POOL_SIZE
-              value: "{{ .Values.mongodb.min_pool_size }}"
-            - name: LOMAS_ADMIN_MG_CONFIG__MAX_CONNECTING
-              value: "{{ .Values.mongodb.max_connecting }}"
             - name: LOMAS_ADMIN_KC_CONFIG__URL
               value: "https://{{ .Values.caddy.hostname }}/auth"
             - name: LOMAS_ADMIN_KC_CONFIG__REALM

@@ -1,12 +1,3 @@
-{{/* Secrets names and keys */}}
-
-{{/* Enforce MongoDB only has one password in the list -------------------------*/}}
-
-{{- if gt (len .Values.mongodb.auth.passwords) 1 }}
-{{- fail "Lomas only supports a single password in 'mongodb.auth.passwords'." }}
-{{- end }}
-
-
 {{/* Lomas Admin ---------------------------------------------------------------*/}}
 
 {{- define "lomas-admin.secretName" -}}

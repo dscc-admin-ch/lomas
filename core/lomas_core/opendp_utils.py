@@ -1,9 +1,10 @@
 import io
 import re
+from base64 import b64decode
+from functools import reduce
 
-import opendp as dp
+import opendp.prelude as dp
 import polars as pl
-from opendp_logger import make_load_json
 
 from lomas_core.constants import OPENDP_OUTPUT_MEASURE, OPENDP_TYPE_MAPPING, OpenDpPipelineType
 from lomas_core.error_handler import InternalServerException, InvalidQueryException
@@ -11,7 +12,7 @@ from lomas_core.models.constants import MetadataColumnType
 from lomas_core.models.requests import OpenDPQueryModel
 
 
-def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
+def get_raw_lf_domain(metadata_dict: dict) -> dp.Domain:
     """
     Builds the "raw" lf domain from the metadata.
 
@@ -45,31 +46,26 @@ def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
         )
         series_type = OPENDP_TYPE_MAPPING[series_type]
 
-        series_domain = dp.domains.series_domain(
+        series_domain = dp.series_domain(
             name,
-            dp.domains.atom_domain(T=series_type, nullable=series_nullable, bounds=series_bounds),
+            dp.atom_domain(T=series_type, nan=series_nullable, bounds=series_bounds),
         )
         series_domains.append(series_domain)
 
     # Build domain from series domain
-    raw_lf_domain = dp.domains.lazyframe_domain(series_domains)
+    raw_lf_domain = dp.lazyframe_domain(series_domains)
 
     return raw_lf_domain
 
 
-def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain:
+def add_global_margin(lf_domain: dp.Domain, metadata: dict) -> dp.Domain:
     """Builds the "global" (by = []) margin from the metadata."""
-    lf_domain = dp.domains.with_margin(
-        lf_domain,
-        by=[],
-        public_info="keys",
-        max_partition_length=metadata["rows"],
-        # max_partition_contributions already managed in the input_distance
-    )
+    margin = dp.polars.Margin(max_length=metadata["rows"], invariant="keys")
+    lf_domain = dp.with_margin(lf_domain, margin)
     return lf_domain
 
 
-def extract_group_by_columns(plan: str) -> list:
+def extract_group_by_columns(plan: pl.LazyFrame) -> list:
     """
     Extract column names used in the BY operation from the plan string.
 
@@ -82,20 +78,18 @@ def extract_group_by_columns(plan: str) -> list:
     aggregate_by_pattern = r"AGGREGATE(?:.|\n)+?BY \[(.*?)\]"
 
     # Find the part of the plan related to the GROUP BY clause
-    match = re.findall(aggregate_by_pattern, plan)
-
-    if len(match) == 1:
-        # Extract the columns part
-        columns_part = match[0]
-        # Find all column names inside col("...")
-        column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
-        return column_names
-    if len(match) > 1:
-        raise InvalidQueryException(
-            "Your are trying to do multiple groupings. "
-            "This is currently not supported, please use one grouping"
-        )
-    return []
+    match re.findall(aggregate_by_pattern, plan.explain()):
+        case []:
+            return []
+        case [columns_part]:
+            # Find all column names inside col("...")
+            column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
+            return column_names
+        case _:
+            raise InvalidQueryException(
+                "Your are trying to do multiple groupings. "
+                "This is currently not supported, please use one grouping"
+            )
 
 
 def multiply_or_none(values: list[int | None]) -> int | None:
@@ -110,10 +104,8 @@ def multiply_or_none(values: list[int | None]) -> int | None:
     """
     if any(v is None for v in values):
         return None
-    result = 1
-    for v in (v for v in values if v is not None):
-        result *= v
-    return result
+
+    return reduce(lambda acc, v: acc * v, values, 1)  # type: ignore[operator]
 
 
 def multiple_group_params(metadata: dict, by_config: list) -> dict:
@@ -128,7 +120,7 @@ def multiple_group_params(metadata: dict, by_config: list) -> dict:
         (dict) updated margin_params for the groupby
     """
     # Initialize values
-    max_partition_length = metadata["rows"]
+    max_length = metadata["rows"]
     max_num_partitions_l = []
     max_influenced_partitions_l = []
     max_partition_contributions_l = []
@@ -137,9 +129,9 @@ def multiple_group_params(metadata: dict, by_config: list) -> dict:
     for column in by_config:
         series_info = metadata["columns"][column]
 
-        # Update the max_partition_length
-        if series_info["max_partition_length"] is not None:
-            max_partition_length = min(max_partition_length, series_info["max_partition_length"])
+        # Update the max_length
+        if (series_max_length := series_info.get("max_partition_length")) is not None:
+            max_length = min(max_length, series_max_length)
 
         # Get all groupby parameters in a list
         max_num_partitions_l.append(series_info.get("cardinality", None))
@@ -154,9 +146,9 @@ def multiple_group_params(metadata: dict, by_config: list) -> dict:
 
     # Make margin
     margin_params = {}
-    margin_params["max_partition_length"] = max_partition_length
+    margin_params["max_length"] = max_length
     if max_num_partitions:
-        margin_params["max_num_partitions"] = max_num_partitions
+        margin_params["max_groups"] = max_num_partitions
 
     # If max_influenced_partitions > max_ids: then max_influenced_partitions = max_ids
     if max_influenced_partitions:
@@ -171,7 +163,7 @@ def multiple_group_params(metadata: dict, by_config: list) -> dict:
     return margin_params
 
 
-def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
+def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.Domain:
     """
     Returns the OpenDP LazyFrame domain given a metadata dictionary.
 
@@ -181,7 +173,7 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     Raises:
         Exception: If there is missing information in the metadata.
     Returns:
-        dp.mod.Domain: The OpenDP domain for the metadata.
+        dp.Domain: The OpenDP domain for the metadata.
     """
     # Get raw lf domain (without margins)
     raw_lf_domain = get_raw_lf_domain(metadata_dict)
@@ -190,18 +182,14 @@ def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
     lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
 
     # If grouping in the query, we update the margin params
-    by_config = extract_group_by_columns(plan.explain())
+    by_config = extract_group_by_columns(plan)
     if len(by_config) >= 1:
         margin_params = multiple_group_params(metadata_dict, by_config)
         # TODO 323: Multiple margins?
         # What if two group_by's in one query?
         # Update margin with group_margin
-        lf_domain = dp.domains.with_margin(
-            lf_domain,
-            by=by_config,
-            public_info="keys",
-            **margin_params,
-        )
+        margin = dp.polars.Margin(by=by_config, **margin_params, invariant="keys")
+        lf_domain = dp.with_margin(lf_domain, margin)
     return lf_domain
 
 
@@ -220,20 +208,19 @@ def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dic
     Returns:
         dp.Measurement: The reconstructed pipeline.
     """
+    dp.enable_features("contrib")
     # Reconstruct pipeline
-    if query_json.pipeline_type == OpenDpPipelineType.LEGACY:
-        opendp_pipe = make_load_json(query_json.opendp_json)
-    elif query_json.pipeline_type == OpenDpPipelineType.POLARS:
-        plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
+    if query_json.pipeline_type == OpenDpPipelineType.POLARS:
+        plan = pl.LazyFrame.deserialize(io.BytesIO(b64decode(query_json.opendp_json.encode("utf-8"))))
 
         assert query_json.mechanism is not None
         output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
 
         lf_domain = get_lf_domain(metadata, plan)
 
-        opendp_pipe = dp.measurements.make_private_lazyframe(
+        opendp_pipe = dp.m.make_private_lazyframe(
             lf_domain,
-            dp.metrics.symmetric_distance(),
+            dp.symmetric_distance(),
             output_measure,
             plan,
             threshold=100,

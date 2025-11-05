@@ -14,7 +14,6 @@ from pydantic import (
     ValidationInfo,
     field_validator,
 )
-from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
 from lomas_core.models.exceptions import LomasServerExceptionType
@@ -152,10 +151,10 @@ class SmartnoiseSynthModel(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
-    """Synthetic data generator model."""
-    type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
     """Result type description."""
+    type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
+    """Synthetic data generator model."""
+    # model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
 
 
 class SmartnoiseSynthSamples(BaseModel):

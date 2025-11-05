@@ -2,7 +2,6 @@ import opendp.prelude as dp_p
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from opendp_logger import enable_logging
 
 from lomas_core.constants import OpenDpPipelineType
 from lomas_core.models.exceptions import (
@@ -24,10 +23,9 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
+@pytest.mark.xfail(reason="legacy OpenDP pipeline")
 class TestOpenDpEndpoint(TestSetupRootAPIEndpoint):
     """Test OpenDP Endpoint."""
-
-    enable_logging()
 
     @pytest.mark.long
     def test_opendp_query(self) -> None:

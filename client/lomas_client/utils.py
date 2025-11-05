@@ -1,4 +1,3 @@
-import warnings
 from json import JSONDecodeError
 from typing import Any, Never, TypeVar
 
@@ -7,7 +6,6 @@ from fastapi import status
 from pydantic import ValidationError
 
 from lomas_client.http_client import LomasHttpClient
-from lomas_core.constants import SSynthGanSynthesizer, SSynthMarginalSynthesizer
 from lomas_core.error_handler import InternalServerException, raise_error_from_model
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import ResponseModel
@@ -28,34 +26,6 @@ def raise_error(response: requests.Response) -> Never:
         raise InternalServerException(f"Could not parse server error: {response.content}") from e
 
     raise_error_from_model(error_model)
-
-
-def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
-    """Validate smartnoise synthesizer (some model are not accepted).
-
-    Args:
-        synth_name (str): name of the Synthesizer model to use.
-        return_model (bool): True to get Synthesizer model, False to get samples
-
-    Raises:
-        ValueError: if a synthesizer or its parameters are not valid
-    """
-    if synth_name in [
-        SSynthGanSynthesizer.DP_CTGAN,
-        SSynthGanSynthesizer.DP_GAN,
-    ]:
-        warnings.warn(
-            f"Warning:{synth_name} synthesizer random generator for noise and "
-            + "shuffling is not cryptographically secure. "
-            + "(pseudo-rng in vanilla PyTorch)."
-        )
-    if synth_name == SSynthMarginalSynthesizer.MST and return_model:
-        raise ValueError(
-            f"{synth_name} synthesizer cannot be returned, only samples. "
-            + "Please, change synthesizer or set `return_model=False`."
-        )
-    if synth_name == SSynthMarginalSynthesizer.PAC_SYNTH:
-        raise ValueError(f"{synth_name} synthesizer not supported. Please choose another synthesizer.")
 
 
 def validate_model_response_direct(response: requests.Response, response_model: Any) -> Any:

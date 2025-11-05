@@ -93,4 +93,5 @@ def get_user_id(
                 # TODO problematic to add e into error message to client?
                 raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
+    logger.debug(f"Authenticated user {user.name}")
     return user

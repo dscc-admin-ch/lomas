@@ -128,11 +128,10 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
                     expressions.append(pl.col(col).fill_null("").alias(col))
 
-            input_data = input_data.with_columns(expressions)
+            # input_data = input_data.with_columns(expressions)
         else:  # TODO 401 validate input in json model instead of with if-else statements
             raise InternalServerException(
-                f"""Invalid pipeline type: '{query_json.pipeline_type}.'
-                                        Should be legacy or polars"""
+                f"Invalid pipeline type: '{query_json.pipeline_type}.' Should be legacy or polars"
             )
         try:
             release_data = opendp_pipe(input_data)

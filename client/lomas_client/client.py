@@ -5,8 +5,6 @@ import pickle
 import pandas as pd
 import polars as pl
 from fastapi import status
-from opendp.mod import enable_features
-from opendp_logger import enable_logging
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
 
@@ -18,7 +16,6 @@ from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
-from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
@@ -31,10 +28,6 @@ from lomas_core.models.responses import (
     SpentBudgetResponse,
 )
 from lomas_core.opendp_utils import reconstruct_measurement_pipeline
-
-# Opendp_logger
-enable_logging()
-enable_features("contrib")
 
 
 class Client:
@@ -66,7 +59,6 @@ class Client:
 
         self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
-        self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
@@ -118,41 +110,9 @@ class Client:
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
-            if lazy:
-                # Temporary: we use type string for datetime in polars
-                # Will be fixed in 0.13
-                for col in dummy_df.select_dtypes(include=["datetime"]):
-                    dummy_df[col] = dummy_df[col].astype("string[python]")
-                print(
-                    "Datetime type mismatch: The Polars LazyFrame currently uses 'str' for datetime fields, "
-                    "which may not match the expected metadata types. This is a temporary workaround "
-                    "and will be resolved in a future release (>=0.13)."
-                )
-                return pl.from_pandas(dummy_df).lazy()
-
-            return dummy_df
+            return pl.from_pandas(dummy_df).lazy() if lazy else dummy_df
 
         raise_error(res)
-
-    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
-        """
-        Returns the polars LazyFrame for the dummy dataset with optional parameters.
-
-        Args:
-            nb_rows (int, optional): The number of rows in the dummy dataset.
-                Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.
-                Defaults to DUMMY_SEED.
-
-        Returns:
-            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
-        """
-        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
-
-        # TODO: fix when pandas can handle datetime
-        for col in dummy_pandas.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns:
-            dummy_pandas[col] = dummy_pandas[col].astype(str)
-        return pl.from_pandas(dummy_pandas).lazy()
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.
@@ -224,13 +184,6 @@ class Client:
                 match query["dp_library"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
-                    case DPLibraries.SMARTNOISE_SYNTH:
-                        return_model = query["client_input"]["return_model"]
-                        res = query["response"]["result"]
-                        if return_model:
-                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
-                        else:
-                            query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
                         query_json = OpenDPQueryModel.model_validate(query["client_input"])
                         query["client_input"]["opendp_json"] = reconstruct_measurement_pipeline(

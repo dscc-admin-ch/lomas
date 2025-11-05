@@ -7,10 +7,7 @@ from lomas_client.constants import (
     SNSYNTH_DEFAULT_SAMPLES_NB,
 )
 from lomas_client.http_client import LomasHttpClient
-from lomas_client.utils import (
-    validate_model_response,
-    validate_synthesizer,
-)
+from lomas_client.utils import validate_model_response
 from lomas_core.models.requests import (
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
@@ -77,7 +74,6 @@ class SmartnoiseSynthClient:
         Returns:
             CostResponse: The estimated cost.
         """
-        validate_synthesizer(synth_name)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
@@ -167,7 +163,6 @@ class SmartnoiseSynthClient:
         Returns:
             QueryResponse: A Pandas DataFrame containing the query results.
         """
-        validate_synthesizer(synth_name, return_model)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {

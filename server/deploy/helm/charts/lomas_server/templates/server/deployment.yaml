@@ -46,21 +46,6 @@ spec:
               fi;
               sleep 10;
             done;
-      # TODO: remove once the server supports connection retries to the mongodb issue 424.
-      - name: mongo-check
-        image: {{ include "mongodb.image" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
-        resources:
-          {{- toYaml .Values.admin.initContainers.resources | nindent 10 }}
-        command:
-          - sh
-          - -c
-          - >
-            until mongosh --host {{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }} --eval 'if (!(db.hello().isWritablePrimary || db.hello().secondary)){throw new Error("Not ready")}'; do
-              echo "Mongo not ready yet";
-              sleep 10;
-            done;
-            echo "Mongo ready"
-            exit 0;
       containers:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:
@@ -91,21 +76,6 @@ spec:
             value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
           - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__URL
-            value: "mongodb://{{ include "mongodb.service.nameOverride" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}:{{ .Values.mongodb.service.ports.mongodb }}/{{ index .Values.mongodb.auth.databases 0}}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__USERNAME
-            value: "{{ index .Values.mongodb.auth.usernames 0 }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ include "mongodb.secretName" (dict "Release" .Release "Chart" (dict "Name" "mongodb") "Values" .Values.mongodb) }}
-                key: mongodb-passwords
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__MAX_POOL_SIZE
-            value: "{{ .Values.mongodb.max_pool_size }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__MIN_POOL_SIZE
-            value: "{{ .Values.mongodb.min_pool_size }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__MAX_CONNECTING
-            value: "{{ .Values.mongodb.max_connecting }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__KEYCLOAK_URL

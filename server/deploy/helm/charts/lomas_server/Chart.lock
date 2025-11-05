@@ -1,7 +1,4 @@
 dependencies:
-- name: mongodb
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 16.5.6
 - name: rabbitmq
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 15.5.0

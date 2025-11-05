@@ -1,6 +1,10 @@
 import pandas as pd
-from snsql import Mechanism, Privacy, Stat, from_connection
-from snsql.reader.base import Reader
+
+try:
+    from snsql import Mechanism, Privacy, Stat, from_connection
+    from snsql.reader.base import Reader
+except ModuleNotFoundError:
+    print("SmartNoiseSQL: Pending removal")
 from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries

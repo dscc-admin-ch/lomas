@@ -5,7 +5,6 @@ aiormq==6.9.2             # via aio-pika
 alabaster==1.0.0          # via sphinx
 altair==5.5.0             # via streamlit
 annotated-types==0.7.0    # via pydantic
-antlr4-python3-runtime==4.9.3  # via smartnoise-sql
 anyio==4.11.0             # via httpx, jupyter-server, starlette, watchfiles
 argon2-cffi==25.1.0       # via jupyter-server
 argon2-cffi-bindings==25.1.0  # via argon2-cffi
@@ -39,24 +38,18 @@ deprecated==1.3.1         # via opendp
 diffprivlib==0.6.6        # via diffprivlib-logger, lomas-core
 diffprivlib-logger==0.0.3  # via lomas-core
 dill==0.4.0               # via pylint
-disjoint-set==0.8.0       # via private-pgm
 dnspython==2.8.0          # via email-validator
 docutils==0.21.2          # via myst-parser, nbsphinx, sphinx, sphinx-rtd-theme
 email-validator==2.3.0    # via fastapi
 executing==2.2.1          # via stack-data
-faker==37.12.0            # via smartnoise-synth
 fastapi==0.119.0          # via lomas-core
 fastapi-cli==0.0.14       # via fastapi
 fastjsonschema==2.21.2    # via nbformat
-filelock==3.20.0          # via torch
 fonttools==4.60.1         # via matplotlib
 fqdn==1.5.1               # via jsonschema
-fsspec==2025.10.0         # via torch
 gitdb==4.0.12             # via gitpython
 gitpython==3.1.45         # via streamlit
 googleapis-common-protos==1.71.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
-graphviz==0.21            # via smartnoise-sql
-greenlet==3.2.4           # via sqlalchemy
 grpcio==1.76.0            # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0               # via httpcore, uvicorn
 httpcore==1.0.9           # via httpx
@@ -73,7 +66,7 @@ ipywidgets==8.1.8         # via jupyter
 isoduration==20.11.0      # via jsonschema
 isort==7.0.0              # via pylint
 jedi==0.19.2              # via ipython
-jinja2==3.1.6             # via altair, fastapi, jupyter-server, jupyterlab, jupyterlab-server, myst-parser, nbconvert, nbsphinx, pydeck, sphinx, torch
+jinja2==3.1.6             # via altair, fastapi, jupyter-server, jupyterlab, jupyterlab-server, myst-parser, nbconvert, nbsphinx, pydeck, sphinx
 jmespath==1.0.1           # via boto3, botocore
 joblib==1.5.2             # via diffprivlib, scikit-learn
 json5==0.12.1             # via jupyterlab-server
@@ -97,32 +90,27 @@ lark==1.3.1               # via rfc3987-syntax
 mantelo==2.2.0            # via lomas-server
 markdown-it-py==3.0.0     # via mdit-py-plugins, myst-parser, rich
 markupsafe==3.0.3         # via jinja2, nbconvert
-matplotlib==3.10.7        # via private-pgm, seaborn
+matplotlib==3.10.7        # via seaborn
 matplotlib-inline==0.2.1  # via ipykernel, ipython
 mccabe==0.7.0             # via pylint
 mdit-py-plugins==0.5.0    # via myst-parser
 mdurl==0.1.2              # via markdown-it-py
 mistune==3.1.4            # via nbconvert
-mpmath==1.3.0             # via sympy
 multidict==6.7.0          # via yarl
 mypy==1.18.2              # via lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via black, mypy
-myst-parser==4.0.0        # via lomas (pyproject.toml)
+myst-parser==4.0.1        # via lomas (pyproject.toml)
 narwhals==2.10.2          # via altair
 nbclient==0.10.2          # via nbconvert
 nbconvert==7.16.6         # via jupyter, jupyter-server, nbsphinx
 nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert, nbsphinx
 nbsphinx==0.9.6           # via lomas (pyproject.toml)
 nest-asyncio==1.6.0       # via ipykernel
-networkx==3.5             # via private-pgm, torch
-nose==1.3.7               # via private-pgm
 notebook==7.4.7           # via jupyter
 notebook-shim==0.2.4      # via jupyterlab, notebook
-numpy==2.3.4              # via contourpy, diffprivlib, matplotlib, opacus, pandas, private-pgm, pydeck, scikit-learn, scipy, seaborn, streamlit
+numpy==2.3.4              # via contourpy, diffprivlib, matplotlib, pandas, pydeck, scikit-learn, scipy, seaborn, streamlit
 oauthlib==3.3.1           # via lomas-client, lomas-server, requests-oauthlib
-opacus==0.14.0            # via smartnoise-synth
-opendp==0.12.0            # via lomas-core, opendp-logger, smartnoise-sql
-opendp-logger==0.3.0      # via lomas-core
+opendp==0.14.1            # via lomas-core
 opentelemetry-api==1.38.0  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-instrumentation, opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-requests, opentelemetry-sdk, opentelemetry-semantic-conventions
 opentelemetry-exporter-otlp==1.38.0  # via lomas-core
 opentelemetry-exporter-otlp-proto-common==1.38.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
@@ -139,10 +127,9 @@ opentelemetry-sdk==1.38.0  # via lomas-core, opentelemetry-exporter-otlp-proto-g
 opentelemetry-semantic-conventions==0.59b0  # via opentelemetry-instrumentation, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-requests, opentelemetry-sdk
 opentelemetry-util-http==0.59b0  # via opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-requests
 orjson==3.11.4            # via lomas-core
-pac-synth==0.0.8          # via smartnoise-synth
 packaging==25.0           # via altair, black, ipykernel, jupyter-events, jupyter-server, jupyterlab, jupyterlab-server, matplotlib, nbconvert, opentelemetry-instrumentation, pytest, sphinx, streamlit
 pamqp==3.3.0              # via aiormq
-pandas==2.3.3             # via lomas-core, private-pgm, seaborn, smartnoise-sql, streamlit
+pandas==2.3.3             # via lomas-core, seaborn, streamlit
 pandoc==2.4               # via lomas (pyproject.toml)
 pandocfilters==1.5.1      # via nbconvert
 parso==0.8.5              # via jedi
@@ -154,8 +141,7 @@ pluggy==1.6.0             # via pytest, pytest-cov
 plumbum==1.10.0           # via pandoc
 ply==3.11                 # via pandoc
 pockets==0.9.1            # via sphinxcontrib-napoleon
-polars==1.12.0            # via lomas-core
-private-pgm @ git+https://github.com/ryan112358/private-pgm@01f02f17eba440f4e76c1d06fa5ee9eed0bd2bca  # via lomas-core
+polars==1.32.0            # via lomas-core
 prometheus-client==0.23.1  # via jupyter-server
 prompt-toolkit==3.0.52    # via ipython, jupyter-console
 propcache==0.4.1          # via yarl
@@ -180,9 +166,9 @@ python-dateutil==2.9.0.post0  # via arrow, botocore, jupyter-client, matplotlib,
 python-dotenv==1.2.1      # via pydantic-settings, uvicorn
 python-json-logger==4.0.0  # via jupyter-events
 python-multipart==0.0.20  # via fastapi
-pytokens==0.2.0           # via black
+pytokens==0.3.0           # via black
 pytz==2025.2              # via pandas
-pyyaml==6.0.3             # via jupyter-events, myst-parser, smartnoise-sql, uvicorn
+pyyaml==6.0.3             # via jupyter-events, myst-parser, uvicorn
 pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
 referencing==0.37.0       # via jsonschema, jsonschema-specifications, jupyter-events
 requests==2.32.5          # via jupyterlab-server, mantelo, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, sphinx, streamlit
@@ -192,24 +178,22 @@ rfc3986-validator==0.1.1  # via jsonschema, jupyter-events
 rfc3987-syntax==1.1.0     # via jsonschema
 rich==14.2.0              # via rich-toolkit, typer
 rich-toolkit==0.15.1      # via fastapi-cli
+roman-numerals-py==3.1.0  # via sphinx
 rpds-py==0.28.0           # via jsonschema, referencing
 ruff==0.14.3              # via lomas (pyproject.toml)
 s3transfer==0.14.0        # via boto3
 scikit-learn==1.7.2       # via diffprivlib
-scipy==1.16.3             # via diffprivlib, opacus, private-pgm, scikit-learn
+scipy==1.16.3             # via diffprivlib, scikit-learn
 seaborn==0.13.2           # via lomas-client
 send2trash==1.8.3         # via jupyter-server
-setuptools==80.9.0        # via diffprivlib, jupyterlab, torch
+setuptools==80.9.0        # via diffprivlib, jupyterlab
 shellingham==1.5.4        # via typer
 six==1.17.0               # via pockets, python-dateutil, rfc3339-validator, sphinxcontrib-napoleon
-smartnoise-sql==1.0.6     # via lomas-server, smartnoise-synth
-smartnoise-synth==1.0.4   # via lomas-core, smartnoise-synth-logger
-smartnoise-synth-logger==0.0.4  # via lomas-core
 smmap==5.0.2              # via gitdb
 sniffio==1.3.1            # via anyio
 snowballstemmer==3.0.1    # via sphinx
 soupsieve==2.8            # via beautifulsoup4
-sphinx==8.1.3             # via myst-parser, nbsphinx, sphinx-rtd-theme, sphinxcontrib-jquery, lomas (pyproject.toml)
+sphinx==8.2.3             # via myst-parser, nbsphinx, sphinx-rtd-theme, sphinxcontrib-jquery, lomas (pyproject.toml)
 sphinx-rtd-theme==3.0.2   # via lomas (pyproject.toml)
 sphinxcontrib-applehelp==2.0.0  # via sphinx
 sphinxcontrib-devhelp==2.0.0  # via sphinx
@@ -219,26 +203,22 @@ sphinxcontrib-jsmath==1.0.1  # via sphinx
 sphinxcontrib-napoleon==0.7  # via lomas (pyproject.toml)
 sphinxcontrib-qthelp==2.0.0  # via sphinx
 sphinxcontrib-serializinghtml==2.0.0  # via sphinx
-sqlalchemy==2.0.44        # via smartnoise-sql
-sqlglot==27.29.0          # via lomas-server
 st-pages==1.0.1           # via lomas-server
 stack-data==0.6.3         # via ipython
 starlette==0.48.0         # via fastapi
 streamlit==1.51.0         # via lomas-server, st-pages
-sympy==1.14.0             # via torch
 tenacity==9.1.2           # via streamlit
 terminado==0.18.1         # via jupyter-server, jupyter-server-terminals
 threadpoolctl==3.6.0      # via scikit-learn
 tinycss2==1.4.0           # via bleach
 toml==0.10.2              # via streamlit
 tomlkit==0.13.3           # via pylint
-torch==2.9.0+cpu          # via opacus, smartnoise-synth, lomas (pyproject.toml)
 tornado==6.5.2            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, streamlit, terminado
 traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, nbsphinx
 typer==0.20.0             # via fastapi-cli
-typing-extensions==4.15.0  # via altair, anyio, beautifulsoup4, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, referencing, rich-toolkit, sqlalchemy, starlette, streamlit, torch, typer, typing-inspection
+typing-extensions==4.15.0  # via altair, anyio, beautifulsoup4, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, referencing, rich-toolkit, starlette, streamlit, typer, typing-inspection
 typing-inspection==0.4.2  # via pydantic, pydantic-settings
-tzdata==2025.2            # via arrow, faker, pandas
+tzdata==2025.2            # via arrow, pandas
 uri-template==1.3.0       # via jsonschema
 urllib3==2.5.0            # via botocore, requests
 uvicorn==0.38.0           # via fastapi, fastapi-cli

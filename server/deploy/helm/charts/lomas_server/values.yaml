@@ -542,50 +542,6 @@ grafana:
 # Lomas Chart Dependecies
 ##########################################################################
 
-# MongoDB
-##########################################################################
-mongodb:
-  resources: {}
-  fullnameOverride: "lomas-mongodb" # Must set for lomas to find the service.
-  max_pool_size: 100
-  min_pool_size: 2
-  max_connecting: 2
-  architecture: standalone
-  image:
-    registry: docker.io
-    repository: bitnami/mongodb
-    tag: 8.0.9-debian-12-r0
-  service:
-    ports:
-      mongodb: 27017
-  auth:
-    enabled: true
-    rootUser: root
-    rootPassword: root_pwd # changeme
-    usernames: [user]
-    passwords: [user_pwd] # changeme TODO enforce length of one.
-    databases: [defaultdb]
-    existingSecret: ""
-  replicaCount: 1
-  discoverable:
-    allow: true
-  security:
-    networkPolicy:
-      enabled: true
-  persistence:
-    # Set this to "keep" to disable data pvc deletion when uninstalling the chart.
-    # Subsequent installs will use the same pvc, restoring the state of the server.
-    # Note: if the runtime_args.develop_mode TODO is set to True, the server
-    # state will be reset (default datasets and budgets).
-    resourcePolicy: ""
-  global:
-    compatibility:
-      openshift:
-        adaptSecurityContext: auto
-    security:
-      allowInsecureImages: true
-
-
 # Keycloak
 ##########################################################################
 

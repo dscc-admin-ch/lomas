@@ -72,9 +72,9 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
     In case of internal exception, the error message is forwarded to avoid potentially
     disclosing sensitive information.
     """
+    logger.exception(exc)
     match exc:
         case ExternalLibraryException():
-            logger.error(f" [-] ExternalLibraryExeption : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 content=jsonable_encoder(
@@ -82,25 +82,21 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
                 ),
             )
         case InternalServerException():
-            logger.error(f" [-] InternalException: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(InternalServerExceptionModel()),
             )
         case InvalidQueryException():
-            logger.error(f" [-] InvalidQueryException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
             )
         case UnauthorizedAccessException():
-            logger.error(f" [-] UnauthorizedAccessException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
             )
         case _:
-            logger.error(f" [-] Unknown internal exception: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(InternalServerExceptionModel()),

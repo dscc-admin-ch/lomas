@@ -1,6 +1,5 @@
 import logging
 import os
-from json import loads
 from time import sleep
 
 import requests
@@ -117,11 +116,8 @@ class LomasHttpClient:
                 ).json()
 
             # Check for error before accessing "status"
-            if "status" in job_query and job_query["status"] == "complete":
+            if "status" in job_query and job_query["status"] in ["complete", "failed"]:
                 return Job.model_validate(job_query)
-
-            if (job_err := job_query.get("error")) is not None:
-                return Job.model_validate(job_query | {"error": loads(job_err)})
 
             if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
                 # Handle unauthorized specifically

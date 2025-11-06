@@ -30,7 +30,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -58,11 +58,11 @@ class LocalAdminDatabase(AdminDatabase):
 
     def load_users_collection(self, users: list[User]) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            db["users"] = {user.id.name: user.model_dump() for user in users}
+            db[TK.USERS] = {user.id.name: user.model_dump() for user in users}
 
     def users(self) -> list[User]:
         with shelve.open(self.path, flag="r") as db:
-            return list(map(User.model_validate, db.get("users", {}).values()))
+            return list(map(User.model_validate, db.get(TK.USERS, {}).values()))
 
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
@@ -89,9 +89,9 @@ class LocalAdminDatabase(AdminDatabase):
             # Add dataset collection
             if new_datasets:
                 new_datasets_dicts = [ds.model_dump() for ds in new_datasets]
-                db["datasets"] = new_datasets_dicts
+                db[TK.DATASETS] = new_datasets_dicts
 
-            db["metadatas"] = {}
+            db[TK.METADATA] = {}
             # Step 2: add metadata collections (one metadata per dataset)
             for ds in datasets:
                 dataset_name = ds.dataset_name
@@ -122,12 +122,12 @@ class LocalAdminDatabase(AdminDatabase):
                             f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                         )
 
-                db["metadatas"][dataset_name] = metadata_dict
+                db[TK.METADATA][dataset_name] = metadata_dict
                 logger.debug(f"Added metadata of {dataset_name} dataset. ")
 
     def datasets(self) -> list[DSInfo]:
         with shelve.open(self.path, flag="r") as db:
-            return list(map(DSInfo.model_validate, db.get("datasets", [])))
+            return list(map(DSInfo.model_validate, db.get(TK.DATASETS, [])))
 
     def add_datasets_via_yaml(
         self,
@@ -264,35 +264,35 @@ class LocalAdminDatabase(AdminDatabase):
 
         # Step 4: Insert into db
         with shelve.open(self.path, writeback=True) as db:
-            db["datasets"] = [*db.get("datasets", []), validated_dataset]
-            db["metadatas"] = db.get("metadatas", {}) | {dataset_name: validated_metadata}
+            db[TK.DATASETS] = [*db.get(TK.DATASETS, []), validated_dataset]
+            db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
 
     def del_dataset(self, dataset_name: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            for ds in db["datasets"]:
+            for ds in db[TK.DATASETS]:
                 if ds["dataset_name"] == dataset_name:
-                    db["datasets"].remove(ds)
+                    db[TK.DATASETS].remove(ds)
 
     def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            user = User.model_validate(db["users"][username])
+            user = User.model_validate(db[TK.USERS][username])
             ds = DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)
             user_updated = User(
                 id=user.id,
                 may_query=user.may_query,
                 datasets_list=[*user.datasets_list, ds],
             )
-            db["users"][username] = user_updated.model_dump()
+            db[TK.USERS][username] = user_updated.model_dump()
 
     def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            user = User.model_validate(db["users"][username])
+            user = User.model_validate(db[TK.USERS][username])
             user_updated = User(
                 id=user.id,
                 may_query=user.may_query,
                 datasets_list=[dsu for dsu in user.datasets_list if dsu.dataset_name != dataset_name],
             )
-            db["users"][username] = user_updated.model_dump()
+            db[TK.USERS][username] = user_updated.model_dump()
 
     def add_users_via_yaml(self, yaml_file: Path, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
@@ -347,13 +347,13 @@ class LocalAdminDatabase(AdminDatabase):
 
         with shelve.open(self.path, writeback=True) as db:
             if "users" not in db:
-                db["users"] = {}
-            db["users"][username] = validated_user
+                db[TK.USERS] = {}
+            db[TK.USERS][username] = validated_user
 
     @user_must_exist
     def del_user(self, username: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            del db["users"][username]
+            del db[TK.USERS][username]
 
     @override
     def does_user_exist(self, user_name: str) -> bool:
@@ -367,22 +367,22 @@ class LocalAdminDatabase(AdminDatabase):
     @dataset_must_exist
     def get_dataset(self, dataset_name: str) -> DSInfo:
         with shelve.open(self.path, flag="r") as db:
-            dataset = next(filter(lambda ds: ds["dataset_name"] == dataset_name, db["datasets"]))
+            dataset = next(filter(lambda ds: ds["dataset_name"] == dataset_name, db[TK.DATASETS]))
             return DSInfo.model_validate(dataset)
 
     @override
     @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> Metadata:
         with shelve.open(self.path, flag="r") as db:
-            metadatas = db.get("metadatas", {}).get(dataset_name)
-            return Metadata.model_validate(metadatas)
+            metadata = db.get(TK.METADATA, {}).get(dataset_name)
+            return Metadata.model_validate(metadata)
 
     @override
     @user_must_exist
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         with shelve.open(self.path, writeback=True) as db:
-            previous_may_query = db["users"][user_name]["may_query"]
-            db["users"][user_name]["may_query"] = may_query
+            previous_may_query = db[TK.USERS][user_name]["may_query"]
+            db[TK.USERS][user_name]["may_query"] = may_query
             return previous_may_query
 
     @override
@@ -394,7 +394,7 @@ class LocalAdminDatabase(AdminDatabase):
                 return bool(
                     [
                         ds
-                        for ds in db["users"][user_name]["datasets_list"]
+                        for ds in db[TK.USERS][user_name]["datasets_list"]
                         if ds["dataset_name"] == dataset_name
                     ]
                 )
@@ -408,7 +408,8 @@ class LocalAdminDatabase(AdminDatabase):
                 map(
                     op.itemgetter(parameter),
                     filter(
-                        lambda ds: ds["dataset_name"] == dataset_name, db["users"][user_name]["datasets_list"]
+                        lambda ds: ds["dataset_name"] == dataset_name,
+                        db[TK.USERS][user_name]["datasets_list"],
                     ),
                 )
             )
@@ -422,7 +423,7 @@ class LocalAdminDatabase(AdminDatabase):
         spent_value: float,
     ) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            datasets = db["users"][user_name]["datasets_list"]
+            datasets = db[TK.USERS][user_name]["datasets_list"]
             for ds in datasets:
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] += spent_value
@@ -438,24 +439,23 @@ class LocalAdminDatabase(AdminDatabase):
             return (user_name, dataset_name) == op.itemgetter("user_name", "dataset_name")(archive)
 
         with shelve.open(self.path, flag="r") as db:
-            return list(filter(match, db.get("queries_archive", [])))
+            return list(filter(match, db.get(TK.ARCHIVE, [])))
 
     @override
     def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         with shelve.open(self.path, writeback=True) as db:
             to_archive = self.prepare_save_query(user_name, query, response)
-            if "queries_archive" not in db:
-                db["queries_archive"] = [to_archive]
+            if TK.ARCHIVE not in db:
+                db[TK.ARCHIVE] = [to_archive]
             else:
-                db["queries_archive"].append(to_archive)
+                db[TK.ARCHIVE].append(to_archive)
 
     def get_archives_of_user(self, username: str) -> list[dict]:
         with shelve.open(self.path, flag="r") as db:
-            return [archive for archive in db.get("queries_archive", []) if archive["user_name"] == username]
+            return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
 
     def drop_archive(self) -> None:
-        with shelve.open(self.path, writeback=True) as db:
-            db["queries_archive"] = []
+        self.drop_collection(TK.ARCHIVE)
 
     def get_collection(self, collection: str) -> dict[str, Any]:
         with shelve.open(self.path, flag="r") as db:

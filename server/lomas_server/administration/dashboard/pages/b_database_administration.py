@@ -7,7 +7,7 @@ from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import DatasetsCollection
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
 from lomas_server.administration.keycloak_admin import get_kc_user_client_secret, set_kc_user_client_secret
 from lomas_server.administration.lomas_admin import (
     add_lomas_user,
@@ -588,19 +588,19 @@ with content_tab:
     col_users, col_datasets, col_metadata, col_archives = st.columns(4)
     with col_users:
         if st.button("Show all users", key="content_show_all_users"):
-            users = st.session_state.dashboard_config.database.get_collection("users")
+            users = st.session_state.dashboard_config.database.get_collection(TK.USERS)
             st.write(users)
     with col_datasets:
         if st.button("Show all datasets", key="content_show_all_datasets"):
-            datasets = st.session_state.dashboard_config.database.get_collection("datasets")
+            datasets = st.session_state.dashboard_config.database.get_collection(TK.DATASETS)
             st.write(datasets)
     with col_metadata:
         if st.button("Show all metadata", key="content_show_all_metadata"):
-            metadatas = st.session_state.dashboard_config.database.get_collection("metadatas")
-            st.write(metadatas)
+            metadata = st.session_state.dashboard_config.database.get_collection(TK.METADATA)
+            st.write(metadata)
     with col_archives:
         if st.button("Show archives", key="content_show_archives"):
-            archives = st.session_state.dashboard_config.database.get_collection("queries_archives")
+            archives = st.session_state.dashboard_config.database.get_collection(TK.ARCHIVE)
             st.write(archives)
 
 

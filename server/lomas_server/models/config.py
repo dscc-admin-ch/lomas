@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -96,7 +97,7 @@ class Config(BaseSettings):
 
     authenticator: AuthenticatorT
 
-    admin_database_url: str
+    admin_database_url: Path
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
@@ -146,9 +147,9 @@ class AdminConfig(BaseSettings):
     #   - service is the address to reach the server from the dashboard/admin job
     # These two can sometimes differ, e.g. if the user is not in the same K8 cluster,
     # or if Lomas is deployed with its own docker network (docker compose case).
-    server_url: str
-    server_service: str
-    database_url: str
+    server_url: HttpUrl
+    server_service: HttpUrl
+    database_url: Path
     kc_config: Annotated[KeycloakClientConfig | None, Field(default=None)]
 
     @computed_field

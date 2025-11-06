@@ -59,7 +59,4 @@ if "config" in st.session_state and "dashboard_config" in st.session_state:
 
     with tab_2:
         st.subheader("Administration Database")
-        st.write(
-            "Its address is: ",
-            st.session_state.config.admin_database_url,
-        )
+        st.write(f"Its address is: {st.session_state.config.admin_database_url}")

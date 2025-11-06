@@ -54,4 +54,4 @@ def test_a_server_overview_page(dashbord_dir: Path) -> None:
 
     # Check Administration Database information
     assert "Administration Database" in at.subheader[1].value
-    assert "Its address is:  /tmp/admin.db" in at.markdown[6].value
+    assert "Its address is: /tmp/admin.db" in at.markdown[6].value

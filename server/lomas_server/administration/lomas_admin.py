@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
     add_kc_users_via_yaml,
@@ -71,30 +73,23 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
         del_kc_user(admin_config.kc_config, user_name)
 
 
-def add_lomas_users_via_yaml(
-    admin_config: AdminConfig, yaml_file: str | dict, clean: bool, path_prefix: str = ""
-) -> None:
+def add_lomas_users_via_yaml(admin_config: AdminConfig, yaml_file: Path, clean: bool) -> None:
     """Add all users from a yaml file.
 
     Only adds the keycloak users if the kc_config is not None.
 
     Args:
         admin_config (AdminConfig): The administration config.
-        yaml_file (Union[str, Dict]):
-            if str: a path to the YAML file location
-            if Dict: a dictionnary containing the collection data
+        yaml_file (Path): a path to the YAML file location
         clean (bool): boolean flag
             True if drop current user collection
             False if keep current user collection
-        path_prefix (str, optional): path prefix to add to file paths.
     """
-    admin_config.database.add_users_via_yaml(yaml_file, clean, path_prefix=path_prefix)
+    admin_config.database.add_users_via_yaml(yaml_file, clean)
 
     if admin_config.kc_config is not None:
         # TODO: do we want to expose KC clean ?
-        add_kc_users_via_yaml(
-            admin_config.kc_config, yaml_file, clean=False, overwrite=True, path_prefix=path_prefix
-        )
+        add_kc_users_via_yaml(admin_config.kc_config, yaml_file, clean=False, overwrite=True)
 
 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:

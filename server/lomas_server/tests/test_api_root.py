@@ -33,20 +33,17 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
-        path_prefix = str(Path(__file__).parent / "test_data")
+        path_prefix = Path(__file__).parent / "test_data"
 
         self.config.database.add_users_via_yaml(
-            yaml_file="test_user_collection.yaml",
+            yaml_file=path_prefix / Path("test_user_collection.yaml"),
             clean=True,
-            path_prefix=path_prefix,
         )
 
-        yaml_file = "test_datasets_with_s3.yaml"
-
         self.config.database.add_datasets_via_yaml(
-            yaml_file=yaml_file,
+            yaml_file=path_prefix / Path("test_datasets_with_s3.yaml"),
             clean=True,
-            path_prefix=path_prefix,
+            path_prefix=str(path_prefix),
         )
 
     def tearDown(self) -> None:

@@ -7,6 +7,7 @@ from typing import Any, Self
 
 import boto3
 import yaml
+from pydantic import HttpUrl
 
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import (
@@ -30,7 +31,6 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import BudgetDBKey
-from lomas_server.administration.utils import absolute_path
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -39,16 +39,6 @@ else:
 
 
 logger = logging.getLogger(__name__)
-
-
-def drop_collection(db_path: str, collection: str) -> None:
-    """Delete collection.
-
-    Args:
-        collection (str): Collection name to be deleted.
-    """
-    LocalAdminDatabase(path=db_path).drop_collection(collection)
-    logger.debug(f"Deleted collection {collection}.")
 
 
 class LocalAdminDatabase(AdminDatabase):
@@ -81,9 +71,17 @@ class LocalAdminDatabase(AdminDatabase):
             for ds in datasets:
                 # Overwrite path
                 if isinstance(ds.dataset_access, DSPathAccess):
-                    ds.dataset_access.path = absolute_path(ds.dataset_access.path, path_prefix)
+                    match ds.dataset_access.path:
+                        case HttpUrl():
+                            pass
+                        case Path():
+                            ds.dataset_access.path = Path(path_prefix) / ds.dataset_access.path
                 if isinstance(ds.metadata_access, DSPathAccess):
-                    ds.metadata_access.path = absolute_path(ds.metadata_access.path, path_prefix)
+                    match ds.metadata_access.path:
+                        case HttpUrl():
+                            pass
+                        case Path():
+                            ds.metadata_access.path = Path(path_prefix) / ds.metadata_access.path
 
                 # Fill datasets_list
                 new_datasets.append(ds)
@@ -101,13 +99,12 @@ class LocalAdminDatabase(AdminDatabase):
 
                 match metadata_access:
                     case DSPathAccess():
-                        with open(metadata_access.path, encoding="utf-8") as f:
-                            metadata_dict = yaml.safe_load(f)
+                        metadata_dict = yaml.safe_load(metadata_access.path.open())
 
                     case DSS3Access():
                         client = boto3.client(
                             "s3",
-                            endpoint_url=metadata_access.endpoint_url,
+                            endpoint_url=str(metadata_access.endpoint_url),
                             aws_access_key_id=metadata_access.access_key_id,
                             aws_secret_access_key=metadata_access.secret_access_key,
                         )
@@ -134,7 +131,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     def add_datasets_via_yaml(
         self,
-        yaml_file: str | dict,
+        yaml_file: Path,
         clean: bool,
         path_prefix: str = "",
     ) -> None:
@@ -143,9 +140,7 @@ class LocalAdminDatabase(AdminDatabase):
         on yaml file.
 
         Args:
-            yaml_file (Union[str, Dict]):
-                if str: a path to the YAML file location
-                if Dict: a dictionnary containing the collection data
+            yaml_file Path: path to the YAML file location
             clean (bool): Whether to clean the collection before adding.
             path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
 
@@ -158,12 +153,7 @@ class LocalAdminDatabase(AdminDatabase):
         if clean:
             self.drop_collection("datasets")
 
-        if isinstance(yaml_file, str):
-            with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
-                yaml_dict: dict = yaml.safe_load(f)
-        else:
-            yaml_dict = yaml_file
-
+        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
     def add_dataset(
@@ -171,9 +161,8 @@ class LocalAdminDatabase(AdminDatabase):
         dataset_name: str,
         database_type: str,
         metadata_database_type: str,
-        path_prefix: str = "",
         dataset_path: str | None = "",
-        metadata_path: str | None = "",
+        metadata_path: str = "",
         bucket: str | None = "",
         key: str | None = "",
         endpoint_url: str | None = "",
@@ -192,7 +181,6 @@ class LocalAdminDatabase(AdminDatabase):
             database_type (str): Type of the database
             metadata_database_type (str): Metadata database type
 
-            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
             dataset_path (str): Path to the dataset (for local db type)
             metadata_path (str): Path to metadata (for local db type)
 
@@ -227,7 +215,7 @@ class LocalAdminDatabase(AdminDatabase):
         if database_type == PrivateDatabaseType.PATH:
             if dataset_path is None:
                 raise ValueError("Dataset path not set.")
-            dataset_access["path"] = absolute_path(dataset_path, path_prefix)
+            dataset_access["path"] = dataset_path
         elif database_type == PrivateDatabaseType.S3:
             dataset_access["bucket"] = bucket
             dataset_access["key"] = key
@@ -242,9 +230,8 @@ class LocalAdminDatabase(AdminDatabase):
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
             # Store metadata from yaml to metadata collection
-            with open(absolute_path(metadata_path, path_prefix), encoding="utf-8") as f:  # type: ignore
+            with Path(metadata_path).resolve().open(encoding="utf-8") as f:
                 metadata_dict = yaml.safe_load(f)
-
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:
@@ -307,17 +294,14 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db["users"][username] = user_updated.model_dump()
 
-    def add_users_via_yaml(self, yaml_file: str | dict, clean: bool, path_prefix: str = "") -> None:
+    def add_users_via_yaml(self, yaml_file: Path, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
 
         Args:
-            yaml_file (Union[str, Dict]):
-                if str: a path to the YAML file location
-                if Dict: a dictionnary containing the collection data
+            yaml_file (Path): a path to the YAML file location
             clean (bool): boolean flag
                 True if drop current user collection
                 False if keep current user collection
-            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
 
         Returns:
             None
@@ -326,12 +310,7 @@ class LocalAdminDatabase(AdminDatabase):
             self.drop_collection("users")
 
         # Load yaml data and insert it
-        if isinstance(yaml_file, str):
-            with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
-                yaml_dict: dict = yaml.safe_load(f)
-        else:
-            yaml_dict = yaml_file
-
+        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
     def add_user(

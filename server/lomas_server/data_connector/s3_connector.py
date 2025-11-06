@@ -22,7 +22,7 @@ class S3Connector(DataConnector):
     def _client(self) -> boto3.session.Session.client:
         return boto3.client(
             "s3",
-            endpoint_url=self.credentials.endpoint_url,
+            endpoint_url=str(self.credentials.endpoint_url),
             aws_access_key_id=self.credentials.access_key_id,
             aws_secret_access_key=self.credentials.secret_access_key,
         )

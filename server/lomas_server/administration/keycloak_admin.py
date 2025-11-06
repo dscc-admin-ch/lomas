@@ -1,10 +1,10 @@
 import logging
+from pathlib import Path
 
 import yaml
 from mantelo import HttpException, KeycloakAdmin
 
 from lomas_core.models.collections import UserCollection
-from lomas_server.administration.utils import absolute_path
 from lomas_server.constants import KCAttributeNames
 from lomas_server.models.config import KeycloakClientConfig
 
@@ -215,12 +215,11 @@ def del_all_kc_users(kc_config: KeycloakClientConfig) -> None:
     logging.info("Removed all keycloak clients associated to users.")
 
 
-def add_kc_users_via_yaml(
+def add_kc_users(
     kc_config: KeycloakClientConfig,
-    yaml_file: str | dict,
+    user_list: UserCollection,
     clean: bool,
     overwrite: bool,
-    path_prefix: str = "",
 ) -> None:
     """Adds new lomas users to keycloak.
 
@@ -229,11 +228,9 @@ def add_kc_users_via_yaml(
 
     Args:
         kc_config (KeycloakClientConfig): A KeycloakClientConfig
-        yaml_file (str, dict): File name to load the users from if a string.
-            Otherwise dict representing a UserCollection.
+        user_list (UserCollection): Collection to load the users from
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
-        path_prefix (str, optional): path prefix to add to file paths.
 
     Raises:
         HTTPException: If any of the calls to keycloak fails
@@ -243,14 +240,6 @@ def add_kc_users_via_yaml(
     # Remove all existing users if asked to do so
     if clean:
         del_all_kc_users(kc_config)
-
-    # Load yaml data and insert it
-    if isinstance(yaml_file, str):
-        with open(absolute_path(yaml_file, path_prefix), encoding="utf-8") as f:
-            raw_dict: dict = yaml.safe_load(f)
-    else:
-        raw_dict = yaml_file
-    user_list = UserCollection(**raw_dict)
 
     for user in user_list.users:
         # Remove user with same name if it already exists.
@@ -262,10 +251,7 @@ def add_kc_users_via_yaml(
 
             kc_clients = kc_admin.clients.get(clientId=user.id.name)
             for kc_client in kc_clients:
-                if (
-                    KCAttributeNames.LOMAS_USER_CLIENT in kc_client["attributes"]
-                    and kc_client["attributes"][KCAttributeNames.LOMAS_USER_CLIENT]
-                ):
+                if kc_client["attributes"].get(KCAttributeNames.LOMAS_USER_CLIENT, False):
                     kc_client_id = kc_client["id"]
                     kc_admin.clients(kc_client_id).delete()
 
@@ -274,6 +260,31 @@ def add_kc_users_via_yaml(
         add_kc_user(kc_config, user.id.name, user.id.email, user.id.client_secret)
 
     logging.info("Added keycloak users from yaml file.")
+
+
+def add_kc_users_via_yaml(
+    kc_config: KeycloakClientConfig,
+    yaml_file: Path,
+    clean: bool,
+    overwrite: bool,
+) -> None:
+    """Adds new lomas users to keycloak.
+
+    Also creates corresponding clients with same email attribute for authenticating
+    when using the lomas library.
+
+    Args:
+        kc_config (KeycloakClientConfig): A KeycloakClientConfig
+        yaml_file (Path): File name to load the users from
+        clean (bool): Whether to remove existing users and start with a clean state.
+        overwrite(bool): Whether to overwrite existing users.
+
+    Raises:
+        HTTPException: If any of the calls to keycloak fails
+    """
+    # Load yaml data and insert it
+    user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open()))
+    add_kc_users(kc_config, user_list, clean, overwrite)
 
 
 def get_kc_user_client_secret(kc_config: KeycloakClientConfig, user_name: str) -> str:

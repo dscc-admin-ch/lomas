@@ -20,8 +20,8 @@ beautifulsoup4==4.14.2    # via nbconvert
 black==25.9.0             # via lomas (pyproject.toml)
 bleach==6.3.0             # via nbconvert
 blinker==1.9.0            # via streamlit
-boto3==1.40.66            # via lomas-server
-botocore==1.40.66         # via boto3, s3transfer
+boto3==1.40.67            # via lomas-server
+botocore==1.40.67         # via boto3, s3transfer
 cachetools==6.2.1         # via streamlit
 certifi==2025.10.5        # via httpcore, httpx, requests
 cffi==2.0.0               # via argon2-cffi-bindings, cryptography
@@ -180,7 +180,7 @@ python-dateutil==2.9.0.post0  # via arrow, botocore, jupyter-client, matplotlib,
 python-dotenv==1.2.1      # via pydantic-settings, uvicorn
 python-json-logger==4.0.0  # via jupyter-events
 python-multipart==0.0.20  # via fastapi
-pytokens==0.2.0           # via black
+pytokens==0.3.0           # via black
 pytz==2025.2              # via pandas
 pyyaml==6.0.3             # via jupyter-events, myst-parser, smartnoise-sql, uvicorn
 pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server

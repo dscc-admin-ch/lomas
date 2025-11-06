@@ -1,8 +1,9 @@
 import logging
 import operator as op
 import shelve
+import sys
 from pathlib import Path
-from typing import Any, Self, override
+from typing import Any, Self
 
 import boto3
 import yaml
@@ -30,6 +31,12 @@ from lomas_server.admin_database.admin_database import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.administration.utils import absolute_path
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
+
 
 logger = logging.getLogger(__name__)
 

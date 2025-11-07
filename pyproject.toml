@@ -11,7 +11,6 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-  "black>=25.0",
   "ruff>=0.11",
   "mypy>=1.15",
   "pydocstringformatter>=0.7",
@@ -101,11 +100,6 @@ combine-as-imports = true
 split-on-trailing-comma = true
 extra-standard-library = ["test"]
 known-first-party = ["lomas_core", "lomas_server", "lomas_client"]
-
-[tool.black]
-line-length = 110
-include = '\.pyi?$'
-extend_exclude = '\.ipynb'
 
 [tool.mypy]
 plugins = ['pydantic.mypy']

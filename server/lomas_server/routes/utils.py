@@ -54,9 +54,9 @@ async def process_response(
                     message_body = message.body.decode()
                     match message.headers:
                         case {"type": "exception", "status_code": status_code}:
-                            jobs[message.correlation_id].error = (
-                                LomasServerExceptionTypeAdapter.validate_json(message_body)
-                            )
+                            jobs[
+                                message.correlation_id
+                            ].error = LomasServerExceptionTypeAdapter.validate_json(message_body)
                             jobs[message.correlation_id].status = "failed"
                             jobs[message.correlation_id].result = None
                             jobs[message.correlation_id].status_code = status_code

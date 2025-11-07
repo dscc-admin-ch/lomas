@@ -49,7 +49,6 @@ def get_auth_header(client_id: str, client_secret: str) -> dict[str, str]:
 
 
 def test_valid_token(demo_setup: None):
-
     headers = get_auth_header("Dr.Antartica", "dr.antartica")
 
     with TestClient(app, headers=headers) as client:
@@ -70,7 +69,6 @@ def test_invalid_token():
 
 
 def test_admin_scope(demo_setup: None) -> None:
-
     headers = get_auth_header("lomas_admin", "lomas_admin")
 
     with TestClient(app, headers=headers) as client:

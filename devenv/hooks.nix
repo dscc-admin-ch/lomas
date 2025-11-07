@@ -51,13 +51,9 @@ in
         ];
       };
 
-      black = {
+      ruff-format = {
         enable = true;
         before = [ "ruff" ];
-        args = lib.optionals (cfg.projectConfigFile != null) [
-          "--config"
-          "${cfg.projectConfigFile}"
-        ];
       };
 
       ruff.enable = true;

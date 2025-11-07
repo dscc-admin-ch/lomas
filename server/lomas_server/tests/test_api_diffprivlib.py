@@ -100,7 +100,6 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
     def test_diffprivlib_privacy_leak(self) -> None:
         """Test diffprivlib privacy leak error."""
         with TestClient(app, headers=self.headers) as client:
-
             # Should still work: automatically added for first step
             warnings.simplefilter("error", PrivacyLeakWarning)
             diffprivlib_body = dict(example_diffprivlib)

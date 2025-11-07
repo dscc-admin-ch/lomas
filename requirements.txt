@@ -11,7 +11,6 @@ argon2-cffi==25.1.0       # via jupyter-server
 argon2-cffi-bindings==25.1.0  # via argon2-cffi
 arrow==1.4.0              # via isoduration
 asgiref==3.10.0           # via opentelemetry-instrumentation-asgi
-astroid==4.0.1            # via pylint
 asttokens==3.0.0          # via stack-data
 async-lru==2.0.5          # via jupyterlab
 attrs==25.4.0             # via jsonschema, mantelo, referencing
@@ -20,8 +19,8 @@ beautifulsoup4==4.14.2    # via nbconvert
 black==25.9.0             # via lomas (pyproject.toml)
 bleach==6.3.0             # via nbconvert
 blinker==1.9.0            # via streamlit
-boto3==1.40.67            # via lomas-server
-botocore==1.40.67         # via boto3, s3transfer
+boto3==1.40.68            # via lomas-server
+botocore==1.40.68         # via boto3, s3transfer
 cachetools==6.2.1         # via streamlit
 certifi==2025.10.5        # via httpcore, httpx, requests
 cffi==2.0.0               # via argon2-cffi-bindings, cryptography
@@ -38,7 +37,6 @@ defusedxml==0.7.1         # via nbconvert
 deprecated==1.3.1         # via opendp
 diffprivlib==0.6.6        # via diffprivlib-logger, lomas-core
 diffprivlib-logger==0.0.3  # via lomas-core
-dill==0.4.0               # via pylint
 disjoint-set==0.8.0       # via private-pgm
 dnspython==2.8.0          # via email-validator
 docutils==0.21.2          # via myst-parser, nbsphinx, sphinx, sphinx-rtd-theme
@@ -54,7 +52,7 @@ fqdn==1.5.1               # via jsonschema
 fsspec==2025.10.0         # via torch
 gitdb==4.0.12             # via gitpython
 gitpython==3.1.45         # via streamlit
-googleapis-common-protos==1.71.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
+googleapis-common-protos==1.72.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
 graphviz==0.21            # via smartnoise-sql
 greenlet==3.2.4           # via sqlalchemy
 grpcio==1.76.0            # via opentelemetry-exporter-otlp-proto-grpc
@@ -71,7 +69,6 @@ ipython==9.7.0            # via ipykernel, ipywidgets, jupyter-console
 ipython-pygments-lexers==1.1.1  # via ipython
 ipywidgets==8.1.8         # via jupyter
 isoduration==20.11.0      # via jsonschema
-isort==7.0.0              # via pylint
 jedi==0.19.2              # via ipython
 jinja2==3.1.6             # via altair, fastapi, jupyter-server, jupyterlab, jupyterlab-server, myst-parser, nbconvert, nbsphinx, pydeck, sphinx, torch
 jmespath==1.0.1           # via boto3, botocore
@@ -99,7 +96,6 @@ markdown-it-py==3.0.0     # via mdit-py-plugins, myst-parser, rich
 markupsafe==3.0.3         # via jinja2, nbconvert
 matplotlib==3.10.7        # via private-pgm, seaborn
 matplotlib-inline==0.2.1  # via ipykernel, ipython
-mccabe==0.7.0             # via pylint
 mdit-py-plugins==0.5.0    # via myst-parser
 mdurl==0.1.2              # via markdown-it-py
 mistune==3.1.4            # via nbconvert
@@ -107,7 +103,7 @@ mpmath==1.3.0             # via sympy
 multidict==6.7.0          # via yarl
 mypy==1.18.2              # via lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via black, mypy
-myst-parser==4.0.0        # via lomas (pyproject.toml)
+myst-parser==4.0.1        # via lomas (pyproject.toml)
 narwhals==2.10.2          # via altair
 nbclient==0.10.2          # via nbconvert
 nbconvert==7.16.6         # via jupyter, jupyter-server, nbsphinx
@@ -149,7 +145,7 @@ parso==0.8.5              # via jedi
 pathspec==0.12.1          # via black, mypy
 pexpect==4.9.0            # via ipython
 pillow==12.0.0            # via matplotlib, streamlit
-platformdirs==4.5.0       # via black, jupyter-core, pylint
+platformdirs==4.5.0       # via black, jupyter-core
 pluggy==1.6.0             # via pytest, pytest-cov
 plumbum==1.10.0           # via pandoc
 ply==3.11                 # via pandoc
@@ -172,7 +168,6 @@ pydeck==0.9.1             # via streamlit
 pydocstringformatter==0.7.5  # via lomas (pyproject.toml)
 pygments==2.19.2          # via ipython, ipython-pygments-lexers, jupyter-console, nbconvert, pytest, rich, sphinx
 pyjwt==2.10.1             # via lomas-server
-pylint==4.0.2             # via lomas (pyproject.toml)
 pyparsing==3.2.5          # via matplotlib
 pytest==8.4.2             # via pytest-cov, lomas (pyproject.toml)
 pytest-cov==7.0.0         # via lomas (pyproject.toml)
@@ -192,8 +187,9 @@ rfc3986-validator==0.1.1  # via jsonschema, jupyter-events
 rfc3987-syntax==1.1.0     # via jsonschema
 rich==14.2.0              # via rich-toolkit, typer
 rich-toolkit==0.15.1      # via fastapi-cli
+roman-numerals-py==3.1.0  # via sphinx
 rpds-py==0.28.0           # via jsonschema, referencing
-ruff==0.14.3              # via lomas (pyproject.toml)
+ruff==0.14.4              # via lomas (pyproject.toml)
 s3transfer==0.14.0        # via boto3
 scikit-learn==1.7.2       # via diffprivlib
 scipy==1.16.3             # via diffprivlib, opacus, private-pgm, scikit-learn
@@ -209,7 +205,7 @@ smmap==5.0.2              # via gitdb
 sniffio==1.3.1            # via anyio
 snowballstemmer==3.0.1    # via sphinx
 soupsieve==2.8            # via beautifulsoup4
-sphinx==8.1.3             # via myst-parser, nbsphinx, sphinx-rtd-theme, sphinxcontrib-jquery, lomas (pyproject.toml)
+sphinx==8.2.3             # via myst-parser, nbsphinx, sphinx-rtd-theme, sphinxcontrib-jquery, lomas (pyproject.toml)
 sphinx-rtd-theme==3.0.2   # via lomas (pyproject.toml)
 sphinxcontrib-applehelp==2.0.0  # via sphinx
 sphinxcontrib-devhelp==2.0.0  # via sphinx
@@ -231,7 +227,6 @@ terminado==0.18.1         # via jupyter-server, jupyter-server-terminals
 threadpoolctl==3.6.0      # via scikit-learn
 tinycss2==1.4.0           # via bleach
 toml==0.10.2              # via streamlit
-tomlkit==0.13.3           # via pylint
 torch==2.9.0+cpu          # via opacus, smartnoise-synth, lomas (pyproject.toml)
 tornado==6.5.2            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, streamlit, terminado
 traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, nbsphinx

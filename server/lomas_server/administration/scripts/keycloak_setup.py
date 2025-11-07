@@ -1,4 +1,3 @@
-import logging
 import os
 
 from mantelo import HttpException, KeycloakAdmin
@@ -7,8 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.constants import init_logging
 
-init_logging()
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class User(BaseModel):
@@ -185,7 +183,7 @@ def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
 
 
 def create_confidential_client(
-    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] = {}
+    kc_admin: KeycloakAdmin, client_id: str, client_secret: str, roles: dict[str, list[str]] | None = None
 ) -> None:
     """Creates a confidential client with an associated service account.
 
@@ -202,6 +200,8 @@ def create_confidential_client(
             to assign to the associated service account.
     """
     # Idempotent creation
+    if roles is None:
+        roles = {}
     match kc_admin.clients.get(clientId=client_id):
         case [{"id": client_id, **_rest}]:
             getattr(kc_admin.clients, client_id).delete()
@@ -318,14 +318,11 @@ def misc_realm_cleanup(realm: str, kc_admin: KeycloakAdmin) -> None:
     for kp in kc_admin.components.get(type="org.keycloak.keys.KeyProvider"):
         if kp["name"] != "rsa-generated":
             getattr(kc_admin.components, kp["id"]).delete()
-            logging.debug(f"Removed bad provider: {kp['name']}")
+            logger.debug(f"Removed bad provider: {kp['name']}")
 
 
 def kc_setup() -> None:
     """Lomas keycloak setup script."""
-    logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
-
     # Load config and get admin session
     config = Config()
     if not config.keycloak_use_tls:

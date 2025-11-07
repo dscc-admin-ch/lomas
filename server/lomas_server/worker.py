@@ -1,6 +1,5 @@
 import asyncio
 import functools
-import logging
 import signal
 import time
 from collections.abc import Callable
@@ -55,9 +54,7 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-init_logging()
-
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 AioPikaInstrumentor().instrument()
 

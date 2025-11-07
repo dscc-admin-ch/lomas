@@ -214,10 +214,10 @@ def get_column_metadata_discriminator(v: Any) -> str:
 
     if (
         col_type
-        in (
+        in {
             MetadataColumnType.STRING,
             MetadataColumnType.INT,
-        )
+        }
     ) and (((isinstance(v, dict)) and CARDINALITY_FIELD in v) or (hasattr(v, CARDINALITY_FIELD))):
         col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
 

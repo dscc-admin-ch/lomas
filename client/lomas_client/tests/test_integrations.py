@@ -105,7 +105,7 @@ def test_oauth2_demo(kc, demo_setup) -> None:
 
     # Smartnoise
 
-    ## Dummy Query
+    # Dummy Query
     query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
     dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
 

@@ -125,7 +125,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             # and do not support direct item assignment (not supported: input_data[col] = ...)
             expressions = []
             for col, val in self.metadata["columns"].items():
-                if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+                if val["type"] in {MetadataColumnType.STRING, MetadataColumnType.DATETIME}:
                     expressions.append(pl.col(col).fill_null("").alias(col))
 
             input_data = input_data.with_columns(expressions)
@@ -223,7 +223,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_measure = opendp_pipe.output_measure
 
     if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO 360 : constant.
+        if output_type.origin in {"SMDCurve", "Tuple"}:  # TODO 360 : constant.
             output_type = output_type.args[0]
         else:
             raise InternalServerException(

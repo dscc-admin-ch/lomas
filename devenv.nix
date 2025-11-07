@@ -384,7 +384,6 @@ in
       [[ "$path" = "." ]] || echo "linting: $path"
       echo -n 🌑; black "$path"
       echo -n ⚡️; ruff check --fix "$path"
-      echo -n 🐌; pylint "$path"
       echo -n 🔧; pydocstringformatter "$path"
       echo -n 🐍; mypy "$path"
     '';

@@ -67,19 +67,6 @@ in
         "PD901"
       ];
 
-      pylint = {
-        enable = true;
-        after = [ "ruff" ];
-        verbose = true;
-        args = [
-          "--fail-under"
-          "8"
-        ]
-        ++ (lib.optionals (cfg.projectConfigFile != null) [
-          "--rcfile"
-          "${cfg.projectConfigFile}"
-        ]);
-      };
     };
   };
 }

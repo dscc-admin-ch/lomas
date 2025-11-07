@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -24,9 +23,7 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
-init_logging()
-
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 @asynccontextmanager

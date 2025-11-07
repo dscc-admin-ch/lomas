@@ -20,7 +20,7 @@ class SmartnoiseSQLClient:
         query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict[str, str] = {},
+        mechanisms: dict[str, str] | None = None,
     ) -> CostResponse:
         """This function estimates the cost of executing a SmartNoise query.
 
@@ -37,6 +37,8 @@ class SmartnoiseSQLClient:
         Returns:
             CostResponse: The estimated cost.
         """
+        if mechanisms is None:
+            mechanisms = {}
         body_dict = {
             "query_str": query,
             "dataset_name": self.http_client.config.dataset_name,
@@ -54,7 +56,7 @@ class SmartnoiseSQLClient:
         query: str,
         epsilon: float,
         delta: float,
-        mechanisms: dict[str, str] = {},
+        mechanisms: dict[str, str] | None = None,
         postprocess: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -90,6 +92,8 @@ class SmartnoiseSQLClient:
         Returns:
             QueryResponse: A Pandas DataFrame containing the query results.
         """
+        if mechanisms is None:
+            mechanisms = {}
         body_dict = {
             "query_str": query,
             "dataset_name": self.http_client.config.dataset_name,

@@ -116,7 +116,7 @@ class LomasHttpClient:
                 ).json()
 
             # Check for error before accessing "status"
-            if "status" in job_query and job_query["status"] in ["complete", "failed"]:
+            if "status" in job_query and job_query["status"] in {"complete", "failed"}:
                 return Job.model_validate(job_query)
 
             if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":

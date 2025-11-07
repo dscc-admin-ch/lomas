@@ -85,15 +85,16 @@ class AuthenticationType(StrEnum):
 # -----------------------------------------------------------------------------
 
 
-def init_logging() -> None:
+def init_logging(name: str = "root", level: str = "DEBUG") -> logging.Logger:
     logging.basicConfig(
-        level="DEBUG",
+        level=level,
         format="%(message)s",
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
     )
     for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
         logging.getLogger(loggers).setLevel(logging.INFO)
+    return logging.getLogger(name)
 
 
 # Exceptions

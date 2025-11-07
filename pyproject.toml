@@ -14,7 +14,6 @@ test = [
   "black>=25.0",
   "ruff>=0.11",
   "mypy>=1.15",
-  "pylint>=4.0",
   "pydocstringformatter>=0.7",
   "coverage>=7.6",
   "pytest>=8.3",
@@ -66,11 +65,12 @@ select = [
   "PLE", # Pylint Error
   "UP", # pyupgrade
   "D", # pydocstyle see @pydocstyle.convention
+  # "B", # flake8-bugbear
   "FAST001", "FAST003", # FastAPI lint
   "DTZ", # flake8-datetimez
   "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
   "PYI", # flake8-pyi
-  # "LOG",
+  "LOG",
   "PT", # Pytest-style (lots of fixes todo)
   "RSE", # flake8-raise
   "FLY", # flynt
@@ -139,33 +139,6 @@ disable_error_code = [ "attr-defined" ]
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
-
-[tool.pylint.main]
-max-line-length = 110
-ignore-patterns = "test_.*py$"
-recursive = "yes"
-ignore-paths = ".devenv,docs"
-
-[tool.pylint."messages control"]
-disable = [
-    "fixme",
-    "import-error", # fails in git-runner but not locally ?
-    "line-too-long", # handled by ruff
-    "unused-import", # handled by ruff
-    "duplicate-code", # FIXME
-    "too-many-locals", # ruff PLR0914
-    "logging-not-lazy",
-    "undefined-variable", # handled by ruff
-    "wrong-import-order", # handled by ruff
-    "too-many-arguments", # ruff PLR0913
-    "too-few-public-methods",
-    "too-many-public-methods", # ruff PLR0904
-    "dangerous-default-value",
-    "missing-module-docstring",
-    "missing-function-docstring",
-    "logging-fstring-interpolation",
-    "too-many-positional-arguments", # ruff PLR0917
-]
 
 [tool.pydocstringformatter]
 max-line-length = 110

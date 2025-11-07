@@ -162,7 +162,7 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
         pipeline=dpl_pipeline, feature_columns=feature_columns, target_columns=target_columns, dummy=True
     )
 
-    dummy_response.result.model is not None
+    assert dummy_response.result.model is not None
 
     feature_columns = ["bill_length_mm"]
     target_columns = ["bill_depth_mm"]

@@ -65,7 +65,7 @@ select = [
   "PLE", # Pylint Error
   "UP", # pyupgrade
   "D", # pydocstyle see @pydocstyle.convention
-  # "B", # flake8-bugbear
+  "B", # flake8-bugbear
   "FAST001", "FAST003", # FastAPI lint
   "DTZ", # flake8-datetimez
   "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)

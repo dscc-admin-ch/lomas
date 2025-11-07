@@ -279,7 +279,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
 
     def test1_margin(self) -> None:
         """Test margins created."""
-
         RAW_METADATA["rows"] = 100
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int"]

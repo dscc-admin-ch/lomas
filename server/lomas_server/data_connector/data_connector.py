@@ -75,7 +75,6 @@ def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
            dict: The dictionary of the column type.
             list: The list of columns of datetime type
     """
-
     dtypes = {}
     datetime_columns = []
     for col_name, data in metadata.columns.items():

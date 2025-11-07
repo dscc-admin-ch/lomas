@@ -72,7 +72,6 @@ class LomasHttpClient:
         Returns:
             requests.Response: The response object resulting from the POST request.
         """
-
         logger.debug(
             f"User (with client id '{self.config.client_id}') is making a request "
             + f"to url '{self.config.app_url}' "
@@ -102,7 +101,6 @@ class LomasHttpClient:
 
     def wait_for_job(self, job_uid: str, n_retry: int = 1800, sleep_sec: float = 1) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
-
         for _ in range(n_retry):
             try:
                 job_query = self._oauth2_session.get(

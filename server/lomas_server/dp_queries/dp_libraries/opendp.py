@@ -160,7 +160,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
     """
     if not isinstance(pipeline, dp.Measurement):
         e = "The pipeline provided is not a measurement. It cannot be processed in this server."
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
 
@@ -181,7 +181,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             + f" but {distance_type} which is not a valid distance type for datasets."
             + " It cannot be processed in this server."
         )
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
     dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
@@ -190,7 +190,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             f"The input distance metric {pipeline.input_metric} is not a dataset"
             + " input metric. It cannot be processed in this server."
         )
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
 

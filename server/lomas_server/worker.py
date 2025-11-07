@@ -69,7 +69,7 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
     In case of internal exception, the error message is forwarded to avoid potentially
     disclosing sensitive information.
     """
-    logger.exception(exc)
+    logger.error(exc)
     match exc:
         case ExternalLibraryException():
             return JSONResponse(
@@ -138,7 +138,6 @@ async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse 
 
 async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, data_connector_str, query_json_str = message.split("λ", 3)
@@ -175,7 +174,6 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
 
 async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP-dummy query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
     user_name, dp_library, data_connector, query_model_str = message.split("λ", 3)
@@ -217,7 +215,6 @@ async def process_message(
     channel: aio_pika.Channel, in_queue: str, out_queue: str, message_handler: Callable[[bytes], Any]
 ) -> None:
     """General RabbitMQ Message handler -> processing -> response."""
-
     queue = await channel.declare_queue(in_queue, auto_delete=True)
     await channel.declare_queue(out_queue, auto_delete=True)
 
@@ -255,14 +252,12 @@ async def force_terminate_task_group() -> Never:
 
 def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
     """Signal handler for TaskGroup termination."""
-
     logger.info(f"got signal {signame}: exit")
     tg.create_task(force_terminate_task_group())
 
 
 async def process_all_queues() -> None:
     """Handle & await all pika processing queues."""
-
     loop = asyncio.get_running_loop()
     connection = await rabbitmq_connect_queue(config)
 
@@ -302,7 +297,6 @@ async def process_all_queues() -> None:
 
 def run() -> None:
     """Start the Worker loop."""
-
     if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)
         init_telemetry(config.telemetry)

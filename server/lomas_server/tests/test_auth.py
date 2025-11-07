@@ -30,7 +30,6 @@ def demo_setup():
 
 def get_auth_header(client_id: str, client_secret: str) -> dict[str, str]:
     """Fetches the access token for the client id and builds the auth header."""
-
     # Create client config -> load token endpoint from environment variables.
     client_config = ClientConfig(client_id=client_id, client_secret=client_secret, dataset_name="PENGUIN")
 

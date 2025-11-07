@@ -43,7 +43,6 @@ async def process_response(
     queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs: dict[UUID, Job]
 ) -> None:
     """Process responses queue into Jobs."""
-
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process(ignore_processed=True):
@@ -86,7 +85,6 @@ async def rabbitmq_connect_queue(
 @asynccontextmanager
 async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     """RabbitMQ queue context to connect and register callbacks."""
-
     config = Config()
 
     connection = await rabbitmq_connect_queue(config)
@@ -196,7 +194,6 @@ def get_dataset_credentials(
     Returns:
         PrivateDBCredentials: The matching credentials.
     """
-
     if db_type == PrivateDatabaseType.S3:
         for c in private_db_credentials.values():
             if isinstance(c, S3CredentialsConfig) and (credentials_name == c.credentials_name):

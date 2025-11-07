@@ -103,7 +103,6 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
-
     return JSONResponse(
         content={
             "state": "live",

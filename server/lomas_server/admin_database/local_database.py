@@ -204,7 +204,6 @@ class LocalAdminDatabase(AdminDatabase):
         Returns:
             None
         """
-
         # Step 1: Build dataset
         dataset: dict[str, Any] = {"dataset_name": dataset_name}
 
@@ -334,7 +333,6 @@ class LocalAdminDatabase(AdminDatabase):
         Returns:
             None
         """
-
         validated_user = User(
             id=UserId(name=username, email=email),
             may_query=True,

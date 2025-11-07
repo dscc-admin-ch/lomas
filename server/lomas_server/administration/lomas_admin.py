@@ -102,7 +102,6 @@ def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:
         admin_config (AdminConfig): _description_
         collection (str): The collection to drop.
     """
-
     admin_config.database.drop_collection(collection)
 
     if collection == "users" and admin_config.kc_config is not None:

@@ -69,7 +69,6 @@ def get_admin_session(config: Config) -> KeycloakAdmin:
     Returns:
         KeycloakAdmin: KeycloakAdmin session.
     """
-
     return KeycloakAdmin.from_username_password(
         server_url=config.keycloak_url,
         realm_name=config.keycloak_authentication_realm,
@@ -113,7 +112,6 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
         config (Config): Config for creating the clients.
         kc_admin (KeycloakAdmin): A KeycloakAdmin session.
     """
-
     create_confidential_client(
         kc_admin,
         config.lomas_admin_client_id,
@@ -129,7 +127,6 @@ def create_lomas_clients(config: Config, kc_admin: KeycloakAdmin) -> None:
 
 def create_lomas_admin_users(config: Config, kc_admin: KeycloakAdmin) -> None:
     """Creates standard User."""
-
     realm_role_name = "authp/admin"
 
     try:

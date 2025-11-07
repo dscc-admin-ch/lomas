@@ -21,12 +21,12 @@ test = [
   "pytest-cov>=6.0",
 ]
 docs = [
-  "pandoc==2.4",
-  "sphinx==8.1.3",
-  "nbsphinx==0.9.6",
-  "sphinx-rtd-theme==3.0.2",
-  "sphinxcontrib.napoleon==0.7",
-  "myst-parser==4.0.0",
+  "pandoc>=2.4",
+  "sphinx>=8.1",
+  "nbsphinx>=0.9.6",
+  "sphinx-rtd-theme>=3.0",
+  "sphinxcontrib.napoleon>=0.7",
+  "myst-parser>=4.0",
 ]
 
 # workspace setup for uv
@@ -151,6 +151,7 @@ disable = [
     "fixme",
     "import-error", # fails in git-runner but not locally ?
     "line-too-long", # handled by ruff
+    "unused-import", # handled by ruff
     "duplicate-code", # FIXME
     "too-many-locals", # ruff PLR0914
     "logging-not-lazy",
@@ -158,12 +159,12 @@ disable = [
     "wrong-import-order", # handled by ruff
     "too-many-arguments", # ruff PLR0913
     "too-few-public-methods",
+    "too-many-public-methods", # ruff PLR0904
     "dangerous-default-value",
     "missing-module-docstring",
-    "logging-fstring-interpolation",
-    "too-many-public-methods", # ruff PLR0904
-    "too-many-positional-arguments", # ruff PLR0917
     "missing-function-docstring",
+    "logging-fstring-interpolation",
+    "too-many-positional-arguments", # ruff PLR0917
 ]
 
 [tool.pydocstringformatter]

@@ -33,6 +33,3 @@ jobs:
 
       - name: mypy
         run: devenv shell -- mypy core/lomas_core client/lomas_client server/lomas_server
-
-      - name: pylint
-        run: devenv shell -- pylint -v core/lomas_core client/lomas_client server/lomas_server

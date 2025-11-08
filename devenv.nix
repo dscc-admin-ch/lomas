@@ -149,6 +149,8 @@ in
 
   dockerEnv.enable = true;
 
+  process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
+
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
@@ -322,7 +324,7 @@ in
 
   scripts.ut-coverage.exec =
     let
-      working_dir = "$DEVENV_ROOT";
+      working_dir = config.env.DEVENV_ROOT;
       pc-config-patch = writeYAML "pc-coverage-disable-worker.yaml" {
         processes = {
           # patch/override worker definition to force 1 instance and run coverage on it

@@ -181,8 +181,7 @@ in
       exec = "lomas-keycloak-setup";
       process-compose = {
         is_tty = true;
-        environment = [ "TTY_COMPATIBLE=1" ];
-        working_dir = "$DEVENV_ROOT/server/lomas_server";
+        working_dir = "${config.env.DEVENV_ROOT}/server/lomas_server";
         depends_on.keycloak.condition = "process_healthy";
       };
     };

@@ -57,12 +57,6 @@ in
       };
 
       ruff.enable = true;
-      # remove me when we catch up to ruff 0.14+
-      ruff.args = [
-        "--extend-ignore"
-        "PD901"
-      ];
-
     };
   };
 }

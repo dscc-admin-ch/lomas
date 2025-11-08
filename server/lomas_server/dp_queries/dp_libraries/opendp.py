@@ -3,6 +3,7 @@ import os
 
 import opendp as dp
 import polars as pl
+from aio_pika.patterns.rpc import Proxy
 from opendp._lib import lib_path
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
@@ -17,7 +18,6 @@ from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_core.opendp_utils import reconstruct_measurement_pipeline
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -31,7 +31,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         """Initializer.
 

@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from aio_pika.patterns.rpc import Proxy
 from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
@@ -19,7 +20,6 @@ from lomas_core.models.requests import (
     DiffPrivLibRequestModel,
 )
 from lomas_core.models.responses import DiffPrivLibQueryResult
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_libraries.utils import (
     handle_missing_data,
@@ -33,7 +33,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.dpl_pipeline: Pipeline | None = None

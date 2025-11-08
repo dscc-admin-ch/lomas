@@ -19,9 +19,9 @@ class DemoAdminConfig(AdminConfig):
         case_sensitive=False,
     )
 
-    path_prefix: Path = Field(default=".")
-    user_yaml: Path = Field(default="/data/collections/user_collection.yaml")
-    dataset_yaml: Path = Field(default="/data/collections/dataset_collection.yaml")
+    path_prefix: Path = Field(default=Path("."))
+    user_yaml: Path = Field(default=Path("/data/collections/user_collection.yaml"))
+    dataset_yaml: Path = Field(default=Path("/data/collections/dataset_collection.yaml"))
 
 
 def add_lomas_demo_data(config: DemoAdminConfig) -> None:

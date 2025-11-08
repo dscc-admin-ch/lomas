@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import TypeGuard
 
 import pandas as pd
+from aio_pika.patterns.rpc import Proxy
 from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
 from snsynth.transform import (
@@ -42,7 +43,6 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import SmartnoiseSynthModel, SmartnoiseSynthSamples
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import (
     SSYNTH_DEFAULT_BINS,
     SSYNTH_MIN_ROWS_PATE_GAN,
@@ -92,7 +92,7 @@ class SmartnoiseSynthQuerier(
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.model: Synthesizer | None = None

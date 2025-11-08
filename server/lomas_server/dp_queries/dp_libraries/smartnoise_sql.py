@@ -1,4 +1,5 @@
 import pandas as pd
+from aio_pika.patterns.rpc import Proxy
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 from sqlglot import exp, parse_one
@@ -12,7 +13,6 @@ from lomas_core.models.requests import (
     SmartnoiseSQLRequestModel,
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -26,7 +26,7 @@ class SmartnoiseSQLQuerier(
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         super().__init__(data_connector, admin_database)
         self.reader: Reader | None = None

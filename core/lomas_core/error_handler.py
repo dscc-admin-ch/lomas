@@ -1,12 +1,11 @@
-import logging
 from typing import Any, Never
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pymongo.errors import WriteConcernError
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.constants import init_logging
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -15,7 +14,7 @@ from lomas_core.models.exceptions import (
     UnauthorizedAccessExceptionModel,
 )
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class InvalidQueryException(Exception):
@@ -78,7 +77,6 @@ KNOWN_EXCEPTIONS: tuple[type[BaseException], ...] = (
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
-    WriteConcernError,
 )
 
 

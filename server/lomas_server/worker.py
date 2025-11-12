@@ -1,12 +1,13 @@
 import asyncio
 import functools
-import logging
 import signal
 import time
 from collections.abc import Callable
+from functools import partial
 from typing import Any, Never
 
 import aio_pika
+from aio_pika.patterns.rpc import RPC, Proxy
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -43,27 +44,21 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
-from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
-from lomas_server.data_connector.factory import data_connector_factory
-from lomas_server.dp_queries.dp_libraries.factory import querier_factory
-from lomas_server.dp_queries.dp_libraries.opendp import set_opendp_features_config
+from lomas_server.data_connector import ConnectorUnionTA
+from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
+from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
+from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
+from lomas_server.dp_queries.dp_libraries.smartnoise_synth import SmartnoiseSynthQuerier
+from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-init_logging()
-
-logger = logging.getLogger(__name__)
-
+logger = init_logging(__name__)
 
 AioPikaInstrumentor().instrument()
 
 config = Config()
-try:
-    admin_database = AdminMongoDatabase(config.admin_database)
-except InternalServerException:
-    logger.exception("Failed to connect to the admin database")
-private_credentials = config.private_db_credentials
 set_opendp_features_config(config.opendp_features)
 
 
@@ -74,9 +69,9 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
     In case of internal exception, the error message is forwarded to avoid potentially
     disclosing sensitive information.
     """
+    logger.error(exc)
     match exc:
         case ExternalLibraryException():
-            logger.error(f" [-] ExternalLibraryExeption : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 content=jsonable_encoder(
@@ -84,62 +79,54 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
                 ),
             )
         case InternalServerException():
-            logger.error(f" [-] InternalException: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(InternalServerExceptionModel()),
             )
         case InvalidQueryException():
-            logger.error(f" [-] InvalidQueryException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
             )
         case UnauthorizedAccessException():
-            logger.error(f" [-] UnauthorizedAccessException : {exc}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
             )
         case _:
-            logger.error(f" [-] Unknown internal exception: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(InternalServerExceptionModel()),
             )
 
 
-def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
+async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse | tuple[bytes, int]:
     """Handle Cost query into CostResponse."""
     start_sec = time.time()
     message = body.decode()
-    _, dp_library, request_model_str = message.split(":", 2)
+    _, dp_library, data_connector_str, request_model_str = message.split("λ", 3)
 
+    data_connector = ConnectorUnionTA.validate_json(data_connector_str)
+
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 
         case DPLibraries.SMARTNOISE_SYNTH:
             request_model = SmartnoiseSynthRequestModel.model_validate_json(request_model_str)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
 
         case DPLibraries.OPENDP:
             request_model = OpenDPRequestModel.model_validate_json(request_model_str)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
 
         case DPLibraries.DIFFPRIVLIB:
             request_model = DiffPrivLibRequestModel.model_validate_json(request_model_str)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
+
     try:
-        data_connector = data_connector_factory(
-            request_model.dataset_name,
-            admin_database,
-            private_credentials,
-        )
-
-        dp_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
-
         eps_cost, delta_cost = dp_querier.cost(request_model)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
@@ -149,39 +136,34 @@ def handle_cost_query(body: bytes) -> CostResponse | tuple[bytes, int]:
         return known_exc.body, known_exc.status_code
 
 
-def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
+async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_json_str = message.split(":", 2)
+    user_name, dp_library, data_connector_str, query_json_str = message.split("λ", 3)
 
+    data_connector = ConnectorUnionTA.validate_json(data_connector_str)
+
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 
         case DPLibraries.SMARTNOISE_SYNTH:
             query_json = SmartnoiseSynthQueryModel.model_validate_json(query_json_str)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
 
         case DPLibraries.OPENDP:
             query_json = OpenDPQueryModel.model_validate_json(query_json_str)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
 
         case DPLibraries.DIFFPRIVLIB:
             query_json = DiffPrivLibQueryModel.model_validate_json(query_json_str)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
-        data_connector = data_connector_factory(
-            query_json.dataset_name,
-            admin_database,
-            private_credentials,
-        )
-
-        dp_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
-        query_response = dp_querier.handle_query(query_json, user_name)
+        query_response = await dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
         return query_response
@@ -190,32 +172,34 @@ def handle_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
         return known_exc.body, known_exc.status_code
 
 
-def handle_dummy_query(body: bytes) -> QueryResponse | tuple[bytes, int]:
+async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP-dummy query into QueryResponse."""
-
     start_sec = time.time()
     message = body.decode()
-    user_name, dp_library, query_model_str = message.split(":", 2)
+    user_name, dp_library, data_connector, query_model_str = message.split("λ", 3)
 
+    dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
             query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
         case DPLibraries.SMARTNOISE_SYNTH:
             query_model = SmartnoiseSynthDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = SmartnoiseSynthQuerier(data_connector, admin_database)
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = OpenDPQuerier(data_connector, admin_database)
         case DPLibraries.DIFFPRIVLIB:
             query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
-        data_connector = get_dummy_dataset_for_query(admin_database, query_model)
-        dummy_querier = querier_factory(
-            dp_library,
-            data_connector=data_connector,
-            admin_database=admin_database,
-        )
-        eps_cost, delta_cost = dummy_querier.cost(query_model)
-        result = dummy_querier.query(query_model)
+        eps_cost, delta_cost = dp_querier.cost(query_model)
+        result = dp_querier.query(query_model)
         dummy_query_response = QueryResponse(
             requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
         )
@@ -231,7 +215,6 @@ async def process_message(
     channel: aio_pika.Channel, in_queue: str, out_queue: str, message_handler: Callable[[bytes], Any]
 ) -> None:
     """General RabbitMQ Message handler -> processing -> response."""
-
     queue = await channel.declare_queue(in_queue, auto_delete=True)
     await channel.declare_queue(out_queue, auto_delete=True)
 
@@ -240,18 +223,17 @@ async def process_message(
             async with message.process():
                 headers = None
                 body = b""
-
-                match message_handler(message.body):
+                match await message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
                         headers = {"type": "exception", "status_code": status_code}
                         body = exc_body
 
                     case query_response:
                         logger.debug(
-                            f"Response length: {len(query_response.json())} {message.correlation_id}"
+                            f"Response length: {len(query_response.model_dump_json())} {message.correlation_id}"
                         )
-                        # logger.debug(query_response.json())
-                        body = query_response.json().encode()
+                        # logger.debug(query_response.model_dump_json())
+                        body = query_response.model_dump_json().encode()
 
                 await channel.default_exchange.publish(
                     aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
@@ -270,26 +252,35 @@ async def force_terminate_task_group() -> Never:
 
 def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
     """Signal handler for TaskGroup termination."""
-
     logger.info(f"got signal {signame}: exit")
     tg.create_task(force_terminate_task_group())
 
 
 async def process_all_queues() -> None:
     """Handle & await all pika processing queues."""
-
     loop = asyncio.get_running_loop()
     connection = await rabbitmq_connect_queue(config)
 
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
+        rpc = await RPC.create(channel)
 
         try:
             async with asyncio.TaskGroup() as tg:
-                tg.create_task(process_message(channel, "task_queue", "task_response", handle_query))
-                tg.create_task(process_message(channel, "cost_queue", "cost_response", handle_cost_query))
-                tg.create_task(process_message(channel, "dummy_queue", "dummy_response", handle_dummy_query))
+                tg.create_task(
+                    process_message(channel, "task_queue", "task_response", partial(handle_query, rpc.proxy))
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "cost_queue", "cost_response", partial(handle_cost_query, rpc.proxy)
+                    )
+                )
+                tg.create_task(
+                    process_message(
+                        channel, "dummy_queue", "dummy_response", partial(handle_dummy_query, rpc.proxy)
+                    )
+                )
 
                 # register signal for polite TaskGroup termination
                 for signame in ["SIGINT", "SIGTERM"]:
@@ -306,7 +297,6 @@ async def process_all_queues() -> None:
 
 def run() -> None:
     """Start the Worker loop."""
-
     if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)
         init_telemetry(config.telemetry)

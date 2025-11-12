@@ -1,27 +1,51 @@
 from abc import ABC, abstractmethod
+from typing import Annotated
 
 import pandas as pd
 import polars as pl
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PlainSerializer,
+    computed_field,
+)
 
 from lomas_core.models.collections import DatetimeMetadata, Metadata
+from lomas_core.models.utils import (
+    dataframe_to_dict,
+)
 
 
-class DataConnector(ABC):
+class DataConnector(BaseModel, ABC):
     """Overall access to sensitive data."""
 
-    df: pd.DataFrame | None = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, metadata: Metadata) -> None:
-        """Initializer.
+    metadata: Metadata
 
-        Args:
-            metadata (Metadata): The metadata for this dataset
-        """
-        self.metadata: Metadata = metadata
+    df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)] | None = Field(exclude=True, default=None)
 
-        dtypes, datetime_columns = get_column_dtypes(self.metadata)
-        self.dtypes: dict[str, str] = dtypes
-        self.datetime_columns: list[str] = datetime_columns
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def dtypes(self) -> dict[str, str]:
+        dtypes = {}
+        for col_name, data in self.metadata.columns.items():
+            if isinstance(data, DatetimeMetadata):
+                dtypes[col_name] = "string"
+            elif hasattr(data, "precision"):
+                dtypes[col_name] = f"{data.type}{data.precision}"
+            else:
+                dtypes[col_name] = data.type
+
+        return dtypes
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def datetime_columns(self) -> list[str]:
+        return [
+            col_name for col_name, data in self.metadata.columns.items() if isinstance(data, DatetimeMetadata)
+        ]
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:
@@ -31,23 +55,13 @@ class DataConnector(ABC):
             pd.DataFrame: The pandas dataframe for this dataset.
         """
 
-    def get_polars_lf(
-        self,
-    ) -> pl.LazyFrame:
+    def get_polars_lf(self) -> pl.LazyFrame:
         """Get the data in polars lazyframe format.
 
         Returns:
             pl.LazyFrame: The polars lazyframe for this dataset.
         """
         return pl.from_pandas(self.get_pandas_df()).lazy()
-
-    def get_metadata(self) -> Metadata:
-        """Get the metadata for this dataset.
-
-        Returns:
-            Metadata: The metadata object.
-        """
-        return self.metadata
 
 
 def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
@@ -61,7 +75,6 @@ def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
            dict: The dictionary of the column type.
             list: The list of columns of datetime type
     """
-
     dtypes = {}
     datetime_columns = []
     for col_name, data in metadata.columns.items():

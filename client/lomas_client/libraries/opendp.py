@@ -90,7 +90,6 @@ class OpenDPClient:
         Returns:
             CostResponse: The estimated cost.
         """
-
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
             fixed_delta=fixed_delta,

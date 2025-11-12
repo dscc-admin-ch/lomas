@@ -1,7 +1,8 @@
 from datetime import datetime
+from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
+from pydantic import BaseModel, Discriminator, Field, HttpUrl, Tag, model_validator
 
 from lomas_core.models.constants import (
     CARDINALITY_FIELD,
@@ -23,8 +24,8 @@ class DatasetOfUser(BaseModel):
     dataset_name: str
     initial_epsilon: float
     initial_delta: float
-    total_spent_epsilon: float
-    total_spent_delta: float
+    total_spent_epsilon: float = Field(default=0.0)
+    total_spent_delta: float = Field(default=0.0)
 
 
 # User
@@ -60,24 +61,18 @@ class UserCollection(BaseModel):
 # -----------------------------------------------------------------------------
 
 
-class DSAccess(BaseModel):
-    """BaseModel for access info to a private dataset."""
-
-    database_type: str
-
-
-class DSPathAccess(DSAccess):
+class DSPathAccess(BaseModel):
     """BaseModel for a local dataset."""
 
     database_type: Literal[PrivateDatabaseType.PATH]
-    path: str
+    path: HttpUrl | Path  # force check Path should be relative ? or move prefix logic closer
 
 
-class DSS3Access(DSAccess):
+class DSS3Access(BaseModel):
     """BaseModel for a dataset on S3."""
 
     database_type: Literal[PrivateDatabaseType.S3]
-    endpoint_url: str
+    endpoint_url: HttpUrl
     bucket: str
     key: str
     access_key_id: str | None = None
@@ -219,10 +214,10 @@ def get_column_metadata_discriminator(v: Any) -> str:
 
     if (
         col_type
-        in (
+        in {
             MetadataColumnType.STRING,
             MetadataColumnType.INT,
-        )
+        }
     ) and (((isinstance(v, dict)) and CARDINALITY_FIELD in v) or (hasattr(v, CARDINALITY_FIELD))):
         col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
 

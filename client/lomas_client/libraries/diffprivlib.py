@@ -24,8 +24,8 @@ class DiffPrivLibClient:
     def cost(
         self,
         pipeline: Pipeline,
-        feature_columns: list[str] = [""],
-        target_columns: list[str] = [""],
+        feature_columns: list[str] | None = None,
+        target_columns: list[str] | None = None,
         test_size: float = 0.2,
         test_train_split_seed: int = 1,
         imputer_strategy: str = "drop",
@@ -59,6 +59,10 @@ class DiffPrivLibClient:
         Returns:
             Optional[dict[str, float]]: A dictionary containing the estimated cost.
         """
+        if target_columns is None:
+            target_columns = [""]
+        if feature_columns is None:
+            feature_columns = [""]
         body_dict = {
             "dataset_name": self.http_client.config.dataset_name,
             "diffprivlib_json": serialise_pipeline(pipeline),

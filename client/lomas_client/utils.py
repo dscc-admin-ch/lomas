@@ -40,14 +40,15 @@ def validate_synthesizer(synth_name: str, return_model: bool = False) -> None:
     Raises:
         ValueError: if a synthesizer or its parameters are not valid
     """
-    if synth_name in [
+    if synth_name in {
         SSynthGanSynthesizer.DP_CTGAN,
         SSynthGanSynthesizer.DP_GAN,
-    ]:
+    }:
         warnings.warn(
             f"Warning:{synth_name} synthesizer random generator for noise and "
             + "shuffling is not cryptographically secure. "
-            + "(pseudo-rng in vanilla PyTorch)."
+            + "(pseudo-rng in vanilla PyTorch).",
+            stacklevel=2,
         )
     if synth_name == SSynthMarginalSynthesizer.MST and return_model:
         raise ValueError(

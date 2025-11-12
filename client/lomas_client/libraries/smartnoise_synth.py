@@ -30,10 +30,10 @@ class SmartnoiseSynthClient:
         synth_name: str,
         epsilon: float,
         delta: float | None = None,
-        select_cols: list[str] = [],
-        synth_params: dict = {},
+        select_cols: list[str] | None = None,
+        synth_params: dict | None = None,
         nullable: bool = True,
-        constraints: dict = {},
+        constraints: dict | None = None,
     ) -> CostResponse:
         """This function estimates the cost of executing a SmartNoise query.
 
@@ -77,6 +77,12 @@ class SmartnoiseSynthClient:
         Returns:
             CostResponse: The estimated cost.
         """
+        if constraints is None:
+            constraints = {}
+        if synth_params is None:
+            synth_params = {}
+        if select_cols is None:
+            select_cols = []
         validate_synthesizer(synth_name)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 
@@ -100,10 +106,10 @@ class SmartnoiseSynthClient:
         synth_name: str,
         epsilon: float,
         delta: float | None = None,
-        select_cols: list[str] = [],
-        synth_params: dict = {},
+        select_cols: list[str] | None = None,
+        synth_params: dict | None = None,
         nullable: bool = True,
-        constraints: dict = {},
+        constraints: dict | None = None,
         dummy: bool = False,
         return_model: bool = False,
         condition: str = "",
@@ -167,6 +173,12 @@ class SmartnoiseSynthClient:
         Returns:
             QueryResponse: A Pandas DataFrame containing the query results.
         """
+        if constraints is None:
+            constraints = {}
+        if synth_params is None:
+            synth_params = {}
+        if select_cols is None:
+            select_cols = []
         validate_synthesizer(synth_name, return_model)
         constraints_str = serialise_constraints(constraints) if constraints else ""
 

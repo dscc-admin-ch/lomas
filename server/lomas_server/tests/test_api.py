@@ -109,9 +109,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             response_dict = response.json()
             r_model = DummyDsResponse.model_validate(response_dict)
 
-            assert (
-                r_model.dummy_df.shape[0] == DUMMY_NB_ROWS
-            ), "Dummy pd.DataFrame does not have expected number of rows"
+            assert r_model.dummy_df.shape[0] == DUMMY_NB_ROWS, (
+                "Dummy pd.DataFrame does not have expected number of rows"
+            )
             assert response_dict["datetime_columns"] == []
 
             expected_dtypes = [
@@ -123,9 +123,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 "float",
                 "string",
             ]
-            assert (
-                r_model.dummy_df.dtypes.values == expected_dtypes
-            ).all(), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
+            assert (r_model.dummy_df.dtypes.values == expected_dtypes).all(), (
+                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtypes}"
+            )
 
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
@@ -210,9 +210,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.dummy_df.shape[0] == 10, "Dummy pd.DataFrame does not have expected number of rows"
 
             expected_dtype = np.dtype("<M8[ns]")
-            assert (
-                r_model.dummy_df.dtypes.values[0] == expected_dtype
-            ), f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtype}"
+            assert r_model.dummy_df.dtypes.values[0] == expected_dtype, (
+                f"Dtypes do not match: {r_model.dummy_df.dtypes} != {expected_dtype}"
+            )
 
     def test_get_initial_budget(self) -> None:
         """Test_get_initial_budget."""

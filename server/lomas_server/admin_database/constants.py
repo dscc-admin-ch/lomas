@@ -1,6 +1,15 @@
 from enum import StrEnum
 
 
+class TopDBKey(StrEnum):
+    """Key of the top level collecions."""
+
+    ARCHIVE = "queries_archive"
+    USERS = "users"
+    DATASETS = "datasets"
+    METADATA = "metadata"
+
+
 class BudgetDBKey(StrEnum):
     """
     Key for selecting budget values in admin db for given.

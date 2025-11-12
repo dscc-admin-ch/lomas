@@ -1,5 +1,4 @@
 import logging
-import logging.config
 
 from opentelemetry import metrics, trace
 from opentelemetry._logs import set_logger_provider

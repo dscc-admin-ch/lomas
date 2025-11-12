@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from aio_pika.patterns.rpc import Proxy
 
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.collections import (
@@ -14,7 +15,6 @@ from lomas_core.models.collections import (
 )
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_core.models.requests import DummyQueryModel
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import RANDOM_STRINGS
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 
@@ -101,26 +101,23 @@ def make_dummy_dataset(
     return df
 
 
-def get_dummy_dataset_for_query(
-    admin_database: AdminDatabase, query_json: DummyQueryModel
+async def get_dummy_dataset_for_query(
+    admin_database: Proxy, query_json: DummyQueryModel
 ) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
     Args:
-        admin_database (AdminDatabase): An initialized instance
-            of AdminDatabase.
+        admin_database (Proxy): A Proxy for an initialized instance of an AdminDatabase.
         query_json (RequestModel): The request object for the query.
 
     Returns:
         InMemoryConnector: An in memory dummy dataset instance.
     """
     # Create dummy dataset based on seed and number of rows
-    ds_metadata = admin_database.get_dataset_metadata(query_json.dataset_name)
-    ds_df = make_dummy_dataset(
-        ds_metadata,
+    metadata = await admin_database.get_dataset_metadata(dataset_name=query_json.dataset_name)
+    df = make_dummy_dataset(
+        metadata,
         query_json.dummy_nb_rows,
         query_json.dummy_seed,
     )
-    ds_data_connector = InMemoryConnector(ds_metadata, ds_df)
-
-    return ds_data_connector
+    return InMemoryConnector(metadata=metadata, df=df)

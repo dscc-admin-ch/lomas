@@ -32,19 +32,19 @@ Once in lomas repo run the following to activate the devenv: `devenv shell`.
 
 The following utilities are now available in your shell:
 - `yelp` will print a similar help page.
-- `devenv up` will start up the environment (lomas server, worker, keycloak, mongodb, rabbitmq) and set up the components. Demo users and datasets will also be added to the service.
+- `devenv up` will start up the environment (lomas server, worker, keycloak, rabbitmq) and set up the components. Demo users and datasets will also be added to the service.
 - `devenv up -- --namespace=telemetry` or `process-compose up` will do the same as above but with telemetry enabled.
 - `yq $PC_CONFIG_FILES` will show what process-compose is doing.
 - `ut / pytest -k <name of your test>` will run individual tests, no need to setup the python path. If your tests require the services to be up, run `devenv up` before.
 - `ut-coverage` will run tests and coverage.
 - `uv sync --all-extras [-U]` will fix broken/out of sync/missing packages.
 - `uv add <packages>` will add new packages.
-- `run-linter` will run all the Linting suit (black/ruff/pylint/pydocstringformatter/mypy)
+- `run-linter` will run all the Linting suit (ruff/pydocstringformatter/mypy)
 - `build-docs` builds all version of the docs (requires `uv sync --all-extras` first)
 - `build-docs-local` builds the local version of the doc (requires `uv sync --all-extras` first), the htlm will open automatically.
 
 
-Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely black/ruff/pylint).
+Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely ruff/pylint).
 
 ## Python package management
 
@@ -62,7 +62,7 @@ Activating the devenv already activates the python venv with uv.
 
 To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that are performed by the `run-linter` command:
 
-- **Code Formatting:** We use `black` to automatically format the code.
+- **Code Formatting:** We use `ruff` to automatically format the code.
 - **Code Style and Static Analysis**: We use ruff to verify formatting and perform static code.
 - **Static Type Checking**: We use mypy for static type checking. Note that both the server and the client have their own pyproject.toml files with configs to ignore specific warnings.
 - **Additional Static Analysis**: We use pylint for further static analysis. Note that both the server and the client have their own config in their respective pyproject.toml files to ignore specific warnings.

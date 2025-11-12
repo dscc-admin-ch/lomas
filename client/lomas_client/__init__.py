@@ -1,9 +1,8 @@
 import logging
-from logging import NullHandler
 
 from .client import Client
 
 logger = logging.getLogger(__name__)
-logger.addHandler(NullHandler())
+logger.addHandler(logging.NullHandler())
 
 __all__ = ("Client",)

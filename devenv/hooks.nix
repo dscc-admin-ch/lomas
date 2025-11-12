@@ -51,31 +51,12 @@ in
         ];
       };
 
-      black = {
+      ruff-format = {
         enable = true;
         before = [ "ruff" ];
-        args = lib.optionals (cfg.projectConfigFile != null) [
-          "--config"
-          "${cfg.projectConfigFile}"
-        ];
       };
 
       ruff.enable = true;
-
-      pylint = {
-        enable = true;
-        after = [ "ruff" ];
-        verbose = true;
-        args =
-          [
-            "--fail-under"
-            "8"
-          ]
-          ++ (lib.optionals (cfg.projectConfigFile != null) [
-            "--rcfile"
-            "${cfg.projectConfigFile}"
-          ]);
-      };
     };
   };
 }

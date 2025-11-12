@@ -105,7 +105,7 @@ def test_oauth2_demo(kc, demo_setup) -> None:
 
     # Smartnoise
 
-    ## Dummy Query
+    # Dummy Query
     query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
     dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
 
@@ -162,7 +162,7 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
         pipeline=dpl_pipeline, feature_columns=feature_columns, target_columns=target_columns, dummy=True
     )
 
-    dummy_response.result.model is not None
+    assert dummy_response.result.model is not None
 
     feature_columns = ["bill_length_mm"]
     target_columns = ["bill_depth_mm"]

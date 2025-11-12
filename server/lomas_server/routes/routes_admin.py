@@ -30,6 +30,8 @@ from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
 router = APIRouter()
+example_get_admin_db_data_body = Body(example_get_admin_db_data)
+example_get_dummy_dataset_body = Body(example_get_dummy_dataset)
 
 
 @router.get("/")
@@ -103,7 +105,6 @@ async def get_state(
     Returns:
         JSONResponse: The state of the server instance.
     """
-
     return JSONResponse(
         content={
             "state": "live",
@@ -138,7 +139,7 @@ async def get_server_config(
 def get_dataset_metadata(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: LomasRequestModel = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = example_get_admin_db_data_body,
 ) -> Metadata:
     """
     Retrieves metadata for a given dataset.
@@ -148,7 +149,7 @@ def get_dataset_metadata(
         user_id (UserId): A UserId object identifying the user.
         query_json (LomasRequestModel, optional): A JSON object containing
             the dataset_name key for indicating the dataset.
-            Defaults to Body(example_get_admin_db_data).
+            Defaults to example_get_admin_db_data_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -186,7 +187,7 @@ def get_dataset_metadata(
 def get_dummy_dataset(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: GetDummyDataset = Body(example_get_dummy_dataset),
+    query_json: GetDummyDataset = example_get_dummy_dataset_body,
 ) -> DummyDsResponse:
     """
     Generates and returns a dummy dataset.
@@ -201,7 +202,7 @@ def get_dummy_dataset(
                 - seed (int, optional): The random seed for generating
                   the dummy dataset (default: 42).
 
-            Defaults to Body(example_get_dummy_dataset).
+            Defaults to example_get_dummy_dataset_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -245,7 +246,6 @@ def get_dummy_dataset(
     )
 
 
-# MongoDB get initial budget
 @router.post(
     "/get_initial_budget",
     tags=["USER_BUDGET"],
@@ -253,7 +253,7 @@ def get_dummy_dataset(
 def get_initial_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: LomasRequestModel = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = example_get_admin_db_data_body,
 ) -> InitialBudgetResponse:
     """
     Returns the initial budget for a user and dataset.
@@ -264,7 +264,7 @@ def get_initial_budget(
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
-            Defaults to Body(example_get_admin_db_data).
+            Defaults to example_get_admin_db_data_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -293,7 +293,6 @@ def get_initial_budget(
     return InitialBudgetResponse(initial_epsilon=initial_epsilon, initial_delta=initial_delta)
 
 
-# MongoDB get total spent budget
 @router.post(
     "/get_total_spent_budget",
     tags=["USER_BUDGET"],
@@ -301,7 +300,7 @@ def get_initial_budget(
 def get_total_spent_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: LomasRequestModel = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = example_get_admin_db_data_body,
 ) -> SpentBudgetResponse:
     """
     Returns the spent budget for a user and dataset.
@@ -312,7 +311,7 @@ def get_total_spent_budget(
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
-            Defaults to Body(example_get_admin_db_data).
+            Defaults to example_get_admin_db_data_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -341,7 +340,6 @@ def get_total_spent_budget(
     return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
 
 
-# MongoDB get remaining budget
 @router.post(
     "/get_remaining_budget",
     tags=["USER_BUDGET"],
@@ -349,7 +347,7 @@ def get_total_spent_budget(
 def get_remaining_budget(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: LomasRequestModel = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = example_get_admin_db_data_body,
 ) -> RemainingBudgetResponse:
     """
     Returns the remaining budget for a user and dataset.
@@ -360,7 +358,7 @@ def get_remaining_budget(
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
-            Defaults to Body(example_get_admin_db_data).
+            Defaults to example_get_admin_db_data_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -388,7 +386,6 @@ def get_remaining_budget(
     return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
 
-# MongoDB get archives
 @router.post(
     "/get_previous_queries",
     tags=["USER_BUDGET"],
@@ -396,7 +393,7 @@ def get_remaining_budget(
 def get_user_previous_queries(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    query_json: LomasRequestModel = Body(example_get_admin_db_data),
+    query_json: LomasRequestModel = example_get_admin_db_data_body,
 ) -> JSONResponse:
     """
     Returns the query history of a user on a specific dataset.
@@ -407,7 +404,7 @@ def get_user_previous_queries(
         query_json (LomasRequestModel, optional): A JSON object containing:
             - dataset_name (str): The name of the dataset.
 
-            Defaults to Body(example_get_admin_db_data).
+            Defaults to example_get_admin_db_data_body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries

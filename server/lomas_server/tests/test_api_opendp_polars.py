@@ -74,7 +74,7 @@ def mean_query_serialized(lf: pl.LazyFrame) -> str:
     return plan.serialize(format="json")
 
 
-def group_query_serialized(lf: pl.LazyFrame) -> str:
+def group_query_serialized(lf: pl.LazyFrame) -> bytes:
     """Example of a grouped mean query using OpenDP with Polars.
 
     This function computes the differentially private mean of the "income" column
@@ -96,7 +96,7 @@ def group_query_serialized(lf: pl.LazyFrame) -> str:
     return plan.serialize(format="json")
 
 
-def multiple_group_query_serialized(lf: pl.LazyFrame) -> str:
+def multiple_group_query_serialized(lf: pl.LazyFrame) -> bytes:
     """Example of a grouped mean query using OpenDP with Polars,.
 
     grouped by multiple columns.
@@ -279,7 +279,6 @@ class TestOpenDPpolarsFunctions(unittest.TestCase):
 
     def test1_margin(self) -> None:
         """Test margins created."""
-
         RAW_METADATA["rows"] = 100
         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
         by_config = ["column_int"]

@@ -27,7 +27,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
     if imputer_strategy == "drop":
         df = df.dropna()
-    elif imputer_strategy in ["mean", "median"]:
+    elif imputer_strategy in {"mean", "median"}:
         numerical_cols = df.select_dtypes(include=NUMERICAL_DTYPES).columns.tolist()
         categorical_cols = [col for col in df.columns if col not in numerical_cols]
 

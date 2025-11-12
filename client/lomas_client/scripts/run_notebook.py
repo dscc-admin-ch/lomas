@@ -19,7 +19,6 @@ def get_client_notebook_files() -> list[Path]:
 
     Assumes the file layout is the same as in the code repository.
     """
-
     return [nb.resolve() for nb in Path(__file__).parent.glob("../../notebooks/*.ipynb")]
 
 

@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from pathlib import Path
 
 import pytest
 import yaml
 from mantelo import KeycloakAdmin
-from pydantic import ValidationError
 
+from lomas_core.models.collections import UserCollection
 from lomas_server.administration.keycloak_admin import (
     add_kc_user,
+    add_kc_users,
     add_kc_users_via_yaml,
     del_all_kc_users,
     del_kc_user,
@@ -16,7 +16,6 @@ from lomas_server.administration.keycloak_admin import (
     set_kc_user_client_secret,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import DemoAdminConfig
-from lomas_server.administration.utils import absolute_path
 from lomas_server.models.config import AdminConfig, KeycloakClientConfig
 
 
@@ -143,7 +142,9 @@ def test_add_kc_users_via_yaml(client, kc):
     """Test adding users in keycloak via a yaml file."""
     demo_config = DemoAdminConfig()
 
-    add_kc_users_via_yaml(kc.config, demo_config.user_yaml, True, True, path_prefix=demo_config.path_prefix)
+    add_kc_users_via_yaml(
+        kc.config, demo_config.path_prefix / demo_config.user_yaml.relative_to("/"), True, True
+    )
     # Check that users/clients are inserted
     assert len(kc.admin.users.get()) == 6  # check that all 6 users are inserted
     assert kc.admin.users.get(username="Dr.FSO")[0]["username"] == "dr.fso"
@@ -151,19 +152,13 @@ def test_add_kc_users_via_yaml(client, kc):
     assert kc.admin.clients.get(clientId="Dr.FSO")[0]["attributes"]["lomas_user_client"] == "true"
 
     # Load demo yaml
-    with Path.open(absolute_path(demo_config.user_yaml, demo_config.path_prefix), encoding="utf-8") as f:
-        yaml_users = yaml.safe_load(f)
+    yaml_users = yaml.safe_load((demo_config.path_prefix / demo_config.user_yaml.relative_to("/")).open())
     new_secret = "test_secret"
     yaml_users["users"][0]["id"]["client_secret"] = new_secret
 
     # Check overwrite argument and with yaml file instead of path
-    add_kc_users_via_yaml(kc.config, yaml_users, False, True)
+    add_kc_users(kc.config, UserCollection(**yaml_users), False, True)
     assert kc.admin.clients.get(clientId="Alice")[0]["secret"] == new_secret
     # Check that we have still two users (user and service account) and one client
     assert len(kc.admin.users.get(username="Alice")) == 2
     assert len(kc.admin.clients.get(clientId="Alice")) == 1
-
-    # Check it fails if yaml does not respect pydantic model
-    yaml_users["users"] = ""
-    with pytest.raises(ValidationError):
-        add_kc_users_via_yaml(kc.config, yaml_users, True, True)

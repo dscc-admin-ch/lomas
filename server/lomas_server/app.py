@@ -1,4 +1,3 @@
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -12,7 +11,7 @@ from lomas_core.error_handler import (
 )
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import init_logging
-from lomas_server.admin_database.mongodb_database import AdminMongoDatabase
+from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -24,9 +23,7 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
-init_logging()
-
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 @asynccontextmanager
@@ -51,10 +48,10 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     # Load admin database
     try:
         logger.info("Loading admin database")
-        lomas_app.state.admin_database = AdminMongoDatabase(config.admin_database)
+        lomas_app.state.admin_database = LocalAdminDatabase(path=config.admin_database_url)
         logger.info("Loading authenticator")
-        lomas_app.state.authenticator = config.authenticator.user_auth()
-
+        lomas_app.state.authenticator = config.authenticator
+        lomas_app.state.private_db_credentials = config.private_db_credentials
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")
 

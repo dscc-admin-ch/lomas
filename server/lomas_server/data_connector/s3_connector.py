@@ -1,36 +1,41 @@
+from functools import cached_property
+from typing import Literal
+
 import boto3
 import pandas as pd
+from pydantic import computed_field
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.collections import DSS3Access, Metadata
+from lomas_core.models.collections import DSS3Access
 from lomas_server.data_connector.data_connector import DataConnector
 
 
 class S3Connector(DataConnector):
     """DataConnector for dataset in S3 storage."""
 
-    def __init__(
-        self,
-        metadata: Metadata,
-        credentials: DSS3Access,
-    ) -> None:
-        """Initializer.
+    type: Literal["S3Connector"] = "S3Connector"
 
-        Args:
-            metadata (Metadata): The metadata dictionary.
-            s3_parameters (dict): informations to access metadata
-        """
-        super().__init__(metadata)
+    credentials: DSS3Access
 
-        self.client = boto3.client(
+    # private to avoid serialization
+    @cached_property
+    def _client(self) -> boto3.session.Session.client:
+        return boto3.client(
             "s3",
-            endpoint_url=credentials.endpoint_url,
-            aws_access_key_id=credentials.access_key_id,
-            aws_secret_access_key=credentials.secret_access_key,
+            endpoint_url=str(self.credentials.endpoint_url),
+            aws_access_key_id=self.credentials.access_key_id,
+            aws_secret_access_key=self.credentials.secret_access_key,
         )
-        self.bucket: str = credentials.bucket
-        self.key: str = credentials.key
-        self.df: pd.DataFrame | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def bucket(self) -> str:
+        return self.credentials.bucket
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def key(self) -> str:
+        return self.credentials.key
 
     def get_pandas_df(self) -> pd.DataFrame:
         """Get the data in pandas dataframe format.
@@ -41,13 +46,14 @@ class S3Connector(DataConnector):
         Returns:
             pd.DataFrame: pandas dataframe of dataset
         """
-        if self.df is None:
-            obj = self.client.get_object(Bucket=self.bucket, Key=self.key)
-            try:
-                self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
-            except Exception as err:
-                raise InternalServerException(
-                    "Error reading csv at s3 path:" + f"{self.bucket}/{self.key}: {err}"
-                ) from err
+        if self.df is not None:
+            return self.df
 
-        return self.df
+        obj = self._client.get_object(Bucket=self.bucket, Key=self.key)
+        try:
+            self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
+            return self.df
+        except Exception as err:
+            raise InternalServerException(
+                "Error reading csv at s3 path:" + f"{self.bucket}/{self.key}: {err}"
+            ) from err

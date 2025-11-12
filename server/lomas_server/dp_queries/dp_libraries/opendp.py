@@ -1,8 +1,8 @@
-import logging
 import os
 
 import opendp as dp
 import polars as pl
+from aio_pika.patterns.rpc import Proxy
 from opendp._lib import lib_path
 from opendp.metrics import metric_distance_type, metric_type
 from opendp.mod import enable_features
@@ -13,16 +13,15 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures
+from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_core.opendp_utils import reconstruct_measurement_pipeline
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
@@ -31,18 +30,17 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         """Initializer.
 
         Args:
-            data_connector (DataConnector): DataConnector for the dataset
-                to query.
+            data_connector (DataConnector): DataConnector for the dataset to query.
         """
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = self.data_connector.get_metadata().model_dump()
+        self.metadata = self.data_connector.metadata.model_dump()
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -125,7 +123,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             # and do not support direct item assignment (not supported: input_data[col] = ...)
             expressions = []
             for col, val in self.metadata["columns"].items():
-                if val["type"] in [MetadataColumnType.STRING, MetadataColumnType.DATETIME]:
+                if val["type"] in {MetadataColumnType.STRING, MetadataColumnType.DATETIME}:
                     expressions.append(pl.col(col).fill_null("").alias(col))
 
             input_data = input_data.with_columns(expressions)
@@ -160,7 +158,7 @@ def is_measurement(pipeline: dp.Measurement) -> None:
     """
     if not isinstance(pipeline, dp.Measurement):
         e = "The pipeline provided is not a measurement. It cannot be processed in this server."
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
 
@@ -181,7 +179,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             + f" but {distance_type} which is not a valid distance type for datasets."
             + " It cannot be processed in this server."
         )
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
     dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
@@ -190,7 +188,7 @@ def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
             f"The input distance metric {pipeline.input_metric} is not a dataset"
             + " input metric. It cannot be processed in this server."
         )
-        logger.exception(e)
+        logger.error(e)
         raise InvalidQueryException(e)
 
 
@@ -223,7 +221,7 @@ def get_output_measure(opendp_pipe: dp.Measurement) -> str:
     output_measure = opendp_pipe.output_measure
 
     if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO 360 : constant.
+        if output_type.origin in {"SMDCurve", "Tuple"}:  # TODO 360 : constant.
             output_type = output_type.args[0]
         else:
             raise InternalServerException(

@@ -15,8 +15,8 @@ import yaml
 warnings.filterwarnings("ignore", message="Thread 'MainThread': missing ScriptRunContext!*")
 
 # Force-mock problematic modules so Sphinx autodoc can import code without
-# actually trying to connect to MongoDB or start a Streamlit runtime.
-autodoc_mock_imports = ["gridfs", "pymongo", "streamlit"]
+# actually trying to start a Streamlit runtime.
+autodoc_mock_imports = ["streamlit"]
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -122,13 +122,13 @@ if build_all_docs is not None:
 
     # and loop over all other versions from our yaml file
     # to set versions and languages
-    with open("../versions.yaml") as yaml_file:
+    with open("../versions.yaml", encoding="utf-8") as yaml_file:
         docs = yaml.safe_load(yaml_file)
 
     if current_version != "stable":
         for language in docs[current_version].get("languages", []):
             html_context["languages"].append([language, pages_root + "/" + current_version + "/" + language])
 
-    for version, details in docs.items():
+    for version, _details in docs.items():
         if version != "stable":
             html_context["versions"].append([version, pages_root + "/" + version + "/" + current_language])

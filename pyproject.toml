@@ -11,22 +11,20 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-  "black>=25.0",
   "ruff>=0.11",
   "mypy>=1.15",
-  "pylint>=4.0",
   "pydocstringformatter>=0.7",
   "coverage>=7.6",
   "pytest>=8.3",
   "pytest-cov>=6.0",
 ]
 docs = [
-  "pandoc==2.4",
-  "sphinx==8.1.3",
-  "nbsphinx==0.9.6",
-  "sphinx-rtd-theme==3.0.2",
-  "sphinxcontrib.napoleon==0.7",
-  "myst-parser==4.0.0",
+  "pandoc>=2.4",
+  "sphinx>=8.1",
+  "nbsphinx>=0.9.6",
+  "sphinx-rtd-theme>=3.0",
+  "sphinxcontrib.napoleon>=0.7",
+  "myst-parser>=4.0",
 ]
 
 # workspace setup for uv
@@ -66,11 +64,12 @@ select = [
   "PLE", # Pylint Error
   "UP", # pyupgrade
   "D", # pydocstyle see @pydocstyle.convention
+  "B", # flake8-bugbear
   "FAST001", "FAST003", # FastAPI lint
   "DTZ", # flake8-datetimez
   "ICN", # flake8-import-conventions (numpy as np, pandas as pd, etc.)
   "PYI", # flake8-pyi
-  # "LOG",
+  "LOG",
   "PT", # Pytest-style (lots of fixes todo)
   "RSE", # flake8-raise
   "FLY", # flynt
@@ -86,31 +85,21 @@ ignore = [
   "E501",
   "PLR0912", # too-many-branches
   "PLR0913", # too-many-arguments
-  "PLR0914", # too-many-locals
   "PLR0915", # too-many-statements
   "PLR2004", # Magic value used in comparison
-  "N812", # lowercase-imported-as-non-lowercase
   "D10", # Missing docstring in public module/package/__init__
   "D301", # Esacpe Sequence in docstring
-  "D202", # No blank lines allowed after function docstring
   "D400", # First line should end with a period
   "D401", # First line of docstring should be in imperative mood
   "PT011", # FIXME
-  "PLW1510", # TODO: check if doc still build
 ]
 pydocstyle.convention = "pep257"
-pep8-naming.extend-ignore-names = ["*Exception"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
 split-on-trailing-comma = true
 extra-standard-library = ["test"]
 known-first-party = ["lomas_core", "lomas_server", "lomas_client"]
-
-[tool.black]
-line-length = 110
-include = '\.pyi?$'
-extend_exclude = '\.ipynb'
 
 [tool.mypy]
 plugins = ['pydantic.mypy']
@@ -140,29 +129,6 @@ init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
 
-[tool.pylint.main]
-max-line-length = 110
-ignore-patterns = "test_.*py$"
-recursive = "yes"
-ignore-paths = ".devenv,docs"
-
-[tool.pylint."messages control"]
-disable = [
-    "fixme",
-    "import-error", # fails in git-runner but not locally ?
-    "duplicate-code", # FIXME
-    "too-many-locals", # ruff PLR0914
-    "logging-not-lazy",
-    "undefined-variable", # handled by ruff
-    "wrong-import-order", # handled by ruff
-    "too-many-arguments", # ruff PLR0913
-    "too-few-public-methods",
-    "dangerous-default-value",
-    "missing-module-docstring",
-    "logging-fstring-interpolation",
-    "too-many-positional-arguments", # ruff PLR0917
-]
-
 [tool.pydocstringformatter]
 max-line-length = 110
 write = true
@@ -173,7 +139,7 @@ log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
 #syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
   "ignore:'json' serialization format of LazyFrame is deprecated:UserWarning",
-  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger|pkg_resources|jupyter_client).*:",
+  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger|pkg_resources|jupyter_client|aio_pika).*:",
   "ignore::UserWarning:opendp_logger:",
 ]
 addopts = [

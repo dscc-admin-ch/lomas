@@ -1,6 +1,4 @@
-import logging
 import os
-from json import loads
 from time import sleep
 
 import requests
@@ -10,10 +8,11 @@ from requests_oauthlib import OAuth2Session
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_client.models.config import ClientConfig
+from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class LomasHttpClient:
@@ -73,7 +72,6 @@ class LomasHttpClient:
         Returns:
             requests.Response: The response object resulting from the POST request.
         """
-
         logger.debug(
             f"User (with client id '{self.config.client_id}') is making a request "
             + f"to url '{self.config.app_url}' "
@@ -103,7 +101,6 @@ class LomasHttpClient:
 
     def wait_for_job(self, job_uid: str, n_retry: int = 1800, sleep_sec: float = 1) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
-
         for _ in range(n_retry):
             try:
                 job_query = self._oauth2_session.get(
@@ -117,11 +114,8 @@ class LomasHttpClient:
                 ).json()
 
             # Check for error before accessing "status"
-            if "status" in job_query and job_query["status"] == "complete":
+            if "status" in job_query and job_query["status"] in {"complete", "failed"}:
                 return Job.model_validate(job_query)
-
-            if (job_err := job_query.get("error")) is not None:
-                return Job.model_validate(job_query | {"error": loads(job_err)})
 
             if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
                 # Handle unauthorized specifically

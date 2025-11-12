@@ -56,7 +56,7 @@ Steps to Deploy Locally
 
    Running `docker compose up` will also start a few additional services automatically:
 
-   * The local administration MongoDB, that relies on the docker volume `mongodata`.
+   * The local administration database, that relies on the docker volume `admindata`.
    * The identity provider, Keycloak, as well as a setup container to initialize the service.
    * The messaging system, RabbitMQ.
    * A setup container that will fill up Keycloak and the administration database with demo users.

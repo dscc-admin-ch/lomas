@@ -49,7 +49,6 @@ class Client:
         Args:
             kwargs: All keyword arguments will be forwarded to the ClientConfig
         """
-
         try:
             self.config = ClientConfig(**kwargs)
         except ValidationError as exc:
@@ -161,7 +160,6 @@ class Client:
             InitialBudgetResponse: A dictionary
                 containing the initial budget.
         """
-
         body_dict = {"dataset_name": self.config.dataset_name}
 
         body = LomasRequestModel.model_validate(body_dict)

@@ -5,11 +5,6 @@ from pathlib import Path
 from opendp.mod import enable_features
 
 from lomas_core.models.constants import AuthenticationType
-from lomas_server.administration.mongodb_admin import (
-    add_datasets_via_yaml,
-    add_users_via_yaml,
-    drop_collection,
-)
 from lomas_server.models.config import Config
 
 INITAL_EPSILON = 10
@@ -19,17 +14,11 @@ enable_features("floating-point")
 
 
 class TestSetupRootAPIEndpoint(unittest.TestCase):
-    """
-    End-to-end tests of the api endpoints.
-
-    This test can be both executed as an integration test
-    (enabled by setting LOMAS_TEST_MONGO_INTEGRATION to True),
-    or a standard test. The first requires a mongodb to be started
-    before running while the latter will use a local YamlDatabase.
-    """
+    """End-to-end tests of the api endpoints."""
 
     def setUp(self) -> None:
         """Set Up Header and DB for test."""
+        self.config = Config()
 
         # Disable Keycloak for UTs
         self.previous_auth_method = os.environ.get("LOMAS_SERVICE_authenticator__authentication_type", "")
@@ -44,34 +33,21 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
-        self.mongo_config = Config().admin_database
+        path_prefix = Path(__file__).parent / "test_data"
 
-        path_prefix = str(Path(__file__).parent / "test_data")
-
-        add_users_via_yaml(
-            self.mongo_config,
-            yaml_file="test_user_collection.yaml",
+        self.config.database.add_users_via_yaml(
+            yaml_file=path_prefix / Path("test_user_collection.yaml"),
             clean=True,
-            overwrite=True,
-            path_prefix=path_prefix,
         )
 
-        yaml_file = "test_datasets_with_s3.yaml"
-
-        add_datasets_via_yaml(
-            self.mongo_config,
-            yaml_file=yaml_file,
+        self.config.database.add_datasets_via_yaml(
+            yaml_file=path_prefix / Path("test_datasets_with_s3.yaml"),
             clean=True,
-            overwrite_datasets=True,
-            overwrite_metadata=True,
-            path_prefix=path_prefix,
+            path_prefix=str(path_prefix),
         )
 
     def tearDown(self) -> None:
         # Clean up database
-        drop_collection(self.mongo_config, "metadata")
-        drop_collection(self.mongo_config, "datasets")
-        drop_collection(self.mongo_config, "users")
-        drop_collection(self.mongo_config, "queries_archives")
+        self.config.database.wipe()
         # reset env
         os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = self.previous_auth_method

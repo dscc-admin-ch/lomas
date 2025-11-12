@@ -93,7 +93,7 @@ class TestMakeDummyDataset(unittest.TestCase):
         df = make_dummy_dataset(metadata)
 
         # Test col generated is of type int
-        assert df.col_int.dtypes.name in ["int64"]
+        assert df.col_int.dtypes.name == "int64"
 
         # Test within bounds
         assert (df["col_int"] >= lower_bound).all()

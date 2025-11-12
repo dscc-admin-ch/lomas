@@ -11,6 +11,7 @@ services:
     restart: always
     env_file: ./configs/.env.lomas_service
     volumes:
+      - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
     depends_on:
@@ -18,9 +19,6 @@ services:
         condition: service_started
       minio-client:
         condition: service_completed_successfully
-        restart: true
-      mongodb:
-        condition: service_started
         restart: true
       otel-collector:
         condition: service_started
@@ -60,9 +58,6 @@ services:
       minio-client:
         condition: service_completed_successfully
         restart: true
-      mongodb:
-        condition: service_started
-        restart: true
       otel-collector:
         condition: service_started
       keycloak:
@@ -89,47 +84,6 @@ services:
       - RABBITMQ_NODE_PORT=${LOMAS_RABBIT_MQ_PORT}
     networks:
       - lomas-network
-
-  mongodb:
-    container_name: mongodb
-    image: mongodb/mongodb-community-server:6.0-ubi8
-    # Use only if volume is not a docker volume but a bind mount (e.g. ./data/:/data/db/)
-    # The reason has to do with permissions (see https://stackoverflow.com/questions/29245216/write-in-shared-volumes-docker/29251160#29251160)
-    # Still unclear why just setting chmod 777 ./data does not solve the issue.
-    #user: 1000:1000
-    ports:
-      - 127.0.0.1:${LOMAS_MONGO_PORT}:${LOMAS_MONGO_PORT}
-    networks:
-      - lomas-network
-    volumes:
-      #- mongodata:/data/db/
-      - ./configs/mongodb_init.js:/docker-entrypoint-initdb.d/mongodb_init.js:ro
-    command:
-      - "--port"
-      - "${LOMAS_MONGO_PORT}"
-    # We use this in docker compose to have a user/password for mongodb
-    # Proper deployment on a kubernetes cluster should use a helm chart
-    # and parametrize a user specific to the fastAPI server.
-    environment:
-      - MONGODB_INITDB_ROOT_USERNAME=${LOMAS_MONGO_ROOT_USER}
-      - MONGODB_INITDB_ROOT_PASSWORD=${LOMAS_MONGO_ROOT_PWD}
-      - MONGODB_INITDB_DATABASE=${LOMAS_MONGO_DATABASE}
-      # add user https://stackoverflow.com/questions/42912755/how-to-create-a-db-for-mongodb-container-on-start-up/54064268#54064268
-
-  mongodb-exporter:
-    image: bitnami/mongodb-exporter:0.43.1
-    container_name: mongodb-exporter
-    ports:
-      - ${LOMAS_MONGO_COLLECTOR_PORT}:${LOMAS_MONGO_COLLECTOR_PORT}
-    networks:
-      - lomas-network
-    command:
-      - "--web.listen-address"
-      - ":${LOMAS_MONGO_COLLECTOR_PORT}"
-    environment:
-      - MONGODB_URI=mongodb://${LOMAS_MONGO_ROOT_USER}:${LOMAS_MONGO_ROOT_PWD}@mongodb:${LOMAS_MONGO_PORT}
-    depends_on:
-      - mongodb
 
   keycloak:
     container_name: keycloak
@@ -178,13 +132,12 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
-      mongodb:
-        condition: service_started
       keycloak_setup:
         condition: service_completed_successfully
     entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
     env_file: ./configs/administration/.env.lomas_demo_setup
     volumes:
+      - admindata:/tmp
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/
@@ -348,5 +301,5 @@ networks:
     name: lomas-network
 
 volumes:
-  mongodata:
+  admindata:
   minio-data:

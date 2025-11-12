@@ -16,7 +16,6 @@ class FilterOutLiveSuccess:
 
 def uvicorn_serve() -> None:
     """Start the ASGI server for lomas."""
-
     config = Config()
 
     log_config = LOGGING_CONFIG

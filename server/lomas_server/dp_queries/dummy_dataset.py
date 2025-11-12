@@ -107,7 +107,7 @@ async def get_dummy_dataset_for_query(
     """Get a dummy dataset for a given query.
 
     Args:
-        admin_database (AdminDatabase): An initialized instance of AdminDatabase.
+        admin_database (Proxy): A Proxy for an initialized instance of an AdminDatabase.
         query_json (RequestModel): The request object for the query.
 
     Returns:

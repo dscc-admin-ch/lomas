@@ -152,7 +152,7 @@ def test_widgets(at: AppTest, dataset_iris) -> None:
     assert json.loads(at.json[0].value)["IRIS"]["max_ids"] == 1
 
     at.button("content_show_archives").click().run()
-    # assert json.loads(at.json[0].value) == []
+    assert json.loads(at.json[0].value) == {}
 
     # Deletion tab
     # Subheader "Delete one element"

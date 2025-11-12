@@ -1,4 +1,3 @@
-import logging
 import operator as op
 import shelve
 import sys
@@ -21,7 +20,7 @@ from lomas_core.models.collections import (
     UserCollection,
     UserId,
 )
-from lomas_core.models.constants import PrivateDatabaseType
+from lomas_core.models.constants import PrivateDatabaseType, init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.admin_database import (
@@ -38,7 +37,7 @@ else:
     from typing_extensions import override
 
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class LocalAdminDatabase(AdminDatabase):

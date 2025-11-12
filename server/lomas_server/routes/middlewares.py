@@ -1,5 +1,4 @@
 import json
-import logging
 import time
 
 from fastapi import Request
@@ -10,6 +9,7 @@ from starlette.routing import Match
 from starlette.types import ASGIApp
 
 from lomas_core.constants import TRACE_LOG_LEVEL
+from lomas_core.models.constants import init_logging
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -18,7 +18,7 @@ from lomas_server.utils.metrics import (
     FAST_API_RESPONSES_COUNTER,
 )
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class LoggingAndTracingMiddleware(BaseHTTPMiddleware):

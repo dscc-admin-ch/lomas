@@ -1,4 +1,3 @@
-import logging
 import os
 from time import sleep
 
@@ -9,10 +8,11 @@ from requests_oauthlib import OAuth2Session
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_client.models.config import ClientConfig
+from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class LomasHttpClient:

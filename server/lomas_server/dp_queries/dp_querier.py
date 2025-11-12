@@ -41,7 +41,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
 
         Args:
             data_connector (DataConnector): The private dataset to query.
-            admin_database (AdminDatabase): An initialized instance of an AdminDatabase.
+            admin_database (Proxy): A Proxy for an initialized instance of an AdminDatabase.
         """
         self.data_connector = data_connector
         self.admin_database = admin_database

@@ -1,4 +1,3 @@
-import logging
 from functools import cached_property
 from typing import Annotated, Literal
 
@@ -9,10 +8,10 @@ from pydantic import BaseModel, Field, HttpUrl
 from lomas_core.constants import Scopes
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.collections import UserId
-from lomas_core.models.constants import AuthenticationType
+from lomas_core.models.constants import AuthenticationType, init_logging
 from lomas_server.constants import KCAttributeNames
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class FreePassAuthenticator(BaseModel):

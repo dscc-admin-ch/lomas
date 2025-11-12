@@ -1,4 +1,3 @@
-import logging
 import os
 
 import opendp as dp
@@ -14,7 +13,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     InvalidQueryException,
 )
-from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures
+from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_core.opendp_utils import reconstruct_measurement_pipeline
@@ -22,7 +21,7 @@ from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
-logger = logging.getLogger(__name__)
+logger = init_logging(__name__)
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
@@ -36,8 +35,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         """Initializer.
 
         Args:
-            data_connector (DataConnector): DataConnector for the dataset
-                to query.
+            data_connector (DataConnector): DataConnector for the dataset to query.
         """
         super().__init__(data_connector, admin_database)
 

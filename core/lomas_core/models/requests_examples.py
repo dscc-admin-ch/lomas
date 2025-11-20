@@ -1,3 +1,7 @@
+from base64 import b64encode
+
+import opendp.prelude as dp  # noqa: F401
+import polars as pl
 from pydantic import JsonValue
 
 from lomas_core.constants import (
@@ -156,7 +160,7 @@ OPENDP_PIPELINE: str = (
 
 example_opendp: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
-    "opendp_json": OPENDP_PIPELINE,
+    "opendp_json": b64encode(OPENDP_PIPELINE.encode("utf-8")).decode("utf-8"),
     "fixed_delta": QUERY_DELTA,
     "pipeline_type": OpenDpPipelineType.LEGACY,
     "mechanism": None,
@@ -165,53 +169,111 @@ example_dummy_opendp: dict[str, JsonValue] = make_dummy(example_opendp)
 
 # OpenDP Polars
 # -----------------------------------------------------------------------------
-OPENDP_POLARS_PIPELINE: str = (
-    '{"DataFrameScan":{"df":{"columns":[{"name":"region","datatype":"Int32","bit_settings":'
-    '"","values":[1,6,5,4,4]},{"name":"eco_branch","datatype":"Int32","bit_settings":"",'
-    '"values":[85,16,71,25,16]},{"name":"profession","datatype":"Int32","bit_settings":"",'
-    '"values":[52,94,73,74,73]},{"name":"education","datatype":"Int32","bit_settings":"",'
-    '"values":[7,5,2,7,4]},{"name":"age","datatype":"Int32","bit_settings":"","values":'
-    '[60,44,22,112,94]},{"name":"sex","datatype":"Int32","bit_settings":"","values":'
-    '[1,0,1,1,0]},{"name":"income","datatype":"Float64","bit_settings":"","values":'
-    "[23496.63345669291,55903.89391456765,7317.908354313357,82935.48602726562,63534."
-    '775513084416]}]},"schema":{"fields":{"region":"Int32","eco_branch":"Int32",'
-    '"profession":"Int32","education":"Int32","age":"Int32","sex":"Int32",'
-    '"income":"Float64"}}}}'
-)
+OPENDP_POLARS_PIPELINE_DICTS: list[dict] = [
+    {
+        "region": 1,
+        "eco_branch": 85,
+        "profession": 52,
+        "education": 7,
+        "age": 60,
+        "sex": 1,
+        "income": 23496.63345669291,
+    },
+    {
+        "region": 6,
+        "eco_branch": 16,
+        "profession": 94,
+        "education": 5,
+        "age": 44,
+        "sex": 0,
+        "income": 55903.89391456765,
+    },
+    {
+        "region": 5,
+        "eco_branch": 71,
+        "profession": 73,
+        "education": 2,
+        "age": 22,
+        "sex": 1,
+        "income": 7317.908354313357,
+    },
+    {
+        "region": 4,
+        "eco_branch": 25,
+        "profession": 74,
+        "education": 7,
+        "age": 112,
+        "sex": 1,
+        "income": 82935.48602726562,
+    },
+    {
+        "region": 4,
+        "eco_branch": 16,
+        "profession": 73,
+        "education": 4,
+        "age": 94,
+        "sex": 0,
+        "income": 63534.775513084416,
+    },
+]
 
-OPENDP_POLARS_PIPELINE_COVID: str = (
-    '{"DataFrameScan":{"df":{"columns":[{"name":"patient_id","datatype":"Int32",'
-    '"bit_settings":"","values":[7013,2739]},{"name":"id","datatype":"Int32",'
-    '"bit_settings":"","values":[1023,540]},{"name":"date","datatype":"String",'
-    '"bit_settings":"","values":["t","c"]},{"name":"temporal","datatype":"Int32",'
-    '"bit_settings":"","values":[4,1]},{"name":"georegion","datatype":"String",'
-    '"bit_settings":"","values":["BS","VS"]},{"name":"agegroup","datatype":'
-    '"String","bit_settings":"","values":["70 - 79","unknown"]},{"name":'
-    '"sex","datatype":"String","bit_settings":"","values":["other","other"]},'
-    '{"name":"testType","datatype":"String","bit_settings":"","values":'
-    '["rapid_antigen_test","rapid_antigen_test"]},{"name":"testResult","datatype"'
-    ':"String","bit_settings":"","values":["other","other"]},{"name":"country",'
-    '"datatype":"String","bit_settings":"","values":["other","unknown"]},{"name":'
-    '"subType","datatype":"String","bit_settings":"","values":["BA.2.75","XBB"]},'
-    '{"name":"hospitalization","datatype":"Boolean","bit_settings":"","values":'
-    '[false,true]},{"name":"death","datatype":"Boolean","bit_settings":"","values":'
-    '[true,false]}]},"schema":{"fields":{"patient_id":"Int32","id":"Int32","date":'
-    '"String","temporal":"Int32","georegion":"String","agegroup":"String","sex":'
-    '"String","testType":"String","testResult":"String","country":"String",'
-    '"subType":"String","hospitalization":"Boolean","death":"Boolean"}}}}'
-)
+OPENDP_POLARS_PIPELINE: bytes = pl.from_dicts(OPENDP_POLARS_PIPELINE_DICTS).lazy().serialize()
+
+OPENDP_POLARS_PIPELINE_COVID_DICTS: list[dict] = [
+    {
+        "patient_id": 7013,
+        "id": 1023,
+        "date": "t",
+        "temporal": 4,
+        "georegion": "BS",
+        "agegroup": "70 - 79",
+        "sex": "other",
+        "testType": "rapid_antigen_test",
+        "testResult": "other",
+        "country": "other",
+        "subType": "BA.2.75",
+        "hospitalization": False,
+        "death": True,
+    },
+    {
+        "patient_id": 2739,
+        "id": 540,
+        "date": "c",
+        "temporal": 1,
+        "georegion": "VS",
+        "agegroup": "unknown",
+        "sex": "other",
+        "testType": "rapid_antigen_test",
+        "testResult": "other",
+        "country": "unknown",
+        "subType": "XBB",
+        "hospitalization": True,
+        "death": False,
+    },
+]
+
+OPENDP_POLARS_PIPELINE_COVID: bytes = pl.from_dicts(OPENDP_POLARS_PIPELINE_COVID_DICTS).lazy().serialize()
 
 example_opendp_polars: dict[str, JsonValue] = {
     "dataset_name": FSO_INCOME_DATASET,
-    "opendp_json": OPENDP_POLARS_PIPELINE,
+    "opendp_json": b64encode(OPENDP_POLARS_PIPELINE).decode("utf-8"),
     "pipeline_type": OpenDpPipelineType.POLARS,
     "fixed_delta": QUERY_DELTA,
     "mechanism": OpenDpMechanism.LAPLACE,
 }
 
+
+example_opendp_polars_plan = {**example_opendp_polars}
+example_opendp_polars_plan["opendp_json"] = b64encode(
+    pl.from_dicts(OPENDP_POLARS_PIPELINE_DICTS)
+    .lazy()
+    .select(pl.col("income").fill_null(0).dp.mean(bounds=(1000, 100000), scale=100_000.0))
+    .serialize()
+).decode("utf-8")
+
 example_opendp_polars_datetime: dict[str, JsonValue] = {
     "dataset_name": COVID_DATASET,
-    "opendp_json": OPENDP_POLARS_PIPELINE_COVID,
+    "opendp_json": b64encode(OPENDP_POLARS_PIPELINE_COVID).decode("utf-8"),
     "pipeline_type": OpenDpPipelineType.POLARS,
     "fixed_delta": QUERY_DELTA,
     "mechanism": OpenDpMechanism.LAPLACE,

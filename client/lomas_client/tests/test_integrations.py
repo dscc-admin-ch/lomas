@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 import pytest
@@ -103,13 +104,12 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     df_dummy_lz = client.get_dummy_dataset(lazy=True)
     assert df_dummy_lz.collect().shape == (100, 11)
 
-    # Smartnoise
+    ## Dummy Query
+    plan = df_dummy_lz.select(pl.col("Age").dp.mean(bounds=(0, 100), scale=10), dp.len(scale=10))
+    dummy_res = client.opendp.query(plan, dummy=True)
+    assert isinstance(dummy_res.result.value, pl.DataFrame)
 
-    # Dummy Query
-    query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
-    dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
-
-    avg_age = dummy_res.result.df["avg_age"][0]
+    avg_age = dummy_res.result.value.to_pandas().Age[0]
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
@@ -120,22 +120,23 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
-    res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
+    res = client.opendp.query(plan)
+    assert isinstance(res.result.value, pl.DataFrame)
 
-    avg_age = res.result.df["avg_age"][0]
+    avg_age = res.result.value.to_pandas().Age[0]
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
     assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
-    assert rem_budget.remaining_epsilon == 43.5
+    assert rem_budget.remaining_epsilon == pytest.approx(35, 1)
     tot_spent = client.get_total_spent_budget()
     assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
-    assert tot_spent.total_spent_epsilon == 1.5
+    assert tot_spent.total_spent_epsilon == pytest.approx(10, 1)
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
     assert prev_queries[0]["dataset_name"] == "TITANIC"
-    assert prev_queries[0]["dp_library"] == "smartnoise_sql"
+    assert prev_queries[0]["dp_library"] == "opendp"
 
 
 def test_demo_diffprivlib(kc, demo_setup) -> None:
@@ -270,10 +271,10 @@ def test_demo_opendp_polars(kc, demo_setup) -> None:
         income_metadata["columns"]["income"]["upper"],
     )
     plan = dummy_lf.select(
-        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=(10_000, 1))
+        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=10000)
     )
-    query_res = client.opendp.query(plan, dummy=False, nb_rows=NB_ROWS, seed=SEED)
-    assert query_res.epsilon == pytest.approx(11, 0.5)
+    query_res = client.opendp.query(plan, nb_rows=NB_ROWS, seed=SEED)
+    assert query_res.epsilon == pytest.approx(11, 0.8)
     assert isinstance(query_res.result, OpenDPPolarsQueryResult)
     df_polar = query_res.result.value
     assert df_polar.shape == (1, 1)

@@ -4,7 +4,6 @@ from typing import TypeGuard
 
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
-from smartnoise_synth_logger import deserialise_constraints
 from snsynth import Synthesizer
 from snsynth.transform import (
     AnonymizationTransformer,
@@ -362,15 +361,6 @@ class SmartnoiseSynthQuerier(
                 )
 
         constraints = self._get_default_constraints(metadata, query_json, table_transformer_style)
-
-        # Overwrite default constraint with custom constraint (if any)
-        constraints_json = query_json.constraints
-        if constraints_json:
-            custom_constraints = deserialise_constraints(constraints_json)
-            custom_constraints = {
-                key: custom_constraints[key] for key in query_json.select_cols if key in custom_constraints
-            }
-            constraints.update(custom_constraints)
 
         # Prepare private data
         private_data = self.data_connector.get_pandas_df()

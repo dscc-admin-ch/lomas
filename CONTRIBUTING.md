@@ -135,9 +135,7 @@ Some libraries have 'custom object' parameters which are not readily serialisabl
 In those cases, a `logger` library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their `DPQuerier` class in the server.
 
 Some examples are avalaible here:
-- `opendp_logger` for opendp pipelines: https://github.com/opendp/opendp-logger
 - `diffprivlib_logger` for diffprivlib pipelines: https://github.com/dscc-admin-ch/diffprivlib-logger
-- `smartnoise_synth_logger` for smartnoise_synth table transformer constraints: https://github.com/dscc-admin-ch/smartnoise-synth-logger
 
 Do not forget to add these libraries in the `requirements.txt` files.
 

@@ -15,7 +15,7 @@ from lomas_core.models.requests_examples import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_dummy_smartnoise_synth_query,
-    example_opendp,
+    example_opendp_polars,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
     example_smartnoise_synth_cost,
@@ -176,7 +176,7 @@ class OpenDPRequestModel(LomasRequestModel):
 
     model_config = ConfigDict(
         use_attribute_docstrings=True,
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]},
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
     )
 
     opendp_json: str
@@ -202,7 +202,7 @@ class OpenDPRequestModel(LomasRequestModel):
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]})
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):

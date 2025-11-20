@@ -6,7 +6,6 @@ dependencies = [
   "lomas-core",
   "lomas-client",
   "lomas-server[all]",
-  "torch>=2.6", # explicit torch dependency to get cpu-only impl. see: uv.sources
 ]
 
 [project.optional-dependencies]
@@ -32,15 +31,9 @@ docs = [
 lomas-core = { workspace = true }
 lomas-client = { workspace = true }
 lomas-server = { workspace = true }
-torch = [{ index = "pytorch-cpu" }]
 
 [tool.uv.workspace]
 members = [ "core", "client", "server" ]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
 
 # workspace setup for setuptools (uv build)
 [tool.setuptools.package-dir]
@@ -144,9 +137,7 @@ exclude = [ ".devenv/**/*.py", "**/api_pb2*" ] # pydocstringformatter uses a wie
 log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
 #syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
-  "ignore:'json' serialization format of LazyFrame is deprecated:UserWarning",
-  "ignore::DeprecationWarning:(mbi|botocore|opendp_logger|pkg_resources|jupyter_client|aio_pika).*:",
-  "ignore::UserWarning:opendp_logger:",
+  "ignore::DeprecationWarning:(jupyter_client|aio_pika).*:",
 ]
 addopts = [
   "--import-mode=importlib",

@@ -98,10 +98,10 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     }
 
     df_dummy = client.get_dummy_dataset()
-    assert df_dummy.shape == (100, 11)
+    assert df_dummy.shape == (100, 8)
 
     df_dummy_lz = client.get_dummy_dataset(lazy=True)
-    assert df_dummy_lz.collect().shape == (100, 11)
+    assert df_dummy_lz.collect().shape == (100, 8)
 
     ## Dummy Query
     plan = df_dummy_lz.select(pl.col("Age").dp.mean(bounds=(0, 100), scale=10), dp.len(scale=10))

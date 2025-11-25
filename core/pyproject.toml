@@ -35,7 +35,7 @@ dependencies = [
     "diffprivlib_logger==0.0.3",
     "fastapi[standard-no-fastapi-cloud-cli]==0.119.0",
     "orjson>=3.11", # for fastapi.ORJSONResponse
-    "opendp==0.14.1",
+    "opendp[mbi]==0.14.1",
     "polars==1.32.0",
     "opentelemetry-api>=1.29.0",
     "opentelemetry-exporter-otlp>=1.29.0",

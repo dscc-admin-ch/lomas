@@ -1,0 +1,36 @@
+issuer: http://127.0.0.1:5556/dex
+web:
+  http: 127.0.0.1:5556
+storage:
+  type: sqlite3
+  config.file: /var/run/dex
+
+# Enable local users
+enablePasswordDB: true
+# Allow password grants with local users
+oauth2:
+  passwordConnector: local
+
+staticClients:
+  - id: public-client
+    public: true
+    name: 'Public Client'
+    redirectURIs:
+      - 'https://127.0.0.1/oidc/callback'
+
+# Set up an test user
+staticPasswords:
+  - email: "admin@example.com"
+    # bcrypt hash of the string "password": $(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "admin"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+
+# curl -sL -X POST 'http://localhost:5556/dex/token' \
+#   -H "Authorization: Basic $(echo -n public-client: | base64)" \
+#   -H 'Content-Type: application/x-www-form-urlencoded' \
+#   --data-urlencode 'grant_type=password' \
+#   --data-urlencode 'scope=openid profile' \
+#   --data-urlencode 'username=admin@example.com' \
+#   --data-urlencode 'password=password' \
+#   | yq . -Poy

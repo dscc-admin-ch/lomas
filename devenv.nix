@@ -255,6 +255,7 @@ in
     # required for up pip git+https in containers
     pkgs.git
     pkgs.cacert
+    pkgs.dex-oidc
   ]
   # Additional useful packages
   ++ lib.optionals (!config.container.isBuilding) [

@@ -28,6 +28,7 @@ in
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
     ./devenv/dex.nix
+    ./devenv/pyenv.nix
   ];
 
   lomas = {
@@ -151,6 +152,11 @@ in
     projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
   };
 
+  lomas.pyenv = {
+    enable = true;
+    package = lib.mkDefault pkgs.python3;
+  };
+
   dockerEnv.enable = true;
 
   process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
@@ -254,8 +260,8 @@ in
 
   languages.python = {
     enable = true;
-    venv.enable = true;
-    uv.enable = true;
+    venv.enable = !config.lomas.pyenv.enable;
+    uv.enable = !config.lomas.pyenv.enable;
   };
 
   devcontainer = {
@@ -268,6 +274,8 @@ in
 
   enterShell = ''
     echo hello from $GREET
+  ''
+  + (lib.optionalString (!config.lomas.pyenv.enable) ''
 
     UV_SYNC_COMMAND=(uv sync --frozen --all-extras)
 
@@ -287,7 +295,7 @@ in
         exit 1
       fi
     fi
-  '';
+  '');
 
   #####################
   # Various utilities #

@@ -16,7 +16,12 @@ staticClients:
     public: true
     name: 'Public Client'
     redirectURIs:
-      - 'https://127.0.0.1/oidc/callback'
+      - 'http://127.0.0.1/callback'
+  - id: device-client
+    public: true
+    name: 'Device Client'
+    redirectURIs:
+      - '/device/callback'
 
 # Set up an test user
 staticPasswords:
@@ -33,4 +38,17 @@ staticPasswords:
 #   --data-urlencode 'scope=openid profile' \
 #   --data-urlencode 'username=admin@example.com' \
 #   --data-urlencode 'password=password' \
+#   | yq . -Poy
+
+# curl -sL -X POST 'http://localhost:5556/dex/device/code' \
+#   -H 'Content-Type: application/x-www-form-urlencoded' \
+#   --data-urlencode 'client_id=device-client' \
+#   --data-urlencode 'scope=openid profile' \
+#  | yq . -Poy
+
+# curl -sL -X POST 'http://localhost:5556/dex/token' \
+#   -H 'Content-Type: application/x-www-form-urlencoded' \
+#   --data-urlencode 'client_id=device-client' \
+#   --data-urlencode 'device_code=kyr2egxsofcxvvtubat4sozog4yq3y6ssfnf5hhmfo6k5ougl4m' \
+#   --data-urlencode 'grant_type=urn:ietf:params:oauth:grant-type:device_code' \
 #   | yq . -Poy

@@ -7,6 +7,7 @@ dependencies = [
   "lomas-client",
   "lomas-server[all]",
   "torch>=2.6", # explicit torch dependency to get cpu-only impl. see: uv.sources
+  "bcrypt>=5.0.0",
 ]
 
 [project.optional-dependencies]
@@ -17,6 +18,7 @@ test = [
   "coverage>=7.6",
   "pytest>=8.3",
   "pytest-cov>=6.0",
+  "grpcio-tools>=1.76.0",
 ]
 docs = [
   "pandoc>=2.4",

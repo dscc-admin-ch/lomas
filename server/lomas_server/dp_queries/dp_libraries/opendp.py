@@ -16,7 +16,7 @@ from lomas_core.error_handler import (
 from lomas_core.models.constants import MetadataColumnType, OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
-from lomas_core.opendp_utils import reconstruct_measurement_pipeline
+from lomas_core.opendp_utils import deserialize_context_query
 from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -61,41 +61,45 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
-        validate_measurement_pipeline(opendp_pipe)
+        # TODO: this should be simplified with context
 
-        measurement_type = get_output_measure(opendp_pipe)
-        # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
-        if measurement_type == OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
-            opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
-            measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
+        # We can directly take what is given by user since the context will use
+        # exactly what is given
 
-        max_ids = self.metadata["max_ids"]
-        try:
-            # d_in is int as input metric is a dataset metric
-            cost = opendp_pipe.map(d_in=int(max_ids))
-        except Exception as e:
-            logger.exception(e)
-            raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
+        # validate_measurement_pipeline(opendp_pipe)
 
-        # Cost interpretation
-        match measurement_type:
-            case OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE:  # Approximate DP with fix delta
-                epsilon, delta = cost
-            case OpenDPMeasurement.MAX_DIVERGENCE:  # Pure DP
-                epsilon, delta = cost, 0
-            case OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE:  # Approximate DP
-                if query_json.fixed_delta is None:
-                    raise InvalidQueryException(
-                        "fixed_delta must be set for smooth max divergence"
-                        + " and zero concentrated divergence."
-                    )
-                epsilon = cost.epsilon(delta=query_json.fixed_delta)
-                delta = query_json.fixed_delta
-            case _:
-                raise InternalServerException(f"Invalid measurement type: {measurement_type}")
+        # measurement_type = get_output_measure(opendp_pipe)
+        # # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
+        # if measurement_type == OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
+        #     opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
+        #     measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
 
-        return epsilon, delta
+        # max_ids = self.metadata["max_ids"]
+        # try:
+        #     # d_in is int as input metric is a dataset metric
+        #     cost = opendp_pipe.map(d_in=int(max_ids))
+        # except Exception as e:
+        #     logger.exception(e)
+        #     raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
+
+        # # Cost interpretation
+        # match measurement_type:
+        #     case OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE:  # Approximate DP with fix delta
+        #         epsilon, delta = cost
+        #     case OpenDPMeasurement.MAX_DIVERGENCE:  # Pure DP
+        #         epsilon, delta = cost, 0
+        #     case OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE:  # Approximate DP
+        #         if query_json.fixed_delta is None:
+        #             raise InvalidQueryException(
+        #                 "fixed_delta must be set for smooth max divergence"
+        #                 + " and zero concentrated divergence."
+        #             )
+        #         epsilon = cost.epsilon(delta=query_json.fixed_delta)
+        #         delta = query_json.fixed_delta
+        #     case _:
+        #         raise InternalServerException(f"Invalid measurement type: {measurement_type}")
+
+        return 1, 0
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
         """Perform the query and return the response.
@@ -110,15 +114,11 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        opendp_pipe = reconstruct_measurement_pipeline(query_json, self.metadata)
-        validate_measurement_pipeline(opendp_pipe)
-
-        if query_json.pipeline_type == OpenDpPipelineType.LEGACY:
-            input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
-        elif query_json.pipeline_type == OpenDpPipelineType.POLARS:
+        if query_json.pipeline_type == OpenDpPipelineType.POLARS:
             input_data = self.data_connector.get_polars_lf()
+            plan = deserialize_context_query(query_json, self.metadata, input_data)
             # OpenDP does not allow None on string columns
-
+            # breakpoint()
             # Build expressions to update the LazyFrame. LazyFrames are immutable
             # and do not support direct item assignment (not supported: input_data[col] = ...)
             expressions = []
@@ -130,10 +130,11 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         else:  # TODO 401 validate input in json model instead of with if-else statements
             raise InternalServerException(
                 f"""Invalid pipeline type: '{query_json.pipeline_type}.'
-                                        Should be legacy or polars"""
+                                        Should be polars"""
             )
         try:
-            release_data = opendp_pipe(input_data)
+            # with Context() this becomes .release()
+            release_data = plan.release()
         except Exception as e:
             logger.exception(e)
             raise ExternalLibraryException(

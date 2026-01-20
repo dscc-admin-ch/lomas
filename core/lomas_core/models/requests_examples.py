@@ -161,7 +161,7 @@ OPENDP_PIPELINE: str = (
 example_opendp: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": b64encode(OPENDP_PIPELINE.encode("utf-8")).decode("utf-8"),
-    "fixed_delta": QUERY_DELTA,
+    "delta": QUERY_DELTA,
     "pipeline_type": OpenDpPipelineType.LEGACY,
     "mechanism": None,
 }
@@ -258,7 +258,9 @@ example_opendp_polars: dict[str, JsonValue] = {
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE).decode("utf-8"),
     "pipeline_type": OpenDpPipelineType.POLARS,
-    "fixed_delta": QUERY_DELTA,
+    "epsilon": QUERY_EPSILON,
+    "delta": QUERY_DELTA,
+    "rho": None,
     "mechanism": OpenDpMechanism.LAPLACE,
 }
 
@@ -275,7 +277,9 @@ example_opendp_polars_datetime: dict[str, JsonValue] = {
     "dataset_name": COVID_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE_COVID).decode("utf-8"),
     "pipeline_type": OpenDpPipelineType.POLARS,
-    "fixed_delta": QUERY_DELTA,
+    "epsilon": QUERY_EPSILON,
+    "delta": QUERY_DELTA,
+    "rho": None,
     "mechanism": OpenDpMechanism.LAPLACE,
 }
 

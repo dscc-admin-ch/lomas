@@ -38,15 +38,6 @@ OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
     OpenDpMechanism.GAUSSIAN: ms.zero_concentrated_divergence(),
 }
 
-OPENDP_TYPE_MAPPING = {
-    "int32": tp.i32,
-    "float32": tp.f32,
-    "int64": tp.i64,
-    "float64": tp.f64,
-    "string": tp.String,
-    "boolean": bool,
-}
-
 
 # Smartnoise synth
 class SSynthMarginalSynthesizer(StrEnum):

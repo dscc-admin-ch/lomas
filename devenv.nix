@@ -33,6 +33,7 @@ in
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
     ./devenv/caddy.nix
+    ./devenv/dex.nix
   ];
 
   lomas = {
@@ -77,6 +78,13 @@ in
     bootstrapAdminPass = "admin";
   };
 
+  lomas.dex = {
+    enable = true;
+    host = "localhost";
+    port = 4445;
+    adminPort = 4446;
+  };
+
   lomas.minio = {
     enable = true;
     host = "localhost";
@@ -105,6 +113,7 @@ in
   };
 
   # No reverse proxy-ing by default
+  # TODO update if needed
   lomas.caddy.enable = false;
 
   lomas.telemetry = {
@@ -255,7 +264,6 @@ in
     # required for up pip git+https in containers
     pkgs.git
     pkgs.cacert
-    pkgs.dex-oidc
   ]
   # Additional useful packages
   ++ lib.optionals (!config.container.isBuilding) [

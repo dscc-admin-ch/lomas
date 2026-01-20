@@ -103,9 +103,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> bytes:
 
 
 def context_count(lf: pl.LazyFrame) -> bytes:
-    """
-    TODO
-    """
+    """Simple OpendPolars plan with dummy context."""
     # here context should be a function building the margin based on the metadata
     context = dp.Context.compositor(
         data=lf,
@@ -160,25 +158,37 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_opendp_polars_query(self) -> None:
         """Test opendp polars query."""
-        for mechanism in ["laplace", "gaussian"]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-                    plan_bytes = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+        with TestClient(app, headers=self.headers) as client:
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            plan_bytes = mean_query_serialized(lf)
+            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-                    # Laplace
-                    example_opendp_polars["mechanism"] = mechanism
-                    job = submit_job_wait(
-                        client,
-                        "/opendp_query",
-                        json=example_opendp_polars,
-                    )
+            # Laplace
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
 
-                    response_model = QueryResponse.model_validate(job.result)
-                    # print(response_model.result)
-                    assert response_model.epsilon > 0.0
-                    assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            response_model = QueryResponse.model_validate(job.result)
+            # print(response_model.result)
+            assert response_model.epsilon > 0.0
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+
+            # Gaussian
+            example_opendp_polars["epsilon"] = None
+            example_opendp_polars["rho"] = 0.5
+            example_opendp_polars["delta"] = 0.000001
+
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            assert response_model.epsilon == 0.5
+            assert response_model.delta == 0.000001
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     # TODO: opendp v0.12: Adapt for datetime
     @pytest.mark.long
@@ -244,19 +254,28 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
-        for mechanism, delta_check in [("laplace", lambda x: x == 0), ("gaussian", lambda x: x > 0)]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-                    plan_bytes = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+        with TestClient(app, headers=self.headers) as client:
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            plan_bytes = mean_query_serialized(lf)
+            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-                    # Expect to work
-                    example_opendp_polars["mechanism"] = mechanism
-                    job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
-                    response_model = CostResponse.model_validate(job.result)
-                    assert response_model.epsilon > 0.0
-                    assert delta_check(response_model.delta)
+            # Laplace
+            example_opendp_polars["epsilon"] = 1
+            example_opendp_polars["delta"] = None
+            example_opendp_polars["rho"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            response_model = CostResponse.model_validate(job.result)
+            assert response_model.epsilon == 1
+            assert response_model.delta == 0
+
+            # Gaussian
+            example_opendp_polars["epsilon"] = None
+            example_opendp_polars["rho"] = 2
+            example_opendp_polars["delta"] = 0.000001
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            response_model = CostResponse.model_validate(job.result)
+            assert response_model.epsilon == 2
+            assert response_model.delta == 0.000001
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""
@@ -295,6 +314,30 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
+    # def test_filter_query(self) -> None:
+    #     """Test_opendp_polars_query with filtering."""
+    #     with TestClient(app, headers=self.headers) as client:
+    #         lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+    #         breakpoint()
+    #         plan_bytes = lf.with_columns(
+    #             pl.col.income.cut(
+    #                 breaks=[10_000,40_000,80_000,120_000],
+    #                 left_closed=True
+    #                 ).alias("binned_income")
+    #             ).group_by(pl.col.binned_income).agg(dp.len()).serialize()
+
+    #         example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+
+    #         job = submit_job_wait(
+    #             client,
+    #             "/opendp_query",
+    #             json=example_opendp_polars,
+    #         )
+    #         breakpoint()
+    #         response_model = QueryResponse.model_validate(job.result)
+    #         assert response_model.epsilon > 0.0
+    #         assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+
     def test_multiple_grouping_query(self) -> None:
         """Test_opendp_polars query with multiple grouping."""
         with TestClient(app, headers=self.headers) as client:
@@ -312,179 +355,4 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
-# TODO: create test based on new function build_margins_from_metadata
-# class TestOpenDPpolarsFunctions(unittest.TestCase):
-#     """Test OpenDP Polars functions."""
-
-#     def test1_margin(self) -> None:
-#         """Test margins created."""
-#         RAW_METADATA["rows"] = 100
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-#         by_config = ["column_int"]
-#         margin_params = multiple_group_params(metadata, by_config)
-
-#         # Since no max_partition length: rows is taken
-#         # Since no max_groups: None
-#         expected_margin = {"max_groups": 4, "max_length": 100}
-#         assert margin_params == expected_margin
-
-#         # max_partition_length is given: then we use it instead of rows
-#         metadata["columns"]["column_int"]["max_partition_length"] = 50
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_length"] = 50
-#         assert margin_params == expected_margin
-
-#         metadata["columns"]["column_int"]["max_influenced_partitions"] = 1
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_influenced_partitions"] = 1
-#         assert margin_params == expected_margin
-
-#         metadata["columns"]["column_int"]["max_partition_contributions"] = 1
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_partition_contributions"] = 1
-#         assert margin_params == expected_margin
-
-#         # Minimum between max_ids and max_partition_contributions should be taken
-#         metadata["columns"]["column_int"]["max_partition_contributions"] = 4
-#         metadata["max_ids"] = 2
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_partition_contributions"] = 2
-#         assert margin_params == expected_margin
-
-#         # Check that only max_partition_length is used when no info on other parameters
-#         new_col_int = {"type": "int", "precision": 32, "upper": 10, "lower": 1}
-#         RAW_METADATA["columns"]["new_col_int"] = new_col_int  # type: ignore[index]
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-#         by_config = ["new_col_int"]
-#         margin_params = multiple_group_params(metadata, by_config)
-#         # Since no cardinality or any other margin parameters, only max_partition_length is kept (from global parameter
-#         # Max_partition_length = rows = 100
-#         expected_margin = {"max_length": 100}
-#         assert margin_params == expected_margin
-
-#     def test2_margin_grouping(self) -> None:
-#         """Test margins with grouping."""
-#         RAW_METADATA["rows"] = 100
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-
-#         # Test multi grouping
-#         new_col = {"type": "int", "precision": 32, "upper": 100, "lower": 1}
-#         RAW_METADATA["columns"]["new_col"] = new_col  # type: ignore[index]
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-#         by_config = ["column_int", "new_col"]
-#         metadata["columns"]["column_int"]["max_partition_length"] = None
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin = {
-#             "max_length": 100,  # since all are none, rows taken
-#         }  # from max_ids
-#         assert margin_params == expected_margin
-
-#         metadata["columns"]["column_int"]["max_partition_length"] = 30
-#         metadata["columns"]["new_col"]["max_partition_length"] = 50
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_length"] = 30  # min between two col
-#         assert margin_params == expected_margin
-
-#         # Check max_influenced_partitions (max should be multiple of each group)
-#         metadata["max_ids"] = 20
-#         metadata["columns"]["column_int"]["max_influenced_partitions"] = 3
-#         metadata["columns"]["new_col"]["max_influenced_partitions"] = 5
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_influenced_partitions"] = 15
-#         assert margin_params == expected_margin
-
-#         # Should never be bigger than max_ids global
-#         metadata["max_ids"] = 10
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_influenced_partitions"] = 10
-#         assert margin_params == expected_margin
-
-#         # Test multi grouping (cardinality), "max_influenced_partitions" with one None
-#         new_col_str = {
-#             "type": "string",
-#             "cardinality": 2,
-#             "categories": ["a", "b"],
-#             "max_influenced_partitions": 1,
-#         }
-#         RAW_METADATA["columns"]["new_col_str"] = new_col_str  # type: ignore[index]
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()  # max_ids = 1
-#         by_config = ["column_int", "new_col_str"]
-#         margin_params = multiple_group_params(metadata, by_config)
-#         # Since card1 = 4 and card2 = 2, card_tot = 8
-#         expected_margin = {
-#             "max_groups": 8,
-#             "max_length": 100,  # Since none for col_str
-#         }
-#         assert margin_params == expected_margin
-
-#         # Check max_partition_contributions
-#         metadata["max_ids"] = 10
-#         metadata["columns"]["column_int"]["max_partition_contributions"] = 5
-#         metadata["columns"]["new_col"]["max_partition_contributions"] = 4
-#         by_config = ["column_int", "new_col"]
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin = {
-#             "max_partition_contributions": 10,
-#             "max_length": 100,  # Since none for col_str
-#         }
-#         assert margin_params == expected_margin
-
-#         # Check max_partition_contributions (should never be bigger than max_ids)
-#         metadata["max_ids"] = 2
-#         margin_params = multiple_group_params(metadata, by_config)
-#         expected_margin["max_partition_contributions"] = 2
-#         assert margin_params == expected_margin
-
-#     # @pytest.mark.xfail(reason="why the cinnamon-toast fuck")
-#     def test3_lf_domain(self) -> None:
-#         """Test lazyframe with different types."""
-#         col_int = {"column_int": {"type": "int", "precision": 32, "upper": 100, "lower": 1}}
-#         RAW_METADATA["columns"] = col_int
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-
-#         # lf with int
-#         expected_series_type = ms.i32
-#         expected_series_bounds = None
-#         expected_series_nullable = False
-#         expected_series_domain = dp.series_domain(
-#             "column_int",
-#             dp.atom_domain(
-#                 T=expected_series_type, nan=expected_series_nullable, bounds=expected_series_bounds
-#             ),
-#         )
-#         margin = dp.polars.Margin(max_length=metadata["rows"], invariant="keys")
-#         expected_lf_domain = dp.with_margin(dp.lazyframe_domain([expected_series_domain]), margin)
-#         plan = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-#         lf_domain = get_lf_domain(metadata, plan)
-#         assert lf_domain.columns == expected_lf_domain.columns
-#         assert lf_domain.get_margin([]) == expected_lf_domain.get_margin([])
-#         # assert lf_domain == expected_lf_domain
-
-#         # lf with datetime
-#         col_datetime = {
-#             "col_datetime": {
-#                 "type": "datetime",
-#                 "upper": datetime.fromisoformat("2050-01-01"),
-#                 "lower": datetime.fromisoformat("1900-01-01"),
-#             }
-#         }
-#         RAW_METADATA["columns"] = col_datetime
-#         metadata = Metadata.model_validate(RAW_METADATA).model_dump()
-
-#         expected_series_type = ms.String
-#         expected_series_domain = dp.series_domain(
-#             "col_datetime",
-#             dp.atom_domain(
-#                 T=expected_series_type, nan=expected_series_nullable, bounds=expected_series_bounds
-#             ),
-#         )
-#         expected_lf_domain = dp.with_margin(dp.lazyframe_domain([expected_series_domain]), margin)
-#         lf_domain = get_lf_domain(metadata, plan)
-#         assert lf_domain.columns == expected_lf_domain.columns
-#         assert lf_domain.get_margin([]) == expected_lf_domain.get_margin([])
-#         # assert lf_domain == expected_lf_domain
-
-#         # Test that unknown type raises an error
-#         metadata["columns"]["col_datetime"]["type"] = "new_type"
-#         with pytest.raises(InvalidQueryException):
-#             get_lf_domain(metadata, plan)
+# TODO: create tests based on new function build_margins_from_metadata

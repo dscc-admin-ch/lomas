@@ -25,7 +25,9 @@ class OpenDPClient:
     def _get_opendp_request_body(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: float | None = None,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
         mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
     ) -> dict:
         """This function executes an OpenDP query.
@@ -50,7 +52,9 @@ class OpenDPClient:
         """
         body_json = {
             "dataset_name": self.http_client.config.dataset_name,
-            "fixed_delta": fixed_delta,
+            "epsilon": epsilon,
+            "delta": delta,
+            "rho": rho,
             "mechanism": mechanism,
         }
 
@@ -70,19 +74,21 @@ class OpenDPClient:
     def cost(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: float | None = None,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
         mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
     ) -> CostResponse:
         """This function estimates the cost of executing an OpenDP query.
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+            delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
                 (`See Smartnoise-SQL postprocessing documentation.\
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
-                In that case a fixed_delta must be provided by the user.\
+                In that case a delta must be provided by the user.\
                 Defaults to None.
             mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
@@ -94,7 +100,9 @@ class OpenDPClient:
         """
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
-            fixed_delta=fixed_delta,
+            epsilon=epsilon,
+            delta=delta,
+            rho=rho,
             mechanism=mechanism,
         )
         body = OpenDPRequestModel.model_validate(body_json)
@@ -105,7 +113,9 @@ class OpenDPClient:
     def query(
         self,
         opendp_pipeline: dp.Measurement | pl.LazyFrame,
-        fixed_delta: float | None = None,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
         mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
@@ -117,12 +127,12 @@ class OpenDPClient:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query. \
                 Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
                 pipelines.
-            fixed_delta (Optional[float], optional): If the pipeline measurement is of\
+            delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
                 (`See Smartnoise-SQL postprocessing documentation.
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
-                In that case a fixed_delta must be provided by the user.
+                In that case a delta must be provided by the user.
                 Defaults to None.
             mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
                 in polars pipelines. "laplace" or "gaussian".
@@ -140,7 +150,9 @@ class OpenDPClient:
         """
         body_json = self._get_opendp_request_body(
             opendp_pipeline,
-            fixed_delta=fixed_delta,
+            epsilon=epsilon,
+            delta=delta,
+            rho=rho,
             mechanism=mechanism,
         )
 

@@ -20,14 +20,13 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
+from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from lomas_core.opendp_utils import reconstruct_measurement_pipeline
 
 
 class Client:
@@ -183,10 +182,8 @@ class Client:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.OPENDP:
-                        query_json = OpenDPQueryModel.model_validate(query["client_input"])
-                        query["client_input"]["opendp_json"] = reconstruct_measurement_pipeline(
-                            query_json, self.get_dataset_metadata()
-                        )
+                        # TODO: check this part
+                        pass
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)

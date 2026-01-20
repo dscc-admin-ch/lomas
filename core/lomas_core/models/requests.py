@@ -181,21 +181,31 @@ class OpenDPRequestModel(LomasRequestModel):
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
-    fixed_delta: float | None = Field(..., ge=0)
+    epsilon: float | None = Field(..., ge=0)
+    """The epsilon parameter used for pure ε-DP"""
+    delta: float | None = Field(..., ge=0)
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
 
     (e.g. with "make_gaussian") then it is converted to "SmoothedMaxDivergence"
     with "make_zCDP_to_approxDP" (see "opendp measurements documentation at
     https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP).
-    In that case a "fixed_delta" must be provided by the user.
+    In that case a "delta" must be provided by the user.
+    """
+    rho: float | None = Field(..., gte=0)
+    """
+    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
     """
     pipeline_type: OpenDpPipelineType
-    """The type of pipeline ('legacy' or 'polars')."""
+    """The type of pipeline ('legacy' or 'polars').
+
+    (OBSOLETE: only polars will be used)"""
     mechanism: OpenDpMechanism | None
     """The noise mechanism ('laplace' or 'gaussian').
 
     Need to be specified when using polars
+
+    (OBSOLETE: mechanism will be defined by the type of privacy loss used (epsilon or rho))
     """
 
 

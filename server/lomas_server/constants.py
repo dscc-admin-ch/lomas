@@ -51,31 +51,3 @@ class SSynthColumnType(StrEnum):
 SSYNTH_PRIVATE_COLUMN = "uuid4"
 SSYNTH_DEFAULT_BINS = 10
 SSYNTH_MIN_ROWS_PATE_GAN = 1000
-
-
-# OpenDP
-class OpenDPMeasurement(StrEnum):
-    """Type of divergence for opendp measurement.
-
-    see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
-    """
-
-    FIXED_SMOOTHED_MAX_DIVERGENCE = "fixed_smoothed_max_divergence"
-    MAX_DIVERGENCE = "max_divergence"
-    SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"
-    ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
-
-
-class OpenDPDatasetInputMetric(StrEnum):
-    """Type of opendp input metric for datasets.
-
-    see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html
-    see https://github.com/opendp/opendp/blob/main/rust/src/metrics/mod.rs
-    """
-
-    SYMMETRIC_DISTANCE = "SymmetricDistance"
-    INSERT_DELETE_DISTANCE = "InsertDeleteDistance"
-    CHANGE_ONE_DISTANCE = "ChangeOneDistance"
-    HAMMING_DISTANCE = "HammingDistance"
-
-    INT_DISTANCE = "u32"  # opendp type for distance between datasets

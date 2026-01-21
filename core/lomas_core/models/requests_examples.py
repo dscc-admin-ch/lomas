@@ -5,8 +5,6 @@ import polars as pl
 from pydantic import JsonValue
 
 from lomas_core.constants import (
-    OpenDpMechanism,
-    OpenDpPipelineType,
     SSynthGanSynthesizer,
 )
 from lomas_core.models.constants import (
@@ -162,8 +160,6 @@ example_opendp: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": b64encode(OPENDP_PIPELINE.encode("utf-8")).decode("utf-8"),
     "delta": QUERY_DELTA,
-    "pipeline_type": OpenDpPipelineType.LEGACY,
-    "mechanism": None,
 }
 example_dummy_opendp: dict[str, JsonValue] = make_dummy(example_opendp)
 
@@ -257,11 +253,9 @@ OPENDP_POLARS_PIPELINE_COVID: bytes = pl.from_dicts(OPENDP_POLARS_PIPELINE_COVID
 example_opendp_polars: dict[str, JsonValue] = {
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE).decode("utf-8"),
-    "pipeline_type": OpenDpPipelineType.POLARS,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "rho": None,
-    "mechanism": OpenDpMechanism.LAPLACE,
 }
 
 
@@ -276,11 +270,9 @@ example_opendp_polars_plan["opendp_json"] = b64encode(
 example_opendp_polars_datetime: dict[str, JsonValue] = {
     "dataset_name": COVID_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE_COVID).decode("utf-8"),
-    "pipeline_type": OpenDpPipelineType.POLARS,
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "rho": None,
-    "mechanism": OpenDpMechanism.LAPLACE,
 }
 
 

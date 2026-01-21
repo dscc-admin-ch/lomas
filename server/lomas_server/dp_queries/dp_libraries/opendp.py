@@ -5,10 +5,9 @@ from aio_pika.patterns.rpc import Proxy
 from opendp._lib import lib_path
 from opendp.mod import enable_features
 
-from lomas_core.constants import DPLibraries, OpenDpPipelineType
+from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
-    InternalServerException,
 )
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
@@ -82,15 +81,9 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        if query_json.pipeline_type == OpenDpPipelineType.POLARS:
-            input_data = self.data_connector.get_polars_lf()
-            plan = deserialize_context_query(query_json, self.metadata, input_data)
+        input_data = self.data_connector.get_polars_lf()
+        plan = deserialize_context_query(query_json, self.metadata, input_data)
 
-        else:  # TODO 401 validate input in json model instead of with if-else statements
-            raise InternalServerException(
-                f"""Invalid pipeline type: '{query_json.pipeline_type}.'
-                                        Should be polars"""
-            )
         try:
             release_data = plan.release()
         except Exception as e:

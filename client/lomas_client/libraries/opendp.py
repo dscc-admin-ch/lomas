@@ -6,7 +6,6 @@ import polars as pl
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
-from lomas_core.constants import OpenDpMechanism, OpenDpPipelineType
 from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
@@ -28,7 +27,6 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
     ) -> dict:
         """This function executes an OpenDP query.
 
@@ -43,8 +41,6 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
-            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
-                in polars pipelines. "laplace" or "gaussian".
         Raises:
             Exception: If the opendp_pipeline type is not supported.
         Returns:
@@ -55,18 +51,13 @@ class OpenDPClient:
             "epsilon": epsilon,
             "delta": delta,
             "rho": rho,
-            "mechanism": mechanism,
         }
 
-        if isinstance(opendp_pipeline, dp.Measurement):
-            body_json["opendp_json"] = opendp_pipeline.to_json()
-            body_json["pipeline_type"] = OpenDpPipelineType.LEGACY
-        elif isinstance(opendp_pipeline, pl.LazyFrame):
+        if isinstance(opendp_pipeline, pl.LazyFrame):
             body_json["opendp_json"] = b64encode(opendp_pipeline.serialize()).decode("utf-8")
-            body_json["pipeline_type"] = OpenDpPipelineType.POLARS
         else:
             raise InvalidQueryException(
-                f"Opendp_pipeline must either of type Measurement or LazyFrame, found {type(opendp_pipeline)}"
+                f"Opendp_pipeline must be of type LazyFrame, found {type(opendp_pipeline)}"
             )
 
         return body_json
@@ -77,7 +68,6 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
     ) -> CostResponse:
         """This function estimates the cost of executing an OpenDP query.
 
@@ -90,8 +80,6 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
-            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
-                in polars pipelines. "laplace" or "gaussian".
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
 
@@ -103,7 +91,6 @@ class OpenDPClient:
             epsilon=epsilon,
             delta=delta,
             rho=rho,
-            mechanism=mechanism,
         )
         body = OpenDPRequestModel.model_validate(body_json)
         res = self.http_client.post("estimate_opendp_cost", body)
@@ -116,7 +103,6 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-        mechanism: OpenDpMechanism | None = OpenDpMechanism.LAPLACE,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -134,8 +120,6 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
                 In that case a delta must be provided by the user.
                 Defaults to None.
-            mechanism: (OpenDpMechanism, optional): Type of noise addition mechanism to use\
-                in polars pipelines. "laplace" or "gaussian".
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -153,7 +137,6 @@ class OpenDPClient:
             epsilon=epsilon,
             delta=delta,
             rho=rho,
-            mechanism=mechanism,
         )
 
         request_model: type[OpenDPRequestModel]

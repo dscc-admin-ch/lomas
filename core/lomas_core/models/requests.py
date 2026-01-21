@@ -2,8 +2,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
     DPLibraries,
-    OpenDpMechanism,
-    OpenDpPipelineType,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
@@ -195,17 +193,6 @@ class OpenDPRequestModel(LomasRequestModel):
     rho: float | None = Field(..., gte=0)
     """
     Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
-    """
-    pipeline_type: OpenDpPipelineType
-    """The type of pipeline ('legacy' or 'polars').
-
-    (OBSOLETE: only polars will be used)"""
-    mechanism: OpenDpMechanism | None
-    """The noise mechanism ('laplace' or 'gaussian').
-
-    Need to be specified when using polars
-
-    (OBSOLETE: mechanism will be defined by the type of privacy loss used (epsilon or rho))
     """
 
 

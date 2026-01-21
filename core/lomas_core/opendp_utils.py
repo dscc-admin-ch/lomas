@@ -3,7 +3,6 @@ from base64 import b64decode
 
 import opendp.prelude as dp
 
-from lomas_core.constants import OpenDpPipelineType
 from lomas_core.error_handler import InternalServerException
 from lomas_core.models.requests import OpenDPQueryModel
 
@@ -161,20 +160,16 @@ def build_context(query_json: OpenDPQueryModel, metadata: dict, margins: list, i
 def deserialize_context_query(query_json: OpenDPQueryModel, metadata: dict, input_data):
     """TODO"""
     dp.enable_features("contrib")
-    # Reconstruct pipeline
-    if query_json.pipeline_type == OpenDpPipelineType.POLARS:
-        # Extract margins from metadata
-        margins = build_margins_from_metadata(metadata=metadata)
+    # Extract margins from metadata
+    margins = build_margins_from_metadata(metadata=metadata)
 
-        # Create new context based on dummy/real data
-        new_context = build_context(query_json, metadata, margins, input_data)
+    # Create new context based on dummy/real data
+    new_context = build_context(query_json, metadata, margins, input_data)
 
-        # Serialize plan given by user
-        serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
+    # Serialize plan given by user
+    serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
 
-        # Apply and deserialize polars plan with new context
-        polars_plan = new_context.deserialize_polars_plan(serialized_plan)
-    else:
-        raise InternalServerException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")
+    # Apply and deserialize polars plan with new context
+    polars_plan = new_context.deserialize_polars_plan(serialized_plan)
 
     return polars_plan

@@ -122,35 +122,29 @@ class TestContext(TestSetupRootAPIEndpoint):
 
     def test_context_polars(self) -> None:
         """Test opendp polars query."""
-        for mechanism in ["laplace", "gaussian"]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    # Logic with context
-                    # 1. In client: user create a context based on metadata and dummy dataset
-                    #   (done via Lomas api //i.e. "make_dummy_context")
-                    # 2. In client: user defines query (Context.query()....)
-                    # 3. Client to server: User sends pipeline to server (serialized)
-                    # 4. In server: Create new context based real/dummy data
-                    # 5. In server: deserialize context back to LazyframeQuery
-                    #    (context.deserialize_polars_plan(serialized_plan))
-                    # 6. In server: release and sent back collect() to user
+        with TestClient(app, headers=self.headers) as client:
+            # Logic with context
+            # 1. In client: user create a context based on metadata and dummy dataset
+            #   (done via Lomas api //i.e. "make_dummy_context")
+            # 2. In client: user defines query (Context.query()....)
+            # 3. Client to server: User sends pipeline to server (serialized)
+            # 4. In server: Create new context based real/dummy data
+            # 5. In server: deserialize context back to LazyframeQuery
+            #    (context.deserialize_polars_plan(serialized_plan))
+            # 6. In server: release and sent back collect() to user
 
-                    lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-                    plan_bytes = context_count(lf)
-                    example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            plan_bytes = context_count(lf)
+            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-                    # Laplace (this logic should change with context, mechanism defined in context parameter
-                    # with rho or epsilon
-                    example_opendp_polars["mechanism"] = mechanism
-
-                    job = submit_job_wait(
-                        client,
-                        "/opendp_query",
-                        json=example_opendp_polars,
-                    )
-                    response_model = QueryResponse.model_validate(job.result)
-                    assert response_model.epsilon > 0.0
-                    assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            assert response_model.epsilon > 0.0
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
 class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
@@ -279,24 +273,21 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""
-        for mechanism in ["laplace", "gaussian"]:
-            with self.subTest(msg=mechanism):
-                with TestClient(app, headers=self.headers) as client:
-                    lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-                    plan_bytes = mean_query_serialized(lf)
-                    example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+        with TestClient(app, headers=self.headers) as client:
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            plan_bytes = mean_query_serialized(lf)
+            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-                    # Expect to work
-                    example_opendp_polars["mechanism"] = mechanism
-                    example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
-                    example_opendp_polars["dummy_seed"] = DUMMY_SEED
-                    job = submit_job_wait(
-                        client,
-                        "/dummy_opendp_query",
-                        json=example_opendp_polars,
-                    )
-                    response_model = QueryResponse.model_validate(job.result)
-                    assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            # Expect to work
+            example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
+            example_opendp_polars["dummy_seed"] = DUMMY_SEED
+            job = submit_job_wait(
+                client,
+                "/dummy_opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     def test_grouping_query(self) -> None:
         """Test_opendp_polars_query with grouing."""

@@ -283,8 +283,6 @@ def test_demo_opendp_polars(kc, demo_setup) -> None:
     assert len(prev_queries) == 1
     assert prev_queries[0]["dataset_name"] == "FSO_INCOME_SYNTHETIC"
     assert prev_queries[0]["dp_library"] == "opendp"
-    assert prev_queries[0]["client_input"]["pipeline_type"] == "polars"
-    assert prev_queries[0]["client_input"]["mechanism"] == "laplace"
     response_archives = prev_queries[0]["response"]
     assert response_archives["epsilon"] >= 1.0
     assert response_archives["delta"] >= 0.0

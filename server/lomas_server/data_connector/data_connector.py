@@ -24,7 +24,7 @@ class DataConnector(BaseModel, ABC):
 
     metadata: Metadata
 
-    df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)] | None = Field(exclude=True, default=None)
+    df: Annotated[pd.DataFrame | None, Field(exclude=True), PlainSerializer(dataframe_to_dict)] = None
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -64,7 +64,7 @@ class DataConnector(BaseModel, ABC):
         return pl.from_pandas(self.get_pandas_df()).lazy()
 
 
-def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
+def get_column_dtypes(metadata: Metadata) -> dict[str, str]:
     """Extracts and returns the column types from the metadata.
 
     Args:
@@ -76,14 +76,12 @@ def get_column_dtypes(metadata: Metadata) -> tuple[dict[str, str], list[str]]:
             list: The list of columns of datetime type
     """
     dtypes = {}
-    datetime_columns = []
     for col_name, data in metadata.columns.items():
         if isinstance(data, DatetimeMetadata):
-            dtypes[col_name] = "string"
-            datetime_columns.append(col_name)
+            dtypes[col_name] = "datetime64[ns]"
         elif hasattr(data, "precision"):
             dtypes[col_name] = f"{data.type}{data.precision}"
         else:
             dtypes[col_name] = data.type
 
-    return dtypes, datetime_columns
+    return dtypes

@@ -47,11 +47,7 @@ def git_ref_exists(git_ref: str) -> bool:
             capture_output=True,
             check=False,
         )
-
-        if len(result.stdout.strip()) > 0:
-            return True
-        else:
-            return False
+        return len(result.stdout.strip()) > 0
     except subprocess.CalledProcessError as e:
         print(f"Error checking ref: {e}")
         return False
@@ -178,11 +174,6 @@ def generate_sphinx_api_doc() -> None:
     )
 
 
-def build_html() -> None:
-    """Build html file."""
-    subprocess.run("make html", shell=True, check=False)
-
-
 def build_doc(version: str, language: str, tag: str, local: bool = False) -> None:
     """
     Builds the documention for the given tag (git ref).
@@ -212,7 +203,8 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
         copy_sources()
         generate_sphinx_api_doc()
 
-    build_html()
+    # Build HTML files
+    subprocess.run("sphinx-build -M html source build", shell=True, check=False)
 
     # Make things as they were before
     if not local:
@@ -272,6 +264,6 @@ if __name__ == "__main__":
             if version == "stable":
                 continue
             tag = details.get("tag", "")
-            for language in details.get("languages", []):
+            for language in ["en"]:
                 build_doc(version, language, tag)
                 move_dir("./build/html/", "../pages/" + version + "/" + language + "/")

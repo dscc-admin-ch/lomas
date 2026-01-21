@@ -71,14 +71,14 @@ let
         name: ${adminDashboard.client_id}
         secret: ${adminDashboard.client_secret}
         redirectURIs:
-          - http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}/oauth2callback
+          - ${config.lomas.oidc.clients.adminDashboard.redirect_uri}
       # lomas grafana
       - id: ${grafanaDashboard.client_id}
         public: false
         name: ${grafanaDashboard.client_id}
         secret: ${grafanaDashboard.client_secret}
         redirectURIs:
-          - http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}/login/generic_oauth
+          - ${config.lomas.oidc.clients.grafanaDashboard.redirect_uri}
 
     staticPasswords:
       # Beware: static passwords cannot be deleted in dex.

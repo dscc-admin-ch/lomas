@@ -35,7 +35,6 @@ in
     enable = true;
     host = "localhost";
     port = 48080;
-    baseUrl = "/";
     dashboard.host = "localhost";
     dashboard.port = 8501;
     client.jupyter = {
@@ -57,10 +56,12 @@ in
       adminDashboard = {
         client_id = "lomas_dashboard";
         client_secret = "lomas_dashboard";
+        redirect_uri = with config.lomas.dashboard; "http://${host}:${toString port}${baseUrl}/oauth2callback";
       };
       grafanaDashboard = {
         client_id = "lomas_grafana";
         client_secret = "lomas_grafana";
+        redirect_uri = with config.lomas.telemetry.services.grafana; "http://${host}:${toString port}/login/generic_oauth";
       };
     };
   };
@@ -191,6 +192,7 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
+    LOMAS_SERVICE_bootstrap = "deadbeef";
     LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
     LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
     LOMAS_SERVICE_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
@@ -203,7 +205,6 @@ in
 
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
-    LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";
@@ -220,6 +221,7 @@ in
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";
+    LOMAS_ADMIN_BOOTSTRAP = config.env.LOMAS_SERVICE_bootstrap;
   }
   // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
     {

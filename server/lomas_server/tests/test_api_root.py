@@ -25,12 +25,11 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
 
         self.user_name = "Dr.Antartica"
-        self.bearer = 'Bearer {"name": "Dr.Antartica", "email": "dr.antartica@penguin_research.org"}'
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
+            "Authorization": f"Bearer {self.user_name}",
         }
-        self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
         path_prefix = Path(__file__).parent / "test_data"

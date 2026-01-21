@@ -45,8 +45,9 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
-  "streamlit>=1.45",
-  "st-pages>=1.0",
+  "requests-oauthlib>=2.0",
+  "oauthlib>=3.2",
+  "streamlit[auth]>=1.50",
   "bcrypt>=5.0.0",
 ]
 

@@ -167,7 +167,18 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    user_id = get_user_id(request.app.state.authenticator, auth_creds)
+    # Bootstrap initialization
+    if (bootstrap_cred := request.app.state.bootstrap) is not None:
+        match auth_creds:
+            case HTTPAuthorizationCredentials(scheme="Bearer") if auth_creds.credentials == bootstrap_cred:
+                logger.warning("Bootstrap User Bypass")
+                user_id = UserId(name="bootstrap", email="boot@strap.com")
+                request.state.user_name = user_id.name
+                return user_id
+            case _:
+                pass
+
+    user_id = get_user_id(request.app.state.authenticator, security_scopes, auth_creds.credentials)
     request.state.user_name = user_id.name
     # This raises an exception if authz fails
     authorize_user(user_id, request.app.state.admin_database, security_scopes)

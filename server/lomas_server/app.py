@@ -51,6 +51,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
         lomas_app.state.admin_database = LocalAdminDatabase(path=config.admin_database_url)
         logger.info("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator
+        lomas_app.state.bootstrap = config.bootstrap
         lomas_app.state.private_db_credentials = config.private_db_credentials
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")

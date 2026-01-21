@@ -1,27 +1,32 @@
-import sys
-from pathlib import Path
-
+import httpx
 import streamlit as st
+from returns.io import IOFailure, IOSuccess
+from returns.result import Failure, Success
+
+from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth
 
 
 def main() -> None:
     """Main function for the streamlit lomas dashboard."""
-    folder = Path(__file__).parent.resolve()
     page = st.navigation(
         [
-            st.Page(about, title="Home Page", icon="🏠"),
+            st.Page(about, title="Home"),
             st.Page(
-                folder / "pages/a_server_overview.py",
-                title="Lomas server overview",
-                icon="💻",
-            ),
-            st.Page(
-                folder / "pages/b_database_administration.py",
-                title="Admin database management",
-                icon="📁",
+                "database_administration.py",
+                title="Database",
             ),
         ]
     )
+    # Sidebar common to all page
+    with st.sidebar:
+        if not st.user.get("is_logged_in"):
+            if st.button("Log in"):
+                st.login()
+        else:
+            st.write(f"**{st.user.name}**")
+            if st.button("Log out", type="primary"):
+                st.logout()
+
     page.run()
 
 
@@ -50,21 +55,6 @@ def about() -> None:
         """
     st.write(features)
 
-    st.header("Quick Start")
-
-    quick_start = """
-        1. Navigate through the tabs to access different functionalities:
-            - **Server Overview**: Check server status and configuration.
-            - **Admin Database Management**: Manage users, datasets, and database content.
-
-        2. Use the intuitive interfaces to perform actions such as adding users, modifying datasets, or viewing database content.
-
-        3. Exercise caution when using deletion functionalities, as they can permanently remove data.
-
-        4. Refer to the documentation or tooltips for additional guidance on specific features.
-    """
-    st.write(quick_start)
-
     # Additional resources
     st.header("Resources")
 
@@ -77,14 +67,26 @@ def about() -> None:
         "**Support**: If you encounter any issues or have questions, reach out on [Github issues]"
         "(https://github.com/dscc-admin-ch/lomas/issues)"
     )
+
     st.write(support)
+
+    # Server Status
+    st.header("Server Status")
+
+    match query_lomas_auth("/state", httpx.get):
+        case IOSuccess(Success({"state": state})):
+            status = f":green-badge[{state}]"
+        case IOSuccess(Success(unexpected)):
+            status = f":orange-badge[unexpected state: {unexpected}]"
+        case IOFailure(Failure(e)):
+            status = f":red-badge[unavailable]: {e}"
+
+    match get_config().map(lambda config: config.server_url):
+        case IOSuccess(Success(server_url)):
+            st.write(f"{status} at {server_url}")
+        case IOFailure(Failure(e)):
+            st.error(f"Configuration Error: {e}")
 
 
 if __name__ == "__main__":
-    # We add the src directory to the python search path
-    # Required if the code is not installed as a package via pip/setuptools
-    admin_dir = Path(__file__).parent.parent
-    src_dir = admin_dir.parent
-    sys.path.extend(map(str, {admin_dir, src_dir}))
-
     main()

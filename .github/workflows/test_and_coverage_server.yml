@@ -22,23 +22,8 @@ jobs:
     - name: Install devenv.sh
       run: nix profile install nixpkgs#devenv
 
-    - name: Restore UV cache
-      uses: actions/cache@v4
-      id: uv-cache
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-3.12-
-
     - name: Run all test with coverage
       run: devenv shell -- ut-coverage client/ -v
-
-    - name: Store UV cache
-      uses: actions/cache@v4
-      if: steps.uv-cache.outputs.cache-hit != 'true'
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
 
     - run: mv .coverage .coverage.client
     - name: Store coverage file
@@ -74,29 +59,14 @@ jobs:
     - name: Install devenv.sh
       run: nix profile install nixpkgs#devenv
 
-    - name: Restore UV cache
-      uses: actions/cache@v4
-      id: uv-cache
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-${{ matrix.python-version }}-
-
     - name: Set Python package
       run: |
         cat > devenv.local.nix <<EOF
-        { pkgs, ... }: { languages.python.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
+        { pkgs, ... }: { lomas.pyenv.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
         EOF
 
     - name: Run all test with coverage
       run: devenv shell -- ut-coverage server/
-
-    - name: Store UV cache
-      uses: actions/cache@v4
-      if: steps.uv-cache.outputs.cache-hit != 'true'
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
 
     - run: mv .coverage .coverage.${{ matrix.python-version }}
     - name: Store coverage file

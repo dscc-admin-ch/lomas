@@ -122,7 +122,7 @@ class LocalAdminDatabase(AdminDatabase):
                         )
 
                 db[TK.METADATA][dataset_name] = metadata_dict
-                logger.debug(f"Added metadata of {dataset_name} dataset. ")
+                logger.info(f"Added metadata of {dataset_name} dataset.")
 
     def datasets(self) -> list[DSInfo]:
         with shelve.open(self.path, flag="r") as db:
@@ -152,7 +152,10 @@ class LocalAdminDatabase(AdminDatabase):
         if clean:
             self.drop_collection("datasets")
 
-        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        if hasattr(yaml_file, "resolve"):
+            yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        else:
+            yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
     def add_dataset(
@@ -308,7 +311,10 @@ class LocalAdminDatabase(AdminDatabase):
             self.drop_collection("users")
 
         # Load yaml data and insert it
-        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        if hasattr(yaml_file, "resolve"):
+            yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        else:
+            yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
     def add_user(
@@ -431,6 +437,19 @@ class LocalAdminDatabase(AdminDatabase):
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] += spent_value
 
+    def set_epsilon_or_delta(
+        self,
+        user_name: str,
+        dataset_name: str,
+        parameter: BudgetDBKey,
+        value: float,
+    ) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            datasets = db[TK.USERS][user_name]["datasets_list"]
+            for ds in datasets:
+                if ds["dataset_name"] == dataset_name:
+                    ds[parameter] = value
+
     @override
     @user_must_have_access_to_dataset
     def get_user_previous_queries(
@@ -456,13 +475,6 @@ class LocalAdminDatabase(AdminDatabase):
     def get_archives_of_user(self, username: str) -> list[dict]:
         with shelve.open(self.path, flag="r") as db:
             return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
-
-    def drop_archive(self) -> None:
-        self.drop_collection(TK.ARCHIVE)
-
-    def get_collection(self, collection: str) -> dict[str, Any]:
-        with shelve.open(self.path, flag="r") as db:
-            return db.get(collection, {})
 
     def drop_collection(self, collection: str) -> None:
         with shelve.open(self.path, writeback=True) as db:

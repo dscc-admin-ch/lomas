@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 
 import jwt
 import requests
-from fastapi.security import HTTPAuthorizationCredentials, SecurityScopes
+from fastapi.security import SecurityScopes
 from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID, Scopes
@@ -59,7 +59,11 @@ AuthenticatorT = Annotated[
 ]
 
 
-def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCredentials) -> UserId:
+def get_user_id(
+    authenticator: AuthenticatorT,
+    security_scopes: SecurityScopes,
+    credentials: str,
+) -> UserId:
     """Extracts user id from bearer token.
 
     Fails if user does not have scope.
@@ -67,7 +71,7 @@ def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCred
     Args:
         authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
         security_scopes (SecurityScopes): The required scopes for the endpoint.
-        auth_creds (HTTPAuthorizationCredentials): Authorization credentials.
+        credentials (str): Authorization credentials.
 
     Returns:
         UserId: The UserId object containing user infos.
@@ -75,7 +79,7 @@ def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCred
     match authenticator:
         case FreePassAuthenticator():
             try:
-                user = UserId.model_validate_json(auth_creds.credentials)
+                user = UserId(name=credentials, email="free@pass.com")
             except Exception as e:
                 raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
@@ -85,19 +89,17 @@ def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCred
                 if authenticator.query_userinfo:
                     response = requests.get(
                         url=str(authenticator.oidc_config.userinfo_endpoint),
-                        headers={"Authorization": f"Bearer {auth_creds.credentials}"},
+                        headers={"Authorization": f"Bearer {credentials}"},
                     )
                     response.raise_for_status()
                     userinfo = response.json()
 
                 else:
                     # Extracts kid from JWT and fetches corresponding key from keycloak (or cache).
-                    key = authenticator.jwk_client.get_signing_key_from_jwt(auth_creds.credentials)
+                    key = authenticator.jwk_client.get_signing_key_from_jwt(credentials)
                     # Decodes and validates JWT
                     # Note: audience is set to lomas client because it receives the token from IdP. Not all IdP support multi-audience.
-                    userinfo = jwt.decode(
-                        auth_creds.credentials, key=key, audience=OIDC_LOMAS_CLIENT__CLIENT_ID
-                    )
+                    userinfo = jwt.decode(credentials, key=key, audience=OIDC_LOMAS_CLIENT__CLIENT_ID)
 
                 user = UserId(
                     name=userinfo[

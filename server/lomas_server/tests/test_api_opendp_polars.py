@@ -305,29 +305,37 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
-    # def test_filter_query(self) -> None:
-    #     """Test_opendp_polars_query with filtering."""
-    #     with TestClient(app, headers=self.headers) as client:
-    #         lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-    #         breakpoint()
-    #         plan_bytes = lf.with_columns(
-    #             pl.col.income.cut(
-    #                 breaks=[10_000,40_000,80_000,120_000],
-    #                 left_closed=True
-    #                 ).alias("binned_income")
-    #             ).group_by(pl.col.binned_income).agg(dp.len()).serialize()
+    def test_filter_query(self) -> None:
+        """Test_opendp_polars_query with filtering."""
+        with TestClient(app, headers=self.headers) as client:
+            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
 
-    #         example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+            example_opendp_polars["epsilon"] = 1
 
-    #         job = submit_job_wait(
-    #             client,
-    #             "/opendp_query",
-    #             json=example_opendp_polars,
-    #         )
-    #         breakpoint()
-    #         response_model = QueryResponse.model_validate(job.result)
-    #         assert response_model.epsilon > 0.0
-    #         assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            plan_bytes = (
+                lf.with_columns(
+                    pl.col.income.cut(breaks=[4_000, 5_000, 6_000, 7_000], left_closed=True).alias(
+                        "binned_income"
+                    )
+                )
+                .group_by(pl.col.binned_income)
+                .agg(dp.len())
+                .serialize()
+            )
+
+            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            print(response_model.result.value)
+            assert response_model.epsilon > 0.0
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+
+            # delta = None => query fails ?
 
     def test_multiple_grouping_query(self) -> None:
         """Test_opendp_polars query with multiple grouping."""

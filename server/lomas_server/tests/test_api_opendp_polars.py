@@ -305,13 +305,13 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
-    def test_filter_query(self) -> None:
-        """Test_opendp_polars_query with filtering."""
+    def test_polars_features(self) -> None:
+        """Test_opendp_polars_query with different polars features (cut, filter, n_unique)."""
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-
             example_opendp_polars["epsilon"] = 1
 
+            # Polars plan with cut feature
             plan_bytes = (
                 lf.with_columns(
                     pl.col.income.cut(breaks=[4_000, 5_000, 6_000, 7_000], left_closed=True).alias(
@@ -331,11 +331,43 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 json=example_opendp_polars,
             )
             response_model = QueryResponse.model_validate(job.result)
-            print(response_model.result.value)
+            assert response_model.result.value.shape[0] == 4
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
             # delta = None => query fails ?
+
+            # Polars plan with filter
+            plan_ecobranch = (
+                lf.with_columns(pl.col.eco_branch.cast(str))
+                .filter(pl.col.eco_branch == "25")
+                .select(pl.col.income.fill_null(0).fill_nan(0).dp.len())
+                .serialize()
+            )
+
+            example_opendp_polars["opendp_json"] = b64encode(plan_ecobranch).decode("utf-8")
+
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            assert response_model.result.value.shape[0] > 0
+
+            ## Polars plan with n_unique
+            plan_nunique = lf.select(pl.col.eco_branch.dp.n_unique()).serialize()
+            example_opendp_polars["opendp_json"] = b64encode(plan_nunique).decode("utf-8")
+
+            job = submit_job_wait(
+                client,
+                "/opendp_query",
+                json=example_opendp_polars,
+            )
+            response_model = QueryResponse.model_validate(job.result)
+            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+            assert response_model.result.value.shape[0] > 1
 
     def test_multiple_grouping_query(self) -> None:
         """Test_opendp_polars query with multiple grouping."""

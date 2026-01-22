@@ -17,7 +17,9 @@ def build_margins_from_metadata(metadata: dict) -> list:
     if rows is None:
         raise ValueError("Metadata must contain 'rows'")
 
-    margins.append(dp.polars.Margin(max_length=rows))
+    # TODO: invariant should change depending of the metadata (nrows given or not)
+    # TBD with new metadata structure
+    margins.append(dp.polars.Margin(max_length=rows, invariant="lengths"))
 
     # --------------------
     # Column-level margins

@@ -219,7 +219,7 @@ OPENDP_POLARS_PIPELINE_COVID_DICTS: list[dict] = [
     {
         "patient_id": 7013,
         "id": 1023,
-        "date": "t",
+        "date": "2022-08-06",
         "temporal": 4,
         "georegion": "BS",
         "agegroup": "70 - 79",
@@ -234,7 +234,7 @@ OPENDP_POLARS_PIPELINE_COVID_DICTS: list[dict] = [
     {
         "patient_id": 2739,
         "id": 540,
-        "date": "c",
+        "date": "2023-09-06",
         "temporal": 1,
         "georegion": "VS",
         "agegroup": "unknown",

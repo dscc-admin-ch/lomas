@@ -190,40 +190,26 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         """Test opendp polars query."""
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE_COVID)
-            plan_bytes = lf.select(pl.col("temporal").dp.mean(bounds=(1, 52))).serialize()
-            example_opendp_polars_datetime["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-            # Laplace
+            datetime_plan = (
+                lf.with_columns(YEAR=pl.col.date.dt.year(), MONTH=pl.col.date.dt.month())
+                .group_by("YEAR")
+                .agg(dp.len())
+            ).serialize()
+
+            example_opendp_polars_datetime["opendp_json"] = b64encode(datetime_plan).decode("utf-8")
+            example_opendp_polars_datetime["epsilon"] = 10  # enough budget to get results
+
             job = submit_job_wait(
                 client,
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            response_model = QueryResponse.model_validate(job.result)
-            # print(response_model.result)
-            assert response_model.epsilon > 0.0
-            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
-            example_opendp_polars_datetime["dummy_nb_rows"] = DUMMY_NB_ROWS
-            example_opendp_polars_datetime["dummy_seed"] = DUMMY_SEED
-            job = submit_job_wait(
-                client,
-                "/dummy_opendp_query",
-                json=example_opendp_polars_datetime,
-            )
             response_model = QueryResponse.model_validate(job.result)
-            # print(response_model.result)
-            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
-
-            plan_bytes = (lf.group_by("date").agg([pl.col("temporal").dp.mean(bounds=(1, 52))])).serialize()
-
-            example_opendp_polars_datetime["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
-            job = submit_job_wait(
-                client,
-                "/opendp_query",
-                json=example_opendp_polars_datetime,
-            )
-            response_model = QueryResponse.model_validate(job.result)
+            assert (
+                response_model.result.value.shape[0] >= 1
+            )  # depending on noise, 2022 can be removed from result (1 or 2 rows in result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 

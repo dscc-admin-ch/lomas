@@ -52,7 +52,7 @@ lomas-server = "server/lomas_server"
 
 [tool.ruff]
 line-length = 110
-exclude = [ "*.ipynb", "*_api_pb2*.py" ]
+exclude = [ "*.ipynb", "*api_pb2*" ]
 
 [tool.ruff.lint]
 # ruff linter -> get available linter list

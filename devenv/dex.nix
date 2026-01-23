@@ -110,12 +110,13 @@ in
 
     scripts.gen-dex-api =
       let
-        proto_path = "./lomas_server/administration/dex/api/api.proto";
+        proto_dir = "./lomas_server/administration/dex/api";
+        proto_path = "${proto_dir}/api.proto";
       in
       wrapScript {
         exec = ''
           pushd server
-          mkdir -p ${proto_path}
+          mkdir -p ${proto_dir}
 
           wget -O ${proto_path} https://raw.githubusercontent.com/dexidp/dex/v${cfg.package.version}/api/v2/api.proto
           python -m grpc_tools.protoc -I. --pyi_out=. --python_out=. --grpc_python_out=. ${proto_path}

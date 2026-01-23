@@ -81,7 +81,9 @@ in
   lomas.dex = {
     enable = true;
     host = "localhost";
+    address = "127.0.0.1";
     port = 4445;
+    adminAddress = "127.0.0.1";
     adminPort = 4446;
   };
 
@@ -113,7 +115,7 @@ in
   };
 
   # No reverse proxy-ing by default
-  # TODO update if needed
+  # TODO needs update if needed
   lomas.caddy.enable = false;
 
   lomas.telemetry = {

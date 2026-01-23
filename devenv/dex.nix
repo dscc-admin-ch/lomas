@@ -15,36 +15,42 @@ let
     mkEnableOption
     ;
 
+  inherit (import ./utils.nix lib) wrapScript;
+
   # Write config as file
   confFile = pkgs.writeText "dex-conf.yaml" (''
-    issuer: http://${cfg.host}:${toString cfg.port}/dex
-    web:
-      http: ${cfg.address}}:${toString cfg.port} # TODO set interface?
-    storage:
-      type: sqlite3
-      config:
-        file: $XDG_RUNTIME_DIR/dex.db
+        issuer: http://${cfg.host}:${toString cfg.port}/dex
+        web:
 
-    grpc:
-      addr: ${cfg.adminAddress}:${toString cfg.adminPort}
 
-    # Enable local users
-    enablePasswordDB: true
-    # Allow password grants with local users
-    oauth2:
-      passwordConnector: local
+    if __name__ == "__main__":
 
-    # staticClients:
-    #   - id: public-client
-    #     public: true
-    #     name: 'Public Client'
-    #     redirectURIs:
-    #       - 'http://127.0.0.1/callback'
-    #   - id: device-client
-    #     public: true
-    #     name: 'Device Client'
-    #     redirectURIs:
-    #       - '/device/callback'
+          http: ${cfg.address}:${toString cfg.port}
+        storage:
+          type: sqlite3
+          config:
+            file: $XDG_RUNTIME_DIR/dex.db
+
+        grpc:
+          addr: ${cfg.adminAddress}:${toString cfg.adminPort}
+
+        # Enable local users
+        enablePasswordDB: true
+        # Allow password grants with local users
+        oauth2:
+          passwordConnector: local
+
+        # staticClients:
+        #   - id: public-client
+        #     public: true
+        #     name: 'Public Client'
+        #     redirectURIs:
+        #       - 'http://127.0.0.1/callback'
+        #   - id: device-client
+        #     public: true
+        #     name: 'Device Client'
+        #     redirectURIs:
+        #       - '/device/callback'
   '');
 in
 {
@@ -90,7 +96,6 @@ in
 
   config = mkIf cfg.enable {
     packages = [ cfg.package ];
-
     processes.dex = {
       exec = "${lib.getExe cfg.package} serve ${confFile}";
       process-compose = {
@@ -102,5 +107,22 @@ in
         };
       };
     };
+
+    scripts.gen-dex-api =
+      let
+        proto_path = "./lomas_server/administration/dex/api/api.proto";
+      in
+      wrapScript {
+        exec = ''
+          pushd server
+          mkdir -p ${proto_path}
+
+          wget -O ${proto_path} https://raw.githubusercontent.com/dexidp/dex/v${cfg.package.version}/api/v2/api.proto
+          python -m grpc_tools.protoc -I. --pyi_out=. --python_out=. --grpc_python_out=. ${proto_path}
+
+          rm ${proto_path}
+          popd
+        '';
+      };
   };
 }

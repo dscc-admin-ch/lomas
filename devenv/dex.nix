@@ -19,38 +19,35 @@ let
 
   # Write config as file
   confFile = pkgs.writeText "dex-conf.yaml" (''
-        issuer: http://${cfg.host}:${toString cfg.port}/dex
-        web:
+    issuer: http://${cfg.host}:${toString cfg.port}/dex
+    web:
+      http: ${cfg.address}:${toString cfg.port}
 
+    storage:
+      type: sqlite3
+      config:
+        file: $XDG_RUNTIME_DIR/dex.db
 
-    if __name__ == "__main__":
+    grpc:
+      addr: ${cfg.adminAddress}:${toString cfg.adminPort}
 
-          http: ${cfg.address}:${toString cfg.port}
-        storage:
-          type: sqlite3
-          config:
-            file: $XDG_RUNTIME_DIR/dex.db
+    # Enable local users
+    enablePasswordDB: true
+    # Allow password grants with local users
+    oauth2:
+      passwordConnector: local
 
-        grpc:
-          addr: ${cfg.adminAddress}:${toString cfg.adminPort}
-
-        # Enable local users
-        enablePasswordDB: true
-        # Allow password grants with local users
-        oauth2:
-          passwordConnector: local
-
-        # staticClients:
-        #   - id: public-client
-        #     public: true
-        #     name: 'Public Client'
-        #     redirectURIs:
-        #       - 'http://127.0.0.1/callback'
-        #   - id: device-client
-        #     public: true
-        #     name: 'Device Client'
-        #     redirectURIs:
-        #       - '/device/callback'
+    # staticClients:
+    #   - id: public-client
+    #     public: true
+    #     name: 'Public Client'
+    #     redirectURIs:
+    #       - 'http://127.0.0.1/callback'
+    #   - id: device-client
+    #     public: true
+    #     name: 'Device Client'
+    #     redirectURIs:
+    #       - '/device/callback'
   '');
 in
 {

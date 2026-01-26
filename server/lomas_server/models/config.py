@@ -131,6 +131,15 @@ class KeycloakClientConfig(BaseModel):
         return f"{self.url}/realms/{self.realm}/protocol/openid-connect/token"
 
 
+class DexAdminConfig(BaseModel):
+    url: Url
+
+    @computed_field
+    def use_mtls(self) -> bool:
+        """Using mTLS ?"""
+        return self.url.scheme == "https"
+
+
 class AdminConfig(BaseSettings):
     """Base model for settings for administrative tasks."""
 

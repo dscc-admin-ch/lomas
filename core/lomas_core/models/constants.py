@@ -85,7 +85,7 @@ class AuthenticationType(StrEnum):
 # -----------------------------------------------------------------------------
 
 
-def init_logging(name: str = "root", level: str = "DEBUG") -> logging.Logger:
+def init_logging(name: str = "root", level: str = "INFO") -> logging.Logger:
     logging.basicConfig(
         level=level,
         format="%(message)s",

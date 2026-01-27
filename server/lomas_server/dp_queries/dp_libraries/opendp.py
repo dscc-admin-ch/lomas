@@ -9,6 +9,7 @@ from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
     ExternalLibraryException,
 )
+from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
@@ -82,7 +83,8 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             (Union[List, int, float]) query result
         """
         input_data = self.data_connector.get_polars_lf()
-        plan = deserialize_context_query(query_json, self.metadata, input_data)
+        metadata = Metadata.model_validate(self.metadata)
+        plan = deserialize_context_query(query_json, metadata, input_data)
 
         try:
             release_data = plan.release()

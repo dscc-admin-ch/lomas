@@ -2,18 +2,21 @@ import itertools
 from base64 import b64decode
 
 import opendp.prelude as dp
+import polars as pl
 
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.requests import OpenDPQueryModel
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import GetDummyContext, OpenDPQueryModel
+
+dp.enable_features("contrib")
 
 
-def build_margins_from_metadata(metadata: dict) -> list:
+def build_margins_from_metadata(metadata: Metadata) -> list:
     margins = []
     # --------------------
     # Global margin
     # --------------------
-
-    rows = metadata.get("rows")
+    rows = metadata.rows
     if rows is None:
         raise ValueError("Metadata must contain 'rows'")
 
@@ -24,15 +27,15 @@ def build_margins_from_metadata(metadata: dict) -> list:
     # --------------------
     # Column-level margins
     # --------------------
-    columns = metadata.get("columns", {})
+    columns = metadata.columns
 
     # Store constraints for grouping
     grouping_constraints = {}
 
     for column_name, col_meta in columns.items():
-        col_type = col_meta.get("type")
-        max_partition_length = col_meta.get("max_partition_length")
-        cardinality = col_meta.get("cardinality")
+        col_type = col_meta.type
+        max_partition_length = col_meta.max_partition_length
+        cardinality = getattr(col_meta, "cardinality", None)
 
         by = [column_name]
 
@@ -122,7 +125,9 @@ def build_margins_from_metadata(metadata: dict) -> list:
     return margins
 
 
-def build_context(query_json: OpenDPQueryModel, metadata: dict, margins: list, input_data) -> dp.Context:
+def build_context(
+    query_json: GetDummyContext, metadata: Metadata, margins: list, input_data: pl.LazyFrame
+) -> dp.Context:
     epsilon = query_json.epsilon
     rho = query_json.rho
     delta = query_json.delta
@@ -137,7 +142,7 @@ def build_context(query_json: OpenDPQueryModel, metadata: dict, margins: list, i
         # Laplace
         return dp.Context.compositor(
             data=input_data,
-            privacy_unit=dp.unit_of(contributions=metadata["max_ids"]),
+            privacy_unit=dp.unit_of(contributions=metadata.max_ids),
             privacy_loss=dp.loss_of(
                 epsilon=epsilon,
                 delta=delta,
@@ -149,7 +154,7 @@ def build_context(query_json: OpenDPQueryModel, metadata: dict, margins: list, i
     # Gaussian
     return dp.Context.compositor(
         data=input_data,
-        privacy_unit=dp.unit_of(contributions=metadata["max_ids"]),
+        privacy_unit=dp.unit_of(contributions=metadata.max_ids),
         privacy_loss=dp.loss_of(
             rho=rho,
             delta=delta,
@@ -159,9 +164,10 @@ def build_context(query_json: OpenDPQueryModel, metadata: dict, margins: list, i
     )
 
 
-def deserialize_context_query(query_json: OpenDPQueryModel, metadata: dict, input_data):
+def deserialize_context_query(
+    query_json: OpenDPQueryModel, metadata: Metadata, input_data: pl.LazyFrame
+) -> dp.polars.LazyFrameQuery:
     """TODO"""
-    dp.enable_features("contrib")
     # Extract margins from metadata
     margins = build_margins_from_metadata(metadata=metadata)
 

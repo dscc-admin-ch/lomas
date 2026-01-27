@@ -20,13 +20,15 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
+from lomas_core.opendp_utils import build_context, build_margins_from_metadata
 
 
 class Client:
@@ -110,6 +112,35 @@ class Client:
             return pl.from_pandas(dummy_df).lazy() if lazy else dummy_df
 
         raise_error(res)
+
+    def get_context(
+        self,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
+    ):
+        body_dict = {
+            "dataset_name": self.config.dataset_name,
+            "dummy_nb_rows": nb_rows,
+            "dummy_seed": seed,
+            "epsilon": epsilon,
+            "delta": delta,
+            "rho": rho,
+        }
+
+        body = GetDummyContext.model_validate(body_dict)
+
+        dummy_lf = self.get_dummy_dataset(seed=seed, nb_rows=nb_rows, lazy=True)
+
+        metadata_dict = self.get_dataset_metadata()
+        metadata = Metadata.model_validate(metadata_dict)
+        margins = build_margins_from_metadata(metadata)
+
+        context = build_context(body, metadata, margins, dummy_lf)
+
+        return context
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.

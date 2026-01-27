@@ -159,7 +159,9 @@ OPENDP_PIPELINE: str = (
 example_opendp: dict[str, JsonValue] = {
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": b64encode(OPENDP_PIPELINE.encode("utf-8")).decode("utf-8"),
+    "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
+    "rho": None,
 }
 example_dummy_opendp: dict[str, JsonValue] = make_dummy(example_opendp)
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
@@ -43,6 +43,21 @@ class GetDummyDataset(LomasRequestModel):
     """The number of dummy rows to generate."""
     dummy_seed: int
     """The seed for the random generation of the dummy dataset."""
+
+
+class GetDummyContext(GetDummyDataset):
+    """Model input to get a dummy dataset."""
+
+    epsilon: float | None = Field(..., ge=0)
+    """The epsilon parameter used for pure ε-DP"""
+    delta: float | None = Field(..., ge=0)
+    """
+    The delta parameter
+    """
+    rho: float | None = Field(..., gte=0)
+    """
+    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
+    """
 
 
 class QueryModel(LomasRequestModel):
@@ -194,6 +209,12 @@ class OpenDPRequestModel(LomasRequestModel):
     """
     Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
     """
+
+    @model_validator(mode="after")
+    def check_epsilon_or_rho(self):
+        if self.epsilon is None and self.rho is None:
+            raise ValueError("Either `epsilon` or `rho` must be set.")
+        return self
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):

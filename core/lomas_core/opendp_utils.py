@@ -33,7 +33,6 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
     grouping_constraints = {}
 
     for column_name, col_meta in columns.items():
-        col_type = col_meta.type
         max_partition_length = col_meta.max_partition_length
         cardinality = getattr(col_meta, "cardinality", None)
 
@@ -46,41 +45,18 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
         }
 
         # Categorical columns
-        if col_type == "categorical":
-            margin_kwargs = {
-                "by": by,
-                "invariant": "keys",
-            }
+        margin_kwargs = {
+            "by": by,
+            "invariant": "keys",
+        }
 
-            if max_partition_length is not None:
-                margin_kwargs["max_length"] = max_partition_length
+        if max_partition_length is not None:
+            margin_kwargs["max_length"] = max_partition_length
 
-            if cardinality is not None:
-                margin_kwargs["max_groups"] = cardinality
+        if cardinality is not None:
+            margin_kwargs["max_groups"] = cardinality
 
-            margins.append(dp.polars.Margin(**margin_kwargs))
-            continue
-
-        # String columns
-        if col_type == "string":
-            margin_kwargs = {
-                "by": by,
-                "invariant": "keys",
-            }
-
-            if max_partition_length is not None:
-                margin_kwargs["max_length"] = max_partition_length
-
-            margins.append(dp.polars.Margin(**margin_kwargs))
-            continue
-
-        # Other
-        margins.append(
-            dp.polars.Margin(
-                by=by,
-                invariant="keys",
-            )
-        )
+        margins.append(dp.polars.Margin(**margin_kwargs))
 
     # --------------------
     # Multi-column groupings
@@ -108,12 +84,23 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
             }
 
             # min(max_partition_length)
+            max_lengths = [
+                grouping_constraints[col]["max_partition_length"]
+                for col in combo
+                if grouping_constraints[col]["max_partition_length"] is not None
+            ]
+
             if max_lengths:
                 margin_kwargs["max_length"] = min(max_lengths)
 
-            # max_groups: None if ANY cardinality is None
-            cardinalities = [grouping_constraints[col]["cardinality"] for col in combo]
-
+            # max_groups logic: multiply max_groups of all columns from combo
+            # If one group is None and other is not, we keep the max group from the other
+            # if all none, max_groups is none.
+            cardinalities = [
+                grouping_constraints[col]["cardinality"]
+                for col in combo
+                if grouping_constraints[col]["cardinality"] is not None
+            ]
             if all(c is not None for c in cardinalities):
                 product = 1
                 for c in cardinalities:

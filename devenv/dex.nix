@@ -37,6 +37,14 @@ let
     oauth2:
       passwordConnector: local
 
+    staticClients:
+      - id: priv-client
+        public: false
+        name: "private client"
+        secret: "secret"
+        redirectURIs:
+          - "http://127.0.0.1/callback"
+
     # staticClients:
     #   - id: public-client
     #     public: true

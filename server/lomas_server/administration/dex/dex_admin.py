@@ -12,11 +12,36 @@ from lomas_server.administration.dex.api.api_pb2 import (
     DeletePasswordReq,
     ListPasswordReq,
     Password,
+    UpdatePasswordReq,
 )
 from lomas_server.administration.dex.api.api_pb2_grpc import DexStub
 from lomas_server.models.config import DexAdminConfig
 
 logger = init_logging(__name__)
+
+
+class InvalidDexOperation(Exception):
+    """Groups all exceptions for trying to perform invalid Dex rpcs (e.g. adding a user that already exists)."""
+
+    def __init__(self, error_message: str) -> None:
+        """Init function
+
+        Args:_description_
+            error_message (str): initial error message
+        """
+        self.error_message = error_message
+
+
+class DexRPCError(Exception):
+    """Groups all Dex rpc errors."""
+
+    def __init__(self, error_message: str) -> None:
+        """Init function
+
+        Args:_description_
+            error_message (str): initial error message
+        """
+        self.error_message = error_message
 
 
 def get_grpc_channel(dex_config: DexAdminConfig) -> grpc.Channel:
@@ -49,6 +74,17 @@ def hash_pwd(password: str) -> bytes:
 
     return hash
 
+def to_log(user_provided_str: str) -> str:
+    """Util function to sanitize user provided strings before logging.
+
+    Args:
+        user_provided_str (str): User provided string to sanitize
+
+    Returns:
+        str: The sanitized string.
+    """
+    return user_provided_str.replace("\\r\\n", "").replace("\\n", "")
+
 
 def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> None:
     """Adds a new user to dex.
@@ -58,25 +94,29 @@ def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, us
         user_name (str): The user name
         user_email (str): The user email
         user_password (str): The user pasword
-    """
-    new_pwd = Password(
-        email=user_email, hash=hash_pwd(user_password), username=user_name, user_id=str(uuid.uuid4())
-    )
 
+    Raises:
+        InvalidDexOperation: If the user already exists.
+        e: grpc.RpcError
+    """
     try:
         with get_grpc_channel(dex_config) as channel:
             stub = DexStub(channel)
-            # TODO check if already exists!
-            stub.CreatePassword(CreatePasswordReq(password=new_pwd))
-            logger.info(f"Added {user_name} user.")
-    except grpc.RpcError as e:
-        logger.error(
-            f"Could not add user to Dex. Please contact the service administrator.\n Exception: {e!s}"
-        )
-        raise e
+            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-    log_name = user_name.replace("\\r\\n", "").replace("\\n", "")
-    logger.info(f"Added dex user {log_name}")
+            for dex_user in dex_users:
+                if dex_user.username == user_name or dex_user.email == user_email:
+                    logger.error(f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists.")
+                    raise InvalidDexOperation(f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists.")
+
+            new_pwd = Password(
+                email=user_email, hash=hash_pwd(user_password), username=user_name, user_id=str(uuid.uuid4())
+            )
+
+            stub.CreatePassword(CreatePasswordReq(password=new_pwd))
+            logger.info(f"Added {to_log(user_name)} user.")
+    except grpc.RpcError as e:
+        raise DexRPCError("grpc error") from e
 
 
 def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> None:
@@ -85,29 +125,27 @@ def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> None:
     Args:
         dex_config (DexAdminConfig): The DexAdminConfig
         user_name (str): The name of the user to remove.
+
+    Raises:
+        InvalidDexOperation: If the user does not exist.
+        e: grpc.RpcError
     """
-    with get_grpc_channel(dex_config) as channel:
-        stub = DexStub(channel)
+    try:
+        with get_grpc_channel(dex_config) as channel:
+            stub = DexStub(channel)
 
-        try:
-            users = stub.ListPasswords(ListPasswordReq())
-        except grpc.RpcError as e:
-            logger.error(f"Failed to get list of current Dex users.\n Exception: {e!s}")
-            raise e
+            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-        for user in users.passwords:
-            if user.username == user_name:
-                try:
-                    # assuming there's a DeletePassword method in DexStub
+            for user in dex_users:
+                if user.username == user_name:
                     stub.DeletePassword(DeletePasswordReq(email=user.email))
                     logger.info(f"Deleted dex user {user_name}")
                     return
-                except grpc.RpcError as e:
-                    logger.error(f"Failed to delete user {user_name}.\n Exception: {e!s}")
-                    raise e
 
-            logger.error(f"User {user_name} does not exist.")
-            raise Exception(f"Cannot delete. User does not exist {user_name}")
+                logger.error(f"User {user_name} does not exist.")
+                raise InvalidDexOperation(f"Cannot delete. User does not exist {user_name}")
+    except grpc.RpcError as e:
+        raise DexRPCError("grpc error") from e
 
 
 def del_all_dex_users(dex_config: DexAdminConfig) -> None:
@@ -119,26 +157,19 @@ def del_all_dex_users(dex_config: DexAdminConfig) -> None:
     Raises:
         grpc.RpcError: If any of the calls to dex fails
     """
-    with get_grpc_channel(dex_config) as channel:
-        stub = DexStub(channel)
-        try:
-            users = stub.ListPasswords(ListPasswordReq())
-        except grpc.RpcError as e:
-            logger.error(f"Failed to get list of current Dex users.\n Exception: {e!s}")
-            raise e
+    try:
+        with get_grpc_channel(dex_config) as channel:
+            stub = DexStub(channel)
+            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-        breakpoint()
-
-        for user in users.passwords:
-            try:
+            for user in dex_users:
                 # assuming there's a DeletePassword method in DexStub
                 stub.DeletePassword(DeletePasswordReq(email=user.email))
                 logger.info(f"Deleted dex user {user.username}")
-            except grpc.RpcError as e:
-                logger.error(f"Failed to delete user {user.username}.\n Exception: {e!s}")
-                raise e
 
-    logger.info("Removed all dex users.")
+        logger.info("Removed all dex users.")
+    except grpc.RpcError as e:
+        raise DexRPCError("grpc error") from e
 
 
 def add_dex_users(
@@ -161,41 +192,37 @@ def add_dex_users(
         overwrite(bool): Whether to overwrite existing users.
 
     Raises:
+        InvalidDexOperation: If a user does not have a password or the user already exists and should not be overwritten.
         grpc.RpcError: If any of the calls to dex fails
     """
     # Remove all existing users if requested
     if clean:
         del_all_dex_users(dex_config)
 
-    for user in user_list.users:
-        # Remove user with same name if requested (but not already cleaned)
-        if overwrite and not clean:
-            try:
-                with get_grpc_channel(dex_config) as channel:
-                    stub = DexStub(channel)
-                    dex_users = stub.ListPasswords(ListPasswordReq())
-            except grpc.RpcError as e:
-                logger.error(f"Failed to get Dex users.\n Exception: {e!s}")
-                raise e
+    try:
+        with get_grpc_channel(dex_config) as channel:
+            stub = DexStub(channel)
+            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-            for dex_user in dex_users.passwords:
-                if dex_user.username == user.id.name:
-                    try:
+        for user in user_list.users:
+            # Remove user with same name if requested (but not already cleaned)
+            if overwrite and not clean:
+                for dex_user in dex_users:
+                    if dex_user.username == user.id.name:
                         stub.DeletePassword(DeletePasswordReq(email=dex_user.email))
                         logger.info(f"Removed existing dex user {user.id.name} due to overwrite flag")
-                    except grpc.RpcError as e:
-                        logger.error(f"Failed to delete existing dex user {user.id.name}.\n Exception: {e!s}")
-                        raise e
 
-        # Create the dex user
-        # TODO replace client_secret with password
-        if user.id.client_secret is None:
-            logger.error(f"Cannot add Dex user {user.id.name} without password")
-            raise Exception(f"Cannot add Dex user {user.id.name} without password")
+            # Create the dex user
+            # TODO replace client_secret with password
+            if user.id.client_secret is None:
+                logger.error(f"Cannot add Dex user {user.id.name} without password")
+                raise InvalidDexOperation(f"Cannot add Dex user {user.id.name} without password")
 
-        add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
+            add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
 
-    logger.info("Added dex users from user collection.")
+        logger.info("Added dex users from user collection.")
+    except grpc.RpcError as e:
+        raise DexRPCError("grpc error") from e
 
 
 def add_dex_users_via_yaml(
@@ -211,13 +238,38 @@ def add_dex_users_via_yaml(
         yaml_file (Path): File name to load the users from
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
-
-    Raises:
-        grpc.RpcError: If any of the calls to dex fails
     """
     # Load yaml data and insert it
     user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open()))
     add_dex_users(dex_config, user_list, clean, overwrite)
+
+
+def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> None:
+    """Sets the new user password to the Dex user.
+
+    Args:
+        dex_config (DexAdminConfig): The dex admin config.
+        user_name (str): The user name for which to change the password.
+        new_password (str): The new password to set.
+
+    Raises:
+        InvalidDexOperation: If the user does not exist.
+        grpc.RpcError: If any of the calls to dex fails
+    """
+    try:
+        with get_grpc_channel(dex_config) as channel:
+            stub = DexStub(channel)
+            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+
+            for dex_user in dex_users:
+                if dex_user.username == user_name:
+                    stub.UpdatePassword(UpdatePasswordReq(email=dex_user.email, new_hash=hash_pwd(new_password), new_username=user_name))
+                    logger.info(f"Updated password for user {to_log(user_name)}.")
+
+            raise InvalidDexOperation(f"Failed to update user password for {to_log(user_name)}. User does not exist.")
+
+    except grpc.RpcError as e:
+        raise DexRPCError("grpc error") from e
 
 
 def test_api():
@@ -231,13 +283,21 @@ def test_api():
 if __name__ == "__main__":
     # TODO remove, this is just for testing.import uuid
     config = DexAdminConfig(
-        url="localhost:4446",
+        url="localhost:4446", # type: ignore
     )
 
+    with get_grpc_channel(config) as channel:
+        stub = DexStub(channel)
+        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+
+    breakpoint()
+    del_all_dex_users(config)
+
     add_dex_user(config, "dada", "dada@example.com", "pwd")
-    add_dex_user(config, "dada", "dada@example2.com", "pwd")
-    add_dex_user(config, "dada2", "dada@example2.com", "pwd")
+    try:
+        add_dex_user(config, "dada", "dada@example2.com", "pwd")
+    except InvalidDexOperation:
+        print("ok")
 
     breakpoint()
     # del_dex_user(config, "dada")
-    del_all_dex_users(config)

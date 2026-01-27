@@ -55,3 +55,11 @@ staticPasswords:
 #   --data-urlencode 'device_code=ke6h22plxkhdt4lemfoznhixayx4rb3m5lh4puqedps654mcqce' \
 #   --data-urlencode 'grant_type=urn:ietf:params:oauth:grant-type:device_code' \
 #   | yq . -Poy
+
+
+curl -sL -X POST 'http://localhost:4445/dex/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=priv-client' \
+  --data-urlencode 'client_secret=secret' \
+  --data-urlencode 'grant_type=client_credentials' \
+  | yq

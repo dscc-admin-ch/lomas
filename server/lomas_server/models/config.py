@@ -159,7 +159,7 @@ class AdminConfig(BaseSettings):
     server_url: HttpUrl
     server_service: HttpUrl
     database_url: Path
-    kc_config: Annotated[KeycloakClientConfig | None, Field(default=None)]
+    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
 
     @computed_field
     def database(self) -> AdminDatabase:

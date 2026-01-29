@@ -16,15 +16,8 @@ let
     ;
 
   inherit (import ./utils.nix lib) wrapScript;
+  inherit (import ./utils.nix lib) clientIdSecret;
 
-  clientIdSecret = types.submodule {
-    options.client_id = mkOption {
-      type = types.str;
-    };
-    options.client_secret = mkOption {
-      type = types.str;
-    };
-  };
 in
 {
   options.lomas = {
@@ -67,18 +60,31 @@ in
       description = "Lomas Dashboard Base Url";
     };
 
-    realm = mkOption {
+    oidc.enable = mkEnableOption "Enable OIDC for lomas";
+
+    oidc.providerUrl = mkOption {
       type = types.str;
-      default = "lomas";
-      description = "Lomas Server Authentication Realm";
+      description = "OIDC provider url.";
     };
 
-    admin = mkOption {
+    oidc.clients.apiServer = mkOption {
       type = clientIdSecret;
+      description = "OIDC client for api server";
     };
 
-    api = mkOption {
+    oidc.clients.apiClient = mkOption {
+      type = types.str;
+      description = "OICD public client name for api client";
+    };
+
+    oidc.clients.adminDashboard = mkOption {
       type = clientIdSecret;
+      description = "OIDC client for admin dashboard";
+    };
+
+    oidc.clients.grafanaDashboard = mkOption {
+      type = clientIdSecret;
+      description = "OIDC client for grafana dashboard";
     };
 
     client.jupyter.port = mkOption {

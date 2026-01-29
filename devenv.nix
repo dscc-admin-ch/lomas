@@ -13,21 +13,16 @@ let
   toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
-  # Keycloak
-  kc_auth_realm = "master";
-  kc_admin_client_id = "admin-cli";
-
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
   admin_path_prefix = "${config.devenv.root}/server/data/";
   user_yaml_path = "/collections/user_collection.yaml";
   dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
 in
 {
-  # import our modules
+  # import our moduldes
   imports = [
     ./devenv/lomas.nix
     ./devenv/rabbitmq.nix
-    ./devenv/keycloak.nix
     ./devenv/minio.nix
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
@@ -43,17 +38,29 @@ in
     baseUrl = "/api";
     dashboard.host = "localhost";
     dashboard.port = 8501;
-    admin = {
-      client_id = "lomas_admin";
-      client_secret = "lomas_admin";
-    };
-    api = {
-      client_id = "lomas_api";
-      client_secret = "lomas_api";
-    };
     client.jupyter = {
       port = 8888;
       password = null; # "dprocks";
+    };
+  };
+
+  lomas.oidc = {
+    enable = true;
+    providerUrl = "http://localhost:4445/dex";
+    clients = {
+      apiServer = {
+        client_id = "lomas_api";
+        client_secret = "lomas_api";
+      };
+      apiClient = "lomas_client";
+      adminDashboard = {
+        client_id = "lomas_dashboard";
+        client_secret = "lomas_dashboard";
+      };
+      grafanaDashboard = {
+        client_id = "lomas_grafana";
+        client_secret = "lomas_grafana";
+      };
     };
   };
 
@@ -68,23 +75,19 @@ in
     heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 
-  lomas.keycloak = {
-    enable = true;
-    host = "localhost";
-    httpPort = 4442;
-    httpsPort = 4443;
-    httpManagementPort = 4441;
-    bootstrapAdminUser = "admin";
-    bootstrapAdminPass = "admin";
-  };
-
   lomas.dex = {
     enable = true;
+    port = 4445;
     host = "localhost";
     address = "127.0.0.1";
-    port = 4445;
-    adminAddress = "127.0.0.1";
     adminPort = 4446;
+    adminAddress = "127.0.0.1";
+    bootstrapAdminUserName = "lomas_admin";
+    bootstrapAdminUserEmail = "admin@example.com";
+    bootstrapAdminUserPassword = "lomas_admin";
+    # Use 'has-dex-password <password>' to generate hash
+    # Reason: bcrypt hash is not a pure function
+    bootstrapAdminUserPasswordHash = "$2b$12$a3BzqExriCFK2t0riQIc3eEgNoWU.UuWPtLTQUjALJ9udXnC3t/YW";
   };
 
   lomas.minio = {
@@ -193,8 +196,7 @@ in
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
     LOMAS_SERVICE_authenticator__authentication_type = "jwt";
-    LOMAS_SERVICE_authenticator__keycloak_url = "http://localhost:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_SERVICE_authenticator__realm = config.lomas.realm;
+    LOMAS_SERVICE_authenticator__oidc_provider_url = "${config.lomas.oidc.providerUrl}";
 
     LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
@@ -203,8 +205,7 @@ in
     LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
     # Lomas client environment
-    LOMAS_CLIENT_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_CLIENT_REALM = config.lomas.realm;
+    LOMAS_CLIENT_OIDC_PROVIDER_URL = config.lomas.oidc.providerUrl;
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";
@@ -213,34 +214,14 @@ in
     LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
     LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
-    # Keycloak setup
-    LOMAS_GATEWAY_URL = "http://localhost:8080";
-    LOMAS_KC_SETUP_KEYCLOAK_URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_KC_SETUP_KEYCLOAK_AUTHENTICATION_REALM = kc_auth_realm;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_CLIENT_ID = kc_admin_client_id;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_USER = config.lomas.keycloak.bootstrapAdminUser;
-    LOMAS_KC_SETUP_KEYCLOAK_ADMIN_PWD = config.lomas.keycloak.bootstrapAdminPass;
-    LOMAS_KC_SETUP_LOMAS_REALM = config.lomas.realm;
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_URL = "${config.env.LOMAS_GATEWAY_URL}/auth";
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_ID = "lomas-oauth-proxy";
-    LOMAS_KC_SETUP_LOMAS_GATEWAY_CLIENT_SECRET = "lomas-oauth-proxy";
-    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_ID = config.lomas.admin.client_id;
-    LOMAS_KC_SETUP_LOMAS_ADMIN_CLIENT_SECRET = config.lomas.admin.client_secret;
-    LOMAS_KC_SETUP_LOMAS_API_CLIENT_ID = config.lomas.api.client_id;
-    LOMAS_KC_SETUP_LOMAS_API_CLIENT_SECRET = config.lomas.api.client_secret;
-    LOMAS_KC_SETUP_OVERWRITE_REALM = "true";
-
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
     LOMAS_ADMIN_database_url = "/tmp/admin.db";
-    LOMAS_ADMIN_KC_CONFIG__URL = "http://${config.lomas.keycloak.host}:${toString config.lomas.keycloak.httpPort}";
-    LOMAS_ADMIN_KC_CONFIG__REALM = config.lomas.realm;
-    LOMAS_ADMIN_KC_CONFIG__CLIENT_ID = config.lomas.admin.client_id;
-    LOMAS_ADMIN_KC_CONFIG__CLIENT_SECRET = config.lomas.admin.client_secret;
     LOMAS_ADMIN_PATH_PREFIX = admin_path_prefix;
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
+    LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";
   }
   // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
     {
@@ -248,15 +229,6 @@ in
       db_type = "S3_DB";
       access_key_id = config.lomas.minio.rootUser;
       secret_access_key = config.lomas.minio.rootPassword;
-    }
-  ])
-  // (listToPydanticEnvVar "LOMAS_KC_SETUP_LOMAS_ADMIN_USERS" [
-    {
-      username = "admin";
-      email = "admin@example.com";
-      temp_password = "admin";
-      first_name = "admin";
-      last_name = "ofAllAdmins";
     }
   ]);
 
@@ -345,10 +317,6 @@ in
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
             log_location = "$DEVENV_ROOT/logs/worker.log";
           };
-          keycloak-setup = {
-            inherit working_dir;
-            command = "coverage run --data-file=.coverage.keycloak_setup server/lomas_server/administration/scripts/keycloak_setup.py";
-          };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
           pytest-cov = {
@@ -357,9 +325,8 @@ in
             depends_on = {
               worker.condition = "process_started";
               minio.condition = "process_healthy";
-              keycloak.condition = "process_healthy";
+              dex.condition = "process_healthy";
               rabbitmq.condition = "process_healthy";
-              keycloak-setup.condition = "process_completed_successfully";
               lomas-server.condition = "process_healthy";
             };
             log_location = "$DEVENV_ROOT/logs/pytest.log";

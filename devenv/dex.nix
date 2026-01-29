@@ -7,6 +7,7 @@
 
 let
   cfg = config.lomas.dex;
+  lomas_cfg = config.lomas;
 
   inherit (lib)
     types
@@ -16,6 +17,7 @@ let
     ;
 
   inherit (import ./utils.nix lib) wrapScript;
+  inherit (import ./utils.nix lib) clientIdSecret;
 
   # Write config as file
   confFile = pkgs.writeText "dex-conf.yaml" (''
@@ -38,24 +40,40 @@ let
       passwordConnector: local
 
     staticClients:
-      - id: priv-client
+      # lomas api server
+      - id: ${config.lomas.oidc.clients.apiServer.client_id}
         public: false
-        name: "private client"
-        secret: "secret"
+        name: ${config.lomas.oidc.clients.apiServer.client_id}
+        secret: ${config.lomas.oidc.clients.apiServer.client_secret}
+      # lomas client lib
+      - id: ${config.lomas.oidc.clients.apiClient}
+        public: true
+        name: ${config.lomas.oidc.clients.apiClient}
         redirectURIs:
-          - "http://127.0.0.1/callback"
+          # Enables device auth flow
+          - '/device/callback'
+      # lomas dashboard
+      - id: ${config.lomas.oidc.clients.adminDashboard.client_id}
+        public: false
+        name: ${config.lomas.oidc.clients.adminDashboard.client_id}
+        secret: ${config.lomas.oidc.clients.adminDashboard.client_secret}
+        redirectURIs:
+          - http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}/oauth2callback
+      # lomas grafana
+      - id: ${config.lomas.oidc.clients.grafanaDashboard.client_id}
+        public: false
+        name: ${config.lomas.oidc.clients.grafanaDashboard.client_id}
+        secret: ${config.lomas.oidc.clients.grafanaDashboard.client_secret}
+        redirectURIs:
+          - http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}/login/generic_oauth
 
-    # staticClients:
-    #   - id: public-client
-    #     public: true
-    #     name: 'Public Client'
-    #     redirectURIs:
-    #       - 'http://127.0.0.1/callback'
-    #   - id: device-client
-    #     public: true
-    #     name: 'Device Client'
-    #     redirectURIs:
-    #       - '/device/callback'
+    staticPasswords:
+      # Bootstrap admin user must be added to administer lomas.
+      - userID: ${cfg.bootstrapAdminUserName}
+        email: ${cfg.bootstrapAdminUserEmail}
+        # bcrypt hash of the string "password": bootstrapAdminUserPassword$(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+        hash: ${cfg.bootstrapAdminUserPasswordHash}
+        username: ${cfg.bootstrapAdminUserName}
   '');
 in
 {
@@ -97,6 +115,26 @@ in
       description = "Dex admin bind address";
     };
 
+    bootstrapAdminUserName = mkOption {
+      type = types.str;
+      description = "Bootstrap admin user name";
+    };
+
+    bootstrapAdminUserEmail = mkOption {
+      type = types.str;
+      description = "Boostrap admin user email";
+    };
+
+    bootstrapAdminUserPassword = mkOption {
+      type = types.str;
+      description = "Boostrap admin user password";
+    };
+    
+    bootstrapAdminUserPasswordHash = mkOption {
+      type = types.str;
+      description = "Boostrap admin user password hash";
+    };
+
   };
 
   config = mkIf cfg.enable {
@@ -130,5 +168,24 @@ in
           popd
         '';
       };
+
+    scripts.hash-dex-password.exec = ''
+      python ${pkgs.writeText "hash_pwd.py" ''
+        import sys
+        import bcrypt
+
+        def hash_pwd(password: str) -> bytes:
+            bytes_ = password.encode("utf-8")
+            salt = bcrypt.gensalt()
+            return bcrypt.hashpw(bytes_, salt)
+
+        if len(sys.argv) != 2:
+            print("usage: hash-password <password>", file=sys.stderr)
+            sys.exit(1)
+
+        password = sys.argv[1]
+        print(hash_pwd(password).decode("utf-8"))
+      ''} "$@"
+    '';
   };
 }

@@ -4,7 +4,7 @@ from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 from rich.pretty import pprint
 
-from lomas_server.administration.keycloak_admin import add_kc_users_via_yaml
+from lomas_server.administration.dex.dex_admin import add_dex_users_via_yaml
 from lomas_server.models.config import AdminConfig
 
 
@@ -43,9 +43,9 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> None:
         clean=True,
         yaml_file=user_yaml_file,
     )
-    if config.kc_config is not None:
-        add_kc_users_via_yaml(
-            config.kc_config,
+    if config.dex_config is not None:
+        add_dex_users_via_yaml(
+            config.dex_config,
             yaml_file=user_yaml_file,
             clean=False,
             overwrite=True,

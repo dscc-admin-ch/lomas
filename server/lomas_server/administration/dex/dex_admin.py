@@ -56,7 +56,7 @@ def get_grpc_channel(dex_config: DexAdminConfig) -> grpc.Channel:
         grpc.Channel: A valid grpc channel.
     """
     assert dex_config.use_mtls is False
-    return grpc.insecure_channel(str(dex_config.url))
+    return grpc.insecure_channel(f"{dex_config.url.host}:{dex_config.url.port}")
 
 
 def hash_pwd(password: str) -> bytes:

@@ -84,7 +84,7 @@ def to_log(user_provided_str: str) -> str:
     Returns:
         str: The sanitized string.
     """
-    return user_provided_str.replace("\\r\\n", "").replace("\\n", "")
+    return user_provided_str.replace("\r\n", "").replace("\n", "")
 
 
 def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> None:

@@ -25,7 +25,7 @@ class ClientConfig(BaseSettings):
     """User name."""
     # TODO add option for devide auth flow.
     user_password: str | None
-    """If provided, will """
+    """If provided, will."""
     oidc_discovery_url: HttpUrl
     """The oidc provier discovery Url."""
     telemetry: Telemetry

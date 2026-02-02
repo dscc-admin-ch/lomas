@@ -157,7 +157,7 @@ class DexServicer:
         raise NotImplementedError("Method not implemented!")
 
     def UpdateClient(self, request, context):
-        """UpdateClient updates an existing client"""
+        """UpdateClient updates an existing client."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")

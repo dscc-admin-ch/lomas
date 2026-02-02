@@ -9,8 +9,7 @@ from lomas_server.administration.dex.dex_admin import (
 from lomas_server.models.config import AdminConfig
 
 
-def add_lomas_user(
-    admin_config: AdminConfig, user_name: str, user_email: str, client_secret: str) -> None:
+def add_lomas_user(admin_config: AdminConfig, user_name: str, user_email: str, client_secret: str) -> None:
     """Adds a user to the lomas application.
 
     Only adds a user to keycloak if the dex_config is not null.
@@ -34,7 +33,7 @@ def add_lomas_user_with_budget(
     dataset: str,
     epsilon: float,
     delta: float,
-    client_secret: str
+    client_secret: str,
 ) -> None:
     """Adds a new user with an associated budget for a given dataset.
 

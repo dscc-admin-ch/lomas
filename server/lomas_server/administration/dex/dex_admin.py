@@ -24,7 +24,7 @@ class InvalidDexOperation(Exception):
     """Groups all exceptions for trying to perform invalid Dex rpcs (e.g. adding a user that already exists)."""
 
     def __init__(self, error_message: str) -> None:
-        """Init function
+        """Init function.
 
         Args:_description_
             error_message (str): initial error message
@@ -36,7 +36,7 @@ class DexRPCError(Exception):
     """Groups all Dex rpc errors."""
 
     def __init__(self, error_message: str) -> None:
-        """Init function
+        """Init function.
 
         Args:_description_
             error_message (str): initial error message
@@ -74,6 +74,7 @@ def hash_pwd(password: str) -> bytes:
 
     return hash
 
+
 def to_log(user_provided_str: str) -> str:
     """Util function to sanitize user provided strings before logging.
 
@@ -106,8 +107,12 @@ def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, us
 
             for dex_user in dex_users:
                 if dex_user.username == user_name or dex_user.email == user_email:
-                    logger.error(f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists.")
-                    raise InvalidDexOperation(f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists.")
+                    logger.error(
+                        f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
+                    )
+                    raise InvalidDexOperation(
+                        f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
+                    )
 
             new_pwd = Password(
                 email=user_email, hash=hash_pwd(user_password), username=user_name, user_id=str(uuid.uuid4())
@@ -263,27 +268,25 @@ def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_passwo
 
             for dex_user in dex_users:
                 if dex_user.username == user_name:
-                    stub.UpdatePassword(UpdatePasswordReq(email=dex_user.email, new_hash=hash_pwd(new_password), new_username=user_name))
+                    stub.UpdatePassword(
+                        UpdatePasswordReq(
+                            email=dex_user.email, new_hash=hash_pwd(new_password), new_username=user_name
+                        )
+                    )
                     logger.info(f"Updated password for user {to_log(user_name)}.")
 
-            raise InvalidDexOperation(f"Failed to update user password for {to_log(user_name)}. User does not exist.")
+            raise InvalidDexOperation(
+                f"Failed to update user password for {to_log(user_name)}. User does not exist."
+            )
 
     except grpc.RpcError as e:
         raise DexRPCError("grpc error") from e
 
 
-def test_api():
-    with grpc.insecure_channel("localhost:5557") as channel:
-        stub = DexStub(channel)
-        res = stub.ListPasswords(ListPasswordReq())
-        breakpoint()
-        print(res)
-
-
 if __name__ == "__main__":
     # TODO remove, this is just for testing.import uuid
     config = DexAdminConfig(
-        url="localhost:4446", # type: ignore
+        url="localhost:4446",
     )
 
     with get_grpc_channel(config) as channel:

@@ -26,9 +26,12 @@ class OIDCAuthenticator(BaseModel):
     """Authenticator that identifies users by either validating the provided JWT token querying the userinfo endpoint."""
 
     authentication_type: Literal[AuthenticationType.OIDC]
-    """The OpenId connect provider's discovery url"""
+    """The OpenId connect provider's discovery url."""
     oidc_discovery_url: HttpUrl
-    """Whether to use the access token to query userinfo endpoint. If false, access token is parsed as jwt."""
+    """Whether to use the access token to query userinfo endpoint.
+
+    If false, access token is parsed as jwt.
+    """
     query_userinfo: bool
 
     # TODO add ttl to cache?

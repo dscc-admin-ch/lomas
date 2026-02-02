@@ -84,6 +84,21 @@ in
     package = mkOption {
       type = types.package;
       default = pkgs.dex-oidc;
+      # Trying out nightly, does not work yet
+      # default = pkgs.dex-oidc.overrideAttrs (old: {
+      #   version = "master";
+      #   src = pkgs.fetchFromGitHub {
+      #     owner = "dexidp";
+      #     repo = "dex";
+      #     rev = "${old.version}";
+      #     sha256=lib.fakeHash;
+      #   };
+      #   passthru.tests = {
+      #     version = pkgs.testers.testVersion {
+      #       version = "${old.version}";
+      #     };
+      #   };
+      # });
     };
 
     port = mkOption {
@@ -111,7 +126,7 @@ in
 
     adminAddress = mkOption {
       type = types.str;
-      default = "127.0.0.1";
+      default = cfg.address;
       description = "Dex admin bind address";
     };
 
@@ -129,7 +144,7 @@ in
       type = types.str;
       description = "Boostrap admin user password";
     };
-    
+
     bootstrapAdminUserPasswordHash = mkOption {
       type = types.str;
       description = "Boostrap admin user password hash";

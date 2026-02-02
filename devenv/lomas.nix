@@ -67,6 +67,17 @@ in
       description = "OIDC provider url.";
     };
 
+    oidc.discoveryUrl = mkOption {
+      type = types.str;
+      description = "OIDC provider discovery url.";
+    };
+
+    # TODO better name for this?
+    oidc.queryUserinfo = mkOption {
+      type = types.bool;
+      description = "Whether to query the userinfo endpoint or parse access tokens as jwts.";
+    };
+
     oidc.clients.apiServer = mkOption {
       type = clientIdSecret;
       description = "OIDC client for api server";

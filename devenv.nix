@@ -47,6 +47,8 @@ in
   lomas.oidc = {
     enable = true;
     providerUrl = "http://localhost:4445/dex";
+    discoveryUrl = "http://localhost:4445/dex/.well-known/openid-configuration";
+    queryUserinfo = true;
     clients = {
       apiServer = {
         client_id = "lomas_api";
@@ -195,8 +197,9 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
-    LOMAS_SERVICE_authenticator__authentication_type = "jwt";
-    LOMAS_SERVICE_authenticator__oidc_provider_url = "${config.lomas.oidc.providerUrl}";
+    LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
+    LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
+    LOMAS_SERVICE_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
 
     LOMAS_SERVICE_telemetry__enabled = "false";
     LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
@@ -205,7 +208,7 @@ in
     LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
     # Lomas client environment
-    LOMAS_CLIENT_OIDC_PROVIDER_URL = config.lomas.oidc.providerUrl;
+    LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";

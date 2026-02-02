@@ -2,6 +2,7 @@ from typing import Annotated, Self
 
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     HttpUrl,
     UrlConstraints,
@@ -45,3 +46,18 @@ class Telemetry(BaseModel):
                 )
 
         return self
+
+
+class OIDCConfig(BaseModel):
+    """Base model for oidc config returned from discovery endpoint."""
+
+    # Only useful (to us) fields are present in the model.
+    model_config = ConfigDict(extra="ignore")
+
+    issuer: HttpUrl
+    authorization_endpoint: HttpUrl
+    token_endpoint: HttpUrl
+    jwks_uri: HttpUrl
+    userinfo_endpoint: HttpUrl
+    device_authorization_endpoint: HttpUrl
+    introspection_endpoint: HttpUrl

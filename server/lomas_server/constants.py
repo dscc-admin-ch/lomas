@@ -15,12 +15,11 @@ RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.d
 NUMERICAL_DTYPES = ["int16", "int32", "int64", "float16", "float32", "float64"]
 
 
-class KCAttributeNames(StrEnum):
-    """Keycloak attribute names, also used as claim names in JWT token."""
+class OIDCClaims(StrEnum):
+    """OIDC claim names, also used as claim names in JWT token."""
 
-    USER_NAME = "user_name"
+    USER_NAME = "name"
     USER_EMAIL = "user_email"
-    LOMAS_USER_CLIENT = "lomas_user_client"
 
 
 # DP Libraries

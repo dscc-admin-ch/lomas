@@ -132,12 +132,12 @@ class KeycloakClientConfig(BaseModel):
 
 
 class DexAdminConfig(BaseModel):
-    url: Url
+    oidc_discovery_url: Url
 
     @computed_field
     def use_mtls(self) -> bool:
         """Using mTLS ?"""
-        return self.url.scheme == "https"
+        return self.oidc_discovery_url.scheme == "https"
 
 
 class AdminConfig(BaseSettings):

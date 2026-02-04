@@ -376,6 +376,12 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
+    def is_user_admin(self, user_name: str) -> bool:
+        with shelve.open(self.path, flag="r") as db:
+            return db[TK.USERS][user_name]["admin"]
+
+    @override
+    @user_must_exist
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         with shelve.open(self.path, writeback=True) as db:
             previous_may_query = db[TK.USERS][user_name]["may_query"]

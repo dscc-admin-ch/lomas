@@ -44,7 +44,7 @@ class ClientConfig(BaseSettings):
     @cached_property
     def oidc_config(self) -> OIDCConfig:
         """Returns the oidc provider config."""
-        response = requests.get("{self.oidc_discovery_url}")
+        response = requests.get(str(self.oidc_discovery_url))
         response.raise_for_status()
 
-        return OIDCConfig.model_validate_json(response.json())
+        return OIDCConfig.model_validate(response.json())

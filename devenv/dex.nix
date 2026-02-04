@@ -69,11 +69,12 @@ let
 
     staticPasswords:
       # Bootstrap admin user must be added to administer lomas.
-      - userID: ${cfg.bootstrapAdminUserName}
-        email: ${cfg.bootstrapAdminUserEmail}
-        # bcrypt hash of the string "password": bootstrapAdminUserPassword$(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
-        hash: ${cfg.bootstrapAdminUserPasswordHash}
-        username: ${cfg.bootstrapAdminUserName}
+      # Disabled: static passwords cannot be deleted in dex.
+      # - userID: ${cfg.bootstrapAdminUserName}
+      #   email: ${cfg.bootstrapAdminUserEmail}
+      #   # bcrypt hash of the string "password": bootstrapAdminUserPassword$(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+      #   hash: ${cfg.bootstrapAdminUserPasswordHash}
+      #   username: ${cfg.bootstrapAdminUserName}
   '');
 in
 {

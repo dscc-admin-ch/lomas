@@ -19,7 +19,7 @@ class OIDCClaims(StrEnum):
     """OIDC claim names, also used as claim names in JWT token."""
 
     USER_NAME = "name"
-    USER_EMAIL = "user_email"
+    USER_EMAIL = "email"
 
 
 # DP Libraries

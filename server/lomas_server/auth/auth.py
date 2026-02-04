@@ -7,10 +7,11 @@ from fastapi.security import HTTPAuthorizationCredentials, SecurityScopes
 from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.constants import Scopes
-from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
 from lomas_core.models.constants import AuthenticationType, init_logging
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OIDCClaims
 
 logger = init_logging(__name__)
@@ -38,10 +39,10 @@ class OIDCAuthenticator(BaseModel):
     @cached_property
     def oidc_config(self) -> OIDCConfig:
         """Returns the oidc provider config."""
-        response = requests.get("{self.oidc_discovery_url}")
+        response = requests.get(str(self.oidc_discovery_url))
         response.raise_for_status()
 
-        return OIDCConfig.model_validate_json(response.json())
+        return OIDCConfig.model_validate(response.json())
 
     @cached_property
     def jwk_client(self) -> jwt.PyJWKClient:
@@ -58,12 +59,11 @@ AuthenticatorT = Annotated[
 ]
 
 
-def get_user_id(
-    authenticator: AuthenticatorT, security_scopes: SecurityScopes, auth_creds: HTTPAuthorizationCredentials
-) -> UserId:
-    """Extracts user id from bearer token.
+def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCredentials) -> UserId:
+    """Extracts user id from bearer token. Fails is user does not have scope.
 
     Args:
+        authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
         security_scopes (SecurityScopes): The required scopes for the endpoint.
         auth_creds (HTTPAuthorizationCredentials): Authorization credentials.
 
@@ -73,11 +73,7 @@ def get_user_id(
     match authenticator:
         case FreePassAuthenticator():
             try:
-                if Scopes.ADMIN in security_scopes.scopes:
-                    # Admins don't come with proper user id, so we create a dummy one.
-                    user = UserId(name="admin", email="admin@example.com")
-                else:
-                    user = UserId.model_validate_json(auth_creds.credentials)
+                user = UserId.model_validate_json(auth_creds.credentials)
             except Exception as e:
                 raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
@@ -98,21 +94,13 @@ def get_user_id(
                     # Decodes and validates JWT
                     userinfo = jwt.decode(auth_creds.credentials, key=key)
 
-                # Reconstruct user id
-                if Scopes.ADMIN in security_scopes.scopes:
-                    # We use only one generic admin for now
-                    if (
-                        userinfo[OIDCClaims.USER_NAME] != "lomas_admin"
-                    ):  # TODO need to add admin role/scope see issue 399 or match admin users against database.
-                        raise UnauthorizedAccessException("Only admin user can query this endpoint.")
-                    user = UserId(name="admin", email="noemailexample.com")
-                else:
-                    user = UserId(
-                        name=userinfo[
-                            OIDCClaims.USER_NAME
-                        ],  # TODO make pydantic model or parametrize claim name?
-                        email=userinfo[OIDCClaims.USER_EMAIL],
-                    )
+                user = UserId(
+                    name=userinfo[
+                        OIDCClaims.USER_NAME
+                    ],  # TODO make pydantic model or parametrize claim name?
+                    email=userinfo[OIDCClaims.USER_EMAIL],
+                )
+
             except UnauthorizedAccessException as e:
                 raise e
             except Exception as e:
@@ -120,3 +108,23 @@ def get_user_id(
                 raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
     return user
+
+
+def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes: SecurityScopes) -> None:
+    """Raises an UnauthorizedAccessExpection if the user does not have the permission for the given scopes.
+
+    Also raises an excption if an unknown scope is required.
+
+    Args:
+        user (UserId): The user id object
+        admin_database (AdminDatabase): The admin database to get user permissions from.
+        security_scopes (SecurityScopes): The required scopes.
+    """
+    for scope in security_scopes.scopes:
+        match scope:
+            case Scopes.ADMIN:
+                if not admin_database.is_user_admin(user.name):
+                    raise UnauthorizedAccessException("Only admin users can query this endpoint.")
+            case _:
+                # Raise server exception if scope is unknown
+                raise InternalServerException(f"Unknown security scope {scope}, cannot authorize query.")

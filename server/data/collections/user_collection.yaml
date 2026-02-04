@@ -1,5 +1,13 @@
 users:
 - id:
+    # Boostrap admin user
+    name: lomas_admin
+    email: lomas_admin@example.com
+    client_secret: lomas_admin
+  admin: True
+  may_query: True
+  datasets_list: []
+- id:
     name: Alice
     email: "alice@example.com"
     client_secret: alice

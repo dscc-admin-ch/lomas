@@ -45,6 +45,9 @@ class LomasHttpClient:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(
             str(self.config.oidc_config.token_endpoint),
+            username=self.config.user_name,
+            password=self.config.user_password,
+            scope=["openid", "profile", "email"],
         )
 
     def post(

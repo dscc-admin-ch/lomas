@@ -6,8 +6,9 @@ from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from requests_oauthlib import OAuth2Session
 
-from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, OIDC_CLIENT_ID
+from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_client.models.config import ClientConfig
+from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
 from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
@@ -35,7 +36,7 @@ class LomasHttpClient:
             # Reset in case it was changed before
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
 
-        oauth_client = LegacyApplicationClient(OIDC_CLIENT_ID)
+        oauth_client = LegacyApplicationClient(OIDC_LOMAS_CLIENT__CLIENT_ID)
         self._oauth2_session = OAuth2Session(client=oauth_client)
 
         # Fetch first token:

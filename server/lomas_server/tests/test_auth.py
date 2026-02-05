@@ -50,7 +50,25 @@ def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
     return header
 
 
-def test_valid_token(demo_setup: None):
+@pytest.fixture
+def switch_query_userinfo(request):
+    if request.param:
+        query_userinfo = os.getenv("LOMAS_SERVICE_authenticator__query_userinfo")
+        assert isinstance(query_userinfo, str)
+
+        if query_userinfo == "true":
+            os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = "false"
+        else:
+            os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = "true"
+
+    yield
+
+    if request.param:
+        os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = query_userinfo
+
+
+@pytest.mark.parametrize("switch_query_userinfo", [True, False], indirect=True)
+def test_valid_token(demo_setup: None, switch_query_userinfo: None):
     headers = get_auth_header("dr.antartica@example.com", "dr.antartica")
 
     with TestClient(app, headers=headers) as client:
@@ -58,7 +76,8 @@ def test_valid_token(demo_setup: None):
         assert response.status_code == status.HTTP_200_OK
 
 
-def test_invalid_token():
+@pytest.mark.parametrize("switch_query_userinfo", [True, False], indirect=True)
+def test_invalid_token(switch_query_userinfo: None):
     headers = {"Authorization": "Bearer abc"}
 
     with TestClient(app, headers=headers) as client:
@@ -70,7 +89,8 @@ def test_invalid_token():
         }
 
 
-def test_admin_scope(demo_setup: None) -> None:
+@pytest.mark.parametrize("switch_query_userinfo", [True, False], indirect=True)
+def test_admin_scope(demo_setup: None, switch_query_userinfo: None) -> None:
     headers = get_auth_header("lomas_admin@example.com", "lomas_admin")
 
     with TestClient(app, headers=headers) as client:

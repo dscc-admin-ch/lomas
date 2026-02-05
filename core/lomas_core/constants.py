@@ -75,3 +75,6 @@ class Scopes(StrEnum):
     """List of security scopes for the server endpoints."""
 
     ADMIN = "admin"
+
+
+OIDC_LOMAS_CLIENT__CLIENT_ID = "lomas_client"

@@ -6,7 +6,7 @@ import requests
 from fastapi.security import HTTPAuthorizationCredentials, SecurityScopes
 from pydantic import BaseModel, Field, HttpUrl
 
-from lomas_core.constants import Scopes
+from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID, Scopes
 from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
@@ -92,7 +92,10 @@ def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCred
                     # Extracts kid from JWT and fetches corresponding key from keycloak (or cache).
                     key = authenticator.jwk_client.get_signing_key_from_jwt(auth_creds.credentials)
                     # Decodes and validates JWT
-                    userinfo = jwt.decode(auth_creds.credentials, key=key)
+                    # Note: audience is set to lomas client because it receives the token from IdP. Not all IdP support multi-audience.
+                    userinfo = jwt.decode(
+                        auth_creds.credentials, key=key, audience=OIDC_LOMAS_CLIENT__CLIENT_ID
+                    )
 
                 user = UserId(
                     name=userinfo[

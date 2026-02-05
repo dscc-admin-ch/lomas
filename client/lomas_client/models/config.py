@@ -32,8 +32,8 @@ class ClientConfig(BaseSettings):
     """Telemetry Settings."""
 
     @computed_field
-    def keycloak_use_tls(self) -> bool:
-        """Using TLS for keycloak?"""
+    def oidc_use_tls(self) -> bool:
+        """Using TLS for OIDC?"""
         return self.oidc_discovery_url.scheme == "https"
 
     @computed_field

@@ -68,13 +68,7 @@ let
           - http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}/login/generic_oauth
 
     staticPasswords:
-      # Bootstrap admin user must be added to administer lomas.
-      # Disabled: static passwords cannot be deleted in dex.
-      # - userID: ${cfg.bootstrapAdminUserName}
-      #   email: ${cfg.bootstrapAdminUserEmail}
-      #   # bcrypt hash of the string "password": bootstrapAdminUserPassword$(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
-      #   hash: ${cfg.bootstrapAdminUserPasswordHash}
-      #   username: ${cfg.bootstrapAdminUserName}
+      # Beware: static passwords cannot be deleted in dex.
   '');
 in
 {
@@ -129,26 +123,6 @@ in
       type = types.str;
       default = cfg.address;
       description = "Dex admin bind address";
-    };
-
-    bootstrapAdminUserName = mkOption {
-      type = types.str;
-      description = "Bootstrap admin user name";
-    };
-
-    bootstrapAdminUserEmail = mkOption {
-      type = types.str;
-      description = "Boostrap admin user email";
-    };
-
-    bootstrapAdminUserPassword = mkOption {
-      type = types.str;
-      description = "Boostrap admin user password";
-    };
-
-    bootstrapAdminUserPasswordHash = mkOption {
-      type = types.str;
-      description = "Boostrap admin user password hash";
     };
 
   };

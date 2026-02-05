@@ -27,9 +27,9 @@ class LomasHttpClient:
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.config = config
 
-        if not self.config.keycloak_use_tls or not self.config.lomas_service_use_tls:
+        if not self.config.oidc_use_tls or not self.config.lomas_service_use_tls:
             logger.warning(
-                "Keycloak or Lomas service configured without TLS -> using oauthlib insecure transport"
+                "OIDC IdP or Lomas service configured without TLS -> using oauthlib insecure transport"
             )
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
         else:

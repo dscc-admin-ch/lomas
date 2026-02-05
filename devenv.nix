@@ -27,7 +27,6 @@ in
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
-    ./devenv/caddy.nix
     ./devenv/dex.nix
   ];
 
@@ -84,12 +83,6 @@ in
     address = "127.0.0.1";
     adminPort = 4446;
     adminAddress = "127.0.0.1";
-    bootstrapAdminUserName = "lomas_admin";
-    bootstrapAdminUserEmail = "admin@example.com";
-    bootstrapAdminUserPassword = "lomas_admin";
-    # Use 'has-dex-password <password>' to generate hash
-    # Reason: bcrypt hash is not a pure function
-    bootstrapAdminUserPasswordHash = "$2b$12$a3BzqExriCFK2t0riQIc3eEgNoWU.UuWPtLTQUjALJ9udXnC3t/YW";
   };
 
   lomas.minio = {
@@ -118,10 +111,6 @@ in
       }
     ];
   };
-
-  # No reverse proxy-ing by default
-  # TODO needs update if needed
-  lomas.caddy.enable = false;
 
   lomas.telemetry = {
     enable = true;

@@ -12,7 +12,7 @@ from lomas_server.models.config import AdminConfig
 def add_lomas_user(admin_config: AdminConfig, user_name: str, user_email: str, client_secret: str) -> None:
     """Adds a user to the lomas application.
 
-    Only adds a user to keycloak if the dex_config is not null.
+    Only adds a user to dex if the dex_config is not null.
 
     Args:
         admin_config (AdminConfig): The administration config.
@@ -37,7 +37,7 @@ def add_lomas_user_with_budget(
 ) -> None:
     """Adds a new user with an associated budget for a given dataset.
 
-    Only adds a user to keycloak if the dex_config is not null.
+    Only adds a user to dex if the dex_config is not null.
 
     Args:
         admin_config (AdminConfig): The administration config
@@ -57,7 +57,7 @@ def add_lomas_user_with_budget(
 def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
     """Deletes the lomas user.
 
-    Only removes the keycload user and client in keycloak if the dex_config is not null.
+    Only removes the keycload user and client in dex if the dex_config is not null.
 
     Args:
         admin_config (AdminConfig): The adinistration config
@@ -72,7 +72,7 @@ def del_lomas_user(admin_config: AdminConfig, user_name: str) -> None:
 def add_lomas_users_via_yaml(admin_config: AdminConfig, yaml_file: Path, clean: bool) -> None:
     """Add all users from a yaml file.
 
-    Only adds the keycloak users if the dex_config is not None.
+    Only adds the dex users if the dex_config is not None.
 
     Args:
         admin_config (AdminConfig): The administration config.
@@ -91,7 +91,7 @@ def add_lomas_users_via_yaml(admin_config: AdminConfig, yaml_file: Path, clean: 
 def drop_lomas_collection(admin_config: AdminConfig, collection: str) -> None:
     """Drops the given collection from the administration database.
 
-    Only deletes all keycloak users and clients if the dex_config is not None
+    Only deletes all dex users and clients if the dex_config is not None
     and the collection to drop is "users"
 
     Args:

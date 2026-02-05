@@ -34,7 +34,10 @@ def client():
 
 @pytest.fixture
 def dex_config():
-    """Dex config. Removes all dex users before yield."""
+    """Dex config.
+
+    Removes all dex users before yield.
+    """
     admin_config = AdminConfig()
     dex_config = admin_config.dex_config
     assert dex_config is not None

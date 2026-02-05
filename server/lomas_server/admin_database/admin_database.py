@@ -164,7 +164,7 @@ class AdminDatabase(ABC, BaseModel):
     @user_must_exist
     def is_user_admin(self, user_name: str) -> bool:
         """
-        Returns true if the user is an admin
+        Returns true if the user is an admin.
 
         Args:
             user_name (str): name of the user

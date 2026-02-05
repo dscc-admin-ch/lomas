@@ -60,7 +60,9 @@ AuthenticatorT = Annotated[
 
 
 def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCredentials) -> UserId:
-    """Extracts user id from bearer token. Fails is user does not have scope.
+    """Extracts user id from bearer token.
+
+    Fails is user does not have scope.
 
     Args:
         authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)

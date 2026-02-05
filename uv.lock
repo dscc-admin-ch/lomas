@@ -1781,7 +1781,6 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
-    { name = "mantelo" },
     { name = "oauthlib" },
     { name = "requests-oauthlib" },
     { name = "st-pages" },
@@ -1794,7 +1793,6 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.34" },
     { name = "cryptography", specifier = ">=44" },
     { name = "lomas-core", editable = "core" },
-    { name = "mantelo", marker = "extra == 'all'", specifier = ">=2.2" },
     { name = "oauthlib", marker = "extra == 'all'", specifier = ">=3.2" },
     { name = "opentelemetry-instrumentation-aio-pika", specifier = ">=0.50b0" },
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.50b0" },
@@ -1807,19 +1805,6 @@ requires-dist = [
     { name = "streamlit", marker = "extra == 'all'", specifier = ">=1.45" },
 ]
 provides-extras = ["all"]
-
-[[package]]
-name = "mantelo"
-version = "2.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "attrs" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/a6/53b535f6823e89448dc8972a813c961ee356dd3cdb76764e1ab251a571b7/mantelo-2.2.0.tar.gz", hash = "sha256:bbde795bbc29bc86953a1d55a80eb341070e22084598f348054683784aa5282e", size = 276679, upload-time = "2024-12-29T11:19:24.039Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/d6/6ae95e1b28d8578297c147c6018164f6d3fe4d4e583ea45db3f14f4d1513/mantelo-2.2.0-py3-none-any.whl", hash = "sha256:9aa9f3830c2948adb5b8cbc7a8f13f3f88139c75c14cd64f84c559cc2ce6df87", size = 240917, upload-time = "2024-12-29T11:19:20.859Z" },
-]
 
 [[package]]
 name = "markdown-it-py"

@@ -45,7 +45,6 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
-  "mantelo>=2.2",
   "requests-oauthlib>=2.0",
   "oauthlib>=3.2",
   "streamlit>=1.45",

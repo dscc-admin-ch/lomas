@@ -167,7 +167,7 @@ relative_files = true
 omit = [
   "**/uvicorn_serve.py",
   "**/b_database_administration.py",
-  "*"/api_pb2*.py
+  "*/api_pb2*.py"
 ]
 
 [tool.coverage.report]

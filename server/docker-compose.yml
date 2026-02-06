@@ -1,3 +1,5 @@
+x-common-build: &common
+
 services:
   lomas_server:
     image: dsccadminch/lomas_server_dev
@@ -39,10 +41,10 @@ services:
 
   lomas_worker:
     image: dsccadminch/lomas_server_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_server_dev
-      context: ../
+    # build:
+    #   dockerfile: ./Dockerfile
+    #   target: lomas_server_dev
+    #   context: ../
     container_name: lomas_worker_dev
     restart: always
     command: "python -m lomas_server.worker"
@@ -82,13 +84,13 @@ services:
   dex:
     container_name: dex
     image: docker.io/dexidp/dex:v2.44.0
-    command: /bin/dex serve /config/dex_config.yaml
+    command: dex serve /config/dex_config.yaml
     ports:
         - ${LOMAS_DEX_PORT}:${LOMAS_DEX_PORT}
     volumes:
       - ./configs/example_dex_config.yaml:/config/dex_config.yaml
     healthcheck:
-      test: ["CMD", "curl", "http://localhost/dex:${LOMAS_DEX_PORT}"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${LOMAS_DEX_PORT}/dex/healthz"]
       interval: 10s
       retries: 10
       timeout: 5s

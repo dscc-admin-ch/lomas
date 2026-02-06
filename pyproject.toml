@@ -7,7 +7,6 @@ dependencies = [
   "lomas-client",
   "lomas-server[all]",
   "torch>=2.6", # explicit torch dependency to get cpu-only impl. see: uv.sources
-  "bcrypt>=5.0.0",
 ]
 
 [project.optional-dependencies]

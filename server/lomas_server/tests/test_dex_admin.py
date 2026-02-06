@@ -146,11 +146,12 @@ def test_add_dex_users_via_yaml(client, dex_config):
     # Load demo yaml
     yaml_users = yaml.safe_load((demo_config.path_prefix / demo_config.user_yaml.relative_to("/")).open())
     new_email = "new@email.com"
-    yaml_users["users"][0]["id"]["email"] = new_email
+    yaml_users["users"][1]["id"]["email"] = new_email
 
     # Check overwrite argument and with yaml file instead of path
     add_dex_users(dex_config, UserCollection(**yaml_users), False, True)
     users_after = get_dex_passwords(dex_config)
+
     for user in users_after:
         if user.username == "Alice":
             assert user.email == new_email

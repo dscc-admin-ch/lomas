@@ -38,7 +38,7 @@ in
           LOMAS_SERVICE_PORT=${toString config.lomas.port}
 
           # Dex
-          # TODO
+          LOMAS_DEX_PORT=${toString config.lomas.dex.port}
 
           # RabbitMQ
           LOMAS_RABBIT_MQ_PORT=${toString config.lomas.rabbitmq.port}

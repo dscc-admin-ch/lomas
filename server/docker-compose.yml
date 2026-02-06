@@ -26,11 +26,8 @@ services:
         condition: service_started
       loki:
         condition: service_started
-      keycloak:
+      dex:
         condition: service_started
-        restart: true
-      keycloak_setup:
-        condition: service_completed_successfully
         restart: true
       lomas_demo_setup:
         condition: service_completed_successfully
@@ -60,11 +57,8 @@ services:
         restart: true
       otel-collector:
         condition: service_started
-      keycloak:
+      dex:
         condition: service_started
-        restart: true
-      keycloak_setup:
-        condition: service_completed_successfully
         restart: true
       rabbitmq:
         condition: service_started
@@ -85,40 +79,20 @@ services:
     networks:
       - lomas-network
 
-  keycloak:
-    container_name: keycloak
-    image: quay.io/keycloak/keycloak:26.1.0
-    environment:
-      - KC_HTTP_PORT=${LOMAS_KC_PORT}
-      - KC_BOOTSTRAP_ADMIN_USERNAME=${LOMAS_KC_ADMIN_USER}
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=${LOMAS_KC_ADMIN_PWD}
-    command: start-dev --health-enabled=true # Dev mode is fine for local test deployments
+  dex:
+    container_name: dex
+    image: docker.io/dexidp/dex:v2.44.0
+    command: /bin/dex serve /config/dex_config.yaml
     ports:
-        - ${LOMAS_KC_PORT}:${LOMAS_KC_PORT}
+        - ${LOMAS_DEX_PORT}:${LOMAS_DEX_PORT}
+    volumes:
+      - ./configs/example_dex_config.yaml:/config/dex_config.yaml
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      test: ["CMD", "curl", "http://localhost/dex:${LOMAS_DEX_PORT}"]
       interval: 10s
       retries: 10
       timeout: 5s
     restart: always
-    networks:
-      - lomas-network
-
-  keycloak_setup:
-    container_name: keycloak_setup
-    image: dsccadminch/lomas_admin_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_admin_dev
-      context: ../
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.keycloak_setup"
-    env_file: ./configs/administration/.env.keycloak_setup
-    volumes:
-      - ../core/lomas_core:/code/core/lomas_core
-      - ./lomas_server:/code/core/lomas_server
     networks:
       - lomas-network
 

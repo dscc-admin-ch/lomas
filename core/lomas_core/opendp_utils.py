@@ -152,14 +152,17 @@ def build_context(
 
 
 def deserialize_context_query(
-    query_json: OpenDPQueryModel, metadata: Metadata, input_data: pl.LazyFrame
-) -> dp.polars.LazyFrameQuery:
+    query_json: OpenDPQueryModel, metadata: Metadata, input_data: pl.LazyFrame, context_only: bool = False
+) -> dp.polars.LazyFrameQuery | dp.Context:
     """TODO"""
     # Extract margins from metadata
     margins = build_margins_from_metadata(metadata=metadata)
 
     # Create new context based on dummy/real data
     new_context = build_context(query_json, metadata, margins, input_data)
+
+    if context_only:
+        return new_context
 
     # Serialize plan given by user
     serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))

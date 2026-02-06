@@ -6,14 +6,13 @@ from opendp._lib import lib_path
 from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-)
+from lomas_core.error_handler import ExternalLibraryException, InternalServerException
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_core.opendp_utils import deserialize_context_query
+from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
@@ -57,17 +56,42 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        # TODO: this should be simplified with context
+        input_data = self.data_connector.get_polars_lf()
+        metadata = Metadata.model_validate(self.metadata)
+        context = deserialize_context_query(query_json, metadata, input_data, context_only=True)
 
-        # We can directly take what is given by user since the context will use
-        # exactly what is given
-        delta = query_json.delta if query_json.delta is not None else 0
+        meas = context.accountant
+        meas_type = str(meas.output_measure)
+        max_ids = self.metadata["max_ids"]
 
-        if query_json.rho:
-            # TODO: create epilon equivalence
-            return query_json.rho, delta
+        match meas_type:
+            case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
+                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                cost = meas_zcdp.map(d_in=int(max_ids))
 
-        return query_json.epsilon, delta
+                # here, delta is not fixed by user.
+                # Option 1: we always fixed a delta to a given value to be able to compute epsilon
+                # Option 2: we explore a working value according to user epsilon/delta remaining
+
+                default_delta = 1e-6
+                epsilon, delta = cost.epsilon(default_delta), default_delta
+
+            case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
+                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                cost = meas_zcdp.map(d_in=int(max_ids))
+
+                epsilon, delta = cost[0].epsilon(cost[1]), cost[1]
+
+            case OpenDPMeasurement.MAX_DIVERGENCE:
+                epsilon, delta = meas.map(d_in=int(max_ids)), 0
+
+            case OpenDPMeasurement.APPROX_MAX_DIVERGENCE:
+                epsilon, delta = meas.map(d_in=int(max_ids))
+
+            case _:
+                raise InternalServerException(f"Invalid measurement type: {meas_type}")
+
+        return epsilon, delta
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
         """Perform the query and return the response.

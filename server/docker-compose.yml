@@ -104,10 +104,8 @@ services:
       target: lomas_admin_dev
       context: ../
     depends_on:
-      keycloak:
+      dex:
         condition: service_healthy
-      keycloak_setup:
-        condition: service_completed_successfully
     entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
     env_file: ./configs/administration/.env.lomas_demo_setup
     volumes:

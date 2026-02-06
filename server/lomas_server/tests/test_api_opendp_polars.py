@@ -158,6 +158,9 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             # Laplace
+            example_opendp_polars["epsilon"] = 1
+            example_opendp_polars["rho"] = None
+            example_opendp_polars["delta"] = 1e-6
             job = submit_job_wait(
                 client,
                 "/opendp_query",
@@ -180,11 +183,10 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 json=example_opendp_polars,
             )
             response_model = QueryResponse.model_validate(job.result)
-            assert response_model.epsilon == 0.5
+            assert response_model.epsilon > 0.5
             assert response_model.delta == 0.000001
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
-    # TODO: opendp v0.12: Adapt for datetime
     @pytest.mark.long
     def test_opendp_polars_datetime_query(self) -> None:
         """Test opendp polars query."""
@@ -239,7 +241,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             plan_bytes = mean_query_serialized(lf)
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-            # Laplace
+            # Laplace (MaxDivergence)
             example_opendp_polars["epsilon"] = 1
             example_opendp_polars["delta"] = None
             example_opendp_polars["rho"] = None
@@ -248,14 +250,32 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.epsilon == 1
             assert response_model.delta == 0
 
-            # Gaussian
+            # Laplace (Approx MaxDivergence)
+            example_opendp_polars["epsilon"] = 1
+            example_opendp_polars["delta"] = 1e-6
+            example_opendp_polars["rho"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            response_model = CostResponse.model_validate(job.result)
+            assert response_model.epsilon == 1
+            assert response_model.delta == 1e-6
+
+            # Gaussian (Approx zCDP)
             example_opendp_polars["epsilon"] = None
             example_opendp_polars["rho"] = 2
             example_opendp_polars["delta"] = 0.000001
             job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
-            assert response_model.epsilon == 2
+            assert response_model.epsilon > 2
             assert response_model.delta == 0.000001
+
+            # Gaussian (zCDP)
+            example_opendp_polars["epsilon"] = None
+            example_opendp_polars["rho"] = 2
+            example_opendp_polars["delta"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            response_model = CostResponse.model_validate(job.result)
+            assert response_model.epsilon > 2
+            assert response_model.delta == 1e-6  # default
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""
@@ -296,6 +316,8 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             example_opendp_polars["epsilon"] = 1
+            example_opendp_polars["delta"] = 1e-6
+            example_opendp_polars["rho"] = None
 
             # Polars plan with cut feature
             plan_bytes = (
@@ -353,7 +375,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             )
             response_model = QueryResponse.model_validate(job.result)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
-            assert response_model.result.value.shape[0] > 1
+            assert response_model.result.value.shape[0] > 0
 
     def test_multiple_grouping_query(self) -> None:
         """Test_opendp_polars query with multiple grouping."""

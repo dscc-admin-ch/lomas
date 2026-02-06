@@ -50,3 +50,16 @@ class SSynthColumnType(StrEnum):
 SSYNTH_PRIVATE_COLUMN = "uuid4"
 SSYNTH_DEFAULT_BINS = 10
 SSYNTH_MIN_ROWS_PATE_GAN = 1000
+
+
+# OpenDP
+class OpenDPMeasurement(StrEnum):
+    """Type of divergence for opendp measurement.
+
+    see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
+    """
+
+    ZERO_CONCENTRATED_DIVERGENCE = "ZeroConcentratedDivergence"
+    APPROX_ZERO_CONCENTRATED_DIVERGENCE = "Approximate(ZeroConcentratedDivergence)"
+    APPROX_MAX_DIVERGENCE = "Approximate(MaxDivergence)"
+    MAX_DIVERGENCE = "MaxDivergence"

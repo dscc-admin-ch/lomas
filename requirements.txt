@@ -15,12 +15,12 @@ asttokens==3.0.1          # via stack-data
 async-lru==2.1.0          # via jupyterlab
 attrs==25.4.0             # via jsonschema, referencing
 babel==2.18.0             # via jupyterlab-server, sphinx
-bcrypt==5.0.0             # via lomas (pyproject.toml)
+bcrypt==5.0.0             # via lomas-server
 beautifulsoup4==4.14.3    # via nbconvert
 bleach==6.3.0             # via nbconvert
 blinker==1.9.0            # via streamlit
-boto3==1.42.43            # via lomas-server
-botocore==1.42.43         # via boto3, s3transfer
+boto3==1.42.44            # via lomas-server
+botocore==1.42.44         # via boto3, s3transfer
 cachetools==6.2.6         # via streamlit
 certifi==2026.1.4         # via httpcore, httpx, requests
 cffi==2.0.0               # via argon2-cffi-bindings, cryptography
@@ -42,7 +42,7 @@ dnspython==2.8.0          # via email-validator
 docutils==0.22.4          # via myst-parser, nbsphinx, sphinx, sphinx-rtd-theme
 email-validator==2.3.0    # via fastapi
 executing==2.2.1          # via stack-data
-faker==40.1.2             # via smartnoise-synth
+faker==40.4.0             # via smartnoise-synth
 fastapi==0.119.0          # via lomas-core
 fastapi-cli==0.0.20       # via fastapi
 fastjsonschema==2.21.2    # via nbformat
@@ -55,8 +55,7 @@ gitpython==3.1.46         # via streamlit
 googleapis-common-protos==1.72.0  # via opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http
 graphviz==0.21            # via smartnoise-sql
 greenlet==3.3.1           # via sqlalchemy
-grpcio==1.76.0            # via grpcio-tools, opentelemetry-exporter-otlp-proto-grpc
-grpcio-tools==1.76.0      # via lomas (pyproject.toml)
+grpcio==1.78.0            # via opentelemetry-exporter-otlp-proto-grpc
 h11==0.16.0               # via httpcore, uvicorn
 httpcore==1.0.9           # via httpx
 httptools==0.7.1          # via uvicorn
@@ -65,7 +64,7 @@ idna==3.11                # via anyio, email-validator, httpx, jsonschema, reque
 imagesize==1.4.1          # via sphinx
 importlib-metadata==8.7.1  # via opentelemetry-api
 iniconfig==2.3.0          # via pytest
-ipykernel==7.1.0          # via jupyter, jupyter-console, jupyterlab
+ipykernel==7.2.0          # via jupyter, jupyter-console, jupyterlab
 ipython==9.10.0           # via ipykernel, ipywidgets, jupyter-console
 ipython-pygments-lexers==1.1.1  # via ipython
 ipywidgets==8.1.8         # via jupyter
@@ -156,7 +155,7 @@ private-pgm @ git+https://github.com/ryan112358/private-pgm@01f02f17eba440f4e76c
 prometheus-client==0.24.1  # via jupyter-server
 prompt-toolkit==3.0.52    # via ipython, jupyter-console
 propcache==0.4.1          # via yarl
-protobuf==6.33.5          # via googleapis-common-protos, grpcio-tools, opentelemetry-proto, streamlit
+protobuf==6.33.5          # via googleapis-common-protos, opentelemetry-proto, streamlit
 psutil==7.2.2             # via ipykernel
 ptyprocess==0.7.0         # via pexpect, terminado
 pure-eval==0.2.3          # via stack-data
@@ -195,7 +194,7 @@ scikit-learn==1.8.0       # via diffprivlib
 scipy==1.17.0             # via diffprivlib, opacus, private-pgm, scikit-learn
 seaborn==0.13.2           # via lomas-client
 send2trash==2.1.0         # via jupyter-server
-setuptools==80.10.2       # via diffprivlib, grpcio-tools, jupyterlab, torch
+setuptools==82.0.0        # via diffprivlib, jupyterlab, torch
 shellingham==1.5.4        # via typer
 six==1.17.0               # via pockets, python-dateutil, rfc3339-validator, sphinxcontrib-napoleon
 smartnoise-sql==1.0.6     # via lomas-server, smartnoise-synth
@@ -221,7 +220,7 @@ stack-data==0.6.3         # via ipython
 starlette==0.48.0         # via fastapi
 streamlit==1.54.0         # via lomas-server, st-pages
 sympy==1.14.0             # via torch
-tenacity==9.1.3           # via streamlit
+tenacity==9.1.4           # via streamlit
 terminado==0.18.1         # via jupyter-server, jupyter-server-terminals
 threadpoolctl==3.6.0      # via scikit-learn
 tinycss2==1.4.0           # via bleach
@@ -239,7 +238,7 @@ uvicorn==0.40.0           # via fastapi, fastapi-cli
 uvloop==0.22.1            # via uvicorn
 watchdog==6.0.0           # via streamlit
 watchfiles==1.1.1         # via uvicorn
-wcwidth==0.5.3            # via prompt-toolkit
+wcwidth==0.6.0            # via prompt-toolkit
 webcolors==25.10.0        # via jsonschema
 webencodings==0.5.1       # via bleach, tinycss2
 websocket-client==1.9.0   # via jupyter-server

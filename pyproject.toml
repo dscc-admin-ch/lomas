@@ -17,7 +17,6 @@ test = [
   "coverage>=7.6",
   "pytest>=8.3",
   "pytest-cov>=6.0",
-  "grpcio-tools>=1.76.0",
 ]
 docs = [
   "pandoc>=2.4",
@@ -139,7 +138,7 @@ warn_required_dynamic_aliases = true
 [tool.pydocstringformatter]
 max-line-length = 110
 write = true
-exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
+exclude = [ ".devenv/**/*.py", "**/api_pb2*" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
 [tool.pytest.ini_options]
 log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...

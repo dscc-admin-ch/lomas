@@ -7,7 +7,6 @@
 
 let
   cfg = config.lomas.dex;
-  lomas_cfg = config.lomas;
 
   inherit (lib)
     types
@@ -16,8 +15,12 @@ let
     mkEnableOption
     ;
 
-  inherit (import ./utils.nix lib) wrapScript;
-  inherit (import ./utils.nix lib) clientIdSecret;
+  inherit (config.lomas.oidc.clients)
+    apiServer
+    apiClient
+    adminDashboard
+    grafanaDashboard
+    ;
 
   # Write config as file
   confFile = pkgs.writeText "dex-config.yaml" (''
@@ -41,35 +44,59 @@ let
 
     staticClients:
       # lomas api server
-      - id: ${config.lomas.oidc.clients.apiServer.client_id}
+      - id: ${apiServer.client_id}
         public: false
-        name: ${config.lomas.oidc.clients.apiServer.client_id}
-        secret: ${config.lomas.oidc.clients.apiServer.client_secret}
+        name: ${apiServer.client_id}
+        secret: ${apiServer.client_secret}
       # lomas client lib
-      - id: ${config.lomas.oidc.clients.apiClient}
+      - id: ${apiClient}
         public: true
-        name: ${config.lomas.oidc.clients.apiClient}
+        name: ${apiClient}
         redirectURIs:
           # Enables device auth flow
           - '/device/callback'
       # lomas dashboard
-      - id: ${config.lomas.oidc.clients.adminDashboard.client_id}
+      - id: ${adminDashboard.client_id}
         public: false
-        name: ${config.lomas.oidc.clients.adminDashboard.client_id}
-        secret: ${config.lomas.oidc.clients.adminDashboard.client_secret}
+        name: ${adminDashboard.client_id}
+        secret: ${adminDashboard.client_secret}
         redirectURIs:
           - http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}/oauth2callback
       # lomas grafana
-      - id: ${config.lomas.oidc.clients.grafanaDashboard.client_id}
+      - id: ${grafanaDashboard.client_id}
         public: false
-        name: ${config.lomas.oidc.clients.grafanaDashboard.client_id}
-        secret: ${config.lomas.oidc.clients.grafanaDashboard.client_secret}
+        name: ${grafanaDashboard.client_id}
+        secret: ${grafanaDashboard.client_secret}
         redirectURIs:
           - http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}/login/generic_oauth
 
     staticPasswords:
       # Beware: static passwords cannot be deleted in dex.
   '');
+
+  apiProtoDrv =
+    protoPath:
+    pkgs.stdenv.mkDerivation rec {
+      pname = "dex-api-proto";
+      version = "v${cfg.package.version}";
+
+      src = pkgs.fetchurl {
+        url = "https://raw.githubusercontent.com/dexidp/dex/${version}/api/v2/api.proto";
+        hash = "sha256-nYdmSeTbgl7wD/Rl3xSoL2l+mOt2tGXOkmO5iJepLgo=";
+      };
+
+      buildInputs = [ pkgs.python3Packages.grpcio-tools ];
+
+      dontUnpack = true;
+      dontConfigure = true;
+
+      buildPhase = ''
+        install -Dm644 $src "$out/${protoPath}/api.proto"
+        cd $out
+        python-grpc-tools-protoc -I. --pyi_out=. --python_out=. --grpc_python_out=. "${protoPath}/api.proto"
+        rm ${protoPath}/api.proto
+      '';
+    };
 in
 {
   # Define Dex config options
@@ -125,6 +152,15 @@ in
       description = "Dex admin bind address";
     };
 
+    protoPath = mkOption {
+      type = types.str;
+      default = "lomas_server/administration/dex/api";
+      description = ''
+        Path to generate protobuf api
+        Does influence the import name in python
+      '';
+    };
+
   };
 
   config = mkIf cfg.enable {
@@ -141,41 +177,15 @@ in
       };
     };
 
-    scripts.gen-dex-api =
-      let
-        proto_dir = "./lomas_server/administration/dex/api";
-        proto_path = "${proto_dir}/api.proto";
-      in
-      wrapScript {
-        exec = ''
-          pushd server
-          mkdir -p ${proto_dir}
+    tasks."filegen:dex-api-proto" = {
+      before = [ "devenv:enterShell" ];
+      exec = "cp -r ${apiProtoDrv cfg.protoPath}/lomas_server ./server";
+    };
 
-          wget -O ${proto_path} https://raw.githubusercontent.com/dexidp/dex/v${cfg.package.version}/api/v2/api.proto
-          python -m grpc_tools.protoc -I. --pyi_out=. --python_out=. --grpc_python_out=. ${proto_path}
-
-          rm ${proto_path}
-          popd
-        '';
-      };
-
+    # can be provided with password [SALT] for reproducible outputs
     scripts.hash-dex-password.exec = ''
-      python ${pkgs.writeText "hash_pwd.py" ''
-        import sys
-        import bcrypt
-
-        def hash_pwd(password: str) -> bytes:
-            bytes_ = password.encode("utf-8")
-            salt = bcrypt.gensalt()
-            return bcrypt.hashpw(bytes_, salt)
-
-        if len(sys.argv) != 2:
-            print("usage: hash-password <password>", file=sys.stderr)
-            sys.exit(1)
-
-        password = sys.argv[1]
-        print(hash_pwd(password).decode("utf-8"))
-      ''} "$@"
+      ${lib.getExe pkgs.mkpasswd} -m bcrypt -R 12 "$@"
     '';
+
   };
 }

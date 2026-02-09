@@ -53,10 +53,14 @@ in
 
       ruff-format = {
         enable = true;
+        pass_filenames = false;
         before = [ "ruff" ];
       };
 
-      ruff.enable = true;
+      ruff = {
+        enable = true;
+        pass_filenames = false;
+      };
     };
   };
 }

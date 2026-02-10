@@ -279,27 +279,3 @@ def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_passwo
 
     except grpc.RpcError as e:
         raise DexRPCError("grpc error") from e
-
-
-if __name__ == "__main__":
-    # TODO remove, this is just for testing.import uuid
-    config = DexAdminConfig(
-        url="grpc://localhost:4446",
-    )
-
-    with get_grpc_channel(config) as channel:
-        stub = DexStub(channel)
-        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
-        breakpoint()
-
-    breakpoint()
-    del_all_dex_users(config)
-
-    add_dex_user(config, "dada", "dada@example.com", "pwd")
-    try:
-        add_dex_user(config, "dada", "dada@example2.com", "pwd")
-    except InvalidDexOperation:
-        print("ok")
-
-    breakpoint()
-    # del_dex_user(config, "dada")

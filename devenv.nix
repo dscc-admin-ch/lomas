@@ -19,7 +19,7 @@ let
   dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
 in
 {
-  # import our moduldes
+  # import our modules
   imports = [
     ./devenv/lomas.nix
     ./devenv/rabbitmq.nix
@@ -46,7 +46,6 @@ in
   lomas.oidc = {
     enable = true;
     providerUrl = "http://localhost:4445/dex";
-    discoveryUrl = "http://localhost:4445/dex/.well-known/openid-configuration";
     queryUserinfo = true;
     clients = {
       apiServer = {

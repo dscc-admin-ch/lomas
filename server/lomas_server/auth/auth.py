@@ -62,7 +62,7 @@ AuthenticatorT = Annotated[
 def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCredentials) -> UserId:
     """Extracts user id from bearer token.
 
-    Fails is user does not have scope.
+    Fails if user does not have scope.
 
     Args:
         authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
@@ -118,7 +118,7 @@ def get_user_id(authenticator: AuthenticatorT, auth_creds: HTTPAuthorizationCred
 def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes: SecurityScopes) -> None:
     """Raises an UnauthorizedAccessExpection if the user does not have the permission for the given scopes.
 
-    Also raises an excption if an unknown scope is required.
+    Also raises an exception if an unknown scope is required.
 
     Args:
         user (UserId): The user id object

@@ -43,7 +43,7 @@ in
         ];
       };
 
-      nixfmt-rfc-style = {
+      nixfmt = {
         enable = true;
         args = [
           "--width"

@@ -31,12 +31,4 @@ lib: {
       ) listOfAttrSets
     );
 
-  clientIdSecret = lib.types.submodule {
-    options.client_id = lib.mkOption {
-      type = lib.types.str;
-    };
-    options.client_secret = lib.mkOption {
-      type = lib.types.str;
-    };
-  };
 }

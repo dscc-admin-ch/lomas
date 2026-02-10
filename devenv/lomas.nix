@@ -16,8 +16,15 @@ let
     ;
 
   inherit (import ./utils.nix lib) wrapScript;
-  inherit (import ./utils.nix lib) clientIdSecret;
 
+  clientIdSecret = types.submodule {
+    options.client_id = mkOption {
+      type = types.str;
+    };
+    options.client_secret = mkOption {
+      type = types.str;
+    };
+  };
 in
 {
   options.lomas = {
@@ -69,6 +76,7 @@ in
 
     oidc.discoveryUrl = mkOption {
       type = types.str;
+      default = "${cfg.oidc.providerUrl}/.well-known/openid-configuration";
       description = "OIDC provider discovery url.";
     };
 

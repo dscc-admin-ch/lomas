@@ -55,7 +55,7 @@ class Client:
             raise ValueError(
                 "Missing client config parameters."
                 "If you are using this library from a managed environment and don't know "
-                "about your credentials or other paramters, please contact your system administrator."
+                "about your credentials or other parameters, please contact your system administrator."
             ) from exc
 
         if self.config.telemetry.enabled:

@@ -3,7 +3,7 @@ from base64 import b64encode
 import opendp as dp
 import polars as pl
 
-from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_client.constants import DEFAULT_EPSILON, DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
 from lomas_core.error_handler import InvalidQueryException
@@ -151,6 +151,7 @@ class OpenDPClient:
             rho=rho,
         )
 
+        body_json["epsilon"] = DEFAULT_EPSILON
         request_model: type[OpenDPRequestModel]
         if dummy:
             endpoint = "dummy_opendp_query"

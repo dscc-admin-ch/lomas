@@ -2,6 +2,7 @@ import base64
 import json
 import pickle
 
+import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 from fastapi import status
@@ -121,7 +122,34 @@ class Client:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-    ):
+    ) -> dp.Context:
+        """
+        Create an OpenDP context based on a dummy dataset.
+
+        This can be used to build an OpenDP pipeline locally on the client side.
+
+        Args:
+            nb_rows (int, optional): Number of rows in the dummy dataset.
+                Defaults to DUMMY_NB_ROWS.
+            seed (int, optional): Random seed used to generate the dummy dataset.
+                Defaults to DUMMY_SEED.
+            epsilon (float | None, optional): Privacy parameter to be spent.
+                Required for pure DP or approximate DP (Laplace mechanism).
+                Defaults to None.
+            delta (float | None, optional): Required if the pipeline measurement
+                uses ZeroConcentratedDivergence (e.g., with make_gaussian) and is
+                converted to SmoothedMaxDivergence using
+                make_zCDP_to_approxDP. See:
+                https://docs.smartnoise.org/sql/advanced.html#postprocess
+                Defaults to None.
+            rho (float | None, optional): Privacy parameter used for zCDP or
+                approximate zCDP (Gaussian mechanism). Cannot be used if
+                epsilon is provided.
+
+        Returns:
+            dp.Context: OpenDP context object initialized with metadata and
+            user-provided privacy parameters.
+        """
         body_dict = {
             "dataset_name": self.config.dataset_name,
             "dummy_nb_rows": nb_rows,

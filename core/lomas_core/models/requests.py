@@ -49,14 +49,14 @@ class GetDummyContext(GetDummyDataset):
     """Model input to get a dummy dataset."""
 
     epsilon: float | None = Field(..., ge=0)
-    """The epsilon parameter used for pure ε-DP"""
+    """The epsilon parameter used for pure ε-DP or approximate-DP"""
     delta: float | None = Field(..., ge=0)
     """
     The delta parameter
     """
     rho: float | None = Field(..., gte=0)
     """
-    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
+    Privacy loss paramater for zCDP (or approximate-zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
     """
 
 
@@ -195,7 +195,7 @@ class OpenDPRequestModel(LomasRequestModel):
     opendp_json: str
     """The OpenDP pipeline for the query."""
     epsilon: float | None = Field(..., ge=0)
-    """The epsilon parameter used for pure ε-DP"""
+    """The epsilon parameter used for pure ε-DP or approximate-DP"""
     delta: float | None = Field(..., ge=0)
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
@@ -207,7 +207,7 @@ class OpenDPRequestModel(LomasRequestModel):
     """
     rho: float | None = Field(..., gte=0)
     """
-    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `delta` switches to a Gaussian mechansim.
+    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
     """
 
     @model_validator(mode="after")

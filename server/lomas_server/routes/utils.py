@@ -29,7 +29,7 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.auth.auth import get_user_id
+from lomas_server.auth.auth import authorize_user, get_user_id
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
@@ -166,8 +166,10 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
-    user_id = get_user_id(request.app.state.authenticator, security_scopes, auth_creds)
+    user_id = get_user_id(request.app.state.authenticator, auth_creds)
     request.state.user_name = user_id.name
+    # This raises an exception if authz fails
+    authorize_user(user_id, request.app.state.admin_database, security_scopes)
 
     return user_id
 

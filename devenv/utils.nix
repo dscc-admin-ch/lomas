@@ -30,4 +30,5 @@ lib: {
         idx: (lib.concatMapAttrs (name: value: { "${prefix}__${toString idx}__${lib.toUpper name}" = value; }))
       ) listOfAttrSets
     );
+
 }

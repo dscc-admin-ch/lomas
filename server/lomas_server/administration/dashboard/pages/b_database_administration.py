@@ -75,6 +75,9 @@ if "list_datasets" not in st.session_state:
 # Initialization
 st.title("Admin Database Management")
 
+if st.session_state.dashboard_config.dex_config is not None:
+    st.warning("Using Dex is only meant for demo purposes. Do NOT use in production!")
+
 user_tab, dataset_tab, content_tab, deletion_tab = st.tabs(
     [
         ":technologist: User Management",

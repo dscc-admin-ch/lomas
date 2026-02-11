@@ -112,23 +112,13 @@ class Config(BaseSettings):
         return LocalAdminDatabase(path=self.admin_database_url)
 
 
-class KeycloakClientConfig(BaseModel):
-    """Base model for Keycloak client config."""
-
-    url: HttpUrl
-    realm: str
-    client_id: str
-    client_secret: str
+class DexAdminConfig(BaseModel):
+    url: Url
 
     @computed_field
-    def use_tls(self) -> bool:
-        """Using TLS ?"""
+    def use_mtls(self) -> bool:
+        """Using mTLS ?"""
         return self.url.scheme == "https"
-
-    @computed_field
-    def token_endpoint(self) -> str:
-        """Build OAuth2 token endpoint."""
-        return f"{self.url}/realms/{self.realm}/protocol/openid-connect/token"
 
 
 class AdminConfig(BaseSettings):
@@ -150,7 +140,7 @@ class AdminConfig(BaseSettings):
     server_url: HttpUrl
     server_service: HttpUrl
     database_url: Path
-    kc_config: Annotated[KeycloakClientConfig | None, Field(default=None)]
+    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
 
     @computed_field
     def database(self) -> AdminDatabase:

@@ -50,7 +50,7 @@ lomas-server = "server/lomas_server"
 
 [tool.ruff]
 line-length = 110
-exclude = [ "*.ipynb" ]
+exclude = [ "*.ipynb", "*api_pb2*" ]
 
 [tool.ruff.lint]
 # ruff linter -> get available linter list
@@ -124,6 +124,12 @@ module = [
 disallow_untyped_defs = false
 disable_error_code = [ "attr-defined" ]
 
+[[tool.mypy.overrides]]
+module = [
+  "lomas_server.administration.dex.api.*"
+]
+ignore_errors = true
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -132,7 +138,7 @@ warn_required_dynamic_aliases = true
 [tool.pydocstringformatter]
 max-line-length = 110
 write = true
-exclude = [ ".devenv/**/*.py" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
+exclude = [ ".devenv/**/*.py", "**/api_pb2*" ] # pydocstringformatter uses a wierd full path matching from glob.iglob
 
 [tool.pytest.ini_options]
 log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
@@ -159,6 +165,7 @@ relative_files = true
 omit = [
   "**/uvicorn_serve.py",
   "**/b_database_administration.py",
+  "*/api_pb2*.py"
 ]
 
 [tool.coverage.report]

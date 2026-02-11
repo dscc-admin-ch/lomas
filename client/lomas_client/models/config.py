@@ -1,7 +1,10 @@
+from functools import cached_property
+
+import requests
 from pydantic import HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from lomas_core.models.config import Telemetry
+from lomas_core.models.config import OIDCConfig, Telemetry
 
 
 class ClientConfig(BaseSettings):
@@ -18,28 +21,30 @@ class ClientConfig(BaseSettings):
     """The base URL for the API server."""
     dataset_name: str
     """The name of the dataset to be accessed or manipulated."""
-    client_id: str
-    """Client id of the users's associated service account."""
-    client_secret: str
-    """Client secret of the users's associated service account."""
-    keycloak_url: HttpUrl
-    """The keycloak Url."""
-    realm: str
-    """The realm, if using jwt authentication."""
+    user_name: str
+    """User name."""
+    # TODO add option for devide auth flow.
+    user_password: str | None
+    """User password."""
+    oidc_discovery_url: HttpUrl
+    """The oidc provier discovery Url."""
     telemetry: Telemetry
     """Telemetry Settings."""
 
     @computed_field
-    def keycloak_use_tls(self) -> bool:
-        """Using TLS for keycloak?"""
-        return self.keycloak_url.scheme == "https"
+    def oidc_use_tls(self) -> bool:
+        """Using TLS for OIDC?"""
+        return self.oidc_discovery_url.scheme == "https"
 
     @computed_field
     def lomas_service_use_tls(self) -> bool:
         """Using TLS for lomas service?"""
         return self.app_url.scheme == "https"
 
-    @computed_field
-    def token_endpoint(self) -> str:
-        """Build OAuth2 token endpoint."""
-        return f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"
+    @cached_property
+    def oidc_config(self) -> OIDCConfig:
+        """Returns the oidc provider config."""
+        response = requests.get(str(self.oidc_discovery_url))
+        response.raise_for_status()
+
+        return OIDCConfig.model_validate(response.json())

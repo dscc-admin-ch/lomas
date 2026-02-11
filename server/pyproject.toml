@@ -45,17 +45,16 @@ dependencies = [
 
 [project.optional-dependencies]
 all = [
-  "mantelo>=2.2",
   "requests-oauthlib>=2.0",
   "oauthlib>=3.2",
   "streamlit>=1.45",
   "st-pages>=1.0",
+  "bcrypt>=5.0.0",
 ]
 
 [project.scripts]
 lomas-serve = "lomas_server.uvicorn_serve:uvicorn_serve"
 lomas-work  = "lomas_server.worker:run"
-lomas-keycloak-setup = "lomas_server.administration.scripts.keycloak_setup:kc_setup"
 lomas-demo-setup = "lomas_server.administration.scripts.lomas_demo_setup:lomas_demo_setup"
 
 [project.urls]

@@ -1,3 +1,4 @@
 # linguist-generated: Excluded from stats, hidden in diffs
-*.lock linguist-generated
+*.lock linguist-generated -diff
 **/configs/.env.* linguist-generated
+*api_pb2* linguist-generated -diff

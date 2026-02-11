@@ -32,7 +32,7 @@ Once in lomas repo run the following to activate the devenv: `devenv shell`.
 
 The following utilities are now available in your shell:
 - `yelp` will print a similar help page.
-- `devenv up` will start up the environment (lomas server, worker, keycloak, rabbitmq) and set up the components. Demo users and datasets will also be added to the service.
+- `devenv up` will start up the environment (lomas server, worker, dex, rabbitmq) and set up the components. Demo users and datasets can also be added to the service using `demo-setup`.
 - `devenv up -- --namespace=telemetry` or `process-compose up` will do the same as above but with telemetry enabled.
 - `yq $PC_CONFIG_FILES` will show what process-compose is doing.
 - `ut / pytest -k <name of your test>` will run individual tests, no need to setup the python path. If your tests require the services to be up, run `devenv up` before.

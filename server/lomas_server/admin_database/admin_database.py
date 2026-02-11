@@ -160,6 +160,19 @@ class AdminDatabase(ABC, BaseModel):
             Metadata: The metadata object.
         """
 
+    @abstractmethod
+    @user_must_exist
+    def is_user_admin(self, user_name: str) -> bool:
+        """
+        Returns true if the user is an admin.
+
+        Args:
+            user_name (str): name of the user
+
+        Returns:
+            bool: True if the user is a lomas admin.
+        """
+
     @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """

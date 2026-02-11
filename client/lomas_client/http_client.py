@@ -2,12 +2,13 @@ import os
 from time import sleep
 
 import requests
-from oauthlib.oauth2 import BackendApplicationClient, TokenExpiredError
+from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from requests_oauthlib import OAuth2Session
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from lomas_client.models.config import ClientConfig
+from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
 from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
@@ -26,16 +27,16 @@ class LomasHttpClient:
         self.headers = {"Content-type": "application/json", "Accept": "*/*"}
         self.config = config
 
-        if not self.config.keycloak_use_tls or not self.config.lomas_service_use_tls:
+        if not self.config.oidc_use_tls or not self.config.lomas_service_use_tls:
             logger.warning(
-                "Keycloak or Lomas service configured without TLS -> using oauthlib insecure transport"
+                "OIDC IdP or Lomas service configured without TLS -> using oauthlib insecure transport"
             )
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
         else:
             # Reset in case it was changed before
             os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
 
-        oauth_client = BackendApplicationClient(client_id=self.config.client_id)
+        oauth_client = LegacyApplicationClient(OIDC_LOMAS_CLIENT__CLIENT_ID)
         self._oauth2_session = OAuth2Session(client=oauth_client)
 
         # Fetch first token:
@@ -44,9 +45,10 @@ class LomasHttpClient:
     def _fetch_token(self) -> None:
         """Fetches an authorization token and stores it."""
         self._oauth2_session.fetch_token(
-            self.config.token_endpoint,
-            client_id=self.config.client_id,
-            client_secret=self.config.client_secret,
+            str(self.config.oidc_config.token_endpoint),
+            username=self.config.user_name,
+            password=self.config.user_password,
+            scope=["openid", "profile", "email"],
         )
 
     def post(
@@ -73,7 +75,7 @@ class LomasHttpClient:
             requests.Response: The response object resulting from the POST request.
         """
         logger.debug(
-            f"User (with client id '{self.config.client_id}') is making a request "
+            f"User '{self.config.user_name}') is making a request "
             + f"to url '{self.config.app_url}' "
             + f"at the endpoint '{endpoint}' "
             + f"with query params: {body.model_dump()}."

@@ -67,18 +67,43 @@ in
       description = "Lomas Dashboard Base Url";
     };
 
-    realm = mkOption {
+    oidc.enable = mkEnableOption "Enable OIDC for lomas";
+
+    oidc.providerUrl = mkOption {
       type = types.str;
-      default = "lomas";
-      description = "Lomas Server Authentication Realm";
+      description = "OIDC provider url.";
     };
 
-    admin = mkOption {
-      type = clientIdSecret;
+    oidc.discoveryUrl = mkOption {
+      type = types.str;
+      default = "${cfg.oidc.providerUrl}/.well-known/openid-configuration";
+      description = "OIDC provider discovery url.";
     };
 
-    api = mkOption {
+    # TODO better name for this?
+    oidc.queryUserinfo = mkOption {
+      type = types.bool;
+      description = "Whether to query the userinfo endpoint or parse access tokens as jwts.";
+    };
+
+    oidc.clients.apiServer = mkOption {
       type = clientIdSecret;
+      description = "OIDC client for api server";
+    };
+
+    oidc.clients.apiClient = mkOption {
+      type = types.str;
+      description = "OICD public client name for api client";
+    };
+
+    oidc.clients.adminDashboard = mkOption {
+      type = clientIdSecret;
+      description = "OIDC client for admin dashboard";
+    };
+
+    oidc.clients.grafanaDashboard = mkOption {
+      type = clientIdSecret;
+      description = "OIDC client for grafana dashboard";
     };
 
     client.jupyter.port = mkOption {

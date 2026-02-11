@@ -141,3 +141,6 @@ dmypy.json
 devenv.local.nix
 .direnv
 .pre-commit-config.yaml
+
+# vscode
+.vscode

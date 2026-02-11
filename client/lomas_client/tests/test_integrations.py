@@ -5,20 +5,18 @@ import pandas as pd
 import polars as pl
 import pytest
 from diffprivlib import models
-from mantelo import KeycloakAdmin
 from oauthlib import oauth2
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.responses import OpenDPPolarsQueryResult
-from lomas_server.administration.keycloak_admin import (
-    add_kc_user,
-    del_all_kc_users,
-    get_kc_admin,
+from lomas_server.administration.dex.dex_admin import (
+    add_dex_user,
+    del_all_dex_users,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
-from lomas_server.models.config import AdminConfig, KeycloakClientConfig
+from lomas_server.models.config import AdminConfig
 
 
 @pytest.fixture
@@ -30,10 +28,10 @@ def demo_setup():
 class Aria:
     user_name: str = "aria"
     user_email: str = "aria.stark@winterfell.no"
-    client_secret: str = "secret_aria"
+    user_password: str = "secret_aria"
 
     def as_client(self, dataset_name="anyName") -> Client:
-        return Client(client_id=self.user_name, client_secret=self.client_secret, dataset_name=dataset_name)
+        return Client(user_name=self.user_email, user_password=self.user_password, dataset_name=dataset_name)
 
 
 @pytest.fixture
@@ -41,36 +39,35 @@ def aria():
     return Aria()
 
 
-@dataclass(frozen=True)
-class KC:
-    config: KeycloakClientConfig
-    admin: KeycloakAdmin
-
-
 @pytest.fixture
-def kc():
-    """Connection to keycloak."""
-    admin_config = AdminConfig()
-    kc_config = admin_config.kc_config
-    assert kc_config is not None
+def dex_config():
+    """Dex config.
 
-    yield KC(kc_config, get_kc_admin(kc_config))
+    Removes all dex users before yield.
+    """
+    admin_config = AdminConfig()
+    dex_config = admin_config.dex_config
+    assert dex_config is not None
+    # Cleanup for tests
+    del_all_dex_users(dex_config)
+
+    yield dex_config
 
     # Cleanup: delete all users to start fresh
-    del_all_kc_users(kc_config)
+    del_all_dex_users(dex_config)
 
 
 def test_missing_configs() -> None:
-    with pytest.raises(ValueError, match=r"Missing one of or invalid:"):
+    with pytest.raises(ValueError, match=r"Missing client config parameters"):
         Client()
 
 
-def test_oauth2(aria, kc) -> None:
-    with pytest.raises(oauth2.InvalidClientError, match=r"Invalid client credentials"):
+def test_oauth2(aria, dex_config) -> None:
+    with pytest.raises(oauth2.AccessDeniedError, match=r"Invalid username or password"):
         aria.as_client()
 
     # Add a user
-    add_kc_user(kc.config, aria.user_name, aria.user_email, aria.client_secret)
+    add_dex_user(dex_config, aria.user_name, aria.user_email, aria.user_password)
 
     client = aria.as_client()
 
@@ -78,9 +75,11 @@ def test_oauth2(aria, kc) -> None:
         client.get_dataset_metadata()
 
 
-def test_oauth2_demo(kc, demo_setup) -> None:
+def test_oauth2_demo(dex_config, demo_setup) -> None:
     user_name = "Jack"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="TITANIC")
+    client = Client(
+        user_name=f"{user_name}@example.com", user_password=user_name.lower(), dataset_name="TITANIC"
+    )
 
     init_budget = client.get_initial_budget()
     assert init_budget.initial_delta == 0.2
@@ -138,9 +137,11 @@ def test_oauth2_demo(kc, demo_setup) -> None:
     assert prev_queries[0]["dp_library"] == "smartnoise_sql"
 
 
-def test_demo_diffprivlib(kc, demo_setup) -> None:
+def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     user_name = "Dr.Antartica"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
+    client = Client(
+        user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
+    )
 
     penguin_metadata = client.get_dataset_metadata()
     feature_columns = ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"]
@@ -222,9 +223,11 @@ def test_demo_diffprivlib(kc, demo_setup) -> None:
 
 @pytest.mark.long
 @pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
-def test_demo_smartnoise_synth(kc, demo_setup) -> None:
+def test_demo_smartnoise_synth(dex_config, demo_setup) -> None:
     user_name = "Dr.Antartica"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="PENGUIN")
+    client = Client(
+        user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
+    )
 
     cost_res = client.smartnoise_synth.cost(
         synth_name="aim",
@@ -256,9 +259,13 @@ def test_demo_smartnoise_synth(kc, demo_setup) -> None:
     assert response_archives["delta"] >= 0.0
 
 
-def test_demo_opendp_polars(kc, demo_setup) -> None:
+def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     user_name = "Dr.FSO"
-    client = Client(client_id=user_name, client_secret=user_name.lower(), dataset_name="FSO_INCOME_SYNTHETIC")
+    client = Client(
+        user_name=f"{user_name.lower()}@example.com",
+        user_password=user_name.lower(),
+        dataset_name="FSO_INCOME_SYNTHETIC",
+    )
     income_metadata = client.get_dataset_metadata()
     NB_ROWS, SEED = 200, 0
     dummy_lf = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED, lazy=True)

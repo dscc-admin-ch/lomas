@@ -53,10 +53,9 @@ class Client:
             self.config = ClientConfig(**kwargs)
         except ValidationError as exc:
             raise ValueError(
-                "Missing one of or invalid: client_id, client_secret, keycloak_url"
-                "or realm when using jwt authentication method."
+                "Missing client config parameters."
                 "If you are using this library from a managed environment and don't know "
-                "about your credentials, please contact your system administrator."
+                "about your credentials or other parameters, please contact your system administrator."
             ) from exc
 
         if self.config.telemetry.enabled:

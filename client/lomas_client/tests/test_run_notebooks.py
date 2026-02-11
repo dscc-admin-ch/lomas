@@ -19,7 +19,6 @@ def mark_notebook(notebooks: list[Path]) -> list[NamedTuple]:
         ),  # ~8s
         "Penguin_Research.ipynb": pytest.mark.xfail(reason="How do you even VAR in ODP ???"),  # ~9s
         "Queries Testing.ipynb": pytest.mark.skip(reason="Smartnoise broken with opendp>0.12"),  # ~49s
-        "s3_example_notebook.ipynb": pytest.mark.skip(reason="Smartnoise broken with opendp>0.12"),  # ~16s
     }
     return [pytest.param(file, marks=marks.get(file.name, [])) for file in notebooks]
 

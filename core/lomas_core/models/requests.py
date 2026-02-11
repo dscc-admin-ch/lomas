@@ -216,6 +216,8 @@ class OpenDPRequestModel(LomasRequestModel):
     def check_epsilon_or_rho(self) -> Self:
         if self.epsilon is None and self.rho is None:
             raise ValueError("Either `epsilon` or `rho` must be set.")
+        if self.epsilon and self.rho:
+            raise ValueError("Either `epsilon` or `rho` must be set.")
         return self
 
 

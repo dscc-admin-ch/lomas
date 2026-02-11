@@ -402,7 +402,6 @@ in
     exec = "docker compose --env-file configs/.env.docker-compose up";
   };
 
-  # TODO: back to s3 example once smartnoise is fixed: s3_example_notebook.ipynb
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''

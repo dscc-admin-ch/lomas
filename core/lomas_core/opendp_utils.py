@@ -12,6 +12,26 @@ dp.enable_features("contrib")
 
 
 def build_margins_from_metadata(metadata: Metadata) -> list:
+    """
+    Build a list of Polars margins from dataset metadata.
+
+    This function derives margin constraints at three levels:
+    1. A global margin based on the total number of rows.
+    2. Single-column margins using per-column partition length and cardinality.
+    3. Multi-column grouping margins (up to 4 columns) by combining individual
+       column constraints.
+
+    Args:
+        metadata (Metadata): The metadata model for the real dataset.
+
+    Raises:
+        ValueError:
+            If the metadata does not define the total number of rows.
+
+    Returns:
+        list: A list of ``dp.polars.Margin`` objects encoding global, per-column,
+            and multi-column grouping constraints inferred from the metadata.
+    """
     margins = []
     # --------------------
     # Global margin
@@ -115,6 +135,36 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
 def build_context(
     query_json: GetDummyContext, metadata: Metadata, margins: list, input_data: pl.LazyFrame
 ) -> dp.Context:
+    """
+    Construct a differential privacy context from query parameters and metadata.
+
+    This function validates the provided privacy parameters and builds a
+    ``dp.Context`` using either a Laplace (epsilon-based) or Gaussian (rho-based)
+    privacy loss, depending on the input. Exactly one of ``epsilon`` or ``rho``
+    must be specified.
+
+    The context is created using a compositor with a fixed privacy budget split
+    (currently set to 1) and the margins derived from the dataset metadata.
+
+    Args:
+        query_json (GetDummyContext): Request defining the privacy parameters, including \
+            ``epsilon``, ``rho``, and optional ``delta``.
+        metadata (Metadata): The metadata model for the real dataset.
+        margins (list): List of ``dp.polars.Margin`` objects defining aggregation and\
+            grouping constraints.
+        input_data (pl.LazyFrame): Input dataset on which the differentially private context \
+            will be applied.
+
+    Raises:
+        InternalServerException:
+            If both ``epsilon`` and ``rho`` are provided.
+        InternalServerException:
+            If neither ``epsilon`` nor ``rho`` is provided.
+
+    Returns:
+        dp.Context: A dp context configured with\
+            the requested privacy loss, margins, and input data.
+    """
     epsilon = query_json.epsilon
     rho = query_json.rho
     delta = query_json.delta
@@ -154,7 +204,24 @@ def build_context(
 def deserialize_context_query(
     query_json: OpenDPQueryModel, metadata: Metadata, input_data: pl.LazyFrame, context_only: bool = False
 ) -> dp.polars.LazyFrameQuery | dp.Context:
-    """TODO"""
+    """
+    Build a differential privacy context and optionally deserialize a Polars query plan.
+
+    Args:
+        query_json (OpenDPQueryModel): Query containing privacy parameters and \
+            a serialized OpenDP Polars query plan.
+        metadata (Metadata): The metadata model for the real dataset.
+
+        input_data (pl.LazyFrame): Input dataset.
+        context_only (bool, optional): If ``True``, return only the constructed ``dp.Context`` \
+            without deserializing the query plan.
+            Defaults to ``False``.
+
+    Returns:
+        dp.polars.LazyFrameQuery | dp.Context: The constructed ``dp.Context`` if ``context_only`` \
+            is ``True``; otherwise, a deserialized ``dp.polars.LazyFrameQuery`` bound to the\
+            new context.
+    """
     # Extract margins from metadata
     margins = build_margins_from_metadata(metadata=metadata)
 

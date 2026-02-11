@@ -34,6 +34,8 @@ class OpenDPClient:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.\
                 Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
                 pipelines.
+            epsilon (float): Privacy parameter that will be spent. For pure-DP or approximate DP\
+                 this must be set. (Laplace mechanism)
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -41,6 +43,8 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
+            rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
+                 Cannot be used if epsilon is not None.
         Raises:
             Exception: If the opendp_pipeline type is not supported.
         Returns:
@@ -73,6 +77,8 @@ class OpenDPClient:
 
         Args:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query.
+            epsilon (float): Privacy parameter that will be spent. For pure-DP or approximate DP\
+                 this must be set. (Laplace mechanism)
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -80,6 +86,8 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).\
                 In that case a delta must be provided by the user.\
                 Defaults to None.
+            rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
+                 Cannot be used if epsilon is not None.
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
 
@@ -113,6 +121,8 @@ class OpenDPClient:
             opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query. \
                 Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
                 pipelines.
+            epsilon (float): Privacy parameter that will be spent. For pure-DP or approximate DP\
+                 this must be set. (Laplace mechanism)
             delta (Optional[float], optional): If the pipeline measurement is of\
                 type “ZeroConcentratedDivergence” (e.g. with make_gaussian) then it is\
                 converted to “SmoothedMaxDivergence” with make_zCDP_to_approxDP\
@@ -120,6 +130,8 @@ class OpenDPClient:
                 <https://docs.smartnoise.org/sql/advanced.html#postprocess>`__).
                 In that case a delta must be provided by the user.
                 Defaults to None.
+            rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
+                 Cannot be used if epsilon is not None.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.

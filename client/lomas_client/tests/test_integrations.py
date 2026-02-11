@@ -105,8 +105,10 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert df_dummy_lz.collect().shape == (100, 8)
 
     ## Dummy Query
-    plan = df_dummy_lz.select(pl.col("Age").dp.mean(bounds=(0, 100), scale=10), dp.len(scale=10))
-    dummy_res = client.opendp.query(plan, dummy=True)
+    NB_ROWS, SEED = 100, 0
+    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 100)), dp.len())
+    dummy_res = client.opendp.query(plan, dummy=True, epsilon=DEFAULT_EPSILON)
     assert isinstance(dummy_res.result.value, pl.DataFrame)
 
     avg_age = dummy_res.result.value.to_pandas().Age[0]
@@ -120,7 +122,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
-    res = client.opendp.query(plan)
+    res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)
     assert isinstance(res.result.value, pl.DataFrame)
 
     avg_age = res.result.value.to_pandas().Age[0]
@@ -279,7 +281,7 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
         income_metadata["columns"]["income"]["upper"],
     )
     plan = context.query().select(pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound)))
-    query_res = client.opendp.query(plan, nb_rows=NB_ROWS, seed=SEED)
+    query_res = client.opendp.query(plan, nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
     assert query_res.epsilon == DEFAULT_EPSILON
     assert isinstance(query_res.result, OpenDPPolarsQueryResult)
     df_polar = query_res.result.value

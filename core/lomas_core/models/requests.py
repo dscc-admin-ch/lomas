@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lomas_core.constants import (
@@ -211,7 +213,7 @@ class OpenDPRequestModel(LomasRequestModel):
     """
 
     @model_validator(mode="after")
-    def check_epsilon_or_rho(self):
+    def check_epsilon_or_rho(self) -> Self:
         if self.epsilon is None and self.rho is None:
             raise ValueError("Either `epsilon` or `rho` must be set.")
         return self

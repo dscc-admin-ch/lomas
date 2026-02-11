@@ -1,5 +1,6 @@
 import itertools
 from base64 import b64decode
+from typing import Any
 
 import opendp.prelude as dp
 import polars as pl
@@ -65,7 +66,7 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
         }
 
         # Categorical columns
-        margin_kwargs = {
+        margin_kwargs: dict[str, Any] = {
             "by": by,
             "invariant": "keys",
         }
@@ -123,8 +124,8 @@ def build_margins_from_metadata(metadata: Metadata) -> list:
             ]
             if all(c is not None for c in cardinalities):
                 product = 1
-                for c in cardinalities:
-                    product *= c
+                for c in cardinalities:  # type: ignore[assignment]
+                    product *= c  # type: ignore[operator]
                 margin_kwargs["max_groups"] = product
 
             margins.append(dp.polars.Margin(**margin_kwargs))

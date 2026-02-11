@@ -402,10 +402,11 @@ in
     exec = "docker compose --env-file configs/.env.docker-compose up";
   };
 
+  # TODO: back to s3 example once smartnoise is fixed: s3_example_notebook.ipynb
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''
-      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/s3_example_notebook.ipynb
+      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
       docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     '';
   };

@@ -34,7 +34,7 @@ in
     enable = true;
     host = "localhost";
     port = 48080;
-    baseUrl = "/api";
+    baseUrl = "/";
     dashboard.host = "localhost";
     dashboard.port = 8501;
     client.jupyter = {

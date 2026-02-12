@@ -6,6 +6,9 @@ client/configs/lab/*
 client/venv/*
 logs/*
 
+# scratch space
+scratch/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

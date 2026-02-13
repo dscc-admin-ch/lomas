@@ -197,6 +197,7 @@ in
 
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
+    LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
 
     LOMAS_CLIENT_telemetry__enabled = "false";

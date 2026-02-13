@@ -14,14 +14,24 @@ arrow==1.4.0              # via isoduration
 asgiref==3.11.1           # via opentelemetry-instrumentation-asgi
 asttokens==3.0.1          # via stack-data
 async-lru==2.1.0          # via jupyterlab
+<<<<<<< HEAD
 attrs==25.4.0             # via jsonschema, mbi, referencing
+=======
+attrs==25.4.0             # via jsonschema, referencing
+authlib==1.6.7            # via lomas-client
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 babel==2.18.0             # via jupyterlab-server, sphinx
 bcrypt==5.0.0             # via lomas-server
 beautifulsoup4==4.14.3    # via nbconvert
 bleach==6.3.0             # via nbconvert
 blinker==1.9.0            # via streamlit
+<<<<<<< HEAD
 boto3==1.42.46            # via lomas-server
 botocore==1.42.46         # via boto3, s3transfer
+=======
+boto3==1.42.48            # via lomas-server
+botocore==1.42.48         # via boto3, s3transfer
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 cachetools==6.2.6         # via streamlit
 certifi==2026.1.4         # via httpcore, httpx, requests
 cffi==2.0.0               # via argon2-cffi-bindings, cryptography
@@ -31,7 +41,11 @@ click==8.3.1              # via rich-toolkit, streamlit, typer, uvicorn
 comm==0.2.3               # via ipykernel, ipywidgets
 contourpy==1.3.3          # via matplotlib
 coverage==7.13.4          # via pytest-cov, lomas (pyproject.toml)
+<<<<<<< HEAD
 cryptography==46.0.5      # via lomas-server
+=======
+cryptography==46.0.5      # via authlib, lomas-server
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 cycler==0.12.1            # via matplotlib
 debugpy==1.8.20           # via ipykernel
 decorator==5.2.1          # via ipython
@@ -44,8 +58,12 @@ docutils==0.22.4          # via myst-parser, nbsphinx, sphinx, sphinx-rtd-theme
 email-validator==2.3.0    # via fastapi
 executing==2.2.1          # via stack-data
 fastapi==0.119.0          # via lomas-core
-fastapi-cli==0.0.20       # via fastapi
+fastapi-cli==0.0.21       # via fastapi
 fastjsonschema==2.21.2    # via nbformat
+<<<<<<< HEAD
+=======
+filelock==3.21.2          # via torch
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 fonttools==4.61.1         # via matplotlib
 fqdn==1.5.1               # via jsonschema
 gitdb==4.0.12             # via gitpython
@@ -89,7 +107,7 @@ jupyterlab-server==2.28.0  # via jupyterlab, notebook
 jupyterlab-widgets==3.0.16  # via ipywidgets
 kiwisolver==1.4.9         # via matplotlib
 lark==1.3.1               # via rfc3987-syntax
-librt==0.7.8              # via mypy
+librt==0.8.0              # via mypy
 markdown-it-py==4.0.0     # via mdit-py-plugins, myst-parser, rich
 markupsafe==3.0.3         # via jinja2, nbconvert
 matplotlib==3.10.8        # via seaborn
@@ -142,7 +160,11 @@ parso==0.8.6              # via jedi
 pathspec==1.0.4           # via mypy
 pexpect==4.9.0            # via ipython
 pillow==12.1.1            # via matplotlib, streamlit
+<<<<<<< HEAD
 platformdirs==4.5.1       # via jupyter-core
+=======
+platformdirs==4.7.0       # via jupyter-core
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 pluggy==1.6.0             # via pytest, pytest-cov
 plumbum==1.10.0           # via pandoc
 ply==3.11                 # via pandoc
@@ -177,15 +199,19 @@ pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupy
 randomgen==2.3.0          # via opendp
 referencing==0.37.0       # via jsonschema, jsonschema-specifications, jupyter-events
 requests==2.32.5          # via jupyterlab-server, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, sphinx, streamlit
-requests-oauthlib==2.0.0  # via lomas-client, lomas-server
+requests-oauthlib==2.0.0  # via lomas-server
 rfc3339-validator==0.1.4  # via jsonschema, jupyter-events
 rfc3986-validator==0.1.1  # via jsonschema, jupyter-events
 rfc3987-syntax==1.1.0     # via jsonschema
 rich==14.3.2              # via rich-toolkit, typer
+<<<<<<< HEAD
 rich-toolkit==0.19.2      # via fastapi-cli
+=======
+rich-toolkit==0.19.4      # via fastapi-cli
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 roman-numerals==4.1.0     # via sphinx
 rpds-py==0.30.0           # via jsonschema, referencing
-ruff==0.15.0              # via lomas (pyproject.toml)
+ruff==0.15.1              # via lomas (pyproject.toml)
 s3transfer==0.16.0        # via boto3
 scikit-learn==1.8.0       # via diffprivlib, opendp
 scipy==1.17.0             # via diffprivlib, jax, jaxlib, mbi, scikit-learn
@@ -207,6 +233,11 @@ sphinxcontrib-jsmath==1.0.1  # via sphinx
 sphinxcontrib-napoleon==0.7  # via lomas (pyproject.toml)
 sphinxcontrib-qthelp==2.0.0  # via sphinx
 sphinxcontrib-serializinghtml==2.0.0  # via sphinx
+<<<<<<< HEAD
+=======
+sqlalchemy==2.0.46        # via smartnoise-sql
+sqlglot==28.10.1          # via lomas-server
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 st-pages==1.0.1           # via lomas-server
 stack-data==0.6.3         # via ipython
 starlette==0.48.0         # via fastapi
@@ -219,8 +250,13 @@ toml==0.10.2              # via streamlit
 toolz==1.1.0              # via chex
 tornado==6.5.4            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, streamlit, terminado
 traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, nbsphinx
+<<<<<<< HEAD
 typer==0.21.2             # via fastapi-cli
 typing-extensions==4.15.0  # via altair, beautifulsoup4, chex, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, rich-toolkit, streamlit, typing-inspection
+=======
+typer==0.23.1             # via fastapi-cli
+typing-extensions==4.15.0  # via altair, beautifulsoup4, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, rich-toolkit, sqlalchemy, streamlit, torch, typing-inspection
+>>>>>>> 30b1f89 (authlib + device flow, tests needed)
 typing-inspection==0.4.2  # via pydantic, pydantic-settings
 tzdata==2025.3            # via arrow, pandas
 uri-template==1.3.0       # via jsonschema

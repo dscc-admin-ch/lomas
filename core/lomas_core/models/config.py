@@ -61,3 +61,14 @@ class OIDCConfig(BaseModel):
     userinfo_endpoint: HttpUrl
     device_authorization_endpoint: HttpUrl
     introspection_endpoint: HttpUrl
+
+
+class OIDCDeviceCodeResponse(BaseModel):
+    """Base model for oidc device code response"""
+
+    model_config = ConfigDict(extra="ignore")
+
+    user_code: str
+    device_code: str
+    verification_uri: str
+    verification_uri_complete: str | None = None

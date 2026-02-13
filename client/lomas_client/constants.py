@@ -9,5 +9,7 @@ SMARTNOISE_SYNTH_READ_TIMEOUT = ONE_MINUTE * 20
 
 SNSYNTH_DEFAULT_SAMPLES_NB = 200
 
+OIDC_REQUIRED_SCOPES = "openid profile email offline_access"
+
 # Only for testing
 DEFAULT_EPSILON = 1.0

@@ -5,8 +5,8 @@ import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 import pytest
+from authlib.integrations.base_client.errors import OAuthError
 from diffprivlib import models
-from oauthlib import oauth2
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
@@ -65,7 +65,7 @@ def test_missing_configs() -> None:
 
 
 def test_oauth2(aria, dex_config) -> None:
-    with pytest.raises(oauth2.AccessDeniedError, match=r"Invalid username or password"):
+    with pytest.raises(OAuthError, match=r"Invalid username or password"):
         aria.as_client()
 
     # Add a user

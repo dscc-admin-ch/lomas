@@ -22,7 +22,7 @@ class ClientConfig(BaseSettings):
     dataset_name: str
     """The name of the dataset to be accessed or manipulated."""
     use_password_flow: bool = False
-    """If true, uses the legacy password auth flow"""
+    """If true, uses the legacy password auth flow."""
     user_name: str | None = None
     """User name."""
     user_password: str | None = None

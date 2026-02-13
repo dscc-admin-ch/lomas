@@ -53,7 +53,7 @@ class LomasHttpClient:
         else:
             self._device_flow()
 
-    def _password_flow(self):
+    def _password_flow(self) -> None:
         self._oauth2_session = OAuth2Session(
             client_id="lomas_client",
             token_endpoint=self.config.oidc_config.token_endpoint,
@@ -71,7 +71,7 @@ class LomasHttpClient:
         )
 
     def _device_flow(self) -> None:
-        """Gets an access token using the device auth flow
+        """Gets an access token using the device auth flow.
 
         Raises:
             TimeoutError: In case the user did not authorize the Lomas Python client in time.

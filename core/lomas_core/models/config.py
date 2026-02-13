@@ -64,7 +64,7 @@ class OIDCConfig(BaseModel):
 
 
 class OIDCDeviceCodeResponse(BaseModel):
-    """Base model for oidc device code response"""
+    """Base model for oidc device code response."""
 
     model_config = ConfigDict(extra="ignore")
 

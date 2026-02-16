@@ -208,40 +208,45 @@ def build_context(
     )
 
 
-def deserialize_context_query(
-    query_json: OpenDPQueryModel, metadata: Metadata, input_data: pl.LazyFrame, context_only: bool = False
-) -> dp.polars.LazyFrameQuery | dp.Context:
+def build_context_from_metadata(
+    query_json: OpenDPQueryModel,
+    metadata: Metadata,
+    input_data: pl.LazyFrame,
+) -> dp.Context:
     """
-    Build a differential privacy context and optionally deserialize a Polars query plan.
+    Build a differential privacy context from the metadata.
 
     Args:
         query_json (OpenDPQueryModel): Query containing privacy parameters and \
             a serialized OpenDP Polars query plan.
         metadata (Metadata): The metadata model for the real dataset.
-
         input_data (pl.LazyFrame): Input dataset.
-        context_only (bool, optional): If ``True``, return only the constructed ``dp.Context`` \
-            without deserializing the query plan.
-            Defaults to ``False``.
 
     Returns:
-        dp.polars.LazyFrameQuery | dp.Context: The constructed ``dp.Context`` if ``context_only`` \
-            is ``True``; otherwise, a deserialized ``dp.polars.LazyFrameQuery`` bound to the\
-            new context.
+        dp.Context: The constructed differential privacy context.
     """
-    # Extract margins from metadata
     margins = build_margins_from_metadata(metadata=metadata)
+    return build_context(query_json, metadata, margins, input_data)
 
-    # Create new context based on dummy/real data
-    new_context = build_context(query_json, metadata, margins, input_data)
 
-    if context_only:
-        return new_context
+def deserialize_context_query(
+    query_json: OpenDPQueryModel,
+    metadata: Metadata,
+    input_data: pl.LazyFrame,
+) -> dp.polars.LazyFrameQuery:
+    """
+    Build a differential privacy context and deserialize a Polars query plan.
 
-    # Serialize plan given by user
+    Args:
+        query_json (OpenDPQueryModel): Query containing privacy parameters and \
+            a serialized OpenDP Polars query plan.
+        metadata (Metadata): The metadata model for the real dataset.
+        input_data (pl.LazyFrame): Input dataset.
+
+    Returns:
+        dp.polars.LazyFrameQuery: A deserialized query bound to a newly \
+            constructed context.
+    """
+    context = build_context_from_metadata(query_json, metadata, input_data)
     serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
-
-    # Apply and deserialize polars plan with new context
-    polars_plan = new_context.deserialize_polars_plan(serialized_plan)
-
-    return polars_plan
+    return context.deserialize_polars_plan(serialized_plan)

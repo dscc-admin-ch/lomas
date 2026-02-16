@@ -5,7 +5,7 @@ from typing import Any
 import opendp.prelude as dp
 import polars as pl
 
-from lomas_core.error_handler import InternalServerException
+from lomas_core.error_handler import InvalidQueryException
 from lomas_core.models.collections import Metadata
 from lomas_core.models.requests import GetDummyContext, OpenDPQueryModel
 
@@ -157,9 +157,9 @@ def build_context(
             will be applied.
 
     Raises:
-        InternalServerException:
+        InvalidQueryExceptionModel:
             If both ``epsilon`` and ``rho`` are provided.
-        InternalServerException:
+        InvalidQueryExceptionModel:
             If neither ``epsilon`` nor ``rho`` is provided.
 
     Returns:
@@ -169,12 +169,13 @@ def build_context(
     epsilon = query_json.epsilon
     rho = query_json.rho
     delta = query_json.delta
+    approx_zcdp = query_json.approx_zcdp
 
     if epsilon is not None and rho is not None:
-        raise InternalServerException("Provide only one of epsilon or rho, not both.")
+        raise InvalidQueryException("Provide only one of epsilon or rho, not both.")
 
     if epsilon is None and rho is None:
-        raise InternalServerException("One of epsilon or rho must be provided.")
+        raise InvalidQueryException("One of epsilon or rho must be provided.")
 
     if epsilon:
         # Laplace
@@ -190,6 +191,11 @@ def build_context(
         )
 
     # Gaussian
+
+    if approx_zcdp is False:
+        # if approx_zcdp is false, delta is only used to compute the associated epsilon
+        # user wants to perform zcdp and not approx-zcdp (rho given, delta None)
+        delta = None
     return dp.Context.compositor(
         data=input_data,
         privacy_unit=dp.unit_of(contributions=metadata.max_ids),

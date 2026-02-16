@@ -121,6 +121,7 @@ class Client:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
+        approx_zcdp: bool = True,
     ) -> dp.Context:
         """
         Create an OpenDP context based on a dummy dataset.
@@ -144,6 +145,8 @@ class Client:
             rho (float | None, optional): Privacy parameter used for zCDP or
                 approximate zCDP (Gaussian mechanism). Cannot be used if
                 epsilon is provided.
+            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+                Default True.
 
         Returns:
             dp.Context: OpenDP context object initialized with metadata and
@@ -156,6 +159,7 @@ class Client:
             "epsilon": epsilon,
             "delta": delta,
             "rho": rho,
+            "approx_zcdp": approx_zcdp,
         }
 
         body = GetDummyContext.model_validate(body_dict)

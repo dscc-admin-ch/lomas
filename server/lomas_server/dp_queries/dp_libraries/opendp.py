@@ -6,7 +6,7 @@ from opendp._lib import lib_path
 from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import ExternalLibraryException, InternalServerException
+from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
 from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
@@ -69,12 +69,10 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
                 cost = meas_zcdp.map(d_in=int(max_ids))
 
-                # here, delta is not fixed by user.
-                # Option 1: we always fixed a delta to a given value to be able to compute epsilon
-                # Option 2: we explore a working value according to user epsilon/delta remaining
-
-                default_delta = 1e-6
-                epsilon, delta = cost.epsilon(default_delta), default_delta
+                fixed_delta = query_json.delta
+                if fixed_delta is None:
+                    raise InvalidQueryException("Provide a fixed delta for this query.")
+                epsilon, delta = cost.epsilon(fixed_delta), fixed_delta
 
             case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)

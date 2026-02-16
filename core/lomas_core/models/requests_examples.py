@@ -162,6 +162,7 @@ example_opendp: dict[str, JsonValue] = {
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "rho": None,
+    "approx_zcdp": False,
 }
 example_dummy_opendp: dict[str, JsonValue] = make_dummy(example_opendp)
 
@@ -258,6 +259,7 @@ example_opendp_polars: dict[str, JsonValue] = {
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "rho": None,
+    "approx_zcdp": False,
 }
 
 
@@ -275,6 +277,7 @@ example_opendp_polars_datetime: dict[str, JsonValue] = {
     "epsilon": QUERY_EPSILON,
     "delta": QUERY_DELTA,
     "rho": None,
+    "approx_zcdp": False,
 }
 
 

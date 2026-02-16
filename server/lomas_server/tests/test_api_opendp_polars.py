@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_core.models.exceptions import InvalidQueryExceptionModel
 from lomas_core.models.requests_examples import (
     OPENDP_POLARS_PIPELINE,
     OPENDP_POLARS_PIPELINE_COVID,
@@ -271,11 +272,16 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             # Gaussian (zCDP)
             example_opendp_polars["epsilon"] = None
             example_opendp_polars["rho"] = 2
-            example_opendp_polars["delta"] = None
+            example_opendp_polars["delta"] = 1e-6
             job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 2
-            assert response_model.delta == 1e-6  # default
+            assert response_model.delta == 1e-6
+
+            # zCDP without specifying a user-defined delta should fail
+            example_opendp_polars["delta"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            assert job.error == InvalidQueryExceptionModel(message="Provide a fixed delta for this query.")
 
     def test_dummy_opendp_polars_query(self) -> None:
         """Test_dummy_opendp_polars_query."""

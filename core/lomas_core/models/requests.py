@@ -60,6 +60,10 @@ class GetDummyContext(GetDummyDataset):
     """
     Privacy loss paramater for zCDP (or approximate-zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
     """
+    approx_zcdp: bool
+    """
+    If False, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+    """
 
 
 class QueryModel(LomasRequestModel):
@@ -209,14 +213,15 @@ class OpenDPRequestModel(LomasRequestModel):
     """
     rho: float | None = Field(..., gte=0)
     """
-    Privacy loss paramater for zCDP (or approximate zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
+    Privacy loss parameter for zCDP (or approximate zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
     """
+
+    approx_zcdp: bool
+    """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
     @model_validator(mode="after")
     def check_epsilon_or_rho(self) -> Self:
-        if self.epsilon is None and self.rho is None:
-            raise ValueError("Either `epsilon` or `rho` must be set.")
-        if self.epsilon and self.rho:
+        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
             raise ValueError("Either `epsilon` or `rho` must be set.")
         return self
 

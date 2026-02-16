@@ -384,7 +384,7 @@ in
 
   scripts.run-worker-debug = wrapScript {
     exec = ''
-      process-compose process stop -v worker-0 worker-1
+      process-compose process stop -v worker-0 worker-1 || true
       python -m pdb -m lomas_server.worker
     '';
   };

@@ -27,6 +27,7 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
+        approx_zcdp: bool = True,
     ) -> dict:
         """This function executes an OpenDP query.
 
@@ -45,6 +46,8 @@ class OpenDPClient:
                 Defaults to None.
             rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
                  Cannot be used if epsilon is not None.
+            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+                Default True.
         Raises:
             Exception: If the opendp_pipeline type is not supported.
         Returns:
@@ -55,6 +58,7 @@ class OpenDPClient:
             "epsilon": epsilon,
             "delta": delta,
             "rho": rho,
+            "approx_zcdp": approx_zcdp,
         }
 
         if isinstance(opendp_pipeline, (pl.LazyFrame, dp.extras.polars.LazyFrameQuery)):
@@ -72,6 +76,7 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
+        approx_zcdp: bool = True,
     ) -> CostResponse:
         """This function estimates the cost of executing an OpenDP query.
 
@@ -88,6 +93,8 @@ class OpenDPClient:
                 Defaults to None.
             rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
                  Cannot be used if epsilon is not None.
+            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+                Default True.
         Raises:
             Exception: If the opendp_pipeline type is not suppported.
 
@@ -99,6 +106,7 @@ class OpenDPClient:
             epsilon=epsilon,
             delta=delta,
             rho=rho,
+            approx_zcdp=approx_zcdp,
         )
         body = OpenDPRequestModel.model_validate(body_json)
         res = self.http_client.post("estimate_opendp_cost", body)
@@ -111,6 +119,7 @@ class OpenDPClient:
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
+        approx_zcdp: bool = True,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -132,6 +141,8 @@ class OpenDPClient:
                 Defaults to None.
             rho (float): Privacy parameter used for zCDP or approximate-zCDP (Gaussian mechanism).\
                  Cannot be used if epsilon is not None.
+            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+                Default True.
             dummy (bool, optional): Whether to use a dummy dataset. Defaults to False.
             nb_rows (int, optional): The number of rows in the dummy dataset.\
                 Defaults to DUMMY_NB_ROWS.
@@ -149,6 +160,7 @@ class OpenDPClient:
             epsilon=epsilon,
             delta=delta,
             rho=rho,
+            approx_zcdp=approx_zcdp,
         )
 
         request_model: type[OpenDPRequestModel]

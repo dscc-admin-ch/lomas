@@ -17,6 +17,7 @@ from lomas_core.models.requests_examples import (
     QUERY_EPSILON,
     example_get_admin_db_data,
     example_get_dummy_dataset,
+    example_opendp_polars,
     example_opendp_polars_plan,
     example_smartnoise_sql,
 )
@@ -233,12 +234,13 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_2.status_code == status.HTTP_200_OK
             assert response_2.json() == response.json()
 
-    @pytest.mark.xfail
     def test_get_total_spent_budget(self) -> None:
         """Test_get_total_spent_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_total_spent_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
@@ -250,7 +252,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
 
             # Response should have updated spent budget
-            response_2 = client.post("/get_total_spent_budget", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_total_spent_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
@@ -260,12 +264,13 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_model_2.total_spent_epsilon == QUERY_EPSILON
             assert response_model_2.total_spent_delta >= QUERY_DELTA
 
-    @pytest.mark.xfail
     def test_get_remaining_budget(self) -> None:
         """Test_get_remaining_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_remaining_budget", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_remaining_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
@@ -278,7 +283,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
 
             # Response should have removed spent budget
-            response_2 = client.post("/get_remaining_budget", json=example_get_admin_db_data)
+            response_2 = client.post(
+                "/get_remaining_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response_2.status_code == status.HTTP_200_OK
 
             response_dict_2 = response_2.json()
@@ -287,12 +294,13 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_model_2.remaining_epsilon == INITAL_EPSILON - QUERY_EPSILON
             assert response_model_2.remaining_delta <= INITIAL_DELTA - QUERY_DELTA
 
-    @pytest.mark.xfail
     def test_get_previous_queries(self) -> None:
         """Test_get_previous_queries."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_previous_queries", json=example_get_admin_db_data)
+            response = client.post(
+                "/get_previous_queries", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
@@ -320,15 +328,17 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert job_opendp.result is not None
 
             # Response should have two elements in list
-            response_3 = client.post("/get_previous_queries", json=example_get_admin_db_data)
+            response_3 = client.post(
+                "/get_previous_queries", json={"dataset_name": example_opendp_polars["dataset_name"]}
+            )
             assert response_3.status_code == status.HTTP_200_OK
             response_dict_3 = response_3.json()
 
-            assert len(response_dict_3["previous_queries"]) == 2
+            assert len(response_dict_3["previous_queries"]) == 1
             # assert response_dict_3["previous_queries"][0] == response_dict_2["previous_queries"][0]
-            assert response_dict_3["previous_queries"][1]["dp_library"] == DPLibraries.OPENDP
-            assert response_dict_3["previous_queries"][1]["client_input"] == example_opendp_polars_plan
-            assert response_dict_3["previous_queries"][1]["response"] == job_opendp.result.model_dump(
+            assert response_dict_3["previous_queries"][0]["dp_library"] == DPLibraries.OPENDP
+            assert response_dict_3["previous_queries"][0]["client_input"] == example_opendp_polars_plan
+            assert response_dict_3["previous_queries"][0]["response"] == job_opendp.result.model_dump(
                 mode="json"
             )
 

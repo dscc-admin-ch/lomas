@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import pickle
 
@@ -22,7 +23,7 @@ from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.collections import Metadata
-from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel
+from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel, OpenDPQueryModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
@@ -244,8 +245,11 @@ class Client:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
                     case DPLibraries.OPENDP:
-                        # TODO: check this part
-                        pass
+                        query_json = OpenDPQueryModel.model_validate(query["client_input"])
+                        serialized_bytes = base64.b64decode(query_json.opendp_json)
+                        query["client_input"]["opendp_json"] = pl.LazyFrame.deserialize(
+                            io.BytesIO(serialized_bytes)
+                        )
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])
                         query["response"]["result"]["model"] = pickle.loads(model)

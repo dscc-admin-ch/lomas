@@ -179,7 +179,7 @@ in
 
     tasks."filegen:dex-api-proto" = {
       before = [ "devenv:enterShell" ];
-      exec = "cp -r ${apiProtoDrv cfg.protoPath}/lomas_server ./server";
+      exec = "cp -u -r ${apiProtoDrv cfg.protoPath}/lomas_server ./server";
     };
 
     # can be provided with password [SALT] for reproducible outputs

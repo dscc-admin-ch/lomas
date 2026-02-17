@@ -168,7 +168,6 @@ in
     processes.dex = {
       exec = "${lib.getExe cfg.package} serve ${confFile}";
       process-compose = {
-        is_tty = true;
         readiness_probe.http_get = {
           scheme = "http";
           inherit (cfg) host port;

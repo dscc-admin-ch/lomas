@@ -45,11 +45,11 @@ let
     expiry:
       deviceRequests: "5m"
       signingKeys: "6h"
-      idTokens: "1m"
+      idTokens: "10s"         # Set very short for testing
       refreshTokens:
         disableRotation: false
         reuseInterval: "3s"
-        validIfNotUsedFor: "1m" # "2160h" # 90 days
+        validIfNotUsedFor: "24h" # "2160h" # 90 days
         absoluteLifetime: "3960h" # 165 days
 
     staticClients:
@@ -116,21 +116,21 @@ in
     package = mkOption {
       type = types.package;
       # default = pkgs.dex-oidc;
-      default = pkgs.dex-oidc.overrideAttrs (old: rec{
+      default = pkgs.dex-oidc.overrideAttrs (old: rec {
         version = "c016300db963097d7a90eb010ae2f323dd54b0b7";
         src = pkgs.fetchFromGitHub {
           owner = "dexidp";
           repo = "dex";
           rev = "${version}";
-          sha256="sha256-COUhIxskcfnTF/TRmfb3IQ6Do+xdRV4xeNUspytc1Xw=";
+          sha256 = "sha256-COUhIxskcfnTF/TRmfb3IQ6Do+xdRV4xeNUspytc1Xw=";
         };
         patches = [
-          (pkgs.fetchpatch{
+          (pkgs.fetchpatch {
             url = "https://github.com/dexidp/dex/commit/cccbebc146f95ddad890fd2307c9c0bf5497ecee.patch";
             sha256 = "sha256-NsnqN+VeXi3NZ2zsp9KE5/9zqX9CioRrr0N313ZG3G0=";
           })
         ];
-        vendorHash="sha256-obnZ8DOCDSK2cqu6PNjAeQbkb24osRGwM6fq93WZpOc=";
+        vendorHash = "sha256-obnZ8DOCDSK2cqu6PNjAeQbkb24osRGwM6fq93WZpOc=";
         passthru.tests = {
           version = pkgs.testers.testVersion {
             version = "${version}";

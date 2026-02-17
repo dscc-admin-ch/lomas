@@ -1,4 +1,3 @@
-import os
 import time
 
 import requests
@@ -30,13 +29,7 @@ class LomasHttpClient:
         self.config = config
 
         if not self.config.oidc_use_tls or not self.config.lomas_service_use_tls:
-            logger.warning(
-                "OIDC IdP or Lomas service configured without TLS -> using oauthlib insecure transport"
-            )
-            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-        else:
-            # Reset in case it was changed before
-            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
+            logger.warning("OIDC IdP or Lomas service configured without TLS -> using insecure transport")
 
         self._authorize()
 

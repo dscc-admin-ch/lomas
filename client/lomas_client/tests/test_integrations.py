@@ -1,11 +1,18 @@
+import io
+import re
+import sys
+import time
 from dataclasses import dataclass
+from urllib.parse import urljoin
 
 import numpy as np
 import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 import pytest
+import requests
 from authlib.integrations.base_client.errors import OAuthError
+from bs4 import BeautifulSoup
 from diffprivlib import models
 from sklearn.pipeline import Pipeline
 
@@ -75,6 +82,92 @@ def test_oauth2(aria, dex_config) -> None:
 
     with pytest.raises(UnauthorizedAccessException, match=f"User {aria.user_name} does not exist"):
         client.get_dataset_metadata()
+
+
+class DeviceAuthorizationBot(io.StringIO):
+    def __init__(self, user_name, user_password, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_name = user_name
+        self.user_password = user_password
+        self.found = False
+        self.terminal = sys.stdout
+
+    def verify_device(self, url):
+        # url is something like http://localhost:4445/dex/device&user_code=ABDC-EFGH
+
+        session = requests.Session()
+
+        # 1. Access the verification page
+        resp = session.get(url)
+        resp.raise_for_status()
+
+        # 2. Find the form and submit the user_code
+        #    User code should already be filled out.
+        soup = BeautifulSoup(resp.text, "html.parser")
+        form_action = soup.find("form")["action"]
+        # Handle relative paths
+        form_action = urljoin(resp.url, form_action)
+        user_code = soup.find("input", {"name": "user_code"})["value"]
+        resp = session.post(form_action, data={"user_code": user_code})
+        resp.raise_for_status()
+
+        # 3. Handle the Login Page (Email/Password)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        login_form = soup.find("form")
+        login_url = urljoin(resp.url, login_form["action"])
+        login_data = {"login": self.user_name, "password": self.user_password}
+
+        resp = session.post(login_url, data=login_data)
+        resp.raise_for_status()
+
+        # 4. Approve
+        soup = BeautifulSoup(resp.text, "html.parser")
+        approve_form = soup.find("form")
+        data = {}
+        for hidden_input in approve_form.find_all("input", type="hidden"):
+            data[hidden_input.get("name")] = hidden_input.get("value")
+
+        resp = session.post(resp.url, data=data)
+        resp.raise_for_status()
+
+    def write(self, s):
+        # Still print to console
+        self.terminal.write(s)
+        if not self.found:
+            uri_match = re.search(r"http[s]?:[^\s]+", s)
+            if uri_match:
+                # Find verification url and authorize device
+                self.found = True
+                uri = uri_match.group(0)
+                self.verify_device(uri)
+
+
+@pytest.mark.long
+@pytest.mark.timeout(15)
+def test_device_flow(demo_setup) -> None:
+    # Setup authorization bot
+    user_name = "jack"
+    bot = DeviceAuthorizationBot(
+        user_name=f"{user_name}@example.com",
+        user_password=user_name,
+    )
+    old_stdout = sys.stdout
+    sys.stdout = bot
+
+    user_name = "jack"
+    client = Client(dataset_name="TITANIC", use_password_flow=False)
+
+    # Reset stdout
+    sys.stdout = old_stdout
+
+    init_budget = client.get_initial_budget()
+    assert init_budget.initial_delta == 0.2
+
+    # Test refresh token works (dex config sets lifetime of 10sec)
+    time.sleep(10)
+
+    init_budget = client.get_initial_budget()
+    assert init_budget.initial_delta == 0.2
 
 
 def test_oauth2_demo(dex_config, demo_setup) -> None:

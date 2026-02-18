@@ -43,12 +43,13 @@ class LomasHttpClient:
             leeway=30,  # refresh token 30 seconds before expiry
         )
 
-        # Try to refresh first, maybe token could be loaded form disk.
-        try:
-            self._oauth2_session.refresh_token()
-        except (OAuth2Error, requests.HTTPError):
-            # We catch http errors because dex fails when it cannot link a token to existing user.
-            self._authorize()
+        if self._oauth2_session.token is not None:
+            # Try to refresh first, maybe token could be loaded form disk.
+            try:
+                self._oauth2_session.refresh_token()
+            except (OAuth2Error, requests.HTTPError):
+                # We catch http errors because dex fails when it cannot link a token to existing user.
+                self._authorize()
 
     def _get_token_file(self) -> str:
         """Returns a temp filename for saving/loading the token."""

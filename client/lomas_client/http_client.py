@@ -1,3 +1,6 @@
+import json
+import os
+import tempfile
 import time
 
 import requests
@@ -31,13 +34,37 @@ class LomasHttpClient:
         if not self.config.oidc_use_tls or not self.config.lomas_service_use_tls:
             logger.warning("OIDC IdP or Lomas service configured without TLS -> using insecure transport")
 
-        self._authorize()
+        self._oauth2_session = OAuth2Session(
+            client_id="lomas_client",
+            token_endpoint=self.config.oidc_config.token_endpoint,
+            update_token=self._save_token,
+            token=self._load_token(),
+            token_endpoint_auth_method="none",
+            leeway=30,  # refresh token 30 seconds before expiry
+        )
 
-        # oauth_client = LegacyApplicationClient(OIDC_LOMAS_CLIENT__CLIENT_ID)
-        # self._oauth2_session = OAuth2Session(client=oauth_client)
-        # self._fetch_token()
+        # Try to refresh first, maybe token could be loaded form disk.
+        try:
+            self._oauth2_session.refresh_token()
+        except (OAuth2Error, requests.HTTPError):
+            # We catch http errors because dex fails when it cannot link a token to existing user.
+            self._authorize()
 
-        # Fetch first token:
+    def _get_token_file(self) -> str:
+        """Returns a temp filename for saving/loading the token."""
+        return os.path.join(tempfile.gettempdir(), "lomas_client_token.json")
+
+    def _save_token(self, token: dict, refresh_token: str | None = None) -> None:
+        """Saves the token to disk."""
+        with open(self._get_token_file(), "w") as f:
+            json.dump(token, f)
+
+    def _load_token(self) -> dict | None:
+        """Tries to load the saved token from disk."""
+        if os.path.exists(self._get_token_file()):
+            with open(self._get_token_file()) as f:
+                return json.load(f)
+        return None
 
     def _authorize(self) -> None:
         """Chooses the right grant and gets access token."""
@@ -47,15 +74,7 @@ class LomasHttpClient:
             self._device_flow()
 
     def _password_flow(self) -> None:
-        self._oauth2_session = OAuth2Session(
-            client_id="lomas_client",
-            token_endpoint=self.config.oidc_config.token_endpoint,
-            # update_token=save_token, # TODO: use this to store refresh token across notebook restarts?
-            token_endpoint_auth_method="none",
-            scope=OIDC_REQUIRED_SCOPES,
-            leeway=30,  # refresh token 30 seconds before expiry
-        )
-
+        """Performs a legacy password flow to fetch an access token."""
         self._oauth2_session.fetch_token(
             self.config.oidc_config.token_endpoint,
             username=self.config.user_name,
@@ -64,7 +83,9 @@ class LomasHttpClient:
         )
 
     def _device_flow(self) -> None:
-        """Gets an access token using the device auth flow.
+        """Fetches an access token using the device auth flow.
+
+        Waits until the user has authorized the python client.
 
         Raises:
             TimeoutError: In case the user did not authorize the Lomas Python client in time.
@@ -86,14 +107,6 @@ class LomasHttpClient:
             print("Log in and authorize the Lomas Python client.")
 
         print("This will hang until the authorization is complete...")
-
-        self._oauth2_session = OAuth2Session(
-            client_id="lomas_client",
-            token_endpoint=self.config.oidc_config.token_endpoint,
-            # update_token=save_token, # TODO: use this to store refresh token across notebook restarts?
-            token_endpoint_auth_method="none",
-            leeway=30,  # refresh token 30 seconds before expiry
-        )
 
         interval = 5
         while True:
@@ -147,30 +160,43 @@ class LomasHttpClient:
             + f"with query params: {body.model_dump()}."
         )
 
-        r = self._oauth2_session.post(
-            f"{self.config.app_url}/{endpoint}",
-            json=body.model_dump(),
-            headers=self.headers,
-            timeout=(CONNECT_TIMEOUT, read_timeout),
-        )
+        try:
+            r = self._oauth2_session.post(
+                f"{self.config.app_url}/{endpoint}",
+                json=body.model_dump(),
+                headers=self.headers,
+                timeout=(CONNECT_TIMEOUT, read_timeout),
+            )
+        except OAuth2Error:
+            # Handle expired refresh token
+            self._authorize()
 
+            r = self._oauth2_session.post(
+                f"{self.config.app_url}/{endpoint}",
+                json=body.model_dump(),
+                headers=self.headers,
+                timeout=(CONNECT_TIMEOUT, read_timeout),
+            )
         return r
 
     def wait_for_job(self, job_uid: str, n_retry: int = 1800, sleep_sec: float = 1) -> Job:
         """Periodically query the job endpoint sleeping in between until it completes / times-out."""
         for _ in range(n_retry):
-            job_query = self._oauth2_session.get(
-                f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
-            ).json()
+            try:
+                job_query = self._oauth2_session.get(
+                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                ).json()
+            except OAuth2Error:
+                # Handle expired refresh token
+                self._authorize()
+
+                job_query = self._oauth2_session.get(
+                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                ).json()
 
             # Check for error before accessing "status"
             if "status" in job_query and job_query["status"] in {"complete", "failed"}:
                 return Job.model_validate(job_query)
-
-            if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
-                # Handle unauthorized specifically
-                self._authorize()  # refresh token
-                continue  # retry the request
 
             time.sleep(sleep_sec)
 

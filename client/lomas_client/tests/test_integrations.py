@@ -154,7 +154,6 @@ def test_device_flow(demo_setup) -> None:
     old_stdout = sys.stdout
     sys.stdout = bot
 
-    user_name = "jack"
     client = Client(dataset_name="TITANIC", use_password_flow=False)
 
     # Reset stdout
@@ -163,8 +162,14 @@ def test_device_flow(demo_setup) -> None:
     init_budget = client.get_initial_budget()
     assert init_budget.initial_delta == 0.2
 
-    # Test refresh token works (dex config sets lifetime of 10sec)
+    # Test refresh token works (our dex config sets lifetime of 10sec for access token)
     time.sleep(10)
+
+    init_budget = client.get_initial_budget()
+    assert init_budget.initial_delta == 0.2
+
+    # Check new client uses saved token (in tempfile)
+    client = Client(dataset_name="TITANIC", use_password_flow=False)
 
     init_budget = client.get_initial_budget()
     assert init_budget.initial_delta == 0.2

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 import pytest
@@ -9,6 +10,7 @@ from oauthlib import oauth2
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
+from lomas_client.constants import DEFAULT_EPSILON
 from lomas_core.error_handler import UnauthorizedAccessException
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.dex.dex_admin import (
@@ -97,18 +99,19 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     }
 
     df_dummy = client.get_dummy_dataset()
-    assert df_dummy.shape == (100, 11)
+    assert df_dummy.shape == (100, 8)
 
     df_dummy_lz = client.get_dummy_dataset(lazy=True)
-    assert df_dummy_lz.collect().shape == (100, 11)
+    assert df_dummy_lz.collect().shape == (100, 8)
 
-    # Smartnoise
+    ## Dummy Query
+    NB_ROWS, SEED = 100, 0
+    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 100)), dp.len())
+    dummy_res = client.opendp.query(plan, dummy=True, epsilon=DEFAULT_EPSILON)
+    assert isinstance(dummy_res.result.value, pl.DataFrame)
 
-    # Dummy Query
-    query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
-    dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
-
-    avg_age = dummy_res.result.df["avg_age"][0]
+    avg_age = dummy_res.result.value.to_pandas().Age[0]
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
@@ -119,22 +122,33 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
-    res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
 
-    avg_age = res.result.df["avg_age"][0]
+    ## cost
+    cost = client.opendp.cost(plan, epsilon=DEFAULT_EPSILON)
+    assert cost.epsilon == 1.0
+
+    cost_zcdp = client.opendp.cost(plan, rho=0.5, delta=1e-6)
+    assert cost_zcdp.delta == 1e-6
+    assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
+
+    ## acutal query
+    res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)
+    assert isinstance(res.result.value, pl.DataFrame)
+
+    avg_age = res.result.value.to_pandas().Age[0]
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
     assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
-    assert rem_budget.remaining_epsilon == 43.5
+    assert rem_budget.remaining_epsilon == pytest.approx(35, 1)
     tot_spent = client.get_total_spent_budget()
     assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
-    assert tot_spent.total_spent_epsilon == 1.5
+    assert tot_spent.total_spent_epsilon == pytest.approx(10, 1)
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
     assert prev_queries[0]["dataset_name"] == "TITANIC"
-    assert prev_queries[0]["dp_library"] == "smartnoise_sql"
+    assert prev_queries[0]["dp_library"] == "opendp"
 
 
 def test_demo_diffprivlib(dex_config, demo_setup) -> None:
@@ -268,7 +282,7 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     )
     income_metadata = client.get_dataset_metadata()
     NB_ROWS, SEED = 200, 0
-    dummy_lf = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED, lazy=True)
+    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
     test = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED)
     assert len(test.dtypes) >= 5
 
@@ -276,11 +290,9 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
         income_metadata["columns"]["income"]["lower"],
         income_metadata["columns"]["income"]["upper"],
     )
-    plan = dummy_lf.select(
-        pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound), scale=(10_000, 1))
-    )
-    query_res = client.opendp.query(plan, dummy=False, nb_rows=NB_ROWS, seed=SEED)
-    assert query_res.epsilon == pytest.approx(11, 0.5)
+    plan = context.query().select(pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound)))
+    query_res = client.opendp.query(plan, nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    assert query_res.epsilon == DEFAULT_EPSILON
     assert isinstance(query_res.result, OpenDPPolarsQueryResult)
     df_polar = query_res.result.value
     assert df_polar.shape == (1, 1)
@@ -289,8 +301,6 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     assert len(prev_queries) == 1
     assert prev_queries[0]["dataset_name"] == "FSO_INCOME_SYNTHETIC"
     assert prev_queries[0]["dp_library"] == "opendp"
-    assert prev_queries[0]["client_input"]["pipeline_type"] == "polars"
-    assert prev_queries[0]["client_input"]["mechanism"] == "laplace"
     response_archives = prev_queries[0]["response"]
-    assert response_archives["epsilon"] >= 1.0
-    assert response_archives["delta"] >= 0.0
+    assert response_archives["epsilon"] == DEFAULT_EPSILON
+    assert response_archives["delta"] == 0.0

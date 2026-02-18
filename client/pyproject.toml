@@ -24,8 +24,6 @@ keywords = [
     "logger",
     "opendp",
     "privacy",
-    "smartnoise-sql",
-    "smartnoise-synth",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

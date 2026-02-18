@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Self
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
-    OpenDpMechanism,
-    OpenDpPipelineType,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
@@ -15,7 +15,7 @@ from lomas_core.models.requests_examples import (
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_dummy_smartnoise_synth_query,
-    example_opendp,
+    example_opendp_polars,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
     example_smartnoise_synth_cost,
@@ -45,6 +45,25 @@ class GetDummyDataset(LomasRequestModel):
     """The number of dummy rows to generate."""
     dummy_seed: int
     """The seed for the random generation of the dummy dataset."""
+
+
+class GetDummyContext(GetDummyDataset):
+    """Model input to get a dummy dataset."""
+
+    epsilon: float | None = Field(..., ge=0)
+    """The epsilon parameter used for pure ε-DP or approximate-DP"""
+    delta: float | None = Field(..., ge=0)
+    """
+    The delta parameter
+    """
+    rho: float | None = Field(..., gte=0)
+    """
+    Privacy loss paramater for zCDP (or approximate-zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
+    """
+    approx_zcdp: bool
+    """
+    If False, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+    """
 
 
 class QueryModel(LomasRequestModel):
@@ -176,33 +195,41 @@ class OpenDPRequestModel(LomasRequestModel):
 
     model_config = ConfigDict(
         use_attribute_docstrings=True,
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]},
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
     )
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
-    fixed_delta: float | None = Field(..., ge=0)
+    epsilon: float | None = Field(..., ge=0)
+    """The epsilon parameter used for pure ε-DP or approximate-DP"""
+    delta: float | None = Field(..., ge=0)
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
 
     (e.g. with "make_gaussian") then it is converted to "SmoothedMaxDivergence"
     with "make_zCDP_to_approxDP" (see "opendp measurements documentation at
     https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP).
-    In that case a "fixed_delta" must be provided by the user.
+    In that case a "delta" must be provided by the user.
     """
-    pipeline_type: OpenDpPipelineType
-    """The type of pipeline ('legacy' or 'polars')."""
-    mechanism: OpenDpMechanism | None
-    """The noise mechanism ('laplace' or 'gaussian').
+    rho: float | None = Field(..., gte=0)
+    """
+    Privacy loss parameter for zCDP (or approximate zCDP). Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
+    """
 
-    Need to be specified when using polars
-    """
+    approx_zcdp: bool
+    """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
+
+    @model_validator(mode="after")
+    def check_epsilon_or_rho(self) -> Self:
+        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
+            raise ValueError("Either `epsilon` or `rho` must be set.")
+        return self
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]})
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):

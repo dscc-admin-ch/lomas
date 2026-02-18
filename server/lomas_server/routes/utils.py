@@ -6,6 +6,7 @@ import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import wraps
+from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
@@ -246,7 +247,11 @@ async def handle_query_to_job(
 
     match ds_access:
         case DSPathAccess():
-            data_connector = PathConnector(metadata=ds_metadata, dataset_path=ds_access.path)
+            match path := ds_access.path:
+                case Path():
+                    data_connector = PathConnector(metadata=ds_metadata, dataset_path=path.resolve())
+                case _:
+                    data_connector = PathConnector(metadata=ds_metadata, dataset_path=path)
         case DSS3Access():
             credentials = get_dataset_credentials(
                 private_db_credentials,

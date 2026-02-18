@@ -59,22 +59,7 @@ class OpenDPMeasurement(StrEnum):
     see https://docs.opendp.org/en/stable/api/python/opendp.measurements.html
     """
 
-    FIXED_SMOOTHED_MAX_DIVERGENCE = "fixed_smoothed_max_divergence"
-    MAX_DIVERGENCE = "max_divergence"
-    SMOOTHED_MAX_DIVERGENCE = "smoothed_max_divergence"
-    ZERO_CONCENTRATED_DIVERGENCE = "zero_concentrated_divergence"
-
-
-class OpenDPDatasetInputMetric(StrEnum):
-    """Type of opendp input metric for datasets.
-
-    see https://docs.opendp.org/en/stable/api/python/opendp.metrics.html
-    see https://github.com/opendp/opendp/blob/main/rust/src/metrics/mod.rs
-    """
-
-    SYMMETRIC_DISTANCE = "SymmetricDistance"
-    INSERT_DELETE_DISTANCE = "InsertDeleteDistance"
-    CHANGE_ONE_DISTANCE = "ChangeOneDistance"
-    HAMMING_DISTANCE = "HammingDistance"
-
-    INT_DISTANCE = "u32"  # opendp type for distance between datasets
+    ZERO_CONCENTRATED_DIVERGENCE = "ZeroConcentratedDivergence"
+    APPROX_ZERO_CONCENTRATED_DIVERGENCE = "Approximate(ZeroConcentratedDivergence)"
+    APPROX_MAX_DIVERGENCE = "Approximate(MaxDivergence)"
+    MAX_DIVERGENCE = "MaxDivergence"

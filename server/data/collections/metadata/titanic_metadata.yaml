@@ -36,26 +36,12 @@ columns:
     precision: 32
     lower: 0
     upper: 10
-  Ticket:
-    type: string
-    nullable_proportion: 0.0
   Fare:
     type: float
     nullable_proportion: 0.0
     precision: 64
     lower: 0.0
     upper: 1000
-  Cabin:
-    type: string
-    nullable_proportion: 0.0
-  Embarked:
-    type: string
-    nullable_proportion: 0.0
-    cardinality: 3
-    categories:
-    - C
-    - Q
-    - S
   Survived:
     type: boolean
     nullable_proportion: 0.0

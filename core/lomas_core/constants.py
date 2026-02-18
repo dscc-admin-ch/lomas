@@ -1,7 +1,5 @@
 from enum import StrEnum
 
-from opendp import measures as ms, typing as tp
-
 # Server error messages
 INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
 
@@ -19,33 +17,6 @@ class DPLibraries(StrEnum):
 
 
 # OpenDP
-class OpenDpMechanism(StrEnum):
-    """Name of OpenDP mechanisms."""
-
-    LAPLACE = "laplace"
-    GAUSSIAN = "gaussian"
-
-
-class OpenDpPipelineType(StrEnum):
-    """Name of OpenDP pipelines."""
-
-    LEGACY = "legacy"
-    POLARS = "polars"
-
-
-OPENDP_OUTPUT_MEASURE: dict[OpenDpMechanism, tp.Measure] = {
-    OpenDpMechanism.LAPLACE: ms.max_divergence(),
-    OpenDpMechanism.GAUSSIAN: ms.zero_concentrated_divergence(),
-}
-
-OPENDP_TYPE_MAPPING = {
-    "int32": tp.i32,
-    "float32": tp.f32,
-    "int64": tp.i64,
-    "float64": tp.f64,
-    "string": tp.String,
-    "boolean": bool,
-}
 
 
 # Smartnoise synth

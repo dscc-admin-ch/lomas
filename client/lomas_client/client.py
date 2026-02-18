@@ -1,12 +1,12 @@
 import base64
+import io
 import json
 import pickle
 
+import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 from fastapi import status
-from opendp.mod import enable_features
-from opendp_logger import enable_logging
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
 
@@ -18,23 +18,19 @@ from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
-from lomas_client.libraries.smartnoise_synth import SmartnoiseSynthClient
 from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel, OpenDPQueryModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from lomas_core.opendp_utils import reconstruct_measurement_pipeline
-
-# Opendp_logger
-enable_logging()
-enable_features("contrib")
+from lomas_core.opendp_utils import build_context, build_margins_from_metadata
 
 
 class Client:
@@ -64,7 +60,6 @@ class Client:
 
         self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
-        self.smartnoise_synth = SmartnoiseSynthClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
@@ -116,41 +111,69 @@ class Client:
         if res.status_code == status.HTTP_200_OK:
             data = res.content.decode("utf8")
             dummy_df = DummyDsResponse.model_validate_json(data).dummy_df
-            if lazy:
-                # Temporary: we use type string for datetime in polars
-                # Will be fixed in 0.13
-                for col in dummy_df.select_dtypes(include=["datetime"]):
-                    dummy_df[col] = dummy_df[col].astype("string[python]")
-                print(
-                    "Datetime type mismatch: The Polars LazyFrame currently uses 'str' for datetime fields, "
-                    "which may not match the expected metadata types. This is a temporary workaround "
-                    "and will be resolved in a future release (>=0.13)."
-                )
-                return pl.from_pandas(dummy_df).lazy()
-
-            return dummy_df
+            return pl.from_pandas(dummy_df).lazy() if lazy else dummy_df
 
         raise_error(res)
 
-    def get_dummy_lf(self, nb_rows: int = DUMMY_NB_ROWS, seed: int = DUMMY_SEED) -> pl.LazyFrame:
+    def get_context(
+        self,
+        nb_rows: int = DUMMY_NB_ROWS,
+        seed: int = DUMMY_SEED,
+        epsilon: float | None = None,
+        delta: float | None = None,
+        rho: float | None = None,
+        approx_zcdp: bool = True,
+    ) -> dp.Context:
         """
-        Returns the polars LazyFrame for the dummy dataset with optional parameters.
+        Create an OpenDP context based on a dummy dataset.
+
+        This can be used to build an OpenDP pipeline locally on the client side.
 
         Args:
-            nb_rows (int, optional): The number of rows in the dummy dataset.
+            nb_rows (int, optional): Number of rows in the dummy dataset.
                 Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): The random seed for generating the dummy dataset.
+            seed (int, optional): Random seed used to generate the dummy dataset.
                 Defaults to DUMMY_SEED.
+            epsilon (float | None, optional): Privacy parameter to be spent.
+                Required for pure DP or approximate DP (Laplace mechanism).
+                Defaults to None.
+            delta (float | None, optional): Required if the pipeline measurement
+                uses ZeroConcentratedDivergence (e.g., with make_gaussian) and is
+                converted to SmoothedMaxDivergence using
+                make_zCDP_to_approxDP. See:
+                https://docs.smartnoise.org/sql/advanced.html#postprocess
+                Defaults to None.
+            rho (float | None, optional): Privacy parameter used for zCDP or
+                approximate zCDP (Gaussian mechanism). Cannot be used if
+                epsilon is provided.
+            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
+                Default True.
 
         Returns:
-            Optional[pl.LazyFrame]: The LazyFrame for the dummy dataset
+            dp.Context: OpenDP context object initialized with metadata and
+            user-provided privacy parameters.
         """
-        dummy_pandas = self.get_dummy_dataset(nb_rows=nb_rows, seed=seed)
+        body_dict = {
+            "dataset_name": self.config.dataset_name,
+            "dummy_nb_rows": nb_rows,
+            "dummy_seed": seed,
+            "epsilon": epsilon,
+            "delta": delta,
+            "rho": rho,
+            "approx_zcdp": approx_zcdp,
+        }
 
-        # TODO: fix when pandas can handle datetime
-        for col in dummy_pandas.select_dtypes(include=["datetime64[ns]", "datetime64[ns, UTC]"]).columns:
-            dummy_pandas[col] = dummy_pandas[col].astype(str)
-        return pl.from_pandas(dummy_pandas).lazy()
+        body = GetDummyContext.model_validate(body_dict)
+
+        dummy_lf = self.get_dummy_dataset(seed=seed, nb_rows=nb_rows, lazy=True)
+
+        metadata_dict = self.get_dataset_metadata()
+        metadata = Metadata.model_validate(metadata_dict)
+        margins = build_margins_from_metadata(metadata)
+
+        context = build_context(body, metadata, margins, dummy_lf)
+
+        return context
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.
@@ -221,17 +244,11 @@ class Client:
                 match query["dp_library"]:
                     case DPLibraries.SMARTNOISE_SQL:
                         pass
-                    case DPLibraries.SMARTNOISE_SYNTH:
-                        return_model = query["client_input"]["return_model"]
-                        res = query["response"]["result"]
-                        if return_model:
-                            query["response"]["result"] = pickle.loads(base64.b64decode(res))
-                        else:
-                            query["response"]["result"] = pd.DataFrame(res)
                     case DPLibraries.OPENDP:
                         query_json = OpenDPQueryModel.model_validate(query["client_input"])
-                        query["client_input"]["opendp_json"] = reconstruct_measurement_pipeline(
-                            query_json, self.get_dataset_metadata()
+                        serialized_bytes = base64.b64decode(query_json.opendp_json)
+                        query["client_input"]["opendp_json"] = pl.LazyFrame.deserialize(
+                            io.BytesIO(serialized_bytes)
                         )
                     case DPLibraries.DIFFPRIVLIB:
                         model = base64.b64decode(query["response"]["result"]["model"])

@@ -1,244 +1,252 @@
-import io
-import re
+import itertools
+from base64 import b64decode
+from typing import Any
 
-import opendp as dp
+import opendp.prelude as dp
 import polars as pl
-from opendp_logger import make_load_json
 
-from lomas_core.constants import OPENDP_OUTPUT_MEASURE, OPENDP_TYPE_MAPPING, OpenDpPipelineType
-from lomas_core.error_handler import InternalServerException, InvalidQueryException
-from lomas_core.models.constants import MetadataColumnType
-from lomas_core.models.requests import OpenDPQueryModel
+from lomas_core.error_handler import InvalidQueryException
+from lomas_core.models.collections import Metadata
+from lomas_core.models.requests import GetDummyContext, OpenDPQueryModel
+
+dp.enable_features("contrib")
 
 
-def get_raw_lf_domain(metadata_dict: dict) -> dp.mod.Domain:
+def build_margins_from_metadata(metadata: Metadata) -> list:
     """
-    Builds the "raw" lf domain from the metadata.
+    Build a list of Polars margins from dataset metadata.
 
-    The domain in considered "raw" because it does not contain any margin.
-    The domain is built by putting together series domains from each column.
+    This function derives margin constraints at three levels:
+    1. A global margin based on the total number of rows.
+    2. Single-column margins using per-column partition length and cardinality.
+    3. Multi-column grouping margins (up to 4 columns) by combining individual
+       column constraints.
+
+    Args:
+        metadata (Metadata): The metadata model for the real dataset.
+
+    Raises:
+        ValueError:
+            If the metadata does not define the total number of rows.
+
+    Returns:
+        list: A list of ``dp.polars.Margin`` objects encoding global, per-column,
+            and multi-column grouping constraints inferred from the metadata.
     """
-    series_domains = []
-    # Series domains
-    for name, series_info in metadata_dict["columns"].items():
-        series_bounds = None
-        if series_info["type"] in {MetadataColumnType.FLOAT, MetadataColumnType.INT}:
-            series_type = f"{series_info['type']}{series_info['precision']}"
-            if "lower" in series_info and "upper" in series_info:
-                series_bounds = (series_info["lower"], series_info["upper"])
-        # TODO 392: release opendp 0.12 (adapt with type date)
-        elif series_info["type"] == MetadataColumnType.DATETIME:
-            series_type = MetadataColumnType.STRING
-        else:
-            series_type = series_info["type"]
+    margins = []
+    # --------------------
+    # Global margin
+    # --------------------
+    rows = metadata.rows
+    if rows is None:
+        raise ValueError("Metadata must contain 'rows'")
 
-        if series_type not in OPENDP_TYPE_MAPPING:
-            # For valid metadata, only datetime would fail here
-            raise InvalidQueryException(
-                f"Column type {series_type} not supported by OpenDP. "
-                f"Type must be in {OPENDP_TYPE_MAPPING.keys()}"
-            )
+    # TODO: invariant should change depending of the metadata (nrows given or not)
+    # TBD with new metadata structure
+    margins.append(dp.polars.Margin(max_length=rows, invariant="lengths"))
 
-        # Note: Same as using option_domain (at least how I understand it)
-        series_nullable = (
-            series_info["nullable_proportion"] > 0.0 and series_type != MetadataColumnType.STRING
+    # --------------------
+    # Column-level margins
+    # --------------------
+    columns = metadata.columns
+
+    # Store constraints for grouping
+    grouping_constraints = {}
+
+    for column_name, col_meta in columns.items():
+        max_partition_length = col_meta.max_partition_length
+        cardinality = getattr(col_meta, "cardinality", None)
+
+        by = [column_name]
+
+        # Save constraints for later grouping
+        grouping_constraints[column_name] = {
+            "max_partition_length": max_partition_length,
+            "cardinality": cardinality,
+        }
+
+        # Categorical columns
+        margin_kwargs: dict[str, Any] = {
+            "by": by,
+            "invariant": "keys",
+        }
+
+        if max_partition_length is not None:
+            margin_kwargs["max_length"] = max_partition_length
+
+        if cardinality is not None:
+            margin_kwargs["max_groups"] = cardinality
+
+        margins.append(dp.polars.Margin(**margin_kwargs))
+
+    # --------------------
+    # Multi-column groupings
+    # --------------------
+    column_names = list(grouping_constraints.keys())
+
+    # For now, no more than 4 combination
+    for r in range(2, min(len(column_names) + 1, 5)):
+        for combo in itertools.combinations(column_names, r):
+            max_lengths = []
+            max_groups = []
+
+            for col in combo:
+                c = grouping_constraints[col]
+
+                if c["max_partition_length"] is not None:
+                    max_lengths.append(c["max_partition_length"])
+
+                if c["cardinality"] is not None:
+                    max_groups.append(c["cardinality"])
+
+            margin_kwargs = {
+                "by": list(combo),
+                "invariant": "keys",
+            }
+
+            # min(max_partition_length)
+            max_lengths = [
+                grouping_constraints[col]["max_partition_length"]
+                for col in combo
+                if grouping_constraints[col]["max_partition_length"] is not None
+            ]
+
+            if max_lengths:
+                margin_kwargs["max_length"] = min(max_lengths)
+
+            # max_groups logic: multiply max_groups of all columns from combo
+            # If one group is None and other is not, we keep the max group from the other
+            # if all none, max_groups is none.
+            cardinalities = [
+                grouping_constraints[col]["cardinality"]
+                for col in combo
+                if grouping_constraints[col]["cardinality"] is not None
+            ]
+            if all(c is not None for c in cardinalities):
+                product = 1
+                for c in cardinalities:  # type: ignore[assignment]
+                    product *= c  # type: ignore[operator]
+                margin_kwargs["max_groups"] = product
+
+            margins.append(dp.polars.Margin(**margin_kwargs))
+
+    return margins
+
+
+def build_context(
+    query_json: GetDummyContext, metadata: Metadata, margins: list, input_data: pl.LazyFrame
+) -> dp.Context:
+    """
+    Construct a differential privacy context from query parameters and metadata.
+
+    This function validates the provided privacy parameters and builds a
+    ``dp.Context`` using either a Laplace (epsilon-based) or Gaussian (rho-based)
+    privacy loss, depending on the input. Exactly one of ``epsilon`` or ``rho``
+    must be specified.
+
+    The context is created using a compositor with a fixed privacy budget split
+    (currently set to 1) and the margins derived from the dataset metadata.
+
+    Args:
+        query_json (GetDummyContext): Request defining the privacy parameters, including \
+            ``epsilon``, ``rho``, and optional ``delta``.
+        metadata (Metadata): The metadata model for the real dataset.
+        margins (list): List of ``dp.polars.Margin`` objects defining aggregation and\
+            grouping constraints.
+        input_data (pl.LazyFrame): Input dataset on which the differentially private context \
+            will be applied.
+
+    Raises:
+        InvalidQueryExceptionModel:
+            If both ``epsilon`` and ``rho`` are provided.
+        InvalidQueryExceptionModel:
+            If neither ``epsilon`` nor ``rho`` is provided.
+
+    Returns:
+        dp.Context: A dp context configured with\
+            the requested privacy loss, margins, and input data.
+    """
+    epsilon = query_json.epsilon
+    rho = query_json.rho
+    delta = query_json.delta
+    approx_zcdp = query_json.approx_zcdp
+
+    if epsilon is not None and rho is not None:
+        raise InvalidQueryException("Provide only one of epsilon or rho, not both.")
+
+    if epsilon is None and rho is None:
+        raise InvalidQueryException("One of epsilon or rho must be provided.")
+
+    if epsilon:
+        # Laplace
+        return dp.Context.compositor(
+            data=input_data,
+            privacy_unit=dp.unit_of(contributions=metadata.max_ids),
+            privacy_loss=dp.loss_of(
+                epsilon=epsilon,
+                delta=delta,
+            ),
+            split_evenly_over=1,  # fixed to 1 for now, spend whole budget sent by user
+            margins=margins,
         )
-        series_type = OPENDP_TYPE_MAPPING[series_type]
 
-        series_domain = dp.domains.series_domain(
-            name,
-            dp.domains.atom_domain(T=series_type, nullable=series_nullable, bounds=series_bounds),
-        )
-        series_domains.append(series_domain)
+    # Gaussian
 
-    # Build domain from series domain
-    raw_lf_domain = dp.domains.lazyframe_domain(series_domains)
-
-    return raw_lf_domain
-
-
-def add_global_margin(lf_domain: dp.mod.Domain, metadata: dict) -> dp.mod.Domain:
-    """Builds the "global" (by = []) margin from the metadata."""
-    lf_domain = dp.domains.with_margin(
-        lf_domain,
-        by=[],
-        public_info="keys",
-        max_partition_length=metadata["rows"],
-        # max_partition_contributions already managed in the input_distance
+    if approx_zcdp is False:
+        # if approx_zcdp is false, delta is only used to compute the associated epsilon
+        # user wants to perform zcdp and not approx-zcdp (rho given, delta None)
+        delta = None
+    return dp.Context.compositor(
+        data=input_data,
+        privacy_unit=dp.unit_of(contributions=metadata.max_ids),
+        privacy_loss=dp.loss_of(
+            rho=rho,
+            delta=delta,
+        ),
+        split_evenly_over=1,
+        margins=margins,
     )
-    return lf_domain
 
 
-def extract_group_by_columns(plan: str) -> list:
+def build_context_from_metadata(
+    query_json: OpenDPQueryModel,
+    metadata: Metadata,
+    input_data: pl.LazyFrame,
+) -> dp.Context:
     """
-    Extract column names used in the BY operation from the plan string.
-
-    Parameters:
-    plan (str): The polars query plan as a string.
-    Returns:
-    list: A list of column names used in the BY operation.
-    """
-    # Regular expression to capture the content inside BY []
-    aggregate_by_pattern = r"AGGREGATE(?:.|\n)+?BY \[(.*?)\]"
-
-    # Find the part of the plan related to the GROUP BY clause
-    match = re.findall(aggregate_by_pattern, plan)
-
-    if len(match) == 1:
-        # Extract the columns part
-        columns_part = match[0]
-        # Find all column names inside col("...")
-        column_names = re.findall(r'col\("([^"]+)"\)', columns_part)
-        return column_names
-    if len(match) > 1:
-        raise InvalidQueryException(
-            "Your are trying to do multiple groupings. "
-            "This is currently not supported, please use one grouping"
-        )
-    return []
-
-
-def multiply_or_none(values: list[int | None]) -> int | None:
-    """
-    Multiply all values in the list, return None if any value is None.
+    Build a differential privacy context from the metadata.
 
     Args:
-        values (list[Optional[int]]): A list of int or None
+        query_json (OpenDPQueryModel): Query containing privacy parameters and \
+            a serialized OpenDP Polars query plan.
+        metadata (Metadata): The metadata model for the real dataset.
+        input_data (pl.LazyFrame): Input dataset.
 
     Returns:
-        None if any None in the list, multiplied values of list otherwise.
+        dp.Context: The constructed differential privacy context.
     """
-    if any(v is None for v in values):
-        return None
-    result = 1
-    for v in (v for v in values if v is not None):
-        result *= v
-    return result
+    margins = build_margins_from_metadata(metadata=metadata)
+    return build_context(query_json, metadata, margins, input_data)
 
 
-def multiple_group_params(metadata: dict, by_config: list) -> dict:
+def deserialize_context_query(
+    query_json: OpenDPQueryModel,
+    metadata: Metadata,
+    input_data: pl.LazyFrame,
+) -> dp.polars.LazyFrameQuery:
     """
-    Updates parameters for multiple-column grouping configuration.
+    Build a differential privacy context and deserialize a Polars query plan.
 
     Args:
-        metadata (dict): The metadata dictionary.
-        by_config (list): List of columns used for grouping.
+        query_json (OpenDPQueryModel): Query containing privacy parameters and \
+            a serialized OpenDP Polars query plan.
+        metadata (Metadata): The metadata model for the real dataset.
+        input_data (pl.LazyFrame): Input dataset.
 
     Returns:
-        (dict) updated margin_params for the groupby
+        dp.polars.LazyFrameQuery: A deserialized query bound to a newly \
+            constructed context.
     """
-    # Initialize values
-    max_partition_length = metadata["rows"]
-    max_num_partitions_l = []
-    max_influenced_partitions_l = []
-    max_partition_contributions_l = []
-
-    # Iterate through grouping columns
-    for column in by_config:
-        series_info = metadata["columns"][column]
-
-        # Update the max_partition_length
-        if series_info["max_partition_length"] is not None:
-            max_partition_length = min(max_partition_length, series_info["max_partition_length"])
-
-        # Get all groupby parameters in a list
-        max_num_partitions_l.append(series_info.get("cardinality", None))
-        max_influenced_partitions_l.append(series_info.get("max_influenced_partitions", None))
-        max_partition_contributions_l.append(series_info.get("max_partition_contributions", None))
-
-    # We multiply the cardinality, max_influenced_partitions and max_partition_contributions
-    # of each groupby column. If any None, then no margin.
-    max_num_partitions = multiply_or_none(max_num_partitions_l)
-    max_influenced_partitions = multiply_or_none(max_influenced_partitions_l)
-    max_partition_contributions = multiply_or_none(max_partition_contributions_l)
-
-    # Make margin
-    margin_params = {}
-    margin_params["max_partition_length"] = max_partition_length
-    if max_num_partitions:
-        margin_params["max_num_partitions"] = max_num_partitions
-
-    # If max_influenced_partitions > max_ids: then max_influenced_partitions = max_ids
-    if max_influenced_partitions:
-        max_influenced_partitions = min(metadata["max_ids"], max_influenced_partitions)
-        margin_params["max_influenced_partitions"] = max_influenced_partitions
-
-    # If max_partition_contributions > max_ids: then max_partition_contributions = max_ids
-    if max_partition_contributions:
-        max_partition_contributions = min(metadata["max_ids"], max_partition_contributions)
-        margin_params["max_partition_contributions"] = max_partition_contributions
-
-    return margin_params
-
-
-def get_lf_domain(metadata_dict: dict, plan: pl.LazyFrame) -> dp.mod.Domain:
-    """
-    Returns the OpenDP LazyFrame domain given a metadata dictionary.
-
-    Args:
-        metadata_dict (dict): The metadata dictionary
-        plan (LazyFrame): The polars query plan as a Polars LazyFrame
-    Raises:
-        Exception: If there is missing information in the metadata.
-    Returns:
-        dp.mod.Domain: The OpenDP domain for the metadata.
-    """
-    # Get raw lf domain (without margins)
-    raw_lf_domain = get_raw_lf_domain(metadata_dict)
-
-    # Add global margin to domain (for by=[])
-    lf_domain = add_global_margin(raw_lf_domain, metadata_dict)
-
-    # If grouping in the query, we update the margin params
-    by_config = extract_group_by_columns(plan.explain())
-    if len(by_config) >= 1:
-        margin_params = multiple_group_params(metadata_dict, by_config)
-        # TODO 323: Multiple margins?
-        # What if two group_by's in one query?
-        # Update margin with group_margin
-        lf_domain = dp.domains.with_margin(
-            lf_domain,
-            by=by_config,
-            public_info="keys",
-            **margin_params,
-        )
-    return lf_domain
-
-
-def reconstruct_measurement_pipeline(query_json: OpenDPQueryModel, metadata: dict) -> dp.Measurement:
-    """Reconstruct OpenDP pipeline from json representation.
-
-    Args:
-        query_json (BaseModel): The JSON request object for the query.
-        metadata (dict): The dataset metadata dictionary.\
-            Only used for polars pipelines.
-
-    Raises:
-        InvalidQueryException: If the pipeline is not a measurement or\
-            the pipeline type is not supported.
-
-    Returns:
-        dp.Measurement: The reconstructed pipeline.
-    """
-    # Reconstruct pipeline
-    if query_json.pipeline_type == OpenDpPipelineType.LEGACY:
-        opendp_pipe = make_load_json(query_json.opendp_json)
-    elif query_json.pipeline_type == OpenDpPipelineType.POLARS:
-        plan = pl.LazyFrame.deserialize(io.StringIO(query_json.opendp_json), format="json")
-
-        assert query_json.mechanism is not None
-        output_measure = OPENDP_OUTPUT_MEASURE[query_json.mechanism]
-
-        lf_domain = get_lf_domain(metadata, plan)
-
-        opendp_pipe = dp.measurements.make_private_lazyframe(
-            lf_domain,
-            dp.metrics.symmetric_distance(),
-            output_measure,
-            plan,
-            threshold=100,
-        )
-    else:
-        raise InternalServerException(f"Unsupported OpenDP pipeline type: {query_json.pipeline_type}")
-
-    return opendp_pipe
+    context = build_context_from_metadata(query_json, metadata, input_data)
+    serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
+    return context.deserialize_polars_plan(serialized_plan)

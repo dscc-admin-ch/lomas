@@ -13,11 +13,9 @@ columns:
     lower: 1
     upper: 2000
   date:
-    type: string
-    # TODO: opendp 0.12
-    # type: datetime
-    # lower: "2022-08-01"
-    # upper: "2023-07-30"
+    type: datetime
+    lower: "2022-08-01"
+    upper: "2023-07-30"
   temporal:
     type: int
     precision: 32

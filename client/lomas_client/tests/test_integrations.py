@@ -122,6 +122,16 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
+
+    ## cost
+    cost = client.opendp.cost(plan, epsilon=DEFAULT_EPSILON)
+    assert cost.epsilon == 1.0
+
+    cost_zcdp = client.opendp.cost(plan, rho=0.5, delta=1e-6)
+    assert cost_zcdp.delta == 1e-6
+    assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
+
+    ## acutal query
     res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)
     assert isinstance(res.result.value, pl.DataFrame)
 

@@ -153,10 +153,14 @@ source = [
   "./client/lomas_client"
 ]
 relative_files = true
+# https://coverage.readthedocs.io/en/latest/source.html#source-glob
+# > A pattern with no directory separators matches the file name in any directory.
 omit = [
-  "**/uvicorn_serve.py",
-  "**/b_database_administration.py",
-  "*/api_pb2*.py"
+  "uvicorn_serve.py",
+  "b_database_administration.py",
+  "api_pb2*.py",
+  # FIXME: remove on opendb.mbi switch
+  "*smartnoise_synth.py"
 ]
 
 [tool.coverage.report]

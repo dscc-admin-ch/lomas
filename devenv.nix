@@ -306,7 +306,7 @@ in
             inherit working_dir;
             replicas = 1;
             command = "coverage run --data-file=.coverage.worker -m lomas_server.worker";
-            log_location = "$DEVENV_ROOT/logs/worker.log";
+            log_location = "${working_dir}/logs/worker.log";
           };
           # Add this ad-hoc pytest process to be run in foreground whilst ensuring
           # all background dependencies
@@ -320,7 +320,7 @@ in
               rabbitmq.condition = "process_healthy";
               lomas-server.condition = "process_healthy";
             };
-            log_location = "$DEVENV_ROOT/logs/pytest.log";
+            log_location = "${working_dir}/logs/pytest.log";
             log_configuration.flush_each_line = true;
             # We terminate the whole process-compose at the end of this task
             availability.exit_on_end = true;

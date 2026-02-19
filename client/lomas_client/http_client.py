@@ -53,7 +53,9 @@ class LomasHttpClient:
 
     def _get_token_file(self) -> str:
         """Returns a temp filename for saving/loading the token."""
-        return os.path.join(tempfile.gettempdir(), "lomas_client_token.json")
+        return os.path.join(
+            tempfile.gettempdir(), f"lomas_{self.config.user_name}_{self.config.dataset_name}_token.json"
+        )
 
     def _save_token(self, token: dict, refresh_token: str | None = None) -> None:
         """Saves the token to disk."""

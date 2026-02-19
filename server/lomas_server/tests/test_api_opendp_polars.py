@@ -119,7 +119,7 @@ def context_count(lf: pl.LazyFrame) -> bytes:
 
 
 class TestContext(TestSetupRootAPIEndpoint):
-    """Test OpenDP Endpoint with context"""
+    """Test OpenDP Endpoint with context."""
 
     def test_context_polars(self) -> None:
         """Test opendp polars query."""

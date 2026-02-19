@@ -37,6 +37,7 @@ class LomasHttpClient:
         self._oauth2_session = OAuth2Session(
             client_id="lomas_client",
             token_endpoint=self.config.oidc_config.token_endpoint,
+            scope=OIDC_REQUIRED_SCOPES,
             update_token=self._save_token,
             token=self._load_token(),
             token_endpoint_auth_method="none",

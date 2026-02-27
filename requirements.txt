@@ -113,7 +113,6 @@ networkx==3.6.1           # via mbi
 notebook==7.5.4           # via jupyter
 notebook-shim==0.2.4      # via jupyterlab, notebook
 numpy==2.4.2              # via chex, contourpy, diffprivlib, jax, jaxlib, matplotlib, mbi, ml-dtypes, opendp, optax, pandas, pydeck, randomgen, scikit-learn, scipy, seaborn, streamlit
-oauthlib==3.3.1           # via lomas-server, requests-oauthlib
 opendp==0.14.1            # via lomas-core
 opentelemetry-api==1.39.1  # via lomas-core, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-instrumentation, opentelemetry-instrumentation-aio-pika, opentelemetry-instrumentation-asgi, opentelemetry-instrumentation-fastapi, opentelemetry-instrumentation-logging, opentelemetry-instrumentation-requests, opentelemetry-sdk, opentelemetry-semantic-conventions
 opentelemetry-exporter-otlp==1.39.1  # via lomas-core
@@ -177,8 +176,7 @@ pyyaml==6.0.3             # via jupyter-events, myst-parser, uvicorn
 pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
 randomgen==2.3.0          # via opendp
 referencing==0.37.0       # via jsonschema, jsonschema-specifications, jupyter-events
-requests==2.32.5          # via jupyterlab-server, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, sphinx, streamlit
-requests-oauthlib==2.0.0  # via lomas-server
+requests==2.32.5          # via jupyterlab-server, opentelemetry-exporter-otlp-proto-http, sphinx, streamlit
 returns==0.26.0           # via lomas-core
 rfc3339-validator==0.1.4  # via jsonschema, jupyter-events
 rfc3986-validator==0.1.1  # via jsonschema, jupyter-events

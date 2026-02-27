@@ -1,7 +1,7 @@
 import json
-import os
 import tempfile
 import time
+from pathlib import Path
 
 import requests
 from authlib.integrations.base_client.errors import OAuthError
@@ -52,10 +52,11 @@ class LomasHttpClient:
             # We catch attribute error in case the token is none
             self._authorize()
 
-    def _get_token_file(self) -> str:
+    def _get_token_file(self) -> Path:
         """Returns a temp filename for saving/loading the token."""
-        return os.path.join(
-            tempfile.gettempdir(), f"lomas_{self.config.user_name}_{self.config.dataset_name}_token.json"
+        return (
+            Path(tempfile.gettempdir())
+            / f"lomas_{self.config.user_name}_{self.config.dataset_name}_token.json"
         )
 
     def _save_token(self, token: dict, refresh_token: str | None = None) -> None:
@@ -65,7 +66,7 @@ class LomasHttpClient:
 
     def _load_token(self) -> dict | None:
         """Tries to load the saved token from disk."""
-        if os.path.exists(self._get_token_file()):
+        if self._get_token_file().is_file():
             with open(self._get_token_file()) as f:
                 return json.load(f)
         return None

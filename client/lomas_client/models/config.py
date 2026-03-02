@@ -21,10 +21,11 @@ class ClientConfig(BaseSettings):
     """The base URL for the API server."""
     dataset_name: str
     """The name of the dataset to be accessed or manipulated."""
-    user_name: str
+    use_password_flow: bool = False
+    """If true, uses the legacy password auth flow."""
+    user_name: str | None = None
     """User name."""
-    # TODO add option for devide auth flow.
-    user_password: str | None
+    user_password: str | None = None
     """User password."""
     oidc_discovery_url: HttpUrl
     """The oidc provier discovery Url."""

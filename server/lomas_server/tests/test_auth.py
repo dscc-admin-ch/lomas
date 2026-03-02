@@ -1,11 +1,11 @@
 import os
 
 import pytest
+from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
 from fastapi.testclient import TestClient
-from oauthlib.oauth2 import LegacyApplicationClient
-from requests_oauthlib import OAuth2Session
 
+from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_core.models.requests_examples import example_get_admin_db_data
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
@@ -34,18 +34,22 @@ def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
     # Create client config -> load token endpoint from environment variables.
     client_config = ClientConfig(user_name=user_name, user_password=user_password, dataset_name="PENGUIN")
 
-    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-    oauth_client = LegacyApplicationClient(client_id="lomas_client")
-    oauth2_session = OAuth2Session(client=oauth_client)
+    oauth2_session = OAuth2Session(
+        client_id="lomas_client",
+        token_endpoint=client_config.oidc_config.token_endpoint,
+        token_endpoint_auth_method="none",
+        scope=OIDC_REQUIRED_SCOPES,
+        leeway=30,  # refresh token 30 seconds before expiry
+    )
 
     oauth2_session.fetch_token(
         str(client_config.oidc_config.token_endpoint),
-        username=client_config.user_name,
-        password=client_config.user_password,
-        scope=["openid", "profile", "email"],
+        username=user_name,
+        password=user_password,
+        grant_type="password",
     )
 
-    header = {"Authorization": f"Bearer {oauth2_session.access_token}"}
+    header = {"Authorization": f"Bearer {oauth2_session.token['access_token']}"}
 
     return header
 

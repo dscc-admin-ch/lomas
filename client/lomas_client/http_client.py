@@ -1,14 +1,18 @@
-import os
-from time import sleep
+import json
+import tempfile
+import time
+from pathlib import Path
 
 import requests
-from oauthlib.oauth2 import LegacyApplicationClient, TokenExpiredError
+from authlib.integrations.base_client.errors import OAuthError
+from authlib.integrations.requests_client import OAuth2Session
+from authlib.oauth2.rfc6749.errors import OAuth2Error
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from requests_oauthlib import OAuth2Session
 
-from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
+from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
+from lomas_core.models.config import OIDCDeviceCodeResponse
 from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
@@ -28,28 +32,108 @@ class LomasHttpClient:
         self.config = config
 
         if not self.config.oidc_use_tls or not self.config.lomas_service_use_tls:
-            logger.warning(
-                "OIDC IdP or Lomas service configured without TLS -> using oauthlib insecure transport"
-            )
-            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+            logger.warning("OIDC IdP or Lomas service configured without TLS -> using insecure transport")
+
+        self._oauth2_session = OAuth2Session(
+            client_id="lomas_client",
+            token_endpoint=self.config.oidc_config.token_endpoint,
+            scope=OIDC_REQUIRED_SCOPES,
+            update_token=self._save_token,
+            token=self._load_token(),
+            token_endpoint_auth_method="none",
+            leeway=30,  # refresh token 30 seconds before expiry
+        )
+
+        try:
+            self._oauth2_session.refresh_token()
+        except (OAuth2Error, AttributeError, requests.HTTPError):
+            # Fallback to authorize
+            # We catch http errors because dex fails when it cannot link a token to existing user.
+            # We catch attribute error in case the token is none
+            self._authorize()
+
+    def _get_token_file(self) -> Path:
+        """Returns a temp filename for saving/loading the token."""
+        return (
+            Path(tempfile.gettempdir())
+            / f"lomas_{self.config.user_name}_{self.config.dataset_name}_token.json"
+        )
+
+    def _save_token(self, token: dict, refresh_token: str | None = None) -> None:
+        """Saves the token to disk."""
+        with open(self._get_token_file(), "w") as f:
+            json.dump(token, f)
+
+    def _load_token(self) -> dict | None:
+        """Tries to load the saved token from disk."""
+        if self._get_token_file().is_file():
+            with open(self._get_token_file()) as f:
+                return json.load(f)
+        return None
+
+    def _authorize(self) -> None:
+        """Chooses the right grant and gets access token."""
+        if self.config.use_password_flow:
+            self._password_flow()
         else:
-            # Reset in case it was changed before
-            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "0"
+            self._device_flow()
 
-        oauth_client = LegacyApplicationClient(OIDC_LOMAS_CLIENT__CLIENT_ID)
-        self._oauth2_session = OAuth2Session(client=oauth_client)
-
-        # Fetch first token:
-        self._fetch_token()
-
-    def _fetch_token(self) -> None:
-        """Fetches an authorization token and stores it."""
+    def _password_flow(self) -> None:
+        """Performs a legacy password flow to fetch an access token."""
         self._oauth2_session.fetch_token(
-            str(self.config.oidc_config.token_endpoint),
+            self.config.oidc_config.token_endpoint,
             username=self.config.user_name,
             password=self.config.user_password,
-            scope=["openid", "profile", "email"],
+            grant_type="password",
         )
+
+    def _device_flow(self) -> None:
+        """Fetches an access token using the device auth flow.
+
+        Waits until the user has authorized the python client.
+
+        Raises:
+            TimeoutError: In case the user did not authorize the Lomas Python client in time.
+        """
+        print("Authorizing Lomas Python client")
+
+        device_data_resp = requests.post(
+            str(self.config.oidc_config.device_authorization_endpoint),
+            data={"client_id": OIDC_LOMAS_CLIENT__CLIENT_ID, "scope": OIDC_REQUIRED_SCOPES},
+        )
+        device_data_resp.raise_for_status()
+        device_data = OIDCDeviceCodeResponse.model_validate(device_data_resp.json())
+
+        if not device_data.verification_uri_complete:
+            print(f"Go to: {device_data.verification_uri}")
+            print(f"Log in and authorize the Lomas Python client with this code {device_data.user_code}")
+        else:
+            print(f"Go to: {device_data.verification_uri_complete}")
+            print("Log in and authorize the Lomas Python client.")
+
+        print("This will hang until the authorization is complete...")
+
+        interval = 5
+        while True:
+            try:
+                self._oauth2_session.fetch_token(
+                    self.config.oidc_config.token_endpoint,
+                    grant_type="urn:ietf:params:oauth:grant-type:device_code",
+                    device_code=device_data.device_code,
+                )
+                break
+            except (OAuth2Error, OAuthError) as e:
+                if e.error == "authorization_pending":
+                    time.sleep(interval)
+                elif e.error == "slow_down":
+                    interval += 5
+                    time.sleep(interval)
+                elif e.error == "expired_token":
+                    raise TimeoutError("Lomas Python client was not authorized soon enough.") from e
+                else:
+                    raise e
+
+        print("Authorization process complete.")
 
     def post(
         self,
@@ -88,17 +172,16 @@ class LomasHttpClient:
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
             )
-        except TokenExpiredError:
-            # This also catches if there is no token at first try.
-            # Retry with new token
-            self._fetch_token()
+        except OAuth2Error:
+            # Handle expired refresh token
+            self._authorize()
+
             r = self._oauth2_session.post(
                 f"{self.config.app_url}/{endpoint}",
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
             )
-
         return r
 
     def wait_for_job(self, job_uid: str, n_retry: int = 1800, sleep_sec: float = 1) -> Job:
@@ -108,9 +191,10 @@ class LomasHttpClient:
                 job_query = self._oauth2_session.get(
                     f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
                 ).json()
-            except TokenExpiredError:
-                # This also catches if there is no token at first try.
-                self._fetch_token()
+            except OAuth2Error:
+                # Handle expired refresh token
+                self._authorize()
+
                 job_query = self._oauth2_session.get(
                     f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
                 ).json()
@@ -119,11 +203,6 @@ class LomasHttpClient:
             if "status" in job_query and job_query["status"] in {"complete", "failed"}:
                 return Job.model_validate(job_query)
 
-            if "type" in job_query and job_query["type"] == "UnauthorizedAccessException":
-                # Handle unauthorized specifically
-                self._fetch_token()  # refresh token
-                continue  # retry the request
-
-            sleep(sleep_sec)
+            time.sleep(sleep_sec)
 
         raise TimeoutError(f"Job {job_uid} didn't complete in time ({sleep_sec * n_retry})")

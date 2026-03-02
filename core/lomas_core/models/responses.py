@@ -65,7 +65,8 @@ class DummyDsResponse(ResponseModel):
 
     dtypes: Any
     """The dummy_df column data types."""
-    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
+    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict), PlainValidator(dataframe_from_dict)]
+
     """The dummy dataframe."""
 
     @field_validator("dummy_df", mode="before")

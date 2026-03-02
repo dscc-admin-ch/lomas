@@ -9,9 +9,7 @@ let
   cfg = config.dockerEnv;
 
   inherit (lib)
-    types
     mkIf
-    mkOption
     mkEnableOption
     ;
 
@@ -110,8 +108,8 @@ in
             LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString config.lomas.dex.adminPort}";
             LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
             LOMAS_ADMIN_PATH_PREFIX = "/data";
-            LOMAS_ADMIN_server_service = "http://lomas_server:48080";
-            LOMAS_ADMIN_server_url = "http://lomas_server:48080";
+            LOMAS_ADMIN_server_service = "http://lomas_server:${toString config.lomas.port}";
+            LOMAS_ADMIN_server_url = "http://lomas_server:${toString config.lomas.port}";
           };
         in
         {
@@ -183,6 +181,49 @@ in
         '';
       };
 
+    };
+
+    outputs.lomas-oci = pkgs.dockerTools.buildLayeredImage {
+      name = "lomas-oci";
+      tag = "latest";
+
+      contents = builtins.attrValues {
+        inherit (pkgs.dockerTools) usrBinEnv;
+        inherit (pkgs) bashInteractive coreutils-full;
+        inherit (config.outputs) lomas-env;
+      };
+
+      extraCommands = ''
+        mkdir -p tmp
+        chmod 777 tmp
+      '';
+
+      config = {
+        Cmd = [ "lomas-serve" ];
+        # WorkingDir = "/srv";
+        Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") (
+          (filterEnvPrefix "LOMAS_SERVICE_")
+          // (filterEnvPrefix "LOMAS_CLIENT_")
+          // (filterEnvPrefix "LOMAS_ADMIN_")
+          // {
+            LOMAS_SERVICE_server__host_ip = "0.0.0.0";
+            LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString config.lomas.rabbitmq.port}";
+            LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${toString config.lomas.dex.port}/dex/.well-known/openid-configuration";
+            LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
+
+            LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString config.lomas.port}";
+            LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${toString config.lomas.dex.port}/dex/.well-known/openid-configuration";
+            LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
+
+            LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString config.lomas.dex.adminPort}";
+            LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
+            LOMAS_ADMIN_PATH_PREFIX = "/data";
+            LOMAS_ADMIN_server_service = "http://lomas_server:${toString config.lomas.port}";
+            LOMAS_ADMIN_server_url = "http://lomas_server:${toString config.lomas.port}";
+          }
+        );
+        ExposedPorts.${toString config.lomas.port} = { };
+      };
     };
 
   };

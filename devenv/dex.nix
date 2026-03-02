@@ -115,7 +115,6 @@ in
 
     package = mkOption {
       type = types.package;
-      # default = pkgs.dex-oidc;
       default = pkgs.dex-oidc.overrideAttrs (old: rec {
         version = "c016300db963097d7a90eb010ae2f323dd54b0b7";
         src = pkgs.fetchFromGitHub {
@@ -131,11 +130,6 @@ in
           })
         ];
         vendorHash = "sha256-obnZ8DOCDSK2cqu6PNjAeQbkb24osRGwM6fq93WZpOc=";
-        passthru.tests = {
-          version = pkgs.testers.testVersion {
-            version = "${version}";
-          };
-        };
       });
     };
 

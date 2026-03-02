@@ -411,20 +411,28 @@ in
 
   scripts.docker-compose-up = wrapScript {
     pwd = "server";
-    exec = "docker compose --env-file configs/.env.docker-compose up";
+    exec = "podman compose --env-file configs/.env.docker-compose up";
+  };
+
+  scripts.podman-load-image = wrapScript {
+    exec = ''
+      echo "building lomas OCI"
+      podman load -i $(devenv build outputs.lomas-oci)
+    '';
   };
 
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''
-      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
-      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
+      ${config.scripts.podman-load-image.exec}
+      podman compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+      podman compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     '';
   };
 
   scripts.docker-compose-down = wrapScript {
     pwd = "server";
-    exec = "docker compose --env-file configs/.env.docker-compose down";
+    exec = "podman compose --env-file configs/.env.docker-compose down";
   };
 
   scripts.py-build = wrapScript {

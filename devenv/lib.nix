@@ -178,5 +178,5 @@ rec {
 
   virtualenv = pythonSet.mkVirtualEnv "lomas-dev-env" workspace.deps.all;
 
-  lomasEnv = pythonSets.mkVirtualEnv "lomas-env" workspace.deps.default;
+  lomasEnv = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-env" workspace.deps.default;
 }

@@ -63,7 +63,7 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, flag="r") as db:
             return list(map(User.model_validate, db.get(TK.USERS, {}).values()))
 
-    def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: str) -> None:
+    def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
         with shelve.open(self.path, writeback=True) as db:
             # Step 1: add datasets
             new_datasets = []
@@ -74,13 +74,13 @@ class LocalAdminDatabase(AdminDatabase):
                         case HttpUrl():
                             pass
                         case Path():
-                            ds.dataset_access.path = Path(path_prefix) / ds.dataset_access.path
+                            ds.dataset_access.path = path_prefix / ds.dataset_access.path
                 if isinstance(ds.metadata_access, DSPathAccess):
                     match ds.metadata_access.path:
                         case HttpUrl():
                             pass
                         case Path():
-                            ds.metadata_access.path = Path(path_prefix) / ds.metadata_access.path
+                            ds.metadata_access.path = path_prefix / ds.metadata_access.path
 
                 # Fill datasets_list
                 new_datasets.append(ds)
@@ -132,7 +132,7 @@ class LocalAdminDatabase(AdminDatabase):
         self,
         yaml_file: Path,
         clean: bool,
-        path_prefix: str = "",
+        path_prefix: Path = Path(),
     ) -> None:
         """Set all database types to datasets in dataset collection based.
 
@@ -141,7 +141,7 @@ class LocalAdminDatabase(AdminDatabase):
         Args:
             yaml_file Path: path to the YAML file location
             clean (bool): Whether to clean the collection before adding.
-            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
+            path_prefix (Path, optional): Prefix to add to all file paths. Defaults to empty Path.
 
         Raises:
             ValueError: If there are errors in the YAML file format.

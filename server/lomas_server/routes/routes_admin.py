@@ -28,6 +28,7 @@ from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
@@ -520,8 +521,8 @@ def add_dataset_bulk(
     clean: bool = False,
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
-    # FIXME: in config/server_config
-    return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix="../data/")
+    config = Config()
+    return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix=config.data_directory)
 
 
 @router.post("/dataset")

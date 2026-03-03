@@ -106,8 +106,8 @@ in
           adminVar = filterEnvPrefix "LOMAS_ADMIN_";
           adminVarFinal = adminVar // {
             LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString config.lomas.dex.adminPort}";
-            LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
-            LOMAS_ADMIN_PATH_PREFIX = "/data";
+            LOMAS_ADMIN_USER_YAML = "/data/collections/user_collection.yaml";
+            LOMAS_ADMIN_DATASET_YAML = "/data/collections/dataset_collection.yaml";
             LOMAS_ADMIN_server_service = "http://lomas_server:${toString config.lomas.port}";
             LOMAS_ADMIN_server_url = "http://lomas_server:${toString config.lomas.port}";
           };
@@ -210,14 +210,15 @@ in
             LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString config.lomas.rabbitmq.port}";
             LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${toString config.lomas.dex.port}/dex/.well-known/openid-configuration";
             LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
+            LOMAS_SERVICE_data_directory = "/data";
 
             LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString config.lomas.port}";
             LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${toString config.lomas.dex.port}/dex/.well-known/openid-configuration";
             LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
 
             LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString config.lomas.dex.adminPort}";
-            LOMAS_ADMIN_DATASET_YAML = "/collections/dataset_collection.yaml";
-            LOMAS_ADMIN_PATH_PREFIX = "/data";
+            LOMAS_ADMIN_USER_YAML = "/data/collections/user_collection.yaml";
+            LOMAS_ADMIN_DATASET_YAML = "/data/collections/dataset_collection.yaml";
             LOMAS_ADMIN_server_service = "http://lomas_server:${toString config.lomas.port}";
             LOMAS_ADMIN_server_url = "http://lomas_server:${toString config.lomas.port}";
           }

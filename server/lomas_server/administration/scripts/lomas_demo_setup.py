@@ -22,9 +22,8 @@ class DemoAdminConfig(AdminConfig):
         case_sensitive=False,
     )
 
-    path_prefix: Path = Field(default=Path("../data"))
-    user_yaml: Path = Field(default=Path("/collections/user_collection.yaml"))
-    dataset_yaml: Path = Field(default=Path("/collections/dataset_collection.yaml"))
+    user_yaml: Path = Field(default=Path("../data/collections/user_collection.yaml"))
+    dataset_yaml: Path = Field(default=Path("../data/collections/dataset_collection.yaml"))
     bootstrap: str
 
 
@@ -40,20 +39,17 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> None:
     pprint("Creating user collection from Config")
     pprint(config)
 
-    user_yaml_file = config.path_prefix / config.user_yaml.relative_to("/")
-    dataset_yaml_file = config.path_prefix / config.dataset_yaml.relative_to("/")
-
     query_lomas(
         "/usersfile",
         httpx.post,
         json={"clean": True},
-        files={"file": user_yaml_file.open(mode="rb")},
+        files={"file": config.user_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
     if config.dex_config is not None:
         add_dex_users_via_yaml(
             config.dex_config,
-            yaml_file=user_yaml_file,
+            yaml_file=config.user_yaml,
             clean=False,
             overwrite=True,
         )
@@ -63,7 +59,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> None:
         "/dataset/bulk",
         httpx.post,
         json={"clean": True},
-        files={"file": dataset_yaml_file.open(mode="rb")},
+        files={"file": config.dataset_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 

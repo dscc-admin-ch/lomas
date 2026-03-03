@@ -136,15 +136,13 @@ def test_add_dex_users_via_yaml(client, dex_config):
     len_users_before = len(get_dex_passwords(dex_config))
 
     demo_config = DemoAdminConfig()
-    add_dex_users_via_yaml(
-        dex_config, demo_config.path_prefix / demo_config.user_yaml.relative_to("/"), True, True
-    )
+    add_dex_users_via_yaml(dex_config, demo_config.user_yaml, True, True)
     # Check that users/clients are inserted
     users_after = get_dex_passwords(dex_config)
     assert len(users_after) == len_users_before + 7  # check that all 6 users are inserted
 
     # Load demo yaml
-    yaml_users = yaml.safe_load((demo_config.path_prefix / demo_config.user_yaml.relative_to("/")).open())
+    yaml_users = yaml.safe_load(demo_config.user_yaml.open())
     new_email = "new@email.com"
     yaml_users["users"][1]["id"]["email"] = new_email
 

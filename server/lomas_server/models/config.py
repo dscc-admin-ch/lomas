@@ -101,6 +101,8 @@ class Config(BaseSettings):
 
     admin_database_url: Path
 
+    data_directory: Path = Field(default=Path("../data"))
+
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
     amqp: AmqpConfig

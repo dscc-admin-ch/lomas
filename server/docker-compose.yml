@@ -12,6 +12,7 @@ services:
       - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
+      - ./data/collections:/data/collections
     depends_on:
       rabbitmq:
         condition: service_started
@@ -39,7 +40,7 @@ services:
     image: localhost/lomas-oci:latest
     container_name: lomas_worker_dev
     restart: always
-    command: "python -m lomas_server.worker"
+    command: lomas-work
     env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
@@ -96,7 +97,7 @@ services:
     depends_on:
       dex:
         condition: service_healthy
-    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
+    entrypoint: lomas-demo-setup
     env_file: ./configs/administration/.env.lomas_demo_setup
     volumes:
       - admindata:/tmp

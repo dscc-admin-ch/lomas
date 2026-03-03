@@ -14,9 +14,9 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
-  admin_path_prefix = "${config.devenv.root}/server/data/";
-  user_yaml_path = "/collections/user_collection.yaml";
-  dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
+  admin_data_dir = "${config.devenv.root}/server/data";
+  user_yaml_path = "${admin_data_dir}/collections/user_collection.yaml";
+  dataset_yaml_path = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
 in
 {
   # import our modules
@@ -218,7 +218,6 @@ in
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
     LOMAS_ADMIN_database_url = "/tmp/admin.db";
-    LOMAS_ADMIN_PATH_PREFIX = admin_path_prefix;
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";
@@ -417,7 +416,9 @@ in
   scripts.podman-load-image = wrapScript {
     exec = ''
       echo "building lomas OCI"
-      podman load -i $(devenv build outputs.lomas-oci)
+      devenv build -v outputs.lomas-oci
+      echo "loading into podman"
+      podman load -i $(devenv build outputs.lomas-oci 2>/dev/null)
     '';
   };
 

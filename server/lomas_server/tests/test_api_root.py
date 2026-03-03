@@ -35,14 +35,14 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         path_prefix = Path(__file__).parent / "test_data"
 
         self.config.database.add_users_via_yaml(
-            yaml_file=path_prefix / Path("test_user_collection.yaml"),
+            yaml_file=(path_prefix / "test_user_collection.yaml"),
             clean=True,
         )
 
         self.config.database.add_datasets_via_yaml(
-            yaml_file=path_prefix / Path("test_datasets_with_s3.yaml"),
+            yaml_file=(path_prefix / "test_datasets_with_s3.yaml"),
             clean=True,
-            path_prefix=str(path_prefix),
+            path_prefix=path_prefix,
         )
 
     def tearDown(self) -> None:

@@ -27,7 +27,7 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
-@pytest.mark.skip(reason="OpenDP > 0.12")
+# @pytest.mark.skip(reason="OpenDP > 0.12")
 class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 
@@ -37,7 +37,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
-
+            breakpoint()
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name

@@ -157,7 +157,7 @@ relative_files = true
 # https://coverage.readthedocs.io/en/latest/source.html#source-glob
 # > A pattern with no directory separators matches the file name in any directory.
 omit = [
-  "database_administration.py",
+  "*/administration/dashboard/*.py",
   "uvicorn_serve.py",
   "api_pb2*.py",
   # FIXME: remove on opendb.mbi switch

@@ -27,7 +27,6 @@ from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
 
-# @pytest.mark.skip(reason="OpenDP > 0.12")
 class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 

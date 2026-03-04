@@ -38,7 +38,9 @@ dependencies = [
   "opentelemetry-instrumentation-aio-pika>=0.50b0",
   "pyjwt>=2.10",
   "aio-pika>=9.5",
-  "cryptography>=44"
+  "cryptography>=44",
+  "sqlglot>=27.8.0",
+  "smartnoise-sql @ git+https://github.com/lancelotmarti/smartnoise-sdk.git@main#subdirectory=sql",
 ]
 
 [project.optional-dependencies]

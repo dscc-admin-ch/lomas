@@ -107,7 +107,6 @@ async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse 
     dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
-            breakpoint()
             request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 

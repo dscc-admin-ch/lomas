@@ -417,9 +417,9 @@ in
   scripts.podman-load-image = wrapScript {
     exec = ''
       echo "building lomas OCI"
-      devenv build -v outputs.lomas-oci
+      out=$(devenv build outputs.lomas-oci)
       echo "loading into podman"
-      podman load -i $(devenv build outputs.lomas-oci 2>/dev/null)
+      $out | podman load
     '';
   };
 

@@ -183,7 +183,7 @@ in
 
     };
 
-    outputs.lomas-oci = pkgs.dockerTools.buildLayeredImage {
+    outputs.lomas-oci = pkgs.dockerTools.streamLayeredImage {
       name = "lomas-oci";
       tag = "latest";
 

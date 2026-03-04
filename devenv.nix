@@ -244,6 +244,7 @@ in
     pkgs.jq
     pkgs.yq-go
     pkgs.watchexec
+    pkgs.skopeo
     pkgs.kubectl
     pkgs.kubernetes-helm
   ];

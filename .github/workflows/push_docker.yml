@@ -15,13 +15,18 @@ jobs:
       matrix:
         include:
           - image: dsccadminch/lomas_server
-            target: lomas_server
-          - image: dsccadminch/lomas_admin
-            target: lomas_admin
-          - image: dsccadminch/lomas_client
-            target: lomas_client
+          # - image: dsccadminch/lomas_admin
+          # - image: dsccadminch/lomas_client
     steps:
       - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v30
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lomas
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Install devenv.sh
+        run: nix profile install nixpkgs#devenv
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -32,20 +37,17 @@ jobs:
             type=sha
             type=semver, pattern={{version}}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: ${{ github.event_name == 'push' || github.event_name == 'release' }}
-          target: ${{ matrix.target }}
-          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Build Image
+        run: devenv build outputs.lomas-oci
+
+      - name: Push Image
+        # if: github.event_name == 'push' || github.event_name == 'release'
+        run: |
+          cat $(devenv build outputs.lomas-oci 2> /dev/null ) | \
+            skopeo copy docker-archive:/dev/stdin docker://${{ matrix.image }}:${DOCKER_METADATA_OUTPUT_VERSION:-debug}

@@ -12,6 +12,7 @@ services:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/collections:/data/collections
+      - ./data/datasets:/data/datasets/
     depends_on:
       rabbitmq:
         condition: service_started

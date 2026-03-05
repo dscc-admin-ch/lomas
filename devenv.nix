@@ -419,7 +419,7 @@ in
       echo "building lomas OCI"
       out=$(devenv build outputs.lomas-oci)
       echo "loading into podman"
-      $out | podman load
+      $out | TMPDIR=/tmp podman load
     '';
   };
 

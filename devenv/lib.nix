@@ -117,11 +117,21 @@ rec {
       })
     );
 
+  fixSmartnoiseSql = final: prev: {
+    "antlr4-python3-runtime" = prev."antlr4-python3-runtime".overrideAttrs (old: {
+      nativeBuildInputs = old.nativeBuildInputs ++ final.resolveBuildSystem { setuptools = [ ]; };
+    });
+    "smartnoise-sql" = prev."smartnoise-sql".overrideAttrs (old: {
+      nativeBuildInputs = old.nativeBuildInputs ++ final.resolveBuildSystem { poetry-core = [ ]; };
+    });
+  };
+
   pythonSets = (pkgs.callPackage pyproject-nix.build.packages { inherit python; }).overrideScope (
     lib.composeManyExtensions [
       pyproject-build-systems.overlays.wheel
       uvOverlay
       fixBuildSystemOverlay
+      fixSmartnoiseSql
       diffprivlibOverlay
       # openDpOverlay
     ]

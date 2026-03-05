@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -14,17 +15,27 @@ from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setu
 from lomas_server.app import app
 from lomas_server.tests.utils import free_pass_env
 
-test_data_folder = Path(__file__).parent / "../../tests/test_data"
+test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def demo_setup():
     lomas_demo_setup()
 
 
 @pytest.fixture
+def switch_data_dir():
+    key = "LOMAS_SERVICE_data_directory"
+    prev_data_dir = os.environ.get(key, "")
+    # Server graciously allow Datase collection to have relative path to the `data_directory`
+    os.environ[key] = str(test_data_folder)
+    yield f"{key} -> {test_data_folder}"
+    os.environ[key] = prev_data_dir
+
+
+@pytest.fixture
 def dashbord_dir() -> Path:
-    return Path(__file__).parent / "../dashboard"
+    return (Path(__file__).parent / "../dashboard").resolve()
 
 
 @pytest.fixture
@@ -153,8 +164,7 @@ def test_add_user_yaml(client: TestClient, demo_setup) -> None:
     )
 
 
-@pytest.mark.xfail(reason="relative directory not yet fixed")
-def test_add_dataset_yaml(client: TestClient, demo_setup) -> None:
+def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> None:
     dataset_collection = test_data_folder / "test_datasets.yaml"
     assert is_successful(
         query_lomas(

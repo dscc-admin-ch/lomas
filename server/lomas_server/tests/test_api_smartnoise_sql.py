@@ -111,11 +111,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             )
 
             # Expect to fail: user does not exist
-            fake_user_token = (
-                'Bearer {"name": "I_do_not_exist", "email": "I_do_not_exist@penguin_research.org"}'
-            )
-            new_headers = self.headers
-            new_headers["Authorization"] = fake_user_token
+            new_headers = {**self.headers, "Authorization": "Bearer I_do_not_exist"}
             job = submit_job_wait(
                 client, "/smartnoise_sql_query", json=example_smartnoise_sql, headers=new_headers
             )
@@ -175,9 +171,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
         """Test smartnoise-sql query on datetime."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work: query with datetimes and another user
-            real_user_token = 'Bearer {"name": "BirthdayGirl", "email": "birthdaygirl@example.com"}'
-            new_headers = self.headers
-            new_headers["Authorization"] = real_user_token
+            new_headers = {**self.headers, "Authorization": "Bearer BirthdayGirl"}
             body = dict(example_smartnoise_sql)
             body["dataset_name"] = "BIRTHDAYS"
             body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"

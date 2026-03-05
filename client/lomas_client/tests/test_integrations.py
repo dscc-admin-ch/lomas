@@ -248,6 +248,40 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert prev_queries[0]["dataset_name"] == "TITANIC"
     assert prev_queries[0]["dp_library"] == "opendp"
 
+    # Smartnoise
+
+    # Dummy Query
+    query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
+    dummy_res = client.smartnoise_sql.query(query=query, epsilon=100, delta=2, dummy=True)
+
+    avg_age = dummy_res.result.df["avg_age"][0]
+    assert avg_age == pytest.approx(51.5, 0.5)
+
+    rem_budget = client.get_remaining_budget()
+    assert rem_budget.remaining_delta == 0.2
+    assert rem_budget.remaining_epsilon == 44
+    tot_spent = client.get_total_spent_budget()
+    assert tot_spent.total_spent_delta == 0
+    assert tot_spent.total_spent_epsilon == 1.0
+
+    # True Query
+    res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
+
+    avg_age = res.result.df["avg_age"][0]
+    assert avg_age == pytest.approx(51.5, 0.5)
+
+    rem_budget = client.get_remaining_budget()
+    assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
+    assert rem_budget.remaining_epsilon == 42.5
+    tot_spent = client.get_total_spent_budget()
+    assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
+    assert tot_spent.total_spent_epsilon == 2.5
+
+    prev_queries = client.get_previous_queries()
+    assert len(prev_queries) == 2
+    assert prev_queries[1]["dataset_name"] == "TITANIC"
+    assert prev_queries[1]["dp_library"] == "smartnoise_sql"
+
 
 def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     user_name = "Dr.Antartica"

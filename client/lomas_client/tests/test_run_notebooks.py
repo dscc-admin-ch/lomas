@@ -12,13 +12,11 @@ def mark_notebook(notebooks: list[Path]) -> list[NamedTuple]:
         "Demo_Client_Notebook.ipynb": pytest.mark.skip(reason="Smartnoise broken with opendp>0.12"),  # ~33s
         "Demo_Client_Notebook_OpenDP_Polars.ipynb": pytest.mark.long,  # ~33s
         "Demo_Client_Notebook_OpenDP_Polars_features.ipynb": pytest.mark.long,
-        "Demo_Client_Notebook_Smartnoise-SQL.ipynb": pytest.mark.skip(reason="OpenDP > 0.12"),  # ~36s
+        "Demo_Client_Notebook_Smartnoise-SQL.ipynb": pytest.mark.long,  # ~36s
         "Demo_Client_Notebook_Smartnoise-Synth.ipynb": pytest.mark.skip(reason="Issue #423"),
-        "Minimalist_Demo_Client_Notebook.ipynb": pytest.mark.skip(
-            reason="Smartnoise broken with opendp>0.12"
-        ),  # ~8s
+        "Minimalist_Demo_Client_Notebook.ipynb": pytest.mark.long,  # ~8s
         "Penguin_Research.ipynb": pytest.mark.xfail(reason="How do you even VAR in ODP ???"),  # ~9s
-        "Queries Testing.ipynb": pytest.mark.skip(reason="Smartnoise broken with opendp>0.12"),  # ~49s
+        "Queries Testing.ipynb": pytest.mark.skip(reason="OpenDP legacy removed"),  # ~49s
     }
     return [pytest.param(file, marks=marks.get(file.name, [])) for file in notebooks]
 

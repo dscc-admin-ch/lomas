@@ -36,11 +36,15 @@ from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
+    SmartnoiseSQLDummyQueryModel,
+    SmartnoiseSQLQueryModel,
+    SmartnoiseSQLRequestModel,
 )
 from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.data_connector import ConnectorUnionTA
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
+from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
@@ -102,6 +106,10 @@ async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse 
 
     dp_querier: DPQuerier
     match dp_library:
+        case DPLibraries.SMARTNOISE_SQL:
+            request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+
         case DPLibraries.OPENDP:
             request_model = OpenDPRequestModel.model_validate_json(request_model_str)
             dp_querier = OpenDPQuerier(data_connector, admin_database)
@@ -130,6 +138,10 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
 
     dp_querier: DPQuerier
     match dp_library:
+        case DPLibraries.SMARTNOISE_SQL:
+            query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+
         case DPLibraries.OPENDP:
             query_json = OpenDPQueryModel.model_validate_json(query_json_str)
             dp_querier = OpenDPQuerier(data_connector, admin_database)
@@ -156,6 +168,11 @@ async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryRespons
 
     dp_querier: DPQuerier
     match dp_library:
+        case DPLibraries.SMARTNOISE_SQL:
+            query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
             data_connector = await get_dummy_dataset_for_query(admin_database, query_model)

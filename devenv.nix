@@ -426,9 +426,9 @@ in
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''
-      ${config.scripts.podman-load-image.exec}
-      # podman compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
-      # podman compose -f docker-compose.yml --env-file configs/.env.docker-compose down
+      # ${config.scripts.podman-load-image.exec}
+      podman compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+      podman compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     '';
   };
 

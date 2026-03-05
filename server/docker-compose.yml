@@ -2,12 +2,11 @@ x-common-build: &common
 
 services:
   lomas_server:
-    image: localhost/lomas-oci:latest
+    image: lomas-oci:latest
     container_name: lomas_server_dev
     ports:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
-    env_file: ./configs/.env.lomas_service
     volumes:
       - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
@@ -37,11 +36,10 @@ services:
       - lomas-network
 
   lomas_worker:
-    image: localhost/lomas-oci:latest
+    image: lomas-oci:latest
     container_name: lomas_worker_dev
     restart: always
     command: lomas-work
-    env_file: ./configs/.env.lomas_service
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
@@ -93,12 +91,11 @@ services:
 
   lomas_demo_setup:
     container_name: demo_setup
-    image: localhost/lomas-oci:latest
+    image: lomas-oci:latest
     depends_on:
       dex:
         condition: service_healthy
     entrypoint: lomas-demo-setup
-    env_file: ./configs/administration/.env.lomas_demo_setup
     volumes:
       - admindata:/tmp
       - ../core/lomas_core:/code/core/lomas_core
@@ -142,12 +139,11 @@ services:
       - lomas-network
 
   lomas_admin_dashboard:
-    image: localhost/lomas-oci:latest
+    image: lomas-oci:latest
     container_name: lomas_admin_dev
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
-    env_file: ./configs/administration/.env.lomas_demo_setup
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
@@ -162,9 +158,8 @@ services:
       - lomas-network
 
   lomas_client:
-    image: localhost/lomas-oci:latest
+    image: lomas-oci:latest
     container_name: lomas_client
-    env_file: ./configs/.env.lomas_client
     command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}

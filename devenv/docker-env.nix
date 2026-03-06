@@ -162,7 +162,15 @@ in
             LOMAS_ADMIN_server_url = "http://lomas_server:${toString port}";
           }
         );
-        ExposedPorts.${toString port} = { };
+        ExposedPorts = {
+          "${toString port}" = { };
+          "${toString client.jupyter.port}" = { };
+          "${toString dashboard.port}" = { };
+        };
+        Volumes = {
+          "/data/collections" = { };
+          "/data/datasets" = { };
+        };
       };
     };
 

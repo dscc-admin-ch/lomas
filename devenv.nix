@@ -161,6 +161,7 @@ in
   dockerEnv.enable = true;
 
   process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
+  # process.manager.implementation = "process-compose";
 
   # Environment variable available inside devenv
   env = {

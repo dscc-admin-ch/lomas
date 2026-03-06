@@ -145,6 +145,7 @@ services:
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
+    command: ["streamlit", "run", "/code/server/lomas_server/administration/dashboard/about.py"]
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0

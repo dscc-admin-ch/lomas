@@ -177,6 +177,23 @@ def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
     return query_lomas_auth(f"/collections/{collection_name}", httpx.delete)
 
 
+@st.dialog("Confirm deletion")
+def confirm_delete(message: str, on_confirm, success_message: str):
+    st.warning(message)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Yes", type="primary"):
+            on_confirm()
+            st.write(success_message)
+            st.rerun()
+
+    with col2:
+        if st.button("No"):
+            st.rerun()
+
+
 #############################
 # GUI and user interactions #
 #############################
@@ -348,9 +365,11 @@ def delete_username_menu(username: str) -> None:
         submit = st.form_submit_button(f"delete {username}", type="primary")
 
     if submit:
-        query_lomas_auth(f"/users/{username}", httpx.delete)
-        st.write(f"User {username} deleted.")
-        st.rerun()
+        confirm_delete(
+            f"Are you sure you want to delete user **{username}**?",
+            lambda: query_lomas_auth(f"/users/{username}", httpx.delete),
+            f"**{username}** has been removed",
+        )
 
 
 user_select_d.map(delete_username_menu)
@@ -364,44 +383,69 @@ def delete_dataset_menu(username: str, ds_name: str) -> None:
             submit = st.form_submit_button(f"Remove {ds_name} from {username}", type="primary")
 
         if submit:
-            query_lomas_auth(
-                f"/users/{username}/dataset/del",
-                httpx.patch,
-                json=LomasRequestModel(dataset_name=ds_name).model_dump(),
+            confirm_delete(
+                f"Remove dataset **{ds_name}** from user **{username}**?",
+                lambda: query_lomas_auth(
+                    f"/users/{username}/dataset/del",
+                    httpx.patch,
+                    json=LomasRequestModel(dataset_name=ds_name).model_dump(),
+                ),
+                f"**{ds_name}** has been removed from user **{username}**",
             )
-            st.write(f"Dataset {ds_name} removed from user {username}.")
-
-    with cols[1]:
-        st.subheader("**Delete dataset**")
-        with st.form("Delete dataset"):
-            submit = st.form_submit_button(f"Delete {ds_name}", type="primary")
-
-        if submit:
-            query_lomas_auth(f"/dataset/{ds_name}", httpx.delete)
-            st.write(f"Dataset {ds_name} deleted.")
 
 
 user_select_d.map(lambda username: ds_select_d.map(lambda ds_name: delete_dataset_menu(username, ds_name)))
+
+
+st.subheader("**Delete dataset**")
+ds_delete_select_io = get_datasets().map(
+    lambda ds_list: st.selectbox("Dataset", ds_list, key="select_ds_view_delete")
+)
+match ds_delete_select_io:
+    case IOFailure(Failure(e)):
+        st.warning(f"fail to get dataset list: {e}")
+    case IOSuccess(Success(None)):
+        # No selections / no dataset avail. in lomas
+        pass
+    case IOSuccess(Success(ds_name)):
+        if st.button("Delete", key="btn_delete_ds"):
+            confirm_delete(
+                f"Delete dataset **{ds_name}** permanently?",
+                lambda: query_lomas_auth(f"/dataset/{ds_name}", httpx.delete),
+                f"**{ds_name}** has been removed.",
+            )
 
 st.subheader("Delete full collection")
 col1, col2, col3, col4 = st.columns(4, vertical_alignment="center")
 
 with col1:
     if st.button("Delete all Users", type="primary", key="delete_all_users"):
-        drop_lomas_collection(TK.USERS)
-        st.write("All Users deleted.")
+        confirm_delete(
+            "Are you sure you want to delete ALL USERS?",
+            lambda: drop_lomas_collection(TK.USERS),
+            "All Users deleted.",
+        )
 
 with col2:
     if st.button("Delete all Datasets", type="primary", key="delete_all_datasets"):
-        drop_lomas_collection(TK.DATASETS)
-        st.write("All Datasets deleted.")
+        confirm_delete(
+            "Are you sure you want to delete ALL DATASETS?",
+            lambda: drop_lomas_collection(TK.DATASETS),
+            "All Datasets deleted.",
+        )
 
 with col3:
     if st.button("Delete all Metadata", type="primary", key="delete_all_metadata"):
-        drop_lomas_collection(TK.METADATA)
-        st.write("All Metadata deleted.")
+        confirm_delete(
+            "Are you sure you want to delete ALL METADATA?",
+            lambda: drop_lomas_collection(TK.METADATA),
+            "All Metadata deleted.",
+        )
 
 with col4:
     if st.button("Delete all Archives", type="primary", key="delete_all_archives"):
-        drop_lomas_collection(TK.ARCHIVE)
-        st.write("All Archives deleted.")
+        confirm_delete(
+            "Are you sure you want to delete ALL ARCHIVES?",
+            lambda: drop_lomas_collection(TK.ARCHIVE),
+            "All Archives deleted.",
+        )

@@ -178,7 +178,7 @@ def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
 
 
 @st.dialog("Confirm deletion")
-def confirm_delete(message: str, on_confirm, success_message: str):
+def confirm_delete(message: str, on_confirm: Any, success_message: str) -> None:
     st.warning(message)
 
     col1, col2 = st.columns(2)

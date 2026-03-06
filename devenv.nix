@@ -426,7 +426,6 @@ in
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''
-      ${config.scripts.docker-load-image.exec}
       docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
       docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     '';

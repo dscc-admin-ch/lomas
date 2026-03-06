@@ -24,7 +24,7 @@ let
 
   # Write config as file
   confFile = pkgs.writeText "dex-config.yaml" (''
-    issuer: http://${cfg.host}:${toString cfg.port}/dex
+    issuer: http://${cfg.host}:${toString cfg.port}${cfg.path}
     web:
       http: ${cfg.address}:${toString cfg.port}
 
@@ -145,6 +145,13 @@ in
       description = "Dex hostname";
     };
 
+    path = mkOption {
+      type = types.str;
+      default = "/dex";
+      example = "/ /dex";
+      description = "Dex Base Url";
+    };
+
     address = mkOption {
       type = types.str;
       default = "127.0.0.1";
@@ -180,8 +187,7 @@ in
       process-compose = {
         readiness_probe.http_get = {
           scheme = "http";
-          inherit (cfg) host port;
-          path = "/dex";
+          inherit (cfg) host port path;
         };
       };
     };

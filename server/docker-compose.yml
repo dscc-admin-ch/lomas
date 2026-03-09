@@ -8,11 +8,15 @@ services:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
     volumes:
-      - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/collections:/data/collections
       - ./data/datasets:/data/datasets/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVICE_PORT}/live"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
     depends_on:
       rabbitmq:
         condition: service_started
@@ -94,10 +98,9 @@ services:
       dex:
         condition: service_healthy
       lomas_server:
-        condition: service_started
+        condition: service_healthy
     entrypoint: lomas-demo-setup
     volumes:
-      - admindata:/tmp
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/
@@ -171,6 +174,10 @@ services:
       - ../client/notebooks/:/code/client/notebooks/
       - ./data/:/data/
     depends_on:
+      lomas_server:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
       lomas_demo_setup:
         condition: service_completed_successfully
         restart: true
@@ -255,5 +262,4 @@ networks:
     name: lomas-network
 
 volumes:
-  admindata:
   minio-data:

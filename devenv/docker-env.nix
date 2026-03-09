@@ -129,7 +129,17 @@ in
 
       contents = builtins.attrValues {
         inherit (pkgs.dockerTools) binSh usrBinEnv caCertificates;
-        inherit (pkgs) bashInteractive coreutils-full;
+        inherit (pkgs)
+          bashInteractive
+          coreutils-full
+          dnsutils
+          wget
+          curl
+          which
+          file
+          bind
+          git
+          ;
         inherit (config.outputs) lomas-env;
       };
 

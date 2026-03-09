@@ -96,10 +96,8 @@ in
     # official documentation
     # a TCP port check on the AMQP port as the readinessProbe and no livenessProbe at all.
     # This should be considered the best practice.
-    processes.rabbitmq.process-compose = {
-      readiness_probe = {
-        exec.command = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
-      };
+    processes.rabbitmq.ready = {
+      exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
     };
 
   };

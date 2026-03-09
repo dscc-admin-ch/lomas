@@ -48,12 +48,6 @@ in
   options.lomas.telemetry = {
     enable = mkEnableOption "Enable lomas Telemetry Stack";
 
-    namespace = mkOption {
-      type = types.str;
-      default = "default";
-      description = "process-compose seperate namespace for telemetry process(es)";
-    };
-
     services = mkOption {
       type = types.attrsOf (types.submodule serviceModule);
     };
@@ -65,11 +59,6 @@ in
       assertion = lib.xor (cfg.port == null) (cfg.ports == null);
       message = "${service}: must define exactly one of (single) port or (port mapping) ports.";
     }) cfg.services;
-
-    # tune down default namespace from "all" to "default" to make telemetry namespace optional, see @yelp
-    process.manager.args = mkIf (cfg.namespace != "default") {
-      namespace = "default";
-    };
 
     services.opentelemetry-collector = {
       enable = true;
@@ -143,13 +132,12 @@ in
       };
     };
 
-    processes.opentelemetry-collector.process-compose = {
-      namespace = cfg.namespace;
-      depends_on = {
-        tempo.condition = "process_started";
-        loki.condition = "process_started";
-        prometheus.condition = "process_started";
-      };
+    processes.opentelemetry-collector = {
+      after = [
+        "devenv:processes:tempo@started"
+        "devenv:processes:loki@started"
+        "devenv:processes:prometheus@started"
+      ];
     };
 
     services.prometheus = {
@@ -179,7 +167,6 @@ in
         }
       ];
     };
-    processes.prometheus.process-compose.namespace = cfg.namespace;
 
     ##############
     # Monitoring #
@@ -287,7 +274,6 @@ in
 
           ${pkgs.grafana}/bin/grafana server -homepath=${working_dir} -config=${conf} ${lib.escapeShellArgs extraFlags}
         '';
-        process-compose.namespace = cfg.namespace;
       };
 
     processes.tempo =
@@ -334,7 +320,6 @@ in
       in
       {
         exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
-        process-compose.namespace = cfg.namespace;
       };
 
     processes.loki =
@@ -371,7 +356,6 @@ in
       in
       {
         exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
-        process-compose.namespace = cfg.namespace;
       };
 
   };

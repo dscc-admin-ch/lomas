@@ -126,15 +126,13 @@ in
   config = mkIf cfg.enable {
     processes.lomas-server = {
       exec = "python uvicorn_serve.py";
-      process-compose = {
-        working_dir = "${config.env.DEVENV_ROOT}/server/lomas_server";
-        readiness_probe.failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
-        readiness_probe.http_get = {
-          scheme = "http";
-          host = cfg.host;
-          port = cfg.port;
+      cwd = "${config.git.root}/server/lomas_server";
+      ready = {
+        http.get = {
+          inherit (cfg) host port;
           path = "/live";
         };
+        failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
       };
     };
 
@@ -142,16 +140,17 @@ in
     # WORKER #
     ##########
 
+    # TODO: replicas
     processes.worker = {
-      # helpful to investigate/debug watchexec: --print-events
-      exec = "${lib.getExe pkgs.watchexec} --watch=$DEVENV_ROOT -e py --restart --no-meta python worker.py";
-      process-compose = {
-        working_dir = "${config.env.DEVENV_ROOT}/server/lomas_server";
-        depends_on.rabbitmq.condition = "process_healthy";
-        replicas = 2;
-        # Un-comment to observe worker logs.
-        # log_location = "$DEVENV_ROOT/logs/worker.log";
-      };
+      exec = "lomas-work";
+      cwd = "${config.git.root}/server/lomas_server";
+      # watch = {
+      #   paths = [ config.env.DEVENV_ROOT ];
+      #   extensions = [ "py" ];
+      # };
+      after = [
+        "devenv:processes:rabbitmq"
+      ];
     };
 
     processes.admin-dashboard =
@@ -175,17 +174,14 @@ in
             --secrets.files=${secretFile} \
             lomas_server/administration/dashboard/about.py
         '';
-        process-compose = {
-          working_dir = "${config.env.DEVENV_ROOT}/server";
-          environment = [
-            "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
-            "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
-          ];
-          readiness_probe.http_get = {
-            host = cfg.dashboard.host;
-            port = cfg.dashboard.port;
-            path = "${cfg.dashboard.baseUrl}/ping";
-          };
+        cwd = "${config.git.root}/server";
+        env = {
+          STREAMLIT_SERVER_PORT = toString cfg.dashboard.port;
+          STREAMLIT_BROWSER_GATHER_USAGE_STATS = toString 0;
+        };
+        ready.http.get = {
+          inherit (cfg.dashboard) host port;
+          path = "${cfg.dashboard.baseUrl}/ping";
         };
       };
 

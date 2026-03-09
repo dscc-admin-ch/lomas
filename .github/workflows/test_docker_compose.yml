@@ -19,10 +19,10 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
+      run: nix profile add nixpkgs/9dcb002ca1690658be4a04645215baea8b95f31d#devenv
 
     - name: Run a notebook within a container
-      shell: devenv shell bash -- -e {0}
       run: |
-        docker-load-image
-        docker-compose-test
+        devenv shell
+        devenv shell -- docker-load-image
+        devenv shell -- docker-compose-test

@@ -28,9 +28,6 @@ services:
       dex:
         condition: service_started
         restart: true
-      lomas_demo_setup:
-        condition: service_completed_successfully
-        restart: true
       lomas_worker:
         condition: service_started
     networks:
@@ -96,6 +93,8 @@ services:
     depends_on:
       dex:
         condition: service_healthy
+      lomas_server:
+        condition: service_started
     entrypoint: lomas-demo-setup
     volumes:
       - admindata:/tmp

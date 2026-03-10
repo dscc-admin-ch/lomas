@@ -397,23 +397,24 @@ def delete_dataset_menu(username: str, ds_name: str) -> None:
 user_select_d.map(lambda username: ds_select_d.map(lambda ds_name: delete_dataset_menu(username, ds_name)))
 
 
+def confirm_delete_dataset(ds_name: str) -> None:
+    if st.button("Delete", key="btn_delete_ds"):
+        confirm_delete(
+            f"Delete dataset **{ds_name}** permanently?",
+            lambda: query_lomas_auth(f"/dataset/{ds_name}", httpx.delete),
+            f"**{ds_name}** has been removed.",
+        )
+
+
 st.subheader("**Delete dataset**")
-ds_delete_select_io = get_datasets().map(
-    lambda ds_list: st.selectbox("Dataset", ds_list, key="select_ds_view_delete")
+ds_delete_select_io = flow(
+    get_datasets(),
+    map_(lambda ds_list: st.selectbox("Dataset", ds_list, key="select_ds_view_delete")),
+    alt(lambda e: st.error(f"Fail to get dataset list: {e}")),
+    map_(Maybe.from_optional),
+    bind(maybe_to_result),
+    map_(confirm_delete_dataset),
 )
-match ds_delete_select_io:
-    case IOFailure(Failure(e)):
-        st.warning(f"fail to get dataset list: {e}")
-    case IOSuccess(Success(None)):
-        # No selections / no dataset avail. in lomas
-        pass
-    case IOSuccess(Success(ds_name)):
-        if st.button("Delete", key="btn_delete_ds"):
-            confirm_delete(
-                f"Delete dataset **{ds_name}** permanently?",
-                lambda: query_lomas_auth(f"/dataset/{ds_name}", httpx.delete),
-                f"**{ds_name}** has been removed.",
-            )
 
 st.subheader("Delete full collection")
 col1, col2, col3, col4 = st.columns(4, vertical_alignment="center")

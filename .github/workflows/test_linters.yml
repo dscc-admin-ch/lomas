@@ -20,14 +20,6 @@ jobs:
       - name: Install devenv.sh
         run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
 
-      - name: Restore UV cache
-        uses: actions/cache@v4
-        id: uv-cache
-        with:
-          path: /home/runner/.cache/uv
-          key: uv-store-3.12-${{ hashFiles('uv.lock') }}
-          restore-keys: uv-store-3.12-
-
       - name: ruff
         run: devenv shell -- ruff check core/lomas_core client/lomas_client server/lomas_server
 

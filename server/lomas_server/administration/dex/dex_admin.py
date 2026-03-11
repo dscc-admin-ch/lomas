@@ -4,6 +4,8 @@ from pathlib import Path
 import bcrypt
 import grpc
 import yaml
+from returns.io import IOResultE, IOSuccess, impure_safe
+from returns.iterables import Fold
 
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.constants import init_logging
@@ -87,7 +89,10 @@ def to_log(user_provided_str: str) -> str:
     return user_provided_str.replace("\r\n", "").replace("\n", "")
 
 
-def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> None:
+@impure_safe
+def add_dex_user(
+    dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str
+) -> IOResultE[str]:
     """Adds a new user to dex.
 
     Args:
@@ -118,6 +123,7 @@ def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, us
                     f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
                 )
             logger.debug(f"Added {to_log(user_name)} user.")
+            return user_name
     except grpc.RpcError as e:
         raise DexRPCError("grpc error") from e
 
@@ -174,12 +180,13 @@ def del_all_dex_users(dex_config: DexAdminConfig) -> None:
         raise DexRPCError("grpc error") from e
 
 
+@impure_safe
 def add_dex_users(
     dex_config: DexAdminConfig,
     user_list: UserCollection,
     clean: bool,
     overwrite: bool,
-) -> None:
+) -> IOResultE[list[str]]:
     """Adds new lomas users to Dex.
 
     Iterates over `user_list` and creates password entries in Dex for each user.
@@ -206,6 +213,7 @@ def add_dex_users(
             stub = DexStub(channel)
             dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
+            added_user_result: list[IOResultE] = []
             for user in user_list.users:
                 # Remove user with same name if requested (but not already cleaned)
                 if overwrite and not clean:
@@ -220,9 +228,10 @@ def add_dex_users(
                     logger.error(f"Cannot add Dex user {user.id.name} without password")
                     raise InvalidDexOperation(f"Cannot add Dex user {user.id.name} without password")
 
-                add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
-
+                added_user = add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
+                added_user_result.append(added_user)
             logger.debug("Added dex users from user collection.")
+            return Fold.collect(added_user_result, IOSuccess(()))  # list[IOResultE] -> IOResultE[list]
     except grpc.RpcError as e:
         raise DexRPCError("grpc error") from e
 
@@ -232,7 +241,7 @@ def add_dex_users_via_yaml(
     yaml_file: Path,
     clean: bool,
     overwrite: bool,
-) -> None:
+) -> IOResultE[list[str]]:
     """Adds new lomas users to Dex from a YAML file.
 
     Args:
@@ -243,7 +252,7 @@ def add_dex_users_via_yaml(
     """
     # Load yaml data and insert it
     user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open()))
-    add_dex_users(dex_config, user_list, clean, overwrite)
+    return add_dex_users(dex_config, user_list, clean, overwrite)
 
 
 def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> None:

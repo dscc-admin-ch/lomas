@@ -221,7 +221,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 json=example_dummy_smartnoise_sql,
             )
 
-            assert response.status_code == status.HTTP_403_FORBIDDEN
+            assert response.status_code == status.HTTP_401_UNAUTHORIZED
             response_content = json.loads(response.content.decode("utf8"))["detail"]
             assert response_content == "Not authenticated"
 

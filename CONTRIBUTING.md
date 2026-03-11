@@ -21,7 +21,7 @@ part of the project, refer to:
 Setting up the environment with [devenv](https://devenv.sh/):
 
 1. `./scripts/bootstrap.sh`
-2. `nix profile install nixpkgs#{dev,dir}env`
+2. `nix profile add nixpkgs#{dev,dir}env`
 3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
     1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)
     2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`

@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: cachix/install-nix-action@v30
-    - uses: cachix/cachix-action@v15
+    - uses: cachix/cachix-action@v16
       with:
         name: lomas
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
@@ -27,13 +27,13 @@ jobs:
 
     - run: mv .coverage .coverage.client
     - name: Store coverage file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-client
         path: .coverage.client
         include-hidden-files: true
     - name: Store logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-logs-notebooks
@@ -49,9 +49,9 @@ jobs:
         python-version: [3.11, 3.12, 3.13]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: cachix/install-nix-action@v30
-    - uses: cachix/cachix-action@v15
+    - uses: cachix/cachix-action@v16
       with:
         name: lomas
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
@@ -70,13 +70,13 @@ jobs:
 
     - run: mv .coverage .coverage.${{ matrix.python-version }}
     - name: Store coverage file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-${{ matrix.python-version }}
         path: .coverage.${{ matrix.python-version }}
         include-hidden-files: true
     - name: Store logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-logs-${{ matrix.python-version }}
@@ -96,9 +96,9 @@ jobs:
       # comments (to avoid publishing multiple comments in the same PR)
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         id: download
         with:
           pattern: coverage-*
@@ -114,7 +114,7 @@ jobs:
           MERGE_COVERAGE_FILES: true
 
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action

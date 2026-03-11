@@ -613,3 +613,14 @@ def get_dataset_metadata_admin(
 ) -> Metadata:
     db: LocalAdminDatabase = request.app.state.admin_database
     return db.get_dataset_metadata(dataset_name)
+
+
+@router.patch("/dataset/{dataset_name}/metadata")
+def set_dataset_metadata_admin(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    dataset_name: str,
+    file: UploadFile,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    db.set_dataset_metadata(dataset_name, file.file)

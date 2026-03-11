@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Any
 
 import httpx
 import pandas as pd
@@ -178,7 +178,9 @@ def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
 
 
 @st.dialog("Confirm deletion")
-def confirm_delete(message: str, on_confirm: Any, success_message: str) -> None:
+def confirm_delete(
+    message: str, on_confirm: Callable[[], IOResultE[httpx.Response]], success_message: str
+) -> None:
     st.warning(message)
 
     col1, col2 = st.columns(2)
@@ -274,6 +276,17 @@ match ds_select_io:
                     case IOFailure(fail):
                         st.error(f"{fail}")
 
+        st.divider()
+        st.subheader(f"Add/Set metadata to {ds_select}")
+        uploaded_metadata = st.file_uploader("File", key="uploaded_metadata_ds")
+        if st.button("Submit", key="set_metadata", disabled=(uploaded_metadata is None)):
+            match query_lomas_auth(
+                f"/dataset/{ds_select}/metadata", httpx.patch, files={"file": uploaded_metadata}
+            ):
+                case IOSuccess(Success(_)):
+                    st.success(f"Metadata added to {ds_select}.")
+                case IOFailure(Failure(e)):
+                    st.error(f"Failed to set metadata for {ds_select}:\n{e}")
 
 # ------------------------
 
@@ -292,9 +305,10 @@ ad_meta_path = None  # pylint: disable=invalid-name
 if uploaded_metadata is not None:
     ad_meta_path = Path("/tmp/metadata.yaml")
     ad_meta_path.write_bytes(uploaded_metadata.getbuffer())
-    st.success("File uploaded successfully!")
 
-if st.button("Submit", key="add_dataset") and ad_dataset_warning == IO(False):
+if st.button("Submit", key="add_dataset", disabled=(uploaded_metadata is None)) and ad_dataset_warning == IO(
+    False
+):
     match query_lomas_auth(
         "/dataset",
         httpx.post,
@@ -317,9 +331,9 @@ st.subheader("Bulk datasets import")
 dataset_collection = st.file_uploader("Dataset collection", type="yaml")
 ds_clean = st.toggle("Overwrite all current datasets")
 
-if dataset_collection and st.button("Import", key="btn_import_ds"):
+if st.button("Import", key="btn_import_ds", disabled=(not dataset_collection)):
 
-    def on_success(arg: Any) -> IOResultE[list[str]]:
+    def on_success(arg: httpx.Response) -> IOResultE[list[str]]:
         st.success("Datasets imported")
         return get_datasets()
 

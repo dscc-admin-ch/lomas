@@ -380,6 +380,13 @@ class LocalAdminDatabase(AdminDatabase):
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
             return Metadata.model_validate(metadata)
 
+    @dataset_must_exist
+    def set_dataset_metadata(self, dataset_name: str, yaml_file: Path) -> None:
+        metadata_dict = yaml.safe_load(yaml_file)
+        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+        with shelve.open(self.path, writeback=True) as db:
+            db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
+
     @override
     @user_must_exist
     def is_user_admin(self, user_name: str) -> bool:

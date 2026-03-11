@@ -92,7 +92,7 @@ let
 
       src = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/dexidp/dex/${version}/api/v2/api.proto";
-        hash = "sha256-nYdmSeTbgl7wD/Rl3xSoL2l+mOt2tGXOkmO5iJepLgo=";
+        hash = "sha256-38rgZihPf1utY45g0+rKqDLdY+Cz0SpF1daAbSSQlIg=";
       };
 
       buildInputs = [ pkgs.python3Packages.grpcio-tools ];
@@ -116,12 +116,12 @@ in
     package = mkOption {
       type = types.package;
       default = pkgs.dex-oidc.overrideAttrs (old: rec {
-        version = "c016300db963097d7a90eb010ae2f323dd54b0b7";
+        version = "2.44.0";
         src = pkgs.fetchFromGitHub {
           owner = "dexidp";
           repo = "dex";
-          rev = "${version}";
-          sha256 = "sha256-COUhIxskcfnTF/TRmfb3IQ6Do+xdRV4xeNUspytc1Xw=";
+          rev = "v${version}";
+          sha256 = "sha256-wpy7pZBpqAaPjWbnsqtnE+65a58IGg0pyp4CEUnmmc4=";
         };
         patches = [
           (pkgs.fetchpatch {
@@ -129,7 +129,7 @@ in
             sha256 = "sha256-NsnqN+VeXi3NZ2zsp9KE5/9zqX9CioRrr0N313ZG3G0=";
           })
         ];
-        vendorHash = "sha256-obnZ8DOCDSK2cqu6PNjAeQbkb24osRGwM6fq93WZpOc=";
+        vendorHash = "sha256-3ef2G4+UlLGsBW09ZM20qU82uj/hVlMAnujcd2BulGg=";
       });
     };
 

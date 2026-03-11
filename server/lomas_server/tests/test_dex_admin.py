@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 import requests
 import yaml
+from returns.io import IOSuccess
 
 from lomas_core.models.collections import UserCollection
 from lomas_server.administration.dex.api.api_pb2 import DiscoveryReq, ListPasswordReq
@@ -61,13 +62,18 @@ def test_add_dex_user(client, dex_config) -> None:
     """Test adding a user in Dex."""
     len_users_before = len(get_dex_passwords(dex_config))
 
-    add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    added_user = add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    assert added_user == IOSuccess(client.user_name)
 
     # Check user is added
     users_after = get_dex_passwords(dex_config)
     len_users_after = len(users_after)
 
     assert len_users_before == len_users_after - 1
+
+    # Double add
+    double_add = add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    assert double_add.failure()
 
     for user in users_after:
         if user.username == client.user_name:
@@ -92,6 +98,9 @@ def test_del_dex_user(client, dex_config) -> None:
 
     # Check correct user was deleted
     assert users_after[0].username == "no-delete"
+
+    # bad delete
+    assert del_dex_user(dex_config, "IdoNotExist").failure()
 
 
 def test_del_all_dex_users(client, dex_config) -> None:

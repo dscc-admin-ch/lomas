@@ -428,9 +428,9 @@ def get_user_previous_queries(
     return JSONResponse(content={"previous_queries": previous_queries})
 
 
-############################
-# ADMIN DASHBOAD MIGRATION #
-############################
+#############################
+# ADMIN DASHBOARD MIGRATION #
+#############################
 
 
 @router.get("/datasets")

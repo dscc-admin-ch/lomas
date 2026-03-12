@@ -42,7 +42,7 @@ def query_lomas(
     endpoint: str, verb: Callable[..., httpx.Response], **kwargs: dict[str, Any]
 ) -> IOResultE[httpx.Response]:
     return flow(
-        # get/parse ouf config from environment/files
+        # get/parse our config from environment/files
         get_config(),
         # build complete API endpoint
         map_(lambda config: url_append(config.server_service, endpoint)),

@@ -154,7 +154,7 @@ in
       };
     };
 
-    processes.admin-dashboad =
+    processes.admin-dashboard =
       let
         inherit (cfg.oidc.clients.adminDashboard) client_id client_secret redirect_uri;
         secretFile = pkgs.writeText "secrets.toml" ''

@@ -3,11 +3,11 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from returns.io import IOSuccess
+from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.collections import User, UserId
+from lomas_core.models.collections import Metadata, User, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.dashboard.utils import query_lomas
@@ -173,4 +173,26 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
             json={"clean": True},
             files={"file": dataset_collection.open(mode="rb")},
         )
+    )
+
+    ds_name = "PUMS"
+    old_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        Metadata.model_validate
+    )
+    assert is_successful(old_metadata)
+
+    # override pums with penguin metadatas
+    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.yaml"
+    query_lomas(
+        f"/dataset/{ds_name}/metadata", client.patch, files={"file": penguin_metadata.open(mode="rb")}
+    )
+
+    new_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        Metadata.model_validate
+    )
+    assert is_successful(new_metadata)
+
+    assert old_metadata != new_metadata
+    assert old_metadata.map(lambda meta: meta.columns.keys()) != new_metadata.map(
+        lambda meta: meta.columns.keys()
     )

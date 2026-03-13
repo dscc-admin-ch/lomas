@@ -624,3 +624,16 @@ def set_dataset_metadata_admin(
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
     db.set_dataset_metadata(dataset_name, file.file)
+
+
+@router.delete("/bootstrap")
+def delete_bootstrap(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    response: Response,
+) -> None:
+    # Bootstrap never set or already removed -> gone forever
+    if request.app.state.bootstrap is None:
+        response.status_code = status.HTTP_410_GONE
+    else:
+        request.app.state.bootstrap = None

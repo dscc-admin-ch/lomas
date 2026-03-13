@@ -119,7 +119,10 @@ def test_set_dex_user_password(client, dex_config):
     """Test set kc user client secret."""
     # Add a user
     add_dex_user(dex_config, client.user_name, client.user_email, client.password)
-    set_dex_user_password(dex_config, client.user_name, "new_password")
+    assert set_dex_user_password(dex_config, client.user_name, "new_password") == IOSuccess(True)
+
+    # Bad add
+    assert set_dex_user_password(dex_config, "IdoNotExist", "new_password").failure()
 
     # Get token via password grant to verify password is correctly set.
     with get_grpc_channel(dex_config) as channel:
@@ -162,3 +165,7 @@ def test_add_dex_users_via_yaml(client, dex_config):
     for user in users_after:
         if user.username == "Alice":
             assert user.email == new_email
+
+    # User with missing password
+    yaml_users["users"][1]["id"]["client_secret"] = None
+    assert add_dex_users(dex_config, UserCollection(**yaml_users), False, False).failure()

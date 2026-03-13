@@ -1,5 +1,6 @@
 import os
 
+import httpx
 import pytest
 from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
@@ -8,6 +9,7 @@ from fastapi.testclient import TestClient
 from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_core.models.requests_examples import example_get_admin_db_data
+from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
@@ -20,13 +22,15 @@ def demo_setup():
 
     yield
 
+    config = Config()
     admin_config = AdminConfig()
-    db = Config().database
     dex_config = admin_config.dex_config
     assert dex_config is not None
     del_all_dex_users(dex_config)
-    db.drop_collection("users")
-    db.drop_collection("datasets")
+    query_lomas("/collections/users", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"})
+    query_lomas(
+        "/collections/datasets", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"}
+    )
 
 
 def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:

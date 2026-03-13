@@ -11,12 +11,6 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - image: dsccadminch/lomas_server
-          # - image: dsccadminch/lomas_admin
-          # - image: dsccadminch/lomas_client
     steps:
       - uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v31.10.1
@@ -32,7 +26,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images:
-            ${{ matrix.image }}
+            dsccadminch/lomas
           tags: |
             type=sha
             type=semver, pattern={{version}}
@@ -50,4 +44,4 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'release'
         run: |
           out=$(devenv build outputs.lomas-oci 2> /dev/null )
-          $out | skopeo copy docker-archive:/dev/stdin docker://${{ matrix.image }}:${DOCKER_METADATA_OUTPUT_VERSION:-debug}
+          $out | skopeo copy docker-archive:/dev/stdin docker://dsccadminch/lomas:${DOCKER_METADATA_OUTPUT_VERSION:-debug}

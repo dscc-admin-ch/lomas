@@ -37,8 +37,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
 
         # Impute categorical features with most frequent value
         imp_most_frequent = SimpleImputer(strategy="most_frequent")
-        df[categorical_cols] = df[categorical_cols].astype("object")
-        df[categorical_cols] = df[categorical_cols].replace({pd.NA: np.nan})
+        df.loc[:, categorical_cols] = df[categorical_cols].astype("object").replace({pd.NA: np.nan})
         df[df.select_dtypes(bool).columns] = df.select_dtypes(bool).astype("boolean")
         df_cat_imputed = imp_most_frequent.fit_transform(df[categorical_cols]) if categorical_cols else []
 
@@ -53,8 +52,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
     elif imputer_strategy == "most_frequent":
         # Impute all features with most frequent value
         imp_most_frequent = SimpleImputer(strategy=imputer_strategy)
-        df[df.columns] = df[df.columns].astype("object")
-        df[df.columns] = df[df.columns].replace({pd.NA: np.nan})
+        df.loc[:, df.columns] = df[df.columns].astype("object").replace({pd.NA: np.nan})
         df = pd.DataFrame(imp_most_frequent.fit_transform(df), columns=df.columns)
     else:
         raise InvalidQueryException(f"Imputation strategy {imputer_strategy} not supported.")
@@ -62,7 +60,7 @@ def handle_missing_data(df: pd.DataFrame, imputer_strategy: str) -> pd.DataFrame
     # Force int and bool type on int and bool columns
     for col in df.columns:
         if pd.api.types.is_integer_dtype(dtypes[col]) or pd.api.types.is_bool_dtype(dtypes[col]):
-            df[col] = df[col].round().astype(dtypes[col])
+            df.loc[:, col] = df[col].round().astype(dtypes[col])
 
     df = df.astype(dtype=dtypes)
 

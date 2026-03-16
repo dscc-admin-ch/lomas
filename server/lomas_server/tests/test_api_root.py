@@ -25,25 +25,24 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         os.environ["LOMAS_SERVICE_authenticator__authentication_type"] = AuthenticationType.FREE_PASS
 
         self.user_name = "Dr.Antartica"
-        self.bearer = 'Bearer {"name": "Dr.Antartica", "email": "dr.antartica@penguin_research.org"}'
         self.headers = {
             "Content-type": "application/json",
             "Accept": "*/*",
+            "Authorization": f"Bearer {self.user_name}",
         }
-        self.headers["Authorization"] = self.bearer
 
         # Fill up database if needed
         path_prefix = Path(__file__).parent / "test_data"
 
         self.config.database.add_users_via_yaml(
-            yaml_file=path_prefix / Path("test_user_collection.yaml"),
+            yaml_file=(path_prefix / "test_user_collection.yaml"),
             clean=True,
         )
 
         self.config.database.add_datasets_via_yaml(
-            yaml_file=path_prefix / Path("test_datasets_with_s3.yaml"),
+            yaml_file=(path_prefix / "test_datasets_with_s3.yaml"),
             clean=True,
-            path_prefix=str(path_prefix),
+            path_prefix=path_prefix,
         )
 
     def tearDown(self) -> None:

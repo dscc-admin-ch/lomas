@@ -1,5 +1,6 @@
 import os
 
+import httpx
 import pytest
 from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
@@ -8,11 +9,11 @@ from fastapi.testclient import TestClient
 from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_core.models.requests_examples import example_get_admin_db_data
+from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
-from lomas_server.administration.lomas_admin import drop_lomas_collection
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
-from lomas_server.models.config import AdminConfig
+from lomas_server.models.config import AdminConfig, Config
 
 
 @pytest.fixture
@@ -21,12 +22,15 @@ def demo_setup():
 
     yield
 
+    config = Config()
     admin_config = AdminConfig()
     dex_config = admin_config.dex_config
     assert dex_config is not None
     del_all_dex_users(dex_config)
-    drop_lomas_collection(admin_config, "users")
-    drop_lomas_collection(admin_config, "datasets")
+    query_lomas("/collections/users", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"})
+    query_lomas(
+        "/collections/datasets", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"}
+    )
 
 
 def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
@@ -56,19 +60,17 @@ def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:
 
 @pytest.fixture
 def switch_query_userinfo(request):
+    userinfo_key = "LOMAS_SERVICE_authenticator__query_userinfo"
     if request.param:
-        query_userinfo = os.getenv("LOMAS_SERVICE_authenticator__query_userinfo")
+        query_userinfo = os.getenv(userinfo_key)
         assert isinstance(query_userinfo, str)
-
-        if query_userinfo == "true":
-            os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = "false"
-        else:
-            os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = "true"
+        # pydantic allow true/false/True/False
+        os.environ[userinfo_key] = str(query_userinfo == "true")
 
     yield
 
     if request.param:
-        os.environ["LOMAS_SERVICE_authenticator__query_userinfo"] = query_userinfo
+        os.environ[userinfo_key] = query_userinfo
 
 
 @pytest.mark.parametrize("switch_query_userinfo", [True, False], indirect=True)

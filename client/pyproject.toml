@@ -40,7 +40,7 @@ classifiers = [
 ]
 dependencies = [
     "lomas-core==0.4.1",
-    "jupyter>=1.1,<2",
+    "jupyter>=1.1",
     "authlib>=1.6.7",
     "opentelemetry-instrumentation-logging>=0.50b0",
     "opentelemetry-instrumentation-requests>=0.50b0",

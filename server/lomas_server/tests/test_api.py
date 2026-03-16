@@ -113,7 +113,6 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.dummy_df.shape[0] == DUMMY_NB_ROWS, (
                 "Dummy pd.DataFrame does not have expected number of rows"
             )
-            assert response_dict["datetime_columns"] == []
 
             expected_dtypes = [
                 "string",
@@ -175,9 +174,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             )
 
             # Expect to fail: user does not exist
-            fake_user_token = 'Bearer {"name": "fake_user", "email": "fake_user@penguin_research.org"}'
-            new_headers = self.headers
-            new_headers["Authorization"] = fake_user_token
+            new_headers = {**self.headers, "Authorization": "Bearer fake_user"}
             response = client.post(
                 "/get_dummy_dataset",
                 json=example_get_dummy_dataset,
@@ -193,9 +190,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             )
 
             # Expect to work with datetimes and another user
-            fake_user_token = 'Bearer {"name": "BirthdayGirl", "email": "BirthdayGirl@penguin_research.org"}'
-            new_headers = self.headers
-            new_headers["Authorization"] = fake_user_token
+            new_headers = {**self.headers, "Authorization": "Bearer BirthdayGirl"}
             response = client.post(
                 "/get_dummy_dataset",
                 json={

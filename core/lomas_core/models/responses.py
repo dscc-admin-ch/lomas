@@ -65,9 +65,8 @@ class DummyDsResponse(ResponseModel):
 
     dtypes: Any
     """The dummy_df column data types."""
-    datetime_columns: list[str]
-    """The list of columns with datetime type."""
-    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
+    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict), PlainValidator(dataframe_from_dict)]
+
     """The dummy dataframe."""
 
     @field_validator("dummy_df", mode="before")
@@ -87,12 +86,8 @@ class DummyDsResponse(ResponseModel):
             return v
 
         dtypes = info.data["dtypes"]
-        datetime_columns = info.data["datetime_columns"]
         dummy_df = dataframe_from_dict(v)
         dummy_df = dummy_df.astype(dtypes)
-
-        for col in datetime_columns:
-            dummy_df[col] = pd.to_datetime(dummy_df[col])
         return dummy_df
 
 
@@ -184,6 +179,8 @@ class OpenDPQueryResult(BaseModel):
 
 class OpenDPPolarsQueryResult(BaseModel):
     """Type for opendp Polars result."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
     """Result type description."""

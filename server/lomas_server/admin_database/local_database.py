@@ -2,7 +2,8 @@ import operator as op
 import shelve
 import sys
 from pathlib import Path
-from typing import Any, Self
+from tempfile import SpooledTemporaryFile
+from typing import Any, BinaryIO, Self
 
 import boto3
 import yaml
@@ -63,7 +64,7 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, flag="r") as db:
             return list(map(User.model_validate, db.get(TK.USERS, {}).values()))
 
-    def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: str) -> None:
+    def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
         with shelve.open(self.path, writeback=True) as db:
             # Step 1: add datasets
             new_datasets = []
@@ -74,13 +75,13 @@ class LocalAdminDatabase(AdminDatabase):
                         case HttpUrl():
                             pass
                         case Path():
-                            ds.dataset_access.path = Path(path_prefix) / ds.dataset_access.path
+                            ds.dataset_access.path = path_prefix / ds.dataset_access.path
                 if isinstance(ds.metadata_access, DSPathAccess):
                     match ds.metadata_access.path:
                         case HttpUrl():
                             pass
                         case Path():
-                            ds.metadata_access.path = Path(path_prefix) / ds.metadata_access.path
+                            ds.metadata_access.path = path_prefix / ds.metadata_access.path
 
                 # Fill datasets_list
                 new_datasets.append(ds)
@@ -122,7 +123,7 @@ class LocalAdminDatabase(AdminDatabase):
                         )
 
                 db[TK.METADATA][dataset_name] = metadata_dict
-                logger.debug(f"Added metadata of {dataset_name} dataset. ")
+                logger.info(f"Added metadata of {dataset_name} dataset.")
 
     def datasets(self) -> list[DSInfo]:
         with shelve.open(self.path, flag="r") as db:
@@ -130,9 +131,9 @@ class LocalAdminDatabase(AdminDatabase):
 
     def add_datasets_via_yaml(
         self,
-        yaml_file: Path,
+        yaml_file: Path | BinaryIO | SpooledTemporaryFile,
         clean: bool,
-        path_prefix: str = "",
+        path_prefix: Path = Path(),
     ) -> None:
         """Set all database types to datasets in dataset collection based.
 
@@ -141,7 +142,7 @@ class LocalAdminDatabase(AdminDatabase):
         Args:
             yaml_file Path: path to the YAML file location
             clean (bool): Whether to clean the collection before adding.
-            path_prefix (str, optional): Prefix to add to all file paths. Defaults to "".
+            path_prefix (Path, optional): Prefix to add to all file paths. Defaults to empty Path.
 
         Raises:
             ValueError: If there are errors in the YAML file format.
@@ -152,7 +153,11 @@ class LocalAdminDatabase(AdminDatabase):
         if clean:
             self.drop_collection("datasets")
 
-        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        match yaml_file:
+            case Path():
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+            case BinaryIO() | SpooledTemporaryFile():
+                yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
     def add_dataset(
@@ -228,8 +233,7 @@ class LocalAdminDatabase(AdminDatabase):
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
             # Store metadata from yaml to metadata collection
-            with Path(metadata_path).resolve().open(encoding="utf-8") as f:
-                metadata_dict = yaml.safe_load(f)
+            metadata_dict = yaml.safe_load(Path(metadata_path).resolve().open())
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:
@@ -292,7 +296,7 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
-    def add_users_via_yaml(self, yaml_file: Path, clean: bool) -> None:
+    def add_users_via_yaml(self, yaml_file: Path | BinaryIO | SpooledTemporaryFile, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
 
         Args:
@@ -308,7 +312,11 @@ class LocalAdminDatabase(AdminDatabase):
             self.drop_collection("users")
 
         # Load yaml data and insert it
-        yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+        match yaml_file:
+            case Path():
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+            case BinaryIO() | SpooledTemporaryFile():
+                yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
     def add_user(
@@ -374,6 +382,13 @@ class LocalAdminDatabase(AdminDatabase):
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
             return Metadata.model_validate(metadata)
 
+    @dataset_must_exist
+    def set_dataset_metadata(self, dataset_name: str, yaml_file: Path) -> None:
+        metadata_dict = yaml.safe_load(yaml_file)
+        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+        with shelve.open(self.path, writeback=True) as db:
+            db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
+
     @override
     @user_must_exist
     def is_user_admin(self, user_name: str) -> bool:
@@ -431,6 +446,19 @@ class LocalAdminDatabase(AdminDatabase):
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] += spent_value
 
+    def set_epsilon_or_delta(
+        self,
+        user_name: str,
+        dataset_name: str,
+        parameter: BudgetDBKey,
+        value: float,
+    ) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            datasets = db[TK.USERS][user_name]["datasets_list"]
+            for ds in datasets:
+                if ds["dataset_name"] == dataset_name:
+                    ds[parameter] = value
+
     @override
     @user_must_have_access_to_dataset
     def get_user_previous_queries(
@@ -456,13 +484,6 @@ class LocalAdminDatabase(AdminDatabase):
     def get_archives_of_user(self, username: str) -> list[dict]:
         with shelve.open(self.path, flag="r") as db:
             return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
-
-    def drop_archive(self) -> None:
-        self.drop_collection(TK.ARCHIVE)
-
-    def get_collection(self, collection: str) -> dict[str, Any]:
-        with shelve.open(self.path, flag="r") as db:
-            return db.get(collection, {})
 
     def drop_collection(self, collection: str) -> None:
         with shelve.open(self.path, writeback=True) as db:

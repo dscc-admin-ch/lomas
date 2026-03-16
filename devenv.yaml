@@ -1,7 +1,20 @@
-# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 inputs:
+  git-hooks:
+    url: github:cachix/git-hooks.nix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
   nixpkgs:
     url: github:NixOS/nixpkgs/nixos-unstable
+  pyproject-build-systems:
+    url: github:pyproject-nix/build-system-pkgs
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
+      pyproject-nix:
+        follows: pyproject-nix
+      uv2nix:
+        follows: uv2nix
   pyproject-nix:
     url: github:pyproject-nix/pyproject.nix
     inputs:
@@ -14,12 +27,3 @@ inputs:
         follows: nixpkgs
       pyproject-nix:
         follows: pyproject-nix
-  pyproject-build-systems:
-    url: github:pyproject-nix/build-system-pkgs
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
-      pyproject-nix:
-        follows: pyproject-nix
-      uv2nix:
-        follows: uv2nix

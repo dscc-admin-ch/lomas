@@ -12,43 +12,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v30
-    - uses: cachix/cachix-action@v15
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+    - uses: cachix/cachix-action@v16
       with:
         name: lomas
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile install nixpkgs#devenv
-
-    - name: Restore UV cache
-      uses: actions/cache@v4
-      id: uv-cache
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-3.12-
+      run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
 
     - name: Run all test with coverage
       run: devenv shell -- ut-coverage client/ -v
 
-    - name: Store UV cache
-      uses: actions/cache@v4
-      if: steps.uv-cache.outputs.cache-hit != 'true'
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-3.12-${{ hashFiles('uv.lock') }}
-
     - run: mv .coverage .coverage.client
     - name: Store coverage file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-client
         path: .coverage.client
         include-hidden-files: true
     - name: Store logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-logs-notebooks
@@ -64,49 +49,34 @@ jobs:
         python-version: [3.11, 3.12, 3.13]
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v30
-    - uses: cachix/cachix-action@v15
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+    - uses: cachix/cachix-action@v16
       with:
         name: lomas
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile install nixpkgs#devenv
-
-    - name: Restore UV cache
-      uses: actions/cache@v4
-      id: uv-cache
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
-        restore-keys: uv-store-${{ matrix.python-version }}-
+      run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
 
     - name: Set Python package
       run: |
         cat > devenv.local.nix <<EOF
-        { pkgs, ... }: { languages.python.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
+        { pkgs, ... }: { lomas.pyenv.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
         EOF
 
     - name: Run all test with coverage
       run: devenv shell -- ut-coverage server/
 
-    - name: Store UV cache
-      uses: actions/cache@v4
-      if: steps.uv-cache.outputs.cache-hit != 'true'
-      with:
-        path: /home/runner/.cache/uv
-        key: uv-store-${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
-
     - run: mv .coverage .coverage.${{ matrix.python-version }}
     - name: Store coverage file
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-${{ matrix.python-version }}
         path: .coverage.${{ matrix.python-version }}
         include-hidden-files: true
     - name: Store logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: success() || failure()
       with:
         name: test-logs-${{ matrix.python-version }}
@@ -126,9 +96,9 @@ jobs:
       # comments (to avoid publishing multiple comments in the same PR)
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         id: download
         with:
           pattern: coverage-*
@@ -144,7 +114,7 @@ jobs:
           MERGE_COVERAGE_FILES: true
 
       - name: Store Pull Request comment to be posted
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
         with:
           name: python-coverage-comment-action

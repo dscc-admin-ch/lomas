@@ -24,6 +24,10 @@ let
     options.client_secret = mkOption {
       type = types.str;
     };
+    options.redirect_uri = mkOption {
+      default = null;
+      type = types.nullOr types.str;
+    };
   };
 in
 {
@@ -44,6 +48,7 @@ in
 
     baseUrl = mkOption {
       type = types.str;
+      default = "/";
       example = "/api, /api/v1, /";
       description = "Lomas Api base Url";
     };
@@ -149,21 +154,40 @@ in
       };
     };
 
-    processes.admin-dashboad = {
-      exec = "streamlit run --server.headless true --server.baseUrlPath=${cfg.dashboard.baseUrl} lomas_server/administration/dashboard/about.py";
-      process-compose = {
-        working_dir = "${config.env.DEVENV_ROOT}/server";
-        environment = [
-          "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
-          "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
-        ];
-        readiness_probe.http_get = {
-          host = cfg.dashboard.host;
-          port = cfg.dashboard.port;
-          path = "${cfg.dashboard.baseUrl}/ping";
+    processes.admin-dashboard =
+      let
+        inherit (cfg.oidc.clients.adminDashboard) client_id client_secret redirect_uri;
+        secretFile = pkgs.writeText "secrets.toml" ''
+          [auth]
+          client_id = "${client_id}"
+          client_secret = "${client_secret}"
+          redirect_uri = "${redirect_uri}"
+          server_metadata_url = "${cfg.oidc.discoveryUrl}"
+          cookie_secret = "changeme"
+          expose_tokens = [ "access", "id" ]
+        '';
+      in
+      {
+        exec = ''
+          streamlit run \
+            --server.headless true \
+            --server.baseUrlPath=${cfg.dashboard.baseUrl} \
+            --secrets.files=${secretFile} \
+            lomas_server/administration/dashboard/about.py
+        '';
+        process-compose = {
+          working_dir = "${config.env.DEVENV_ROOT}/server";
+          environment = [
+            "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
+            "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
+          ];
+          readiness_probe.http_get = {
+            host = cfg.dashboard.host;
+            port = cfg.dashboard.port;
+            path = "${cfg.dashboard.baseUrl}/ping";
+          };
         };
       };
-    };
 
     scripts.run-jupyter =
       let

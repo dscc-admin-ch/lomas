@@ -1,11 +1,23 @@
+import os
+from contextlib import contextmanager
 from test.support import sleeping_retry
 
 import httpx
 from fastapi import status
 from pydantic import JsonValue
 
+from lomas_core.models.constants import AuthenticationType
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.responses import Job
+
+
+@contextmanager
+def free_pass_env(*, auth_env_key="LOMAS_SERVICE_authenticator__authentication_type"):
+    """Enter a context with modified os environment using free_pass authentication."""
+    previous_auth = os.getenv(auth_env_key, "")
+    os.environ[auth_env_key] = AuthenticationType.FREE_PASS
+    yield
+    os.environ[auth_env_key] = previous_auth
 
 
 def wait_for_job(client: httpx.Client, endpoint: str, headers: dict[str, str] | None = None) -> Job:

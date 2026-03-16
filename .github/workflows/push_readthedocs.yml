@@ -12,28 +12,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v30
-      - uses: cachix/cachix-action@v15
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31.10.1
+      - uses: cachix/cachix-action@v16
         with:
           name: lomas
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Install devenv.sh
-        run: nix profile install nixpkgs#devenv
-
-      - name: Restore UV cache
-        uses: actions/cache@v4
-        id: uv-cache
-        with:
-          path: /home/runner/.cache/uv
-          key: uv-store-3.12-${{ hashFiles('uv.lock') }}
-          restore-keys: uv-store-3.12-
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get install pandoc
-          devenv shell -- uv pip install ".[docs]"
+        run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
 
       - name: Build with sphinx
         run: devenv shell -- build-docs

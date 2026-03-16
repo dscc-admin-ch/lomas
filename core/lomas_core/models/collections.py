@@ -106,9 +106,9 @@ class ColumnMetadata(BaseModel):
     nullable_proportion: Annotated[float, Field(ge=0, lt=1)] = 0.0
     # See issue #323 for checking this and validating.
 
-    max_partition_length: Annotated[int, Field(gt=0)] | None = None
-    max_influenced_partitions: Annotated[int, Field(gt=0)] | None = None
-    max_partition_contributions: Annotated[int, Field(gt=0)] | None = None
+    max_partition_length: Annotated[int | None, Field(gt=0)] = None
+    max_influenced_partitions: Annotated[int | None, Field(gt=0)] = None
+    max_partition_contributions: Annotated[int | None, Field(gt=0)] = None
 
 
 class StrMetadata(ColumnMetadata):

@@ -1,59 +1,198 @@
+import os
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
+from returns.io import IOResultE, IOSuccess
+from returns.pipeline import is_successful
 from streamlit.testing.v1 import AppTest
+
+from lomas_core.models.collections import Metadata, User, UserId
+from lomas_core.models.constants import PrivateDatabaseType
+from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
+from lomas_server.administration.dashboard.utils import query_lomas
+from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
+from lomas_server.app import app
+from lomas_server.tests.utils import free_pass_env
+
+test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
+
+
+@pytest.fixture
+def demo_setup():
+    lomas_demo_setup()
+
+
+@pytest.fixture
+def switch_data_dir():
+    key = "LOMAS_SERVICE_data_directory"
+    prev_data_dir = os.environ.get(key, "")
+    # Server graciously allow Datase collection to have relative path to the `data_directory`
+    os.environ[key] = str(test_data_folder)
+    yield f"{key} -> {test_data_folder}"
+    os.environ[key] = prev_data_dir
 
 
 @pytest.fixture
 def dashbord_dir() -> Path:
-    return Path(__file__).parent / "../dashboard"
+    return (Path(__file__).parent / "../dashboard").resolve()
 
 
-@pytest.mark.skip("Ongoing changes...")
+@pytest.fixture
+def client() -> TestClient:
+    # we need to be admin from there on
+    user_name = "lomas_admin"
+    headers = {"Authorization": f"Bearer {user_name}"}
+    with free_pass_env(), TestClient(app, headers=headers) as client:
+        yield client
+
+
 def test_about_page(dashbord_dir: Path) -> None:
     """Test display about.py page."""
     at = AppTest.from_file(f"{dashbord_dir}/about.py").run()
 
-    # Check the title
     assert "Welcome!" in at.title[0].value
 
-    # Check the main header
     assert "Lomas Administation Dashboard" in at.header[0].value
 
-    # Check the sub-header or other headers
     assert "Key Features" in at.header[1].value
-    assert "Quick Start" in at.header[2].value
-    assert "Resources" in at.header[3].value
+    assert "Resources" in at.header[2].value
 
-    # Check the body text
     assert "The Lomas Administration Dashboard" in at.markdown[0].value
 
-    # Check resources section
-    assert "**Documentation**: [server documentation]" in at.markdown[-2].value
-    assert "**Support**: If you encounter any issues " in at.markdown[-1].value
+    assert "**Documentation**: [server documentation]" in at.markdown[-3].value
+    assert "**Support**: If you encounter any issues " in at.markdown[-2].value
+
+    assert "Server Status" in at.header[3].value
+    assert "localhost:" in at.markdown[-1].value
 
 
-@pytest.mark.skip("Ongoing changes...")
-def test_a_server_overview_page(dashbord_dir: Path) -> None:
-    """Test display a_server_overview.py page."""
-    at = AppTest.from_file(f"{dashbord_dir}/pages/a_server_overview.py").run()
+def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:
+    assert query_lomas("/live", client.get) == IOSuccess({"status": "alive"})
 
-    # Check the title
-    assert "Lomas configurations" in at.title[0].value
+    assert query_lomas("/datasets", client.get) == IOSuccess(
+        ["IRIS", "PENGUIN", "PUMS", "TITANIC", "FSO_INCOME_SYNTHETIC", "COVID_SYNTHETIC", "BIRTHDAYS"]
+    )
 
-    # Check server URL
-    assert "The server is available for requests at the address:" in at.markdown[0].value
-    assert "http://localhost:48080" in at.markdown[0].value
+    users = query_lomas("/users", client.get)
+    assert is_successful(users)
 
-    # Server state messages
-    assert "The server is live and ready!" in at.markdown[1].value
-    assert ":red[The server is in PRODUCTION mode.]" in at.markdown[2].value
+    user_name = "Dr.Antartica"
+    assert users.map(
+        lambda user_list: len([u for u in user_list if u["id"]["name"] == user_name])
+    ) == IOSuccess(1), f"{user_name} not found in /users"
 
-    # Check Server configurations
-    assert "Server configurations" in at.subheader[0].value
-    assert "The host IP of the server is: localhost" in at.markdown[3].value
-    assert "The method against timing attack is: jitter" in at.markdown[5].value
+    budgetReq = LomasBudgetRequest(dataset_name="PUMS", epsilon=0.3, delta=0.005)
+    assert is_successful(
+        query_lomas(f"/users/{user_name}/dataset/budget", client.patch, json=budgetReq.model_dump())
+    )
 
-    # Check Administration Database information
-    assert "Administration Database" in at.subheader[1].value
-    assert "Its address is: /tmp/admin.db" in at.markdown[6].value
+    assert query_lomas("/dataset/PUMS/metadata", client.get).map(
+        lambda meta: len(meta.keys()) > 5
+    ) == IOSuccess(True)
+
+
+def test_add_rm_user(client: TestClient, demo_setup) -> None:
+    username = "newUser"
+
+    new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets_list=[])
+    assert is_successful(query_lomas("/users", client.post, json=new_user.model_dump()))
+    assert query_lomas("/users/{username}/archive", client.get) == IOSuccess([])
+    assert is_successful(query_lomas(f"/users/{username}", client.delete))
+
+
+def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
+    user_name = "Dr.Antartica"
+    ds_name = "test_dataset"
+
+    assert is_successful(
+        query_lomas(
+            "/dataset",
+            client.post,
+            json={
+                "dataset_name": ds_name,
+                "database_type": PrivateDatabaseType.PATH,
+                "metadata_database_type": PrivateDatabaseType.PATH,
+                "dataset_path": str(test_data_folder / "test_penguin.csv"),
+                "metadata_path": str(test_data_folder / "metadata" / "penguin_metadata.yaml"),
+            },
+        )
+    )
+    # Ensure dataset is present
+    assert query_lomas(f"/dataset/{ds_name}", client.get).map(
+        lambda res: res.get("dataset_name") == ds_name
+    ) == IOSuccess(True)
+
+    assert is_successful(
+        query_lomas(
+            f"/users/{user_name}/dataset",
+            client.patch,
+            json=LomasRequestModel(dataset_name=ds_name).model_dump(),
+        )
+    )
+    # Ensure <user> has the new dataset in their list
+    assert query_lomas("/users", client.get).map(
+        lambda user_list: next(u["datasets_list"] for u in user_list if u["id"]["name"] == user_name)
+    ).map(lambda ds_list: len([ds for ds in ds_list if ds["dataset_name"] == ds_name])) == IOSuccess(1)
+
+    assert is_successful(query_lomas(f"/dataset/{ds_name}", client.delete))
+    # Ensure dataset deletion
+    assert not is_successful(query_lomas(f"/dataset/{ds_name}", client.get))
+
+    assert is_successful(
+        query_lomas(
+            f"/users/{user_name}/dataset/del",
+            client.patch,
+            json=LomasRequestModel(dataset_name=ds_name).model_dump(),
+        )
+    )
+    # Ensure <user> has the new dataset in their list no longer
+    assert query_lomas("/users", client.get).map(
+        lambda user_list: next(u["datasets_list"] for u in user_list if u["id"]["name"] == user_name)
+    ).map(lambda ds_list: len([ds for ds in ds_list if ds["dataset_name"] == ds_name])) == IOSuccess(0)
+
+
+def test_add_user_yaml(client: TestClient, demo_setup) -> None:
+    user_collection_file = test_data_folder / "test_user_collection.yaml"
+    assert is_successful(
+        query_lomas(
+            "/usersfile",
+            client.post,
+            json={"clean": False},
+            files={"file": user_collection_file.open(mode="rb")},
+        )
+    )
+
+
+def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> None:
+    dataset_collection = test_data_folder / "test_datasets.yaml"
+    assert is_successful(
+        query_lomas(
+            "/dataset/bulk",
+            client.post,
+            json={"clean": True},
+            files={"file": dataset_collection.open(mode="rb")},
+        )
+    )
+
+    ds_name = "PUMS"
+    old_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        Metadata.model_validate
+    )
+    assert is_successful(old_metadata)
+
+    # override pums with penguin metadatas
+    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.yaml"
+    query_lomas(
+        f"/dataset/{ds_name}/metadata", client.patch, files={"file": penguin_metadata.open(mode="rb")}
+    )
+
+    new_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        Metadata.model_validate
+    )
+    assert is_successful(new_metadata)
+
+    assert old_metadata != new_metadata
+    assert old_metadata.map(lambda meta: meta.columns.keys()) != new_metadata.map(
+        lambda meta: meta.columns.keys()
+    )

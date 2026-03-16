@@ -1,13 +1,6 @@
 import string
 from enum import StrEnum
 
-# Misc
-# -----------------------------------------------------------------------------
-
-# DP constants (max budget per user per dataset)
-EPSILON_LIMIT: float = 10.0
-DELTA_LIMIT: float = 0.01
-
 # Dummy dataset generation
 RANDOM_STRINGS = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
 

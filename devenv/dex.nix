@@ -24,7 +24,7 @@ let
 
   # Write config as file
   confFile = pkgs.writeText "dex-config.yaml" (''
-    issuer: http://${cfg.host}:${toString cfg.port}/dex
+    issuer: http://${cfg.host}:${toString cfg.port}${cfg.path}
     web:
       http: ${cfg.address}:${toString cfg.port}
 
@@ -45,7 +45,7 @@ let
     expiry:
       deviceRequests: "5m"
       signingKeys: "6h"
-      idTokens: "10s"         # Set very short for testing
+      idTokens: "3s"         # Set very short for testing
       refreshTokens:
         disableRotation: false
         reuseInterval: "3s"
@@ -71,14 +71,14 @@ let
         name: ${adminDashboard.client_id}
         secret: ${adminDashboard.client_secret}
         redirectURIs:
-          - http://${config.lomas.dashboard.host}:${toString config.lomas.dashboard.port}/oauth2callback
+          - ${config.lomas.oidc.clients.adminDashboard.redirect_uri}
       # lomas grafana
       - id: ${grafanaDashboard.client_id}
         public: false
         name: ${grafanaDashboard.client_id}
         secret: ${grafanaDashboard.client_secret}
         redirectURIs:
-          - http://${config.lomas.telemetry.services.grafana.host}:${toString config.lomas.telemetry.services.grafana.port}/login/generic_oauth
+          - ${config.lomas.oidc.clients.grafanaDashboard.redirect_uri}
 
     staticPasswords:
       # Beware: static passwords cannot be deleted in dex.
@@ -92,7 +92,7 @@ let
 
       src = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/dexidp/dex/${version}/api/v2/api.proto";
-        hash = "sha256-nYdmSeTbgl7wD/Rl3xSoL2l+mOt2tGXOkmO5iJepLgo=";
+        hash = "sha256-38rgZihPf1utY45g0+rKqDLdY+Cz0SpF1daAbSSQlIg=";
       };
 
       buildInputs = [ pkgs.python3Packages.grpcio-tools ];
@@ -115,14 +115,13 @@ in
 
     package = mkOption {
       type = types.package;
-      # default = pkgs.dex-oidc;
       default = pkgs.dex-oidc.overrideAttrs (old: rec {
-        version = "c016300db963097d7a90eb010ae2f323dd54b0b7";
+        version = "2.44.0";
         src = pkgs.fetchFromGitHub {
           owner = "dexidp";
           repo = "dex";
-          rev = "${version}";
-          sha256 = "sha256-COUhIxskcfnTF/TRmfb3IQ6Do+xdRV4xeNUspytc1Xw=";
+          rev = "v${version}";
+          sha256 = "sha256-wpy7pZBpqAaPjWbnsqtnE+65a58IGg0pyp4CEUnmmc4=";
         };
         patches = [
           (pkgs.fetchpatch {
@@ -130,12 +129,7 @@ in
             sha256 = "sha256-NsnqN+VeXi3NZ2zsp9KE5/9zqX9CioRrr0N313ZG3G0=";
           })
         ];
-        vendorHash = "sha256-obnZ8DOCDSK2cqu6PNjAeQbkb24osRGwM6fq93WZpOc=";
-        passthru.tests = {
-          version = pkgs.testers.testVersion {
-            version = "${version}";
-          };
-        };
+        vendorHash = "sha256-3ef2G4+UlLGsBW09ZM20qU82uj/hVlMAnujcd2BulGg=";
       });
     };
 
@@ -149,6 +143,13 @@ in
       default = "localhost";
       example = "dex.domain";
       description = "Dex hostname";
+    };
+
+    path = mkOption {
+      type = types.str;
+      default = "/dex";
+      example = "/ /dex";
+      description = "Dex Base Url";
     };
 
     address = mkOption {
@@ -186,8 +187,7 @@ in
       process-compose = {
         readiness_probe.http_get = {
           scheme = "http";
-          inherit (cfg) host port;
-          path = "/dex";
+          inherit (cfg) host port path;
         };
       };
     };

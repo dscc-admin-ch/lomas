@@ -14,9 +14,9 @@ let
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
-  admin_path_prefix = "${config.devenv.root}/server/data/";
-  user_yaml_path = "/collections/user_collection.yaml";
-  dataset_yaml_path = "/collections/dataset_collection_devenv.yaml";
+  admin_data_dir = "${config.devenv.root}/server/data";
+  user_yaml_path = "${admin_data_dir}/collections/user_collection.yaml";
+  dataset_yaml_path = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
 in
 {
   # import our modules
@@ -28,13 +28,13 @@ in
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
     ./devenv/dex.nix
+    ./devenv/pyenv.nix
   ];
 
   lomas = {
     enable = true;
     host = "localhost";
     port = 48080;
-    baseUrl = "/";
     dashboard.host = "localhost";
     dashboard.port = 8501;
     client.jupyter = {
@@ -56,10 +56,12 @@ in
       adminDashboard = {
         client_id = "lomas_dashboard";
         client_secret = "lomas_dashboard";
+        redirect_uri = with config.lomas.dashboard; "http://${host}:${toString port}${baseUrl}/oauth2callback";
       };
       grafanaDashboard = {
         client_id = "lomas_grafana";
         client_secret = "lomas_grafana";
+        redirect_uri = with config.lomas.telemetry.services.grafana; "http://${host}:${toString port}/login/generic_oauth";
       };
     };
   };
@@ -151,9 +153,15 @@ in
     projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
   };
 
+  lomas.pyenv = {
+    enable = true;
+    package = lib.mkDefault pkgs.python3;
+  };
+
   dockerEnv.enable = true;
 
   process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
+  process.manager.implementation = lib.mkDefault "process-compose";
 
   # Environment variable available inside devenv
   env = {
@@ -185,6 +193,7 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
+    LOMAS_SERVICE_bootstrap = "deadbeef";
     LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
     LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
     LOMAS_SERVICE_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
@@ -210,10 +219,10 @@ in
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
     LOMAS_ADMIN_database_url = "/tmp/admin.db";
-    LOMAS_ADMIN_PATH_PREFIX = admin_path_prefix;
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";
+    LOMAS_ADMIN_BOOTSTRAP = config.env.LOMAS_SERVICE_bootstrap;
   }
   // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
     {
@@ -236,6 +245,7 @@ in
     pkgs.jq
     pkgs.yq-go
     pkgs.watchexec
+    pkgs.skopeo
     pkgs.kubectl
     pkgs.kubernetes-helm
   ];
@@ -254,8 +264,8 @@ in
 
   languages.python = {
     enable = true;
-    venv.enable = true;
-    uv.enable = true;
+    venv.enable = !config.lomas.pyenv.enable;
+    uv.enable = !config.lomas.pyenv.enable;
   };
 
   devcontainer = {
@@ -268,6 +278,8 @@ in
 
   enterShell = ''
     echo hello from $GREET
+  ''
+  + (lib.optionalString (!config.lomas.pyenv.enable) ''
 
     UV_SYNC_COMMAND=(uv sync --frozen --all-extras)
 
@@ -287,7 +299,7 @@ in
         exit 1
       fi
     fi
-  '';
+  '');
 
   #####################
   # Various utilities #
@@ -403,10 +415,19 @@ in
     exec = "docker compose --env-file configs/.env.docker-compose up";
   };
 
+  scripts.docker-load-image = wrapScript {
+    exec = ''
+      echo "building lomas OCI"
+      out=$(devenv build outputs.lomas-oci)
+      echo "loading into docker"
+      $out | TMPDIR=/tmp docker load
+    '';
+  };
+
   scripts.docker-compose-test = wrapScript {
     pwd = "server";
     exec = ''
-      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+      docker compose -f docker-compose.yml --env-file configs/.env.docker-compose run --rm lomas_client python -m lomas_client.scripts.run_notebook --notebook /code/client/notebooks/Minimalist_Demo_Client_Notebook.ipynb
       docker compose -f docker-compose.yml --env-file configs/.env.docker-compose down
     '';
   };

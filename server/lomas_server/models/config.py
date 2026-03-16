@@ -97,7 +97,11 @@ class Config(BaseSettings):
 
     authenticator: AuthenticatorT
 
+    bootstrap: str | None = Field(default=None)
+
     admin_database_url: Path
+
+    data_directory: Path = Field(default=Path("../data"))
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
 
@@ -139,9 +143,4 @@ class AdminConfig(BaseSettings):
     # or if Lomas is deployed with its own docker network (docker compose case).
     server_url: HttpUrl
     server_service: HttpUrl
-    database_url: Path
     dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
-
-    @computed_field
-    def database(self) -> AdminDatabase:
-        return LocalAdminDatabase(path=self.database_url)

@@ -36,7 +36,7 @@ source $HOME/.nix-profile/etc/profile.d/nix.sh
 EOF
 
 echo "installing devenv & direnv"
-$NIX_BIN/nix profile install nixpkgs#{dir,dev}env
+$NIX_BIN/nix profile add nixpkgs#{dir,dev}env
 
 if [[ -d "$WORKSPACE_DIR" && ! -e "$WORKSPACE_DIR/lomas" ]]; then
   echo "cloning lomas"

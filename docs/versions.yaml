@@ -1,40 +1,20 @@
 "stable":
   tag: "master"
-  languages:
-    - "en"
 "develop":
   tag: 'develop'
-  languages:
-    - "en"
 # "v0.1.0":
 #    tag: "v0.1.0"
-#    languages:
-#     - "en"
 # "v0.1.1":
 #    tag: "v0.1.1"
-#    languages:
-#     - "en"
 # "v0.1.2":
 #    tag: "v0.1.2"
-#    languages:
-#     - "en"
 # "v0.2.0":
 #    tag: "v0.2.0"
-#    languages:
-#     - "en"
 # "v0.3.0":
 #    tag: "v0.3.0"
-#    languages:
-#     - "en"
 # "v0.3.3":
 #    tag: "v0.3.3"
-#    languages:
-#     - "en"
 # "v0.3.5":
 #    tag: "v0.3.5"
-#    languages:
-#     - "en"
 # "v0.4.1":
 #    tag: "v0.4.1"
-#    languages:
-#     - "en"

@@ -2,20 +2,21 @@ x-common-build: &common
 
 services:
   lomas_server:
-    image: dsccadminch/lomas_server_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_server_dev
-      context: ../
+    image: lomas-oci:latest
     container_name: lomas_server_dev
     ports:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
     restart: always
-    env_file: ./configs/.env.lomas_service
     volumes:
-      - admindata:/tmp
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
+      - ./data/collections:/data/collections
+      - ./data/datasets:/data/datasets/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVICE_PORT}/live"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
     depends_on:
       rabbitmq:
         condition: service_started
@@ -31,24 +32,16 @@ services:
       dex:
         condition: service_started
         restart: true
-      lomas_demo_setup:
-        condition: service_completed_successfully
-        restart: true
       lomas_worker:
         condition: service_started
     networks:
       - lomas-network
 
   lomas_worker:
-    image: dsccadminch/lomas_server_dev
-    # build:
-    #   dockerfile: ./Dockerfile
-    #   target: lomas_server_dev
-    #   context: ../
+    image: lomas-oci:latest
     container_name: lomas_worker_dev
     restart: always
-    command: "python -m lomas_server.worker"
-    env_file: ./configs/.env.lomas_service
+    command: lomas-work
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
@@ -83,7 +76,7 @@ services:
 
   dex:
     container_name: dex
-    image: docker.io/dexidp/dex:v2.44.0
+    image: docker.io/dexidp/dex:v2.45.1
     command: dex serve /config/dex_config.yaml
     ports:
         - ${LOMAS_DEX_PORT}:${LOMAS_DEX_PORT}
@@ -100,18 +93,14 @@ services:
 
   lomas_demo_setup:
     container_name: demo_setup
-    image: dsccadminch/lomas_admin_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_admin_dev
-      context: ../
+    image: lomas-oci:latest
     depends_on:
       dex:
         condition: service_healthy
-    entrypoint: /bin/sh -c "python -m lomas_server.administration.scripts.lomas_demo_setup"
-    env_file: ./configs/administration/.env.lomas_demo_setup
+      lomas_server:
+        condition: service_healthy
+    entrypoint: lomas-demo-setup
     volumes:
-      - admindata:/tmp
       - ../core/lomas_core:/code/core/lomas_core
       - ./lomas_server:/code/core/lomas_server
       - ./data/collections/metadata:/data/collections/metadata/
@@ -153,16 +142,12 @@ services:
       - lomas-network
 
   lomas_admin_dashboard:
-    image: dsccadminch/lomas_admin_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_admin_dev
-      context: ../
+    image: lomas-oci:latest
     container_name: lomas_admin_dev
     ports:
       - ${LOMAS_DASHBOARD_PORT}:${LOMAS_DASHBOARD_PORT}
     restart: always
-    env_file: ./configs/administration/.env.lomas_demo_setup
+    command: ["streamlit", "run", "/code/server/lomas_server/administration/dashboard/about.py"]
     environment:
       - STREAMLIT_SERVER_PORT=${LOMAS_DASHBOARD_PORT}
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
@@ -177,13 +162,8 @@ services:
       - lomas-network
 
   lomas_client:
-    image: dsccadminch/lomas_client_dev
-    build:
-      dockerfile: ./Dockerfile
-      target: lomas_client_dev
-      context: ../
+    image: lomas-oci:latest
     container_name: lomas_client
-    env_file: ./configs/.env.lomas_client
     command: ["jupyter", "notebook", "--ip", "0.0.0.0", "--no-browser", "--allow-root", "--port", "${LOMAS_CLIENT_PORT}"]
     ports:
       - ${LOMAS_CLIENT_PORT}:${LOMAS_CLIENT_PORT}
@@ -194,7 +174,14 @@ services:
       - ../client/notebooks/:/code/client/notebooks/
       - ./data/:/data/
     depends_on:
-      - lomas_server
+      lomas_server:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+      lomas_demo_setup:
+        condition: service_completed_successfully
+        restart: true
+
     networks:
       - lomas-network
 
@@ -275,5 +262,4 @@ networks:
     name: lomas-network
 
 volumes:
-  admindata:
   minio-data:

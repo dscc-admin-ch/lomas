@@ -1,8 +1,8 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, status
-from fastapi.responses import JSONResponse, ORJSONResponse, RedirectResponse
+from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
 from lomas_core.error_handler import (
@@ -11,8 +11,8 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import Metadata, UserId
-from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
+from lomas_core.models.collections import DSInfo, Metadata, User, UserId
+from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
     example_get_dummy_dataset,
@@ -24,8 +24,11 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
+from lomas_server.admin_database.constants import BudgetDBKey
+from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
+from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
@@ -223,7 +226,7 @@ def get_dummy_dataset(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes, datetime_columns = get_column_dtypes(ds_metadata)
+        dtypes = get_column_dtypes(ds_metadata)
 
         dummy_df = make_dummy_dataset(
             ds_metadata,
@@ -231,19 +234,12 @@ def get_dummy_dataset(
             query_json.dummy_seed,
         )
 
-        for col in datetime_columns:
-            dummy_df[col] = dummy_df[col].dt.strftime("%Y-%m-%dT%H:%M:%S")
-
     except KNOWN_EXCEPTIONS as e:
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
 
-    return DummyDsResponse(
-        dtypes=dtypes,
-        datetime_columns=datetime_columns,
-        dummy_df=dummy_df,
-    )
+    return DummyDsResponse(dtypes=dtypes, dummy_df=dummy_df)
 
 
 @router.post(
@@ -429,4 +425,215 @@ def get_user_previous_queries(
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
-    return ORJSONResponse(content={"previous_queries": previous_queries})
+    return JSONResponse(content={"previous_queries": previous_queries})
+
+
+#############################
+# ADMIN DASHBOARD MIGRATION #
+#############################
+
+
+@router.get("/datasets")
+def list_datasets(
+    request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
+) -> list[str]:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return [ds.dataset_name for ds in db.datasets()]
+
+
+@router.get("/users")
+def list_users(
+    request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
+) -> list[User]:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.users()
+
+
+@router.post("/users")
+def add_user(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    new_user: User,
+) -> None:
+    """Adds a new user with an associated budget for a given dataset.
+
+    Args:
+        new_user (User): User to add
+    """
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.add_user(new_user.id.name, new_user.id.email)
+
+
+@router.post("/usersfile")
+def add_users_yaml(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    file: UploadFile,
+    clean: bool = False,
+) -> None:
+    """Add all users from a yaml file.
+
+    Args:
+        yaml_file (Path): a path to the YAML file location
+        clean (bool): boolean flag
+            True if drop current user collection
+            False if keep current user collection
+    """
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.add_users_via_yaml(file.file, clean=clean)
+
+
+@router.delete("/users/{username}")
+def delete_user(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+) -> None:
+    """Deletes the lomas user.
+
+    Args:
+        user_name (str): The name of the user to be deleted.
+    """
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.del_user(username)
+
+
+@router.delete("/collections/{collection_name}")
+def delete_collection(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    collection_name: str,
+) -> None:
+    """Drops the given collection from the administration database.
+
+    Args:
+        collection (str): The collection to drop.
+    """
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.drop_collection(collection_name)
+
+
+@router.post("/dataset/bulk")
+def add_dataset_bulk(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    file: UploadFile,
+    clean: bool = False,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    config = Config()
+    return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix=config.data_directory)
+
+
+@router.post("/dataset")
+def add_dataset(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    body: AddDatasetModel,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.add_dataset(
+        body.dataset_name,
+        body.database_type,
+        body.metadata_database_type,
+        body.dataset_path,
+        body.metadata_path,
+    )
+
+
+@router.delete("/dataset/{dataset_name}")
+def delete_dataset(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    dataset_name: str,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.del_dataset(dataset_name)
+
+
+@router.patch("/users/{username}/dataset")
+def add_dataset_to_user(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+    body: LomasRequestModel,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.add_dataset_to_user(username, body.dataset_name, 0.0, 0.0)
+
+
+@router.patch("/users/{username}/dataset/del")
+def del_dataset_to_user(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+    body: LomasRequestModel,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.del_dataset_to_user(username, body.dataset_name)
+
+
+@router.patch("/users/{username}/dataset/budget")
+def set_epsilon_delta(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+    body: LomasBudgetRequest,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.EPSILON_INIT, body.epsilon)
+    db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
+
+
+@router.get("/users/{username}/archive")
+def get_archives_user(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+) -> list[dict]:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.get_archives_of_user(username)
+
+
+@router.get("/dataset/{dataset_name}")
+def get_dataset(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    dataset_name: str,
+) -> DSInfo:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.get_dataset(dataset_name)
+
+
+@router.get("/dataset/{dataset_name}/metadata")
+def get_dataset_metadata_admin(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    dataset_name: str,
+) -> Metadata:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    return db.get_dataset_metadata(dataset_name)
+
+
+@router.patch("/dataset/{dataset_name}/metadata")
+def set_dataset_metadata_admin(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    dataset_name: str,
+    file: UploadFile,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    db.set_dataset_metadata(dataset_name, file.file)
+
+
+@router.delete("/bootstrap")
+def delete_bootstrap(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    response: Response,
+) -> None:
+    # Bootstrap never set or already removed -> gone forever
+    if request.app.state.bootstrap is None:
+        response.status_code = status.HTTP_410_GONE
+    else:
+        request.app.state.bootstrap = None

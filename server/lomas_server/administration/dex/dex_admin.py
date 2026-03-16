@@ -4,6 +4,8 @@ from pathlib import Path
 import bcrypt
 import grpc
 import yaml
+from returns.io import IOResultE, IOSuccess, impure_safe
+from returns.iterables import Fold
 
 from lomas_core.models.collections import UserCollection
 from lomas_core.models.constants import init_logging
@@ -87,7 +89,10 @@ def to_log(user_provided_str: str) -> str:
     return user_provided_str.replace("\r\n", "").replace("\n", "")
 
 
-def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> None:
+@impure_safe
+def add_dex_user(
+    dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str
+) -> IOResultE[str]:
     """Adds a new user to dex.
 
     Args:
@@ -100,29 +105,26 @@ def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, us
         InvalidDexOperation: If the user already exists.
         e: grpc.RpcError
     """
-    try:
-        with get_grpc_channel(dex_config) as channel:
-            stub = DexStub(channel)
+    with get_grpc_channel(dex_config) as channel:
+        stub = DexStub(channel)
 
-            new_pwd = Password(
-                email=user_email, hash=hash_pwd(user_password), username=user_name, user_id=str(uuid.uuid4())
-            )
+        new_pwd = Password(
+            email=user_email, hash=hash_pwd(user_password), username=user_name, user_id=str(uuid.uuid4())
+        )
 
-            res = stub.CreatePassword(CreatePasswordReq(password=new_pwd))
+        res = stub.CreatePassword(CreatePasswordReq(password=new_pwd))
 
-            if res.already_exists:
-                logger.error(
-                    f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
-                )
-                raise InvalidDexOperation(
-                    f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
-                )
-            logger.debug(f"Added {to_log(user_name)} user.")
-    except grpc.RpcError as e:
-        raise DexRPCError("grpc error") from e
+        if res.already_exists:
+            msg = f"Failed to add user {to_log(user_name)} with email {to_log(user_email)}. User or email already exists."
+            logger.error(msg)
+            raise InvalidDexOperation(msg)
+
+        logger.debug(f"Added {to_log(user_name)} user.")
+        return user_name
 
 
-def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> None:
+@impure_safe
+def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> IOResultE[bool]:
     """Removes the dex user.
 
     Args:
@@ -133,25 +135,23 @@ def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> None:
         InvalidDexOperation: If the user does not exist.
         e: grpc.RpcError
     """
-    try:
-        with get_grpc_channel(dex_config) as channel:
-            stub = DexStub(channel)
+    with get_grpc_channel(dex_config) as channel:
+        stub = DexStub(channel)
 
-            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-            for user in dex_users:
-                if user.username == user_name:
-                    stub.DeletePassword(DeletePasswordReq(email=user.email))
-                    logger.debug(f"Deleted dex user {user_name}")
-                    return
+        for user in dex_users:
+            if user.username == user_name:
+                res = stub.DeletePassword(DeletePasswordReq(email=user.email))
+                logger.debug(f"Deleted dex user {user_name}")
+                return not res.not_found
 
-            logger.error(f"User {user_name} does not exist.")
-            raise InvalidDexOperation(f"Cannot delete. User does not exist {user_name}")
-    except grpc.RpcError as e:
-        raise DexRPCError("grpc error") from e
+        logger.error(f"User {user_name} does not exist.")
+        raise InvalidDexOperation(f"Cannot delete. User does not exist {user_name}")
 
 
-def del_all_dex_users(dex_config: DexAdminConfig) -> None:
+@impure_safe
+def del_all_dex_users(dex_config: DexAdminConfig) -> IOResultE[None]:
     """Removes all dex users.
 
     Args:
@@ -160,26 +160,24 @@ def del_all_dex_users(dex_config: DexAdminConfig) -> None:
     Raises:
         grpc.RpcError: If any of the calls to dex fails
     """
-    try:
-        with get_grpc_channel(dex_config) as channel:
-            stub = DexStub(channel)
-            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+    with get_grpc_channel(dex_config) as channel:
+        stub = DexStub(channel)
+        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-            for user in dex_users:
-                stub.DeletePassword(DeletePasswordReq(email=user.email))
-                logger.debug(f"Deleted dex user {user.username}")
+        for user in dex_users:
+            stub.DeletePassword(DeletePasswordReq(email=user.email))
+            logger.debug(f"Deleted dex user {user.username}")
 
-        logger.debug("Removed all dex users.")
-    except grpc.RpcError as e:
-        raise DexRPCError("grpc error") from e
+    logger.debug("Removed all dex users.")
 
 
+@impure_safe
 def add_dex_users(
     dex_config: DexAdminConfig,
     user_list: UserCollection,
     clean: bool,
     overwrite: bool,
-) -> None:
+) -> IOResultE[list[str]]:
     """Adds new lomas users to Dex.
 
     Iterates over `user_list` and creates password entries in Dex for each user.
@@ -201,30 +199,29 @@ def add_dex_users(
     if clean:
         del_all_dex_users(dex_config)
 
-    try:
-        with get_grpc_channel(dex_config) as channel:
-            stub = DexStub(channel)
-            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+    with get_grpc_channel(dex_config) as channel:
+        stub = DexStub(channel)
+        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-            for user in user_list.users:
-                # Remove user with same name if requested (but not already cleaned)
-                if overwrite and not clean:
-                    for dex_user in dex_users:
-                        if dex_user.username == user.id.name:
-                            stub.DeletePassword(DeletePasswordReq(email=dex_user.email))
-                            logger.debug(f"Removed existing dex user {user.id.name} due to overwrite flag")
+        added_user_result: list[IOResultE] = []
+        for user in user_list.users:
+            # Remove user with same name if requested (but not already cleaned)
+            if overwrite and not clean:
+                for dex_user in dex_users:
+                    if dex_user.username == user.id.name:
+                        stub.DeletePassword(DeletePasswordReq(email=dex_user.email))
+                        logger.debug(f"Removed existing dex user {user.id.name} due to overwrite flag")
 
-                # Create the dex user
-                # TODO replace client_secret with password
-                if user.id.client_secret is None:
-                    logger.error(f"Cannot add Dex user {user.id.name} without password")
-                    raise InvalidDexOperation(f"Cannot add Dex user {user.id.name} without password")
+            # Create the dex user
+            # TODO replace client_secret with password
+            if user.id.client_secret is None:
+                logger.error(f"Cannot add Dex user {user.id.name} without password")
+                raise InvalidDexOperation(f"Cannot add Dex user {user.id.name} without password")
 
-                add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
-
-            logger.debug("Added dex users from user collection.")
-    except grpc.RpcError as e:
-        raise DexRPCError("grpc error") from e
+            added_user = add_dex_user(dex_config, user.id.name, user.id.email, user.id.client_secret)
+            added_user_result.append(added_user)
+        logger.debug("Added dex users from user collection.")
+        return Fold.collect(added_user_result, IOSuccess(()))  # list[IOResultE] -> IOResultE[list]
 
 
 def add_dex_users_via_yaml(
@@ -232,7 +229,7 @@ def add_dex_users_via_yaml(
     yaml_file: Path,
     clean: bool,
     overwrite: bool,
-) -> None:
+) -> IOResultE[list[str]]:
     """Adds new lomas users to Dex from a YAML file.
 
     Args:
@@ -243,10 +240,11 @@ def add_dex_users_via_yaml(
     """
     # Load yaml data and insert it
     user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open()))
-    add_dex_users(dex_config, user_list, clean, overwrite)
+    return add_dex_users(dex_config, user_list, clean, overwrite)
 
 
-def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> None:
+@impure_safe
+def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> IOResultE[bool]:
     """Sets the new user password to the Dex user.
 
     Args:
@@ -258,24 +256,20 @@ def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_passwo
         InvalidDexOperation: If the user does not exist.
         grpc.RpcError: If any of the calls to dex fails
     """
-    try:
-        with get_grpc_channel(dex_config) as channel:
-            stub = DexStub(channel)
-            dex_users = stub.ListPasswords(ListPasswordReq()).passwords
+    with get_grpc_channel(dex_config) as channel:
+        stub = DexStub(channel)
+        dex_users = stub.ListPasswords(ListPasswordReq()).passwords
 
-            for dex_user in dex_users:
-                if dex_user.username == user_name:
-                    stub.UpdatePassword(
-                        UpdatePasswordReq(
-                            email=dex_user.email, new_hash=hash_pwd(new_password), new_username=user_name
-                        )
+        for dex_user in dex_users:
+            if dex_user.username == user_name:
+                response = stub.UpdatePassword(
+                    UpdatePasswordReq(
+                        email=dex_user.email, new_hash=hash_pwd(new_password), new_username=user_name
                     )
-                    logger.debug(f"Updated password for user {to_log(user_name)}.")
-                    return
+                )
+                logger.debug(f"Updated password for user {to_log(user_name)}.")
+                return not response.not_found
 
-            raise InvalidDexOperation(
-                f"Failed to update user password for {to_log(user_name)}. User does not exist."
-            )
-
-    except grpc.RpcError as e:
-        raise DexRPCError("grpc error") from e
+        raise InvalidDexOperation(
+            f"Failed to update user password for {to_log(user_name)}. User does not exist."
+        )

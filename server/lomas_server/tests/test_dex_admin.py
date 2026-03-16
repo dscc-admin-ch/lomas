@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 import requests
 import yaml
+from returns.io import IOSuccess
 
 from lomas_core.models.collections import UserCollection
 from lomas_server.administration.dex.api.api_pb2 import DiscoveryReq, ListPasswordReq
@@ -61,13 +62,18 @@ def test_add_dex_user(client, dex_config) -> None:
     """Test adding a user in Dex."""
     len_users_before = len(get_dex_passwords(dex_config))
 
-    add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    added_user = add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    assert added_user == IOSuccess(client.user_name)
 
     # Check user is added
     users_after = get_dex_passwords(dex_config)
     len_users_after = len(users_after)
 
     assert len_users_before == len_users_after - 1
+
+    # Double add
+    double_add = add_dex_user(dex_config, client.user_name, client.user_email, client.password)
+    assert double_add.failure()
 
     for user in users_after:
         if user.username == client.user_name:
@@ -93,6 +99,9 @@ def test_del_dex_user(client, dex_config) -> None:
     # Check correct user was deleted
     assert users_after[0].username == "no-delete"
 
+    # bad delete
+    assert del_dex_user(dex_config, "IdoNotExist").failure()
+
 
 def test_del_all_dex_users(client, dex_config) -> None:
     """Test deleting a user from Dex."""
@@ -110,7 +119,10 @@ def test_set_dex_user_password(client, dex_config):
     """Test set kc user client secret."""
     # Add a user
     add_dex_user(dex_config, client.user_name, client.user_email, client.password)
-    set_dex_user_password(dex_config, client.user_name, "new_password")
+    assert set_dex_user_password(dex_config, client.user_name, "new_password") == IOSuccess(True)
+
+    # Bad add
+    assert set_dex_user_password(dex_config, "IdoNotExist", "new_password").failure()
 
     # Get token via password grant to verify password is correctly set.
     with get_grpc_channel(dex_config) as channel:
@@ -136,15 +148,13 @@ def test_add_dex_users_via_yaml(client, dex_config):
     len_users_before = len(get_dex_passwords(dex_config))
 
     demo_config = DemoAdminConfig()
-    add_dex_users_via_yaml(
-        dex_config, demo_config.path_prefix / demo_config.user_yaml.relative_to("/"), True, True
-    )
+    add_dex_users_via_yaml(dex_config, demo_config.user_yaml, True, True)
     # Check that users/clients are inserted
     users_after = get_dex_passwords(dex_config)
     assert len(users_after) == len_users_before + 7  # check that all 6 users are inserted
 
     # Load demo yaml
-    yaml_users = yaml.safe_load((demo_config.path_prefix / demo_config.user_yaml.relative_to("/")).open())
+    yaml_users = yaml.safe_load(demo_config.user_yaml.open())
     new_email = "new@email.com"
     yaml_users["users"][1]["id"]["email"] = new_email
 
@@ -155,3 +165,7 @@ def test_add_dex_users_via_yaml(client, dex_config):
     for user in users_after:
         if user.username == "Alice":
             assert user.email == new_email
+
+    # User with missing password
+    yaml_users["users"][1]["id"]["client_secret"] = None
+    assert add_dex_users(dex_config, UserCollection(**yaml_users), False, False).failure()

@@ -110,7 +110,7 @@ rec {
   # add missing setuptools build requirements to theses libs
   fixBuildSystemOverlay =
     final: prev:
-    lib.genAttrs [ "diffprivlib-logger" "pandoc" ] (
+    lib.genAttrs [ "diffprivlib-logger" "pandoc" "diffprivlib" ] (
       name:
       prev.${name}.overrideAttrs (old: {
         nativeBuildInputs = old.nativeBuildInputs ++ final.resolveBuildSystem { setuptools = [ ]; };
@@ -132,7 +132,7 @@ rec {
       uvOverlay
       fixBuildSystemOverlay
       fixSmartnoiseSql
-      diffprivlibOverlay
+      # diffprivlibOverlay
       # openDpOverlay
     ]
   );

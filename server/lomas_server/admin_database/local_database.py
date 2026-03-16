@@ -2,7 +2,8 @@ import operator as op
 import shelve
 import sys
 from pathlib import Path
-from typing import Any, Self
+from tempfile import SpooledTemporaryFile
+from typing import Any, BinaryIO, Self
 
 import boto3
 import yaml
@@ -130,7 +131,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     def add_datasets_via_yaml(
         self,
-        yaml_file: Path,
+        yaml_file: Path | BinaryIO | SpooledTemporaryFile,
         clean: bool,
         path_prefix: Path = Path(),
     ) -> None:
@@ -152,10 +153,11 @@ class LocalAdminDatabase(AdminDatabase):
         if clean:
             self.drop_collection("datasets")
 
-        if hasattr(yaml_file, "resolve"):
-            yaml_dict = yaml.safe_load(yaml_file.resolve().open())
-        else:
-            yaml_dict = yaml.safe_load(yaml_file)
+        match yaml_file:
+            case Path():
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+            case BinaryIO() | SpooledTemporaryFile():
+                yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
     def add_dataset(
@@ -231,8 +233,7 @@ class LocalAdminDatabase(AdminDatabase):
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
             # Store metadata from yaml to metadata collection
-            with Path(metadata_path).resolve().open(encoding="utf-8") as f:
-                metadata_dict = yaml.safe_load(f)
+            metadata_dict = yaml.safe_load(Path(metadata_path).resolve().open())
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:
@@ -295,7 +296,7 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
-    def add_users_via_yaml(self, yaml_file: Path, clean: bool) -> None:
+    def add_users_via_yaml(self, yaml_file: Path | BinaryIO | SpooledTemporaryFile, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
 
         Args:
@@ -311,10 +312,11 @@ class LocalAdminDatabase(AdminDatabase):
             self.drop_collection("users")
 
         # Load yaml data and insert it
-        if hasattr(yaml_file, "resolve"):
-            yaml_dict = yaml.safe_load(yaml_file.resolve().open())
-        else:
-            yaml_dict = yaml.safe_load(yaml_file)
+        match yaml_file:
+            case Path():
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+            case BinaryIO() | SpooledTemporaryFile():
+                yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
     def add_user(

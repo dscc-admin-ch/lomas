@@ -1685,7 +1685,7 @@ wheels = [
 
 [[package]]
 name = "lomas"
-version = "0.4.1"
+version = "0.5.0a1"
 source = { virtual = "." }
 dependencies = [
     { name = "lomas-client" },
@@ -1736,7 +1736,7 @@ provides-extras = ["test", "docs"]
 
 [[package]]
 name = "lomas-client"
-version = "0.4.1"
+version = "0.5.0a1"
 source = { editable = "client" }
 dependencies = [
     { name = "authlib" },
@@ -1766,7 +1766,7 @@ provides-extras = ["test"]
 
 [[package]]
 name = "lomas-core"
-version = "0.4.1"
+version = "0.5.0a1"
 source = { editable = "core" }
 dependencies = [
     { name = "diffprivlib" },
@@ -1801,7 +1801,7 @@ requires-dist = [
 
 [[package]]
 name = "lomas-server"
-version = "0.4.1"
+version = "0.5.0a1"
 source = { editable = "server" }
 dependencies = [
     { name = "aio-pika" },

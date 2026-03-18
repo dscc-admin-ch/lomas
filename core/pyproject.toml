@@ -32,7 +32,7 @@ classifiers = [
 ]
 dependencies = [
     "returns[compatible-mypy]>=0.25",
-    "diffprivlib @ git+https://github.com/LancelotMarti/differential-privacy-library.git@main",
+    "diffprivlib-fix>=0.6.7",
     "diffprivlib_logger==0.0.3",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",
     "opendp[mbi]==0.14.1",

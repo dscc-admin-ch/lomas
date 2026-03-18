@@ -8,7 +8,7 @@ where = ["."]
 
 [project]
 name = "lomas-client"
-version = "0.5.0a1"
+version = "0.5.0a2"
 description = "A client to interact with the Lomas server."
 readme = "README.md"
 requires-python = ">=3.11, <3.14"
@@ -39,7 +39,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "lomas-core==0.5.0a1",
+    "lomas-core==0.5.0a2",
     "jupyter>=1.1",
     "authlib>=1.6.7",
     "opentelemetry-instrumentation-logging>=0.50b0",

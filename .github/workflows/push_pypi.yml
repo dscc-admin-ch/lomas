@@ -21,16 +21,15 @@ jobs:
 
       - name: Build Packages
         run: |
-          uv build --sdist core
-          uv build --sdist client
+          uv build --wheel core
+          uv build --wheel client
 
       - name: Sanity Check
         run: |
-          uv run --isolated --no-project --with dist/lomas_core-*.tar.gz python -c 'import lomas_core'
-          uv run --isolated --no-project --with dist/lomas_core-*.tar.gz --with dist/lomas_client-*tar.gz python -c 'import lomas_client'
+          uv run --isolated --no-project --with dist/lomas_core-* python -c 'import lomas_core'
+          uv run --isolated --no-project --with dist/lomas_core-* --with dist/lomas_client-* python -c 'import lomas_client'
 
       - name: Publish Packages
         if: github.event_name == 'release' || github.ref_type == 'tag'
         run: |
-          uv publish -t ${{ secrets.PYPI_TOKEN }} dist/lomas_core-*.tar.gz
-          uv publish -t ${{ secrets.PYPI_TOKEN }} dist/lomas_client-*tar.gz
+          uv publish --check-url https://pypi.org/simple --token ${{ secrets.PYPI_TOKEN }}

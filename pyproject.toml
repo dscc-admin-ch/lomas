@@ -1,6 +1,6 @@
 [project]
 name = "lomas"
-version = "0.5.0a1"
+version = "0.5.0a2"
 requires-python = '>=3.11'
 dependencies = [
   "lomas-core",

@@ -37,6 +37,7 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "lomas-core==0.5.0a2",

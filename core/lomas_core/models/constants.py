@@ -4,6 +4,7 @@ from enum import IntEnum, StrEnum
 from importlib import metadata
 from typing import Literal
 
+import diffprivlib
 from rich.logging import RichHandler
 
 # Field names
@@ -24,7 +25,7 @@ DUMMY_SEED = 42
 
 OPENDP_VERSION = metadata.version("opendp")
 OpenDPFeatures = Sequence[Literal["contrib", "floating-point", "honest-but-curious"]]
-DIFFPRIVLIB_VERSION = metadata.version("diffprivlib-fix")
+DIFFPRIVLIB_VERSION = diffprivlib.__version__
 
 
 # Metadata

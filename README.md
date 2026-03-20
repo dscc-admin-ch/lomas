@@ -6,13 +6,13 @@
 </picture>
 </h1><br>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python versions](https://img.shields.io/pypi/pyversions/lomas_client.svg)](https://pypi.org/project/lomas_client/)
+![GitHub License](https://img.shields.io/github/license/dscc-admin-ch/lomas)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lomas_client)
 [![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas-docs/index.html)
-[![Tests](https://github.com/dscc-admin-ch/lomas/actions/workflows/test_and_coverage_server.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/test_and_coverage_server.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dscc-admin-ch/lomas/test_and_coverage_server.yml?logo=github&label=Server%20Tests)
 [![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
 [![CodeQL](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml)
-[![PyPi version](https://img.shields.io/pypi/v/lomas_client.svg)](https://pypi.org/project/lomas_client/)
+![PyPI - Version](https://img.shields.io/pypi/v/lomas_client)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

@@ -5,29 +5,31 @@ on:
     branches: [develop, master]
   release:
     types: [published]
+  push:
+    tags:
+      - v*
 
 jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v5
-        with:
-          python-version: 3.12
+      - uses: actions/checkout@v6
 
-      - name: Install dependencies
-        run: uv pip install twine
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: 3.13
 
       - name: Build Packages
         run: |
-          uv build --sdist core
-          uv build --sdist client
-          uv build --sdist server
+          uv build --wheel core
+          uv build --wheel client
+
+      - name: Sanity Check
+        run: |
+          uv run --isolated --no-project --with dist/lomas_core-* python -c 'import lomas_core'
+          uv run --isolated --no-project --with dist/lomas_core-* --with dist/lomas_client-* python -c 'import lomas_client'
 
       - name: Publish Packages
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || github.ref_type == 'tag'
         run: |
-          twine upload dist/lomas_core*   -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-          twine upload dist/lomas_client* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-          twine upload dist/lomas_server* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-
+          uv publish --check-url https://pypi.org/simple --token ${{ secrets.PYPI_TOKEN }}

@@ -8,7 +8,7 @@ where = ["."]
 
 [project]
 name = "lomas-core"
-version = "0.4.1"
+version = "0.5.0b1"
 description = "Lomas core."
 readme = "README.md"
 requires-python = ">=3.11, <3.14"
@@ -29,11 +29,11 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "returns[compatible-mypy]>=0.25",
-    "diffprivlib @ git+https://github.com/LancelotMarti/differential-privacy-library.git@main",
-    "diffprivlib_logger==0.0.3",
+    "diffprivlib_logger==0.0.4",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",
     "opendp[mbi]==0.14.1",
     "polars==1.32.0",

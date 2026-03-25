@@ -288,14 +288,6 @@ in
     uv.enable = !config.lomas.pyenv.enable;
   };
 
-  devcontainer = {
-    enable = true;
-    settings.customizations.vscode.extensions = [
-      "mkhl.direnv"
-      "jnoortheen.nix-ide"
-    ];
-  };
-
   enterShell = ''
     echo hello from $GREET
   ''

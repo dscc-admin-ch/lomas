@@ -41,7 +41,7 @@ jobs:
         run: devenv build outputs.lomas-oci
 
       - name: Push Image
-        if: github.event_name == 'push' || github.event_name == 'release'
+        # if: github.event_name == 'push' || github.event_name == 'release'
         run: |
           out=$(devenv build outputs.lomas-oci 2>/dev/null | jq -r '.[]')
           $out | skopeo copy docker-archive:/dev/stdin docker://dsccadminch/lomas:${DOCKER_METADATA_OUTPUT_VERSION:-debug}

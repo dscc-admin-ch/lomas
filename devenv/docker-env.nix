@@ -141,6 +141,12 @@ in
           git
           ;
         inherit (config.outputs) lomas-env;
+        lomas-dashboard = (
+          pkgs.writeShellScriptBin "lomas-dashboard" ''
+            cd ${config.outputs.lomas-env}/lib/python*/site-packages/
+            streamlit run lomas-server/administration/dashboard/about.py
+          ''
+        );
       };
 
       extraCommands = ''
@@ -154,6 +160,7 @@ in
           (filterEnvPrefix "LOMAS_SERVICE_")
           // (filterEnvPrefix "LOMAS_CLIENT_")
           // (filterEnvPrefix "LOMAS_ADMIN_")
+          // (filterEnvPrefix "STREAMLIT_")
           // {
             LOMAS_SERVICE_server__host_ip = "0.0.0.0";
             LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq.port}";

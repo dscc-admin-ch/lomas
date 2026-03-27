@@ -153,6 +153,17 @@ in
       ];
     };
 
+    #############
+    # DASHBOARD #
+    #############
+
+    env = {
+      STREAMLIT_SERVER_PORT = cfg.dashboard.port;
+      STREAMLIT_SERVER_BASE_URL_PATH = cfg.dashboard.baseUrl;
+      STREAMLIT_SERVER_HEADLESS = true;
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
+    };
+
     processes.admin-dashboard =
       let
         inherit (cfg.oidc.clients.adminDashboard) client_id client_secret redirect_uri;
@@ -168,16 +179,11 @@ in
       in
       {
         exec = ''
-          streamlit run \
-            --server.headless true \
-            --server.baseUrlPath=${cfg.dashboard.baseUrl} \
-            --secrets.files=${secretFile} \
-            lomas_server/administration/dashboard/about.py
+          streamlit run lomas_server/administration/dashboard/about.py
         '';
         cwd = "${config.git.root}/server";
-        env = {
-          STREAMLIT_SERVER_PORT = toString cfg.dashboard.port;
-          STREAMLIT_BROWSER_GATHER_USAGE_STATS = toString 0;
+        env = builtins.mapAttrs (name: toString) {
+          STREAMLIT_SECRETS_FILES = secretFile;
         };
         ready.http.get = {
           inherit (cfg.dashboard) host port;

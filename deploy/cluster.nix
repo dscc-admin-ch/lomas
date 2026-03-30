@@ -119,9 +119,9 @@
           metadata.labels."app.kubernetes.io/name" = "lomas-server";
           spec = {
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-b01e287";
+              image = "dsccadminch/lomas:sha-e771310";
               imagePullPolicy = "IfNotPresent";
-              command = [ "lomas-server" ];
+              command = [ "lomas-serve" ];
               # volumeMounts = {
               #   "/persistent-storage".name = "data";
               # };
@@ -156,7 +156,7 @@
           metadata.labels."app.kubernetes.io/name" = "lomas-worker";
           spec = {
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-b01e287";
+              image = "dsccadminch/lomas:sha-e771310";
               imagePullPolicy = "IfNotPresent";
               command = [ "lomas-work" ];
             };
@@ -189,9 +189,10 @@
           metadata.labels."app.kubernetes.io/name" = "dashboard";
 
           spec = {
-            containers.lomas-server = {
-              image = "dsccadminch/lomas:sha-b01e287";
+            containers.lomas = {
+              image = "dsccadminch/lomas:sha-e771310";
               imagePullPolicy = "IfNotPresent";
+              command = [ "lomas-dashboard" ];
               # volumeMounts = {
               #   "/persistent-storage".name = "data";
               # };

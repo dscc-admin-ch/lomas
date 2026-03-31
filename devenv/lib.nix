@@ -110,7 +110,7 @@ rec {
   # add missing setuptools build requirements to theses libs
   fixBuildSystemOverlay =
     final: prev:
-    lib.genAttrs [ "pandoc" ] (
+    lib.genAttrs [ "pandoc" "csvw-safe" ] (
       name:
       prev.${name}.overrideAttrs (old: {
         nativeBuildInputs = old.nativeBuildInputs ++ final.resolveBuildSystem { setuptools = [ ]; };

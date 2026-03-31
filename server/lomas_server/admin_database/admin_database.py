@@ -4,6 +4,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Concatenate, TypeVar
 
+from csvw_safe.metadata_structure import TableMetadata
 from pydantic import (
     BaseModel,
 )
@@ -17,8 +18,6 @@ from lomas_core.models.collections import DSInfo
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
-
-from ...csvw_safe.metadata_structure import TableMetadata
 
 P = ParamSpec("P")
 T = TypeVar("T")

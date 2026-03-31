@@ -1,0 +1,118 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    "csvw-safe-context.jsonld"
+  ],
+  "@type": "Table",
+  "privacyUnit": "patient_id",
+  "maxContributions": 3,
+  "maxLength": 50048,
+  "publicLength": 50048,
+  "tableSchema": {
+    "columns": [
+      {
+        "@type": "Column",
+        "name": "patient_id",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "privacyId": true,
+        "minimum": 0,
+        "maximum": 50047
+      },
+      {
+        "@type": "Column",
+        "name": "id",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "minimum": 1,
+        "maximum": 2000
+      },
+      {
+        "@type": "Column",
+        "name": "date",
+        "datatype": "datetime",
+        "nullableProportion": 0.0,
+        "minimum": "2022-08-01",
+        "maximum": "2023-07-30"
+      },
+      {
+        "@type": "Column",
+        "name": "temporal",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 2002,
+        "partitions": [
+          { "@type": "Partition", "predicate": { "partitionValue": 1 }, "maxLength": 2002, "maxGroupsPerUnit": 1, "maxContributions": 3 },
+          { "@type": "Partition", "predicate": { "partitionValue": 2 }, "maxLength": 2002, "maxGroupsPerUnit": 1, "maxContributions": 3 }
+        ],
+        "maxNumPartitions": 52
+      },
+      {
+        "@type": "Column",
+        "name": "georegion",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxLength": 8509,
+        "maxNumPartitions": 29
+      },
+      {
+        "@type": "Column",
+        "name": "agegroup",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxLength": 7007,
+        "maxNumPartitions": 11
+      },
+      {
+        "@type": "Column",
+        "name": "sex",
+        "datatype": "string",
+        "maxLength": 23523,
+        "maxNumPartitions": 4
+      },
+      {
+        "@type": "Column",
+        "name": "testType",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxLength": 45544,
+        "maxNumPartitions": 2
+      },
+      {
+        "@type": "Column",
+        "name": "testResult",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxLength": 29028,
+        "maxNumPartitions": 4
+      },
+      {
+        "@type": "Column",
+        "name": "country",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 4
+      },
+      {
+        "@type": "Column",
+        "name": "subType",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxLength": 33032,
+        "maxNumPartitions": 10
+      },
+      {
+        "@type": "Column",
+        "name": "hospitalization",
+        "datatype": "boolean",
+        "nullableProportion": 0.0
+      },
+      {
+        "@type": "Column",
+        "name": "death",
+        "datatype": "boolean",
+        "nullableProportion": 0.0
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@ import pickle
 import opendp.prelude as dp
 import pandas as pd
 import polars as pl
+from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
 from fastapi import status
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
@@ -22,16 +23,13 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel, OpenDPQueryModel
+from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
-from lomas_core.opendp_utils import build_context, build_margins_from_metadata
-
-from ...csvw_safe.metadata_structure import TableMetadata
 
 
 class Client:
@@ -118,12 +116,9 @@ class Client:
 
     def get_context(
         self,
-        nb_rows: int = DUMMY_NB_ROWS,
-        seed: int = DUMMY_SEED,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
-        approx_zcdp: bool = True,
     ) -> dp.Context:
         """
         Create an OpenDP context based on a dummy dataset.
@@ -131,10 +126,6 @@ class Client:
         This can be used to build an OpenDP pipeline locally on the client side.
 
         Args:
-            nb_rows (int, optional): Number of rows in the dummy dataset.
-                Defaults to DUMMY_NB_ROWS.
-            seed (int, optional): Random seed used to generate the dummy dataset.
-                Defaults to DUMMY_SEED.
             epsilon (float | None, optional): Privacy parameter to be spent.
                 Required for pure DP or approximate DP (Laplace mechanism).
                 Defaults to None.
@@ -147,34 +138,15 @@ class Client:
             rho (float | None, optional): Privacy parameter used for zCDP or
                 approximate zCDP (Gaussian mechanism). Cannot be used if
                 epsilon is provided.
-            approx_zcdp (bool): If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP.
-                Default True.
 
         Returns:
             dp.Context: OpenDP context object initialized with metadata and
             user-provided privacy parameters.
         """
-        body_dict = {
-            "dataset_name": self.config.dataset_name,
-            "dummy_nb_rows": nb_rows,
-            "dummy_seed": seed,
-            "epsilon": epsilon,
-            "delta": delta,
-            "rho": rho,
-            "approx_zcdp": approx_zcdp,
-        }
+        dummy_lf = self.get_dummy_dataset(lazy=True)
+        metadata = self.get_dataset_metadata()
 
-        body = GetDummyContext.model_validate(body_dict)
-
-        dummy_lf = self.get_dummy_dataset(seed=seed, nb_rows=nb_rows, lazy=True)
-
-        metadata_dict = self.get_dataset_metadata()
-        metadata = TableMetadata.model_validate(metadata_dict)
-        margins = build_margins_from_metadata(metadata)
-
-        context = build_context(body, metadata, margins, dummy_lf)
-
-        return context
+        return csvw_to_opendp_context(metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho)
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.

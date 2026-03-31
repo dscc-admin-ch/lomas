@@ -7,6 +7,7 @@ from typing import Any, BinaryIO, Self
 
 import boto3
 import yaml
+from csvw_safe.metadata_structure import TableMetadata
 from pydantic import HttpUrl
 
 from lomas_core.error_handler import InternalServerException
@@ -30,8 +31,6 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
-
-from ...csvw_safe.metadata_structure import TableMetadata
 
 if sys.version_info >= (3, 12):
     from typing import override

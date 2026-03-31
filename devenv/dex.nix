@@ -31,7 +31,7 @@ let
     storage:
       type: sqlite3
       config:
-        file: $XDG_RUNTIME_DIR/dex.db
+        file: /tmp/dex.db
 
     grpc:
       addr: ${cfg.adminAddress}:${toString cfg.adminPort}

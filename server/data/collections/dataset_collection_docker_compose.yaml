@@ -5,21 +5,21 @@ datasets:
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/iris_metadata.yaml"
+    path: "collections/metadata/iris_metadata.json"
 - dataset_name: "PENGUIN"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/penguin_metadata.yaml"
+    path: "collections/metadata/penguin_metadata.json"
 - dataset_name: "PUMS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/pums_metadata.yaml"
+    path: "collections/metadata/pums_metadata.json"
 - dataset_name: "TITANIC"
   dataset_access:
     database_type: "S3_DB"
@@ -30,7 +30,7 @@ datasets:
   metadata_access:
     database_type: "S3_DB"
     bucket: "example"
-    key: "metadata/titanic_metadata.yaml"
+    key: "metadata/titanic_metadata.json"
     endpoint_url: "http://minio:19000"
     access_key_id: "admin"
     secret_access_key: "admin123"
@@ -41,18 +41,18 @@ datasets:
     path: "datasets/income_synthetic_data.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/fso_income_synthetic_metadata.yaml"
+    path: "collections/metadata/fso_income_synthetic_metadata.json"
 - dataset_name: "COVID_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"
     path: "datasets/covid_synthetic_data.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/covid_synthetic_metadata.yaml"
+    path: "collections/metadata/covid_synthetic_metadata.json"
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/wip_306_snsynth-datetime/server/data/datasets/birthdays.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "collections/metadata/birthday_metadata.yaml"
+    path: "collections/metadata/birthday_metadata.json"

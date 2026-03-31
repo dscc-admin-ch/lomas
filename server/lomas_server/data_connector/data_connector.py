@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 import polars as pl
+from csvw_safe.metadata_structure import DataTypes, TableMetadata
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -12,9 +13,6 @@ from pydantic import (
 )
 
 from lomas_core.models.utils import dataframe_to_dict
-
-from ...csvw_safe.datatypes import TableMetadata
-from ...csvw_safe.metadata_structure import DataTypes
 
 
 class DataConnector(BaseModel, ABC):

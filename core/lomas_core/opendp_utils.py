@@ -2,11 +2,10 @@ from base64 import b64decode
 
 import opendp.prelude as dp
 import polars as pl
+from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
+from csvw_safe.metadata_structure import TableMetadata
 
 from lomas_core.models.requests import OpenDPQueryModel
-
-from ...csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
-from ...csvw_safe.metadata_structure import TableMetadata
 
 dp.enable_features("contrib")
 

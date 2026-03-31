@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
+from csvw_safe.metadata_structure import TableMetadata
 from fastapi.testclient import TestClient
 from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful
@@ -14,8 +15,6 @@ from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
 from lomas_server.tests.utils import free_pass_env
-
-from ...csvw_safe.metadata_structure import TableMetadata
 
 test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
@@ -116,7 +115,7 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
                 "database_type": PrivateDatabaseType.PATH,
                 "metadata_database_type": PrivateDatabaseType.PATH,
                 "dataset_path": str(test_data_folder / "test_penguin.csv"),
-                "metadata_path": str(test_data_folder / "metadata" / "penguin_metadata.yaml"),
+                "metadata_path": str(test_data_folder / "metadata" / "penguin_metadata.json"),
             },
         )
     )
@@ -184,7 +183,7 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
     assert is_successful(old_metadata)
 
     # override pums with penguin metadatas
-    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.yaml"
+    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.json"
     query_lomas(
         f"/dataset/{ds_name}/metadata", client.patch, files={"file": penguin_metadata.open(mode="rb")}
     )

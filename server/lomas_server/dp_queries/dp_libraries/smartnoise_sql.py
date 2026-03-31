@@ -1,5 +1,6 @@
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
+from csvw_safe.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 from sqlglot import exp, parse_one
@@ -14,8 +15,6 @@ from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
-
-from ...csvw_safe.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 
 
 class SmartnoiseSQLQuerier(

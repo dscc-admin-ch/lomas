@@ -1,6 +1,8 @@
 from typing import Annotated
 from uuid import UUID
 
+from csvw_safe.make_dummy_from_metadata import make_dummy_from_metadata
+from csvw_safe.metadata_structure import TableMetadata
 from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
@@ -27,12 +29,9 @@ from lomas_core.models.responses import (
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.data_connector.data_connector import get_column_dtypes
-from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
-
-from ...csvw_safe.metadata_structure import TableMetadata
 
 router = APIRouter()
 example_get_admin_db_data_body = Body(example_get_admin_db_data)
@@ -229,7 +228,7 @@ def get_dummy_dataset(
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
         dtypes = get_column_dtypes(ds_metadata)
 
-        dummy_df = make_dummy_dataset(
+        dummy_df = make_dummy_from_metadata(
             ds_metadata,
             query_json.dummy_nb_rows,
             query_json.dummy_seed,

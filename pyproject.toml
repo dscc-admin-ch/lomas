@@ -6,6 +6,7 @@ dependencies = [
   "lomas-core",
   "lomas-client",
   "lomas-server[all]",
+  "csvw-safe",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +33,7 @@ docs = [
 lomas-core = { workspace = true }
 lomas-client = { workspace = true }
 lomas-server = { workspace = true }
+csvw-safe = { git = "https://github.com/dscc-admin-ch/csvw-safe.git", subdirectory = "csvw-safe-library", rev = "library_setup" }
 
 [tool.uv.workspace]
 members = [ "core", "client", "server" ]

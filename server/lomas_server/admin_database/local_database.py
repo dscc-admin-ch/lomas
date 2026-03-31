@@ -16,7 +16,6 @@ from lomas_core.models.collections import (
     DSInfo,
     DSPathAccess,
     DSS3Access,
-    Metadata,
     User,
     UserCollection,
     UserId,
@@ -31,6 +30,8 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -262,7 +263,7 @@ class LocalAdminDatabase(AdminDatabase):
         # Step 3: Validate
         ds_info = DSInfo.model_validate(dataset)
         validated_dataset = ds_info.model_dump()
-        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+        validated_metadata = TableMetadata.model_validate(metadata_dict).model_dump()
 
         # Step 4: Insert into db
         with shelve.open(self.path, writeback=True) as db:
@@ -377,15 +378,15 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @dataset_must_exist
-    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
+    def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         with shelve.open(self.path, flag="r") as db:
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
-            return Metadata.model_validate(metadata)
+            return TableMetadata.model_validate(metadata)
 
     @dataset_must_exist
     def set_dataset_metadata(self, dataset_name: str, yaml_file: Path) -> None:
         metadata_dict = yaml.safe_load(yaml_file)
-        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+        validated_metadata = TableMetadata.model_validate(metadata_dict).model_dump()
         with shelve.open(self.path, writeback=True) as db:
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
 

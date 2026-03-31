@@ -22,7 +22,6 @@ from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
 from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.collections import Metadata
 from lomas_core.models.requests import GetDummyContext, GetDummyDataset, LomasRequestModel, OpenDPQueryModel
 from lomas_core.models.responses import (
     DummyDsResponse,
@@ -31,6 +30,8 @@ from lomas_core.models.responses import (
     SpentBudgetResponse,
 )
 from lomas_core.opendp_utils import build_context, build_margins_from_metadata
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 
 class Client:
@@ -168,7 +169,7 @@ class Client:
         dummy_lf = self.get_dummy_dataset(seed=seed, nb_rows=nb_rows, lazy=True)
 
         metadata_dict = self.get_dataset_metadata()
-        metadata = Metadata.model_validate(metadata_dict)
+        metadata = TableMetadata.model_validate(metadata_dict)
         margins = build_margins_from_metadata(metadata)
 
         context = build_context(body, metadata, margins, dummy_lf)

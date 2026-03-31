@@ -7,7 +7,6 @@ from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
@@ -15,6 +14,8 @@ from lomas_core.opendp_utils import build_context_from_metadata, deserialize_con
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 logger = init_logging(__name__)
 
@@ -57,7 +58,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 is the epsilon cost, the second value is the delta value.
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = Metadata.model_validate(self.metadata)
+        metadata = TableMetadata.model_validate(self.metadata)
         context = build_context_from_metadata(query_json, metadata, input_data)
 
         meas = context.accountant
@@ -105,7 +106,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             (Union[List, int, float]) query result
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = Metadata.model_validate(self.metadata)
+        metadata = TableMetadata.model_validate(self.metadata)
         plan = deserialize_context_query(query_json, metadata, input_data)
 
         try:

@@ -13,10 +13,12 @@ from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.collections import DSInfo
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -147,7 +149,7 @@ class AdminDatabase(ABC, BaseModel):
 
     @abstractmethod
     @dataset_must_exist
-    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
+    def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         """
         Returns the metadata dictionnary of the dataset.
 
@@ -157,7 +159,7 @@ class AdminDatabase(ABC, BaseModel):
             dataset_name (str): name of the dataset to get the metadata
 
         Returns:
-            Metadata: The metadata object.
+            TableMetadata: The metadata object.
         """
 
     @abstractmethod

@@ -1,16 +1,15 @@
-from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Discriminator, Field, HttpUrl, Tag, model_validator
+from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.models.constants import (
-    CARDINALITY_FIELD,
-    CATEGORICAL_TYPE_PREFIX,
+    # CARDINALITY_FIELD,
+    # CATEGORICAL_TYPE_PREFIX,
     DB_TYPE_FIELD,
-    TYPE_FIELD,
-    MetadataColumnType,
-    Precision,
+    # TYPE_FIELD,
+    # MetadataColumnType,
+    # Precision,
     PrivateDatabaseType,
 )
 
@@ -95,169 +94,169 @@ class DatasetsCollection(BaseModel):
     datasets: list[DSInfo]
 
 
-# Metadata
-# -----------------------------------------------------------------------------
+# # Metadata
+# # -----------------------------------------------------------------------------
 
 
-class ColumnMetadata(BaseModel):
-    """Base model for column metadata."""
+# class ColumnMetadata(BaseModel):
+#     """Base model for column metadata."""
 
-    private_id: bool = False
-    nullable_proportion: Annotated[float, Field(ge=0, lt=1)] = 0.0
-    # See issue #323 for checking this and validating.
+#     private_id: bool = False
+#     nullable_proportion: Annotated[float, Field(ge=0, lt=1)] = 0.0
+#     # See issue #323 for checking this and validating.
 
-    max_partition_length: Annotated[int | None, Field(gt=0)] = None
-    max_influenced_partitions: Annotated[int | None, Field(gt=0)] = None
-    max_partition_contributions: Annotated[int | None, Field(gt=0)] = None
-
-
-class StrMetadata(ColumnMetadata):
-    """Model for string metadata."""
-
-    type: Literal[MetadataColumnType.STRING]
+#     max_partition_length: Annotated[int | None, Field(gt=0)] = None
+#     max_influenced_partitions: Annotated[int | None, Field(gt=0)] = None
+#     max_partition_contributions: Annotated[int | None, Field(gt=0)] = None
 
 
-class CategoricalColumnMetadata(ColumnMetadata):
-    """Model for categorical column metadata."""
+# class StrMetadata(ColumnMetadata):
+#     """Model for string metadata."""
 
-    @model_validator(mode="after")
-    def validate_categories(self) -> Self:
-        """Makes sure number of categories matches cardinality."""
-        if len(self.categories) != self.cardinality:
-            raise ValueError("Number of categories should be equal to cardinality.")
-        return self
+#     type: Literal[MetadataColumnType.STRING]
 
 
-class StrCategoricalMetadata(CategoricalColumnMetadata):
-    """Model for categorical string metadata."""
+# class CategoricalColumnMetadata(ColumnMetadata):
+#     """Model for categorical column metadata."""
 
-    # The type must be kept to string (NOT categorical_string).
-    # Some functions rely on this attribute
-    # (e.g. data_connector when building pandas dataframe).
-    type: Literal[MetadataColumnType.STRING]
-    cardinality: int
-    categories: list[str]
-
-
-class BoundedColumnMetadata(ColumnMetadata):
-    """Model for columns with bounded data."""
-
-    @model_validator(mode="after")
-    def validate_bounds(self) -> Self:
-        """Validates column bounds."""
-        if self.lower is not None and self.upper is not None and self.lower > self.upper:
-            raise ValueError("Lower bound cannot be larger than upper bound.")
-
-        return self
+#     @model_validator(mode="after")
+#     def validate_categories(self) -> Self:
+#         """Makes sure number of categories matches cardinality."""
+#         if len(self.categories) != self.cardinality:
+#             raise ValueError("Number of categories should be equal to cardinality.")
+#         return self
 
 
-class IntMetadata(BoundedColumnMetadata):
-    """Model for integer column metadata."""
+# class StrCategoricalMetadata(CategoricalColumnMetadata):
+#     """Model for categorical string metadata."""
 
-    type: Literal[MetadataColumnType.INT]
-    precision: Precision
-    lower: int
-    upper: int
-
-
-class IntCategoricalMetadata(CategoricalColumnMetadata):
-    """Model for integer categorical column metadata."""
-
-    # The type must be kept to int (NOT categorical_int).
-    # Some functions rely on this attribute
-    # (e.g. data_connector when building pandas dataframe).
-    type: Literal[MetadataColumnType.INT]
-    precision: Precision
-    cardinality: int
-    categories: list[int]
+#     # The type must be kept to string (NOT categorical_string).
+#     # Some functions rely on this attribute
+#     # (e.g. data_connector when building pandas dataframe).
+#     type: Literal[MetadataColumnType.STRING]
+#     cardinality: int
+#     categories: list[str]
 
 
-class FloatMetadata(BoundedColumnMetadata):
-    """Model for float column metadata."""
+# class BoundedColumnMetadata(ColumnMetadata):
+#     """Model for columns with bounded data."""
 
-    type: Literal[MetadataColumnType.FLOAT]
-    precision: Precision
-    lower: float
-    upper: float
-    int_with_nulls: bool = False
+#     @model_validator(mode="after")
+#     def validate_bounds(self) -> Self:
+#         """Validates column bounds."""
+#         if self.lower is not None and self.upper is not None and self.lower > self.upper:
+#             raise ValueError("Lower bound cannot be larger than upper bound.")
 
-
-class BooleanMetadata(ColumnMetadata):
-    """Model for boolean column metadata."""
-
-    type: Literal[MetadataColumnType.BOOLEAN]
+#         return self
 
 
-class DatetimeMetadata(BoundedColumnMetadata):
-    """Model for datetime column metadata."""
+# class IntMetadata(BoundedColumnMetadata):
+#     """Model for integer column metadata."""
 
-    type: Literal[MetadataColumnType.DATETIME]
-    lower: datetime
-    upper: datetime
-
-
-def get_column_metadata_discriminator(v: Any) -> str:
-    """Discriminator function for determining the type of column metadata.
-
-    Args:
-        v (Any): The unparsed column metadata (either dict or class object)
-
-    Raises:
-        ValueError: If the column type cannot be found.
-
-    Returns:
-        str: The metadata string type.
-    """
-    if isinstance(v, dict):
-        col_type = v.get(TYPE_FIELD)
-    else:
-        col_type = getattr(v, TYPE_FIELD)
-
-    if (
-        col_type
-        in {
-            MetadataColumnType.STRING,
-            MetadataColumnType.INT,
-        }
-    ) and (((isinstance(v, dict)) and CARDINALITY_FIELD in v) or (hasattr(v, CARDINALITY_FIELD))):
-        col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
-
-    if not isinstance(col_type, str):
-        raise ValueError("Could not find column type.")
-
-    return col_type
+#     type: Literal[MetadataColumnType.INT]
+#     precision: Precision
+#     lower: int
+#     upper: int
 
 
-class Metadata(BaseModel):
-    """
-    BaseModel for a metadata format.
+# class IntCategoricalMetadata(CategoricalColumnMetadata):
+#     """Model for integer categorical column metadata."""
 
-    See Smartnoise-SQL documentation https://docs.smartnoise.org/sql/metadata.html
-    """
+#     # The type must be kept to int (NOT categorical_int).
+#     # Some functions rely on this attribute
+#     # (e.g. data_connector when building pandas dataframe).
+#     type: Literal[MetadataColumnType.INT]
+#     precision: Precision
+#     cardinality: int
+#     categories: list[int]
 
-    max_ids: Annotated[int, Field(gt=0)]
-    rows: Annotated[int, Field(gt=0)]
-    row_privacy: bool
-    censor_dims: bool = True
-    clamp_counts: bool = True
-    clamp_columns: bool = True
-    use_dpsu: bool = False
-    # When parsing input data, pydantic first calls the discriminator function with the input data.
-    # The model to build is then selected by matching the returned discriminator
-    # with the tag that annotates each possible model.
-    # The discriminator function is used to differentiate between int and categorical_int
-    # or string and categorical_string columns.
-    # The integer and string models always keep their type to int or string (not categorical_**).
-    columns: dict[
-        str,
-        Annotated[
-            Annotated[StrMetadata, Tag(MetadataColumnType.STRING)]
-            | Annotated[StrCategoricalMetadata, Tag(MetadataColumnType.CAT_STRING)]
-            | Annotated[IntMetadata, Tag(MetadataColumnType.INT)]
-            | Annotated[IntCategoricalMetadata, Tag(MetadataColumnType.CAT_INT)]
-            | Annotated[FloatMetadata, Tag(MetadataColumnType.FLOAT)]
-            | Annotated[BooleanMetadata, Tag(MetadataColumnType.BOOLEAN)]
-            | Annotated[DatetimeMetadata, Tag(MetadataColumnType.DATETIME)],
-            Discriminator(get_column_metadata_discriminator),
-        ],
-    ]
+
+# class FloatMetadata(BoundedColumnMetadata):
+#     """Model for float column metadata."""
+
+#     type: Literal[MetadataColumnType.FLOAT]
+#     precision: Precision
+#     lower: float
+#     upper: float
+#     int_with_nulls: bool = False
+
+
+# class BooleanMetadata(ColumnMetadata):
+#     """Model for boolean column metadata."""
+
+#     type: Literal[MetadataColumnType.BOOLEAN]
+
+
+# class DatetimeMetadata(BoundedColumnMetadata):
+#     """Model for datetime column metadata."""
+
+#     type: Literal[MetadataColumnType.DATETIME]
+#     lower: datetime
+#     upper: datetime
+
+
+# def get_column_metadata_discriminator(v: Any) -> str:
+#     """Discriminator function for determining the type of column metadata.
+
+#     Args:
+#         v (Any): The unparsed column metadata (either dict or class object)
+
+#     Raises:
+#         ValueError: If the column type cannot be found.
+
+#     Returns:
+#         str: The metadata string type.
+#     """
+#     if isinstance(v, dict):
+#         col_type = v.get(TYPE_FIELD)
+#     else:
+#         col_type = getattr(v, TYPE_FIELD)
+
+#     if (
+#         col_type
+#         in {
+#             MetadataColumnType.STRING,
+#             MetadataColumnType.INT,
+#         }
+#     ) and (((isinstance(v, dict)) and CARDINALITY_FIELD in v) or (hasattr(v, CARDINALITY_FIELD))):
+#         col_type = f"{CATEGORICAL_TYPE_PREFIX}{col_type}"
+
+#     if not isinstance(col_type, str):
+#         raise ValueError("Could not find column type.")
+
+#     return col_type
+
+
+# class Metadata(BaseModel):
+#     """
+#     BaseModel for a metadata format.
+
+#     See Smartnoise-SQL documentation https://docs.smartnoise.org/sql/metadata.html
+#     """
+
+#     max_ids: Annotated[int, Field(gt=0)]
+#     rows: Annotated[int, Field(gt=0)]
+#     row_privacy: bool
+#     censor_dims: bool = True
+#     clamp_counts: bool = True
+#     clamp_columns: bool = True
+#     use_dpsu: bool = False
+#     # When parsing input data, pydantic first calls the discriminator function with the input data.
+#     # The model to build is then selected by matching the returned discriminator
+#     # with the tag that annotates each possible model.
+#     # The discriminator function is used to differentiate between int and categorical_int
+#     # or string and categorical_string columns.
+#     # The integer and string models always keep their type to int or string (not categorical_**).
+#     columns: dict[
+#         str,
+#         Annotated[
+#             Annotated[StrMetadata, Tag(MetadataColumnType.STRING)]
+#             | Annotated[StrCategoricalMetadata, Tag(MetadataColumnType.CAT_STRING)]
+#             | Annotated[IntMetadata, Tag(MetadataColumnType.INT)]
+#             | Annotated[IntCategoricalMetadata, Tag(MetadataColumnType.CAT_INT)]
+#             | Annotated[FloatMetadata, Tag(MetadataColumnType.FLOAT)]
+#             | Annotated[BooleanMetadata, Tag(MetadataColumnType.BOOLEAN)]
+#             | Annotated[DatetimeMetadata, Tag(MetadataColumnType.DATETIME)],
+#             Discriminator(get_column_metadata_discriminator),
+#         ],
+#     ]

@@ -7,13 +7,15 @@ from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.collections import Metadata, User, UserId
+from lomas_core.models.collections import User, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
 from lomas_server.tests.utils import free_pass_env
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
@@ -176,8 +178,8 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
     )
 
     ds_name = "PUMS"
-    old_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
-        Metadata.model_validate
+    old_metadata: IOResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        TableMetadata.model_validate
     )
     assert is_successful(old_metadata)
 
@@ -187,8 +189,8 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
         f"/dataset/{ds_name}/metadata", client.patch, files={"file": penguin_metadata.open(mode="rb")}
     )
 
-    new_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
-        Metadata.model_validate
+    new_metadata: IOResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
+        TableMetadata.model_validate
     )
     assert is_successful(new_metadata)
 

@@ -11,7 +11,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import DSInfo, Metadata, User, UserId
+from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
@@ -31,6 +31,8 @@ from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
+
+from ...csvw_safe.metadata_structure import TableMetadata
 
 router = APIRouter()
 example_get_admin_db_data_body = Body(example_get_admin_db_data)
@@ -143,7 +145,7 @@ def get_dataset_metadata(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> Metadata:
+) -> TableMetadata:
     """
     Retrieves metadata for a given dataset.
 
@@ -160,8 +162,7 @@ def get_dataset_metadata(
         InternalServerException: For any other unforseen exceptions.
 
     Returns:
-        Metadata: The metadata object for the specified
-            dataset_name.
+        TableMetadata: The metadata object for the specified dataset_name.
     """
     app = request.app
 
@@ -610,7 +611,7 @@ def get_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     dataset_name: str,
-) -> Metadata:
+) -> TableMetadata:
     db: LocalAdminDatabase = request.app.state.admin_database
     return db.get_dataset_metadata(dataset_name)
 

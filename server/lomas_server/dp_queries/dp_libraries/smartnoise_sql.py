@@ -6,8 +6,6 @@ from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.collections import Metadata
-from lomas_core.models.constants import MetadataColumnType
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -16,6 +14,8 @@ from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
+
+from ...csvw_safe.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 
 
 class SmartnoiseSQLQuerier(
@@ -62,7 +62,7 @@ class SmartnoiseSQLQuerier(
 
         # Prepare metadata in smartnoise-sql format
         metadata = self.data_connector.metadata
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata, self.query_columns)
+        smartnoise_metadata = csvw_to_smartnoise_sql(metadata, self.query_columns)
 
         self.reader = from_connection(
             df,
@@ -169,34 +169,34 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
     return privacy
 
 
-def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
-    """Convert Lomas metadata to smartnoise metadata format (for SQL).
+# def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
+#     """Convert Lomas metadata to smartnoise metadata format (for SQL).
 
-    Args:
-        metadata (Metadata): Dataset metadata from admin database
-        query_columns (list[str]): List of column names used in the query
+#     Args:
+#         metadata (Metadata): Dataset metadata from admin database
+#         query_columns (list[str]): List of column names used in the query
 
-    Returns:
-        dict: metadata of the dataset in smartnoise-sql format
-    """
-    metadata_dict = metadata.model_dump()
+#     Returns:
+#         dict: metadata of the dataset in smartnoise-sql format
+#     """
+#     metadata_dict = metadata.model_dump()
 
-    # Keep only query columns in metadata
-    metadata_dict["columns"] = {
-        col: val for col, val in metadata_dict["columns"].items() if col in query_columns
-    }
+#     # Keep only query columns in metadata
+#     metadata_dict["columns"] = {
+#         col: val for col, val in metadata_dict["columns"].items() if col in query_columns
+#     }
 
-    # No bounds on datetime for Smartnoise-SQL
-    for _, val in metadata_dict["columns"].items():
-        if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
-            for k in ["lower", "upper"]:
-                if val.get(k) is not None:
-                    del val[k]
-        val["nullable"] = val["nullable_proportion"] > 0
+#     # No bounds on datetime for Smartnoise-SQL
+#     for _, val in metadata_dict["columns"].items():
+#         if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
+#             for k in ["lower", "upper"]:
+#                 if val.get(k) is not None:
+#                     del val[k]
+#         val["nullable"] = val["nullable_proportion"] > 0
 
-    metadata_dict.update(metadata_dict["columns"])
-    del metadata_dict["columns"]
-    return {"": {"": {"df": metadata_dict}}}
+#     metadata_dict.update(metadata_dict["columns"])
+#     del metadata_dict["columns"]
+#     return {"": {"": {"df": metadata_dict}}}
 
 
 def get_query_columns(query: str) -> list[str]:

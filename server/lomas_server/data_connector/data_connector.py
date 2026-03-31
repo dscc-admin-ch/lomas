@@ -11,10 +11,10 @@ from pydantic import (
     computed_field,
 )
 
-from lomas_core.models.collections import DatetimeMetadata, Metadata
-from lomas_core.models.utils import (
-    dataframe_to_dict,
-)
+from lomas_core.models.utils import dataframe_to_dict
+
+from ...csvw_safe.datatypes import TableMetadata
+from ...csvw_safe.metadata_structure import DataTypes
 
 
 class DataConnector(BaseModel, ABC):
@@ -22,7 +22,7 @@ class DataConnector(BaseModel, ABC):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    metadata: Metadata
+    metadata: TableMetadata
 
     df: Annotated[pd.DataFrame | None, Field(exclude=True), PlainSerializer(dataframe_to_dict)] = None
 
@@ -31,12 +31,7 @@ class DataConnector(BaseModel, ABC):
     def dtypes(self) -> dict[str, str]:
         dtypes = {}
         for col_name, data in self.metadata.columns.items():
-            if isinstance(data, DatetimeMetadata):
-                dtypes[col_name] = "string"
-            elif hasattr(data, "precision"):
-                dtypes[col_name] = f"{data.type}{data.precision}"
-            else:
-                dtypes[col_name] = data.type
+            dtypes[col_name] = data.type
 
         return dtypes
 
@@ -44,7 +39,7 @@ class DataConnector(BaseModel, ABC):
     @property
     def datetime_columns(self) -> list[str]:
         return [
-            col_name for col_name, data in self.metadata.columns.items() if isinstance(data, DatetimeMetadata)
+            col_name for col_name, data in self.metadata.columns.items() if data.type == DataTypes.DATETIME
         ]
 
     @abstractmethod
@@ -64,24 +59,19 @@ class DataConnector(BaseModel, ABC):
         return pl.from_pandas(self.get_pandas_df()).lazy()
 
 
-def get_column_dtypes(metadata: Metadata) -> dict[str, str]:
+def get_column_dtypes(metadata: TableMetadata) -> dict[str, str]:
     """Extracts and returns the column types from the metadata.
 
     Args:
-        metadata (Metadata): The metadata.
+        metadata (TableMetadata): The metadata.
 
     Returns:
         Tuple[Dict[str, str], List[str]]:
            dict: The dictionary of the column type.
             list: The list of columns of datetime type
     """
-    dtypes = {}
+    dtypes = {}  # TODO: redundant
     for col_name, data in metadata.columns.items():
-        if isinstance(data, DatetimeMetadata):
-            dtypes[col_name] = "datetime64[ns]"
-        elif hasattr(data, "precision"):
-            dtypes[col_name] = f"{data.type}{data.precision}"
-        else:
-            dtypes[col_name] = data.type
+        dtypes[col_name] = data.type
 
     return dtypes

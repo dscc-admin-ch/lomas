@@ -1,0 +1,59 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    "csvw-safe-context.jsonld"
+  ],
+  "@type": "Table",
+  "privacyUnit": "id",
+  "maxContributions": 1,
+  "maxLength": 150,
+  "publicLength": 150,
+  "tableSchema": {
+    "columns": [
+      {
+        "@type": "Column",
+        "name": "petal_length",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 0.5,
+        "maximum": 10.0
+      },
+      {
+        "@type": "Column",
+        "name": "petal_width",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 0.05,
+        "maximum": 5.0
+      },
+      {
+        "@type": "Column",
+        "name": "sepal_length",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 2.0,
+        "maximum": 10.0
+      },
+      {
+        "@type": "Column",
+        "name": "sepal_width",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 1.0,
+        "maximum": 6.0
+      },
+      {
+        "@type": "Column",
+        "name": "species",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 3,
+        "keys": [
+          "setosa",
+          "versicolor",
+          "virginica"
+        ]
+      }
+    ]
+  }
+}

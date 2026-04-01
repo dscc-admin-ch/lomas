@@ -30,7 +30,7 @@
       {
         "@type": "Column",
         "name": "date",
-        "datatype": "datetime",
+        "datatype": "dateTime",
         "nullableProportion": 0.0,
         "minimum": "2022-08-01",
         "maximum": "2023-07-30"

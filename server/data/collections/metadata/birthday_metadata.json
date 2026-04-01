@@ -13,7 +13,7 @@
       {
         "@type": "Column",
         "name": "birthday",
-        "datatype": "datetime",
+        "datatype": "dateTime",
         "nullableProportion": 0.0,
         "minimum": "1900-01-01",
         "maximum": "2050-01-01"

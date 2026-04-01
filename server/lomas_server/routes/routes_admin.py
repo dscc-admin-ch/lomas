@@ -178,8 +178,7 @@ def get_dataset_metadata(
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
-
-    return ds_metadata
+    return TableMetadata.from_dict(ds_metadata)
 
 
 # Dummy dataset query

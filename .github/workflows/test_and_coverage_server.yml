@@ -20,7 +20,7 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/9dcb002ca1690658be4a04645215baea8b95f31d#devenv
+      run: nix profile add nixpkgs/8110df5ad7abf5d4c0f6fb0f8f978390e77f9685#devenv
 
     - name: Run all test with coverage
       run: |
@@ -59,7 +59,7 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/9dcb002ca1690658be4a04645215baea8b95f31d#devenv
+      run: nix profile add nixpkgs/8110df5ad7abf5d4c0f6fb0f8f978390e77f9685#devenv
 
     - name: Set Python package
       run: |

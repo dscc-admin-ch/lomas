@@ -1,8 +1,9 @@
-lib: {
+{ lib, root }:
+{
   wrapScript =
     script:
     let
-      pwd = if script ? pwd then "$DEVENV_ROOT/${script.pwd}" else "$DEVENV_ROOT";
+      pwd = if script ? pwd then "${root}/${script.pwd}" else root;
     in
     {
       exec = ''

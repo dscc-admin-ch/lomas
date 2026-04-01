@@ -2,19 +2,25 @@
   pkgs,
   lib,
   config,
-  inputs,
   ...
 }:
 
 let
-  inherit (import ./devenv/utils.nix lib) wrapScript listToPydanticEnvVar;
+  inherit
+    (import ./devenv/utils.nix {
+      inherit lib;
+      inherit (config.git) root;
+    })
+    wrapScript
+    listToPydanticEnvVar
+    ;
 
   toYAML = lib.generators.toYAML { };
   toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
   writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
-  admin_data_dir = "${config.devenv.root}/server/data";
+  admin_data_dir = "${config.git.root}/server/data";
   user_yaml_path = "${admin_data_dir}/collections/user_collection.yaml";
   dataset_yaml_path = "${admin_data_dir}/collections/dataset_collection_devenv.yaml";
 in
@@ -149,7 +155,7 @@ in
 
   lomas.hooks = {
     enable = true;
-    projectConfigFile = "${config.env.DEVENV_ROOT}/pyproject.toml";
+    projectConfigFile = "${config.git.root}/pyproject.toml";
   };
 
   lomas.pyenv = {

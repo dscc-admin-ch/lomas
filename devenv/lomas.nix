@@ -19,7 +19,13 @@ let
     genAttrs
     ;
 
-  inherit (import ./utils.nix lib) wrapScript;
+  inherit
+    (import ./utils.nix {
+      inherit lib;
+      inherit (config.git) root;
+    })
+    wrapScript
+    ;
 
   clientIdSecret = types.submodule {
     options.client_id = mkOption {
@@ -143,12 +149,8 @@ in
           procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
         in
         genAttrs procNames (name: {
-          exec = "lomas-work";
+          exec = "${lib.getExe pkgs.watchexec} --watch=${config.git.root} -e py --restart --no-meta lomas-work";
           cwd = "${config.git.root}/server/lomas_server";
-          # watch = {
-          #   paths = [ config.env.DEVENV_ROOT ];
-          #   extensions = [ "py" ];
-          # };
           after = [
             "devenv:processes:rabbitmq"
           ];

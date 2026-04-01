@@ -61,7 +61,7 @@ class SmartnoiseSQLQuerier(
 
         # Prepare metadata in smartnoise-sql format
         metadata = self.data_connector.metadata
-        smartnoise_metadata = csvw_to_smartnoise_sql(metadata, self.query_columns)
+        smartnoise_metadata = csvw_to_smartnoise_sql(metadata.to_dict(), self.query_columns)
 
         self.reader = from_connection(
             df,
@@ -166,36 +166,6 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
         if stat in mechanisms:
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
-
-
-# def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
-#     """Convert Lomas metadata to smartnoise metadata format (for SQL).
-
-#     Args:
-#         metadata (Metadata): Dataset metadata from admin database
-#         query_columns (list[str]): List of column names used in the query
-
-#     Returns:
-#         dict: metadata of the dataset in smartnoise-sql format
-#     """
-#     metadata_dict = metadata.model_dump()
-
-#     # Keep only query columns in metadata
-#     metadata_dict["columns"] = {
-#         col: val for col, val in metadata_dict["columns"].items() if col in query_columns
-#     }
-
-#     # No bounds on datetime for Smartnoise-SQL
-#     for _, val in metadata_dict["columns"].items():
-#         if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
-#             for k in ["lower", "upper"]:
-#                 if val.get(k) is not None:
-#                     del val[k]
-#         val["nullable"] = val["nullable_proportion"] > 0
-
-#     metadata_dict.update(metadata_dict["columns"])
-#     del metadata_dict["columns"]
-#     return {"": {"": {"df": metadata_dict}}}
 
 
 def get_query_columns(query: str) -> list[str]:

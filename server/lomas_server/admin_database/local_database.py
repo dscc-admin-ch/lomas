@@ -9,6 +9,7 @@ from typing import Any, BinaryIO, Self
 import boto3
 import yaml
 from csvw_safe.metadata_structure import TableMetadata
+from fastapi import UploadFile
 from pydantic import HttpUrl
 
 from lomas_core.error_handler import InternalServerException
@@ -117,14 +118,13 @@ class LocalAdminDatabase(AdminDatabase):
                         try:
                             metadata_dict = json.loads(response["Body"].read())
                         except json.JSONDecodeError as e:
-                            return e
+                            raise e
 
                     case _:
                         raise InternalServerException(
                             f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                         )
-                validated_metadata = TableMetadata.from_dict(metadata_dict)
-                db[TK.METADATA][dataset_name] = validated_metadata.model_dump()
+                db[TK.METADATA][dataset_name] = TableMetadata.from_dict(metadata_dict).model_dump()
                 logger.info(f"Added metadata of {dataset_name} dataset.")
 
     def datasets(self) -> list[DSInfo]:
@@ -387,7 +387,7 @@ class LocalAdminDatabase(AdminDatabase):
             return TableMetadata.model_validate(metadata)
 
     @dataset_must_exist
-    def set_dataset_metadata(self, dataset_name: str, json_file: Path) -> None:
+    def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
         json_file.seek(0)
         content = json_file.read()
         if isinstance(content, bytes):

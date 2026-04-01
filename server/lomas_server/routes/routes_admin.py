@@ -28,7 +28,6 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.data_connector.data_connector import get_column_dtypes
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
@@ -178,7 +177,7 @@ def get_dataset_metadata(
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
-    return TableMetadata.from_dict(ds_metadata)
+    return ds_metadata
 
 
 # Dummy dataset query
@@ -225,7 +224,7 @@ def get_dummy_dataset(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes = get_column_dtypes(ds_metadata)
+        dtypes = {col.name: col.datatype for col in ds_metadata.columns}
 
         dummy_df = make_dummy_from_metadata(
             ds_metadata,

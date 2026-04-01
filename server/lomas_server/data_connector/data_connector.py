@@ -27,18 +27,12 @@ class DataConnector(BaseModel, ABC):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def dtypes(self) -> dict[str, str]:
-        dtypes = {}
-        for col_name, data in self.metadata.columns.items():
-            dtypes[col_name] = data.type
-
-        return dtypes
+        return {col.name: col.datatype for col in self.metadata.columns}
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def datetime_columns(self) -> list[str]:
-        return [
-            col_name for col_name, data in self.metadata.columns.items() if data.type == DataTypes.DATETIME
-        ]
+        return [col.name for col in self.metadata.columns if col.datatype == DataTypes.DATETIME]
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:
@@ -55,21 +49,3 @@ class DataConnector(BaseModel, ABC):
             pl.LazyFrame: The polars lazyframe for this dataset.
         """
         return pl.from_pandas(self.get_pandas_df()).lazy()
-
-
-def get_column_dtypes(metadata: TableMetadata) -> dict[str, str]:
-    """Extracts and returns the column types from the metadata.
-
-    Args:
-        metadata (TableMetadata): The metadata.
-
-    Returns:
-        Tuple[Dict[str, str], List[str]]:
-           dict: The dictionary of the column type.
-            list: The list of columns of datetime type
-    """
-    dtypes = {}  # TODO: redundant
-    for col_name, data in metadata.columns.items():
-        dtypes[col_name] = data.type
-
-    return dtypes

@@ -203,8 +203,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert df_dummy_lz.collect().shape == (100, 8)
 
     ## Dummy Query
-    NB_ROWS, SEED = 100, 0
-    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    context = client.get_context(epsilon=DEFAULT_EPSILON)
     plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 100)), dp.len())
     dummy_res = client.opendp.query(plan, dummy=True, epsilon=DEFAULT_EPSILON)
     assert isinstance(dummy_res.result.value, pl.DataFrame)
@@ -414,7 +413,7 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     )
     income_metadata = client.get_dataset_metadata()
     NB_ROWS, SEED = 200, 0
-    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    context = client.get_context(epsilon=DEFAULT_EPSILON)
     test = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED)
     assert len(test.dtypes) >= 5
 

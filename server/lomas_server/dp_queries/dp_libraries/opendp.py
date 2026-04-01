@@ -1,9 +1,9 @@
 import os
+from base64 import b64decode
 
 import opendp as dp
 from aio_pika.patterns.rpc import Proxy
 from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
-from csvw_safe.metadata_structure import TableMetadata
 from opendp._lib import lib_path
 from opendp.mod import enable_features
 
@@ -12,12 +12,12 @@ from lomas_core.error_handler import ExternalLibraryException, InternalServerExc
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
-from lomas_core.opendp_utils import deserialize_context_query
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 logger = init_logging(__name__)
+dp.enable_features("contrib")
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
@@ -36,7 +36,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = self.data_connector.metadata.model_dump()
+        self.metadata = self.data_connector.metadata
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -58,12 +58,11 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 is the epsilon cost, the second value is the delta value.
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = TableMetadata.model_validate(self.metadata)
-        context = csvw_to_opendp_context(query_json, metadata, input_data)
+        context = csvw_to_opendp_context(query_json, self.metadata.to_dict(), input_data)
 
         meas = context.accountant
         meas_type = str(meas.output_measure)
-        max_ids = self.metadata["max_ids"]
+        max_ids = self.metadata.max_contributions
 
         match meas_type:
             case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
@@ -106,8 +105,9 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             (Union[List, int, float]) query result
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = TableMetadata.model_validate(self.metadata)
-        plan = deserialize_context_query(query_json, metadata, input_data)
+        context = csvw_to_opendp_context(self.metadata.to_dict(), input_data)
+        serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
+        plan = context.deserialize_polars_plan(serialized_plan)
 
         try:
             release_data = plan.release()

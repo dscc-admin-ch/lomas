@@ -1,6 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
+from csvw_safe.datatypes import to_pandas_dtype
 from csvw_safe.make_dummy_from_metadata import make_dummy_from_metadata
 from csvw_safe.metadata_structure import TableMetadata
 from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
@@ -14,6 +15,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSInfo, User, UserId
+from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
@@ -35,6 +37,9 @@ from lomas_server.routes.utils import get_user_id_from_authenticator
 router = APIRouter()
 example_get_admin_db_data_body = Body(example_get_admin_db_data)
 example_get_dummy_dataset_body = Body(example_get_dummy_dataset)
+
+
+logger = init_logging(__name__)
 
 
 @router.get("/")
@@ -224,10 +229,11 @@ def get_dummy_dataset(
 
     try:
         ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes = {col.name: col.datatype for col in ds_metadata.columns}
 
+        dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
+        logger.info(dtypes)
         dummy_df = make_dummy_from_metadata(
-            ds_metadata,
+            ds_metadata.to_dict(),
             query_json.dummy_nb_rows,
             query_json.dummy_seed,
         )

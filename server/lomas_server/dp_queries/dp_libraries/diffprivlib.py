@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
+from csvw_safe.metadata_structure import ColumnMetadata
 from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline
@@ -67,18 +68,22 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
                 step.accountant = self.accountant
 
         # 2. Get metadata for features
-        columns_metadata = self.data_connector.metadata.model_dump()["columns"]
-        feature_metadata = {col: columns_metadata[col] for col in feature_columns}
+        metadata = self.data_connector.metadata
+        feature_metadata = [col for col in metadata.columns if col.name in feature_columns]
 
         first_step = self.dpl_pipeline.steps[0][1]
 
         # --- Handle feature constraints ---
         feature_bounds: tuple[list[float], list[float]] | None = None
         if hasattr(first_step, "data_norm"):
-            first_step.data_norm = np.sqrt(sum(meta["upper"] ** 2 for meta in feature_metadata.values()))
+
+            def contribution(meta: ColumnMetadata) -> int:
+                return 1 if meta.datatype == "boolean" else meta.maximum**2
+
+            first_step.data_norm = np.sqrt(sum(contribution(meta) for meta in feature_metadata))
 
         if hasattr(first_step, "bounds") or hasattr(first_step, "bounds_X"):
-            feature_bounds = get_dpl_bounds(feature_metadata, feature_columns)
+            feature_bounds = get_dpl_bounds(feature_metadata)
 
         if hasattr(first_step, "bounds"):
             first_step.bounds = feature_bounds
@@ -89,8 +94,8 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
         if hasattr(first_step, "bounds_y"):
             if not target_columns:
                 raise InvalidQueryException("target_columns must be provided when bounds_y is required")
-            target_metadata = {col: columns_metadata[col] for col in target_columns}
-            first_step.bounds_y = get_dpl_bounds(target_metadata, feature_columns=target_columns)
+            target_metadata = [col for col in metadata.columns if col.name in target_columns]
+            first_step.bounds_y = get_dpl_bounds(target_metadata)
 
     def fit_model_on_data(self, query_json: DiffPrivLibRequestModel) -> None:
         """
@@ -240,17 +245,16 @@ def split_train_test_data(
     return x_train, x_test, y_train, y_test
 
 
-def get_dpl_bounds(columns_metadata: dict, feature_columns: list[str]) -> tuple[list[float], list[float]]:
+def get_dpl_bounds(feature_columns: list[ColumnMetadata]) -> tuple[list[float], list[float]]:
     """
     Format metadata bounds of feature columns in format expected by DiffPrivLib.
 
     Args:
-        - columns_metadata: metadata
-        - feature_columns (list[str]): list of feature columns
+        - feature_columns (list[ColumnMetadata]): list of feature columns
 
     Return:
         tuple of lower and upper bounds as expected by DiffPrivLib
     """
-    lower = [columns_metadata[col]["lower"] for col in feature_columns]
-    upper = [columns_metadata[col]["upper"] for col in feature_columns]
+    lower = [col.minimum if col.datatype != "boolean" else 0 for col in feature_columns]
+    upper = [col.minimum if col.datatype != "boolean" else 1 for col in feature_columns]
     return (lower, upper)

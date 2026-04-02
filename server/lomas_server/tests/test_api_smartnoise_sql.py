@@ -36,7 +36,8 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
-
+            print("********** job *************")
+            print(job)
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name
@@ -130,6 +131,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
             )
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
+            print(job)
             r_model = QueryResponse.model_validate(job.result)
 
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)

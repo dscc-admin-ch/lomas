@@ -107,8 +107,11 @@ async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse 
     dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
+            logger.error("****at least****************")
             request_model = SmartnoiseSQLRequestModel.model_validate_json(request_model_str)
+            logger.error("****at least****************")
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+            logger.error("****at least****************")
 
         case DPLibraries.OPENDP:
             request_model = OpenDPRequestModel.model_validate_json(request_model_str)
@@ -139,8 +142,11 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
     dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
+            logger.info("HERE***********************************************")
             query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
+            logger.info("HERE2***********************************************")
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+            logger.info("HERE3***********************************************")
 
         case DPLibraries.OPENDP:
             query_json = OpenDPQueryModel.model_validate_json(query_json_str)
@@ -152,6 +158,7 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
 
     try:
         query_response = await dp_querier.handle_query(query_json, user_name)
+        logger.info("HERE4***********************************************")
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
         return query_response
@@ -169,9 +176,13 @@ async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryRespons
     dp_querier: DPQuerier
     match dp_library:
         case DPLibraries.SMARTNOISE_SQL:
+            logger.error("****at least****************")
             query_model = SmartnoiseSQLDummyQueryModel.model_validate_json(query_model_str)
+            logger.error("****at least****************")
             data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            logger.error("****at least****************")
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
+            logger.error("****at least****************")
 
         case DPLibraries.OPENDP:
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)

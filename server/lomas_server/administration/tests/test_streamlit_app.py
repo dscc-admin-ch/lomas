@@ -99,7 +99,7 @@ def test_add_rm_user(client: TestClient, demo_setup) -> None:
     new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets_list=[])
     assert is_successful(query_lomas("/users", client.post, json=new_user.model_dump()))
     assert query_lomas(f"/users/{username}/archive", client.get) == IOSuccess([])
-    # assert is_successful(query_lomas(f"/users/{username}", client.delete))
+    assert is_successful(query_lomas(f"/users/{username}", client.delete))
 
 
 def test_add_rm_dataset(client: TestClient, demo_setup) -> None:

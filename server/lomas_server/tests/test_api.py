@@ -71,8 +71,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             metadata = response.json()
             assert isinstance(metadata, dict), "metadata should be a dict"
-            assert "max_ids" in metadata, "max_ids should be in metadata"
-            assert "row_privacy" in metadata, "max_ids should be in metadata"
+            assert "max_contributions" in metadata, "max_ids should be in metadata"
             assert "columns" in metadata, "columns should be in metadata"
 
             # Expect to fail: dataset does not exist

@@ -165,9 +165,6 @@ in
 
   dockerEnv.enable = true;
 
-  process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
-  # process.manager.implementation = lib.mkDefault "process-compose";
-
   profiles = {
     telemetry.module = {
       lomas.telemetry.enable = true;
@@ -363,6 +360,7 @@ in
 
   scripts.run-worker-debug = wrapScript {
     exec = ''
+      ${pkgs.procps}/bin/pkill -f lomas-work
       python -m pdb -m lomas_server.worker
     '';
   };

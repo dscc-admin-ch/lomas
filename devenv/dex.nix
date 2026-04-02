@@ -184,11 +184,8 @@ in
     packages = [ cfg.package ];
     processes.dex = {
       exec = "${lib.getExe cfg.package} serve ${confFile}";
-      process-compose = {
-        readiness_probe.http_get = {
-          scheme = "http";
-          inherit (cfg) host port path;
-        };
+      ready.http.get = {
+        inherit (cfg) host port path;
       };
     };
 

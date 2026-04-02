@@ -8,14 +8,24 @@
 let
   cfg = config.lomas;
 
+  inherit (builtins) genList;
+
   inherit (lib)
     types
     mkIf
+    mkMerge
     mkOption
     mkEnableOption
+    genAttrs
     ;
 
-  inherit (import ./utils.nix lib) wrapScript;
+  inherit
+    (import ./utils.nix {
+      inherit lib;
+      inherit (config.git) root;
+    })
+    wrapScript
+    ;
 
   clientIdSecret = types.submodule {
     options.client_id = mkOption {
@@ -51,6 +61,12 @@ in
       default = "/";
       example = "/api, /api/v1, /";
       description = "Lomas Api base Url";
+    };
+
+    worker.replicas = mkOption {
+      type = types.ints.positive;
+      default = 2;
+      description = "Number of Worker processes";
     };
 
     dashboard.host = mkOption {
@@ -123,97 +139,100 @@ in
 
   };
 
-  config = mkIf cfg.enable {
-    processes.lomas-server = {
-      exec = "python uvicorn_serve.py";
-      process-compose = {
-        working_dir = "${config.env.DEVENV_ROOT}/server/lomas_server";
-        readiness_probe.failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
-        readiness_probe.http_get = {
-          scheme = "http";
-          host = cfg.host;
-          port = cfg.port;
-          path = "/live";
+  config = mkIf cfg.enable (mkMerge [
+    {
+      ##########
+      # WORKER #
+      ##########
+      processes =
+        let
+          procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
+        in
+        genAttrs procNames (name: {
+          exec = "${lib.getExe pkgs.watchexec} --watch=${config.git.root} -e py --restart --no-meta lomas-work";
+          cwd = "${config.git.root}/server/lomas_server";
+          after = [
+            "devenv:processes:rabbitmq"
+          ];
+        });
+    }
+
+    {
+      processes.lomas-server = {
+        exec = "python uvicorn_serve.py";
+        cwd = "${config.git.root}/server/lomas_server";
+        ready = {
+          http.get = {
+            inherit (cfg) host port;
+            path = "/live";
+          };
+          failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
         };
       };
-    };
 
-    ##########
-    # WORKER #
-    ##########
+      #############
+      # DASHBOARD #
+      #############
 
-    processes.worker = {
-      # helpful to investigate/debug watchexec: --print-events
-      exec = "${lib.getExe pkgs.watchexec} --watch=$DEVENV_ROOT -e py --restart --no-meta python worker.py";
-      process-compose = {
-        working_dir = "${config.env.DEVENV_ROOT}/server/lomas_server";
-        depends_on.rabbitmq.condition = "process_healthy";
-        replicas = 2;
-        # Un-comment to observe worker logs.
-        # log_location = "$DEVENV_ROOT/logs/worker.log";
+      env = {
+        STREAMLIT_SERVER_PORT = cfg.dashboard.port;
+        STREAMLIT_SERVER_BASE_URL_PATH = cfg.dashboard.baseUrl;
+        STREAMLIT_SERVER_HEADLESS = true;
+        STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
       };
-    };
 
-    processes.admin-dashboard =
-      let
-        inherit (cfg.oidc.clients.adminDashboard) client_id client_secret redirect_uri;
-        secretFile = pkgs.writeText "secrets.toml" ''
-          [auth]
-          client_id = "${client_id}"
-          client_secret = "${client_secret}"
-          redirect_uri = "${redirect_uri}"
-          server_metadata_url = "${cfg.oidc.discoveryUrl}"
-          cookie_secret = "changeme"
-          expose_tokens = [ "access", "id" ]
-        '';
-      in
-      {
-        exec = ''
-          streamlit run \
-            --server.headless true \
-            --server.baseUrlPath=${cfg.dashboard.baseUrl} \
-            --secrets.files=${secretFile} \
-            lomas_server/administration/dashboard/about.py
-        '';
-        process-compose = {
-          working_dir = "${config.env.DEVENV_ROOT}/server";
-          environment = [
-            "STREAMLIT_SERVER_PORT=${toString cfg.dashboard.port}"
-            "STREAMLIT_BROWSER_GATHER_USAGE_STATS=0"
-          ];
-          readiness_probe.http_get = {
-            host = cfg.dashboard.host;
-            port = cfg.dashboard.port;
+      processes.admin-dashboard =
+        let
+          inherit (cfg.oidc.clients.adminDashboard) client_id client_secret redirect_uri;
+          secretFile = pkgs.writeText "secrets.toml" ''
+            [auth]
+            client_id = "${client_id}"
+            client_secret = "${client_secret}"
+            redirect_uri = "${redirect_uri}"
+            server_metadata_url = "${cfg.oidc.discoveryUrl}"
+            cookie_secret = "changeme"
+            expose_tokens = [ "access", "id" ]
+          '';
+        in
+        {
+          exec = ''
+            streamlit run lomas_server/administration/dashboard/about.py
+          '';
+          cwd = "${config.git.root}/server";
+          env = builtins.mapAttrs (name: toString) {
+            STREAMLIT_SECRETS_FILES = secretFile;
+          };
+          ready.http.get = {
+            inherit (cfg.dashboard) host port;
             path = "${cfg.dashboard.baseUrl}/ping";
           };
         };
-      };
 
-    scripts.run-jupyter =
-      let
-        # Build argon2 hashed password with jupyter static parameters
-        hashed_password_drv = pkgs.runCommand "jupyterHashedPassword" { } ''
-          echo -n ${cfg.client.jupyter.password} | ${pkgs.libargon2}/bin/argon2 lomasSalt -id -k 10240 -t 10 -p 8 -e > $out
-        '';
-        # jupyter format add a prefix to argon2 standard hash format
-        hashed_password = "argon2:${lib.trim (builtins.readFile hashed_password_drv)}";
+      scripts.run-jupyter =
+        let
+          # Build argon2 hashed password with jupyter static parameters
+          hashed_password_drv = pkgs.runCommand "jupyterHashedPassword" { } ''
+            echo -n ${cfg.client.jupyter.password} | ${pkgs.libargon2}/bin/argon2 lomasSalt -id -k 10240 -t 10 -p 8 -e > $out
+          '';
+          # jupyter format add a prefix to argon2 standard hash format
+          hashed_password = "argon2:${lib.trim (builtins.readFile hashed_password_drv)}";
 
-        args = [
-          "--ServerApp.ip=0.0.0.0"
-          "--ServerApp.port=${toString cfg.client.jupyter.port}"
-          "--ServerApp.allow_root=True"
-          "--ServerApp.open_browser=False"
-          "--ExtensionApp.open_browser=False"
-          "--IdentityProvider.token=''"
-          (lib.optionalString (
-            cfg.client.jupyter.password != null
-          ) "--PasswordIdentityProvider.hashed_password='${hashed_password}'")
-        ];
-      in
-      wrapScript {
-        pwd = "client";
-        exec = "jupyter notebook ${builtins.concatStringsSep " " args}";
-      };
-
-  };
+          args = [
+            "--ServerApp.ip=0.0.0.0"
+            "--ServerApp.port=${toString cfg.client.jupyter.port}"
+            "--ServerApp.allow_root=True"
+            "--ServerApp.open_browser=False"
+            "--ExtensionApp.open_browser=False"
+            "--IdentityProvider.token=''"
+            (lib.optionalString (
+              cfg.client.jupyter.password != null
+            ) "--PasswordIdentityProvider.hashed_password='${hashed_password}'")
+          ];
+        in
+        wrapScript {
+          pwd = "client";
+          exec = "jupyter notebook ${builtins.concatStringsSep " " args}";
+        };
+    }
+  ]);
 }

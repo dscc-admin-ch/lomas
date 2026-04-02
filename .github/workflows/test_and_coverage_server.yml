@@ -20,12 +20,14 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
+      run: nix profile add nixpkgs/8110df5ad7abf5d4c0f6fb0f8f978390e77f9685#devenv
 
     - name: Run all test with coverage
-      run: devenv shell -- ut-coverage client/ -v
+      run: |
+        PYTEST_ADDOPTS=client/ devenv -P coverage test
+        devenv -P coverage shell -- collectCoverage
+        mv .coverage .coverage.client
 
-    - run: mv .coverage .coverage.client
     - name: Store coverage file
       uses: actions/upload-artifact@v6
       with:
@@ -57,7 +59,7 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
     - name: Install devenv.sh
-      run: nix profile add nixpkgs/400de68cd101e8cfebffea121397683caf7f5a34#devenv
+      run: nix profile add nixpkgs/8110df5ad7abf5d4c0f6fb0f8f978390e77f9685#devenv
 
     - name: Set Python package
       run: |
@@ -66,15 +68,18 @@ jobs:
         EOF
 
     - name: Run all test with coverage
-      run: devenv shell -- ut-coverage server/
+      run: |
+        PYTEST_ADDOPTS=server/ devenv -P coverage test
+        devenv -P coverage shell -- collectCoverage
+        mv .coverage .coverage.${{ matrix.python-version }}
 
-    - run: mv .coverage .coverage.${{ matrix.python-version }}
     - name: Store coverage file
       uses: actions/upload-artifact@v6
       with:
         name: coverage-${{ matrix.python-version }}
         path: .coverage.${{ matrix.python-version }}
         include-hidden-files: true
+
     - name: Store logs
       uses: actions/upload-artifact@v6
       if: success() || failure()

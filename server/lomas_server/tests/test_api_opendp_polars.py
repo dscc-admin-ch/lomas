@@ -83,48 +83,9 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> bytes:
     Returns:
         str: The serialized plan of the grouped mean query in JSON format.
     """
-    plan = lf.group_by(["sex", "region"]).agg([pl.col("income").dp.mean(bounds=(1000, 100000))])
+    plan = lf.group_by(["sex", "region"]).agg([dp.len(), pl.col("income").dp.sum(bounds=(1000, 100000))])
 
     return plan.serialize()
-
-
-# class TestContext(TestSetupRootAPIEndpoint):
-#     """Test OpenDP Endpoint with context."""
-
-#     def test_context_polars(self) -> None:
-#         """Test opendp polars query."""
-#         with TestClient(app, headers=self.headers) as client:
-#             # Logic with context
-#             # 1. In client: user create a context based on metadata and dummy dataset
-#             #   (done via Lomas api //i.e. "make_dummy_context")
-#             # 2. In client: user defines query (Context.query()....)
-#             # 3. Client to server: User sends pipeline to server (serialized)
-#             # 4. In server: Create new context based real/dummy data
-#             # 5. In server: deserialize context back to LazyframeQuery
-#             #    (context.deserialize_polars_plan(serialized_plan))
-#             # 6. In server: release and sent back collect() to user
-
-#             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-#             context = dp.Context.compositor(
-#                 data=lf,
-#                 privacy_unit=dp.unit_of(contributions=1),
-#                 privacy_loss=dp.loss_of(epsilon=100.0),
-#                 split_evenly_over=1,
-#             )
-
-#             plan = context.query().select(dp.len())
-
-#             plan_bytes = plan.serialize()
-#             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
-
-#             job = submit_job_wait(
-#                 client,
-#                 "/opendp_query",
-#                 json=example_opendp_polars,
-#             )
-#             response_model = QueryResponse.model_validate(job.result)
-#             assert response_model.epsilon > 0.0
-#             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
 class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
@@ -377,6 +338,3 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
-
-
-# TODO: create tests based on new function build_margins_from_metadata

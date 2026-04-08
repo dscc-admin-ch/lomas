@@ -94,7 +94,6 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
             case _:
                 raise InternalServerException(f"Invalid measurement type: {meas_type}")
-        logger.error("***************end cost********************")
         return epsilon, delta
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
@@ -110,7 +109,6 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        logger.error("***************query********************")
         input_data = self.data_connector.get_polars_lf()
         context = csvw_to_opendp_context(
             self.metadata.to_dict(),
@@ -135,7 +133,6 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         if isinstance(release_data, dp.extras.polars.OnceFrame):
             release_data = release_data.collect()
             return OpenDPPolarsQueryResult(value=release_data)
-        logger.error("***************end query********************")
         return OpenDPQueryResult(value=release_data)
 
 

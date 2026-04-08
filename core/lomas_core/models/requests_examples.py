@@ -179,7 +179,7 @@ OPENDP_POLARS_PIPELINE_DICTS: list[dict] = [
         "income": 23496.63345669291,
     },
     {
-        "region": 6,
+        "region": 5,
         "eco_branch": 16,
         "profession": 94,
         "education": 5,

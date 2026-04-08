@@ -13,6 +13,7 @@ import pytest
 import requests
 from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
+from csvw_safe.metadata_structure import TableMetadata
 from diffprivlib import models
 from sklearn.pipeline import Pipeline
 
@@ -186,8 +187,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert init_budget.initial_epsilon == 45
 
     metadata = client.get_dataset_metadata()
-    assert "max_ids" in metadata.keys()
-    assert "columns" in metadata.keys()
+    assert isinstance(metadata, TableMetadata)
 
     df_dummy = client.get_dummy_dataset()
     assert df_dummy.shape == (100, 8)

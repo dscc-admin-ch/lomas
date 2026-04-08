@@ -7,6 +7,7 @@ import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
+from csvw_safe.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError
@@ -73,9 +74,8 @@ class Client:
         body = LomasRequestModel.model_validate(body_dict)
         res = self.http_client.post("get_dataset_metadata", body)
         if res.status_code == status.HTTP_200_OK:
-            data = res.content.decode("utf8")
-            metadata = json.loads(data)
-            return metadata
+            metadata = TableMetadata.model_validate(res.json())
+            return metadata.to_dict()
 
         raise_error(res)
 

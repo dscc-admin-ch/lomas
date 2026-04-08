@@ -700,7 +700,7 @@ wheels = [
 [[package]]
 name = "csvw-safe"
 version = "0.1.0"
-source = { git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=opendp_context_without_privacy_unit#af2784a656b76bb3569f27630a1a1353b05706e9" }
+source = { git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=opendp_context_without_privacy_unit#4793f3da6d5075fc0de56e8206ce2e73a112ea86" }
 dependencies = [
     { name = "numpy" },
     { name = "opendp" },

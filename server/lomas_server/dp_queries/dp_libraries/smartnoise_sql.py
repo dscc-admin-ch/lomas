@@ -7,7 +7,6 @@ from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.constants import init_logging
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -16,8 +15,6 @@ from lomas_core.models.responses import SmartnoiseSQLQueryResult
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
-
-logger = init_logging(__name__)
 
 
 class SmartnoiseSQLQuerier(
@@ -31,7 +28,6 @@ class SmartnoiseSQLQuerier(
         admin_database: Proxy,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        logger.error("****at least****************")
         self.reader: Reader | None = None
         self.query_columns: list[str] = []
 
@@ -65,10 +61,10 @@ class SmartnoiseSQLQuerier(
 
         # Prepare metadata in smartnoise-sql format
         metadata = self.data_connector.metadata
-        smartnoise_metadata = csvw_to_smartnoise_sql(metadata.to_dict(), schema_name="", table_name="df")
+        metadata.columns = [col for col in metadata.columns if col.name in self.query_columns]
+
+        smartnoise_metadata = csvw_to_smartnoise_sql(metadata.to_dict())
         # Only keep self.query_columns
-        logger.error("****smartnoise_metadata****************")
-        logger.error(smartnoise_metadata)
         self.reader = from_connection(
             df,
             privacy=privacy,
@@ -76,6 +72,7 @@ class SmartnoiseSQLQuerier(
         )
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
+
         except Exception as e:
             raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
@@ -128,6 +125,7 @@ class SmartnoiseSQLQuerier(
             result = [result]
         else:
             cols = result.pop(0)
+
         if result == []:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,

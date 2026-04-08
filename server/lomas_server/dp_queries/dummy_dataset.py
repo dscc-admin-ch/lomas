@@ -117,7 +117,7 @@ async def get_dummy_dataset_for_query(
     # Create dummy dataset based on seed and number of rows
     metadata = await admin_database.get_dataset_metadata(dataset_name=query_json.dataset_name)
     df = make_dummy_from_metadata(
-        metadata,
+        metadata.to_dict(),
         query_json.dummy_nb_rows,
         query_json.dummy_seed,
     )

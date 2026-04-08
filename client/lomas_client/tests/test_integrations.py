@@ -185,16 +185,9 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert init_budget.initial_delta == 0.2
     assert init_budget.initial_epsilon == 45
 
-    assert set(client.get_dataset_metadata().keys()) == {
-        "censor_dims",
-        "columns",
-        "max_ids",
-        "rows",
-        "row_privacy",
-        "clamp_columns",
-        "clamp_counts",
-        "use_dpsu",
-    }
+    metadata = client.get_dataset_metadata()
+    assert "max_ids" in metadata.keys()
+    assert "columns" in metadata.keys()
 
     df_dummy = client.get_dummy_dataset()
     assert df_dummy.shape == (100, 8)

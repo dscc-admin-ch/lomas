@@ -23,21 +23,6 @@ from lomas_server.app import app
 from lomas_server.tests.test_api_root import TestSetupRootAPIEndpoint
 from lomas_server.tests.utils import submit_job_wait
 
-RAW_METADATA = {
-    "max_ids": 1,
-    "rows": 1,
-    "censor_dims": False,
-    "row_privacy": True,
-    "columns": {
-        "column_int": {
-            "type": "int",
-            "precision": 32,
-            "cardinality": 4,
-            "categories": [5, 6, 7, 8],
-        }
-    },
-}
-
 
 def deserialize_bytes_plan(pipeline: bytes) -> pl.LazyFrame:
     """Deserialize a JSON string to create a Polars LazyFrame.

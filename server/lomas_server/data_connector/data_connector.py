@@ -3,6 +3,7 @@ from typing import Annotated
 
 import pandas as pd
 import polars as pl
+from csvw_safe.datatypes import to_pandas_dtype
 from csvw_safe.metadata_structure import DataTypes, TableMetadata
 from pydantic import (
     BaseModel,
@@ -24,10 +25,13 @@ class DataConnector(BaseModel, ABC):
 
     df: Annotated[pd.DataFrame | None, Field(exclude=True), PlainSerializer(dataframe_to_dict)] = None
 
-    @computed_field  # type: ignore[prop-decorator]
     @property
     def dtypes(self) -> dict[str, str]:
-        return {col.name: col.datatype for col in self.metadata.columns}
+        return {
+            col.name: to_pandas_dtype(col.datatype)
+            for col in self.metadata.columns
+            if col.datatype != DataTypes.DATETIME
+        }
 
     @computed_field  # type: ignore[prop-decorator]
     @property

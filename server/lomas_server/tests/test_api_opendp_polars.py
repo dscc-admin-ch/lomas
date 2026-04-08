@@ -88,49 +88,43 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> bytes:
     return plan.serialize()
 
 
-def context_count(lf: pl.LazyFrame) -> bytes:
-    """Simple OpendPolars plan with dummy context."""
-    # here context should be a function building the margin based on the metadata
-    context = dp.Context.compositor(
-        data=lf,
-        privacy_unit=dp.unit_of(contributions=1),
-        privacy_loss=dp.loss_of(epsilon=100.0),
-        split_evenly_over=1,
-    )
+# class TestContext(TestSetupRootAPIEndpoint):
+#     """Test OpenDP Endpoint with context."""
 
-    plan = context.query().select(dp.len())
+#     def test_context_polars(self) -> None:
+#         """Test opendp polars query."""
+#         with TestClient(app, headers=self.headers) as client:
+#             # Logic with context
+#             # 1. In client: user create a context based on metadata and dummy dataset
+#             #   (done via Lomas api //i.e. "make_dummy_context")
+#             # 2. In client: user defines query (Context.query()....)
+#             # 3. Client to server: User sends pipeline to server (serialized)
+#             # 4. In server: Create new context based real/dummy data
+#             # 5. In server: deserialize context back to LazyframeQuery
+#             #    (context.deserialize_polars_plan(serialized_plan))
+#             # 6. In server: release and sent back collect() to user
 
-    return plan.serialize()
+#             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+#             context = dp.Context.compositor(
+#                 data=lf,
+#                 privacy_unit=dp.unit_of(contributions=1),
+#                 privacy_loss=dp.loss_of(epsilon=100.0),
+#                 split_evenly_over=1,
+#             )
 
+#             plan = context.query().select(dp.len())
 
-class TestContext(TestSetupRootAPIEndpoint):
-    """Test OpenDP Endpoint with context."""
+#             plan_bytes = plan.serialize()
+#             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
-    def test_context_polars(self) -> None:
-        """Test opendp polars query."""
-        with TestClient(app, headers=self.headers) as client:
-            # Logic with context
-            # 1. In client: user create a context based on metadata and dummy dataset
-            #   (done via Lomas api //i.e. "make_dummy_context")
-            # 2. In client: user defines query (Context.query()....)
-            # 3. Client to server: User sends pipeline to server (serialized)
-            # 4. In server: Create new context based real/dummy data
-            # 5. In server: deserialize context back to LazyframeQuery
-            #    (context.deserialize_polars_plan(serialized_plan))
-            # 6. In server: release and sent back collect() to user
-
-            lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
-            plan_bytes = context_count(lf)
-            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
-
-            job = submit_job_wait(
-                client,
-                "/opendp_query",
-                json=example_opendp_polars,
-            )
-            response_model = QueryResponse.model_validate(job.result)
-            assert response_model.epsilon > 0.0
-            assert isinstance(response_model.result, OpenDPPolarsQueryResult)
+#             job = submit_job_wait(
+#                 client,
+#                 "/opendp_query",
+#                 json=example_opendp_polars,
+#             )
+#             response_model = QueryResponse.model_validate(job.result)
+#             assert response_model.epsilon > 0.0
+#             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
 
 class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):

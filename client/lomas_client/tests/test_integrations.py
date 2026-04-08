@@ -281,13 +281,9 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
         user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
     )
 
-    penguin_metadata = client.get_dataset_metadata()
     feature_columns = ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"]
     target_columns = ["species"]
-    bounds = (
-        [penguin_metadata["columns"][feature]["lower"] for feature in feature_columns],
-        [penguin_metadata["columns"][feature]["upper"] for feature in feature_columns],
-    )
+    bounds = ([30.0, 13.0, 150.0, 2000.0], [60.0, 23.0, 250.0, 2000.0])
     data_norm = np.sqrt(np.linalg.norm(bounds[1]))
 
     dpl_pipeline = Pipeline(
@@ -305,16 +301,14 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
 
     feature_columns = ["bill_length_mm"]
     target_columns = ["bill_depth_mm"]
-    bill_length_meta = penguin_metadata["columns"]["bill_length_mm"]
-    bill_depth_meta = penguin_metadata["columns"]["bill_depth_mm"]
     dpl_pipeline = Pipeline(
         [
             (
                 "lr",
                 models.LinearRegression(
                     epsilon=2.0,
-                    bounds_X=(bill_length_meta["lower"], bill_length_meta["upper"]),
-                    bounds_y=(bill_depth_meta["lower"], bill_depth_meta["upper"]),
+                    bounds_X=(30.0, 65.0),
+                    bounds_y=(13.0, 23.0),
                 ),
             ),
         ]
@@ -334,7 +328,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     predictions = model.predict(
         pd.DataFrame(
             {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                "bill_length_mm": [30.0, 65.0],
             }
         )
     )
@@ -350,7 +344,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     predictions = returned_model.predict(
         pd.DataFrame(
             {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                "bill_length_mm": [30.0, 65.0],
             }
         )
     )

@@ -700,7 +700,7 @@ wheels = [
 [[package]]
 name = "csvw-safe"
 version = "0.1.0"
-source = { git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=improve_snsql#049516e67de7d220fd0e3c4655b98e40a56ffed0" }
+source = { git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=opendp_context_without_privacy_unit#af2784a656b76bb3569f27630a1a1353b05706e9" }
 dependencies = [
     { name = "numpy" },
     { name = "opendp" },
@@ -1736,7 +1736,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.6" },
-    { name = "csvw-safe", git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=improve_snsql" },
+    { name = "csvw-safe", git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=opendp_context_without_privacy_unit" },
     { name = "lomas-client", editable = "client" },
     { name = "lomas-core", editable = "core" },
     { name = "lomas-server", extras = ["all"], editable = "server" },

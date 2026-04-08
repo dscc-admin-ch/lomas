@@ -4,7 +4,6 @@
     "csvw-safe-context.jsonld"
   ],
   "@type": "Table",
-  "privacyUnit": "id",
   "maxContributions": 1,
   "maxLength": 2032543,
   "publicLength": 2032543,
@@ -17,6 +16,9 @@
         "nullableProportion": 0.0,
         "maxLength": 474690,
         "maxNumPartitions": 7,
+        "minimum": 1,
+        "maximum": 7,
+        "exhaustivePartitions": true,
         "keys": [1, 2, 3, 4, 5, 6, 7]
       },
       {
@@ -26,6 +28,9 @@
         "nullableProportion": 0.0,
         "maxLength": 34330,
         "maxNumPartitions": 72,
+        "minimum": 8,
+        "maximum": 96,
+        "exhaustivePartitions": true,
         "keys": [8, 10, 11, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27,
                  28, 29, 30, 31, 32, 33, 35, 37, 38, 41, 42, 43, 45, 46, 47, 49, 50,
                  52, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71,
@@ -39,6 +44,9 @@
         "nullableProportion": 0.0,
         "maxLength": 78857,
         "maxNumPartitions": 28,
+        "minimum": 10,
+        "maximum": 94,
+        "exhaustivePartitions": true,
         "keys": [10, 21, 22, 23, 24, 25, 31, 32, 33, 34, 41, 42, 43, 51, 52, 53, 61,
                  62, 71, 72, 73, 74, 81, 83, 91, 92, 93, 94]
       },
@@ -49,6 +57,9 @@
         "nullableProportion": 0.0,
         "maxLength": 268697,
         "maxNumPartitions": 8,
+        "minimum": 1,
+        "maximum": 8,
+        "exhaustivePartitions": true,
         "keys": [1, 2, 3, 4, 5, 6, 7, 8]
       },
       {
@@ -67,6 +78,9 @@
         "nullableProportion": 0.0,
         "maxLength": 1397824,
         "maxNumPartitions": 2,
+        "exhaustivePartitions": true,
+        "minimum": 0,
+        "maximum": 1,
         "keys": [0, 1]
       },
       {

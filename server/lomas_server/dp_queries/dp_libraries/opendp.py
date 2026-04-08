@@ -57,16 +57,23 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 is the epsilon cost, the second value is the delta value.
         """
         input_data = self.data_connector.get_polars_lf()
-        context = csvw_to_opendp_context(query_json, self.metadata.to_dict(), input_data)
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
 
         meas = context.accountant
         meas_type = str(meas.output_measure)
-        max_ids = self.metadata.max_contributions
+        max_contrib = self.metadata.max_contributions
 
         match meas_type:
             case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
-                cost = meas_zcdp.map(d_in=int(max_ids))
+                cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 fixed_delta = query_json.delta
                 if fixed_delta is None:
@@ -75,19 +82,19 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
             case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
-                cost = meas_zcdp.map(d_in=int(max_ids))
+                cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 epsilon, delta = cost[0].epsilon(cost[1]), cost[1]
 
             case OpenDPMeasurement.MAX_DIVERGENCE:
-                epsilon, delta = meas.map(d_in=int(max_ids)), 0
+                epsilon, delta = meas.map(d_in=int(max_contrib)), 0
 
             case OpenDPMeasurement.APPROX_MAX_DIVERGENCE:
-                epsilon, delta = meas.map(d_in=int(max_ids))
+                epsilon, delta = meas.map(d_in=int(max_contrib))
 
             case _:
                 raise InternalServerException(f"Invalid measurement type: {meas_type}")
-
+        logger.error("***************end cost********************")
         return epsilon, delta
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
@@ -103,8 +110,16 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
+        logger.error("***************query********************")
         input_data = self.data_connector.get_polars_lf()
-        context = csvw_to_opendp_context(self.metadata.to_dict(), input_data)
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
         serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
         plan = context.deserialize_polars_plan(serialized_plan)
 
@@ -120,6 +135,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         if isinstance(release_data, dp.extras.polars.OnceFrame):
             release_data = release_data.collect()
             return OpenDPPolarsQueryResult(value=release_data)
+        logger.error("***************end query********************")
         return OpenDPQueryResult(value=release_data)
 
 

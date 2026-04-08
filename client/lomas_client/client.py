@@ -146,7 +146,9 @@ class Client:
         dummy_lf = self.get_dummy_dataset(lazy=True)
         metadata = self.get_dataset_metadata()
 
-        return csvw_to_opendp_context(metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho)
+        return csvw_to_opendp_context(
+            metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho, split_evenly_over=1
+        )
 
     def get_initial_budget(self) -> InitialBudgetResponse:
         """This function retrieves the initial budget.

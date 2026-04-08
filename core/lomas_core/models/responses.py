@@ -16,7 +16,6 @@ from pydantic import (
 )
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.constants import init_logging
 from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
@@ -26,8 +25,6 @@ from lomas_core.models.utils import (
     polars_df_to_str,
     serialize_model,
 )
-
-logger = init_logging(__name__)
 
 
 class ResponseModel(BaseModel):
@@ -87,6 +84,7 @@ class DummyDsResponse(ResponseModel):
         """
         if isinstance(v, pd.DataFrame):
             return v
+
         dtypes = info.data["dtypes"]
         dummy_df = dataframe_from_dict(v)
         dummy_df = dummy_df.astype(dtypes)

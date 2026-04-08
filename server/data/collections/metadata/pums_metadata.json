@@ -4,7 +4,6 @@
     "csvw-safe-context.jsonld"
   ],
   "@type": "Table",
-  "privacyUnit": "age",
   "maxContributions": 1,
   "maxLength": 1000,
   "publicLength": 1000,

@@ -11,9 +11,6 @@ from rich.logging import RichHandler
 # -----------------------------------------------------------------------------
 
 DB_TYPE_FIELD = "database_type"
-# TYPE_FIELD = "type"
-# CARDINALITY_FIELD = "cardinality"
-
 JSON_SCHEMA_EXAMPLES = "examples"
 
 

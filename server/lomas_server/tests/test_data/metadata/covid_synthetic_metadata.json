@@ -4,7 +4,6 @@
     "csvw-safe-context.jsonld"
   ],
   "@type": "Table",
-  "privacyUnit": "patient_id",
   "maxContributions": 3,
   "maxLength": 50048,
   "publicLength": 50048,

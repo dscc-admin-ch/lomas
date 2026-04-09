@@ -47,7 +47,8 @@
         "datatype": "string",
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
-        "keys": [
+        "invariantPublicKeys": true,
+        "key_values": [
           "setosa",
           "versicolor",
           "virginica"

@@ -18,8 +18,7 @@
         "privacyId": true,
         "nullableProportion": 0.0,
         "minimum": 1,
-        "maximum": 2000,
-        "exhaustivePartitions": true
+        "maximum": 2000
       },
       {
         "@type": "Column",
@@ -29,8 +28,7 @@
         "privacyId": false,
         "nullableProportion": 0.0,
         "minimum": "2022-08-01",
-        "maximum": "2023-07-30",
-        "exhaustivePartitions": true
+        "maximum": "2023-07-30"
       },
       {
         "@type": "Column",
@@ -40,8 +38,7 @@
         "privacyId": false,
         "nullableProportion": 0.0,
         "minimum": 1,
-        "maximum": 52,
-        "exhaustivePartitions": true
+        "maximum": 52
       },
       {
         "@type": "Column",
@@ -50,7 +47,42 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "AG",
+          "AI",
+          "AR",
+          "BE",
+          "BL",
+          "BS",
+          "FL",
+          "FR",
+          "GE",
+          "GL",
+          "GR",
+          "JU",
+          "LU",
+          "NE",
+          "NW",
+          "OW",
+          "SG",
+          "SH",
+          "SO",
+          "SZ",
+          "TG",
+          "TI",
+          "UR",
+          "VD",
+          "VS",
+          "ZG",
+          "ZH",
+          "other",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 29,
+        "maxLength": 8496,
+        "maxGroupsPerUnit": 13,
+        "maxContributions": 22
       },
       {
         "@type": "Column",
@@ -59,7 +91,24 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "0 - 9",
+          "10 - 19",
+          "20 - 29",
+          "30 - 39",
+          "40 - 49",
+          "50 - 59",
+          "60 - 69",
+          "70 - 79",
+          "80+",
+          "other",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 11,
+        "maxLength": 6964,
+        "maxGroupsPerUnit": 13,
+        "maxContributions": 11
       },
       {
         "@type": "Column",
@@ -68,7 +117,17 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "female",
+          "male",
+          "other",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 4,
+        "maxLength": 23180,
+        "maxGroupsPerUnit": 31,
+        "maxContributions": 4
       },
       {
         "@type": "Column",
@@ -77,7 +136,15 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "pcr",
+          "rapid_antigen_test"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 2,
+        "maxLength": 45066,
+        "maxGroupsPerUnit": 51,
+        "maxContributions": 2
       },
       {
         "@type": "Column",
@@ -86,7 +153,17 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "negative",
+          "other",
+          "positive",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 4,
+        "maxLength": 28829,
+        "maxGroupsPerUnit": 40,
+        "maxContributions": 4
       },
       {
         "@type": "Column",
@@ -95,7 +172,17 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "exhaustivePartitions": true
+        "key_values": [
+          "CH",
+          "FL",
+          "other",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 4,
+        "maxLength": 48090,
+        "maxGroupsPerUnit": 52,
+        "maxContributions": 4
       },
       {
         "@type": "Column",
@@ -104,7 +191,22 @@
         "required": false,
         "privacyId": false,
         "nullableProportion": 0.658,
-        "exhaustivePartitions": true
+        "key_values": [
+          "BA.1",
+          "BA.2",
+          "BA.2.75",
+          "BA.4",
+          "BA.5",
+          "BQ.1",
+          "XBB",
+          "other",
+          "unknown"
+        ],
+        "invariantPublicKeys": true,
+        "maxNumPartitions": 9,
+        "maxLength": 3441,
+        "maxGroupsPerUnit": 10,
+        "maxContributions": 9
       },
       {
         "@type": "Column",
@@ -115,7 +217,14 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "exhaustivePartitions": true
+        "key_values": [
+          false,
+          true
+        ],
+        "maxNumPartitions": 2,
+        "maxLength": 49699,
+        "maxGroupsPerUnit": 52,
+        "maxContributions": 2
       },
       {
         "@type": "Column",
@@ -126,7 +235,14 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "exhaustivePartitions": true
+        "key_values": [
+          false,
+          true
+        ],
+        "maxNumPartitions": 2,
+        "maxLength": 50010,
+        "maxGroupsPerUnit": 52,
+        "maxContributions": 2
       },
       {
         "@type": "Column",
@@ -136,9 +252,30 @@
         "privacyId": false,
         "nullableProportion": 0.0,
         "minimum": 1,
-        "maximum": 30000,
-        "exhaustivePartitions": true
+        "maximum": 30000
       }
     ]
-  }
+  },
+    "additionalInformation": [
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["agegroup", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["georegion", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["subType", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["agegroup", "georegion"],
+      "invariantPublicKeys": true
+    }
+  ]
 }

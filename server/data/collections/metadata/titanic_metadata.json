@@ -29,7 +29,8 @@
         "datatype": "string",
         "nullableProportion": 0.0,
         "maxNumPartitions": 2,
-        "keys": ["male", "female"]
+        "invariantPublicKeys": true,
+        "key_values": ["male", "female"]
       },
       {
         "@type": "Column",
@@ -67,6 +68,7 @@
         "@type": "Column",
         "name": "Survived",
         "datatype": "boolean",
+        "invariantPublicKeys": true,
         "nullableProportion": 0.0
       }
     ]

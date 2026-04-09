@@ -15,7 +15,8 @@
         "datatype": "string",
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
-        "keys": ["Adelie", "Chinstrap", "Gentoo"]
+        "invariantPublicKeys": true,
+        "key_values": ["Adelie", "Chinstrap", "Gentoo"]
       },
       {
         "@type": "Column",
@@ -23,7 +24,8 @@
         "datatype": "string",
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
-        "keys": ["Torgersen", "Biscoe", "Dream"]
+        "invariantPublicKeys": true,
+        "key_values": ["Torgersen", "Biscoe", "Dream"]
       },
       {
         "@type": "Column",
@@ -63,8 +65,31 @@
         "datatype": "string",
         "nullableProportion": 0.0,
         "maxNumPartitions": 2,
-        "keys": ["MALE", "FEMALE"]
+        "invariantPublicKeys": true,
+        "key_values": ["MALE", "FEMALE"]
       }
     ]
-  }
+  },
+  "additionalInformation": [
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "island"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["sex", "island"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "island", "sex"],
+      "invariantPublicKeys": true
+    }
+  ]
 }

@@ -33,7 +33,7 @@ docs = [
 lomas-core = { workspace = true }
 lomas-client = { workspace = true }
 lomas-server = { workspace = true }
-csvw-safe = { git = "https://github.com/dscc-admin-ch/csvw-safe.git", subdirectory = "csvw-safe-library", rev = "opendp_context_without_privacy_unit" }
+csvw-safe = { git = "https://github.com/dscc-admin-ch/csvw-safe.git", subdirectory = "csvw-safe-library", rev = "add_column_group_invariance" }
 
 [tool.uv.workspace]
 members = [ "core", "client", "server" ]

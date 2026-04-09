@@ -3,8 +3,8 @@ from typing import Annotated
 
 import pandas as pd
 import polars as pl
-from csvw_safe.datatypes import to_pandas_dtype
-from csvw_safe.metadata_structure import DataTypes, TableMetadata
+from csvw_safe.datatypes import XSD_GROUP_MAP, DataTypesGroups, to_pandas_dtype
+from csvw_safe.metadata_structure import TableMetadata
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -30,13 +30,17 @@ class DataConnector(BaseModel, ABC):
         return {
             col.name: to_pandas_dtype(col.datatype)
             for col in self.metadata.columns
-            if col.datatype != DataTypes.DATETIME
+            if XSD_GROUP_MAP[col.datatype] != DataTypesGroups.DATETIME
         }
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def datetime_columns(self) -> list[str]:
-        return [col.name for col in self.metadata.columns if col.datatype == DataTypes.DATETIME]
+        return [
+            col.name
+            for col in self.metadata.columns
+            if XSD_GROUP_MAP[col.datatype] == DataTypesGroups.DATETIME
+        ]
 
     @abstractmethod
     def get_pandas_df(self) -> pd.DataFrame:

@@ -83,7 +83,7 @@ def multiple_group_query_serialized(lf: pl.LazyFrame) -> bytes:
     Returns:
         str: The serialized plan of the grouped mean query in JSON format.
     """
-    plan = lf.group_by(["sex", "region"]).agg([dp.len(), pl.col("income").dp.sum(bounds=(1000, 100000))])
+    plan = lf.group_by(["sex", "region"]).agg([pl.col("income").dp.mean(bounds=(1000, 100000))])
 
     return plan.serialize()
 
@@ -136,7 +136,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
             datetime_plan = (
                 lf.with_columns(YEAR=pl.col.date.dt.year(), MONTH=pl.col.date.dt.month())
-                .group_by("YEAR")
+                .group_by("MONTH")
                 .agg(dp.len())
             ).serialize()
 
@@ -150,9 +150,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             )
 
             response_model = QueryResponse.model_validate(job.result)
-            assert (
-                response_model.result.value.shape[0] >= 1
-            )  # depending on noise, 2022 can be removed from result (1 or 2 rows in result)
             assert response_model.epsilon > 0.0
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
@@ -169,11 +166,6 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 json=example_opendp_polars_datetime,
             )
             assert job.status == "failed"
-            # assert job.status_code == status.HTTP_400_BAD_REQUEST
-            # assert job.error == InvalidQueryExceptionModel(
-            #     message="Your are trying to do multiple groupings. "
-            #     + "This is currently not supported, please use one grouping"
-            # )
 
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""

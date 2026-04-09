@@ -87,9 +87,11 @@ in
         port = cfg.portManagement;
       };
       configItems = {
-        "default_user" = cfg.user;
-        "default_pass" = cfg.password;
-        "heartbeat" = toString cfg.heartbeat;
+        default_user = cfg.user;
+        default_pass = cfg.password;
+        heartbeat = toString cfg.heartbeat;
+        "deprecated_features.permit.transient_nonexcl_queues" = "false";
+        "deprecated_features.permit.management_metrics_collection" = "false";
       };
     };
 
@@ -100,6 +102,7 @@ in
       exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
     };
 
+    env.ERL_CRASH_DUMP_BYTES = 0;
   };
 
 }

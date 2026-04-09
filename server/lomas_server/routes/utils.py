@@ -92,34 +92,36 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     channel = await connection.channel()
     background_tasks = set()  # Avoid dangling asyncio.Task by storing them here
 
-    await channel.declare_queue("task_queue", auto_delete=True)
+    await channel.declare_queue("task_queue", durable=True)
     app.state.task_queue_channel = channel
-    queue = await channel.declare_queue("task_response", auto_delete=True)
+    queue = await channel.declare_queue("task_response", durable=True)
     tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
     background_tasks.add(tasks_response_task)
     tasks_response_task.add_done_callback(background_tasks.discard)
 
-    await channel.declare_queue("cost_queue", auto_delete=True)
+    await channel.declare_queue("cost_queue", durable=True)
     app.state.cost_queue_channel = channel
-    queue = await channel.declare_queue("cost_response", auto_delete=True)
+    queue = await channel.declare_queue("cost_response", durable=True)
     cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs))
     background_tasks.add(cost_response_task)
     cost_response_task.add_done_callback(background_tasks.discard)
 
-    await channel.declare_queue("dummy_queue", auto_delete=True)
+    await channel.declare_queue("dummy_queue", durable=True)
     app.state.dummy_queue_channel = channel
-    queue = await channel.declare_queue("dummy_response", auto_delete=True)
+    queue = await channel.declare_queue("dummy_response", durable=True)
     dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
     background_tasks.add(dummy_response_task)
     dummy_response_task.add_done_callback(background_tasks.discard)
 
-    rpc = await RPC.create(channel)
-    await rpc.register("get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query)
-    await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query)
-    await rpc.register("get_remaining_budget", app.state.admin_database.get_remaining_budget)
-    await rpc.register("update_budget", app.state.admin_database.update_budget)
-    await rpc.register("save_query", app.state.admin_database.save_query)
-    await rpc.register("get_dataset_metadata", app.state.admin_database.get_dataset_metadata)
+    rpc = await RPC.create(channel, durable=True)
+    await rpc.register(
+        "get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query, durable=True
+    )
+    await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query, durable=True)
+    await rpc.register("get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True)
+    await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
+    await rpc.register("save_query", app.state.admin_database.save_query, durable=True)
+    await rpc.register("get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True)
 
     yield  # app is handling requests
 

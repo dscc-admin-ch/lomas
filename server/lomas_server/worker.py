@@ -201,8 +201,8 @@ async def process_message(
     channel: aio_pika.Channel, in_queue: str, out_queue: str, message_handler: Callable[[bytes], Any]
 ) -> None:
     """General RabbitMQ Message handler -> processing -> response."""
-    queue = await channel.declare_queue(in_queue, auto_delete=True)
-    await channel.declare_queue(out_queue, auto_delete=True)
+    queue = await channel.declare_queue(in_queue, durable=True)
+    await channel.declare_queue(out_queue, durable=True)
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
@@ -250,7 +250,7 @@ async def process_all_queues() -> None:
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
-        rpc = await RPC.create(channel)
+        rpc = await RPC.create(channel, durable=True)
 
         try:
             async with asyncio.TaskGroup() as tg:

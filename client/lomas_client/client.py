@@ -2,11 +2,14 @@ import base64
 import io
 import json
 import pickle
+from typing import Any
 
 import opendp.prelude as dp
 import pandas as pd
 import polars as pl
+from csvw_safe.constants import COL_LIST, COL_NAME, MAXIMUM, MINIMUM, TABLE_SCHEMA
 from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
+from csvw_safe.datatypes import T
 from csvw_safe.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
@@ -63,21 +66,76 @@ class Client:
         self.opendp = OpenDPClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
-    def get_dataset_metadata(self) -> LomasRequestModel:
+        self.metadata: dict[str, Any] | None = None
+
+    def get_dataset_metadata(self) -> dict[str, Any]:
         """This function retrieves metadata for the dataset.
 
-        Returns:
-            LomasRequestModel:
-                A dictionary containing dataset metadata.
+        Returns: A dictionary containing dataset metadata.
         """
-        body_dict = {"dataset_name": self.config.dataset_name}
-        body = LomasRequestModel.model_validate(body_dict)
-        res = self.http_client.post("get_dataset_metadata", body)
-        if res.status_code == status.HTTP_200_OK:
-            metadata = TableMetadata.model_validate(res.json())
-            return metadata.to_dict()
+        if self.metadata is None:
+            body_dict = {"dataset_name": self.config.dataset_name}
+            body = LomasRequestModel.model_validate(body_dict)
+            res = self.http_client.post("get_dataset_metadata", body)
+            if res.status_code == status.HTTP_200_OK:
+                metadata = TableMetadata.model_validate(res.json())
+                self.metadata = metadata.to_dict()
+                return self.metadata
 
-        raise_error(res)
+            raise_error(res)
+        return self.metadata
+
+    def get_column_metadata(self, column_name: str) -> dict[str, Any]:
+        """This function retrieves metadata for the column.
+
+        Returns: A dictionary containing column metadata.
+        """
+        if self.metadata is None:
+            self.metadata = self.get_dataset_metadata()
+
+        try:
+            return next(col for col in self.metadata[TABLE_SCHEMA][COL_LIST] if col[COL_NAME] == column_name)
+        except StopIteration as err:
+            available = [col[COL_NAME] for col in self.metadata[TABLE_SCHEMA][COL_LIST]]
+            raise ValueError(f"Column '{column_name}' not found. Available columns: {available}") from err
+
+    def get_column_bounds(self, column_name: str) -> tuple[T, T]:
+        """This function retrieves metadata  bounds for the column.
+
+        Returns: A tuple of (minimum_bound, maximum_bound)
+        """
+        column = self.get_column_metadata(column_name)
+
+        minimum = column.get(MINIMUM)
+        maximum = column.get(MAXIMUM)
+
+        if minimum is None or maximum is None:
+            raise ValueError(f"Column '{column_name}' does not have bounds.")
+
+        return minimum, maximum
+
+    def get_diffprivlib_bounds(self, columns: list[str]) -> tuple[list[int | float], list[int | float]]:
+        """Get bounds for a list of columns in diffprivlib expected format."""
+        if self.metadata is None:
+            self.metadata = self.get_dataset_metadata()
+
+        cols = self.metadata[TABLE_SCHEMA][COL_LIST]
+        col_map = {col[COL_NAME]: col for col in cols}
+
+        lower, upper = [], []
+        for col in columns:
+            if col not in col_map:
+                raise ValueError(f"Column '{col}' not found")
+
+            metadata = col_map[col]
+
+            if MINIMUM not in metadata or MAXIMUM not in metadata:
+                raise ValueError(f"Column '{col}' does not have bounds")
+
+            lower.append(metadata[MINIMUM])
+            upper.append(metadata[MAXIMUM])
+
+        return lower, upper
 
     def get_dummy_dataset(
         self,
@@ -144,10 +202,11 @@ class Client:
             user-provided privacy parameters.
         """
         dummy_lf = self.get_dummy_dataset(lazy=True)
-        metadata = self.get_dataset_metadata()
+        if self.metadata is None:
+            self.metadata = self.get_dataset_metadata()
 
         return csvw_to_opendp_context(
-            metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho, split_evenly_over=1
+            self.metadata, dummy_lf, epsilon=epsilon, delta=delta, rho=rho, split_evenly_over=1
         )
 
     def get_initial_budget(self) -> InitialBudgetResponse:

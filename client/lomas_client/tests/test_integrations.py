@@ -13,6 +13,7 @@ import pytest
 import requests
 from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
+from csvw_safe.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
 from opendp.mod import enable_features
 from sklearn.pipeline import Pipeline
@@ -190,8 +191,12 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
 
     metadata = client.get_dataset_metadata()
     assert isinstance(metadata, dict)
-    print("**************")
-    print(metadata)
+    assert TABLE_SCHEMA in metadata.keys()
+
+    column_metadata = client.get_column_metadata("Pclass")
+    assert isinstance(column_metadata, dict)
+    assert COL_NAME in column_metadata.keys()
+    assert column_metadata[COL_NAME] == "Pclass"
 
     df_dummy = client.get_dummy_dataset()
     assert df_dummy.shape == (100, 8)
@@ -203,8 +208,6 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
 
     # Prepare Query
     context = client.get_context(epsilon=DEFAULT_EPSILON)
-    print("**************")
-    print(context)
     plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 120)), dp.len())
 
     # Cost
@@ -291,7 +294,8 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
 
     feature_columns = ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"]
     target_columns = ["species"]
-    bounds = ([30.0, 13.0, 150.0, 2000.0], [60.0, 23.0, 250.0, 2000.0])
+    bounds = client.get_diffprivlib_bounds(feature_columns)
+    assert bounds == ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
     data_norm = np.sqrt(np.linalg.norm(bounds[1]))
 
     dpl_pipeline = Pipeline(

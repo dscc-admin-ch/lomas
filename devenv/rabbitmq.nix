@@ -102,6 +102,7 @@ in
       exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
     };
 
+    env.ERL_CRASH_DUMP_BYTES = 0;
   };
 
 }

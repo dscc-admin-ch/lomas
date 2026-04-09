@@ -216,7 +216,6 @@ def get_dummy_dataset(
             and the list of datetime columns.
     """
     app = request.app
-
     dataset_name = query_json.dataset_name
     if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
@@ -224,8 +223,7 @@ def get_dummy_dataset(
         )
 
     try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-
+        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
         dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
         dummy_df = make_dummy_from_metadata(
             ds_metadata.to_dict(),

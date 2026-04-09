@@ -6,7 +6,6 @@ dependencies = [
   "lomas-core",
   "lomas-client",
   "lomas-server[all]",
-  "csvw-safe",
 ]
 
 [project.optional-dependencies]

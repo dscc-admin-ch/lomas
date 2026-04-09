@@ -21,17 +21,20 @@
         existingSecretPasswordKey = "";
         tls.enabled = false;
       };
+      containerPorts = {
+        amqp = 5672;
+        manager = 15672;
+      };
       plugins = "rabbitmq_management rabbitmq_peer_discovery_k8s";
       extraConfiguration = ''
         heartbeat = 1800
       '';
       clustering.enabled = false;
+      resourcesPreset = "small";
 
       pdb.create = false;
       serviceAccount.create = false;
       rbac.create = false;
-      persistence.create = false;
-      persistentVolumeClaimRetentionPolicy.create = false;
       networkPolicy.enabled = false;
       metrics.enabled = false;
     };

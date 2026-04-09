@@ -20,7 +20,7 @@ in
       grpc.enabled = true;
       service.ports = {
         http.port = 4445;
-        grcp.port = 4446;
+        grpc.port = 4446;
       };
       config = {
         issuer = config.oidc.issuer;

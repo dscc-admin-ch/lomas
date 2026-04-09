@@ -1,0 +1,50 @@
+{{- if .Values.admin.demo_setup.enable -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lomas.admin.demo-setup.fullname" . }}
+spec:
+  # backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.admin.podAnnotations | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      initContainers:
+        - args:
+            - -c
+            - |
+              #!/usr/local/env bash
+              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://lomas-server/live) -eq 200 ]; do
+                echo "waiting for lomas"
+                sleep 2
+              done;
+          command:
+            - /bin/bash
+          image: dsccadminch/lomas:sha-4c90599
+          imagePullPolicy: IfNotPresent
+          name: wait
+      containers:
+        - name: lomas-demo-setup
+          image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          command: ["lomas-demo-setup"]
+          env:
+            - name: LOMAS_ADMIN_DEX_CONFIG__URL
+              value: grpc://lomas-dex:4446
+            - name: LOMAS_ADMIN_SERVER_SERVICE
+              value: http://lomas-server:80
+            - name: LOMAS_ADMIN_SERVER_URL
+              value: http://lomas-server:80
+      nodeSelector:
+        {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
+      affinity:
+        {{ toYaml .Values.admin.affinity | nindent 8 }}
+      tolerations:
+        {{ toYaml .Values.admin.tolerations | nindent 8}}
+{{- end}}

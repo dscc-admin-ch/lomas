@@ -6,14 +6,16 @@
 }:
 let
   inherit (lib) mkOption types;
+  inherit (config.kubernetes.helm.releases) lomas-dex;
+  inherit (config.kubernetes.helm.releases) rabbitmq;
 in
 {
   imports = [
     kubenix.modules.k8s
     kubenix.modules.helm
     ./rabbit.nix
-    ./objstore.nix
     ./dex.nix
+    ./objstore.nix
   ];
 
   options = {
@@ -83,8 +85,8 @@ in
             http.paths = [
               {
                 backend.service = {
-                  name = "lomas-dex";
-                  port.number = 4445;
+                  name = lomas-dex.name;
+                  port.number = lomas-dex.values.service.ports.http.port;
                 };
                 path = "/";
                 pathType = "Prefix";
@@ -132,7 +134,7 @@ in
           metadata.labels."app.kubernetes.io/name" = "lomas-server";
           spec = {
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-4b4bdbb";
+              image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
               command = [ "lomas-serve" ];
               # volumeMounts = {
@@ -141,11 +143,11 @@ in
               env = lib.attrsToList (
                 lib.mapAttrs (_: toString) {
                   LOMAS_SERVICE_PORT = 48080;
-                  LOMAS_DEX_PORT = 4445;
-                  LOMAS_RABBIT_MQ_PORT = 5672;
-                  LOMAS_RABBIT_MQ_MGMT_PORT = 15672;
-                  LOMAS_RABBIT_MQ_USER = "guest";
-                  LOMAS_RABBIT_MQ_PASS = "guest";
+                  LOMAS_DEX_PORT = lomas-dex.values.service.ports.http.port; # 4445
+                  LOMAS_RABBIT_MQ_PORT = rabbitmq.values.containerPorts.amqp; # 5672
+                  LOMAS_RABBIT_MQ_MGMT_PORT = rabbitmq.values.containerPorts.manager; # 15672
+                  LOMAS_RABBIT_MQ_USER = rabbitmq.values.auth.username; # "guest"
+                  LOMAS_RABBIT_MQ_PASS = rabbitmq.values.auth.password; # "guest"
                   LOMAS_DASHBOARD_PORT = 8501;
                   LOMAS_MINIO_PORT = 19000;
                   LOMAS_MINIO_CONSOLE_PORT = 19001;
@@ -153,6 +155,7 @@ in
                   LOMAS_MINIO_ROOT_PWD = "admin123";
                   LOMAS_OTEL_PORT = 4317;
                   LOMAS_CLIENT_PORT = 8888;
+                  LOMAS_SERVICE_authenticator__oidc_discovery_url = config.oidc.discoveryUrl;
                 }
               );
             };
@@ -169,7 +172,7 @@ in
           metadata.labels."app.kubernetes.io/name" = "lomas-worker";
           spec = {
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-4b4bdbb";
+              image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
               command = [ "lomas-work" ];
             };
@@ -203,15 +206,15 @@ in
 
           spec = {
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-4b4bdbb";
+              image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
               command = [ "lomas-dashboard" ];
               volumeMounts = {
                 "/config".name = "config";
               };
               env = lib.attrsToList {
-                LOMAS_ADMIN_SERVER_URL = "https://${config.hostname}/dashboard";
-                LOMAS_ADMIN_SERVER_SERVICE = "https://${config.hostname}/dashboard";
+                LOMAS_ADMIN_SERVER_URL = "https://${config.hostname}";
+                LOMAS_ADMIN_SERVER_SERVICE = "https://${config.hostname}";
                 STREAMLIT_SECRETS_FILES = "/config/secrets.toml";
               };
             };
@@ -226,14 +229,29 @@ in
         template = {
           spec = {
             restartPolicy = "Never";
+            initContainers.wait = {
+              image = "dsccadminch/lomas:sha-4c90599";
+              imagePullPolicy = "IfNotPresent";
+              command = [ "/bin/bash" ];
+              args = [
+                "-c"
+                ''
+                  #!/usr/local/env bash
+                  until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://lomas/live) -eq 200 ]; do
+                    echo "waiting for lomas"
+                    sleep 2
+                  done;
+                ''
+              ];
+            };
             containers.lomas = {
-              image = "dsccadminch/lomas:sha-4b4bdbb";
+              image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
               command = [ "lomas-demo-setup" ];
               env = lib.attrsToList {
                 LOMAS_ADMIN_SERVER_URL = "http://lomas";
                 LOMAS_ADMIN_SERVER_SERVICE = "http://lomas";
-                LOMAS_ADMIN_DEX_CONFIG__URL = "http://lomas-dex:5557";
+                LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${lomas-dex.name}:${toString lomas-dex.values.service.ports.grpc.port}";
               };
             };
           };

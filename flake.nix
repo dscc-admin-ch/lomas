@@ -51,7 +51,8 @@
                 dashboard = {
                   client_id = "lomas_dashboard";
                   client_secret = "lomas_dashboard";
-                  redirect_uri = "http://${hostname}/admin/oauth2callback";
+                  # tricky https here ?
+                  redirect_uri = "https://${hostname}/admin/oauth2callback";
                 };
               };
             })
@@ -66,6 +67,8 @@
 
         # nix eval --json .#kubeConf | kubectl apply -f -
         kubeConf = cluster.config.kubernetes.generated;
+
+        cluster = cluster;
       };
 
       devShells.${system} =

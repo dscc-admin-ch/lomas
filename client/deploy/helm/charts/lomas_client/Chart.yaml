@@ -1,9 +1,0 @@
-apiVersion: v2
-name: lomas-client
-description: Lomas's Secure Data Disclosure deployment chart for the client environment
-
-type: application
-
-version: 0.4.1
-
-appVersion: "0.4.1"

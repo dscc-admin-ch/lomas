@@ -12,6 +12,7 @@ in
 }
 // builtins
 // nixpkgs.lib
+// flake.packages.${system}
 // (import ./devenv/lib.nix {
   inherit (flake.inputs) uv2nix pyproject-nix pyproject-build-systems;
   inherit pkgs lib;

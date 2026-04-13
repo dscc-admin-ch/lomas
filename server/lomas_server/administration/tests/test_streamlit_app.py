@@ -178,6 +178,8 @@ def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> No
     ds_name = "PUMS"
     old_metadata: IOResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get)
     assert is_successful(old_metadata)
+    validated = old_metadata.map(TableMetadata.model_validate)
+    assert is_successful(validated)
 
     # override pums with penguin metadatas
     penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.json"

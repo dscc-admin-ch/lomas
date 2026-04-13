@@ -2,14 +2,13 @@ import base64
 import io
 import json
 import pickle
-from typing import Any
+from typing import Any, Protocol, TypeVar
 
 import opendp.prelude as dp
 import pandas as pd
 import polars as pl
 from csvw_safe.constants import COL_LIST, COL_NAME, MAXIMUM, MINIMUM, TABLE_SCHEMA
 from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
-from csvw_safe.datatypes import T
 from csvw_safe.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
@@ -34,6 +33,16 @@ from lomas_core.models.responses import (
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
+
+
+class Bound(Protocol):
+    """Any type that supports ordering comparisons (< and >)."""
+
+    def __lt__(self, other: "Bound") -> bool: ...
+    def __gt__(self, other: "Bound") -> bool: ...
+
+
+T = TypeVar("T", bound=Bound)  # Type variable for values that can be compared (e.g. int, float, datetime).
 
 
 class Client:

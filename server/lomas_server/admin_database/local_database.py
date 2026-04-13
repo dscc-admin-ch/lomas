@@ -235,8 +235,7 @@ class LocalAdminDatabase(AdminDatabase):
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
             # Store metadata to metadata collection
-            with Path(metadata_path).resolve().open("r", encoding="utf-8") as f:
-                metadata_dict = json.load(f)
+            metadata_dict = json.loads(Path(metadata_path).resolve().read_text())
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:

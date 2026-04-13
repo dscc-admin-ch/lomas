@@ -140,6 +140,7 @@ log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
 #syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
   "ignore::DeprecationWarning:(jupyter_client|aio_pika).*:",
+  "ignore::EncodingWarning:jupyter_client:",
 ]
 addopts = [
   "--import-mode=importlib",

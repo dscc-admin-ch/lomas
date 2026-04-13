@@ -157,7 +157,7 @@ class LocalAdminDatabase(AdminDatabase):
 
         match yaml_file:
             case Path():
-                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
@@ -318,7 +318,7 @@ class LocalAdminDatabase(AdminDatabase):
         # Load yaml data and insert it
         match yaml_file:
             case Path():
-                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)

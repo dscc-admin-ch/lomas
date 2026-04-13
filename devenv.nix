@@ -195,6 +195,7 @@ in
 
     # Pydantic note:
     # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.
+    PYTHONWARNDEFAULTENCODING = 1;
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;

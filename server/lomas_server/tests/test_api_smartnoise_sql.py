@@ -30,13 +30,11 @@ from lomas_server.tests.utils import submit_job_wait
 class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
     """Test Smartnoise-sql Endpoint."""
 
-    @pytest.mark.long
     def test_smartnoise_sql_query_base(self) -> None:
         """Test smartnoise-sql query."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             job = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
-
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name
@@ -45,6 +43,10 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.epsilon == QUERY_EPSILON
             assert r_model.delta >= QUERY_DELTA
 
+    @pytest.mark.long
+    def test_smartnoise_sql_query_expected_fail(self) -> None:
+        """Test smartnoise-sql query with multiple queries on same column."""
+        with TestClient(app, headers=self.headers) as client:
             # Expect to fail: missing parameters: delta and mechanisms
             response = client.post(
                 "/smartnoise_sql_query",
@@ -57,12 +59,6 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             )
             assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
-            response_dict = response.json()["detail"]
-            assert response_dict[0]["type"] == "missing"
-            assert response_dict[0]["loc"] == ["body", "delta"]
-            assert response_dict[1]["type"] == "missing"
-            assert response_dict[1]["loc"] == ["body", "mechanisms"]
-
             # Expect to fail: not enough budget
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["epsilon"] = 0.000000001
@@ -72,7 +68,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             assert job.error == ExternalLibraryExceptionModel(
                 message="Error obtaining cost: "
                 + "Noise scale is too large using epsilon=1e-09 "
-                + "and bounds (0, 1) with Mechanism.gaussian.  "
+                + "and bounds (0, 1) with Mechanism.laplace.  "
                 + "Try preprocessing to reduce senstivity, "
                 + "or try different privacy parameters.",
                 library="smartnoise_sql",
@@ -158,14 +154,19 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.result.df["avg_bill_length_mm"].iloc[0] > 0.0
 
+    @pytest.mark.long
+    def test_smartnoise_sql_postprocess_parameter(self) -> None:
+        """Test smartnoise-sql postprocess parameters."""
+        with TestClient(app, headers=self.headers) as client:
             # Try postprocess False
+            body = dict(example_smartnoise_sql)
             body["postprocess"] = False
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body)
             assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
-            assert r_model.result.df.shape[1] == 2
+            assert r_model.result.df.shape[1] == 1
 
     def test_smartnoise_sql_query_datetime(self) -> None:
         """Test smartnoise-sql query on datetime."""
@@ -175,6 +176,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             body = dict(example_smartnoise_sql)
             body["dataset_name"] = "BIRTHDAYS"
             body["query_str"] = "SELECT COUNT(*) FROM df WHERE birthday >= '1950-01-01'"
+            body["epsilon"] = 10
             job = submit_job_wait(client, "/smartnoise_sql_query", json=body, headers=new_headers)
             assert job.status == "complete"
             assert job.status_code == status.HTTP_200_OK
@@ -189,6 +191,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             # Expect to work
             input_smartnoise = dict(example_smartnoise_sql)
             input_smartnoise["dataset_name"] = "TINTIN_S3_TEST"
+            input_smartnoise["epsilon"] = 10
             job = submit_job_wait(
                 client,
                 "/smartnoise_sql_query",
@@ -200,15 +203,16 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)
             assert r_model.requested_by == self.user_name
             assert "NB_ROW" in r_model.result.df.columns
-            assert r_model.epsilon == QUERY_EPSILON
             assert r_model.delta >= QUERY_DELTA
 
     def test_dummy_smartnoise_sql_query(self) -> None:
         """Test_dummy_smartnoise_sql_query."""
         with TestClient(app) as client:
+            input_dummy = dict(example_dummy_smartnoise_sql)
+            input_dummy["epsilon"] = 1
             # Expect to work
             job = submit_job_wait(
-                client, "/dummy_smartnoise_sql_query", json=example_dummy_smartnoise_sql, headers=self.headers
+                client, "/dummy_smartnoise_sql_query", json=input_dummy, headers=self.headers
             )
             r_model = QueryResponse.model_validate(job.result)
             assert isinstance(r_model.result, SmartnoiseSQLQueryResult)

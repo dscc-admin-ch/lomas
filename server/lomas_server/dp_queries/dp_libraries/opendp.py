@@ -1,17 +1,17 @@
 import os
+from base64 import b64decode
 
 import opendp as dp
 from aio_pika.patterns.rpc import Proxy
+from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
 from opendp._lib import lib_path
 from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.collections import Metadata
 from lomas_core.models.constants import OpenDPFeatures, init_logging
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
-from lomas_core.opendp_utils import build_context_from_metadata, deserialize_context_query
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -35,7 +35,7 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         super().__init__(data_connector, admin_database)
 
         # Get metadata once and for all
-        self.metadata = self.data_connector.metadata.model_dump()
+        self.metadata = self.data_connector.metadata
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -57,17 +57,23 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
                 is the epsilon cost, the second value is the delta value.
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = Metadata.model_validate(self.metadata)
-        context = build_context_from_metadata(query_json, metadata, input_data)
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
 
         meas = context.accountant
         meas_type = str(meas.output_measure)
-        max_ids = self.metadata["max_ids"]
+        max_contrib = self.metadata.max_contributions
 
         match meas_type:
             case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
-                cost = meas_zcdp.map(d_in=int(max_ids))
+                cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 fixed_delta = query_json.delta
                 if fixed_delta is None:
@@ -76,19 +82,18 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
 
             case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
                 meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
-                cost = meas_zcdp.map(d_in=int(max_ids))
+                cost = meas_zcdp.map(d_in=int(max_contrib))
 
                 epsilon, delta = cost[0].epsilon(cost[1]), cost[1]
 
             case OpenDPMeasurement.MAX_DIVERGENCE:
-                epsilon, delta = meas.map(d_in=int(max_ids)), 0
+                epsilon, delta = meas.map(d_in=int(max_contrib)), 0
 
             case OpenDPMeasurement.APPROX_MAX_DIVERGENCE:
-                epsilon, delta = meas.map(d_in=int(max_ids))
+                epsilon, delta = meas.map(d_in=int(max_contrib))
 
             case _:
                 raise InternalServerException(f"Invalid measurement type: {meas_type}")
-
         return epsilon, delta
 
     def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
@@ -105,8 +110,16 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             (Union[List, int, float]) query result
         """
         input_data = self.data_connector.get_polars_lf()
-        metadata = Metadata.model_validate(self.metadata)
-        plan = deserialize_context_query(query_json, metadata, input_data)
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
+        serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
+        plan = context.deserialize_polars_plan(serialized_plan)
 
         try:
             release_data = plan.release()

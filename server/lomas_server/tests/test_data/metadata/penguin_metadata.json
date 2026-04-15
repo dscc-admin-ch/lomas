@@ -1,0 +1,95 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    "csvw-safe-context.jsonld"
+  ],
+  "@type": "Table",
+  "maxContributions": 1,
+  "maxLength": 344,
+  "publicLength": 344,
+  "tableSchema": {
+    "columns": [
+      {
+        "@type": "Column",
+        "name": "species",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 3,
+        "invariantPublicKeys": true,
+        "keyValues": ["Adelie", "Chinstrap", "Gentoo"]
+      },
+      {
+        "@type": "Column",
+        "name": "island",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 3,
+        "invariantPublicKeys": true,
+        "keyValues": ["Torgersen", "Biscoe", "Dream"]
+      },
+      {
+        "@type": "Column",
+        "name": "bill_length_mm",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 30.0,
+        "maximum": 65.0
+      },
+      {
+        "@type": "Column",
+        "name": "bill_depth_mm",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 13.0,
+        "maximum": 23.0
+      },
+      {
+        "@type": "Column",
+        "name": "flipper_length_mm",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 150.0,
+        "maximum": 250.0
+      },
+      {
+        "@type": "Column",
+        "name": "body_mass_g",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 2000.0,
+        "maximum": 7000.0
+      },
+      {
+        "@type": "Column",
+        "name": "sex",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 2,
+        "invariantPublicKeys": true,
+        "keyValues": ["MALE", "FEMALE"]
+      }
+    ]
+  },
+  "additionalInformation": [
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "island"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["sex", "island"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["species", "island", "sex"],
+      "invariantPublicKeys": true
+    }
+  ]
+}

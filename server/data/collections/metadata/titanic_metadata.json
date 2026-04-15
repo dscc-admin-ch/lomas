@@ -1,0 +1,76 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    "csvw-safe-context.jsonld"
+  ],
+  "@type": "Table",
+  "maxContributions": 1,
+  "maxLength": 887,
+  "publicLength": 887,
+  "tableSchema": {
+    "columns": [
+      {
+        "@type": "Column",
+        "name": "Pclass",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "minimum": 1,
+        "maximum": 3
+      },
+      {
+        "@type": "Column",
+        "name": "Name",
+        "datatype": "string",
+        "nullableProportion": 0.0
+      },
+      {
+        "@type": "Column",
+        "name": "Sex",
+        "datatype": "string",
+        "nullableProportion": 0.0,
+        "maxNumPartitions": 2,
+        "invariantPublicKeys": true,
+        "keyValues": ["male", "female"]
+      },
+      {
+        "@type": "Column",
+        "name": "Age",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 0.1,
+        "maximum": 100.0
+      },
+      {
+        "@type": "Column",
+        "name": "SibSp",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "minimum": 0,
+        "maximum": 10
+      },
+      {
+        "@type": "Column",
+        "name": "Parch",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "minimum": 0,
+        "maximum": 10
+      },
+      {
+        "@type": "Column",
+        "name": "Fare",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 0.0,
+        "maximum": 1000.0
+      },
+      {
+        "@type": "Column",
+        "name": "Survived",
+        "datatype": "boolean",
+        "invariantPublicKeys": true,
+        "nullableProportion": 0.0
+      }
+    ]
+  }
+}

@@ -51,7 +51,7 @@ class S3Connector(DataConnector):
 
         obj = self._client.get_object(Bucket=self.bucket, Key=self.key)
         try:
-            self.df = pd.read_csv(obj["Body"], dtype=self.dtypes)
+            self.df = pd.read_csv(obj["Body"], dtype=self.dtypes, parse_dates=self.datetime_columns)
             return self.df
         except Exception as err:
             raise InternalServerException(

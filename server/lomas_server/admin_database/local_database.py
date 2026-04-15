@@ -1,3 +1,4 @@
+import json
 import operator as op
 import shelve
 import sys
@@ -7,6 +8,8 @@ from typing import Any, BinaryIO, Self
 
 import boto3
 import yaml
+from csvw_safe.metadata_structure import TableMetadata
+from fastapi import UploadFile
 from pydantic import HttpUrl
 
 from lomas_core.error_handler import InternalServerException
@@ -16,7 +19,6 @@ from lomas_core.models.collections import (
     DSInfo,
     DSPathAccess,
     DSS3Access,
-    Metadata,
     User,
     UserCollection,
     UserId,
@@ -99,7 +101,8 @@ class LocalAdminDatabase(AdminDatabase):
 
                 match metadata_access:
                     case DSPathAccess():
-                        metadata_dict = yaml.safe_load(metadata_access.path.open())
+                        with metadata_access.path.open("r", encoding="utf-8") as f:
+                            metadata_dict = json.load(f)
 
                     case DSS3Access():
                         client = boto3.client(
@@ -113,16 +116,15 @@ class LocalAdminDatabase(AdminDatabase):
                             Key=metadata_access.key,
                         )
                         try:
-                            metadata_dict = yaml.safe_load(response["Body"])
-                        except yaml.YAMLError as e:
-                            return e
+                            metadata_dict = json.loads(response["Body"].read())
+                        except json.JSONDecodeError as e:
+                            raise e
 
                     case _:
                         raise InternalServerException(
                             f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                         )
-
-                db[TK.METADATA][dataset_name] = metadata_dict
+                db[TK.METADATA][dataset_name] = TableMetadata.from_dict(metadata_dict).model_dump()
                 logger.info(f"Added metadata of {dataset_name} dataset.")
 
     def datasets(self) -> list[DSInfo]:
@@ -155,7 +157,7 @@ class LocalAdminDatabase(AdminDatabase):
 
         match yaml_file:
             case Path():
-                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
@@ -232,8 +234,8 @@ class LocalAdminDatabase(AdminDatabase):
         # Step 2: Build metadata
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
-            # Store metadata from yaml to metadata collection
-            metadata_dict = yaml.safe_load(Path(metadata_path).resolve().open())
+            # Store metadata to metadata collection
+            metadata_dict = json.loads(Path(metadata_path).resolve().read_text())
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:
@@ -245,7 +247,7 @@ class LocalAdminDatabase(AdminDatabase):
             )
             response = client.get_object(Bucket=metadata_bucket, Key=metadata_key)
             try:
-                metadata_dict = yaml.safe_load(response["Body"])
+                metadata_dict = json.loads(response["Body"].read().decode("utf-8"))
             except yaml.YAMLError as e:
                 raise e
 
@@ -262,12 +264,13 @@ class LocalAdminDatabase(AdminDatabase):
         # Step 3: Validate
         ds_info = DSInfo.model_validate(dataset)
         validated_dataset = ds_info.model_dump()
-        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+        validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
 
         # Step 4: Insert into db
         with shelve.open(self.path, writeback=True) as db:
             db[TK.DATASETS] = [*db.get(TK.DATASETS, []), validated_dataset]
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
+            db.sync()
 
     def del_dataset(self, dataset_name: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
@@ -314,7 +317,7 @@ class LocalAdminDatabase(AdminDatabase):
         # Load yaml data and insert it
         match yaml_file:
             case Path():
-                yaml_dict = yaml.safe_load(yaml_file.resolve().open())
+                yaml_dict = yaml.safe_load(yaml_file.resolve().open(encoding="utf-8"))
             case BinaryIO() | SpooledTemporaryFile():
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
@@ -377,15 +380,19 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @dataset_must_exist
-    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
+    def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         with shelve.open(self.path, flag="r") as db:
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
-            return Metadata.model_validate(metadata)
+            return TableMetadata.model_validate(metadata)
 
     @dataset_must_exist
-    def set_dataset_metadata(self, dataset_name: str, yaml_file: Path) -> None:
-        metadata_dict = yaml.safe_load(yaml_file)
-        validated_metadata = Metadata.model_validate(metadata_dict).model_dump()
+    def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
+        json_file.seek(0)
+        content = json_file.read()
+        if isinstance(content, bytes):
+            content = content.decode("utf-8")
+        metadata_dict = json.loads(content)
+        validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
         with shelve.open(self.path, writeback=True) as db:
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
 

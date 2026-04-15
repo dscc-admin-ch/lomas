@@ -105,16 +105,16 @@ in
         dst = "/data/test_penguin.csv";
       }
       {
-        src = ./server/lomas_server/tests/test_data/metadata/penguin_metadata.yaml;
-        dst = "/metadata/penguin_metadata.yaml";
+        src = ./server/lomas_server/tests/test_data/metadata/penguin_metadata.json;
+        dst = "/metadata/penguin_metadata.json";
       }
       {
         src = ./server/data/datasets/titanic.csv;
         dst = "/data/titanic.csv";
       }
       {
-        src = ./server/data/collections/metadata/titanic_metadata.yaml;
-        dst = "/metadata/titanic_metadata.yaml";
+        src = ./server/data/collections/metadata/titanic_metadata.json;
+        dst = "/metadata/titanic_metadata.json";
       }
     ];
   };
@@ -195,6 +195,7 @@ in
 
     # Pydantic note:
     # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.
+    PYTHONWARNDEFAULTENCODING = 1;
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;

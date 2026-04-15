@@ -1,13 +1,12 @@
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
+from csvw_safe.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.collections import Metadata
-from lomas_core.models.constants import MetadataColumnType
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -62,16 +61,18 @@ class SmartnoiseSQLQuerier(
 
         # Prepare metadata in smartnoise-sql format
         metadata = self.data_connector.metadata
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata, self.query_columns)
+        metadata.columns = [col for col in metadata.columns if col.name in self.query_columns]
 
+        smartnoise_metadata = csvw_to_smartnoise_sql(metadata.to_dict())
+        # Only keep self.query_columns
         self.reader = from_connection(
             df,
             privacy=privacy,
             metadata=smartnoise_metadata,
         )
-
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
+
         except Exception as e:
             raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
@@ -108,7 +109,6 @@ class SmartnoiseSQLQuerier(
                 The dictionary encoding of the resulting pd.DataFrame.
         """
         epsilon, delta = query_json.epsilon, query_json.delta
-
         if self.reader is None:
             raise InternalServerException("Smartnoise SQL `query` method called before `cost` method")
 
@@ -125,6 +125,7 @@ class SmartnoiseSQLQuerier(
             result = [result]
         else:
             cols = result.pop(0)
+
         if result == []:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
@@ -146,7 +147,6 @@ class SmartnoiseSQLQuerier(
                 f"SQL Reader generated NaN results. "
                 f"Epsilon: {epsilon}, Delta: {delta} — too small to generate valid output."
             )
-
         return SmartnoiseSQLQueryResult(df=df_res)
 
 
@@ -167,36 +167,6 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
         if stat in mechanisms:
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
-
-
-def convert_to_smartnoise_metadata(metadata: Metadata, query_columns: list[str]) -> dict:
-    """Convert Lomas metadata to smartnoise metadata format (for SQL).
-
-    Args:
-        metadata (Metadata): Dataset metadata from admin database
-        query_columns (list[str]): List of column names used in the query
-
-    Returns:
-        dict: metadata of the dataset in smartnoise-sql format
-    """
-    metadata_dict = metadata.model_dump()
-
-    # Keep only query columns in metadata
-    metadata_dict["columns"] = {
-        col: val for col, val in metadata_dict["columns"].items() if col in query_columns
-    }
-
-    # No bounds on datetime for Smartnoise-SQL
-    for _, val in metadata_dict["columns"].items():
-        if val["private_id"] or val["type"] == MetadataColumnType.DATETIME:
-            for k in ["lower", "upper"]:
-                if val.get(k) is not None:
-                    del val[k]
-        val["nullable"] = val["nullable_proportion"] > 0
-
-    metadata_dict.update(metadata_dict["columns"])
-    del metadata_dict["columns"]
-    return {"": {"": {"df": metadata_dict}}}
 
 
 def get_query_columns(query: str) -> list[str]:

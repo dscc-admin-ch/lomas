@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Sequence
-from enum import IntEnum, StrEnum
+from enum import StrEnum
 from importlib import metadata
 from typing import Literal
 
@@ -11,9 +11,6 @@ from rich.logging import RichHandler
 # -----------------------------------------------------------------------------
 
 DB_TYPE_FIELD = "database_type"
-TYPE_FIELD = "type"
-CARDINALITY_FIELD = "cardinality"
-
 JSON_SCHEMA_EXAMPLES = "examples"
 
 
@@ -26,34 +23,6 @@ DUMMY_SEED = 42
 OPENDP_VERSION = metadata.version("opendp")
 OpenDPFeatures = Sequence[Literal["contrib", "floating-point", "honest-but-curious"]]
 DIFFPRIVLIB_VERSION = diffprivlib.__version__
-
-
-# Metadata
-# -----------------------------------------------------------------------------
-
-
-class MetadataColumnType(StrEnum):
-    """Column types for metadata."""
-
-    STRING = "string"
-    INT = "int"
-    FLOAT = "float"
-    BOOLEAN = "boolean"
-    DATETIME = "datetime"
-    # These two are only used by pydantic to select the model to parse.
-    # The pydantic models for the metadata columns never set their type to either one of these values.
-    CAT_INT = "categorical_int"
-    CAT_STRING = "categorical_string"
-
-
-CATEGORICAL_TYPE_PREFIX = "categorical_"
-
-
-class Precision(IntEnum):
-    """Precision of integer and float data."""
-
-    SINGLE = 32
-    DOUBLE = 64
 
 
 # Config / Dataset Connectors

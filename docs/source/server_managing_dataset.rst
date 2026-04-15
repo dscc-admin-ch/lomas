@@ -55,43 +55,5 @@ Each dataset should be added with its related metadata. This is required by the 
 to create the dummy dataset and to apply the different DP mechanisms correctly during the processing
 of the queries sent by the user.
 
-The metadata must be written into a YAML format with the following structure (example with `fake.csv`):
-
-.. code-block:: yaml
-
-    max_ids: 1
-    rows: 300
-    columns:
-      profession:
-        type: string
-        cardinality: 2
-        categories: ["teacher", "researcher"]
-        max_partition_length: 0.6
-        max_influenced_partitions: 1
-        max_partition_contributions: 1
-        # precision:
-        # upper:
-        # lower:
-      region:
-        ...
-
-This format is based on the `SmartnoiseSQL dictionary format <https://docs.smartnoise.org/sql/metadata.html#dictionary-format>`_ with added options for Lomas.
-
-
-Table options:
-
-* `max_ids`: Specify how many rows each unique user can appear in (cf. Smartnoise documentation)
-* `rows`: Required. The number of rows in the dataset. If the administrator does not know or do not want to share how many records are in the data, she can specify a very loose upper bound.
-
-Column options:
-
-* `private_id`: Default is `False`.
-* `type`: Required. Options : ["int", "float", "string", "boolean", "datetime"]
-* `precision`: Required if type is either "int" or "float". Options: 32 or 64.
-* `upper`: Required if column type is numeric. Specify the upper bound of the column.
-* `lower`: Required if column type is numeric. Specify the lower bound of the column.
-* `cardinality`: Required if column type is categorical. Specify the number of categories in the column.
-* `categories`: Required if column type is categorical. Specify the list of category (ex: ["blue","red","yellow"])
-* `max_partition_length`: Optional. Default is set to 1. An upper bound on the number of records in any one partition. (in %). (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
-* `max_influenced_partitions:` Optional. The greatest number of partitions any one individual can contribute to. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
-* `max_partition_contributions`: Optional. The greatest number of records an individual may contribute to any one partition. (Source: `OpenDP <https://docs.opendp.org/en/stable/api/python/opendp.extras.polars.html>`_ )
+The metadata must follow the `csvw-safe` format.
+See: https://github.com/dscc-admin-ch/csvw-safe.

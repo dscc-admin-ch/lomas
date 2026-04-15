@@ -2,12 +2,13 @@ import os
 from pathlib import Path
 
 import pytest
+from csvw_safe.metadata_structure import TableMetadata
 from fastapi.testclient import TestClient
 from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful
 from streamlit.testing.v1 import AppTest
 
-from lomas_core.models.collections import Metadata, User, UserId
+from lomas_core.models.collections import User, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.dashboard.utils import query_lomas
@@ -97,7 +98,7 @@ def test_add_rm_user(client: TestClient, demo_setup) -> None:
 
     new_user = User(id=UserId(name=username, email="new@user.com"), may_query=True, datasets_list=[])
     assert is_successful(query_lomas("/users", client.post, json=new_user.model_dump()))
-    assert query_lomas("/users/{username}/archive", client.get) == IOSuccess([])
+    assert query_lomas(f"/users/{username}/archive", client.get) == IOSuccess([])
     assert is_successful(query_lomas(f"/users/{username}", client.delete))
 
 
@@ -105,19 +106,19 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
     user_name = "Dr.Antartica"
     ds_name = "test_dataset"
 
-    assert is_successful(
-        query_lomas(
-            "/dataset",
-            client.post,
-            json={
-                "dataset_name": ds_name,
-                "database_type": PrivateDatabaseType.PATH,
-                "metadata_database_type": PrivateDatabaseType.PATH,
-                "dataset_path": str(test_data_folder / "test_penguin.csv"),
-                "metadata_path": str(test_data_folder / "metadata" / "penguin_metadata.yaml"),
-            },
-        )
+    post_dataset = query_lomas(
+        "/dataset",
+        client.post,
+        json={
+            "dataset_name": ds_name,
+            "database_type": PrivateDatabaseType.PATH,
+            "metadata_database_type": PrivateDatabaseType.PATH,
+            "dataset_path": str(test_data_folder / "test_penguin.csv"),
+            "metadata_path": str(test_data_folder / "metadata" / "penguin_metadata.json"),
+        },
     )
+    assert is_successful(post_dataset)
+
     # Ensure dataset is present
     assert query_lomas(f"/dataset/{ds_name}", client.get).map(
         lambda res: res.get("dataset_name") == ds_name
@@ -146,7 +147,7 @@ def test_add_rm_dataset(client: TestClient, demo_setup) -> None:
             json=LomasRequestModel(dataset_name=ds_name).model_dump(),
         )
     )
-    # Ensure <user> has the new dataset in their list no longer
+    # Ensure <user> no longer has the new dataset in their list
     assert query_lomas("/users", client.get).map(
         lambda user_list: next(u["datasets_list"] for u in user_list if u["id"]["name"] == user_name)
     ).map(lambda ds_list: len([ds for ds in ds_list if ds["dataset_name"] == ds_name])) == IOSuccess(0)
@@ -166,33 +167,31 @@ def test_add_user_yaml(client: TestClient, demo_setup) -> None:
 
 def test_add_dataset_yaml(client: TestClient, demo_setup, switch_data_dir) -> None:
     dataset_collection = test_data_folder / "test_datasets.yaml"
-    assert is_successful(
-        query_lomas(
-            "/dataset/bulk",
-            client.post,
-            json={"clean": True},
-            files={"file": dataset_collection.open(mode="rb")},
-        )
+    post_result = query_lomas(
+        "/dataset/bulk",
+        client.post,
+        json={"clean": True},
+        files={"file": dataset_collection.open(mode="rb")},
     )
+    assert is_successful(post_result)
 
     ds_name = "PUMS"
-    old_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
-        Metadata.model_validate
-    )
+    old_metadata: IOResultE[TableMetadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get)
     assert is_successful(old_metadata)
+    validated = old_metadata.map(TableMetadata.model_validate)
+    assert is_successful(validated)
 
     # override pums with penguin metadatas
-    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.yaml"
-    query_lomas(
+    penguin_metadata = test_data_folder / "metadata" / "penguin_metadata.json"
+    patch_result = query_lomas(
         f"/dataset/{ds_name}/metadata", client.patch, files={"file": penguin_metadata.open(mode="rb")}
     )
+    assert is_successful(patch_result)
 
-    new_metadata: IOResultE[Metadata] = query_lomas(f"/dataset/{ds_name}/metadata", client.get).map(
-        Metadata.model_validate
-    )
+    new_metadata = query_lomas(f"/dataset/{ds_name}/metadata", client.get)
     assert is_successful(new_metadata)
 
     assert old_metadata != new_metadata
-    assert old_metadata.map(lambda meta: meta.columns.keys()) != new_metadata.map(
-        lambda meta: meta.columns.keys()
+    assert old_metadata.map(lambda meta: [col["name"] for col in meta["columns"]]) != new_metadata.map(
+        lambda meta: [col["name"] for col in meta["columns"]]
     )

@@ -61,14 +61,12 @@ class LomasHttpClient:
 
     def _save_token(self, token: dict, refresh_token: str | None = None) -> None:
         """Saves the token to disk."""
-        with open(self._get_token_file(), "w") as f:
-            json.dump(token, f)
+        self._get_token_file().write_text(json.dumps(token), encoding="utf-8")
 
     def _load_token(self) -> dict | None:
         """Tries to load the saved token from disk."""
         if self._get_token_file().is_file():
-            with open(self._get_token_file()) as f:
-                return json.load(f)
+            return json.loads(self._get_token_file().read_text(encoding="utf-8"))
         return None
 
     def _authorize(self) -> None:

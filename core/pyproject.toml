@@ -32,6 +32,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "csvw-safe>=0.0.1",
     "returns[compatible-mypy]>=0.25",
     "diffprivlib_logger==0.0.4",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",

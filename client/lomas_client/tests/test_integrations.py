@@ -13,7 +13,9 @@ import pytest
 import requests
 from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
+from csvw_safe.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
+from opendp.mod import enable_features
 from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
@@ -26,6 +28,8 @@ from lomas_server.administration.dex.dex_admin import (
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.models.config import AdminConfig
+
+enable_features("contrib")
 
 
 @pytest.fixture
@@ -185,16 +189,14 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert init_budget.initial_delta == 0.2
     assert init_budget.initial_epsilon == 45
 
-    assert set(client.get_dataset_metadata().keys()) == {
-        "censor_dims",
-        "columns",
-        "max_ids",
-        "rows",
-        "row_privacy",
-        "clamp_columns",
-        "clamp_counts",
-        "use_dpsu",
-    }
+    metadata = client.get_dataset_metadata()
+    assert isinstance(metadata, dict)
+    assert TABLE_SCHEMA in metadata.keys()
+
+    column_metadata = client.get_column_metadata("Pclass")
+    assert isinstance(column_metadata, dict)
+    assert COL_NAME in column_metadata.keys()
+    assert column_metadata[COL_NAME] == "Pclass"
 
     df_dummy = client.get_dummy_dataset()
     assert df_dummy.shape == (100, 8)
@@ -202,10 +204,21 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     df_dummy_lz = client.get_dummy_dataset(lazy=True)
     assert df_dummy_lz.collect().shape == (100, 8)
 
-    ## Dummy Query
-    NB_ROWS, SEED = 100, 0
-    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
-    plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 100)), dp.len())
+    # Opendp #####################################
+
+    # Prepare Query
+    context = client.get_context(epsilon=DEFAULT_EPSILON)
+    plan = context.query().select(pl.col("Age").dp.mean(bounds=(0, 120)), dp.len())
+
+    # Cost
+    cost = client.opendp.cost(plan, epsilon=DEFAULT_EPSILON)
+    assert cost.epsilon == 1.0
+
+    cost_zcdp = client.opendp.cost(plan, rho=0.5, delta=1e-6)
+    assert cost_zcdp.delta == 1e-6
+    assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
+
+    # Dummy Query
     dummy_res = client.opendp.query(plan, dummy=True, epsilon=DEFAULT_EPSILON)
     assert isinstance(dummy_res.result.value, pl.DataFrame)
 
@@ -220,16 +233,6 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
-
-    ## cost
-    cost = client.opendp.cost(plan, epsilon=DEFAULT_EPSILON)
-    assert cost.epsilon == 1.0
-
-    cost_zcdp = client.opendp.cost(plan, rho=0.5, delta=1e-6)
-    assert cost_zcdp.delta == 1e-6
-    assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
-
-    ## acutal query
     res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)
     assert isinstance(res.result.value, pl.DataFrame)
 
@@ -248,7 +251,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert prev_queries[0]["dataset_name"] == "TITANIC"
     assert prev_queries[0]["dp_library"] == "opendp"
 
-    # Smartnoise
+    # Smartnoise #####################################
 
     # Dummy Query
     query = "SELECT COUNT(*) AS nb_passengers, AVG(Age) AS avg_age FROM df"
@@ -289,13 +292,10 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
         user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
     )
 
-    penguin_metadata = client.get_dataset_metadata()
     feature_columns = ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"]
     target_columns = ["species"]
-    bounds = (
-        [penguin_metadata["columns"][feature]["lower"] for feature in feature_columns],
-        [penguin_metadata["columns"][feature]["upper"] for feature in feature_columns],
-    )
+    bounds = client.get_diffprivlib_bounds(feature_columns)
+    assert bounds == ([30.0, 13.0, 150.0, 2000.0], [65.0, 23.0, 250.0, 7000.0])
     data_norm = np.sqrt(np.linalg.norm(bounds[1]))
 
     dpl_pipeline = Pipeline(
@@ -313,16 +313,14 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
 
     feature_columns = ["bill_length_mm"]
     target_columns = ["bill_depth_mm"]
-    bill_length_meta = penguin_metadata["columns"]["bill_length_mm"]
-    bill_depth_meta = penguin_metadata["columns"]["bill_depth_mm"]
     dpl_pipeline = Pipeline(
         [
             (
                 "lr",
                 models.LinearRegression(
                     epsilon=2.0,
-                    bounds_X=(bill_length_meta["lower"], bill_length_meta["upper"]),
-                    bounds_y=(bill_depth_meta["lower"], bill_depth_meta["upper"]),
+                    bounds_X=(30.0, 65.0),
+                    bounds_y=(13.0, 23.0),
                 ),
             ),
         ]
@@ -342,7 +340,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     predictions = model.predict(
         pd.DataFrame(
             {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                "bill_length_mm": [30.0, 65.0],
             }
         )
     )
@@ -358,7 +356,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     predictions = returned_model.predict(
         pd.DataFrame(
             {
-                "bill_length_mm": [bill_length_meta["lower"], bill_length_meta["upper"]],
+                "bill_length_mm": [30.0, 65.0],
             }
         )
     )
@@ -367,42 +365,42 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     assert predictions == pytest.approx([20, 20], abs=20)
 
 
-@pytest.mark.long
-@pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
-def test_demo_smartnoise_synth(dex_config, demo_setup) -> None:
-    user_name = "Dr.Antartica"
-    client = Client(
-        user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
-    )
+# @pytest.mark.long
+# @pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
+# def test_demo_smartnoise_synth(dex_config, demo_setup) -> None:
+#     user_name = "Dr.Antartica"
+#     client = Client(
+#         user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
+#     )
 
-    cost_res = client.smartnoise_synth.cost(
-        synth_name="aim",
-        epsilon=1.0,
-        delta=0.0001,
-        select_cols=["species", "island"],
-    )
-    assert cost_res.epsilon == pytest.approx(1, 0.05)
-    assert cost_res.delta == pytest.approx(1e-4, abs=5e-5)
+#     cost_res = client.smartnoise_synth.cost(
+#         synth_name="aim",
+#         epsilon=1.0,
+#         delta=0.0001,
+#         select_cols=["species", "island"],
+#     )
+#     assert cost_res.epsilon == pytest.approx(1, 0.05)
+#     assert cost_res.delta == pytest.approx(1e-4, abs=5e-5)
 
-    for dummy in [True, False]:
-        res = client.smartnoise_synth.query(
-            synth_name="dpgan",
-            epsilon=1.0,
-            condition="body_mass_g > 5000",
-            nb_samples=10,
-            dummy=dummy,
-        )
-        res_df = res.result.df_samples
-        assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
-        assert res_df.body_mass_g.min() >= 5000
+#     for dummy in [True, False]:
+#         res = client.smartnoise_synth.query(
+#             synth_name="dpgan",
+#             epsilon=1.0,
+#             condition="body_mass_g > 5000",
+#             nb_samples=10,
+#             dummy=dummy,
+#         )
+#         res_df = res.result.df_samples
+#         assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
+#         assert res_df.body_mass_g.min() >= 5000
 
-    prev_queries = client.get_previous_queries()
-    assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "PENGUIN"
-    assert prev_queries[0]["dp_library"] == "smartnoise_synth"
-    response_archives = prev_queries[0]["response"]
-    assert response_archives["epsilon"] == 1.0
-    assert response_archives["delta"] >= 0.0
+#     prev_queries = client.get_previous_queries()
+#     assert len(prev_queries) == 1
+#     assert prev_queries[0]["dataset_name"] == "PENGUIN"
+#     assert prev_queries[0]["dp_library"] == "smartnoise_synth"
+#     response_archives = prev_queries[0]["response"]
+#     assert response_archives["epsilon"] == 1.0
+#     assert response_archives["delta"] >= 0.0
 
 
 def test_demo_opendp_polars(dex_config, demo_setup) -> None:
@@ -414,14 +412,16 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     )
     income_metadata = client.get_dataset_metadata()
     NB_ROWS, SEED = 200, 0
-    context = client.get_context(nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
+    context = client.get_context(epsilon=DEFAULT_EPSILON)
     test = client.get_dummy_dataset(nb_rows=NB_ROWS, seed=SEED)
     assert len(test.dtypes) >= 5
 
-    income_lower_bound, income_upper_bound = (
-        income_metadata["columns"]["income"]["lower"],
-        income_metadata["columns"]["income"]["upper"],
-    )
+    columns = income_metadata["tableSchema"]["columns"]
+    income_col = next(col for col in columns if col["name"] == "income")
+
+    income_lower_bound = income_col["minimum"]
+    income_upper_bound = income_col["maximum"]
+
     plan = context.query().select(pl.col("income").dp.mean(bounds=(income_lower_bound, income_upper_bound)))
     query_res = client.opendp.query(plan, nb_rows=NB_ROWS, seed=SEED, epsilon=DEFAULT_EPSILON)
     assert query_res.epsilon == DEFAULT_EPSILON

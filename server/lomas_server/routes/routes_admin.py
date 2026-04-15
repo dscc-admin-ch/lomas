@@ -1,6 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
+from csvw_safe.datatypes import to_pandas_dtype
+from csvw_safe.make_dummy_from_metadata import make_dummy_from_metadata
+from csvw_safe.metadata_structure import TableMetadata
 from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
@@ -11,7 +14,7 @@ from lomas_core.error_handler import (
     InternalServerException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import DSInfo, Metadata, User, UserId
+from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
     example_get_admin_db_data,
@@ -26,8 +29,6 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.data_connector.data_connector import get_column_dtypes
-from lomas_server.dp_queries.dummy_dataset import make_dummy_dataset
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.utils import get_user_id_from_authenticator
@@ -143,7 +144,7 @@ def get_dataset_metadata(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> Metadata:
+) -> TableMetadata:
     """
     Retrieves metadata for a given dataset.
 
@@ -160,8 +161,7 @@ def get_dataset_metadata(
         InternalServerException: For any other unforseen exceptions.
 
     Returns:
-        Metadata: The metadata object for the specified
-            dataset_name.
+        TableMetadata: The metadata object for the specified dataset_name.
     """
     app = request.app
 
@@ -178,7 +178,6 @@ def get_dataset_metadata(
         raise e
     except Exception as e:
         raise InternalServerException(str(e)) from e
-
     return ds_metadata
 
 
@@ -217,7 +216,6 @@ def get_dummy_dataset(
             and the list of datetime columns.
     """
     app = request.app
-
     dataset_name = query_json.dataset_name
     if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
         raise UnauthorizedAccessException(
@@ -225,11 +223,10 @@ def get_dummy_dataset(
         )
 
     try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(query_json.dataset_name)
-        dtypes = get_column_dtypes(ds_metadata)
-
-        dummy_df = make_dummy_dataset(
-            ds_metadata,
+        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
+        dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
+        dummy_df = make_dummy_from_metadata(
+            ds_metadata.to_dict(),
             query_json.dummy_nb_rows,
             query_json.dummy_seed,
         )
@@ -610,7 +607,7 @@ def get_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     dataset_name: str,
-) -> Metadata:
+) -> TableMetadata:
     db: LocalAdminDatabase = request.app.state.admin_database
     return db.get_dataset_metadata(dataset_name)
 

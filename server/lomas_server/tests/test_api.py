@@ -71,8 +71,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             metadata = response.json()
             assert isinstance(metadata, dict), "metadata should be a dict"
-            assert "max_ids" in metadata, "max_ids should be in metadata"
-            assert "row_privacy" in metadata, "max_ids should be in metadata"
+            assert "max_contributions" in metadata, "max_contributions should be in metadata"
             assert "columns" in metadata, "columns should be in metadata"
 
             # Expect to fail: dataset does not exist
@@ -218,7 +217,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_model = InitialBudgetResponse.model_validate(response.json())
-            assert response_model.initial_epsilon == INITAL_EPSILON
+            assert response_model.initial_epsilon == 50.0
             assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget

@@ -699,8 +699,8 @@ wheels = [
 
 [[package]]
 name = "csvw-safe"
-version = "0.1.0"
-source = { git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=add_column_group_invariance#fbc4919d9b7177c4fbceed2462ce5ac1a8905f0c" }
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "opendp" },
@@ -711,6 +711,10 @@ dependencies = [
     { name = "pyshacl" },
     { name = "pyyaml" },
     { name = "rdflib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/85/ef/46bd0e64adaebb4b341f58761d923c01aebb9abc28705b75ea84ef0e1844/csvw_safe-0.0.1.tar.gz", hash = "sha256:55f6e7f3d1a5deeb71152c301ee3b3fe675cdb8fbddf177c948f0493eebbc2fb", size = 55115, upload-time = "2026-04-15T09:05:37.722Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/98/96eef65302d12f5762c8d580aa873c43c758143d8334ccef554ddb273d33/csvw_safe-0.0.1-py3-none-any.whl", hash = "sha256:88e1488ff73979ebba6b60d138ab1bcbe72f34d77d80bbfd71b5472b33a92312", size = 40746, upload-time = "2026-04-15T09:05:36.281Z" },
 ]
 
 [[package]]
@@ -1804,7 +1808,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "csvw-safe", git = "https://github.com/dscc-admin-ch/csvw-safe.git?subdirectory=csvw-safe-library&rev=add_column_group_invariance" },
+    { name = "csvw-safe", specifier = ">=0.0.1" },
     { name = "diffprivlib-logger", specifier = "==0.0.4" },
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = ">=0.120" },
     { name = "opendp", extras = ["mbi"], specifier = "==0.14.1" },

@@ -30,7 +30,7 @@
         "nullableProportion": 0.0,
         "maxNumPartitions": 2,
         "invariantPublicKeys": true,
-        "key_values": ["male", "female"]
+        "keyValues": ["male", "female"]
       },
       {
         "@type": "Column",

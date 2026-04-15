@@ -16,7 +16,7 @@
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
         "invariantPublicKeys": true,
-        "key_values": ["Adelie", "Chinstrap", "Gentoo"]
+        "keyValues": ["Adelie", "Chinstrap", "Gentoo"]
       },
       {
         "@type": "Column",
@@ -25,7 +25,7 @@
         "nullableProportion": 0.0,
         "maxNumPartitions": 3,
         "invariantPublicKeys": true,
-        "key_values": ["Torgersen", "Biscoe", "Dream"]
+        "keyValues": ["Torgersen", "Biscoe", "Dream"]
       },
       {
         "@type": "Column",
@@ -66,7 +66,7 @@
         "nullableProportion": 0.0,
         "maxNumPartitions": 2,
         "invariantPublicKeys": true,
-        "key_values": ["MALE", "FEMALE"]
+        "keyValues": ["MALE", "FEMALE"]
       }
     ]
   },

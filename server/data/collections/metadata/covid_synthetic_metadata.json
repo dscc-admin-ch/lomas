@@ -47,7 +47,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "AG",
           "AI",
           "AR",
@@ -91,7 +91,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "0 - 9",
           "10 - 19",
           "20 - 29",
@@ -117,7 +117,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "female",
           "male",
           "other",
@@ -136,7 +136,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "pcr",
           "rapid_antigen_test"
         ],
@@ -153,7 +153,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "negative",
           "other",
           "positive",
@@ -172,7 +172,7 @@
         "required": true,
         "privacyId": false,
         "nullableProportion": 0.0,
-        "key_values": [
+        "keyValues": [
           "CH",
           "FL",
           "other",
@@ -191,7 +191,7 @@
         "required": false,
         "privacyId": false,
         "nullableProportion": 0.658,
-        "key_values": [
+        "keyValues": [
           "BA.1",
           "BA.2",
           "BA.2.75",
@@ -217,7 +217,7 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "key_values": [
+        "keyValues": [
           false,
           true
         ],
@@ -235,7 +235,7 @@
         "nullableProportion": 0.0,
         "minimum": false,
         "maximum": true,
-        "key_values": [
+        "keyValues": [
           false,
           true
         ],

@@ -12,7 +12,7 @@ server:
     imagePullPolicy: Always
     tag: sha-4c90599
 
-  oidc_discovery_url: http://auth-lomaslm.lab.sspcloud.fr/.well-known/openid-configuration
+  oidc_discovery_url: http://auth-example.domain.com/.well-known/openid-configuration
   # Runtime args for server
   runtime_args:
     server:
@@ -52,12 +52,12 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-lance.lab.sspcloud.fr"
+    hostname: "example.com"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-lance.lab.sspcloud.fr"
+    hostname: "example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -170,12 +170,12 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-dashboard-lance.lab.sspcloud.fr"
+    hostname: "dashboard-example.com"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-dashboard-lance.lab.sspcloud.fr"
+    hostname: "dashboard-example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -216,15 +216,15 @@ dashboard:
   affinity: {}
 
   env:
-    adminServerService: "https://lomas-lance.lab.sspcloud.fr"
-    adminServerUrl: "https://lomas-lance.lab.sspcloud.fr"
+    adminServerService: "https://example.com"
+    adminServerUrl: "https://example.com"
     streamlitSecretsFile: "/config/secrets.toml"
 
   auth:
     clientId: lomas_dashboard
     clientSecret: lomas_dashboard
-    redirectUri: https://lomas-dashboard-lance.lab.sspcloud.fr/admin/oauth2callback
-    serverMetadataUrl: https://auth-lomaslm.lab.sspcloud.fr/.well-known/openid-configuration
+    redirectUri: https://dashboard-example.com/admin/oauth2callback
+    serverMetadataUrl: https://auth-example.domain.com/.well-known/openid-configuration
     cookieSecret: changeme
     exposeTokens:
       - access
@@ -445,12 +445,12 @@ grafana:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "lomas-grafana-dashboard-lance.lab.sspcloud.fr"
+    hostname: "example.com"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
     annotations: {}
-    hostname: "lomas-grafana-dashboard-lance.lab.sspcloud.fr"
+    hostname: "example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -574,7 +574,7 @@ rabbitmq:
     enabled: false
     labels: {}
     annotations: {}
-    hostname: "rabbitmq-lance.lab.sspcloud.fr"
+    hostname: "example.com"
     tls:
       insecureEdgeTerminationPolicy: None
       termination: edge
@@ -598,7 +598,7 @@ dex:
   ingress:
     enabled: true
     hosts:
-      - host: auth-lomaslm.lab.sspcloud.fr
+      - host: auth-example.domain.com
         paths:
           - path: /
             pathType: Prefix
@@ -618,7 +618,7 @@ dex:
     storage:
       type: "memory"
     enablePasswordDB: true
-    issuer: https://auth-lomaslm.lab.sspcloud.fr
+    issuer: https://auth-example.domain.com
     oauth2:
       passwordConnector: local
     staticClients:
@@ -635,7 +635,7 @@ dex:
       name: lomas_dashboard
       public: false
       redirectURIs:
-      - https://lomas-dashboard-lance.lab.sspcloud.fr/admin/oauth2callback
+      - https://dashboard-example.com/admin/oauth2callback
       secret: lomas_dashboard
 
     # staticPasswords:

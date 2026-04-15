@@ -12,6 +12,7 @@ server:
     imagePullPolicy: Always
     tag: sha-4c90599
 
+  oidc_discovery_url: http://auth-lomaslm.lab.sspcloud.fr/.well-known/openid-configuration
   # Runtime args for server
   runtime_args:
     server:

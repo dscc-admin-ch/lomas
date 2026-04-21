@@ -68,6 +68,15 @@ class AmqpConfig(BaseModel):
         return str(base_url)
 
 
+class DexAdminConfig(BaseModel):
+    url: Url
+
+    @computed_field
+    def use_mtls(self) -> bool:
+        """Using mTLS ?"""
+        return self.url.scheme == "https"
+
+
 class Server(BaseModel):
     """BaseModel for uvicorn server configs."""
 
@@ -97,6 +106,8 @@ class Config(BaseSettings):
 
     authenticator: AuthenticatorT
 
+    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
+
     bootstrap: str | None = Field(default=None)
 
     admin_database_url: Path
@@ -114,15 +125,6 @@ class Config(BaseSettings):
     @computed_field
     def database(self) -> AdminDatabase:
         return LocalAdminDatabase(path=self.admin_database_url)
-
-
-class DexAdminConfig(BaseModel):
-    url: Url
-
-    @computed_field
-    def use_mtls(self) -> bool:
-        """Using mTLS ?"""
-        return self.url.scheme == "https"
 
 
 class AdminConfig(BaseSettings):

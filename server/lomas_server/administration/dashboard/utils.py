@@ -29,12 +29,12 @@ def url_append(url: AnyUrl, path: str) -> AnyUrl:
 
 @st.cache_resource
 @impure_safe
-def get_config() -> IOResultE[AdminConfig]:
+def get_config() -> AdminConfig:
     return AdminConfig()
 
 
 @impure_safe
-def parse_if_ok(response: httpx.Response) -> IOResultE[str]:
+def parse_if_ok(response: httpx.Response) -> str:
     return response.raise_for_status().json()
 
 

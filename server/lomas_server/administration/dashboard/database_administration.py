@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from returns.converters import maybe_to_result
 from returns.io import IO, IOFailure, IOResultE, IOSuccess
-from returns.maybe import Maybe
+from returns.maybe import Maybe, Nothing, Some
 from returns.pipeline import flow
 from returns.pointfree import alt, bind, bind_result, map_
 from returns.result import Failure, ResultE, Success
@@ -19,6 +19,7 @@ from lomas_server.admin_database.constants import TopDBKey as TK
 from lomas_server.administration.dashboard.utils import (
     ensure_user_has_datasets,
     find_user,
+    get_config,
     get_datasets,
     get_user_df,
     get_users,
@@ -208,11 +209,19 @@ with st.form("Add user"):
     with c2:
         au_email = st.text_input("Email", key="au_email_key")
     with c3:
-        au_client_secret = st.text_input(
-            "Secret (can be empty)",
-            key="au_client_secret_key",
-            type="password",
-        )
+        dex_config = flow(get_config(), map_(lambda config: Maybe.from_optional(config.dex_config)))
+        match dex_config:
+            case IOFailure(_):
+                pass
+            case IOSuccess(Success(x)) if x == Nothing:
+                st.write("Make sure the user exists at your ID provider!")
+                au_password = None
+            case IOSuccess(Success(Some(_))):
+                au_password = st.text_input(
+                    "Password (can be empty)",
+                    key="au_password",
+                    type="password",
+                )
     submit = st.form_submit_button()
 
 if submit:
@@ -220,7 +229,7 @@ if submit:
         st.warning(f"User {au_username} already in the database.")
     elif au_username and au_email:
         new_user = User(
-            id=UserId(name=au_username, email=au_email, client_secret=au_client_secret),
+            id=UserId(name=au_username, email=au_email, client_secret=au_password),
             may_query=False,
             datasets_list=[],
         )

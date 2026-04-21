@@ -384,7 +384,7 @@ in
       echo "building lomas OCI"
       out=$(devenv build outputs.lomas-oci | jq -r '.["outputs.lomas-oci"]')
       echo "loading into docker"
-      $out | TMPDIR=/tmp docker load
+      TMPDIR=/tmp docker load -i $out
     '';
   };
 

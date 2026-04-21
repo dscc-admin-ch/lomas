@@ -12,14 +12,17 @@ server:
     imagePullPolicy: Always
     tag: sha-4c90599
 
-  oidc_discovery_url: http://auth-example.domain.com/.well-known/openid-configuration
   # Runtime args for server
   runtime_args:
+    bootstrap: "deadbeef"
     server:
       host_port: "48080"
+      root_path: "/"
       log_level: "info"
       submit_limit: 300
     authenticator:
+      oidc_discovery_url: http://auth-example.domain.com/.well-known/openid-configuration
+      query_userinfo: true
       authentication_type: jwt
     opendp_features: ["contrib", "floating-point", "honest-but-curious"]
     private_db_credentials:
@@ -32,7 +35,7 @@ server:
       enabled: true
       service_name: lomas_server_app
       service_id: default-host
-  pvc:
+  pvc: # Used sqlite admin db
     storageClassName: "" # is not set if empty string
     sizeLimit: 500Mi
     sizeRequest: 500Mi

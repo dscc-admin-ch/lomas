@@ -29,9 +29,10 @@ let
       http: ${cfg.address}:${toString cfg.port}
 
     storage:
-      type: sqlite3
-      config:
-        file: $XDG_RUNTIME_DIR/dex.db
+      type: memory
+      # type: sqlite3
+      # config:
+      #   file: $XDG_RUNTIME_DIR/dex.db
 
     grpc:
       addr: ${cfg.adminAddress}:${toString cfg.adminPort}

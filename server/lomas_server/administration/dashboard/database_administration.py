@@ -5,9 +5,10 @@ from pathlib import Path
 import httpx
 import pandas as pd
 import streamlit as st
-from returns.converters import maybe_to_result
+from returns.converters import flatten, maybe_to_result, result_to_maybe
 from returns.io import IO, IOFailure, IOResultE, IOSuccess
-from returns.maybe import Maybe, Nothing, Some
+from returns.iterables import Fold
+from returns.maybe import Maybe, Some
 from returns.pipeline import flow
 from returns.pointfree import alt, bind, bind_result, map_
 from returns.result import Failure, ResultE, Success
@@ -26,6 +27,7 @@ from lomas_server.administration.dashboard.utils import (
     list_users,
     query_lomas_auth,
 )
+from lomas_server.administration.dex.dex_admin import add_dex_user, add_dex_users_via_yaml
 
 EPSILON_LIMIT = 500.0
 EPSILON_STEP = 0.01
@@ -170,8 +172,27 @@ flow(
 )
 
 
-def add_lomas_user(new_user: User) -> IOResultE[httpx.Response]:
-    return query_lomas_auth("/users", httpx.post, json=new_user.model_dump())
+def add_lomas_user(new_user: User) -> IOResultE[None]:
+    add_lomas_user_res: IOResultE = query_lomas_auth("/users", httpx.post, json=new_user.model_dump())
+
+    add_dex_user_res: IOResultE = flow(
+        get_config(),
+        map_(lambda config: Maybe.from_optional(config.dex_config)),
+        result_to_maybe,  # Maybe[IO[Maybe[DexConfig]]]
+        flatten,  # IO[Maybe[DexConfig]]
+        flatten,  # Maybe[DexConfig]]
+        map_(  # We keep the Maybe so that we only add dex user if DexConfig
+            partial(
+                add_dex_user,
+                user_name=new_user.id.name,
+                user_email=new_user.id.email,
+                user_password=new_user.id.client_secret,
+            )
+        ),  # Maybe[IOResult]
+        (lambda m: m.value_or(IOSuccess("No dex config"))),  # IOResult -> remove the maybe
+    )
+
+    return Fold.collect([add_lomas_user_res, add_dex_user_res], IOSuccess("Success"))
 
 
 def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
@@ -209,14 +230,14 @@ with st.form("Add user"):
     with c2:
         au_email = st.text_input("Email", key="au_email_key")
     with c3:
-        dex_config = flow(get_config(), map_(lambda config: Maybe.from_optional(config.dex_config)))
-        match dex_config:
+        get_dex_config = flow(get_config(), map_(lambda config: Maybe.from_optional(config.dex_config)))
+        match get_dex_config:
             case IOFailure(_):
                 pass
-            case IOSuccess(Success(x)) if x == Nothing:
+            case IOSuccess(Success(Maybe.empty)):
                 st.write("Make sure the user exists at your ID provider!")
                 au_password = None
-            case IOSuccess(Success(Some(_))):
+            case IOSuccess(Success(Some(dex_config))):
                 au_password = st.text_input(
                     "Password (can be empty)",
                     key="au_password",
@@ -252,7 +273,27 @@ if u_file and st.button("Import"):
     query_lomas_auth("/usersfile", httpx.post, json={"clean": u_clean}, files={"file": u_file}).alt(
         lambda e: st.error(f"Failed to import collection because {e}")
     )
+
+    add_dex_users_res: IOResultE = flow(
+        get_config(),
+        map_(lambda config: Maybe.from_optional(config.dex_config)),
+        result_to_maybe,  # Maybe[IO[Maybe[DexConfig]]]
+        flatten,  # IO[Maybe[DexConfig]]
+        flatten,  # Maybe[DexConfig]]
+        map_(  # We keep the Maybe so that we only add dex user if DexConfig
+            partial(
+                add_dex_users_via_yaml,
+                yaml_file=u_file,
+                clean=u_clean,
+                overwrite=u_clean,  # TODO u_file does not resolve
+            )
+        ),  # Maybe[IOResult]
+        (lambda m: m.value_or(IOSuccess("No dex config"))),  # IOResult -> remove the maybe
+        alt(lambda e: st.error(f"Failed to create dex users: {e}")),
+    )
+    st.write(add_dex_users_res)
     st.success("Users imported")
+
     list_users().map(lambda usernames: [st.toast(f"(+) **{username}**") for username in usernames])
 
 
@@ -353,6 +394,7 @@ if st.button("Import", key="btn_import_ds", disabled=(not dataset_collection)):
     query_lomas_auth(
         "/dataset/bulk", httpx.post, json={"clean": ds_clean}, files={"file": dataset_collection}
     ).alt(lambda e: st.error(f"Failed to import datasets: {e}")).bind(on_success).map(toast_ds)
+
 
 # ---------------------------------------------
 

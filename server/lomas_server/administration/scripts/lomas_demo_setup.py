@@ -66,7 +66,8 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         ),
         (lambda m: m.value_or(Maybe.from_value(IOSuccess("No Dex config")))),  # No dex config is not an issue
         maybe_to_result,  # Result[IOResultE]
-        flatten,  # IOResultE
+        flatten,  # IO[IOResultE]
+        flatten,  # IOResult
     )
 
     pprint("Creating datasets and metadata collection")
@@ -84,7 +85,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         httpx.delete,
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
-
+    print(add_dex_users)
     return Fold.collect([add_users, add_dex_users, add_datasets, delete_archives], IOSuccess(()))
 
 

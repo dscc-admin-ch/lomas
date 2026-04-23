@@ -44,7 +44,7 @@ def call_if_dex(task: Callable[[DexAdminConfig], IOResultE]) -> IOResultE[Maybe[
         IOResultE[Maybe[IOResultE]]: An IOFailure if the task returns a failure or the config cannot be read.
     """
 
-    def unwrap_Failure(res):
+    def unwrap_Failure(res) -> IOResultE[Maybe[IOResultE]]:
         match res:
             case IOSuccess(Success(Some(IOFailure(Failure(e))))):
                 return IOFailure(e)

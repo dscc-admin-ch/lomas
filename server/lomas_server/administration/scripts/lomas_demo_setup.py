@@ -64,6 +64,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
                 add_dex_users_via_yaml, yaml_file=config.user_yaml, clean=False, overwrite=True
             )
         ),
+        (lambda m: m.value_or(Maybe.from_value(IOSuccess("No Dex config")))),  # No dex config is not an issue
         maybe_to_result,  # Result[IOResultE]
         flatten,  # IOResultE
     )

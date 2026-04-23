@@ -46,7 +46,7 @@ let
     expiry:
       deviceRequests: "5m"
       signingKeys: "6h"
-      idTokens: "1h" #"3s"         # Set very short for testing
+      idTokens: "3s"         # Set very short for testing
       refreshTokens:
         disableRotation: false
         reuseInterval: "3s"

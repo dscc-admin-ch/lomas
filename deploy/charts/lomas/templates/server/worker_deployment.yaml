@@ -40,7 +40,7 @@ spec:
           - name: data
             mountPath: /persistent-storage
         env:
-          - name: LOMAS_SERVICE_boostrap
+          - name: LOMAS_SERVICE_BOOTSTRAP
             value: "{{ .Values.server.runtime_args.boostrap }}" # todo make secret
           - name: LOMAS_SERVICE_SERVER__HOST_IP
             value: "0.0.0.0"
@@ -63,7 +63,7 @@ spec:
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
-            value: "{{ Values.server.runtime_args.authenticator.oidc_discovery_url }}" # todo change recover from dex values?
+            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}" # todo change recover from dex values?
           {{- range $i, $credSecretName := (include "lomas-service.private-db-credentials-secrets" $) | fromYamlArray }}
           - name: LOMAS_SERVICE_AUTHENTICATOR__QUERY_USERINFO
             value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"

@@ -20,6 +20,9 @@ server:
       root_path: "/"
       log_level: "info"
       submit_limit: 300
+      time_attack:
+        method: "jitter" # or "stall"
+        magnitude: 1
     authenticator:
       oidc_discovery_url: http://auth-example.domain.com/.well-known/openid-configuration
       query_userinfo: true
@@ -160,8 +163,9 @@ dashboard:
 
   # Runtime args for server
   serverConfig:
-    address: "0.0.0.0"
+    # address: "0.0.0.0"
     port: "8501"
+    baseUrlPath: "/"
 
   service:
     type: ClusterIP
@@ -218,10 +222,7 @@ dashboard:
   tolerations: []
   affinity: {}
 
-  env:
-    adminServerService: "https://example.com"
-    adminServerUrl: "https://example.com"
-    streamlitSecretsFile: "/config/secrets.toml"
+
 
   auth:
     clientId: lomas_dashboard

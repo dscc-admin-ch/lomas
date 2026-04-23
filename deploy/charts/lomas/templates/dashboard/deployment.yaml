@@ -38,25 +38,36 @@ spec:
           - name: http
             containerPort: {{ .Values.dashboard.serverConfig.port }}
             protocol: TCP
-        # volumeMounts:
-        #   - name: data
-        #     mountPath: /persistent-storage
         env:
-            - name: LOMAS_ADMIN_SERVER_SERVICE
-              value: {{ .Values.dashboard.env.adminServerService }}
-            - name: LOMAS_ADMIN_SERVER_URL
-              value: {{ .Values.dashboard.env.adminServerUrl }}
-            - name: STREAMLIT_SECRETS_FILES
-              value: {{ .Values.dashboard.env.streamlitSecretsFile }}
-
+          - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+            value: "0"
+          - name: STREAMLIT_BASE_URL_PATH
+            value: "{{ .Values.dashboard.serverConfig.baseUrlPath }}"
+          - name: STREAMLIT_SERVER_PORT
+            value: "{{ .Values.dashboard.serverConfig.port }}"
+          - name: STREAMLIT_SERVER_HEADLESS
+            value: "1"
+          - name: STREAMLIT_SECRETS_FILES
+            value: "/config/secrets.toml"
+          - name: LOMAS_ADMIN_DEX_CONFIG__URL
+            value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
+          - name: LOMAS_ADMIN_USER_YAML
+            value: "no-file.yaml"
+          - name: LOMAS_ADMIN_DATASET_YAML
+            value: "no-file.yaml" # dashboard does not need this.
+          - name: LOMAS_ADMIN_SERVER_URL
+            value: "https://{{ .Values.server.ingress.hostname }}/"
+          - name: LOMAS_ADMIN_SERVER_SERVICE
+            value: "https://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
+          - name: LOMAS_ADMIN_BOOTSTRAP
+            value: "" # dashboard does not need boostrap
         volumeMounts:
           - name: config
             mountPath: /config
-
       volumes:
         - name: config
-          configMap:
-            name: {{ include "lomas.dashboard.fullname" . }}-auth
+          secret:
+            secretName: {{ include "lomas.dashboard.fullname" . }}-auth
 
       {{- with .Values.dashboard.nodeSelector }}
       nodeSelector:

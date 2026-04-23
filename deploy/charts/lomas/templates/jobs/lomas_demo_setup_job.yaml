@@ -20,13 +20,13 @@ spec:
             - -c
             - |
               #!/usr/local/env bash
-              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://lomas-server/live) -eq 200 ]; do
+              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/live) -eq 200 ]; do
                 echo "waiting for lomas"
                 sleep 2
               done;
           command:
             - /bin/bash
-          image: dsccadminch/lomas:sha-4c90599
+          image: dsccadminch/lomas:sha-4c90599 # todo update image
           imagePullPolicy: IfNotPresent
           name: wait
       containers:
@@ -36,11 +36,17 @@ spec:
           command: ["lomas-demo-setup"]
           env:
             - name: LOMAS_ADMIN_DEX_CONFIG__URL
-              value: grpc://lomas-dex:4446
-            - name: LOMAS_ADMIN_SERVER_SERVICE
-              value: http://lomas-server:80
+              value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
+            - name: LOMAS_ADMIN_USER_YAML
+              value: "/data/collections/user_collection.yaml"
+            - name: LOMAS_ADMIN_DATASET_YAML
+              value: "/data/collections/dataset_collection.yaml"
             - name: LOMAS_ADMIN_SERVER_URL
-              value: http://lomas-server:80
+              value: "https://{{ .Values.server.ingress.hostname }}/"
+            - name: LOMAS_ADMIN_SERVER_SERVICE
+              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
+            - name: LOMAS_ADMIN_BOOTSTRAP
+              value: "" # dashboard does not need boostrap
       nodeSelector:
         {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
       affinity:

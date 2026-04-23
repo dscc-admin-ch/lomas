@@ -5,7 +5,6 @@ from pathlib import Path
 import httpx
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
-from returns.converters import flatten, maybe_to_result
 from returns.io import IOFailure, IOResultE, IOSuccess
 from returns.iterables import Fold
 from returns.maybe import Maybe
@@ -64,11 +63,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
                 add_dex_users_via_yaml, yaml_file=config.user_yaml, clean=False, overwrite=True
             )
         ),
-        (lambda m: m.value_or(Maybe.from_value(IOSuccess("No Dex config")))),  # No dex config is not an issue
-        maybe_to_result,  # Result[IOResultE]
-        flatten,  # IO[IOResultE]
-        flatten,  # IOResult
-    )
+    ).values_or(IOSuccess("No Dex config"))
 
     pprint("Creating datasets and metadata collection")
     add_datasets: IOResultE = query_lomas(

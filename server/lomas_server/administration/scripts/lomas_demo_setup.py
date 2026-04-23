@@ -85,7 +85,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         httpx.delete,
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
-    print(add_dex_users)
+
     return Fold.collect([add_users, add_dex_users, add_datasets, delete_archives], IOSuccess(()))
 
 

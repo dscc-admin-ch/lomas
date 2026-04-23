@@ -232,11 +232,10 @@ def add_dex_users_via_yaml(
 
     Args:
         dex_config (DexAdminConfig): A DexAdminConfig
-        yaml_file (Path): File name to load the users from
+        yaml_file (Path | BytesIO): File name to load the users from
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
     """
-    # Load yaml data and insert it
     user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open(encoding="utf-8")))
     return add_dex_users(dex_config, user_list, clean, overwrite)
 

@@ -5,6 +5,7 @@ from pathlib import Path
 import httpx
 import pandas as pd
 import streamlit as st
+import yaml
 from returns.converters import flatten, maybe_to_result, result_to_maybe
 from returns.io import IO, IOFailure, IOResultE, IOSuccess
 from returns.iterables import Fold
@@ -13,7 +14,7 @@ from returns.pipeline import flow
 from returns.pointfree import alt, bind, bind_result, map_
 from returns.result import Failure, ResultE, Success
 
-from lomas_core.models.collections import User, UserId
+from lomas_core.models.collections import User, UserCollection, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.admin_database.constants import TopDBKey as TK
@@ -27,7 +28,7 @@ from lomas_server.administration.dashboard.utils import (
     list_users,
     query_lomas_auth,
 )
-from lomas_server.administration.dex.dex_admin import add_dex_user, add_dex_users_via_yaml
+from lomas_server.administration.dex.dex_admin import add_dex_user, add_dex_users
 
 EPSILON_LIMIT = 500.0
 EPSILON_STEP = 0.01
@@ -274,6 +275,9 @@ if u_file and st.button("Import"):
         lambda e: st.error(f"Failed to import collection because {e}")
     )
 
+    # Reset cursor to start of file
+    u_file.seek(0)
+
     add_dex_users_res: IOResultE = flow(
         get_config(),
         map_(lambda config: Maybe.from_optional(config.dex_config)),
@@ -282,16 +286,16 @@ if u_file and st.button("Import"):
         flatten,  # Maybe[DexConfig]]
         map_(  # We keep the Maybe so that we only add dex user if DexConfig
             partial(
-                add_dex_users_via_yaml,
-                yaml_file=u_file,
+                add_dex_users,
+                user_list=UserCollection(**yaml.safe_load(u_file)),
                 clean=u_clean,
                 overwrite=u_clean,  # TODO u_file does not resolve
             )
         ),  # Maybe[IOResult]
         (lambda m: m.value_or(IOSuccess("No dex config"))),  # IOResult -> remove the maybe
-        alt(lambda e: st.error(f"Failed to create dex users: {e}")),
+        alt(lambda e: st.error(f"Failed to create dex users because: {e}")),
     )
-    st.write(add_dex_users_res)
+
     st.success("Users imported")
 
     list_users().map(lambda usernames: [st.toast(f"(+) **{username}**") for username in usernames])

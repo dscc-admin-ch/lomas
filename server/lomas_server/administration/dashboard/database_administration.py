@@ -5,25 +5,35 @@ from pathlib import Path
 import httpx
 import pandas as pd
 import streamlit as st
+import yaml
 from returns.converters import maybe_to_result
 from returns.io import IO, IOFailure, IOResultE, IOSuccess
-from returns.maybe import Maybe
+from returns.iterables import Fold
+from returns.maybe import Maybe, Some
 from returns.pipeline import flow
 from returns.pointfree import alt, bind, bind_result, map_
 from returns.result import Failure, ResultE, Success
 
-from lomas_core.models.collections import User, UserId
+from lomas_core.models.collections import User, UserCollection, UserId
 from lomas_core.models.constants import PrivateDatabaseType
 from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.admin_database.constants import TopDBKey as TK
 from lomas_server.administration.dashboard.utils import (
+    call_if_dex,
     ensure_user_has_datasets,
     find_user,
+    get_config,
     get_datasets,
     get_user_df,
     get_users,
     list_users,
     query_lomas_auth,
+)
+from lomas_server.administration.dex.dex_admin import (
+    add_dex_user,
+    add_dex_users,
+    del_all_dex_users,
+    del_dex_user,
 )
 
 EPSILON_LIMIT = 500.0
@@ -169,8 +179,19 @@ flow(
 )
 
 
-def add_lomas_user(new_user: User) -> IOResultE[httpx.Response]:
-    return query_lomas_auth("/users", httpx.post, json=new_user.model_dump())
+def add_lomas_user(new_user: User) -> IOResultE:
+    add_lomas_user_res: IOResultE = query_lomas_auth("/users", httpx.post, json=new_user.model_dump())
+
+    add_dex_user_res: IOResultE = call_if_dex(  # We keep the Maybe so that we only add dex user if DexConfig
+        partial(
+            add_dex_user,
+            user_name=new_user.id.name,
+            user_email=new_user.id.email,
+            user_password=new_user.id.client_secret,
+        )
+    )
+
+    return Fold.collect([add_lomas_user_res, add_dex_user_res], IOSuccess("Success"))
 
 
 def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
@@ -187,8 +208,12 @@ def confirm_delete(
 
     with col1:
         if st.button("Yes", type="primary"):
-            on_confirm()
-            st.write(success_message)
+            match on_confirm():
+                case IOFailure(fail):
+                    st.write(f"Operation failed: {fail}")
+                case _:
+                    st.write(success_message)
+
             st.rerun()
 
     with col2:
@@ -208,11 +233,19 @@ with st.form("Add user"):
     with c2:
         au_email = st.text_input("Email", key="au_email_key")
     with c3:
-        au_client_secret = st.text_input(
-            "Secret (can be empty)",
-            key="au_client_secret_key",
-            type="password",
-        )
+        get_dex_config = flow(get_config(), map_(lambda config: Maybe.from_optional(config.dex_config)))
+        match get_dex_config:
+            case IOFailure(_):
+                pass
+            case IOSuccess(Success(Maybe.empty)):
+                st.write("Make sure the user exists at your ID provider!")
+                au_password = None
+            case IOSuccess(Success(Some(dex_config))):
+                au_password = st.text_input(
+                    "Password (can be empty)",
+                    key="au_password",
+                    type="password",
+                )
     submit = st.form_submit_button()
 
 if submit:
@@ -220,7 +253,7 @@ if submit:
         st.warning(f"User {au_username} already in the database.")
     elif au_username and au_email:
         new_user = User(
-            id=UserId(name=au_username, email=au_email, client_secret=au_client_secret),
+            id=UserId(name=au_username, email=au_email, client_secret=au_password),
             may_query=False,
             datasets_list=[],
         )
@@ -243,7 +276,24 @@ if u_file and st.button("Import"):
     query_lomas_auth("/usersfile", httpx.post, json={"clean": u_clean}, files={"file": u_file}).alt(
         lambda e: st.error(f"Failed to import collection because {e}")
     )
+
+    # Reset cursor to start of file
+    u_file.seek(0)
+
+    add_dex_users_res: IOResultE = flow(
+        call_if_dex(
+            partial(
+                add_dex_users,
+                user_list=UserCollection(**yaml.safe_load(u_file)),
+                clean=u_clean,
+                overwrite=u_clean,  # TODO u_file does not resolve
+            )
+        ),  # IOResult
+        alt(lambda e: st.error(f"Failed to create dex users because: {e}")),
+    )
+
     st.success("Users imported")
+
     list_users().map(lambda usernames: [st.toast(f"(+) **{username}**") for username in usernames])
 
 
@@ -345,6 +395,7 @@ if st.button("Import", key="btn_import_ds", disabled=(not dataset_collection)):
         "/dataset/bulk", httpx.post, json={"clean": ds_clean}, files={"file": dataset_collection}
     ).alt(lambda e: st.error(f"Failed to import datasets: {e}")).bind(on_success).map(toast_ds)
 
+
 # ---------------------------------------------
 
 st.divider()
@@ -379,9 +430,20 @@ def delete_username_menu(username: str) -> None:
         submit = st.form_submit_button(f"delete {username}", type="primary")
 
     if submit:
+
+        def delete_lomas_user() -> IOResultE:
+            delete_lomas_user_res: IOResultE = query_lomas_auth(f"/users/{username}", httpx.delete)
+            delete_dex_user_res: IOResultE = call_if_dex(
+                partial(
+                    del_dex_user,
+                    user_name=username,
+                )
+            )
+            return Fold.collect([delete_lomas_user_res, delete_dex_user_res], IOSuccess("User deleted"))
+
         confirm_delete(
             f"Are you sure you want to delete user **{username}**?",
-            lambda: query_lomas_auth(f"/users/{username}", httpx.delete),
+            delete_lomas_user,
             f"**{username}** has been removed",
         )
 
@@ -435,9 +497,15 @@ col1, col2, col3, col4 = st.columns(4, vertical_alignment="center")
 
 with col1:
     if st.button("Delete all Users", type="primary", key="delete_all_users"):
+
+        def del_all_lomas_users() -> IOResultE:
+            delete_lomas_users_res: IOResultE = drop_lomas_collection(TK.USERS)
+            delete_dex_users_res: IOResultE = call_if_dex(del_all_dex_users)
+            return Fold.collect([delete_lomas_users_res, delete_dex_users_res], IOSuccess("Users deleted"))
+
         confirm_delete(
             "Are you sure you want to delete ALL USERS?",
-            lambda: drop_lomas_collection(TK.USERS),
+            del_all_lomas_users,
             "All Users deleted.",
         )
 

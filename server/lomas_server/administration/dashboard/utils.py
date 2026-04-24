@@ -6,12 +6,13 @@ import pandas as pd
 import streamlit as st
 from pydantic import AnyUrl
 from returns.io import IO, IOFailure, IOResultE, IOSuccess, impure_safe
+from returns.maybe import Maybe, Some
 from returns.pipeline import flow
 from returns.pointfree import alt, bind, cond, map_
-from returns.result import Result, ResultE
+from returns.result import Failure, Result, ResultE, Success
 
 from lomas_core.models.collections import DatasetOfUser, User
-from lomas_server.models.config import AdminConfig
+from lomas_server.models.config import AdminConfig, DexAdminConfig
 
 
 def url_append(url: AnyUrl, path: str) -> AnyUrl:
@@ -29,12 +30,41 @@ def url_append(url: AnyUrl, path: str) -> AnyUrl:
 
 @st.cache_resource
 @impure_safe
-def get_config() -> IOResultE[AdminConfig]:
+def get_config() -> AdminConfig:
     return AdminConfig()
 
 
+def call_if_dex(task: Callable[[DexAdminConfig], IOResultE]) -> IOResultE[Maybe[IOResultE]]:
+    """Gets the Dex config and if it exists, passes it to the provided task.
+
+    Args:
+        task (Callable[[DexAdminConfig], IOResultE]): The task to run.
+
+    Returns:
+        IOResultE[Maybe[IOResultE]]: An IOFailure if the task returns a failure or the config cannot be read.
+    """
+
+    def unwrap_Failure(res: IOResultE[Maybe[IOResultE]]) -> IOResultE[Maybe[IOResultE]]:
+        match res:
+            case IOSuccess(Success(Some(IOFailure(Failure(e))))):
+                return IOFailure(e)
+            case _:
+                return res
+
+    dex_config_res = flow(
+        get_config(),
+        map_(lambda config: Maybe.from_optional(config.dex_config)),
+        map_(
+            map_(task),
+        ),
+        unwrap_Failure,
+    )
+
+    return dex_config_res
+
+
 @impure_safe
-def parse_if_ok(response: httpx.Response) -> IOResultE[str]:
+def parse_if_ok(response: httpx.Response) -> str:
     return response.raise_for_status().json()
 
 

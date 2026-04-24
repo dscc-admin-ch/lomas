@@ -90,9 +90,7 @@ def to_log(user_provided_str: str) -> str:
 
 
 @impure_safe
-def add_dex_user(
-    dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str
-) -> IOResultE[str]:
+def add_dex_user(dex_config: DexAdminConfig, user_name: str, user_email: str, user_password: str) -> str:
     """Adds a new user to dex.
 
     Args:
@@ -124,7 +122,7 @@ def add_dex_user(
 
 
 @impure_safe
-def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> IOResultE[bool]:
+def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> bool:
     """Removes the dex user.
 
     Args:
@@ -151,7 +149,7 @@ def del_dex_user(dex_config: DexAdminConfig, user_name: str) -> IOResultE[bool]:
 
 
 @impure_safe
-def del_all_dex_users(dex_config: DexAdminConfig) -> IOResultE[None]:
+def del_all_dex_users(dex_config: DexAdminConfig) -> None:
     """Removes all dex users.
 
     Args:
@@ -177,7 +175,7 @@ def add_dex_users(
     user_list: UserCollection,
     clean: bool,
     overwrite: bool,
-) -> IOResultE[list[str]]:
+) -> list[str]:
     """Adds new lomas users to Dex.
 
     Iterates over `user_list` and creates password entries in Dex for each user.
@@ -234,17 +232,16 @@ def add_dex_users_via_yaml(
 
     Args:
         dex_config (DexAdminConfig): A DexAdminConfig
-        yaml_file (Path): File name to load the users from
+        yaml_file (Path | BytesIO): File name to load the users from
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
     """
-    # Load yaml data and insert it
     user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open(encoding="utf-8")))
     return add_dex_users(dex_config, user_list, clean, overwrite)
 
 
 @impure_safe
-def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> IOResultE[bool]:
+def set_dex_user_password(dex_config: DexAdminConfig, user_name: str, new_password: str) -> bool:
     """Sets the new user password to the Dex user.
 
     Args:

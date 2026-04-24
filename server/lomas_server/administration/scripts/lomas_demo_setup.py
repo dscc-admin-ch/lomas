@@ -63,7 +63,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
                 add_dex_users_via_yaml, yaml_file=config.user_yaml, clean=False, overwrite=True
             )
         ),
-    ).values_or(IOSuccess("No Dex config"))
+    ).value_or(IOSuccess("No Dex config"))
 
     pprint("Creating datasets and metadata collection")
     add_datasets: IOResultE = query_lomas(

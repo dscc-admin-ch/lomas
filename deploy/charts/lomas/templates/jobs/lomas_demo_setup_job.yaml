@@ -46,7 +46,7 @@ spec:
             - name: LOMAS_ADMIN_SERVER_SERVICE
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP
-              value: "" # dashboard does not need boostrap
+              value: "{{ .Values.server.runtime_args.boostrap }}"
       nodeSelector:
         {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
       affinity:

@@ -32,8 +32,18 @@ app.kubernetes.io/component: {{ include "lomas.server.name" . }}
 app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
 {{- end }}
 
-{{/* Lomas Service  ------------------------------------------------------------*/}}
 
+{{/* PVC names */}}
+{{- define "lomas.server.dataPVCName" -}}
+{{- printf "%s-%s" (include "lomas.server.fullname" .) "data" }}
+{{- end}}
+{{- define "lomas.server.dbPVCName" -}}
+{{- printf "%s-%s" (include "lomas.server.fullname" .) "db" }}
+{{- end}}
+
+{{/* Secrets names and keys  ------------------------------------------------------------*/}}
+
+{{/* bootstrap secret */}}
 {{- define "lomas.server.secretName" -}}
 {{- $secretName := .Values.server.runtime_args.bootstrap.existingSecret -}}
 {{- if $secretName -}}
@@ -51,9 +61,7 @@ app.kubernetes.io/component: {{ include "lomas.worker.name" . }}
     {{- end -}}
 {{- end -}}
 
-
-{{/* Private DB Credentials secret name ----------------------------------------------------*/}}
-
+{{/* Private DB credentials */}}
 {{- define "lomas.server.private-db-credentials-secrets" -}}
 {{- $result := list }}
 {{- range $i, $cred := .Values.server.runtime_args.private_db_credentials }}

@@ -46,7 +46,7 @@ spec:
               value: "https://{{ .Values.server.ingress.hostname }}/"
             - name: LOMAS_ADMIN_SERVER_SERVICE
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
-            - name: LOMAS_ADMIN_BOOSTRAP
+            - name: LOMAS_ADMIN_BOOTSTRAP
               valueFrom:
                 secretKeyRef:
                   name: {{ include "lomas.server.secretName" . }}

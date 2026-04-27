@@ -38,10 +38,14 @@ spec:
             containerPort: {{ .Values.server.runtime_args.server.host_port }}
             protocol: TCP
         volumeMounts:
+          - name: db
+            mountPath: /db
+          {{- if .Values.server.pvc.data.enable }}
           - name: data
-            mountPath: /persistent-storage
+            mountPath: /data
+          {{- end }}
         env:
-          - name: LOMAS_SERVICE_BOOSTRAP
+          - name: LOMAS_SERVICE_BOOtSTRAP
             valueFrom:
               secretKeyRef:
                 name: {{ include "lomas.server.secretName" . }}
@@ -63,7 +67,7 @@ spec:
           - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
           - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
-            value: "/persistent-storage/admin.db"
+            value: "/db/admin.db"
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
@@ -101,9 +105,14 @@ spec:
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
       volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.dbPVCName" .}}
+        {{- if .Values.server.pvc.data.enable }}
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "lomas.server.fullname" . }}
+            claimName: {{ include "lomas.server.dataPVCName" . }}
+        {{- end }}
       {{- with .Values.server.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

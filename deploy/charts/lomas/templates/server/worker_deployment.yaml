@@ -37,10 +37,12 @@ spec:
             containerPort: {{ .Values.server.runtime_args.server.host_port }}
             protocol: TCP
         volumeMounts:
+          {{- if .Values.server.pvc.data.enable }}
           - name: data
-            mountPath: /persistent-storage
+            mountPath: /data
+          {{- end }}
         env:
-          - name: LOMAS_SERVICE_BOOSTRAP
+          - name: LOMAS_SERVICE_BOOTSTRAP
             valueFrom:
               secretKeyRef:
                 name: {{ include "lomas.server.secretName" . }}
@@ -100,9 +102,11 @@ spec:
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
       volumes:
+        {{- if .Values.server.pvc.data.enable }}
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "lomas.server.fullname" . }}
+            claimName: {{ include "lomas.server.dataPVCName" . }}
+        {{- end }}
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

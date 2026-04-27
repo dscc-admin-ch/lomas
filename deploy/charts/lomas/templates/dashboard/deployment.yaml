@@ -62,7 +62,7 @@ spec:
           - name: LOMAS_ADMIN_SERVER_SERVICE
             value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
           - name: LOMAS_ADMIN_BOOTSTRAP
-            value: "" # dashboard does not need boostrap
+            value: "" # dashboard does not need bootstrap
         volumeMounts:
           - name: config
             mountPath: /config

@@ -53,3 +53,22 @@ Create the name of the service account to use
 {{- default "default" .Values.dashboard.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Secret
+*/}}
+{{- define "lomas.dashboard.secretName" -}}
+    {{- if and .Values.dashboard.streamlitServerSecrets.existingSecret .Values.dashboard.streamlitServerSecrets.existingKey -}}
+        {{- printf "%s" (tpl .Values.dashboard.streamlitServerSecrets.existingSecret $) -}}
+    {{- else -}}
+        {{ include "lomas.dashboard.fullname" .}}
+    {{- end -}}
+{{- end -}}
+{{- define "lomas.dashboard.secretKey" -}}
+    {{- if and .Values.dashboard.streamlitServerSecrets.existingSecret .Values.dashboard.streamlitServerSecrets.existingKey -}}
+        {{- printf "%s" (tpl .Values.dashboard.streamlitServerSecrets.existingKey $) -}}
+    {{- else -}}
+        {{- printf "secrets.toml" -}}
+    {{- end -}}
+{{- end -}}

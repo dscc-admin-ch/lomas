@@ -8,13 +8,16 @@ fullnameOverride: "lomas"
 ##########################################################################
 server:
   image:
-    repository: dsccadminch/lomas
+    repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: sha-4c90599
+    tag: sha-ff0c92c
 
   # Runtime args for server
   runtime_args:
-    bootstrap: "deadbeef"
+    bootstrap:
+      existingSecret: ""
+      existingKey: ""
+      value: "deadbeef"
     server:
       host_port: "48080"
       root_path: "/"
@@ -24,25 +27,27 @@ server:
         method: "jitter" # or "stall"
         magnitude: 1
     authenticator:
-      oidc_discovery_url: http://auth-example.domain.com/.well-known/openid-configuration
+      oidc_discovery_url: http://dada-lomas-dex.lab.sspcloud.fr/.well-known/openid-configuration
       query_userinfo: true
-      authentication_type: jwt
+      authentication_type: oidc
     opendp_features: ["contrib", "floating-point", "honest-but-curious"]
     private_db_credentials:
       # - existing_secret: "" # Set this if there is an existing secret.
       # - credentials_name: "s3" # Or set the credentials directly.
-      #  db_type: "S3_DB"
-      #  access_key_id: "abc"
-      #  secret_access_key: "def"
+      #   db_type: "S3_DB"
+      #   access_key_id: "abc"
+      #   secret_access_key: "def"
     telemetry:
-      enabled: true
+      enabled: false
       service_name: lomas_server_app
       service_id: default-host
-  pvc: # Used sqlite admin db
+
+  # Used for sqlite admin db
+  pvc:
     storageClassName: "" # is not set if empty string
     sizeLimit: 500Mi
     sizeRequest: 500Mi
-    accessMode: "ReadWriteOnce" # ReadWriteMany if supported, otherwise use affinity to colocate server, worker and dashboard.
+    accessMode: "ReadWriteOnce"
     persistence:
       # If set to "keep", sets the helm/resource-policy of the pvc to keep,
       # so that the pvc is not deleted across reinstalls.
@@ -58,7 +63,7 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "example.com"
+    hostname: "dada-lomas.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -88,7 +93,7 @@ server:
   affinity: {}
 
 worker:
-  replicaCount: 1
+  replicaCount: 2
   serviceAccount:
     create: false
     annotations: {}
@@ -103,25 +108,19 @@ worker:
 
 # Lomas Administration
 ##########################################################################
-admin:
-  image:
-    repository: dsccadminch/lomas
-    pullPolicy: Always
-    tag: sha-4c90599
-  curlImage:
-    repository: curlimages/curl
-    tag: 8.13.0
-    pullPolicy: Always
 
-  realm: "lomas"
-  client_id: "lomas_admin"
-  client_secret: "lomas_admin"
-  client_secret_existing_secret: ""
-  client_secret_secret_key: ""
-  lomas_service_client_id: "lomas_service"
-  lomas_service_client_secret: "lomas_service"
-  lomas_service_existing_secret: ""
-  lomas_service_secret_key: ""
+demoSetupJob:
+  enable: true
+
+  image:
+    repository: dsccadminch/lomas-raw
+    pullPolicy: Always
+    tag: sha-ff0c92c
+
+  params:
+    userYamlPath: "/collections/user_collection.yaml"
+    datasetYamlPath: "/collections/dataset_collection.yaml"
+
   initContainers:
     resources:
       limits:
@@ -130,11 +129,6 @@ admin:
       requests:
         cpu: 50m
         memory: 400Mi
-  demo_setup:
-    enable: true
-    path_prefix: "/data"
-    user_yaml_path: "/collections/user_collection.yaml"
-    dataset_yaml_path: "/collections/dataset_collection.yaml"
 
   # We leave unset stuff here
   serviceAccount:
@@ -153,19 +147,32 @@ admin:
   tolerations: []
   affinity: {}
 
+
 dashboard:
-  create: true
+  enable: true
 
   image:
-    repository: dsccadminch/lomas
+    repository: dsccadminch/lomas-raw
     pullPolicy: Always
-    tag: sha-4c90599
+    tag: sha-ff0c92c
 
-  # Runtime args for server
   serverConfig:
-    # address: "0.0.0.0"
     port: "8501"
     baseUrlPath: "/"
+
+  streamlitServerSecrets:
+    existingSecret: ""
+    existingSecretKey: ""
+    value:
+      auth:
+        clientId: lomas_dashboard
+        clientSecret: lomas_dashboard
+        redirectUri: https://dada-lomas-dashboard.lab.sspcloud.fr/oauth2callback
+        serverMetadataUrl: https://dada-lomas-dex.lab.sspcloud.fr/.well-known/openid-configuration
+        cookieSecret: changeme
+        exposeTokens:
+          - access
+          - id
 
   service:
     type: ClusterIP
@@ -177,7 +184,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "dashboard-example.com"
+    hostname: "dada-lomas-dashboard.lab.sspcloud.fr"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -186,15 +193,6 @@ dashboard:
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
-  # Lomas dashboard not meant to be replicated for now
-  replicaCount: 1
-  # Lomas dashboard not intended to be autoscaled for now
-  # autoscaling:
-  #  enabled: false
-  #  minReplicas: 1
-  #  maxReplicas: 100
-  #  targetCPUUtilizationPercentage: 80
-  #  # targetMemoryUtilizationPercentage: 80
 
   # We leave unset stuff here
   serviceAccount:
@@ -224,15 +222,7 @@ dashboard:
 
 
 
-  auth:
-    clientId: lomas_dashboard
-    clientSecret: lomas_dashboard
-    redirectUri: https://dashboard-example.com/admin/oauth2callback
-    serverMetadataUrl: https://auth-example.domain.com/.well-known/openid-configuration
-    cookieSecret: changeme
-    exposeTokens:
-      - access
-      - id
+
 
 # Loki
 ##########################################################################
@@ -462,7 +452,7 @@ grafana:
   resources: {}
 
 ##########################################################################
-# Lomas Chart Dependecies
+# Lomas Chart Dependencies
 ##########################################################################
 
 # RabbitMQ
@@ -602,7 +592,7 @@ dex:
   ingress:
     enabled: true
     hosts:
-      - host: auth-example.domain.com
+      - host: "dada-lomas-dex.lab.sspcloud.fr"
         paths:
           - path: /
             pathType: Prefix
@@ -622,7 +612,7 @@ dex:
     storage:
       type: "memory"
     enablePasswordDB: true
-    issuer: https://auth-example.domain.com
+    issuer: dada-lomas-dex.lab.sspcloud.fr
     oauth2:
       passwordConnector: local
     staticClients:
@@ -639,7 +629,7 @@ dex:
       name: lomas_dashboard
       public: false
       redirectURIs:
-      - https://dashboard-example.com/admin/oauth2callback
+      - https://dada-lomas-dashboard.lab.sspcloud.fr/oauth2callback
       secret: lomas_dashboard
 
     # staticPasswords:

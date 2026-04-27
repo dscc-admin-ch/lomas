@@ -12,7 +12,7 @@ Since server ingress was enabled, the application is also reachable from the int
 {{- end }}
 
 
-{{- if .Values.dashboard.create }}
+{{- if .Values.dashboard.enable }}
 
 2. From within your namespace, the admin dashboard is available at
 

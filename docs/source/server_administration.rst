@@ -24,8 +24,8 @@ dashboard will be available at ``localhost:8501``.
 Dashboard Access when deploying via Kubernetes
 ----------------------------------------------
 
-If you are deploying with Kubernetes, ensure that the ``dashboard.create`` value is set to ``true`` in your values.yaml.
-If ``dashboard.create`` is not set to ``true``, the server will only be accessible though the API, and the dashboard will not be available.
+If you are deploying with Kubernetes, ensure that the ``dashboard.enable`` value is set to ``true`` in your values.yaml.
+If ``dashboard.enable`` is not set to ``true``, the server will only be accessible though the API, and the dashboard will not be available.
 
 Access via Onyxia Platform
 --------------------------

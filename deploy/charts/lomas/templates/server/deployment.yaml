@@ -41,8 +41,11 @@ spec:
           - name: data
             mountPath: /persistent-storage
         env:
-          - name: LOMAS_SERVICE_boostrap
-            value: "{{ .Values.server.runtime_args.boostrap }}" # todo make secret
+          - name: LOMAS_SERVICE_BOOSTRAP
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.secretName" . }}
+                value: {{ include "lomas.server.bootstrapSecretKey" . }}
           - name: LOMAS_SERVICE_SERVER__HOST_IP
             value: "0.0.0.0"
           - name: LOMAS_SERVICE_SERVER__HOST_PORT
@@ -64,10 +67,10 @@ spec:
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
-            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}" # todo change recover from dex values?
-          {{- range $i, $credSecretName := (include "lomas-service.private-db-credentials-secrets" $) | fromYamlArray }}
+            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__QUERY_USERINFO
             value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"
+          {{- range $i, $credSecretName := (include "lomas.server.private-db-credentials-secrets" $) | fromYamlArray }}
           - name: LOMAS_SERVICE_PRIVATE_DB_CREDENTIALS__{{ $i }}
             valueFrom:
               secretKeyRef:
@@ -77,7 +80,7 @@ spec:
           - name: LOMAS_SERVICE_TELEMETRY__ENABLED
             value: "{{ .Values.server.runtime_args.telemetry.enabled }}"
           - name: LOMAS_SERVICE_TELEMETRY__SERVICE_NAME
-            value: "{{ .Values.server.runtime_args.telemetry.service_name}}"
+            value: "{{ .Values.server.runtime_args.telemetry.service_name }}"
           - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
             value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT

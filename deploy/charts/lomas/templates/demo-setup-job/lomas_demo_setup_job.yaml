@@ -1,22 +1,27 @@
-{{- if .Values.admin.demo_setup.enable -}}
+{{- if .Values.demoSetupJob.enable -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "lomas.admin.demo-setup.fullname" . }}
+  name: {{ include "lomas.demoSetupJob.fullname" . }}
 spec:
   # backoffLimit: 1
   template:
     metadata:
       annotations:
-        {{- toYaml .Values.admin.podAnnotations | nindent 8 }}
+        {{- toYaml .Values.demoSetupJob.podAnnotations | nindent 8 }}
     spec:
       restartPolicy: Never
       securityContext:
-        {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.demoSetupJob.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
-        - args:
+        - name: wait
+          image: {{ .Values.demoSetupJob.image.repository }}:{{ .Values.demoSetupJob.image.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
             - -c
             - |
               #!/usr/local/env bash
@@ -24,33 +29,32 @@ spec:
                 echo "waiting for lomas"
                 sleep 2
               done;
-          command:
-            - /bin/bash
-          image: dsccadminch/lomas:sha-4c90599 # todo update image
-          imagePullPolicy: IfNotPresent
-          name: wait
       containers:
         - name: lomas-demo-setup
-          image: {{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag }}
-          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          image: {{ .Values.demoSetupJob.image.repository }}:{{ .Values.demoSetupJob.image.tag }}
+          imagePullPolicy: {{ .Values.demoSetupJob.image.pullPolicy }}
           command: ["lomas-demo-setup"]
           env:
             - name: LOMAS_ADMIN_DEX_CONFIG__URL
               value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
             - name: LOMAS_ADMIN_USER_YAML
+              value: {{ .Values.demoSetupJob.params.userYamlPath }}
               value: "/data/collections/user_collection.yaml"
             - name: LOMAS_ADMIN_DATASET_YAML
-              value: "/data/collections/dataset_collection.yaml"
+              value: {{ .Values.demoSetupJob.params.datasetYamlPath }}
             - name: LOMAS_ADMIN_SERVER_URL
               value: "https://{{ .Values.server.ingress.hostname }}/"
             - name: LOMAS_ADMIN_SERVER_SERVICE
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
-            - name: LOMAS_ADMIN_BOOTSTRAP
-              value: "{{ .Values.server.runtime_args.boostrap }}"
+            - name: LOMAS_ADMIN_BOOSTRAP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "lomas.server.secretName" . }}
+                  value: {{ include "lomas.server.bootstrapSecretKey" . }}
       nodeSelector:
-        {{ toYaml .Values.admin.nodeSelector | nindent 8 }}
+        {{ toYaml .Values.demoSetupJob.nodeSelector | nindent 8 }}
       affinity:
-        {{ toYaml .Values.admin.affinity | nindent 8 }}
+        {{ toYaml .Values.demoSetupJob.affinity | nindent 8 }}
       tolerations:
-        {{ toYaml .Values.admin.tolerations | nindent 8}}
+        {{ toYaml .Values.demoSetupJob.tolerations | nindent 8}}
 {{- end}}

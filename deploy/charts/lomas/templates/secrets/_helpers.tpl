@@ -27,41 +27,10 @@
 {{- end -}}
 
 
-{{/* Lomas Service  ------------------------------------------------------------*/}}
-
-{{- define "lomas-service.secretName" -}}
-{{- $secretName := .Values.admin.lomas_service_existing_secret -}}
-{{- if $secretName -}}
-    {{- printf "%s" (tpl $secretName $) -}}
-{{- else -}}
-    {{- printf "%s-service-secret" (include "lomas.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-
-{{- define "lomas-service.secretKey" -}}
-    {{- if and .Values.admin.lomas_service_existing_secret .Values.admin.lomas_service_secret_key -}}
-        {{- printf "%s" (tpl .Values.admin.lomas_service_secret_key $) -}}
-    {{- else -}}
-        {{- printf "client-secret" -}}
-    {{- end -}}
-{{- end -}}
 
 
-{{/* Private DB Credentials ----------------------------------------------------*/}}
 
-{{- define "lomas-service.private-db-credentials-secrets" -}}
-{{- $result := list }}
-{{- range $i, $cred := .Values.server.runtime_args.private_db_credentials }}
-  {{- $name := "" }}
-  {{- if $cred.existing_secret }}
-    {{- $name = $cred.existing_secret }}
-  {{- else }}
-    {{- $name = printf "%s-private-db-credentials-%d" (include "lomas.fullname" $) $i }}
-  {{- end }}
-  {{- $result = append $result (tpl $name $) }}
-{{- end }}
-{{- toYaml $result }}
-{{- end }}
+
 
 
 {{/* Admin users ----------------------------------------------------*/}}

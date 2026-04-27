@@ -41,6 +41,8 @@ spec:
         env:
           - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
             value: "0"
+          - name: STREAMLIT_SERVER_ADDRESS
+            value: "0.0.0.0"
           - name: STREAMLIT_SERVER_BASE_URL_PATH
             value: "{{ .Values.dashboard.serverConfig.baseUrlPath }}"
           - name: STREAMLIT_SERVER_PORT

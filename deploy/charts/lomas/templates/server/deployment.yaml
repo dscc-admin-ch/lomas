@@ -45,7 +45,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ include "lomas.server.secretName" . }}
-                value: {{ include "lomas.server.bootstrapSecretKey" . }}
+                key: {{ include "lomas.server.bootstrapSecretKey" . }}
           - name: LOMAS_SERVICE_SERVER__HOST_IP
             value: "0.0.0.0"
           - name: LOMAS_SERVICE_SERVER__HOST_PORT
@@ -62,7 +62,7 @@ spec:
             value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
           - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
-          - name: LOMAS_SERVICE_ADMIN_DATABASE__URL
+          - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
             value: "/persistent-storage/admin.db"
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"

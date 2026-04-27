@@ -50,7 +50,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ include "lomas.server.secretName" . }}
-                  value: {{ include "lomas.server.bootstrapSecretKey" . }}
+                  key: {{ include "lomas.server.bootstrapSecretKey" . }}
       nodeSelector:
         {{ toYaml .Values.demoSetupJob.nodeSelector | nindent 8 }}
       affinity:

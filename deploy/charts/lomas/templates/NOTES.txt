@@ -8,7 +8,14 @@ The Lomas service was successfully deployed!
 
 Since server ingress was enabled, the application is also reachable from the internet at:
 
-  http{{ if $.Values.server.ingress.tls }}s{{ end }}://{{ .Values.hostname }}/api/
+  https://{{ .Values.server.ingress.hostname }}/
+{{- end }}
+
+{{- if .Values.server.route.enabled }}
+
+Since server route was enabled, the application is also reachable from the internet at:
+
+  https://{{ .Values.server.route.hostname }}/
 {{- end }}
 
 
@@ -22,7 +29,14 @@ Since server ingress was enabled, the application is also reachable from the int
 
 Since dashboard ingress was enabled, the administration dashboard is also reachable from the internet at
 
-  http{{ if $.Values.dashboard.ingress.tls }}s{{ end }}://{{ .Values.dashboard.ingress.hostname }}/about
+  https://{{ .Values.dashboard.ingress.hostname }}/
+{{- end }}
+
+{{- if .Values.dashboard.route.enabled }}
+
+Since dashboard route was enabled, the administration dashboard is also reachable from the internet at
+
+  https://{{ .Values.dashboard.route.hostname }}/
 {{- end }}
 {{- end }}
 
@@ -40,4 +54,18 @@ Since grafana dashboard ingress was enabled, the administration dashboard is als
   https://{{ .Values.grafana.ingress.hostname }}
 
 {{- end }}
+{{- if .Values.grafana.route.enabled }}
+
+Since grafana dashboard route was enabled, the administration dashboard is also reachable from the internet at
+
+  https://{{ .Values.grafana.route.hostname }}
+
+{{- end }}
+{{- end }}
+
+{{- if .Values.dex.create }}
+
+4. Dex was enabled.
+
+  !!!!! Dex is only supported for demo purposes. Use a properly configured IdP for production purposes. !!!!!
 {{- end }}

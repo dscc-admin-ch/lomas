@@ -27,7 +27,7 @@ server:
         method: "jitter" # or "stall"
         magnitude: 1
     authenticator:
-      oidc_discovery_url: http://dada-lomas-dex.lab.sspcloud.fr/.well-known/openid-configuration
+      oidc_discovery_url: https://lomas-dex.example.com/.well-known/openid-configuration
       query_userinfo: true
       authentication_type: oidc
     opendp_features: ["contrib", "floating-point", "honest-but-curious"]
@@ -42,16 +42,26 @@ server:
       service_name: lomas_server_app
       service_id: default-host
 
-  # Used for sqlite admin db
   pvc:
-    storageClassName: "" # is not set if empty string
-    sizeLimit: 500Mi
-    sizeRequest: 500Mi
-    accessMode: "ReadWriteOnce"
-    persistence:
-      # If set to "keep", sets the helm/resource-policy of the pvc to keep,
-      # so that the pvc is not deleted across reinstalls.
-      resourcePolicy: ""
+    db: # used for sqlite admin db
+      storageClassName: "" # is not set if empty string
+      sizeLimit: 500Mi
+      sizeRequest: 500Mi
+      accessMode: "ReadWriteOnce"
+      persistence:
+        # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+        # so that the pvc is not deleted across reinstalls.
+        resourcePolicy: ""
+    data: # used for storing data (e.g. csv), mounted to /data at both server and worker.
+      enable: false
+      storageClassName: "ReadWriteMany" # is not set if empty string
+      sizeLimit: 2Gi
+      sizeRequest: 1Gi
+      accessMode: "Re"
+      persistence:
+        # If set to "keep", sets the helm/resource-policy of the pvc to keep,
+        # so that the pvc is not deleted across reinstalls.
+        resourcePolicy: ""
 
   service:
     type: ClusterIP
@@ -63,7 +73,7 @@ server:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "dada-lomas.lab.sspcloud.fr"
+    hostname: "lomas.example.com"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -73,11 +83,6 @@ server:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
 
-  # We leave unset stuff here
-  serviceAccount:
-    create: false
-    annotations: {}
-    name: ""
   resources: {}
     # limits:
     #   cpu: 100m
@@ -94,10 +99,6 @@ server:
 
 worker:
   replicaCount: 2
-  serviceAccount:
-    create: false
-    annotations: {}
-    name: ""
   resources: {}
   podAnnotations: {}
   podSecurityContext: {}
@@ -110,16 +111,17 @@ worker:
 ##########################################################################
 
 demoSetupJob:
-  enable: true
+  create: true
 
   image:
     repository: dsccadminch/lomas-raw
     pullPolicy: Always
     tag: sha-ff0c92c
 
-  params:
-    userYamlPath: "/collections/user_collection.yaml"
-    datasetYamlPath: "/collections/dataset_collection.yaml"
+  config:
+    serverUrl: "https://lomas.example.com"
+    userYamlPath: "/data/collections/user_collection.yaml"
+    datasetYamlPath: "/data/collections/dataset_collection.yaml"
 
   initContainers:
     resources:
@@ -130,11 +132,6 @@ demoSetupJob:
         cpu: 50m
         memory: 400Mi
 
-  # We leave unset stuff here
-  serviceAccount:
-    create: false
-    annotations: {}
-    name: ""
   resources: {}
     # limits:    #   cpu: 100m
     #   memory: 128Mi
@@ -156,19 +153,23 @@ dashboard:
     pullPolicy: Always
     tag: sha-ff0c92c
 
+  config:
+    # Specified here in case server ingress not managed by this chart.
+    serverUrl: "https://lomas.example.com/"
+
   serverConfig:
     port: "8501"
-    baseUrlPath: "/"
+    baseUrlPath: ""
 
   streamlitServerSecrets:
     existingSecret: ""
     existingSecretKey: ""
-    value:
+    value: # Following in TOML format if stored in secret.
       auth:
         clientId: lomas_dashboard
         clientSecret: lomas_dashboard
-        redirectUri: https://dada-lomas-dashboard.lab.sspcloud.fr/oauth2callback
-        serverMetadataUrl: https://dada-lomas-dex.lab.sspcloud.fr/.well-known/openid-configuration
+        redirectUri: https://lomas-dashboard.example.com/oauth2callback
+        serverMetadataUrl: https://lomas-dex.example.com/.well-known/openid-configuration
         cookieSecret: changeme
         exposeTokens:
           - access
@@ -184,7 +185,7 @@ dashboard:
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    hostname: "dada-lomas-dashboard.lab.sspcloud.fr"
+    hostname: "lomas-dashboard.example.com"
   # Openshift route for Openshift clusters.
   route:
     enabled: false
@@ -194,11 +195,6 @@ dashboard:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
 
-  # We leave unset stuff here
-  serviceAccount:
-    create: false
-    annotations: {}
-    name: ""
   resources: {}
     # limits:
     #   cpu: 100m
@@ -586,16 +582,32 @@ rabbitmq:
 
 # Dex
 ##########################################################################
+
+
+##########################################################################
+# ! For demo purposes only !
+##########################################################################
+
 dex:
   create: true
   fullnameOverride: "lomas-dex"
+
   ingress:
     enabled: true
     hosts:
-      - host: "dada-lomas-dex.lab.sspcloud.fr"
+      - host: "lomas-dex.example.com"
         paths:
           - path: /
             pathType: Prefix
+
+  route: # Route is implemented by lomas chart.
+    enabled: false
+    annotations: {}
+    hostname: "example.com"
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+
   rbac:
     create: false
   serviceAccount:
@@ -612,14 +624,10 @@ dex:
     storage:
       type: "memory"
     enablePasswordDB: true
-    issuer: dada-lomas-dex.lab.sspcloud.fr
+    issuer: https://lomas-dex.example.com
     oauth2:
       passwordConnector: local
     staticClients:
-    - id: lomas_api
-      name: lomas_api
-      public: false
-      secret: lomas_api
     - id: lomas_client
       name: lomas_client
       public: true
@@ -629,13 +637,5 @@ dex:
       name: lomas_dashboard
       public: false
       redirectURIs:
-      - https://dada-lomas-dashboard.lab.sspcloud.fr/oauth2callback
+      - https://lomas-dashboard.example.com/oauth2callback
       secret: lomas_dashboard
-
-    # staticPasswords:
-    # - email: "lomas_admin@example.com"
-    #   username: "lomas_admin"
-    #   preferredUsername: "lomas_admin"
-    #   userID: "lomas_admin"
-    #   hash: "$2y$10$sdO1lq0.L9WZKlJrlxS7UuxrtdnvNTFAb573R0RZh9R.bPbH/lF4K"
-

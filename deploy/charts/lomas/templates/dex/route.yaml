@@ -1,0 +1,27 @@
+{{- if .Values.dex.create }}
+{{- if .Values.dex.route.enabled -}}
+{{- $dexContext := (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) -}}
+{{- $fullName := include "dex.fullname" $dexContext -}}
+{{- $svcPort := .Values.dex.service.ports.http.port -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "dex.labels" $dexContext | nindent 4 }}
+  {{- with .Values.dex.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.dex.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: {{ $svcPort }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.dex.route.tls | nindent 8 }}
+{{- end }}
+{{- end }}

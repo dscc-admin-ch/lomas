@@ -1,4 +1,4 @@
-{{- if .Values.demoSetupJob.enable -}}
+{{- if .Values.demoSetupJob.create -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -35,15 +35,18 @@ spec:
           imagePullPolicy: {{ .Values.demoSetupJob.image.pullPolicy }}
           command: ["lomas-demo-setup"]
           env:
+            {{- if .Values.dex.create }}
+            # Dex config is optional
             - name: LOMAS_ADMIN_DEX_CONFIG__URL
               value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
+            {{- end }}
             - name: LOMAS_ADMIN_USER_YAML
-              value: {{ .Values.demoSetupJob.params.userYamlPath }}
+              value: {{ .Values.demoSetupJob.config.userYamlPath }}
               value: "/data/collections/user_collection.yaml"
             - name: LOMAS_ADMIN_DATASET_YAML
-              value: {{ .Values.demoSetupJob.params.datasetYamlPath }}
+              value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
             - name: LOMAS_ADMIN_SERVER_URL
-              value: "https://{{ .Values.server.ingress.hostname }}/"
+              value: "https://{{ .Values.demoSetupJob.config.serverUrl }}/"
             - name: LOMAS_ADMIN_SERVER_SERVICE
               value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
             - name: LOMAS_ADMIN_BOOTSTRAP

@@ -1,9 +1,10 @@
 import httpx
 import streamlit as st
+from returns.converters import maybe_to_result
 from returns.io import IOFailure, IOSuccess
-from returns.maybe import Maybe, Some
+from returns.maybe import Maybe
 from returns.pipeline import flow
-from returns.pointfree import map_
+from returns.pointfree import bind_result, map_
 from returns.result import Failure, Success
 
 from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth
@@ -90,13 +91,15 @@ def about() -> None:
         case IOFailure(Failure(e)):
             st.error(f"Configuration Error: {e}")
 
-    match flow(get_config(), map_(lambda config: Maybe.from_optional(config.dex_config))):
-        case IOSuccess(Success(Some(_))):
-            st.write(
-                ":red-badge[Dex is enabled.] Dex is only supported for demo purposes and is not safe for a production environment!"
-            )
-        case _:
-            pass
+    flow(
+        get_config(),
+        map_(lambda config: Maybe.from_optional(config.dex_config)),
+        bind_result(maybe_to_result),
+    ).map(
+        lambda _: st.write(
+            ":red-badge[Dex is enabled.] Dex is only supported for demo purposes and is not safe for a production environment!"
+        )
+    )
 
 
 if __name__ == "__main__":

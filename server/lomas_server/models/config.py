@@ -86,6 +86,7 @@ class Server(BaseModel):
     host_ip: str
     host_port: int
     log_level: str
+    lomas_log_level: str
     reload: bool = Field(default=False)
     forwarded_allow_ips: list[str] | str = Field(default="*")
     root_path: str = Field(default="/api")

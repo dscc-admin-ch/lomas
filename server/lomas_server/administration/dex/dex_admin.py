@@ -8,7 +8,7 @@ from returns.io import IOResultE, IOSuccess, impure_safe
 from returns.iterables import Fold
 
 from lomas_core.models.collections import UserCollection
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger
 from lomas_server.administration.dex.api.api_pb2 import (
     CreatePasswordReq,
     DeletePasswordReq,
@@ -19,7 +19,7 @@ from lomas_server.administration.dex.api.api_pb2 import (
 from lomas_server.administration.dex.api.api_pb2_grpc import DexStub
 from lomas_server.models.config import DexAdminConfig
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class InvalidDexOperation(Exception):

@@ -12,11 +12,11 @@ from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, OIDC_R
 from lomas_client.models.config import ClientConfig
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
 from lomas_core.models.config import OIDCDeviceCodeResponse
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class LomasHttpClient:

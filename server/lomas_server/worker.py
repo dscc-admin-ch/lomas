@@ -22,7 +22,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -50,7 +50,7 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 AioPikaInstrumentor().instrument()
 

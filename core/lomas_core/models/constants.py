@@ -55,18 +55,36 @@ class AuthenticationType(StrEnum):
 # -----------------------------------------------------------------------------
 
 
-def init_logging(name: str = "root", level: str = "INFO") -> logging.Logger:
+def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
     # Set root logger config
     logging.basicConfig(
         format="%(message)s %(name)s",
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
+        level=level,
     )
+
+    logging.getLogger(name).setLevel(lomas_level)
+
+    # for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
+    #     logging.getLogger(loggers).setLevel(logging.INFO)
+
+
+def get_lomas_logger(name: str, level: str = "NOTSET") -> logging.Logger:
+    """Get a logger with set level.
+
+    Default level is always unset (getLogger default is warning).
+
+    Args:
+        name (str): Name of the logger.
+        level (str, optional): Logging level. Defaults to "NOTSET".
+
+    Returns:
+        logging.Logger: Named logger with correct level.
+    """
     # Set level for current logger
     logging.getLogger(name).setLevel(level)
 
-    for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
-        logging.getLogger(loggers).setLevel(logging.INFO)
     return logging.getLogger(name)
 
 

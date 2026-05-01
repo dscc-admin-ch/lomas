@@ -10,7 +10,7 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -64,7 +64,11 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 # Init config for logging purposes
 initConfig = Config()
 
-logger = init_logging(__name__, level=initConfig.server.log_level)
+init_logging(
+    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
+)
+
+logger = get_lomas_logger(__name__)
 
 
 # Initalise telemetry

@@ -9,14 +9,14 @@ from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
-from lomas_core.models.constants import OpenDPFeatures, init_logging
+from lomas_core.models.constants import OpenDPFeatures, get_lomas_logger
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.constants import OpenDPMeasurement
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):

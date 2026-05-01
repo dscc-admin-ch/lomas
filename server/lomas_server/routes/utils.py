@@ -22,7 +22,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
-from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, init_logging
+from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
 from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -35,7 +35,7 @@ from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 AioPikaInstrumentor().instrument()
 

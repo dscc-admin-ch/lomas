@@ -21,7 +21,8 @@ server:
     server:
       host_port: "48080"
       root_path: "/"
-      log_level: "info"
+      log_level: "INFO" # only capital works
+      lomas_log_level: "DEBUG"
       submit_limit: 300
       time_attack:
         method: "jitter" # or "stall"

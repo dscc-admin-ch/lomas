@@ -55,6 +55,8 @@ spec:
             value: "{{ .Values.server.runtime_args.server.root_path }}"
           - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
             value: "{{ .Values.server.runtime_args.server.log_level }}"
+          - name: LOMAS_SERVICE_SERVER__LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
           - name: LOMAS_SERVICE_SERVER__RELOAD
             value: "false"
           - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT

@@ -61,14 +61,23 @@ spec:
           - name: LOMAS_ADMIN_DATASET_YAML
             value: "/dev/null" # dashboard does not need this.
           - name: LOMAS_ADMIN_SERVER_URL
-            value: "https://{{ .Values.dashboard.config.serverUrl }}/"
+            value: "{{ .Values.dashboard.config.serverUrl }}"
           - name: LOMAS_ADMIN_SERVER_SERVICE
             value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
           - name: LOMAS_ADMIN_BOOTSTRAP
             value: "" # dashboard does not need bootstrap
+          {{- if .Values.global.configCABundle.enable }}
+          - name: REQUESTS_CA_BUNDLE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          {{- end }}
         volumeMounts:
           - name: config
             mountPath: /config
+          {{- if .Values.global.configCABundle.enable }}
+          - name: trusted-cabundle
+            mountPath: /etc/ssl/certs/{{ .Values.global.configCABundle.filename }}
+            subPath: {{ .Values.global.configCABundle.filename }}
+          {{- end }}
       volumes:
         - name: config
           secret:
@@ -76,7 +85,14 @@ spec:
             items:
               - key: {{ include "lomas.dashboard.secretKey" .}}
                 path: secrets.toml
-
+        {{- if .Values.global.configCABundle.enable }}
+        - name: trusted-cabundle
+          configMap:
+            name: {{ .Values.global.configCABundle.name }}
+            items:
+              - key: {{ .Values.global.configCABundle.key }}
+                path: {{ .Values.global.configCABundle.filename }}
+        {{- end }}
       {{- with .Values.dashboard.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

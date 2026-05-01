@@ -1,8 +1,7 @@
 {{- if .Values.dex.create }}
 {{- if .Values.dex.route.enabled -}}
-{{- $dexContext := (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) -}}
+{{- $dexContext := (dict "Release" .Release "Chart" (dict "Name" "dex" "Version" "0.24.0") "Values" .Values.dex) -}}
 {{- $fullName := include "dex.fullname" $dexContext -}}
-{{- $svcPort := .Values.dex.service.ports.http.port -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -17,11 +16,13 @@ spec:
   host: {{ .Values.dex.route.hostname | quote }}
   path: /
   port:
-    targetPort: {{ $svcPort }}
+    targetPort: 5556 # In openshift, this port is the pod target port, not the service target port.
   to:
     kind: Service
     name: {{ $fullName }}
   tls:
     {{- toYaml .Values.dex.route.tls | nindent 8 }}
+  httpHeaders:
+    forwardedHeaderPolicy: if-none
 {{- end }}
 {{- end }}

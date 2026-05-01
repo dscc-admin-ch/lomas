@@ -23,8 +23,6 @@ from lomas_server.routes.middlewares import (
 )
 from lomas_server.routes.utils import rabbitmq_ctx
 
-logger = init_logging(__name__)
-
 
 @asynccontextmanager
 async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
@@ -65,6 +63,9 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
 # Init config for logging purposes
 initConfig = Config()
+
+logger = init_logging(__name__, level=initConfig.server.log_level)
+
 
 # Initalise telemetry
 if initConfig.telemetry.enabled:

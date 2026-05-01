@@ -58,7 +58,7 @@ class AuthenticationType(StrEnum):
 def init_logging(name: str = "root", level: str = "INFO") -> logging.Logger:
     # Set root logger config
     logging.basicConfig(
-        format="%(message)s",
+        format="%(message)s %(name)s",
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
     )

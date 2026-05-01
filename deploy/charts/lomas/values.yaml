@@ -83,6 +83,10 @@ server:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
 
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
   resources: {}
     # limits:
     #   cpu: 100m
@@ -195,6 +199,10 @@ dashboard:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
 
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
   resources: {}
     # limits:
     #   cpu: 100m

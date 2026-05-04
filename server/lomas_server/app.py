@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
@@ -74,6 +75,8 @@ logger = get_lomas_logger(__name__)
 # Initalise telemetry
 if initConfig.telemetry.enabled:
     LoggingInstrumentor().instrument(set_logging_format=True)
+    AioPikaInstrumentor().instrument()
+
     init_telemetry(initConfig.telemetry)
 
 # This object holds the server object

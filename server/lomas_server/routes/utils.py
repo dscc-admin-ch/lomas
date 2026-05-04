@@ -14,7 +14,6 @@ import aio_pika
 from aio_pika.patterns import RPC
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
-from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
 from lomas_core.constants import DPLibraries
 from lomas_core.error_handler import (
@@ -36,8 +35,6 @@ from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
 
 logger = get_lomas_logger(__name__)
-
-AioPikaInstrumentor().instrument()
 
 
 async def process_response(

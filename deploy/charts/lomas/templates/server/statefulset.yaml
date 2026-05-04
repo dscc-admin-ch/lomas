@@ -63,6 +63,8 @@ spec:
             value: "{{ .Values.server.runtime_args.server.root_path }}"
           - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
             value: "{{ .Values.server.runtime_args.server.log_level }}"
+          - name: LOMAS_SERVICE_SERVER__LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
           - name: LOMAS_SERVICE_SERVER__RELOAD
             value: "false"
           - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT
@@ -111,6 +113,8 @@ spec:
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
           {{- if .Values.global.configCABundle.enable }}
           - name: REQUESTS_CA_BUNDLE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          - name: SSL_CERT_FILE
             value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
           {{- end }}
       volumes:

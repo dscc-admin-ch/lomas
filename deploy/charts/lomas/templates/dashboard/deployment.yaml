@@ -69,6 +69,8 @@ spec:
           {{- if .Values.global.configCABundle.enable }}
           - name: REQUESTS_CA_BUNDLE
             value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          - name: SSL_CERT_FILE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
           {{- end }}
         volumeMounts:
           - name: config

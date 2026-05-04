@@ -52,11 +52,6 @@ from lomas_server.routes.utils import rabbitmq_connect_queue
 
 logger = get_lomas_logger(__name__)
 
-AioPikaInstrumentor().instrument()
-
-config = Config()
-set_opendp_features_config(config.opendp_features)
-
 
 def handle_exceptions(exc: BaseException) -> JSONResponse:
     """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization.
@@ -242,7 +237,7 @@ def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
     tg.create_task(force_terminate_task_group())
 
 
-async def process_all_queues() -> None:
+async def process_all_queues(config: Config) -> None:
     """Handle & await all pika processing queues."""
     loop = asyncio.get_running_loop()
     connection = await rabbitmq_connect_queue(config)
@@ -283,12 +278,17 @@ async def process_all_queues() -> None:
 
 def run() -> None:
     """Start the Worker loop."""
+    config = Config()
+
+    set_opendp_features_config(config.opendp_features)
+
     if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)
+        AioPikaInstrumentor().instrument()
         init_telemetry(config.telemetry)
 
     logger.info("Waiting for messages. To exit press CTRL+C")
-    asyncio.run(process_all_queues())
+    asyncio.run(process_all_queues(config))
 
 
 if __name__ == "__main__":

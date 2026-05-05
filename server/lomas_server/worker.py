@@ -22,7 +22,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import get_lomas_logger
+from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -49,6 +49,13 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
+
+# Init config for logging purposes
+initConfig = Config()
+
+init_logging(
+    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
+)
 
 logger = get_lomas_logger(__name__)
 

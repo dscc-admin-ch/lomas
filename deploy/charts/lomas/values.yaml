@@ -194,13 +194,7 @@ dashboard:
     create: false
     annotations: {}
     name: ""
-  resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 500m
-      memory: 512Mi
+  resources: {}
   podAnnotations: {}
   podSecurityContext: {}
     # fsGroup: 2000

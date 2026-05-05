@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
@@ -10,7 +11,7 @@ from lomas_core.error_handler import (
     add_exception_handlers,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
@@ -22,8 +23,6 @@ from lomas_server.routes.middlewares import (
     LoggingAndTracingMiddleware,
 )
 from lomas_server.routes.utils import rabbitmq_ctx
-
-logger = init_logging(__name__)
 
 
 @asynccontextmanager
@@ -66,9 +65,18 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 # Init config for logging purposes
 initConfig = Config()
 
+init_logging(
+    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
+)
+
+logger = get_lomas_logger(__name__)
+
+
 # Initalise telemetry
 if initConfig.telemetry.enabled:
     LoggingInstrumentor().instrument(set_logging_format=True)
+    AioPikaInstrumentor().instrument()
+
     init_telemetry(initConfig.telemetry)
 
 # This object holds the server object

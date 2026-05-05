@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.worker.fullname" . }}
+  labels:
+    {{- include "lomas.worker.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.worker.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.worker.replicaCount }}
+  template:
+    metadata:
+      {{- with .Values.worker.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.worker.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.worker.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      containers:
+      - name: {{ include "lomas.worker.fullname" . }}
+        securityContext:
+            {{- toYaml .Values.worker.securityContext | nindent 12 }}
+        resources:
+          {{- toYaml .Values.worker.resources | nindent 10 }}
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        command: ["lomas-work"]
+        ports:
+          - name: http
+            containerPort: {{ .Values.server.runtime_args.server.host_port }}
+            protocol: TCP
+        volumeMounts:
+          {{- if .Values.server.pvc.data.enabled }}
+          - name: data
+            mountPath: /data
+          {{- end }}
+        env:
+          - name: LOMAS_SERVICE_BOOTSTRAP
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.secretName" . }}
+                key: {{ include "lomas.server.bootstrapSecretKey" . }}
+          - name: LOMAS_SERVICE_SERVER__HOST_IP
+            value: "0.0.0.0"
+          - name: LOMAS_SERVICE_SERVER__HOST_PORT
+            value: "{{ .Values.server.runtime_args.server.host_port }}"
+          - name: LOMAS_SERVICE_SERVER__ROOT_PATH
+            value: "{{ .Values.server.runtime_args.server.root_path }}"
+          - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.log_level }}"
+          - name: LOMAS_SERVICE_SERVER__LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
+          - name: LOMAS_SERVICE_SERVER__RELOAD
+            value: "false"
+          - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT
+            value: "{{ .Values.server.runtime_args.server.submit_limit }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__METHOD
+            value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
+            value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
+            value: "/persistent-storage/admin.db"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
+            value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
+            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}" # todo change recover from dex values?
+          - name: LOMAS_SERVICE_AUTHENTICATOR__QUERY_USERINFO
+            value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"
+          {{- range $i, $credSecretName := (include "lomas.server.private-db-credentials-secrets" $) | fromYamlArray }}
+          - name: LOMAS_SERVICE_PRIVATE_DB_CREDENTIALS__{{ $i }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $credSecretName }}
+                key: private-db-credentials
+          {{- end }}
+          - name: LOMAS_SERVICE_TELEMETRY__ENABLED
+            value: "{{ .Values.server.runtime_args.telemetry.enabled }}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_NAME
+            value: "{{ .Values.server.runtime_args.telemetry.service_name}}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
+            value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
+            value: "http://{{ include "lomas.otel.fullname" . }}:{{ .Values.otel.service.port }}"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
+            value: "true"
+          - name: LOMAS_SERVICE_AMQP__URL
+            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
+          - name: LOMAS_SERVICE_AMQP__HEARTBEAT
+            value: "{{ .Values.rabbitmq.heartbeat_client }}"
+          - name: LOMAS_SERVICE_AMQP__USERNAME
+            value: "{{ .Values.rabbitmq.auth.username }}"
+          - name: LOMAS_SERVICE_AMQP__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
+                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
+          - name: LOMAS_SERVICE_OPENDP_FEATURES
+            value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
+      volumes:
+        {{- if .Values.server.pvc.data.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.dataPVCName" . }}
+        {{- end }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

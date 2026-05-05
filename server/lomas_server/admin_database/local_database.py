@@ -23,7 +23,7 @@ from lomas_core.models.collections import (
     UserCollection,
     UserId,
 )
-from lomas_core.models.constants import PrivateDatabaseType, init_logging
+from lomas_core.models.constants import PrivateDatabaseType, get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.admin_database import (
@@ -40,7 +40,7 @@ else:
     from typing_extensions import override
 
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class LocalAdminDatabase(AdminDatabase):
@@ -235,7 +235,7 @@ class LocalAdminDatabase(AdminDatabase):
         metadata_access: dict[str, Any] = {"database_type": metadata_database_type}
         if metadata_database_type == PrivateDatabaseType.PATH:
             # Store metadata to metadata collection
-            metadata_dict = json.loads(Path(metadata_path).resolve().read_text())
+            metadata_dict = json.loads(Path(metadata_path).resolve().read_text(encoding="utf-8"))
             metadata_access["path"] = metadata_path
 
         elif metadata_database_type == PrivateDatabaseType.S3:

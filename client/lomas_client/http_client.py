@@ -4,20 +4,19 @@ import time
 from pathlib import Path
 
 import requests
-from authlib.integrations.base_client.errors import OAuthError
-from authlib.integrations.requests_client import OAuth2Session
-from authlib.oauth2.rfc6749.errors import OAuth2Error
+from authlib.integrations.requests_client import OAuth2Session, OAuthError
+from authlib.oauth2.base import OAuth2Error
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
 from lomas_core.models.config import OIDCDeviceCodeResponse
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class LomasHttpClient:
@@ -46,7 +45,7 @@ class LomasHttpClient:
 
         try:
             self._oauth2_session.refresh_token()
-        except (OAuth2Error, AttributeError, requests.HTTPError):
+        except (OAuth2Error, OAuthError, AttributeError, requests.HTTPError):
             # Fallback to authorize
             # We catch http errors because dex fails when it cannot link a token to existing user.
             # We catch attribute error in case the token is none

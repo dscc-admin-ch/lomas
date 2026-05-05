@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -14,7 +14,7 @@ from lomas_core.models.exceptions import (
     UnauthorizedAccessExceptionModel,
 )
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class InvalidQueryException(Exception):

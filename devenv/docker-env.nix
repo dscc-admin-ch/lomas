@@ -13,11 +13,11 @@ let
     mkEnableOption
     ;
 
-  # attribute Set to KEY=VALUE format
-  toINI = lib.generators.toKeyValue { };
-
   # Filter env variable by their prefix
   filterEnvPrefix = prefix: lib.filterAttrs (name: value: lib.strings.hasPrefix prefix name) config.env;
+
+  inherit (lib.strings) hasPrefix substring stringLength;
+  stripPath = strPath: if (hasPrefix "/" strPath) then (substring 1 (stringLength strPath) strPath) else strPath;
 in
 {
   options.dockerEnv = {
@@ -123,73 +123,97 @@ in
 
     };
 
-    outputs.lomas-oci = pkgs.dockerTools.streamLayeredImage {
-      name = "lomas-oci";
-      tag = "latest";
+    outputs =
+      let
+        LOMAS_ADMIN_USER_YAML = "/data/collections/user_collection.yaml";
+        LOMAS_ADMIN_DATASET_YAML = "/data/collections/dataset_collection.yaml";
+      in
+      rec {
+        lomas-oci-raw = pkgs.dockerTools.buildLayeredImage {
+          name = "lomas-oci-raw";
+          tag = "latest";
+          contents = builtins.attrValues {
+            inherit (pkgs.dockerTools) binSh usrBinEnv caCertificates;
+            inherit (pkgs)
+              bashInteractive
+              coreutils-full
+              dnsutils
+              wget
+              curl
+              which
+              file
+              bind
+              git
+              ;
+            inherit (config.outputs) lomas-env;
+            lomas-dashboard = (
+              pkgs.writeShellScriptBin "lomas-dashboard" ''
+                cd ${config.outputs.lomas-env}/lib/python*/site-packages/
+                streamlit run lomas-server/administration/dashboard/about.py
+              ''
+            );
+          };
+          extraCommands = ''
+            install -dm 1777 tmp
+            install -Dm 644 ${../server/data/collections/user_collection.yaml} ${stripPath LOMAS_ADMIN_USER_YAML}
+            install -Dm 644 ${../server/data/collections/dataset_collection.yaml} ${stripPath LOMAS_ADMIN_DATASET_YAML}
 
-      contents = builtins.attrValues {
-        inherit (pkgs.dockerTools) binSh usrBinEnv caCertificates;
-        inherit (pkgs)
-          bashInteractive
-          coreutils-full
-          dnsutils
-          wget
-          curl
-          which
-          file
-          bind
-          git
-          ;
-        inherit (config.outputs) lomas-env;
-        lomas-dashboard = (
-          pkgs.writeShellScriptBin "lomas-dashboard" ''
-            cd ${config.outputs.lomas-env}/lib/python*/site-packages/
-            streamlit run lomas-server/administration/dashboard/about.py
-          ''
-        );
-      };
-
-      extraCommands = ''
-        mkdir -p tmp
-        chmod 777 tmp
-      '';
-
-      config = with config.lomas; {
-        Cmd = [ "lomas-serve" ];
-        Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") (
-          (filterEnvPrefix "LOMAS_SERVICE_")
-          // (filterEnvPrefix "LOMAS_CLIENT_")
-          // (filterEnvPrefix "LOMAS_ADMIN_")
-          // (filterEnvPrefix "STREAMLIT_")
-          // {
-            LOMAS_SERVICE_server__host_ip = "0.0.0.0";
-            LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq.port}";
-            LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${toString dex.port}${dex.path}/.well-known/openid-configuration";
-            LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString telemetry.services.otlp.ports.grpc}";
-            LOMAS_SERVICE_data_directory = "/data";
-
-            LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString port}";
-            LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${toString dex.port}${dex.path}/.well-known/openid-configuration";
-            LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString telemetry.services.otlp.ports.grpc}";
-
-            LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString dex.adminPort}";
-            LOMAS_ADMIN_USER_YAML = "/data/collections/user_collection.yaml";
-            LOMAS_ADMIN_DATASET_YAML = "/data/collections/dataset_collection.yaml";
-            LOMAS_ADMIN_server_service = "http://lomas_server:${toString port}";
-            LOMAS_ADMIN_server_url = "http://lomas_server:${toString port}";
-          }
-        );
-        ExposedPorts = {
-          "${toString port}" = { };
-          "${toString client.jupyter.port}" = { };
-          "${toString dashboard.port}" = { };
+            install -dm 755 data/collections/
+            cp -r --no-preserve=all ${../server/data/collections}/metadata data/collections/
+          '';
+          config = {
+            Cmd = [ "lomas-serve" ];
+            Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
+              inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
+            };
+            Volumes = {
+              "/data/collections" = { };
+              "/data/datasets" = { };
+            };
+          };
+          maxLayers = 2;
         };
-        Volumes = {
-          "/data/collections" = { };
-          "/data/datasets" = { };
+
+        lomas-oci = pkgs.dockerTools.buildLayeredImage {
+          name = "lomas-oci";
+          tag = "latest";
+          fromImage = lomas-oci-raw;
+          config = with config.lomas; {
+            Cmd = [ "lomas-serve" ];
+            Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") (
+              (filterEnvPrefix "LOMAS_SERVICE_")
+              // (filterEnvPrefix "LOMAS_CLIENT_")
+              // (filterEnvPrefix "LOMAS_ADMIN_")
+              // (filterEnvPrefix "STREAMLIT_")
+              // {
+                LOMAS_SERVICE_server__host_ip = "0.0.0.0";
+                LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${toString rabbitmq.port}";
+                LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${toString dex.port}${dex.path}/.well-known/openid-configuration";
+                LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${toString telemetry.services.otlp.ports.grpc}";
+                LOMAS_SERVICE_data_directory = "/data";
+
+                LOMAS_CLIENT_APP_URL = "http://lomas_server:${toString port}";
+                LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${toString dex.port}${dex.path}/.well-known/openid-configuration";
+                LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${toString telemetry.services.otlp.ports.grpc}";
+
+                LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${toString dex.adminPort}";
+                inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
+                LOMAS_ADMIN_server_service = "http://lomas_server:${toString port}";
+                LOMAS_ADMIN_server_url = "http://lomas_server:${toString port}";
+              }
+            );
+            ExposedPorts = {
+              "${toString port}" = { };
+              "${toString client.jupyter.port}" = { };
+              "${toString dashboard.port}" = { };
+            };
+            Volumes = {
+              "/data/collections" = { };
+              "/data/datasets" = { };
+            };
+          };
         };
       };
-    };
 
   };
 }

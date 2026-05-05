@@ -10,11 +10,11 @@ from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID, Scopes
 from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
-from lomas_core.models.constants import AuthenticationType, init_logging
+from lomas_core.models.constants import AuthenticationType, get_lomas_logger
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import OIDCClaims
 
-logger = init_logging(__name__)
+logger = get_lomas_logger(__name__)
 
 
 class FreePassAuthenticator(BaseModel):

@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "lomas.server.fullname" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.server.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.server.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      containers:
+      - name: {{ include "lomas.server.fullname" . }}
+        securityContext:
+            {{- toYaml .Values.server.securityContext | nindent 12 }}
+        resources:
+          {{- toYaml .Values.server.resources | nindent 10}}
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        command:
+          - lomas-serve
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.server.runtime_args.server.host_port }}
+            protocol: TCP
+        volumeMounts:
+          - name: db
+            mountPath: /db
+          {{- if .Values.server.pvc.data.enabled }}
+          - name: data
+            mountPath: /data
+          {{- end }}
+          {{- if .Values.global.configCABundle.enabled }}
+          - name: trusted-cabundle
+            mountPath: /etc/ssl/certs/{{ .Values.global.configCABundle.filename }}
+            subPath: {{ .Values.global.configCABundle.filename }}
+          {{- end }}
+        env:
+          - name: LOMAS_SERVICE_BOOtSTRAP
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "lomas.server.secretName" . }}
+                key: {{ include "lomas.server.bootstrapSecretKey" . }}
+          - name: LOMAS_SERVICE_SERVER__HOST_IP
+            value: "0.0.0.0"
+          - name: LOMAS_SERVICE_SERVER__HOST_PORT
+            value: "{{ .Values.server.runtime_args.server.host_port }}"
+          - name: LOMAS_SERVICE_SERVER__ROOT_PATH
+            value: "{{ .Values.server.runtime_args.server.root_path }}"
+          - name: LOMAS_SERVICE_SERVER__LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.log_level }}"
+          - name: LOMAS_SERVICE_SERVER__LOMAS_LOG_LEVEL
+            value: "{{ .Values.server.runtime_args.server.lomas_log_level }}"
+          - name: LOMAS_SERVICE_SERVER__RELOAD
+            value: "false"
+          - name: LOMAS_SERVICE_SERVER__SUBMIT_LIMIT
+            value: "{{ .Values.server.runtime_args.server.submit_limit }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__METHOD
+            value: "{{ .Values.server.runtime_args.server.time_attack.method }}"
+          - name: LOMAS_SERVICE_SERVER__TIME_ATTACK__MAGNITUDE
+            value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
+          - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
+            value: "/db/admin.db"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
+            value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL
+            value: "{{ .Values.server.runtime_args.authenticator.oidc_discovery_url }}"
+          - name: LOMAS_SERVICE_AUTHENTICATOR__QUERY_USERINFO
+            value: "{{ .Values.server.runtime_args.authenticator.query_userinfo }}"
+          {{- range $i, $credSecretName := (include "lomas.server.private-db-credentials-secrets" $) | fromYamlArray }}
+          - name: LOMAS_SERVICE_PRIVATE_DB_CREDENTIALS__{{ $i }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $credSecretName }}
+                key: private-db-credentials
+          {{- end }}
+          - name: LOMAS_SERVICE_TELEMETRY__ENABLED
+            value: "{{ .Values.server.runtime_args.telemetry.enabled }}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_NAME
+            value: "{{ .Values.server.runtime_args.telemetry.service_name }}"
+          - name: LOMAS_SERVICE_TELEMETRY__SERVICE_ID
+            value: "{{ .Values.server.runtime_args.telemetry.service_id}}"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_ENDPOINT
+            value: "http://{{ include "lomas.otel.fullname" . }}:{{ .Values.otel.service.port }}"
+          - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
+            value: "true"
+          - name: LOMAS_SERVICE_AMQP__URL
+            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
+          - name: LOMAS_SERVICE_AMQP__HEARTBEAT
+            value: "{{ .Values.rabbitmq.heartbeat_client }}"
+          - name: LOMAS_SERVICE_AMQP__USERNAME
+            value: "{{ .Values.rabbitmq.auth.username }}"
+          - name: LOMAS_SERVICE_AMQP__PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
+                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
+          - name: LOMAS_SERVICE_OPENDP_FEATURES
+            value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
+          {{- if .Values.global.configCABundle.enabled }}
+          - name: REQUESTS_CA_BUNDLE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          - name: SSL_CERT_FILE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          {{- end }}
+      volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.dbPVCName" .}}
+        {{- if .Values.server.pvc.data.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "lomas.server.dataPVCName" . }}
+        {{- end }}
+        {{- if .Values.global.configCABundle.enabled }}
+        - name: trusted-cabundle
+          configMap:
+            name: {{ .Values.global.configCABundle.name }}
+            items:
+              - key: {{ .Values.global.configCABundle.key }}
+                path: {{ .Values.global.configCABundle.filename }}
+        {{- end }}
+      {{- with .Values.server.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

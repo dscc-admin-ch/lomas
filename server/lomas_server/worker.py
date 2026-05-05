@@ -22,7 +22,7 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import init_logging
+from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
@@ -50,12 +50,14 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-logger = init_logging(__name__)
+# Init config for logging purposes
+initConfig = Config()
 
-AioPikaInstrumentor().instrument()
+init_logging(
+    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
+)
 
-config = Config()
-set_opendp_features_config(config.opendp_features)
+logger = get_lomas_logger(__name__)
 
 
 def handle_exceptions(exc: BaseException) -> JSONResponse:
@@ -242,7 +244,7 @@ def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
     tg.create_task(force_terminate_task_group())
 
 
-async def process_all_queues() -> None:
+async def process_all_queues(config: Config) -> None:
     """Handle & await all pika processing queues."""
     loop = asyncio.get_running_loop()
     connection = await rabbitmq_connect_queue(config)
@@ -283,12 +285,17 @@ async def process_all_queues() -> None:
 
 def run() -> None:
     """Start the Worker loop."""
+    config = Config()
+
+    set_opendp_features_config(config.opendp_features)
+
     if config.telemetry.enabled:
         LoggingInstrumentor().instrument(set_logging_format=True)
+        AioPikaInstrumentor().instrument()
         init_telemetry(config.telemetry)
 
     logger.info("Waiting for messages. To exit press CTRL+C")
-    asyncio.run(process_all_queues())
+    asyncio.run(process_all_queues(config))
 
 
 if __name__ == "__main__":

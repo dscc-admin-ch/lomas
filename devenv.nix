@@ -200,7 +200,8 @@ in
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;
     LOMAS_SERVICE_server__host_port = config.lomas.port;
-    LOMAS_SERVICE_server__log_level = "info";
+    LOMAS_SERVICE_server__log_level = "INFO";
+    LOMAS_SERVICE_server__lomas_log_level = "DEBUG";
     LOMAS_SERVICE_server__reload = "true";
     LOMAS_SERVICE_server__root_path = config.lomas.baseUrl;
     LOMAS_SERVICE_server__submit_limit = 300;
@@ -384,7 +385,7 @@ in
       echo "building lomas OCI"
       out=$(devenv build outputs.lomas-oci | jq -r '.["outputs.lomas-oci"]')
       echo "loading into docker"
-      $out | TMPDIR=/tmp docker load
+      TMPDIR=/tmp docker load -i $out
     '';
   };
 

@@ -1,4 +1,4 @@
-{{- if .Values.dashboard.enable -}}
+{{- if .Values.dashboard.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,7 +66,7 @@ spec:
             value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
           - name: LOMAS_ADMIN_BOOTSTRAP
             value: "" # dashboard does not need bootstrap
-          {{- if .Values.global.configCABundle.enable }}
+          {{- if .Values.global.configCABundle.enabled }}
           - name: REQUESTS_CA_BUNDLE
             value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
           - name: SSL_CERT_FILE
@@ -75,7 +75,7 @@ spec:
         volumeMounts:
           - name: config
             mountPath: /config
-          {{- if .Values.global.configCABundle.enable }}
+          {{- if .Values.global.configCABundle.enabled }}
           - name: trusted-cabundle
             mountPath: /etc/ssl/certs/{{ .Values.global.configCABundle.filename }}
             subPath: {{ .Values.global.configCABundle.filename }}
@@ -87,7 +87,7 @@ spec:
             items:
               - key: {{ include "lomas.dashboard.secretKey" .}}
                 path: secrets.toml
-        {{- if .Values.global.configCABundle.enable }}
+        {{- if .Values.global.configCABundle.enabled }}
         - name: trusted-cabundle
           configMap:
             name: {{ .Values.global.configCABundle.name }}

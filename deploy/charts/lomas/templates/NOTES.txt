@@ -19,7 +19,7 @@ Since server route was enabled, the application is also reachable from the inter
 {{- end }}
 
 
-{{- if .Values.dashboard.enable }}
+{{- if .Values.dashboard.enabled }}
 
 2. From within your namespace, the admin dashboard is available at
 

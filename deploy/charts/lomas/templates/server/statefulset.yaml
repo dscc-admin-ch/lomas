@@ -40,11 +40,11 @@ spec:
         volumeMounts:
           - name: db
             mountPath: /db
-          {{- if .Values.server.pvc.data.enable }}
+          {{- if .Values.server.pvc.data.enabled }}
           - name: data
             mountPath: /data
           {{- end }}
-          {{- if .Values.global.configCABundle.enable }}
+          {{- if .Values.global.configCABundle.enabled }}
           - name: trusted-cabundle
             mountPath: /etc/ssl/certs/{{ .Values.global.configCABundle.filename }}
             subPath: {{ .Values.global.configCABundle.filename }}
@@ -111,7 +111,7 @@ spec:
                 key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
-          {{- if .Values.global.configCABundle.enable }}
+          {{- if .Values.global.configCABundle.enabled }}
           - name: REQUESTS_CA_BUNDLE
             value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
           - name: SSL_CERT_FILE
@@ -121,12 +121,12 @@ spec:
         - name: db
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.dbPVCName" .}}
-        {{- if .Values.server.pvc.data.enable }}
+        {{- if .Values.server.pvc.data.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.dataPVCName" . }}
         {{- end }}
-        {{- if .Values.global.configCABundle.enable }}
+        {{- if .Values.global.configCABundle.enabled }}
         - name: trusted-cabundle
           configMap:
             name: {{ .Values.global.configCABundle.name }}

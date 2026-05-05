@@ -1,6 +1,13 @@
 # General stuff
 global:
-  imagePullSecrets: [] # list of name: secret.
+  imagePullSecrets: []
+
+  configCABundle:
+    enabled: false
+    name: ""
+    key: ""
+    filename: ""
+
 nameOverride: ""
 fullnameOverride: "lomas"
 
@@ -8,9 +15,9 @@ fullnameOverride: "lomas"
 ##########################################################################
 server:
   image:
-    repository: dsccadminch/lomas-raw
+    repository: dsccadminch/lomas_server
     imagePullPolicy: Always
-    tag: sha-ff0c92c
+    tag: latest
 
   # Runtime args for server
   runtime_args:
@@ -21,7 +28,7 @@ server:
     server:
       host_port: "48080"
       root_path: "/"
-      log_level: "INFO" # only capital works
+      log_level: "INFO"
       lomas_log_level: "DEBUG"
       submit_limit: 300
       time_attack:
@@ -54,11 +61,11 @@ server:
         # so that the pvc is not deleted across reinstalls.
         resourcePolicy: ""
     data: # used for storing data (e.g. csv), mounted to /data at both server and worker.
-      enable: false
-      storageClassName: "ReadWriteMany" # is not set if empty string
+      enabled: true
+      storageClassName: "nas-ssd-encrypt" # is not set if empty string
       sizeLimit: 2Gi
       sizeRequest: 1Gi
-      accessMode: "Re"
+      accessMode: "ReadWriteMany"
       persistence:
         # If set to "keep", sets the helm/resource-policy of the pvc to keep,
         # so that the pvc is not deleted across reinstalls.
@@ -70,16 +77,16 @@ server:
     portName: http
 
   ingress:
-    enabled: true
+    enabled: false
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas.example.com"
   # Openshift route for Openshift clusters.
   route:
-    enabled: false
+    enabled: true
     annotations: {}
-    hostname: "example.com"
+    hostname: "lomas.example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -89,12 +96,6 @@ server:
     annotations: {}
     name: ""
   resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
   securityContext: {}
@@ -103,7 +104,7 @@ server:
   affinity: {}
 
 worker:
-  replicaCount: 2
+  replicaCount: 1
   resources: {}
   podAnnotations: {}
   podSecurityContext: {}
@@ -119,9 +120,9 @@ demoSetupJob:
   create: true
 
   image:
-    repository: dsccadminch/lomas-raw
-    pullPolicy: Always
-    tag: sha-ff0c92c
+    repository: dsccadminch/lomas_server
+    imagePullPolicy: Always
+    tag: latest
 
   config:
     serverUrl: "https://lomas.example.com"
@@ -129,20 +130,9 @@ demoSetupJob:
     datasetYamlPath: "/data/collections/dataset_collection.yaml"
 
   initContainers:
-    resources:
-      limits:
-        cpu: 100m
-        memory: 400Mi
-      requests:
-        cpu: 50m
-        memory: 400Mi
+    resources: {}
 
   resources: {}
-    # limits:    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
   podAnnotations: {}
   podSecurityContext: {}
   nodeSelector: {}
@@ -151,12 +141,12 @@ demoSetupJob:
 
 
 dashboard:
-  enable: true
+  enabled: true
 
   image:
-    repository: dsccadminch/lomas-raw
-    pullPolicy: Always
-    tag: sha-ff0c92c
+    repository: dsccadminch/lomas_server
+    imagePullPolicy: Always
+    tag: latest
 
   config:
     # Specified here in case server ingress not managed by this chart.
@@ -186,16 +176,16 @@ dashboard:
     portName: http
 
   ingress:
-    enabled: true
+    enabled: false
     className: "nginx"
     annotations:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     hostname: "lomas-dashboard.example.com"
   # Openshift route for Openshift clusters.
   route:
-    enabled: false
+    enabled: true
     annotations: {}
-    hostname: "dashboard-example.com"
+    hostname: "lomas-dashboard.example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge
@@ -204,13 +194,13 @@ dashboard:
     create: false
     annotations: {}
     name: ""
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
   podAnnotations: {}
   podSecurityContext: {}
     # fsGroup: 2000
@@ -476,7 +466,7 @@ rabbitmq:
       allowInsecureImages: true
 
   image:
-    registry: docker.io
+    registry: ""
     repository: bitnami/rabbitmq
     tag: 4.0.8-debian-12-r0
     digest: ""
@@ -601,8 +591,15 @@ dex:
   create: true
   fullnameOverride: "lomas-dex"
 
+  image:
+    pullPolicy: "IfNotPresent"
+    repository: "ghcr.io/dexidp/dex"
+    tag: ""
+
+  imagePullSecrets: []
+
   ingress:
-    enabled: true
+    enabled: false
     hosts:
       - host: "lomas-dex.example.com"
         paths:
@@ -610,9 +607,9 @@ dex:
             pathType: Prefix
 
   route: # Route is implemented by lomas chart.
-    enabled: false
+    enabled: true
     annotations: {}
-    hostname: "example.com"
+    hostname: "lomas-dex.example.com"
     tls:
       insecureEdgeTerminationPolicy: Redirect
       termination: edge

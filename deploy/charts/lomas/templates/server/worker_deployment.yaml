@@ -37,7 +37,7 @@ spec:
             containerPort: {{ .Values.server.runtime_args.server.host_port }}
             protocol: TCP
         volumeMounts:
-          {{- if .Values.server.pvc.data.enable }}
+          {{- if .Values.server.pvc.data.enabled }}
           - name: data
             mountPath: /data
           {{- end }}
@@ -104,7 +104,7 @@ spec:
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
       volumes:
-        {{- if .Values.server.pvc.data.enable }}
+        {{- if .Values.server.pvc.data.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "lomas.server.dataPVCName" . }}

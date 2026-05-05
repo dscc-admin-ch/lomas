@@ -1,4 +1,4 @@
-{{- if .Values.dashboard.enable -}}
+{{- if .Values.dashboard.enabled -}}
 {{- if .Values.dashboard.route.enabled -}}
 {{- $fullName := include "lomas.dashboard.fullname" . -}}
 {{- $svcPort := .Values.dashboard.service.portName -}}

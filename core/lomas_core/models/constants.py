@@ -56,7 +56,16 @@ class AuthenticationType(StrEnum):
 
 
 def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
-    # Set root logger config
+    """Sets basic logging config to level and creates a logger named after name with log level lomas_level.
+
+    This function is meant to set a parent logger for the lomas_* module with a different
+    log level than the root logger.
+
+    Args:
+        name (str): Name of the parent logger to create
+        level (str): Log level for the root logger.
+        lomas_level (str): Log level for the parent logger.
+    """
     logging.basicConfig(
         format="%(message)s %(name)s",
         datefmt="[%X]",
@@ -65,9 +74,6 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
     )
 
     logging.getLogger(name).setLevel(lomas_level)
-
-    # for loggers in ["aio_pika", "aiormq", "botocore", "faker", "urllib3", "httpx"]:
-    #     logging.getLogger(loggers).setLevel(logging.INFO)
 
 
 def get_lomas_logger(name: str, level: str = "NOTSET") -> logging.Logger:
@@ -82,7 +88,6 @@ def get_lomas_logger(name: str, level: str = "NOTSET") -> logging.Logger:
     Returns:
         logging.Logger: Named logger with correct level.
     """
-    # Set level for current logger
     logging.getLogger(name).setLevel(level)
 
     return logging.getLogger(name)

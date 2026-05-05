@@ -16,15 +16,15 @@ asgiref==3.11.1           # via opentelemetry-instrumentation-asgi
 asttokens==3.0.1          # via stack-data
 async-lru==2.3.0          # via jupyterlab
 attrs==26.1.0             # via jsonschema, mbi, referencing
-authlib==1.7.0            # via lomas-client, streamlit
+authlib==1.7.1            # via lomas-client, streamlit
 babel==2.18.0             # via jupyterlab-server, sphinx
 bcrypt==5.0.0             # via lomas-server
 beautifulsoup4==4.14.3    # via nbconvert
 bleach==6.3.0             # via nbconvert
 blinker==1.9.0            # via streamlit
-boto3==1.42.97            # via lomas-server
-botocore==1.42.97         # via boto3, s3transfer
-cachetools==7.0.6         # via streamlit
+boto3==1.43.3             # via lomas-server
+botocore==1.43.3          # via boto3, s3transfer
+cachetools==7.1.1         # via streamlit
 certifi==2026.4.22        # via httpcore, httpx, requests
 cffi==2.0.0               # via argon2-cffi-bindings, cryptography
 charset-normalizer==3.4.7  # via requests
@@ -33,7 +33,7 @@ click==8.3.3              # via rich-toolkit, streamlit, typer, uvicorn
 comm==0.2.3               # via ipykernel, ipywidgets
 contourpy==1.3.3          # via matplotlib
 coverage==7.13.5          # via pytest-cov, lomas (pyproject.toml)
-cryptography==47.0.0      # via authlib, joserfc, lomas-server
+cryptography==48.0.0      # via authlib, joserfc, lomas-server
 csvw-safe==0.1.0          # via lomas-core
 cycler==0.12.1            # via matplotlib
 debugpy==1.8.20           # via ipykernel
@@ -73,7 +73,7 @@ isoduration==20.11.0      # via jsonschema
 itsdangerous==2.2.0       # via streamlit
 jax==0.10.0               # via chex, mbi, optax
 jaxlib==0.10.0            # via chex, jax, mbi, optax
-jedi==0.19.2              # via ipython
+jedi==0.20.0              # via ipython
 jinja2==3.1.6             # via altair, fastapi, jupyter-server, jupyterlab, jupyterlab-server, myst-parser, nbconvert, nbsphinx, pydeck, sphinx
 jmespath==1.1.0           # via boto3, botocore
 joblib==1.5.3             # via diffprivlib-logger, scikit-learn
@@ -88,15 +88,15 @@ jupyter-console==6.6.3    # via jupyter
 jupyter-core==5.9.1       # via ipykernel, jupyter-client, jupyter-console, jupyter-server, jupyterlab, nbclient, nbconvert, nbformat
 jupyter-events==0.12.1    # via jupyter-server
 jupyter-lsp==2.3.1        # via jupyterlab
-jupyter-server==2.17.0    # via jupyter-lsp, jupyterlab, jupyterlab-server, notebook, notebook-shim
+jupyter-server==2.18.1    # via jupyter-lsp, jupyterlab, jupyterlab-server, notebook, notebook-shim
 jupyter-server-terminals==0.5.4  # via jupyter-server
-jupyterlab==4.5.6         # via jupyter, notebook
+jupyterlab==4.5.7         # via jupyter, notebook
 jupyterlab-pygments==0.3.0  # via nbconvert
 jupyterlab-server==2.28.0  # via jupyterlab, notebook
 jupyterlab-widgets==3.0.16  # via ipywidgets
 kiwisolver==1.5.0         # via matplotlib
 lark==1.3.1               # via rfc3987-syntax
-librt==0.9.0              # via mypy
+librt==0.10.0             # via mypy
 markdown-it-py==4.0.0     # via mdit-py-plugins, myst-parser, rich
 markupsafe==3.0.3         # via jinja2, nbconvert
 matplotlib==3.10.9        # via seaborn
@@ -104,7 +104,7 @@ matplotlib-inline==0.2.1  # via ipykernel, ipython
 mbi==1.0.0                # via opendp
 mdit-py-plugins==0.5.0    # via myst-parser
 mdurl==0.1.2              # via markdown-it-py
-mistune==3.2.0            # via nbconvert
+mistune==3.2.1            # via nbconvert
 ml-dtypes==0.5.4          # via jax, jaxlib
 multidict==6.7.1          # via yarl
 mypy==1.20.2              # via returns, lomas (pyproject.toml)
@@ -117,7 +117,7 @@ nbformat==5.10.4          # via jupyter-server, nbclient, nbconvert, nbsphinx
 nbsphinx==0.9.8           # via lomas (pyproject.toml)
 nest-asyncio==1.6.0       # via ipykernel
 networkx==3.6.1           # via mbi
-notebook==7.5.5           # via jupyter
+notebook==7.5.6           # via jupyter
 notebook-shim==0.2.4      # via jupyterlab, notebook
 numpy==2.4.4              # via chex, contourpy, csvw-safe, diffprivlib-logger, jax, jaxlib, matplotlib, mbi, ml-dtypes, opendp, optax, pandas, pydeck, randomgen, scikit-learn, scipy, seaborn, streamlit
 opendp==0.14.1            # via csvw-safe, lomas-core, smartnoise-sql
@@ -144,7 +144,7 @@ pamqp==3.3.0              # via aiormq
 pandas==2.3.3             # via csvw-safe, lomas-core, mbi, seaborn, smartnoise-sql, streamlit
 pandoc==2.4               # via lomas (pyproject.toml)
 pandocfilters==1.5.1      # via nbconvert
-parso==0.8.6              # via jedi
+parso==0.8.7              # via jedi
 pathspec==1.1.1           # via mypy
 pexpect==4.9.0            # via ipython
 pillow==12.2.0            # via matplotlib, streamlit
@@ -181,7 +181,7 @@ python-dateutil==2.9.0.post0  # via arrow, botocore, jupyter-client, matplotlib,
 python-dotenv==1.2.2      # via pydantic-settings, uvicorn
 python-json-logger==4.1.0  # via jupyter-events
 python-multipart==0.0.27  # via fastapi, streamlit
-pytz==2026.1.post1        # via pandas
+pytz==2026.2              # via pandas
 pyyaml==6.0.3             # via csvw-safe, jupyter-events, myst-parser, smartnoise-sql, uvicorn
 pyzmq==27.1.0             # via ipykernel, jupyter-client, jupyter-console, jupyter-server
 randomgen==2.3.0          # via opendp
@@ -197,7 +197,7 @@ rich-toolkit==0.19.7      # via fastapi-cli
 roman-numerals==4.1.0     # via sphinx
 rpds-py==0.30.0           # via jsonschema, referencing
 ruff==0.15.12             # via lomas (pyproject.toml)
-s3transfer==0.16.1        # via boto3
+s3transfer==0.17.0        # via boto3
 scikit-learn==1.8.0       # via diffprivlib-logger, opendp
 scipy==1.17.1             # via diffprivlib-logger, jax, jaxlib, mbi, scikit-learn
 seaborn==0.13.2           # via lomas-client
@@ -220,7 +220,7 @@ sphinxcontrib-napoleon==0.7  # via lomas (pyproject.toml)
 sphinxcontrib-qthelp==2.0.0  # via sphinx
 sphinxcontrib-serializinghtml==2.0.0  # via sphinx
 sqlalchemy==2.0.49        # via smartnoise-sql
-sqlglot==30.6.0           # via lomas-server
+sqlglot==30.7.0           # via lomas-server
 stack-data==0.6.3         # via ipython
 starlette==1.0.0          # via fastapi, streamlit
 streamlit==1.57.0         # via lomas-server
@@ -232,7 +232,7 @@ toml==0.10.2              # via streamlit
 toolz==1.1.0              # via chex
 tornado==6.5.5            # via ipykernel, jupyter-client, jupyter-server, jupyterlab, notebook, terminado
 traitlets==5.14.3         # via ipykernel, ipython, ipywidgets, jupyter-client, jupyter-console, jupyter-core, jupyter-events, jupyter-server, jupyterlab, matplotlib-inline, nbclient, nbconvert, nbformat, nbsphinx
-typer==0.25.0             # via fastapi-cli
+typer==0.25.1             # via fastapi-cli
 typing-extensions==4.15.0  # via altair, beautifulsoup4, chex, fastapi, grpcio, mypy, opentelemetry-api, opentelemetry-exporter-otlp-proto-grpc, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, pydantic, pydantic-core, pydantic-extra-types, returns, rich-toolkit, sqlalchemy, streamlit, typing-inspection
 typing-inspection==0.4.2  # via fastapi, pydantic, pydantic-settings
 tzdata==2026.2            # via arrow, pandas
@@ -242,7 +242,7 @@ uvicorn==0.46.0           # via fastapi, fastapi-cli, streamlit
 uvloop==0.22.1            # via uvicorn
 watchdog==6.0.0           # via streamlit
 watchfiles==1.1.1         # via uvicorn
-wcwidth==0.6.0            # via prettytable, prompt-toolkit
+wcwidth==0.7.0            # via prettytable, prompt-toolkit
 webcolors==25.10.0        # via jsonschema
 webencodings==0.5.1       # via bleach, tinycss2
 websocket-client==1.9.0   # via jupyter-server

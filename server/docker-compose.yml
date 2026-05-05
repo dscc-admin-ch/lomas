@@ -20,9 +20,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_started
-      minio-client:
-        condition: service_completed_successfully
-        restart: true
       otel-collector:
         condition: service_started
       tempo:
@@ -47,9 +44,6 @@ services:
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/datasets:/data/datasets/
     depends_on:
-      minio-client:
-        condition: service_completed_successfully
-        restart: true
       otel-collector:
         condition: service_started
       dex:
@@ -106,38 +100,6 @@ services:
       - ./data/collections/metadata:/data/collections/metadata/
       - ./data/collections/dataset_collection_docker_compose.yaml:/data/collections/dataset_collection.yaml
       - ./data/collections/user_collection.yaml:/data/collections/user_collection.yaml
-    networks:
-      - lomas-network
-
-  minio:
-    container_name: minio
-    image: minio/minio
-    ports:
-      - ${LOMAS_MINIO_PORT}:${LOMAS_MINIO_PORT}
-      - ${LOMAS_MINIO_CONSOLE_PORT}:${LOMAS_MINIO_CONSOLE_PORT}
-    command: server /data
-    environment:
-      - MINIO_ROOT_USER=${LOMAS_MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${LOMAS_MINIO_ROOT_PWD}
-      - MINIO_ADDRESS=:${LOMAS_MINIO_PORT}
-      - MINIO_CONSOLE_ADDRESS=:${LOMAS_MINIO_CONSOLE_PORT}
-    networks:
-      - lomas-network
-
-  minio-client:
-    container_name: minio-client
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: /bin/sh -c "
-      sleep 15 &&
-      mc alias set myminio http://minio:${LOMAS_MINIO_PORT} admin admin123 &&
-      mc mb myminio/example || true &&
-      mc cp /data/datasets/titanic.csv myminio/example/data/titanic.csv &&
-      mc cp /data/collections/metadata/titanic_metadata.json myminio/example/metadata/titanic_metadata.json &&
-      mc ls --recursive --versions myminio/example"
-    volumes:
-      - ./data/:/data
     networks:
       - lomas-network
 
@@ -260,6 +222,3 @@ networks:
   lomas-network:
     driver: bridge
     name: lomas-network
-
-volumes:
-  minio-data:

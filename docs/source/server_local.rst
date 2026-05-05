@@ -61,6 +61,5 @@ Steps to Deploy Locally
    * The messaging system, RabbitMQ.
    * A setup container that will fill up Dex and the administration database with demo users.
    * All the observability components (see observability). If the develop mode is not ON (by default in the config), the server state will be maintained across restarts.
-   * A local instance of a Minio server with an `example` bucket containing the "titanic" dataset and its metadata. The dataset is automatically added to the service if the develop mode is ON (by default in the config.). One can also add data to the Minio server through its api endpoint (`http://localhost:19000`) or through the web console (`http://localhost:19001` in your browser). Make sure to use `http:minio:19000` in your config files since that is the address of the Minio server inside the local docker lomas-network network.
    * A Jupyter notebook environment that will be available at the address http://127.0.0.1:8888/ to interact as a user with the server
    * A streamlit application that will be available at the address http://localhost:8501/ to interact with the server and the administration database as an administrator.

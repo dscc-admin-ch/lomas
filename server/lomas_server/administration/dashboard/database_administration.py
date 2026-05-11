@@ -43,6 +43,12 @@ DELTA_LIMIT = 0.5
 DELTA_STEP = 0.00001
 
 
+st.title("Deletion")
+
+if st.button("Delete bootstrap"):
+    test = query_lomas_auth("/bootstrap", httpx.get)
+
+st.divider()
 st.title("Users")
 
 row_selector = flow(

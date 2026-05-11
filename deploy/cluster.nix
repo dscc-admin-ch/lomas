@@ -149,10 +149,6 @@ in
                   LOMAS_RABBIT_MQ_USER = rabbitmq.values.auth.username; # "guest"
                   LOMAS_RABBIT_MQ_PASS = rabbitmq.values.auth.password; # "guest"
                   LOMAS_DASHBOARD_PORT = 8501;
-                  LOMAS_MINIO_PORT = 19000;
-                  LOMAS_MINIO_CONSOLE_PORT = 19001;
-                  LOMAS_MINIO_ROOT_USER = "admin";
-                  LOMAS_MINIO_ROOT_PWD = "admin123";
                   LOMAS_OTEL_PORT = 4317;
                   LOMAS_CLIENT_PORT = 8888;
                   LOMAS_SERVICE_authenticator__oidc_discovery_url = config.oidc.discoveryUrl;

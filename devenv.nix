@@ -15,9 +15,7 @@ let
     listToPydanticEnvVar
     ;
 
-  toYAML = lib.generators.toYAML { };
   toPydanticSetting = lib.generators.toJSON { }; # Pydantic-settings decode (env) values as JSON-string
-  writeYAML = filename: attrset: pkgs.writeText filename (toYAML attrset);
 
   # Demo data (relative to ./server/lomas_server since we run all scripts from there)
   admin_data_dir = "${config.git.root}/server/data";
@@ -29,7 +27,7 @@ in
   imports = [
     ./devenv/lomas.nix
     ./devenv/rabbitmq.nix
-    ./devenv/minio.nix
+    ./devenv/garage.nix
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
     ./devenv/docker-env.nix
@@ -92,31 +90,63 @@ in
     adminAddress = "127.0.0.1";
   };
 
-  lomas.minio = {
+  lomas.garage = rec {
     enable = true;
     host = "localhost";
-    port = 19000;
-    console_port = 19001;
-    rootUser = "admin";
-    rootPassword = "admin123";
+    port = 3900;
+    rpcPort = 3901;
+    apiPort = 3903;
+    # GK + 12 hex-encoded bytes
+    keyId = "GK0123456789abcdefdeadbeef";
+    # 32 hex-encoded bytes
+    secretKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     initFilesCopy = [
       {
-        src = ./server/lomas_server/tests/test_data/test_penguin.csv;
+        src = builtins.path {
+          name = "penguinData";
+          path = ./server/lomas_server/tests/test_data/test_penguin.csv;
+        };
         dst = "/data/test_penguin.csv";
       }
       {
-        src = ./server/lomas_server/tests/test_data/metadata/penguin_metadata.json;
+        src = builtins.path {
+          name = "penguinMetadata";
+          path = ./server/lomas_server/tests/test_data/metadata/penguin_metadata.json;
+        };
         dst = "/metadata/penguin_metadata.json";
       }
       {
-        src = ./server/data/datasets/titanic.csv;
+        src = builtins.path {
+          name = "Titanic";
+          path = ./server/data/datasets/titanic.csv;
+        };
         dst = "/data/titanic.csv";
       }
       {
-        src = ./server/data/collections/metadata/titanic_metadata.json;
+        src = builtins.path {
+          name = "TitanicMetadata";
+          path = ./server/data/collections/metadata/titanic_metadata.json;
+        };
         dst = "/metadata/titanic_metadata.json";
       }
     ];
+    settings = {
+      rpc_bind_addr = "[::]:${toString rpcPort}";
+      rpc_public_addr = "127.0.0.1:${toString rpcPort}";
+      rpc_secret = "00ae3c92972e91116f2612fb96ab64c963c2f7b163cab376569ec3e9be179d2d";
+
+      s3_api = {
+        api_bind_addr = "[::]:${toString port}";
+        s3_region = "garage";
+      };
+
+      admin = {
+        api_bind_addr = "[::]:${toString apiPort}";
+        metrics_require_token = true;
+        metrics_token = "ddd02920a2431ad2d8fb77207f2933e775873c2461894a443c61776a3db854fd";
+        admin_token = "e3640a659b59c6a6b06c0820a2bd0380aa12124b61000aee7af684d10aab7fa0";
+      };
+    };
   };
 
   lomas.telemetry = {
@@ -195,7 +225,8 @@ in
 
     # Pydantic note:
     # Even when using a dotenv file, pydantic will still read environment variables as well as the dotenv file, environment variables will always take priority over values loaded from a dotenv file.
-    PYTHONWARNDEFAULTENCODING = 1;
+    # Too many unrelated (3party dep warnings for now)
+    # PYTHONWARNDEFAULTENCODING = 1;
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;
@@ -251,10 +282,10 @@ in
   }
   // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
     {
-      credentials_name = "minio";
+      credentials_name = "garage";
       db_type = "S3_DB";
-      access_key_id = config.lomas.minio.rootUser;
-      secret_access_key = config.lomas.minio.rootPassword;
+      access_key_id = config.lomas.garage.keyId;
+      secret_access_key = config.lomas.garage.secretKey;
     }
   ]);
 

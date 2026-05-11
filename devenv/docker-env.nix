@@ -47,11 +47,7 @@ in
           # Dashboard
           LOMAS_DASHBOARD_PORT=${toString config.lomas.dashboard.port}
 
-          # MinIO
-          LOMAS_MINIO_PORT=${toString config.lomas.minio.port}
-          LOMAS_MINIO_CONSOLE_PORT=${toString config.lomas.minio.console_port}
-          LOMAS_MINIO_ROOT_USER=${config.lomas.minio.rootUser}
-          LOMAS_MINIO_ROOT_PWD=${config.lomas.minio.rootPassword}
+          #TODO: GARAGE ENV
 
           # Telemetry
           LOMAS_OTEL_PORT=${toString config.lomas.telemetry.services.otlp.ports.grpc}

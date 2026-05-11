@@ -15,7 +15,7 @@ For testing purpose, one can choose to add its dataset directly in the folder `s
 If the dataset is stored externally and can be directly downloaded online.
 
 3. Remote dataset (S3)
-If the dataset is stored externally on a s3 instance (minio, aws, etc.)
+If the dataset is stored externally on a s3 instance (garage, aws, etc.)
 
 Once the type of dataset is figured out, one can modify the file `dataset_collection.yaml` in the folder `server/data/collections`.
 

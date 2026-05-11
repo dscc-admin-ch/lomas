@@ -22,19 +22,11 @@ datasets:
     path: "collections/metadata/pums_metadata.json"
 - dataset_name: "TITANIC"
   dataset_access:
-    database_type: "S3_DB"
-    bucket: "example"
-    key: "data/titanic.csv"
-    endpoint_url: "http://minio:19000"
-    credentials_name: "minio"
+    database_type: "PATH_DB"
+    path: "datasets/titanic.csv"
   metadata_access:
-    database_type: "S3_DB"
-    bucket: "example"
-    key: "metadata/titanic_metadata.json"
-    endpoint_url: "http://minio:19000"
-    access_key_id: "admin"
-    secret_access_key: "admin123"
-    credentials_name: "minio"
+    database_type: "PATH_DB"
+    path: "collections/metadata/titanic_metadata.json"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"

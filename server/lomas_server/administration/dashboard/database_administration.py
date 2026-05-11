@@ -43,10 +43,26 @@ DELTA_LIMIT = 0.5
 DELTA_STEP = 0.00001
 
 
-st.title("Deletion")
+st.title("Bootstrap deletion")
+
+bootstrap_exists = query_lomas_auth("/bootstrap", httpx.get
+).alt(
+    lambda e: st.error(f"Error while fetching boostrap state: {e}")
+).map_(
+    lambda r: st.button("Delete bootstrap")
+)
+
+match bootstrap_exists:
+    case IOSuccess(Success(_)):
+
 
 if st.button("Delete bootstrap"):
-    test = query_lomas_auth("/bootstrap", httpx.get)
+    del_bootstrap_res = query_lomas_auth("/bootstrap", httpx.delete)
+    match del_bootstrap_res:
+        case IOSuccess(Success(None)):
+            st.success("Bootstrap deleted.")
+        case _ :
+            st.write(del_bootstrap_res)
 
 st.divider()
 st.title("Users")

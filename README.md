@@ -58,18 +58,12 @@ The server side, implemented in a micro-service architecture, is composed of two
 
 The server connects to external databases, typically deployed by a data owner, to download the sensitive datasets for query execution. Currently, the server can manage adapters to S3, http file download and local files.
 
-For extensive informations about how to administrate the Admin database, please refer to:
-- [local_admin_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/local_admin_notebook.ipynb) for local administration of a database
-- [kubernetes_admin_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/kubernetes_admin_notebook.ipynb) for administration of a database on kubernetes
-
 ## Deployment
 We aim to facilitate the platform configuration, deployment and testing on commonly available IT infrastructure for NSOs and other potential users.
 In this regard, we provide two Helm charts for deploying the server components and a client development environment in a Kubernetes cluster.
 
 For extensive informations about how to deploy, please refer to:
-- [local_deployment_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/local_deployment_notebook.ipynb) for local deployments
-- [kubernetes_deployment_notebook.ipynb](https://github.com/dscc-admin-ch/lomas/blob/master/server/notebooks/kubernetes_deployment_notebook.ipynb) for deployments on kubernetes
-
+- `devenv up` for local deployments
 
 Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
 It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.

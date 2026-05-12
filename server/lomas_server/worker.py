@@ -50,13 +50,6 @@ from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
-# Init config for logging purposes
-initConfig = Config()
-
-init_logging(
-    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
-)
-
 logger = get_lomas_logger(__name__)
 
 
@@ -286,6 +279,9 @@ async def process_all_queues(config: Config) -> None:
 def run() -> None:
     """Start the Worker loop."""
     config = Config()
+    init_logging(
+        name="lomas_server", level=config.server.log_level, lomas_level=config.server.lomas_log_level
+    )
 
     set_opendp_features_config(config.opendp_features)
 

@@ -4,7 +4,6 @@ from typing import Annotated, Literal
 from pydantic import (
     AmqpDsn,
     BaseModel,
-    ConfigDict,
     Field,
     HttpUrl,
     computed_field,
@@ -27,8 +26,6 @@ class PrivateDBCredentials(BaseModel):
 
 class S3CredentialsConfig(PrivateDBCredentials):
     """BaseModel for S3 database credentials."""
-
-    model_config = ConfigDict(extra="allow")
 
     db_type: Literal[PrivateDatabaseType.S3]
     credentials_name: str

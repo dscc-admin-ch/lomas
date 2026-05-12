@@ -48,8 +48,7 @@ class DiffPrivLibQuerier(DPQuerier[DiffPrivLibRequestModel, DiffPrivLibQueryMode
 
         Steps:
             1. Attach the shared budget accountant to all compatible steps.
-            2. Add metadata-driven privacy constraints (`data_norm`, `bounds`, `bounds_X`, `bounds_y`)
-            to the first pipeline step when supported.
+            2. Add metadata-driven privacy constraints (`data_norm`, `bounds`, `bounds_X`, `bounds_y`) to the first pipeline step when supported.
 
         Args:
             feature_columns: List of feature columns used for training.

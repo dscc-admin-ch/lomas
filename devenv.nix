@@ -137,7 +137,7 @@ in
 
       s3_api = {
         api_bind_addr = "[::]:${toString port}";
-        s3_region = "garage";
+        s3_region = "us-east-1"; # to avoid v4 signature errors
       };
 
       admin = {

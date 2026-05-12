@@ -148,7 +148,7 @@ def copy_sources() -> None:
         "../client/notebooks/Demo_Client_Notebook.ipynb",
         "../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
         "../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
-        # "../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
+        "../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
         "../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
     ]
     for nb_path in notebook_paths:

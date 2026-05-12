@@ -242,7 +242,7 @@ in
           [security]
           admin_user=admin
           admin_password=admin
-          disable_initial_admin_creation=true
+          disable_initial_admin_creation=false
         '';
 
         dashboardProvision = writeYAML "dashboard.yaml" {

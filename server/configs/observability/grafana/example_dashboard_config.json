@@ -26,7 +26,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "P214B5B846CF3925F"
       },
       "gridPos": {
         "h": 8,
@@ -43,13 +43,10 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "P214B5B846CF3925F"
           },
-          "limit": 20,
-          "query": "{}",
           "queryType": "serviceMap",
-          "refId": "A",
-          "tableType": "traces"
+          "refId": "A"
         }
       ],
       "title": "Lomas Node Graph",
@@ -58,7 +55,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -107,7 +104,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "sum by (path) (lomas_server_requests_total{app_name=\"lomas-server-app\"})",
@@ -123,7 +120,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "P214B5B846CF3925F"
       },
       "fieldConfig": {
         "defaults": {
@@ -175,7 +172,7 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "P214B5B846CF3925F"
           },
           "limit": 20,
           "query": "{name=\"POST /opendp_query\"}",
@@ -190,7 +187,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "P214B5B846CF3925F"
       },
       "fieldConfig": {
         "defaults": {
@@ -242,34 +239,11 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "P214B5B846CF3925F"
           },
-          "filters": [
-            {
-              "id": "0566d0ce",
-              "operator": "=",
-              "scope": "span"
-            },
-            {
-              "id": "span-name",
-              "operator": "=",
-              "scope": "span",
-              "tag": "name",
-              "value": [
-                "POST /smartnoise_sql_query"
-              ],
-              "valueType": "string"
-            }
-          ],
-          "groupBy": [
-            {
-              "id": "f247332f",
-              "scope": "span"
-            }
-          ],
           "limit": 20,
-          "query": "{}",
-          "queryType": "traceqlSearch",
+          "query": "{ name = \"POST /smartnoise_sql_query\" }",
+          "queryType": "traceql",
           "refId": "A",
           "tableType": "traces"
         }
@@ -318,7 +292,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "P214B5B846CF3925F"
       },
       "fieldConfig": {
         "defaults": {
@@ -370,10 +344,10 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "P214B5B846CF3925F"
           },
           "limit": 20,
-          "query": "{ span.user_name = \"Dr. Antartica\" }",
+          "query": "{ span.user_name = \"Dr.Antartica\" }",
           "queryType": "traceql",
           "refId": "A",
           "tableType": "traces"
@@ -385,7 +359,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -468,7 +442,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -485,7 +459,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -565,7 +539,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "lomas_server_requests_duration_seconds_sum{}",
@@ -581,7 +555,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -661,7 +635,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "lomas_server_mongodb_query_count_queries_total{instance=\"otel-collector:9090\"}",
@@ -677,7 +651,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -757,7 +731,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
           "expr": "lomas_server_admindb_update_count_updates_total{instance=\"otel-collector:9090\"}",

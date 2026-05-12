@@ -198,6 +198,7 @@ in
   profiles = {
     telemetry.module = {
       lomas.telemetry.enable = true;
+      env.LOMAS_SERVICE_telemetry__enabled = "true";
     };
 
     coverage.module = {

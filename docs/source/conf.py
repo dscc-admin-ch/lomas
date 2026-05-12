@@ -7,34 +7,14 @@
 # -- Path setup --------------------------------------------------------------
 
 import os
-import sys
-import warnings
 
 import yaml
 
-warnings.filterwarnings("ignore", message="Thread 'MainThread': missing ScriptRunContext!*")
+suppress_warnings = ["ref.python"]
 
 # Force-mock problematic modules so Sphinx autodoc can import code without
 # actually trying to start a Streamlit runtime.
 autodoc_mock_imports = ["streamlit"]
-
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath("../../server"))
-sys.path.insert(0, os.path.abspath("../../client"))
-sys.path.insert(0, os.path.abspath("../../core"))
-scripts_client = "../../client/lomas_client"
-scripts_server = "../../server/lomas_server"
-scripts_core = "../../server/lomas_core"
-
-if scripts_client not in sys.path:
-    sys.path.append(os.path.abspath(scripts_client))
-if scripts_server not in sys.path:
-    sys.path.append(os.path.abspath(scripts_server))
-if scripts_core not in sys.path:
-    sys.path.append(os.path.abspath(scripts_core))
 
 
 # -- Project information -----------------------------------------------------
@@ -44,7 +24,7 @@ copyright = "2024, DSCC"
 author = "DSCC"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.1"
+release = "0.5.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -69,19 +49,13 @@ autodoc_typehints = "signature"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
-
+exclude_patterns = ["_build"]
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
+
 html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,

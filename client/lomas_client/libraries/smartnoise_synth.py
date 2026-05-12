@@ -1,5 +1,3 @@
-from smartnoise_synth_logger import serialise_constraints
-
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -80,7 +78,7 @@ class SmartnoiseSynthClient:
             synth_params = {}
         if select_cols is None:
             select_cols = []
-        constraints_str = serialise_constraints(constraints) if constraints else ""
+        # constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
             "dataset_name": self.http_client.config.dataset_name,
@@ -90,7 +88,7 @@ class SmartnoiseSynthClient:
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "constraints": constraints_str,
+            "constraints": "",
         }
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
@@ -175,7 +173,7 @@ class SmartnoiseSynthClient:
             synth_params = {}
         if select_cols is None:
             select_cols = []
-        constraints_str = serialise_constraints(constraints) if constraints else ""
+        # constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
             "dataset_name": self.http_client.config.dataset_name,
@@ -185,7 +183,7 @@ class SmartnoiseSynthClient:
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "constraints": constraints_str,
+            "constraints": "",
             "return_model": return_model,
             "condition": condition,
             "nb_samples": nb_samples,

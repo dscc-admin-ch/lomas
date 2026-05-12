@@ -16,6 +16,5 @@ You can also find additional notebooks and examples in our
    notebooks/Demo_Client_Notebook_DiffPrivLib
    notebooks/Demo_Client_Notebook_Smartnoise-Synth
    notebooks/Demo_Client_Notebook_OpenDP_Polars
-   notebooks/s3_example_notebook
 
 Here are some examples for using Lomas-client.

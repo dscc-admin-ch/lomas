@@ -148,10 +148,8 @@ def copy_sources() -> None:
         "../client/notebooks/Demo_Client_Notebook.ipynb",
         "../client/notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb",
         "../client/notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb",
-        "../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
+        # "../client/notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb",
         "../client/notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb",
-        "../client/notebooks/s3_example_notebook.ipynb",
-        # "../server/notebooks/local_admin_notebook.ipynb",  # not in doc for now
     ]
     for nb_path in notebook_paths:
         copy_notebook_to_source(nb_path)
@@ -239,10 +237,6 @@ if __name__ == "__main__":
         # to separate a single local build from all builds we have a flag, see conf.py
         os.environ["build_all_docs"] = str(False)
         os.environ["pages_root"] = "./build/html"
-        start_branch_cmd = subprocess.run(
-            "git branch --show-current", stdout=subprocess.PIPE, shell=True, text=True, check=False
-        )
-        start_branch = start_branch_cmd.stdout.strip()
         build_doc("stable", "en", "", True)
 
     else:

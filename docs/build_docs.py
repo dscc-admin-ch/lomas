@@ -212,20 +212,6 @@ def build_doc(version: str, language: str, tag: str, local: bool = False) -> Non
         generate_sphinx_api_doc()
 
 
-# a move dir method because we run multiple builds and bring the html folders to a
-# location which we then push to github pages
-def move_dir(src: str, dst: str) -> None:
-    """
-    Moves the src directory and its contents to dst.
-
-    Args:
-        src (str): source directory
-        dst (str): destination directory
-    """
-    subprocess.run(["mkdir", "-p", dst], check=False)
-    subprocess.run("mv " + src + "* " + dst, shell=True, check=False)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--local", action="store_true", help="local build on current branch")
@@ -245,19 +231,16 @@ if __name__ == "__main__":
         os.environ["build_all_docs"] = str(True)
         os.environ["pages_root"] = "https://dscc-admin-ch.github.io/lomas-docs"
 
-        # manually build the master branch
-        build_doc("stable", "en", "master")
-        move_dir("./build/html/", "../pages/")
-
         # reading the yaml file
         with open("versions.yaml", encoding="utf-8") as yaml_file:
             docs = yaml.safe_load(yaml_file)
 
         # and looping over all values to call our build with version, language and its tag
         for version, details in docs.items():
-            if version == "stable":
-                continue
             tag = details.get("tag", "")
             for language in ["en"]:
                 build_doc(version, language, tag)
-                move_dir("./build/html/", "../pages/" + version + "/" + language + "/")
+                dst = Path("../pages")
+                if version != "stable":
+                    dst = dst / version / language
+                shutil.move(Path("./build/html"), dst)

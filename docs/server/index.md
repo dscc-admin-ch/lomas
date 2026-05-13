@@ -1,5 +1,4 @@
-Deployment
-============
+# Deployment
 
 This documentation provides guidance on deploying the Lomas server using various methods.
 You can choose the deployment option that best suits your needs:
@@ -14,10 +13,3 @@ You can choose the deployment option that best suits your needs:
    Discover how to deploy the server on Onyxia.
 
 Choose the deployment method that fits your infrastructure and deployment requirements.
-
-.. toctree::
-   :maxdepth: 2
-
-   server_local
-   server_kubernetes
-   server_onyxia

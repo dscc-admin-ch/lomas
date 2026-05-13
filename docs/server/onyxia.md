@@ -1,14 +1,11 @@
-Onyxia
-==================
+# Onyxia
 
-Introduction
-------------
+## Introduction
 
 Onyxia is a datalab developped by INSEE (France) allowing to
 easily deploy services on demand.
 
-Deploying Lomas on Onyxia
--------------------------
+## Deploying Lomas on Onyxia
 
 To start the lomas-server on Onyxia, folow those steps:
 
@@ -16,7 +13,7 @@ To start the lomas-server on Onyxia, folow those steps:
 1. **Select the LOMAS Service**:
     Within the Onyxia platform, locate the Lomas-server service.
     You can find the service following this
-    `link <https://datalab.sspcloud.fr/catalog/divers>`_.
+    [link](https://datalab.sspcloud.fr/catalog/divers)
 
 2. **Customize Parameters (Optional)**:
     Depending on your specific requirements, you may choose to customize the

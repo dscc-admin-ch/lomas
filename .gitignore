@@ -28,3 +28,6 @@ devenv.local.nix
 
 # vscode
 .vscode
+
+# mkdocs
+site/

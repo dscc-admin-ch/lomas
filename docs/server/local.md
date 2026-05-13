@@ -1,41 +1,26 @@
-Local
-==================
+# Local
 
 This chapter provides instructions on how to deploy the service locally.
 Follow these steps to get your server and all the components up and running on your local machine.
 
-Prerequisites
--------------
+## Prerequisites
 
 - Ensure you have Docker and Docker Compose installed on your system.
 
-Steps to Deploy Locally
------------------------
+## Steps to Deploy Locally
 
 1. Clone the Repository
 
-   First, you need to clone the repository. Open your terminal and run:
-
-   .. code-block:: bash
-
-      git clone https://github.com/dscc-admin-ch/lomas.git
+   First, you need to clone the repository. Open your terminal and run: `git clone https://github.com/dscc-admin-ch/lomas.git`
 
 2. Navigate to the Server Directory
 
-   Move into the server directory where the Dockerfile is located:
-
-   .. code-block:: bash
-
-      cd server
+   Move into the server directory where the Dockerfile is located: `cd server`
 
 3. Start the Server
 
    With Docker and Docker Compose set up, you can now start the server.
-   In the same directory, run:
-
-   .. code-block:: bash
-
-      docker compose --env-file ./configs/.env.docker-compose up
+   In the same directory, run: `docker compose --env-file ./configs/.env.docker-compose up`
 
    If using devenv, this command is also provided as a utility script with `docker-compose-up`.
 
@@ -46,11 +31,7 @@ Steps to Deploy Locally
 
 4. Access the Server
 
-   Once the server is up and running, it should be accessible on `localhost`. Open your web browser and go to:
-
-   .. code-block:: text
-
-      http://localhost:48080
+   Once the server is up and running, it should be accessible on `localhost`. Open your web browser and go to: `http://localhost:48080`
 
 5. Additional Services
 

@@ -1,0 +1,103 @@
+site_name: Lomas
+site_description: Data Oases Hidden Behind the Mist
+site_url: https://dscc-admin-ch.github.io/lomas-docs
+
+theme:
+  name: material
+  features:
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - announce.dismiss
+    - navigation.tabs
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.preview
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - search.suggest
+    - toc.follow
+
+repo_name: dscc-admin-ch/lomas
+repo_url: https://github.com/dscc-admin-ch/lomas
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra_javascript:
+  - 'https://cdn.jsdelivr.net/npm/algoliasearch@5.20.0/dist/lite/builds/browser.umd.js'
+  - 'https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js'
+  - 'https://samuelcolvin.github.io/mkdocs-run-code/run_code_main.js'
+  - 'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js'
+
+nav:
+  - Get Started:
+      - Welcome to Lomas: index.md
+      # - Why use Lomas: why.md
+      # - Installation: install.md
+      # - Contributing: contributing.md
+      # - Changelog: changelog.md
+      - Client:
+          - Quickstart: client/quickstart.md
+          - Examples: client/examples.md
+          - Errors: client/errors.md
+      - Server:
+          - Administartion: server/administration.md
+          - Managing Dataset: server/managing_dataset.md
+          - Deployment:
+            - server/index.md
+            - Local: server/local.md
+            - Onyxia: server/onyxia.md
+            - Kubernetes: server/kubernetes.md
+          - Observability: server/observability.md
+  - API Documentation:
+      - Core: api/core.md
+      - Server: api/server.md
+      - Client: api/client.md
+  - Poster: poster.md
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+      title: Page contents
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      pygments_lang_class: true
+  - pymdownx.extra
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - core/lomas_core
+            - server/lomas_server
+            - client/lomas_client
+          options:
+            members_order: source
+            separate_signature: true
+            filters: ['!^_']
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true

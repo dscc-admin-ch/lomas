@@ -341,15 +341,12 @@ in
   };
 
   scripts.build-docs = wrapScript {
-    pwd = "docs";
-    exec = "python build_docs.py";
+    exec = "mkdocs build";
   };
 
   scripts.build-docs-local = wrapScript {
-    pwd = "docs";
     exec = ''
-      python build_docs.py -l
-      xdg-open build/html/index.html
+      mkdocs serve -o
     '';
   };
 

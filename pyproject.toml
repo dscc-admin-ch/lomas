@@ -19,12 +19,10 @@ test = [
   "pytest-timeout>=2.4.0",
 ]
 docs = [
-  "pandoc>=2.4",
-  "sphinx>=8.1",
-  "nbsphinx>=0.9.6",
-  "sphinx-rtd-theme>=3.0",
-  "sphinxcontrib.napoleon>=0.7",
-  "myst-parser>=4.0",
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocstrings[python]",
+  "pymdown-extensions"
 ]
 
 # workspace setup for uv
@@ -35,6 +33,7 @@ lomas-server = { workspace = true }
 
 [tool.uv.workspace]
 members = [ "core", "client", "server" ]
+
 
 # workspace setup for setuptools (uv build)
 [tool.setuptools.package-dir]

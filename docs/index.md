@@ -1,15 +1,8 @@
-.. Lomas documentation master file, created by
-   sphinx-quickstart on Wed May 28 09:18:59 2024.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Lomas: The Data Oases Hidden Behind the Mist.
-================================================
+# Lomas: The Data Oases Hidden Behind the Mist.
 
 Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.
 
-Technical Overview:
-----------------------
+## Technical Overview:
 
 The lomas platform follows a classic server/client model.
 On the client side, the user prepares queries for statistical analyses which are sent to the service's REST API via HTTP. The user never has direct access to the sensitive data.
@@ -18,8 +11,7 @@ The server is responsible for processing the client requests and updating its ow
 
 The service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
-Detailed description:
-------------------------
+## Detailed description:
 
 For a detailed description, please see the links below.
 
@@ -29,8 +21,7 @@ For a detailed description, please see the links below.
 
 
 
-Client
-=======
+# Client
 The ``lomas_client`` library is a client to interact with the Lomas server. It is available on
 Pypi. Reasearcher and Data Scientists 'using' the service to query the sensitive data will
 only interact with the client and never with the server.
@@ -41,13 +32,12 @@ REST API calls, and ensures the correct installation of other required libraries
 it enables a seamless interaction with the server.
 
 For additional informations about the client, please see the
-`README.md <https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md>`_ of
+[README.md](https://github.com/dscc-admin-ch/lomas/blob/master/client/README.md) of
 the client and for additional examples please see the
 :doc:`examples <client_examples>` section.
 
 
-Server
-========
+# Server
 The server side, implemented in a micro-service architecture, is composed of two main services:
 
 - A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
@@ -71,75 +61,18 @@ Admin database) and a client development environment in a Kubernetes cluster.
 For extensive informations about how to deploy, please refer to :doc:`Deployment <server_deployment>`
 documentation.
 
-Core
-========
+# Core
 The ``lomas_core`` library serves as a base for both the ``lomas_client`` and ``lomas_server`` libraries.
 It contains code that both these libraries rely on such as request and response models.
 
-Disclaimer
-===========
+# Disclaimer
 Lomas is a Proof of Concept that is still under development.
 
 The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
 
 We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open.
 
-History
-========
-The starting point of our platform was the code shared to us by `Oblivious <https://www.oblivious.com/>`_.
+# History
+The starting point of our platform was the code shared to us by [Oblivious](https://www.oblivious.com/).
 
-They originally developed a client/server platform for the `UN PET Lab Hackathon 2022 <https://petlab.officialstatistics.org/>`_.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Client
-   :hidden:
-
-   client_quickstart
-   client_examples
-   client_errors
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Server
-   :hidden:
-
-   server_deployment
-   server_administration
-   server_managing_dataset
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Python API
-   :hidden:
-
-   api
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Observability
-   :hidden:
-
-   observability
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contributing
-   :hidden:
-
-   CONTRIBUTING.md
-   CONTRIBUTING_SERVER.md
-
-.. toctree::
-   :maxdepth: 2
-   :caption: poster
-   :hidden:
-
-   poster
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+They originally developed a client/server platform for the [UN PET Lab Hackathon 2022](https://petlab.officialstatistics.org/).

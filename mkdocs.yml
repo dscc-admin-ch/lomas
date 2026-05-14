@@ -3,6 +3,10 @@ site_description: Data Oases Hidden Behind the Mist
 site_url: https://dscc-admin-ch.github.io/lomas-docs
 
 theme:
+  logo: images/logo.png
+  favicon: images/favicon.svg
+  palette:
+    primary: teal
   name: material
   features:
     - content.tabs.link
@@ -24,6 +28,9 @@ theme:
 
 repo_name: dscc-admin-ch/lomas
 repo_url: https://github.com/dscc-admin-ch/lomas
+extra:
+  version:
+    provider: mike
 
 # https://www.mkdocs.org/user-guide/configuration/#validation
 validation:
@@ -85,6 +92,8 @@ markdown_extensions:
 
 plugins:
   - search
+  - mike:
+      canonical_version: latest
   - mkdocstrings:
       handlers:
         python:

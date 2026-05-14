@@ -139,7 +139,7 @@ def raise_error_from_model(error_model: LomasServerExceptionType) -> Never:
     """Raise error message based on Server Error Model.
 
     Args:
-        error_model
+        error_model (LomasServerExceptionType): Server Error
     Raise:
         Server Error
     """

@@ -202,6 +202,7 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
+    NO_MKDOCS_2_WARNING = 1;
 
     # Ensure `coverage` uses our project config
     COVERAGE_RCFILE = config.lomas.hooks.projectConfigFile;

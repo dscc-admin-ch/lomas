@@ -144,10 +144,7 @@ class LomasHttpClient:
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
-            body_json (dict, optional): The JSON body to include in the POST request.\
-                Defaults to {}.
-            request_model: (BaseModel, optional): The pydantic model to validate the\
-                body_json against. Must be non-null if body_json contains data.
+            body (LomasRequestModel): The body to include in the POST request.
             read_timeout (int): number of seconds that client wait for the server
                 to send a response.
                 Defaults to DEFAULT_READ_TIMEOUT.

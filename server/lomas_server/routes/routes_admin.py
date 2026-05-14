@@ -471,7 +471,7 @@ def add_users_yaml(
     """Add all users from a yaml file.
 
     Args:
-        yaml_file (Path): a path to the YAML file location
+        file (Path): a path to the YAML file location
         clean (bool): boolean flag
             True if drop current user collection
             False if keep current user collection
@@ -489,7 +489,7 @@ def delete_user(
     """Deletes the lomas user.
 
     Args:
-        user_name (str): The name of the user to be deleted.
+        username (str): The name of the user to be deleted.
     """
     db: LocalAdminDatabase = request.app.state.admin_database
     return db.del_user(username)
@@ -504,7 +504,7 @@ def delete_collection(
     """Drops the given collection from the administration database.
 
     Args:
-        collection (str): The collection to drop.
+        collection_name (str): The collection to drop.
     """
     db: LocalAdminDatabase = request.app.state.admin_database
     return db.drop_collection(collection_name)

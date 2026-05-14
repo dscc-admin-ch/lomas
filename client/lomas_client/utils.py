@@ -15,7 +15,7 @@ def raise_error(response: requests.Response) -> Never:
     """Raise error message based on the HTTP response.
 
     Args:
-        res (requests.Response): The response object from an HTTP request.
+        response (requests.Response): The response object from an HTTP request.
 
     Raise:
         Server Error

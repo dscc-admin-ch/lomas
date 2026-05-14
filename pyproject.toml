@@ -19,10 +19,11 @@ test = [
   "pytest-timeout>=2.4.0",
 ]
 docs = [
-  "mkdocs",
-  "mkdocs-material",
-  "mkdocstrings[python]",
-  "pymdown-extensions"
+  "mkdocs>=1.6,<2",
+  "mkdocs-material>=9,<10",
+  "mkdocstrings[python]>=1",
+  "pymdown-extensions>=10",
+  "mike>=2"
 ]
 
 # workspace setup for uv

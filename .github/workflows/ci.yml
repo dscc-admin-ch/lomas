@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+      with:
+        extra_nix_config: |
+          system-features = nixos-test benchmark big-parallel kvm
+          extra-system-features = uid-range
+          auto-allocate-uids = true
+          experimental-features = nix-command flakes cgroups auto-allocate-uids
+    - uses: cachix/cachix-action@v17
+      with:
+        name: lomas
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - name: Flake check
+      run: nix flake check

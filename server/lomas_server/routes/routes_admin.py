@@ -629,9 +629,9 @@ def get_bootstrap(
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     response: Response,
 ) -> None:
-    # Just returns ok if boostrap still set.
-    if request.app.state.boostrap is None:
-        response.status_code = status.HTTP_204_NO_CONTENT
+    # Just returns ok if bootstrap still set.
+    if request.app.state.bootstrap is None:
+        response.status_code = status.HTTP_410_GONE
     else:
         response.status_code = status.HTTP_200_OK
 

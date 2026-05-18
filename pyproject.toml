@@ -22,6 +22,7 @@ docs = [
   "mkdocs>=1.6,<2",
   "mkdocs-material>=9,<10",
   "mkdocstrings[python]>=1",
+  "markdown-exec>=1.8",
   "pymdown-extensions>=10",
   "mike>=2"
 ]

@@ -9,20 +9,20 @@ theme:
     primary: teal
   name: material
   features:
+    - announce.dismiss
     - content.tabs.link
     - content.code.annotate
     - content.code.copy
-    - announce.dismiss
+    - content.tooltips
     - navigation.tabs
-    - navigation.instant
-    - navigation.instant.prefetch
+    - navigation.tabs.sticky
     - navigation.instant.preview
-    - navigation.instant.progress
     - navigation.path
     - navigation.sections
     - navigation.top
-    - navigation.tracking
     - navigation.indexes
+    - navigation.footer
+    - search.highlight
     - search.suggest
     - toc.follow
 
@@ -40,10 +40,7 @@ validation:
   anchors: warn
 
 extra_javascript:
-  - 'https://cdn.jsdelivr.net/npm/algoliasearch@5.20.0/dist/lite/builds/browser.umd.js'
-  - 'https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js'
-  - 'https://samuelcolvin.github.io/mkdocs-run-code/run_code_main.js'
-  - 'https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js'
+  - https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js
 
 nav:
   - Get Started:
@@ -65,33 +62,50 @@ nav:
             - Onyxia: server/onyxia.md
             - Kubernetes: server/kubernetes.md
           - Observability: server/observability.md
-  - API Documentation:
+  - API Reference:
       - Core: api/core.md
       - Server: api/server.md
       - Client: api/client.md
   - Poster: poster.md
 
 markdown_extensions:
-  - tables
+  - abbr
+  - attr_list
+  - admonition
+  - footnotes
+  - md_in_html
   - toc:
       permalink: true
-      title: Page contents
-  - admonition
-  - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.tab:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.highlight:
       pygments_lang_class: true
-  - pymdownx.extra
+  - pymdownx.magiclink
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+      - name: mermaid
+        class: mermaid
+        format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.arithmatex:
-      generic: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 plugins:
   - search
+  - autorefs
+  - markdown-exec
   - mike:
       canonical_version: latest
   - mkdocstrings:
@@ -101,12 +115,44 @@ plugins:
             - core/lomas_core
             - server/lomas_server
             - client/lomas_client
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://mkdocstrings.github.io/objects.inv
+            - https://mkdocstrings.github.io/autorefs/objects.inv
+            - https://mkdocstrings.github.io/griffe/objects.inv
+            - https://python-markdown.github.io/objects.inv
           options:
+            # General https://mkdocstrings.github.io/python/usage/configuration/general/
+            backlinks: tree
+            show_bases: false
+            show_inheritance_diagram: true # requires mermaid
+            show_source: true
+
+            # Headings https://mkdocstrings.github.io/python/usage/configuration/headings/
+            parameter_headings: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            type_parameter_headings: true
+
+            # Members https://mkdocstrings.github.io/python/usage/configuration/members/
+            inherited_members: true
             members_order: source
-            separate_signature: true
             filters: ['!^_']
+            summary: true
+
+            # Docstrings https://mkdocstrings.github.io/python/usage/configuration/docstrings/
+            docstring_section_style: list
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
+            relative_crossrefs: true
+            scoped_crossrefs: true
+
+            # Signatures https://mkdocstrings.github.io/python/usage/configuration/signatures/
+            line_length: 90
             show_signature_annotations: true
+            show_signature_type_parameters: true
+            separate_signature: true
             signature_crossrefs: true
+            unwrap_annotated: true

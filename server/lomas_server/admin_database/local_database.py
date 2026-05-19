@@ -32,7 +32,7 @@ from lomas_server.admin_database.admin_database import (
     user_must_exist,
     user_must_have_access_to_dataset,
 )
-from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
+from lomas_server.admin_database.constants import BudgetDBKey, MiscDBKeys, TopDBKey as TK
 from lomas_server.utils.metrics import (
     ADMINDB_DELETE_COUNTER,
     ADMINDB_ERROR_COUNTER,
@@ -553,3 +553,23 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, writeback=True) as db:
             if collection in db:
                 del db[collection]
+
+    def set_bootstrap(self, bootstrap: str) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            db[TK.MISC_KEYS] = {MiscDBKeys.BOOTSTRAP_DISABLED: False, MiscDBKeys.BOOTSTRAP: bootstrap}
+
+    def get_bootstrap(self) -> str | None:
+        with shelve.open(self.path, flag="r") as db:
+            if TK.MISC_KEYS in db:
+                return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP, None)
+        return None
+
+    def set_bootstrap_disabled(self) -> None:
+        with shelve.open(self.path, writeback=True) as db:
+            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = True
+
+    def get_bootstrap_disabled(self) -> bool:
+        with shelve.open(self.path, flag="r") as db:
+            if TK.MISC_KEYS in db:
+                return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP_DISABLED, False)
+        return False

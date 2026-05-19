@@ -167,7 +167,8 @@ def get_user_id_from_authenticator(
         UserId: A UserId instance extracted from the token.
     """
     # Bootstrap initialization
-    if (bootstrap_cred := request.app.state.bootstrap) is not None:
+    if not request.app.state.admin_database.get_bootstrap_disabled():
+        bootstrap_cred = request.app.state.admin_database.get_bootstrap()
         match auth_creds:
             case HTTPAuthorizationCredentials(scheme="Bearer") if auth_creds.credentials == bootstrap_cred:
                 logger.warning("Bootstrap User Bypass")

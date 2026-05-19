@@ -630,7 +630,7 @@ def get_bootstrap(
     response: Response,
 ) -> None:
     # Just returns ok if bootstrap still set.
-    if request.app.state.bootstrap is None:
+    if request.app.state.admin_database.get_bootstrap_disabled():
         response.status_code = status.HTTP_410_GONE
     else:
         response.status_code = status.HTTP_200_OK
@@ -643,7 +643,7 @@ def delete_bootstrap(
     response: Response,
 ) -> None:
     # Bootstrap never set or already removed -> gone forever
-    if request.app.state.bootstrap is None:
+    if request.app.state.admin_database.get_bootstrap_disabled():
         response.status_code = status.HTTP_410_GONE
     else:
-        request.app.state.bootstrap = None
+        request.app.state.admin_database.set_bootstrap_disabled()

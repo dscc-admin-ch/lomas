@@ -12,7 +12,6 @@ from lomas_core.error_handler import (
 )
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import get_lomas_logger, init_logging
-from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
@@ -47,9 +46,15 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     # Load admin database
     try:
         logger.info("Loading admin database")
-        lomas_app.state.admin_database = LocalAdminDatabase(path=config.admin_database_url)
+        lomas_app.state.admin_database = config.database
         logger.info("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator
+
+        if not config.database.get_bootstrap_disabled():
+            logger.info("Setting bootstrap credentials.")
+            config.database.set_bootstrap(config.bootstrap)
+        else:
+            logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
         lomas_app.state.bootstrap = config.bootstrap
         lomas_app.state.private_db_credentials = config.private_db_credentials
     except InternalServerException as e:

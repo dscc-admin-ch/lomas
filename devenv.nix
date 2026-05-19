@@ -244,7 +244,6 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
-    LOMAS_ADMIN_database_url = "/tmp/admin.db";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";

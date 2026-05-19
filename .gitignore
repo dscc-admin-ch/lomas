@@ -31,3 +31,4 @@ devenv.local.nix
 
 # mkdocs
 site/
+.cache/

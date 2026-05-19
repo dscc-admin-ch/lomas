@@ -22,6 +22,7 @@ theme:
     - navigation.top
     - navigation.indexes
     - navigation.footer
+    - navigation.prune
     - search.highlight
     - search.suggest
     - toc.follow
@@ -51,7 +52,13 @@ nav:
       # - Changelog: changelog.md
       - Client:
           - Quickstart: client/quickstart.md
-          - Examples: client/examples.md
+          - Examples:
+            - client/index.md
+            - notebooks/Demo_Client_Notebook.ipynb
+            - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
+            - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+            - notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb
+            - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
           - Errors: client/errors.md
       - Server:
           - Administartion: server/administration.md
@@ -106,6 +113,10 @@ plugins:
   - search
   - autorefs
   - markdown-exec
+  - mkdocs-jupyter:
+      include: ["*.ipynb"]
+      include_requirejs: true
+      no_prompt: True  # hides In[#] / Out[#]
   - mike:
       canonical_version: latest
   - mkdocstrings:

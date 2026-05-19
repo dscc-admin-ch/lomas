@@ -79,12 +79,16 @@ in
   config = mkIf cfg.enable {
     services.rabbitmq = {
       enable = true;
+      plugins = [ "rabbitmq_prometheus" ];
       listenAddress = cfg.bindAddr;
       port = cfg.port;
       nodeName = cfg.nodeName;
       managementPlugin = {
         enable = true;
         port = cfg.portManagement;
+      };
+      configItems = {
+        "prometheus.tcp.port" = "15692";
       };
       configItems = {
         default_user = cfg.user;

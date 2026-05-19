@@ -61,7 +61,7 @@ nav:
             - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
           - Errors: client/errors.md
       - Server:
-          - Administartion: server/administration.md
+          - Administration: server/administration.md
           - Managing Dataset: server/managing_dataset.md
           - Deployment:
             - server/index.md

@@ -646,4 +646,4 @@ def delete_bootstrap(
     if request.app.state.admin_database.get_bootstrap_disabled():
         response.status_code = status.HTTP_410_GONE
     else:
-        request.app.state.admin_database.set_bootstrap_disabled()
+        request.app.state.admin_database.set_bootstrap_disabled(True)

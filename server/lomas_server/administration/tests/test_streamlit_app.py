@@ -61,12 +61,13 @@ def test_about_page(dashbord_dir: Path) -> None:
 
     assert "The Lomas Administration Dashboard" in at.markdown[0].value
 
-    assert "**Documentation**: [server documentation]" in at.markdown[-4].value
-    assert "**Support**: If you encounter any issues " in at.markdown[-3].value
+    assert "**Documentation**: [server documentation]" in at.markdown[-5].value
+    assert "**Support**: If you encounter any issues " in at.markdown[-4].value
 
     assert "Server Status" in at.header[3].value
-    assert "localhost:" in at.markdown[-2].value
-    assert "Dex is only supported for demo purposes" in at.markdown[-1].value
+    assert "localhost:" in at.markdown[-3].value
+    assert "Dex is only supported for demo purposes" in at.markdown[-2].value
+    assert "User is not logged" in at.markdown[-1].value
 
 
 def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:

@@ -104,7 +104,7 @@ def about() -> None:
     flow(
         query_lomas_auth("/bootstrap", httpx.get),
         lash(lambda e: recover_if_410(e, default=False)),
-        alt(lambda e: st.error(f"Error while fetching bootstrap state: {e}")),
+        alt(lambda e: st.write(f":red-badge[unavailable]: {e}")),
         map_(lambda e: True if e is None else False),  # Define bootstrap_exists
         map_(
             lambda bootstrap_exists: (

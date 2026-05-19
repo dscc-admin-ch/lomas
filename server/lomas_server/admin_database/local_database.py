@@ -65,6 +65,8 @@ class LocalAdminDatabase(AdminDatabase):
     def wipe(self) -> None:
         if (p := Path(self.path)).exists():
             p.unlink()
+        # Recreate file to make open with flag="r" safe
+        shelve.open(self.path).close()
 
     def load_users_collection(self, users: list[User]) -> None:
         with shelve.open(self.path, writeback=True) as db:
@@ -554,20 +556,24 @@ class LocalAdminDatabase(AdminDatabase):
             if collection in db:
                 del db[collection]
 
+    @override
     def set_bootstrap(self, bootstrap: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
             db[TK.MISC_KEYS] = {MiscDBKeys.BOOTSTRAP_DISABLED: False, MiscDBKeys.BOOTSTRAP: bootstrap}
 
+    @override
     def get_bootstrap(self) -> str | None:
         with shelve.open(self.path, flag="r") as db:
             if TK.MISC_KEYS in db:
                 return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP, None)
         return None
 
-    def set_bootstrap_disabled(self) -> None:
+    @override
+    def set_bootstrap_disabled(self, bootstrap: bool = True) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = True
+            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap
 
+    @override
     def get_bootstrap_disabled(self) -> bool:
         with shelve.open(self.path, flag="r") as db:
             if TK.MISC_KEYS in db:

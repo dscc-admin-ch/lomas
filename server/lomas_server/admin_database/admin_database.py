@@ -451,8 +451,8 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    def set_bootstrap_disabled(self) -> None:
-        """Sets the bootstrap disabled value to False."""
+    def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
+        """Sets the bootstrap disabled value."""
 
     @abstractmethod
     def get_bootstrap_disabled(self) -> bool:

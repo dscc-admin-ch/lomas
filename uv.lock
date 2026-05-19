@@ -1753,6 +1753,7 @@ dependencies = [
     { name = "lomas-client" },
     { name = "lomas-core" },
     { name = "lomas-server", extra = ["all"] },
+    { name = "opentelemetry-instrumentation-sqlite3" },
 ]
 
 [package.optional-dependencies]
@@ -1784,6 +1785,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'test'", specifier = ">=1.15" },
     { name = "myst-parser", marker = "extra == 'docs'", specifier = ">=4.0" },
     { name = "nbsphinx", marker = "extra == 'docs'", specifier = ">=0.9.6" },
+    { name = "opentelemetry-instrumentation-sqlite3", specifier = ">=0.62b1" },
     { name = "pandoc", marker = "extra == 'docs'", specifier = ">=2.4" },
     { name = "pydocstringformatter", marker = "extra == 'test'", specifier = ">=0.7" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.3" },
@@ -2586,6 +2588,21 @@ wheels = [
 ]
 
 [[package]]
+name = "opentelemetry-instrumentation-dbapi"
+version = "0.62b1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-semantic-conventions" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/f4/8a8ad1d9477dc8e4f5d28648ad51cb9f110a40a25744b2f16f1c5e2f524a/opentelemetry_instrumentation_dbapi-0.62b1.tar.gz", hash = "sha256:82755a0f013980b2c000a10452fb91ab5135b937a8afe37c45f34e62ecc7a2b8", size = 16920, upload-time = "2026-04-24T13:22:47.762Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/5c/8f2bb672f167746c32c820170cb6b177243a45736f97ecc8b479dcddaece/opentelemetry_instrumentation_dbapi-0.62b1-py3-none-any.whl", hash = "sha256:dd2cc4085e832a708835218833b839a88ef0ace66851d14debefe6b2ef363a3c", size = 14204, upload-time = "2026-04-24T13:21:50.204Z" },
+]
+
+[[package]]
 name = "opentelemetry-instrumentation-fastapi"
 version = "0.62b1"
 source = { registry = "https://pypi.org/simple" }
@@ -2627,6 +2644,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/85/03/eb26e1c65fd776206b759955d33151ee39ee0e7ac8dd80c97385c321a8d0/opentelemetry_instrumentation_requests-0.62b1.tar.gz", hash = "sha256:67a79c4b67e2192445c1cf03d62126fa623065688d8bd1a9f87f858b0e5f0286", size = 18401, upload-time = "2026-04-24T13:23:02.291Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d8/5a/cddb1f93bd17d6cfc99038a0aaa9af3d6bf455dedfe24d0ba4e13c1d83f7/opentelemetry_instrumentation_requests-0.62b1-py3-none-any.whl", hash = "sha256:ca348f2f51b715c21e86d82106d784f7069ae849c3e636ab37e34dc0ba510b8c", size = 14208, upload-time = "2026-04-24T13:22:13.89Z" },
+]
+
+[[package]]
+name = "opentelemetry-instrumentation-sqlite3"
+version = "0.62b1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-instrumentation-dbapi" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/17/3294134715ebc458fd8668b41c0a93e1cec025c41bd2642fa976af763f39/opentelemetry_instrumentation_sqlite3-0.62b1.tar.gz", hash = "sha256:14ba18aed35a01e1d89bb814e49f7d6dd90bb68b2034ccf047801ca4659dba27", size = 7961, upload-time = "2026-04-24T13:23:03.793Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/02/aa91082f2074e341cbf880500ee086bab9046c58c5061413e232ce035064/opentelemetry_instrumentation_sqlite3-0.62b1-py3-none-any.whl", hash = "sha256:3ab0d614bab9956126ce81a22315bf58d56d653a65675a66e8b525f880ec3016", size = 9342, upload-time = "2026-04-24T13:22:15.961Z" },
 ]
 
 [[package]]

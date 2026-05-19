@@ -638,14 +638,14 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "lomas_server_mongodb_query_count_queries_total{instance=\"otel-collector:9090\"}",
+          "expr": "lomas_server_admindb_query_count_queries_total",
           "instant": true,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "MongoDB: Number of queries",
+      "title": "AdminDB: Number of queries",
       "type": "timeseries"
     },
     {
@@ -734,7 +734,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "lomas_server_admindb_update_count_updates_total{instance=\"otel-collector:9090\"}",
+          "expr": "lomas_server_admindb_update_count_updates_total",
           "instant": true,
           "legendFormat": "__auto",
           "range": true,

@@ -33,6 +33,14 @@ from lomas_server.admin_database.admin_database import (
     user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import BudgetDBKey, TopDBKey as TK
+from lomas_server.utils.metrics import (
+    ADMINDB_DELETE_COUNTER,
+    ADMINDB_ERROR_COUNTER,
+    ADMINDB_INSERT_COUNTER,
+    ADMINDB_QUERY_COUNTER,
+    ADMINDB_UPDATE_COUNTER,
+)
+from lomas_server.utils.span import db_span
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -118,9 +126,11 @@ class LocalAdminDatabase(AdminDatabase):
                         try:
                             metadata_dict = json.loads(response["Body"].read())
                         except json.JSONDecodeError as e:
+                            ADMINDB_ERROR_COUNTER.add(1, {"operation": "json_decode_error"})
                             raise e
 
                     case _:
+                        ADMINDB_ERROR_COUNTER.add(1, {"operation": "metadata_db_type_error"})
                         raise InternalServerException(
                             f"Unknown metadata_db_type PrivateDatabaseType: {metadata_access.database_type}"
                         )
@@ -131,6 +141,7 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, flag="r") as db:
             return list(map(DSInfo.model_validate, db.get(TK.DATASETS, [])))
 
+    @db_span("db.add_datasets_via_yaml", table="admin-db")
     def add_datasets_via_yaml(
         self,
         yaml_file: Path | BinaryIO | SpooledTemporaryFile,
@@ -162,6 +173,7 @@ class LocalAdminDatabase(AdminDatabase):
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
+    @db_span("db.add_dataset", table="admin-db")
     def add_dataset(
         self,
         dataset_name: str,
@@ -210,6 +222,7 @@ class LocalAdminDatabase(AdminDatabase):
         Returns:
             None
         """
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset"})
         # Step 1: Build dataset
         dataset: dict[str, Any] = {"dataset_name": dataset_name}
 
@@ -219,6 +232,7 @@ class LocalAdminDatabase(AdminDatabase):
 
         if database_type == PrivateDatabaseType.PATH:
             if dataset_path is None:
+                ADMINDB_ERROR_COUNTER.add(1, {"operation": "datasetpath_error"})
                 raise ValueError("Dataset path not set.")
             dataset_access["path"] = dataset_path
         elif database_type == PrivateDatabaseType.S3:
@@ -227,6 +241,7 @@ class LocalAdminDatabase(AdminDatabase):
             dataset_access["endpoint_url"] = endpoint_url
             dataset_access["credentials_name"] = credentials_name
         else:
+            ADMINDB_ERROR_COUNTER.add(1, {"operation": "database_type_error"})
             raise ValueError(f"Unknown database type {database_type}")
 
         dataset["dataset_access"] = dataset_access
@@ -257,6 +272,7 @@ class LocalAdminDatabase(AdminDatabase):
             metadata_access["credentials_name"] = metadata_credentials_name
 
         else:
+            ADMINDB_ERROR_COUNTER.add(1, {"operation": "metadata_db_type_error"})
             raise ValueError(f"Unknown database type {metadata_database_type}")
 
         dataset["metadata_access"] = metadata_access
@@ -272,13 +288,17 @@ class LocalAdminDatabase(AdminDatabase):
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
             db.sync()
 
+    @db_span("db.delete_dataset", table="admin-db")
     def del_dataset(self, dataset_name: str) -> None:
+        ADMINDB_DELETE_COUNTER.add(1, {"operation": "delete_dataset"})
         with shelve.open(self.path, writeback=True) as db:
             for ds in db[TK.DATASETS]:
                 if ds["dataset_name"] == dataset_name:
                     db[TK.DATASETS].remove(ds)
 
+    @db_span("db.add_dataset_to_user", table="admin-db")
     def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset_to_user"})
         with shelve.open(self.path, writeback=True) as db:
             user = User.model_validate(db[TK.USERS][username])
             ds = DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)
@@ -289,7 +309,9 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
+    @db_span("db.del_dataset_to_user", table="admin-db")
     def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
+        ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_dataset_to_user"})
         with shelve.open(self.path, writeback=True) as db:
             user = User.model_validate(db[TK.USERS][username])
             user_updated = User(
@@ -299,6 +321,7 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
+    @db_span("db.add_users_via_yaml", table="admin-db")
     def add_users_via_yaml(self, yaml_file: Path | BinaryIO | SpooledTemporaryFile, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
 
@@ -322,6 +345,7 @@ class LocalAdminDatabase(AdminDatabase):
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
+    @db_span("db.add_user", table="admin-db")
     def add_user(
         self,
         username: str,
@@ -343,6 +367,7 @@ class LocalAdminDatabase(AdminDatabase):
         Returns:
             None
         """
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_user"})
         validated_user = User(
             id=UserId(name=username, email=email),
             may_query=True,
@@ -359,34 +384,46 @@ class LocalAdminDatabase(AdminDatabase):
             db[TK.USERS][username] = validated_user
 
     @user_must_exist
+    @db_span("db.del_user", table="admin-db")
     def del_user(self, username: str) -> None:
+        ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_user"})
         with shelve.open(self.path, writeback=True) as db:
             del db[TK.USERS][username]
 
     @override
+    @db_span("db.does_user_exist", table="admin-db")
     def does_user_exist(self, user_name: str) -> bool:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_user_exist"})
         return user_name in map(lambda user: user.id.name, self.users())
 
     @override
+    @db_span("db.does_dataset_exist", table="admin-db")
     def does_dataset_exist(self, dataset_name: str) -> bool:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_dataset_exist"})
         return dataset_name in map(lambda ds: ds.dataset_name, self.datasets())
 
     @override
     @dataset_must_exist
+    @db_span("db.get_dataset", table="admin-db")
     def get_dataset(self, dataset_name: str) -> DSInfo:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset"})
         with shelve.open(self.path, flag="r") as db:
             dataset = next(filter(lambda ds: ds["dataset_name"] == dataset_name, db[TK.DATASETS]))
             return DSInfo.model_validate(dataset)
 
     @override
     @dataset_must_exist
+    @db_span("db.get_dataset_metadata", table="admin-db")
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
         with shelve.open(self.path, flag="r") as db:
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
             return TableMetadata.model_validate(metadata)
 
     @dataset_must_exist
+    @db_span("db.set_dataset_metadata", table="admin-db")
     def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_dataset_metadata"})
         json_file.seek(0)
         content = json_file.read()
         if isinstance(content, bytes):
@@ -398,13 +435,16 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
+    @db_span("db.is_user_admin", table="admin-db")
     def is_user_admin(self, user_name: str) -> bool:
         with shelve.open(self.path, flag="r") as db:
             return db[TK.USERS][user_name]["admin"]
 
     @override
     @user_must_exist
+    @db_span("db.get_and_set_may_user_query", table="admin-db")
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
+        ADMINDB_UPDATE_COUNTER.add(1, {"operation": "get_and_set_may_user_query"})
         with shelve.open(self.path, writeback=True) as db:
             previous_may_query = db[TK.USERS][user_name]["may_query"]
             db[TK.USERS][user_name]["may_query"] = may_query
@@ -412,9 +452,11 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
+    @db_span("db.has_user_access_to_dataset", table="admin-db")
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         @dataset_must_exist
         def has_access_to_dataset(self: Self, dataset_name: str) -> bool:
+            ADMINDB_QUERY_COUNTER.add(1, {"operation": "has_user_access_to_dataset"})
             with shelve.open(self.path, flag="r") as db:
                 return bool(
                     [
@@ -427,7 +469,9 @@ class LocalAdminDatabase(AdminDatabase):
         return has_access_to_dataset(self, dataset_name)
 
     @override
+    @db_span("db.get_epsilon_or_delta", table="admin-db")
     def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_epsilon_or_delta"})
         with shelve.open(self.path, flag="r") as db:
             return sum(
                 map(
@@ -440,6 +484,7 @@ class LocalAdminDatabase(AdminDatabase):
             )
 
     @override
+    @db_span("db.update_epsilon_or_delta", table="admin-db")
     def update_epsilon_or_delta(
         self,
         user_name: str,
@@ -447,12 +492,14 @@ class LocalAdminDatabase(AdminDatabase):
         parameter: BudgetDBKey,
         spent_value: float,
     ) -> None:
+        ADMINDB_UPDATE_COUNTER.add(1, {"operation": "update_epsilon_or_delta"})
         with shelve.open(self.path, writeback=True) as db:
             datasets = db[TK.USERS][user_name]["datasets_list"]
             for ds in datasets:
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] += spent_value
 
+    @db_span("db.set_epsilon_or_delta", table="admin-db")
     def set_epsilon_or_delta(
         self,
         user_name: str,
@@ -460,6 +507,7 @@ class LocalAdminDatabase(AdminDatabase):
         parameter: BudgetDBKey,
         value: float,
     ) -> None:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_epsilon_or_delta"})
         with shelve.open(self.path, writeback=True) as db:
             datasets = db[TK.USERS][user_name]["datasets_list"]
             for ds in datasets:
@@ -468,11 +516,14 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_have_access_to_dataset
+    @db_span("db.get_user_previous_queries", table="admin-db")
     def get_user_previous_queries(
         self,
         user_name: str,
         dataset_name: str,
     ) -> list[dict]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user_previous_queries"})
+
         def match(archive: dict[str, str]) -> bool:
             return (user_name, dataset_name) == op.itemgetter("user_name", "dataset_name")(archive)
 
@@ -480,7 +531,9 @@ class LocalAdminDatabase(AdminDatabase):
             return list(filter(match, db.get(TK.ARCHIVE, [])))
 
     @override
+    @db_span("db.save_query", table="admin-db")
     def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
+        ADMINDB_INSERT_COUNTER.add(1, {"operation": "save_query"})
         with shelve.open(self.path, writeback=True) as db:
             to_archive = self.prepare_save_query(user_name, query, response)
             if TK.ARCHIVE not in db:
@@ -488,11 +541,15 @@ class LocalAdminDatabase(AdminDatabase):
             else:
                 db[TK.ARCHIVE].append(to_archive)
 
+    @db_span("db.get_archives_of_user", table="admin-db")
     def get_archives_of_user(self, username: str) -> list[dict]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_archives_of_user"})
         with shelve.open(self.path, flag="r") as db:
             return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
 
+    @db_span("db.drop_collection", table="admin-db")
     def drop_collection(self, collection: str) -> None:
+        ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
         with shelve.open(self.path, writeback=True) as db:
             if collection in db:
                 del db[collection]

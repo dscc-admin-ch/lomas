@@ -569,9 +569,9 @@ class LocalAdminDatabase(AdminDatabase):
         return None
 
     @override
-    def set_bootstrap_disabled(self, bootstrap: bool = True) -> None:
+    def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap
+            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap_disabled
 
     @override
     def get_bootstrap_disabled(self) -> bool:

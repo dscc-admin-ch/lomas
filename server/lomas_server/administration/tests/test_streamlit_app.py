@@ -14,6 +14,7 @@ from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
+from lomas_server.models.config import Config
 from lomas_server.tests.utils import free_pass_env
 
 test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
@@ -21,7 +22,14 @@ test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
 @pytest.fixture
 def demo_setup():
+    config = Config()
+    config.database.set_bootstrap(config.bootstrap)
+
     lomas_demo_setup()
+
+    yield
+
+    config.database.wipe()
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
 import os
+import posix as Status
 
 import httpx
 import pytest
@@ -18,8 +19,11 @@ from lomas_server.models.config import AdminConfig, Config
 
 @pytest.fixture
 def demo_setup():
+    # Make sure bootstrap is enabled
+    config = Config()
+    config.database.set_bootstrap(config.bootstrap)
 
-    lomas_demo_setup()
+    assert lomas_demo_setup() == Status.EX_OK
 
     yield
 
@@ -35,9 +39,6 @@ def demo_setup():
         headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
     )
     del_all_dex_users(dex_config)
-    # re-enable bootstrap just in case.
-    config = Config()
-    config.database.set_bootstrap_disabled(False)
 
 
 def test_bootstrap(demo_setup: None) -> None:

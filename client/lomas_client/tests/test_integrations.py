@@ -27,14 +27,21 @@ from lomas_server.administration.dex.dex_admin import (
     del_all_dex_users,
 )
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
-from lomas_server.models.config import AdminConfig
+from lomas_server.models.config import AdminConfig, Config
 
 enable_features("contrib")
 
 
 @pytest.fixture
 def demo_setup():
+    config = Config()
+    config.database.set_bootstrap(config.bootstrap)
+
     lomas_demo_setup()
+
+    yield
+
+    config.database.wipe()
 
 
 @dataclass(frozen=True)

@@ -35,6 +35,8 @@ class TestSetupRootAPIEndpoint(unittest.TestCase):
         path_prefix = Path(__file__).parent / "test_data"
 
         self.config.database.wipe()
+        self.config.database.set_bootstrap(self.config.bootstrap)
+
         self.config.database.add_users_via_yaml(
             yaml_file=(path_prefix / "test_user_collection.yaml"),
             clean=True,

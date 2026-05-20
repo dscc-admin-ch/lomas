@@ -13,7 +13,7 @@ import pytest
 import requests
 from authlib.integrations.base_client.errors import OAuthError
 from bs4 import BeautifulSoup
-from csvw_safe.constants import COL_NAME, TABLE_SCHEMA
+from csvw_eo.constants import COL_NAME, TABLE_SCHEMA
 from diffprivlib import models
 from opendp.mod import enable_features
 from sklearn.pipeline import Pipeline

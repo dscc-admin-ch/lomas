@@ -1,9 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
-from csvw_safe.datatypes import to_pandas_dtype
-from csvw_safe.make_dummy_from_metadata import make_dummy_from_metadata
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.datatypes import to_pandas_dtype
+from csvw_eo.make_dummy_from_metadata import make_dummy_from_metadata
+from csvw_eo.metadata_structure import TableMetadata
 from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
 from fastapi.responses import JSONResponse, RedirectResponse
 

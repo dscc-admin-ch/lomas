@@ -3,7 +3,7 @@ from base64 import b64decode
 
 import opendp as dp
 from aio_pika.patterns.rpc import Proxy
-from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
+from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from opendp._lib import lib_path
 from opendp.mod import enable_features
 

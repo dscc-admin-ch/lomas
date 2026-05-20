@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
-from csvw_safe.metadata_structure import ColumnMetadata
+from csvw_eo.metadata_structure import ColumnMetadata
 from diffprivlib import BudgetAccountant
 from diffprivlib.utils import PrivacyLeakWarning
 from diffprivlib_logger import deserialise_pipeline

@@ -7,9 +7,9 @@ from typing import Any, Protocol, TypeVar
 import opendp.prelude as dp
 import pandas as pd
 import polars as pl
-from csvw_safe.constants import COL_LIST, COL_NAME, MAXIMUM, MINIMUM, TABLE_SCHEMA
-from csvw_safe.csvw_to_opendp_context import csvw_to_opendp_context
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.constants import COL_LIST, COL_NAME, MAXIMUM, MINIMUM, TABLE_SCHEMA
+from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
+from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from pydantic import ValidationError

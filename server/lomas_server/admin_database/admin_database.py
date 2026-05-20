@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Concatenate, TypeVar
 
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.metadata_structure import TableMetadata
 from pydantic import (
     BaseModel,
 )

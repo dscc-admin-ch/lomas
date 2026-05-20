@@ -1,6 +1,6 @@
 import pandas as pd
 from aio_pika.patterns.rpc import Proxy
-from csvw_safe.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
+from csvw_eo.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
 from sqlglot import exp, parse_one

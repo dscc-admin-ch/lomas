@@ -8,7 +8,7 @@ from typing import Any, BinaryIO, Self
 
 import boto3
 import yaml
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.metadata_structure import TableMetadata
 from fastapi import UploadFile
 from pydantic import HttpUrl
 

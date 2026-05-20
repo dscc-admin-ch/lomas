@@ -699,8 +699,8 @@ wheels = [
 ]
 
 [[package]]
-name = "csvw-safe"
-version = "0.1.0"
+name = "csvw-eo"
+version = "0.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -713,9 +713,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "rdflib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/fc/088a2554abde4f952e943345b387bd45f74e1d6a817f63a75f9a21cb447c/csvw_safe-0.1.0.tar.gz", hash = "sha256:c8b64ffab68184d87ea517fa484b89430476a2987900afebea86160f6ff062fa", size = 55259, upload-time = "2026-04-23T13:16:47.671Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/9b/0009e6068a00efa1df7f54bb27e53985366c3f711b3545c6b0c4eefe90b3/csvw_eo-0.0.1.tar.gz", hash = "sha256:20ff68bffc4d1d49b848b5ef8c1ee611b576c95c4b539188fb716c018a32783f", size = 57371, upload-time = "2026-05-13T14:21:13.91Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1f/a0/0871fefa83a910377ed0db05ee1c42b27f3a1175a80e1db7bacc01f7f6b1/csvw_safe-0.1.0-py3-none-any.whl", hash = "sha256:b2c783c278379a7428123041e658df44d80566db66f38302ae62d6e9b81b5c3f", size = 41240, upload-time = "2026-04-23T13:16:46.164Z" },
+    { url = "https://files.pythonhosted.org/packages/57/47/8a3c6e1229977f5751867379a6bfec8e57b445bca83be87467c9d1c42325/csvw_eo-0.0.1-py3-none-any.whl", hash = "sha256:ff3865f6726005a13a08bf361e6fd53bfc6aca404277451f17ae143f0b59873b", size = 43103, upload-time = "2026-05-13T14:21:12.149Z" },
 ]
 
 [[package]]
@@ -1833,7 +1833,7 @@ name = "lomas-core"
 version = "0.5.0b1"
 source = { editable = "core" }
 dependencies = [
-    { name = "csvw-safe" },
+    { name = "csvw-eo" },
     { name = "diffprivlib-logger" },
     { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
     { name = "opendp", extra = ["mbi"] },
@@ -1849,7 +1849,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "csvw-safe", specifier = ">=0.0.1" },
+    { name = "csvw-eo", specifier = ">=0.0.1" },
     { name = "diffprivlib-logger", specifier = "==0.0.4" },
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = ">=0.120" },
     { name = "opendp", extras = ["mbi"], specifier = "==0.14.1" },

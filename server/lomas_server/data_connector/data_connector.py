@@ -3,8 +3,8 @@ from typing import Annotated
 
 import pandas as pd
 import polars as pl
-from csvw_safe.datatypes import XSD_GROUP_MAP, DataTypesGroups, to_pandas_dtype
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.datatypes import XSD_GROUP_MAP, DataTypesGroups, to_pandas_dtype
+from csvw_eo.metadata_structure import TableMetadata
 from pydantic import (
     BaseModel,
     ConfigDict,

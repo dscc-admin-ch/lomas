@@ -1,5 +1,5 @@
 from aio_pika.patterns.rpc import Proxy
-from csvw_safe.make_dummy_from_metadata import make_dummy_from_metadata
+from csvw_eo.make_dummy_from_metadata import make_dummy_from_metadata
 
 from lomas_core.models.requests import DummyQueryModel
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector

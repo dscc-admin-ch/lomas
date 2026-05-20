@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
-from csvw_safe.metadata_structure import TableMetadata
+from csvw_eo.metadata_structure import TableMetadata
 from fastapi.testclient import TestClient
 from returns.io import IOResultE, IOSuccess
 from returns.pipeline import is_successful

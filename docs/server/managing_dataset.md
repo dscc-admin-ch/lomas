@@ -51,5 +51,5 @@ Each dataset should be added with its related metadata. This is required by the 
 to create the dummy dataset and to apply the different DP mechanisms correctly during the processing
 of the queries sent by the user.
 
-The metadata must follow the `csvw-safe` format.
-See: https://github.com/dscc-admin-ch/csvw-safe.
+The metadata must follow the `csvw-eo` format.
+See: https://github.com/dscc-admin-ch/csvw-eo.

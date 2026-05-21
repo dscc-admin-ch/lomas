@@ -57,7 +57,6 @@ nav:
             - notebooks/Demo_Client_Notebook.ipynb
             - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
             - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
-            - notebooks/Demo_Client_Notebook_Smartnoise-Synth.ipynb
             - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
           - Errors: client/errors.md
       - Server:

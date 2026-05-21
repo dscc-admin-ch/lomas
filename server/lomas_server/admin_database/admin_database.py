@@ -436,7 +436,9 @@ class AdminDatabase(ABC, BaseModel):
 
     @abstractmethod
     def set_bootstrap(self, bootstrap: str) -> None:
-        """Sets the bootstrap value. Also sets the bootstrap disabled value to False.
+        """Sets the bootstrap value.
+
+        Also sets the bootstrap disabled value to False.
 
         Args:
             bootstrap (str): Bootstrap creds to set.

@@ -184,7 +184,7 @@ in
   config = mkIf cfg.enable {
     packages = [ cfg.package ];
     processes.dex = {
-      exec = "${lib.getExe cfg.package} serve ${confFile}";
+      exec = "exec ${lib.getExe cfg.package} serve ${confFile}";
       ready.http.get = {
         inherit (cfg) host port path;
       };

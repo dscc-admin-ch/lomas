@@ -186,14 +186,12 @@ in
     coverage.module = {
       processes.worker = {
         cwd = lib.mkForce "${config.git.root}";
-        exec = lib.mkForce "exec coverage run --data-file=.coverage.worker -m lomas_server.worker";
+        exec = lib.mkForce "mkdir -p ./logs && exec coverage run --data-file=.coverage.worker -m lomas_server.worker &> ${config.git.root}/logs/worker.log";
       };
 
       # override the UT script to generate coverage
       scripts.ut = wrapScript {
-        exec = ''
-          exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE}
-        '';
+        exec = "mkdir -p ./logs && exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} &> ${config.git.root}/logs/pytest.log";
       };
 
     };

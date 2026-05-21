@@ -24,5 +24,6 @@ jobs:
     - name: Run a notebook within a container
       run: |
         devenv shell
+        devenv build outputs.lomas-oci
         devenv shell -- docker-load-image
         devenv shell -- docker-compose-test

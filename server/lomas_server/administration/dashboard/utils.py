@@ -4,7 +4,6 @@ from typing import Any
 import httpx
 import pandas as pd
 import streamlit as st
-from pydantic import AnyUrl
 from returns.io import IO, IOFailure, IOResultE, IOSuccess, impure_safe
 from returns.maybe import Maybe, Some
 from returns.pipeline import flow
@@ -12,20 +11,8 @@ from returns.pointfree import alt, bind, cond, map_
 from returns.result import Failure, Result, ResultE, Success
 
 from lomas_core.models.collections import DatasetOfUser, User
+from lomas_core.utils import url_append
 from lomas_server.models.config import AdminConfig, DexAdminConfig
-
-
-def url_append(url: AnyUrl, path: str) -> AnyUrl:
-    return url.build(
-        scheme=url.scheme,
-        username=url.username,
-        password=url.password,
-        host=url.host,
-        port=url.port,
-        path="/".join((url.path.rstrip("/"), path.lstrip("/"))).lstrip("/"),
-        query=url.query,
-        fragment=url.fragment,
-    )
 
 
 @st.cache_resource

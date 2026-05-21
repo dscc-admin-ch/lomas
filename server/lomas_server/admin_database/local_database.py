@@ -10,6 +10,7 @@ import boto3
 import yaml
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi import UploadFile
+from filelock import SoftFileLock
 from pydantic import HttpUrl
 
 from lomas_core.error_handler import InternalServerException
@@ -50,6 +51,8 @@ else:
 
 logger = get_lomas_logger(__name__)
 
+lock: SoftFileLock = SoftFileLock("/tmp/admindb.lock", is_singleton=True, timeout=10)
+
 
 class LocalAdminDatabase(AdminDatabase):
     """Local Admin database in a single file."""
@@ -57,25 +60,30 @@ class LocalAdminDatabase(AdminDatabase):
     path: Path
     """Database accepts existing path or new (creatable) path."""
 
+    @lock
     def model_post_init(self, _: Any, /) -> None:
         # create the file if it doesn't exists yet (makes open with flag='r' safe)
         shelve.open(self.path).close()
 
     @override
+    @lock
     def wipe(self) -> None:
         if (p := Path(self.path)).exists():
             p.unlink()
         # Recreate file to make open with flag="r" safe
         shelve.open(self.path).close()
 
+    @lock
     def load_users_collection(self, users: list[User]) -> None:
         with shelve.open(self.path, writeback=True) as db:
             db[TK.USERS] = {user.id.name: user.model_dump() for user in users}
 
+    @lock
     def users(self) -> list[User]:
         with shelve.open(self.path, flag="r") as db:
             return list(map(User.model_validate, db.get(TK.USERS, {}).values()))
 
+    @lock
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
         with shelve.open(self.path, writeback=True) as db:
             # Step 1: add datasets
@@ -139,11 +147,16 @@ class LocalAdminDatabase(AdminDatabase):
                 db[TK.METADATA][dataset_name] = TableMetadata.from_dict(metadata_dict).model_dump()
                 logger.info(f"Added metadata of {dataset_name} dataset.")
 
+    @lock
     def datasets(self) -> list[DSInfo]:
         with shelve.open(self.path, flag="r") as db:
             return list(map(DSInfo.model_validate, db.get(TK.DATASETS, [])))
 
+<<<<<<< HEAD
     @db_span("db.add_datasets_via_yaml", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def add_datasets_via_yaml(
         self,
         yaml_file: Path | BinaryIO | SpooledTemporaryFile,
@@ -175,7 +188,11 @@ class LocalAdminDatabase(AdminDatabase):
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_dataset_collection(DatasetsCollection(**yaml_dict).datasets, path_prefix)
 
+<<<<<<< HEAD
     @db_span("db.add_dataset", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def add_dataset(
         self,
         dataset_name: str,
@@ -290,7 +307,11 @@ class LocalAdminDatabase(AdminDatabase):
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
             db.sync()
 
+<<<<<<< HEAD
     @db_span("db.delete_dataset", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def del_dataset(self, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "delete_dataset"})
         with shelve.open(self.path, writeback=True) as db:
@@ -298,7 +319,11 @@ class LocalAdminDatabase(AdminDatabase):
                 if ds["dataset_name"] == dataset_name:
                     db[TK.DATASETS].remove(ds)
 
+<<<<<<< HEAD
     @db_span("db.add_dataset_to_user", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset_to_user"})
         with shelve.open(self.path, writeback=True) as db:
@@ -311,7 +336,11 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
+<<<<<<< HEAD
     @db_span("db.del_dataset_to_user", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_dataset_to_user"})
         with shelve.open(self.path, writeback=True) as db:
@@ -323,7 +352,11 @@ class LocalAdminDatabase(AdminDatabase):
             )
             db[TK.USERS][username] = user_updated.model_dump()
 
+<<<<<<< HEAD
     @db_span("db.add_users_via_yaml", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def add_users_via_yaml(self, yaml_file: Path | BinaryIO | SpooledTemporaryFile, clean: bool) -> None:
         """Add all users from yaml file to the user collection.
 
@@ -347,7 +380,11 @@ class LocalAdminDatabase(AdminDatabase):
                 yaml_dict = yaml.safe_load(yaml_file)
         self.load_users_collection(UserCollection(**yaml_dict).users)
 
+<<<<<<< HEAD
     @db_span("db.add_user", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def add_user(
         self,
         username: str,
@@ -386,27 +423,43 @@ class LocalAdminDatabase(AdminDatabase):
             db[TK.USERS][username] = validated_user
 
     @user_must_exist
+<<<<<<< HEAD
     @db_span("db.del_user", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def del_user(self, username: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_user"})
         with shelve.open(self.path, writeback=True) as db:
             del db[TK.USERS][username]
 
     @override
+<<<<<<< HEAD
     @db_span("db.does_user_exist", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def does_user_exist(self, user_name: str) -> bool:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_user_exist"})
         return user_name in map(lambda user: user.id.name, self.users())
 
     @override
+<<<<<<< HEAD
     @db_span("db.does_dataset_exist", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def does_dataset_exist(self, dataset_name: str) -> bool:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_dataset_exist"})
         return dataset_name in map(lambda ds: ds.dataset_name, self.datasets())
 
     @override
     @dataset_must_exist
+<<<<<<< HEAD
     @db_span("db.get_dataset", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def get_dataset(self, dataset_name: str) -> DSInfo:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset"})
         with shelve.open(self.path, flag="r") as db:
@@ -423,7 +476,11 @@ class LocalAdminDatabase(AdminDatabase):
             return TableMetadata.model_validate(metadata)
 
     @dataset_must_exist
+<<<<<<< HEAD
     @db_span("db.set_dataset_metadata", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_dataset_metadata"})
         json_file.seek(0)
@@ -437,14 +494,22 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
+<<<<<<< HEAD
     @db_span("db.is_user_admin", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def is_user_admin(self, user_name: str) -> bool:
         with shelve.open(self.path, flag="r") as db:
             return db[TK.USERS][user_name]["admin"]
 
     @override
     @user_must_exist
+<<<<<<< HEAD
     @db_span("db.get_and_set_may_user_query", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         ADMINDB_UPDATE_COUNTER.add(1, {"operation": "get_and_set_may_user_query"})
         with shelve.open(self.path, writeback=True) as db:
@@ -454,7 +519,11 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_exist
+<<<<<<< HEAD
     @db_span("db.has_user_access_to_dataset", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         @dataset_must_exist
         def has_access_to_dataset(self: Self, dataset_name: str) -> bool:
@@ -471,7 +540,11 @@ class LocalAdminDatabase(AdminDatabase):
         return has_access_to_dataset(self, dataset_name)
 
     @override
+<<<<<<< HEAD
     @db_span("db.get_epsilon_or_delta", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_epsilon_or_delta"})
         with shelve.open(self.path, flag="r") as db:
@@ -486,7 +559,11 @@ class LocalAdminDatabase(AdminDatabase):
             )
 
     @override
+<<<<<<< HEAD
     @db_span("db.update_epsilon_or_delta", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def update_epsilon_or_delta(
         self,
         user_name: str,
@@ -501,7 +578,11 @@ class LocalAdminDatabase(AdminDatabase):
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] += spent_value
 
+<<<<<<< HEAD
     @db_span("db.set_epsilon_or_delta", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def set_epsilon_or_delta(
         self,
         user_name: str,
@@ -518,7 +599,11 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @user_must_have_access_to_dataset
+<<<<<<< HEAD
     @db_span("db.get_user_previous_queries", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def get_user_previous_queries(
         self,
         user_name: str,
@@ -533,7 +618,11 @@ class LocalAdminDatabase(AdminDatabase):
             return list(filter(match, db.get(TK.ARCHIVE, [])))
 
     @override
+<<<<<<< HEAD
     @db_span("db.save_query", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "save_query"})
         with shelve.open(self.path, writeback=True) as db:
@@ -549,7 +638,11 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, flag="r") as db:
             return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
 
+<<<<<<< HEAD
     @db_span("db.drop_collection", table="admin-db")
+=======
+    @lock
+>>>>>>> 500240fa (adding lock to local db)
     def drop_collection(self, collection: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
         with shelve.open(self.path, writeback=True) as db:
@@ -557,11 +650,13 @@ class LocalAdminDatabase(AdminDatabase):
                 del db[collection]
 
     @override
+    @lock
     def set_bootstrap(self, bootstrap: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
             db[TK.MISC_KEYS] = {MiscDBKeys.BOOTSTRAP_DISABLED: False, MiscDBKeys.BOOTSTRAP: bootstrap}
 
     @override
+    @lock
     def get_bootstrap(self) -> str | None:
         with shelve.open(self.path, flag="r") as db:
             if TK.MISC_KEYS in db:
@@ -569,11 +664,13 @@ class LocalAdminDatabase(AdminDatabase):
         return None
 
     @override
+    @lock
     def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
         with shelve.open(self.path, writeback=True) as db:
             db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap_disabled
 
     @override
+    @lock
     def get_bootstrap_disabled(self) -> bool:
         with shelve.open(self.path, flag="r") as db:
             if TK.MISC_KEYS in db:

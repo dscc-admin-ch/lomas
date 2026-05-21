@@ -9,7 +9,6 @@ let
   cfg = config.lomas.garage;
 
   toml = pkgs.formats.toml { };
-  configFile = toml.generate "garage.toml" cfg.settings;
 
   inherit (lib)
     types
@@ -127,42 +126,24 @@ in
 
   config = mkIf cfg.enable {
     packages = [
-      cfg.package
       pkgs.minio-client
     ];
 
-    env.GARAGE_CONFIG_FILE = configFile;
+    services.garage = {
+      enable = true;
+      buckets = [ cfg.bucketName ];
+      rpcSecret = "00ae3c92972e91116f2612fb96ab64c963c2f7b163cab376569ec3e9be179d2d";
+      adminToken = "e3640a659b59c6a6b06c0820a2bd0380aa12124b61000aee7af684d10aab7fa0";
+      adminAddress = "0.0.0.0:${toString cfg.apiPort}";
+      s3Address = "0.0.0.0:${toString cfg.port}";
+      replicationFactor = cfg.settings.replication_factor;
 
-    processes.garage = {
-      env.GARAGE_CONFIG_FILE = toString configFile;
-      exec = "${lib.getExe cfg.package} server";
-
-      # Cannot use http probe directly as /health fails when layout is not setup yet
-      ready.exec = ''
-        ${lib.getExe pkgs.curl} -sf \
-          -H "Authorization: Bearer ${cfg.settings.admin.admin_token}" \
-          http://${cfg.host}:${toString cfg.apiPort}/v2/GetClusterHealth
+      extraConfig = ''
+        metrics_require_token = true
+        metrics_token = "ddd02920a2431ad2d8fb77207f2933e775873c2461894a443c61776a3db854fd"
       '';
 
-      before = [ "devenv:garage:configure" ];
-    };
-
-    tasks."devenv:garage:configure" = {
-      env.GARAGE_CONFIG_FILE = "${config.env.GARAGE_CONFIG_FILE}";
-      exec = ''
-        if [ $(curl -fso /dev/null -w "%{http_code}" localhost:${toString cfg.apiPort}/health) -ne 200 ]; then
-          nodeId=$(garage json-api GetClusterStatus | ${lib.getExe pkgs.jq} -r '.nodes[0].id')
-          garage layout assign -z dc1 -c 1G $nodeId
-          garage layout apply --version 1
-        fi
-      '';
-
-      before = [ "devenv:garage:configure:bucket" ];
-    };
-
-    tasks."devenv:garage:configure:bucket" = {
-      env.GARAGE_CONFIG_FILE = "${config.env.GARAGE_CONFIG_FILE}";
-      exec = ''
+      afterStart = ''
         if ! $(garage bucket info ${cfg.bucketName} > /dev/null); then
           garage bucket create ${cfg.bucketName}
         else
@@ -191,6 +172,7 @@ in
         )}
       '';
     };
+
   };
 
 }

@@ -90,7 +90,7 @@ in
     adminAddress = "127.0.0.1";
   };
 
-  lomas.garage = rec {
+  lomas.garage = {
     enable = true;
     host = "localhost";
     port = 3900;
@@ -130,23 +130,6 @@ in
         dst = "/metadata/titanic_metadata.json";
       }
     ];
-    settings = {
-      rpc_bind_addr = "[::]:${toString rpcPort}";
-      rpc_public_addr = "127.0.0.1:${toString rpcPort}";
-      rpc_secret = "00ae3c92972e91116f2612fb96ab64c963c2f7b163cab376569ec3e9be179d2d";
-
-      s3_api = {
-        api_bind_addr = "[::]:${toString port}";
-        s3_region = "us-east-1"; # to avoid v4 signature errors
-      };
-
-      admin = {
-        api_bind_addr = "[::]:${toString apiPort}";
-        metrics_require_token = true;
-        metrics_token = "ddd02920a2431ad2d8fb77207f2933e775873c2461894a443c61776a3db854fd";
-        admin_token = "e3640a659b59c6a6b06c0820a2bd0380aa12124b61000aee7af684d10aab7fa0";
-      };
-    };
   };
 
   lomas.telemetry = {
@@ -203,13 +186,13 @@ in
     coverage.module = {
       processes.worker = {
         cwd = lib.mkForce "${config.git.root}";
-        exec = lib.mkForce "coverage run --data-file=.coverage.worker -m lomas_server.worker";
+        exec = lib.mkForce "exec coverage run --data-file=.coverage.worker -m lomas_server.worker";
       };
 
       # override the UT script to generate coverage
       scripts.ut = wrapScript {
         exec = ''
-          pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE}
+          exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE}
         '';
       };
 

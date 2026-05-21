@@ -149,7 +149,7 @@ in
           procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
         in
         genAttrs procNames (name: {
-          exec = "${lib.getExe pkgs.watchexec} --watch=${config.git.root} -e py --restart --no-meta lomas-work";
+          exec = "exec ${lib.getExe pkgs.watchexec} --watch=${config.git.root} -e py --restart --no-meta lomas-work";
           cwd = "${config.git.root}/server/lomas_server";
           after = [
             "devenv:processes:rabbitmq"
@@ -159,7 +159,7 @@ in
 
     {
       processes.lomas-server = {
-        exec = "python uvicorn_serve.py";
+        exec = "exec python uvicorn_serve.py";
         cwd = "${config.git.root}/server/lomas_server";
         ready = {
           http.get = {
@@ -196,7 +196,7 @@ in
         in
         {
           exec = ''
-            streamlit run lomas_server/administration/dashboard/about.py
+            exec streamlit run lomas_server/administration/dashboard/about.py
           '';
           cwd = "${config.git.root}/server";
           env = builtins.mapAttrs (name: toString) {

@@ -6,7 +6,6 @@ dependencies = [
   "lomas-core",
   "lomas-client",
   "lomas-server[all]",
-  "opentelemetry-instrumentation-sqlite3>=0.62b1",
 ]
 
 [project.optional-dependencies]

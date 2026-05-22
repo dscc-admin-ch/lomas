@@ -15,9 +15,9 @@ fullnameOverride: "lomas"
 ##########################################################################
 server:
   image:
-    repository: dsccadminch/lomas_server
+    repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: latest
+    tag: sha-3642bd3
 
   # Runtime args for server
   runtime_args:
@@ -120,9 +120,9 @@ demoSetupJob:
   create: true
 
   image:
-    repository: dsccadminch/lomas_server
+    repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: latest
+    tag: sha-3642bd3
 
   config:
     serverUrl: "https://lomas.example.com"
@@ -144,9 +144,9 @@ dashboard:
   enabled: true
 
   image:
-    repository: dsccadminch/lomas_server
+    repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: latest
+    tag: sha-3642bd3
 
   config:
     # Specified here in case server ingress not managed by this chart.

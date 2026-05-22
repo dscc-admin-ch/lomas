@@ -1,11 +1,13 @@
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
 
 from opentelemetry import trace
 
 tracer = trace.get_tracer("local-admin-db")
 
 
-def db_span(name: str, **attrs):
+def db_span(name: str, **attrs: Any) -> Callable:
     """
     Decorator wrapping a function in an OpenTelemetry span.
 
@@ -17,9 +19,9 @@ def db_span(name: str, **attrs):
         **attrs: Key-value pairs added as span attributes.
     """
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             with tracer.start_as_current_span(name) as span:
                 for k, v in attrs.items():
                     span.set_attribute(k, v)

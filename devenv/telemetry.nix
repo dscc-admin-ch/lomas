@@ -167,7 +167,7 @@ in
         }
         {
           job_name = "rabbitmq";
-          static_configs = [ { targets = [ "localhost:15692" ]; } ];
+          static_configs = [ { targets = [ "localhost:${toString config.lomas.rabbitmq.prometheusPort}" ]; } ];
         }
       ];
     };

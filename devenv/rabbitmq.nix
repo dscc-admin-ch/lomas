@@ -47,6 +47,12 @@ in
       description = "RabbitMQ port";
     };
 
+    prometheusPort = mkOption {
+      type = types.int;
+      default = 15692;
+      description = "RabbitMQ Prometheus metrics TCP port";
+    };
+
     nodeName = mkOption {
       type = types.str;
       example = "rabbit@localhost";
@@ -88,11 +94,9 @@ in
         port = cfg.portManagement;
       };
       configItems = {
-        "prometheus.tcp.port" = "15692";
-      };
-      configItems = {
         default_user = cfg.user;
         default_pass = cfg.password;
+        "prometheus.tcp.port" = toString cfg.prometheusPort;
         heartbeat = toString cfg.heartbeat;
         "deprecated_features.permit.transient_nonexcl_queues" = "false";
         "deprecated_features.permit.management_metrics_collection" = "false";

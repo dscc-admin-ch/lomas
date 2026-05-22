@@ -165,6 +165,10 @@ in
           job_name = "loki";
           static_configs = [ { targets = [ "localhost:${toString cfg.services.loki.port}" ]; } ];
         }
+        {
+          job_name = "rabbitmq";
+          static_configs = [ { targets = [ "localhost:${toString config.lomas.rabbitmq.prometheusPort}" ]; } ];
+        }
       ];
     };
 
@@ -242,7 +246,7 @@ in
           [security]
           admin_user=admin
           admin_password=admin
-          disable_initial_admin_creation=true
+          disable_initial_admin_creation=false
         '';
 
         dashboardProvision = writeYAML "dashboard.yaml" {

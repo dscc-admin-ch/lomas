@@ -18,7 +18,7 @@ API calls, and ensures the correct installation of other required libraries. In 
 it enables a seamless interaction with the server.
 
 For additional informations about the client, please see the
-[client quickstart page](client/quickstart.md) or [the example notebooks](client/index.md).
+[client quickstart page](../client/quickstart.md) or [the example notebooks](../client/index.md).
 
 ## Server
 
@@ -35,6 +35,6 @@ Lomas is not responsible for storing and managing private datasets, these are us
 
 The IdP provider is also not part of the Lomas platform and should be managed externaly. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!
 
-For more information about the server, see the [server administration page](server/administration.md). The [deployment page](server/kubernetes.md) goes through how to deploy the platform to a Kubernetes cluster via Helm.
+For more information about the server, see the [server administration page](../server/administration.md). The [deployment page](../server/kubernetes.md) goes through how to deploy the platform to a Kubernetes cluster via Helm.
 
 __Note__: The Lomas Python code is split into a client (`lomas-client`) and a server (`lomas-server`) package. The `lomas-core` package serves as a base for the code that is common to both main packages.

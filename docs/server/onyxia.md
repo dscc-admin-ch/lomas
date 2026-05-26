@@ -14,7 +14,7 @@ To start the lomas-server on Onyxia, folow those steps:
 2. __Customize Parameters (Optional)__:
     Depending on your specific requirements, you may choose to customize the
     administration and runtime parameters. This step allows for fine-tuning the
-    deployment according to your project's needs. Onyxia lets you override any part of the Lomas Helm values file. Please refer to the [Kubernetes deployment page](kubernetes) for more information.
+    deployment according to your project's needs. Onyxia lets you override any part of the Lomas Helm values file. Please refer to the [Kubernetes deployment page](kubernetes.md) for more information.
 
 3. __Initiate Deployment__:
     Once satisfied with the parameter settings, click on the "Lancer" button to

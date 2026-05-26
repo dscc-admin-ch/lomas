@@ -66,11 +66,10 @@ nav:
             - Local Devenv: server/devenv.md
             - Onyxia: server/onyxia.md
             - Kubernetes: server/kubernetes.md
-          - Observability: server/observability.md
           - Administration: server/administration.md
       - Concepts:
           - Architecture Overview: concepts/architecture-overview.md
-          - Contributing: ../CONTRIBUTING.md
+          - Contributing: server/CONTRIBUTING.md
           - Authentication and Authorization: concepts/auth.md
           - Observability: concepts/observability.md
 

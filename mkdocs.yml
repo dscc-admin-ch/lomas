@@ -44,7 +44,7 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js
 
 nav:
-  - Get Started:
+  - Overview:
       - Welcome to Lomas: index.md
       # - Why use Lomas: why.md
       # - Installation: install.md
@@ -53,21 +53,27 @@ nav:
       - Client:
           - Quickstart: client/quickstart.md
           - Examples:
-            - client/index.md
+            - client/index-notebooks.md
             - notebooks/Demo_Client_Notebook.ipynb
             - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
             - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
             - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
           - Errors: client/errors.md
       - Server:
-          - Administration: server/administration.md
           - Managing Dataset: server/managing_dataset.md
           - Deployment:
             - server/index.md
-            - Local: server/local.md
+            - Local Devenv: server/devenv.md
             - Onyxia: server/onyxia.md
             - Kubernetes: server/kubernetes.md
           - Observability: server/observability.md
+          - Administration: server/administration.md
+      - Concepts:
+          - Architecture Overview: concepts/architecture-overview.md
+          - Contributing: ../CONTRIBUTING.md
+          - Authentication and Authorization: concepts/auth.md
+          - Observability: concepts/observability.md
+
   - API Reference:
       - Core: api/core.md
       - Server: api/server.md

@@ -53,7 +53,7 @@ nav:
       - Client:
           - Quickstart: client/quickstart.md
           - Examples:
-            - client/index-notebooks.md
+            - client/index.md
             - notebooks/Demo_Client_Notebook.ipynb
             - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
             - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb

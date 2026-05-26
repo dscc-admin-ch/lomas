@@ -18,7 +18,7 @@ API calls, and ensures the correct installation of other required libraries. In 
 it enables a seamless interaction with the server.
 
 For additional informations about the client, please see the
-[client quickstart page](client/quickstart.md) or [the example notebooks](client/index-notebooks.md).
+[client quickstart page](client/quickstart.md) or [the example notebooks](client/index.md).
 
 ## Server
 

@@ -18,6 +18,7 @@ let
   # [...]
   # etc. which trigger reevaluation for ANY changes whatsoever
   devenvCorrectlyHandleFs = false;
+  hacks = pkgs.callPackage pyproject-nix.build.hacks { };
 in
 rec {
   workspace = uv2nix.lib.workspace.loadWorkspace { inherit workspaceRoot; };
@@ -126,12 +127,21 @@ rec {
     });
   };
 
+  sslOverlay = final: prev: {
+    certifi = hacks.nixpkgsPrebuilt {
+      # nixpkgs certifi respect the ca-bundle from pkgs.cacert as well as NIX_SSL_CERT_FILE if set
+      from = python.pkgs.certifi;
+      prev = prev.certifi;
+    };
+  };
+
   pythonSets = (pkgs.callPackage pyproject-nix.build.packages { inherit python; }).overrideScope (
     lib.composeManyExtensions [
       pyproject-build-systems.overlays.wheel
       uvOverlay
       fixBuildSystemOverlay
       fixSmartnoiseSql
+      sslOverlay
       # diffprivlibOverlay
       # openDpOverlay
     ]

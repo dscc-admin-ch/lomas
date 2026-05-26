@@ -60,6 +60,20 @@ in
       message = "${service}: must define exactly one of (single) port or (port mapping) ports.";
     }) cfg.services;
 
+    env = {
+      LOMAS_SERVICE_telemetry__enabled = "true";
+      LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
+      LOMAS_SERVICE_telemetry__service_id = "default-host";
+      LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString cfg.services.otlp.ports.grpc}";
+      LOMAS_SERVICE_telemetry__collector_insecure = "true";
+
+      LOMAS_CLIENT_telemetry__enabled = "true";
+      LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
+      LOMAS_CLIENT_telemetry__service_id = "default-host";
+      LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString cfg.services.otlp.ports.grpc}";
+      LOMAS_CLIENT_telemetry__collector_insecure = "true";
+    };
+
     services.opentelemetry-collector = {
       enable = true;
       settings = {

@@ -19,6 +19,12 @@ server:
     imagePullPolicy: Always
     tag: sha-3642bd3
 
+  initContainers:
+    image:
+      repository: busybox
+      tag: 1.38
+    resources: {}
+
   # Runtime args for server
   runtime_args:
     bootstrap:

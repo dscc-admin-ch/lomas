@@ -25,7 +25,7 @@ spec:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
       initContainers:
         - name: wait-for-rabbitmq
-          image: busybox:1.38
+          image: "{{ .Values.server.initContainers.image.repository }}:{{ .Values.server.initContainers.image.tag }}"
           command:
             - sh
             - -c
@@ -36,12 +36,7 @@ spec:
               done
               echo "RabbitMQ is ready!"
           resources:
-            requests:
-              cpu: "10m"
-              memory: "16Mi"
-            limits:
-              cpu: "50m"
-              memory: "32Mi"
+            {{- toYaml .Values.server.initContainers.resources | nindent 12}}
       containers:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:

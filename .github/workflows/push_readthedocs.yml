@@ -25,16 +25,6 @@ jobs:
       - name: Build the doc
         run: devenv shell -- build-docs
 
-      - name: Set TMPDIR for mktemp
-        run: echo "TMPDIR=/tmp" >> $GITHUB_ENV
-
-      - name: Pushes to another repository
+      - name: Publish doc
         if: github.event_name == 'push' || github.event_name == 'release'
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
-        with:
-          source-directory: site/
-          destination-github-username: dscc-admin-ch
-          destination-repository-name: lomas-docs
-          target-branch: main
+        run: devenv shell -- mike deploy develop --push

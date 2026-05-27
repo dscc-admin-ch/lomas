@@ -23,6 +23,25 @@ spec:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      initContainers:
+        - name: wait-for-rabbitmq
+          image: busybox:1.38
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }} {{ .Values.rabbitmq.service.ports.amqp }}; do
+                echo "Waiting for RabbitMQ..."
+                sleep 2
+              done
+              echo "RabbitMQ is ready!"
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
       containers:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:

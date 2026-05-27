@@ -1,10 +1,10 @@
 # Adding and referencing new dataset
 
-This page should help the administrator to add a new dataset on the Lomas platform.
+This page should help the administrator to add a new dataset onto the Lomas platform.
 
 
 ## Dataset
-For this tuto, we'll take as example a fake dataset called fake.csv that the administrator wants to add on the platform. Three choices are possible :
+For this tutorial, we'll take as example a fake dataset called fake.csv that the administrator wants to add on the platform. Three choices are possible :
 
 1. Local dataset
 For testing purpose, one can choose to add its dataset directly in the folder `server/data`.

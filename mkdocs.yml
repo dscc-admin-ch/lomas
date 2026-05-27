@@ -58,20 +58,23 @@ nav:
             - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
             - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
             - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
-          - Errors: client/errors.md
       - Server:
-          - Managing Dataset: server/managing_dataset.md
           - Deployment:
-            - server/index.md
-            - Local Devenv: server/devenv.md
-            - Onyxia: server/onyxia.md
-            - Kubernetes: server/kubernetes.md
-          - Administration: server/administration.md
+            - server/deployment/index.md
+            - Local Devenv: server/deployment/devenv.md
+            - Onyxia: server/deployment/onyxia.md
+            - Kubernetes: server/deployment/kubernetes.md
+          - Administration:
+            - server/administration/index.md
+            - Users: server/administration/users.md
+            - Datasets: server/administration/datasets.md
       - Concepts:
           - Architecture Overview: concepts/architecture-overview.md
-          - Contributing: server/CONTRIBUTING.md
+          - Contributing: concepts/contributing.md
           - Authentication and Authorization: concepts/auth.md
           - Observability: concepts/observability.md
+          - Errors: concepts/errors.md
+          - DP Packages and Dataset Connectors: concepts/dp-packages-datasets.md
 
   - API Reference:
       - Core: api/core.md

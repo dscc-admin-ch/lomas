@@ -6,7 +6,7 @@ __Note__: This deployment method is meant for testing only and not safe for prod
 
 ## Prerequisites
 
-Ensure you have cloned the repository and set up devenv as described in the [contributor's guide](CONTRIBUTING.md). __TODO__
+Ensure you have cloned the repository and set up devenv as described in the [contributor's guide](../concepts/contributing.md).
 
 ## Steps to Deploy Locally
 

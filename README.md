@@ -37,7 +37,7 @@ For a detailed description, please see the links below.
 
 * **Lomas Project White Paper**: https://arxiv.org/abs/2406.17087
 * **Swiss Federal Statistical Office Blog**: https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html
-* **Technical Documentation**: https://dscc-admin-ch.github.io/lomas-docs/index.html
+* **Technical Documentation**: https://dscc-admin-ch.github.io/lomas/latest
 * **Poster**: https://github.com/dscc-admin-ch/lomas/blob/master/images/poster.pdf
 
 
@@ -52,21 +52,23 @@ For additional informations about the client, please see the [README.md](https:/
 
 ## Server
 
-The server side, implemented in a micro-service architecture, is composed of two main services:
-- A client-facing HTTP server, that uses FastAPI for processing user requests and executing diverse queries. Its primary function is to efficiently handle incoming requests from the client (user) and to execute the different queries (SmartnoiseSQL, OpenDP, etc.).
-- An Admin database to manage the server state. This database serves as a repository for user and metadata about the dataset. User-related data include access permissions to specific datasets, allocated budgets for each user, remaining budgets and queries executed so far by the user (that we also refer to as "archives"). Dataset-related data includes details such as dataset names, information and credentials for accessing the sensitive dataset (e.g., S3, local, HTTP), and references to associated metadata.
+The server is implemented in a micro-service architecture and is thus split into multiple parts:
 
-The server connects to external databases, typically deployed by a data owner, to download the sensitive datasets for query execution. Currently, the server can manage adapters to S3, http file download and local files.
+- The client-facing HTTP server (which we call server for brevity) handles incoming requests and manages the administration database (Python Shelf).
+- The administration database: as stated above, it is directly managed by the server and persisted on local disk (Python Shelf). The database serves as a repository for users and metadata about the datasets. User-related data include access permissions to specific datasets, allocated and used DP-budgets as well as query archives (past executed queries and their result). User role is also stored in the database (ie. admin or standard user). Dataset-related data includes information such as dataset names, links to credentials for accessing the sensitive datasets and dataset metadata for DP-related operations.
+- The workers run user queries.
+- RabbitMQ acts as a queue between the server and the workers. It is also used to implement RPC calls from the workers to the server (e.g. admin database calls).
+- The admin dashboard provides a graphical interface for Lomas administrators to interact with the server. User creation, budget updates as well as dataset updates can all be executed through the dashboard.
+- Telemetry: All components send metrics and logs to Opentelemetry-collector. The Grafana dashboard can be used to visualize the collected data.
+
+Lomas is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure (private database in the sketch above). We currently implement adapters to S3 storage, http file download and local files.
 
 ## Deployment
 We aim to facilitate the platform configuration, deployment and testing on commonly available IT infrastructure for NSOs and other potential users.
 In this regard, we provide two Helm charts for deploying the server components and a client development environment in a Kubernetes cluster.
 
-For extensive informations about how to deploy, please refer to:
-- `devenv up` for local deployments
+For extensive informations about how to deploy, please refer to our [online documentation](https://dscc-admin-ch.github.io/lomas/latest).
 
-Finally, the service provider is responsible for deploying the service and managing users and private datasets by adding, modifying or deleting information in the administration database.
-It is important to note that the service is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure.
 
 ## Disclaimer
 Lomas is a Proof of Concept that is still under development.

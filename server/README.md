@@ -11,4 +11,4 @@
 
 
 # Server
-See the technical documentation of the server: https://dscc-admin-ch.github.io/lomas-docs/server_api.html.
+See the technical documentation of the server: https://dscc-admin-ch.github.io/lomas/latest

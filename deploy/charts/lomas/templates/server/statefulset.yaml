@@ -23,6 +23,20 @@ spec:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      initContainers:
+        - name: wait-for-rabbitmq
+          image: "{{ .Values.server.initContainers.image.repository }}:{{ .Values.server.initContainers.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }} {{ .Values.rabbitmq.service.ports.amqp }}; do
+                echo "Waiting for RabbitMQ..."
+                sleep 2
+              done
+              echo "RabbitMQ is ready!"
+          resources:
+            {{- toYaml .Values.server.initContainers.resources | nindent 12}}
       containers:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:

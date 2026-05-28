@@ -30,7 +30,7 @@ class ClientConfig(BaseSettings):
     """User password."""
     oidc_discovery_url: HttpUrl
     """The oidc provier discovery Url."""
-    telemetry: Annotated[Telemetry, Field(default=Telemetry(enabled=False))]
+    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
     """Telemetry Settings."""
 
     @computed_field

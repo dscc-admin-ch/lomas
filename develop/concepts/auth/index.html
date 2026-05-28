@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/auth/">
       
       
-        <link rel="prev" href="../../server/CONTRIBUTING/">
+        <link rel="prev" href="../contributing/">
       
       
         <link rel="next" href="../observability/">
@@ -78,6 +78,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#authentication-and-authorization" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -397,8 +402,6 @@
       
         
       
-        
-      
     
     
     
@@ -545,34 +548,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../client/errors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Errors
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -589,8 +564,6 @@
   
     
     
-      
-        
       
         
       
@@ -652,34 +625,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/managing_dataset/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Managing Dataset
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
     
     
       
@@ -713,7 +658,7 @@
   
   
   
-    <a href="../../server/" class="md-nav__link">
+    <a href="../../server/deployment/" class="md-nav__link">
       
   
   
@@ -746,9 +691,39 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/administration/" class="md-nav__link">
+    
+    
+      
         
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../server/administration/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
@@ -762,7 +737,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -786,6 +767,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -880,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../server/CONTRIBUTING/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         
   
   
@@ -914,6 +899,26 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication and Authorization
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -931,6 +936,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#admin-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -952,6 +1020,62 @@
     
   
     Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dp-packages-datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DP Packages and Dataset Connectors
   
 
     
@@ -1085,6 +1209,60 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#admin-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Admin dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1153,9 +1331,33 @@
   
 
 
-  <h1>Authentication and Authorization</h1>
-
-
+<h1 id="authentication-and-authorization">Authentication and Authorization<a class="headerlink" href="#authentication-and-authorization" title="Permanent link">&para;</a></h1>
+<p>Lomas separates authentication from authorization. Authentications is outsourced to an OIDC identity provider (IdP) that is externally managed while the Lomas server handles authorization itself. Every call to a protected API endpoint follows the same workflow:</p>
+<ol>
+<li>The client gets a user OIDC access token. The Lomas server is agnostic to how this token is acquired as long as it valid.</li>
+<li>The client makes a request to a protectd API endpoint using the access token.</li>
+<li>Authentication: The server uses the access token to authenticate the user. The access token authorizes the server to query the IdP's <code>userinfo</code> endpoint and thereby verify the user's identity. Since some IdP providers deliver access token in JWT format, the server can alternatively decode the token and verify it with the IdP's public key (this can be configured in the server's config).</li>
+<li>Authorization: Once the user's identity is verified, the server can look up the admin database to verify the user role (ie. admin or not) or consult dataset access and remaining DP budget.<ul>
+<li>Role based access management is used for all endpoints that are used to manage Lomas (ie. "admin" endpoints like adding users, datasets, etc., see <code>server/lomas_server/routes/routes_admin.py</code>).</li>
+<li>User based access is used for user queries made via the Lomas client package (ie. query execution, budget consulting, etc.).</li>
+</ul>
+</li>
+</ol>
+<p>We include Dex with local storage as a mock IdP for testing purposes only. Dex as configured in Lomas is not meant for production use!</p>
+<h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">&para;</a></h2>
+<p>Because no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header <code>Authorization: Bearer &lt;bootstrap-credentials&gt;</code> bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in <code>server/lomas_server/administration/scripts/lomas_demo_setup.py</code>) gives an example of how to use bootstrap credentials to add a first admin user.</p>
+<p><strong>Important</strong>: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
+<h2 id="adding-users">Adding users<a class="headerlink" href="#adding-users" title="Permanent link">&para;</a></h2>
+<p>Make sure to add users to your IdP before adding them to Lomas. Follow <a href="../../server/administration/users/">the guide</a> for detailed instructions on how to add a user to Lomas.</p>
+<h2 id="client-package">Client package<a class="headerlink" href="#client-package" title="Permanent link">&para;</a></h2>
+<p>The Lomas client package acts as a public OIDC client and should be registered as such at your IdP. Two flows are supported by the Lomas client package for getting an access token:</p>
+<ul>
+<li><strong>Password flow - testing only:</strong> You can configure the client to use the legacy password flow. Username and credentials are set via environment variables or arguments to the <code>Client</code> constructor. This method is practical to use for testing but your IdP will probably (and rightfully so) not allow it in production.</li>
+<li><strong>Device flow:</strong> By default, the Lomas client chooses the device flow. It prints out a device verification url embedding a unique user code which the user accesses to approve the device after authenticating themselves. This is the preferred method for receiving an access token to pass along to the server.</li>
+</ul>
+<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">&para;</a></h2>
+<p>The admin dashboard acts as a private client and should be registered as such at your IdP. It uses the authorization code flow to get an access token that it forwards to the server for every API request.</p>
+<p><strong>Note if using Dex:</strong> By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
 
 
 
@@ -1193,7 +1395,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../server/CONTRIBUTING/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Contributing">
+          <a href="../contributing/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Contributing">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>

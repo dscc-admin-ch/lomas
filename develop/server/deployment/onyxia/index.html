@@ -10,29 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/">
+        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/onyxia/">
       
       
+        <link rel="prev" href="../devenv/">
       
-        <link rel="next" href="client/quickstart/">
+      
+        <link rel="next" href="../kubernetes/">
       
       
         
       
       
-      <link rel="icon" href="images/favicon.svg">
+      <link rel="icon" href="../../../images/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Welcome to Lomas - Lomas</title>
+        <title>Onyxia - Lomas</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../../../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lomas-the-data-oases-hidden-behind-the-mist" class="md-skip">
+        <a href="#onyxia" class="md-skip">
           Skip to content
         </a>
       
@@ -98,9 +100,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../../.." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -117,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Welcome to Lomas
+              Onyxia
             
           </span>
         </div>
@@ -202,7 +204,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="." class="md-tabs__link">
+        <a href="../../.." class="md-tabs__link">
           
   
   
@@ -224,7 +226,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/core/" class="md-tabs__link">
+        <a href="../../../api/core/" class="md-tabs__link">
           
   
   
@@ -244,7 +246,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="poster/" class="md-tabs__link">
+      <a href="../../../poster/" class="md-tabs__link">
         
   
   
@@ -285,9 +287,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../../.." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="images/logo.png" alt="logo">
+  <img src="../../../images/logo.png" alt="logo">
 
     </a>
     Lomas
@@ -350,7 +352,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="." class="md-nav__link md-nav__link--active">
+            <a href="../../.." class="md-nav__link ">
               
   
   
@@ -368,7 +370,7 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_1" id="__nav_1_label" tabindex="">
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -457,7 +459,7 @@
   
   
     <li class="md-nav__item">
-      <a href="client/quickstart/" class="md-nav__link">
+      <a href="../../../client/quickstart/" class="md-nav__link">
         
   
   
@@ -519,7 +521,7 @@
   
   
   
-    <a href="client/" class="md-nav__link">
+    <a href="../../../client/" class="md-nav__link">
       
   
   
@@ -558,6 +560,8 @@
                 
   
   
+    
+  
   
   
     
@@ -581,11 +585,11 @@
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" checked>
         
           
           <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="">
@@ -606,7 +610,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -620,6 +624,8 @@
               
                 
   
+  
+    
   
   
   
@@ -646,18 +652,17 @@
     
     
       
-        
-        
-      
     
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
-  
-  
-  
-    <a href="server/deployment/" class="md-nav__link">
-      
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -671,12 +676,124 @@
   
   
 
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1_3_1" id="__nav_1_3_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
   
 
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../devenv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Devenv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Onyxia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kubernetes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kubernetes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -720,7 +837,7 @@
   
   
   
-    <a href="server/administration/" class="md-nav__link">
+    <a href="../../administration/" class="md-nav__link">
       
   
   
@@ -833,7 +950,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/architecture-overview/" class="md-nav__link">
+      <a href="../../../concepts/architecture-overview/" class="md-nav__link">
         
   
   
@@ -861,7 +978,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/contributing/" class="md-nav__link">
+      <a href="../../../concepts/contributing/" class="md-nav__link">
         
   
   
@@ -889,7 +1006,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/auth/" class="md-nav__link">
+      <a href="../../../concepts/auth/" class="md-nav__link">
         
   
   
@@ -917,7 +1034,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/observability/" class="md-nav__link">
+      <a href="../../../concepts/observability/" class="md-nav__link">
         
   
   
@@ -945,7 +1062,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/errors/" class="md-nav__link">
+      <a href="../../../concepts/errors/" class="md-nav__link">
         
   
   
@@ -973,7 +1090,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/dp-packages-datasets/" class="md-nav__link">
+      <a href="../../../concepts/dp-packages-datasets/" class="md-nav__link">
         
   
   
@@ -1044,7 +1161,7 @@
   
   
   
-    <a href="api/core/" class="md-nav__link">
+    <a href="../../../api/core/" class="md-nav__link">
       
   
   
@@ -1077,7 +1194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="poster/" class="md-nav__link">
+      <a href="../../../poster/" class="md-nav__link">
         
   
   
@@ -1117,36 +1234,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#detailed-description" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detailed description
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#history" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        History
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1161,6 +1248,75 @@
 
 
 
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../.." class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Overview
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Server
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Deployment
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
               
               <article class="md-content__inner md-typeset">
                 
@@ -1171,25 +1327,33 @@
   
 
 
-<h1 id="lomas-the-data-oases-hidden-behind-the-mist">Lomas: The Data Oases Hidden Behind the Mist.<a class="headerlink" href="#lomas-the-data-oases-hidden-behind-the-mist" title="Permanent link">&para;</a></h1>
-<p>Lomas is a platform for remote data science, enabling sensitive data to be queried remotely while staying protected by a layer of differential privacy.</p>
-<h2 id="detailed-description">Detailed description<a class="headerlink" href="#detailed-description" title="Permanent link">&para;</a></h2>
-<p>For a detailed description, please see the links below.</p>
-<ul>
-<li><strong>Lomas Project White Paper</strong>: <a href="https://arxiv.org/abs/2406.17087">https://arxiv.org/abs/2406.17087</a></li>
-<li><strong>Swiss Federal Statistical Office Blog</strong>: <a href="https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html">https://www.bfs.admin.ch/bfs/en/home/dscc/blog/2024-03-lomas.html</a></li>
-<li><strong>GitHub repository</strong>: <a href="https://github.com/dscc-admin-ch/lomas/tree/master/">https://github.com/dscc-admin-ch/lomas/tree/master/</a></li>
-</ul>
-<!--TODO ## Disclaimer
-Lomas is a Proof of Concept that is still under development.
-
-The overall infrastructure security is not our current priority.  While attention has been given to the 'logical' aspects within the server, many security aspects are not handled. For example, user authentication is not implemented. However, Lomas can be integrated into other secure infrastructures.
-
-We welcome any feedback or suggestions for future improvements. External input is valuable as we continue to enhance the security and functionality of Lomas. Please open a bug report or issue here: https://github.com/dscc-admin-ch/lomas/issues.open. -->
-
-<h2 id="history">History<a class="headerlink" href="#history" title="Permanent link">&para;</a></h2>
-<p>The starting point of our platform was the code shared to us by <a href="https://www.oblivious.com/">Oblivious</a>.</p>
-<p>They originally developed a client/server platform for the <a href="https://petlab.officialstatistics.org/">UN PET Lab Hackathon 2022</a>.</p>
+<h1 id="onyxia">Onyxia<a class="headerlink" href="#onyxia" title="Permanent link">&para;</a></h1>
+<p><a href="https://datalab.sspcloud.fr">https://datalab.sspcloud.fr</a> is an instance of the Onyxia datalab platform provided by INSEE (France). It is accessible to national statistical offices as a testing ground for data science projects. If you are part of a national statistical office, you can log in to the sspcloud and start a test instance of the Lomas platform.</p>
+<p><strong>Note</strong>: This deployment method is meant for testing only and not safe for production!</p>
+<p>To start the lomas-server on Onyxia, folow those steps:</p>
+<ol>
+<li>
+<p><strong>Select the Lomas Service</strong>:
+    Within the Onyxia platform, locate the Lomas service.
+    You can find the service following this
+    <a href="https://datalab.sspcloud.fr/catalog/divers">link</a></p>
+</li>
+<li>
+<p><strong>Customize Parameters (Optional)</strong>:
+    Depending on your specific requirements, you may choose to customize the
+    administration and runtime parameters. This step allows for fine-tuning the
+    deployment according to your project's needs. Onyxia lets you override any part of the Lomas Helm values file. Please refer to the <a href="../kubernetes/">Kubernetes deployment page</a> for more information.</p>
+</li>
+<li>
+<p><strong>Initiate Deployment</strong>:
+    Once satisfied with the parameter settings, click on the "Lancer" button to
+    initiate the deployment process.</p>
+</li>
+<li>
+<p>The Lomas setup job is enabled by default. It adds demo users and datasets to Lomas for testing purposes.</p>
+</li>
+</ol>
+<p>The service notes will provide you with the relevant links to test the service.</p>
 
 
 
@@ -1226,15 +1390,31 @@ We welcome any feedback or suggestions for future improvements. External input i
       
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
+          
+          <a href="../devenv/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Local Devenv">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Local Devenv
+              </div>
+            </div>
+          </a>
+        
         
           
-          <a href="client/quickstart/" class="md-footer__link md-footer__link--next" aria-label="Next: Quickstart">
+          <a href="../kubernetes/" class="md-footer__link md-footer__link--next" aria-label="Next: Kubernetes">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Quickstart
+                Kubernetes
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1271,12 +1451,12 @@ We welcome any feedback or suggestions for future improvements. External input i
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="assets/_markdown_exec_pyodide.js"></script>
+        <script src="../../../assets/_markdown_exec_pyodide.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js"></script>
       

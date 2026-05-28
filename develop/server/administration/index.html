@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/server/administration/">
       
       
-        <link rel="prev" href="../kubernetes/">
+        <link rel="prev" href="../deployment/kubernetes/">
       
       
-        <link rel="next" href="../../concepts/architecture-overview/">
+        <link rel="next" href="users/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Administration - Lomas</title>
+        <title>Lomas Administration - Lomas</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#administration" class="md-skip">
+        <a href="#lomas-administration" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Administration
+              Lomas Administration
             
           </span>
         </div>
@@ -402,8 +402,6 @@
       
         
       
-        
-      
     
     
     
@@ -550,34 +548,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../client/errors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Errors
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -596,8 +566,6 @@
   
     
     
-      
-        
       
         
       
@@ -659,34 +627,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../managing_dataset/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Managing Dataset
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
     
     
       
@@ -720,7 +660,7 @@
   
   
   
-    <a href="../" class="md-nav__link">
+    <a href="../deployment/" class="md-nav__link">
       
   
   
@@ -755,16 +695,38 @@
   
   
   
-    <li class="md-nav__item md-nav__item--active">
+    
+    
       
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
       
       
         
       
+    
+    
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3_2" checked>
+        
           
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
   
   
   <span class="md-ellipsis">
@@ -778,17 +740,43 @@
   
   
 
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_1_3_2" id="__nav_1_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Administration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="users/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Administration
+    Users
   
 
     
@@ -797,69 +785,41 @@
   
 
       </a>
-      
-        
+    </li>
+  
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+              
+            
+              
+                
   
   
   
+  
+    <li class="md-nav__item">
+      <a href="datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
     
   
+    Datasets
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-devenv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dashboard Access when deploying via devenv
-      
-    </span>
-  </a>
+
+    
+  </span>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-docker-compose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dashboard Access when deploying via Docker compose
-      
-    </span>
-  </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-kubernetes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dashboard Access when deploying via Kubernetes
-      
-    </span>
-  </a>
+
+      </a>
+    </li>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#access-via-onyxia-platform" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Access via Onyxia Platform
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -882,6 +842,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -976,7 +940,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CONTRIBUTING/" class="md-nav__link">
+      <a href="../../concepts/contributing/" class="md-nav__link">
         
   
   
@@ -1040,6 +1004,62 @@
     
   
     Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/dp-packages-datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DP Packages and Dataset Connectors
   
 
     
@@ -1183,10 +1203,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-devenv" class="md-nav__link">
+  <a href="#admin-authorization-and-bootstraping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard Access when deploying via devenv
+        Admin authorization and bootstraping
       
     </span>
   </a>
@@ -1194,32 +1214,49 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-docker-compose" class="md-nav__link">
+  <a href="#admin-dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard Access when deploying via Docker compose
+        Admin dashboard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Admin dashboard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deleting-bootstrap-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting bootstrap credentials
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard-access-when-deploying-via-kubernetes" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#dex-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard Access when deploying via Kubernetes
+        Dex integration
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#access-via-onyxia-platform" class="md-nav__link">
+  <a href="#scripting-option" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Access via Onyxia Platform
+        Scripting Option
       
     </span>
   </a>
@@ -1269,11 +1306,37 @@
   
     
     
+      
+  
+  
+    
+    
       <li class="md-path__item">
-        <a href="../managing_dataset/" class="md-path__link">
+        <a href="../deployment/" class="md-path__link">
           
   <span class="md-ellipsis">
     Server
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Administration
   </span>
 
         </a>
@@ -1295,24 +1358,26 @@
   
 
 
-<h1 id="administration">Administration<a class="headerlink" href="#administration" title="Permanent link">&para;</a></h1>
-<p>This section explains how the data owner can manage the administrative database as well as the Lomas keycloak realm.
-It covers some tasks such as adding data, making data available to certain users,
-managing the budget, etc.</p>
-<p>The administration of the Lomas service is handled through a dedicated dashboard. Access is described below.
-In addition, all administration tools are implemented in <code>lomas_server.administration</code>,
-one can thus execute the same tasks by writing a python script / notebook that uses these methods.</p>
-<h2 id="dashboard-access-when-deploying-via-devenv">Dashboard Access when deploying via devenv<a class="headerlink" href="#dashboard-access-when-deploying-via-devenv" title="Permanent link">&para;</a></h2>
-<p>When running with devenvThe dashboard is accessible on the localhost at the port specified at the top of the devenv.nix file.</p>
-<h2 id="dashboard-access-when-deploying-via-docker-compose">Dashboard Access when deploying via Docker compose<a class="headerlink" href="#dashboard-access-when-deploying-via-docker-compose" title="Permanent link">&para;</a></h2>
-<p>When using Docker Compose, the dashboard is locally accessible. Simply run the Docker Compose setup, and the
-dashboard will be available at <code>localhost:8501</code>.</p>
-<h2 id="dashboard-access-when-deploying-via-kubernetes">Dashboard Access when deploying via Kubernetes<a class="headerlink" href="#dashboard-access-when-deploying-via-kubernetes" title="Permanent link">&para;</a></h2>
-<p>If you are deploying with Kubernetes, ensure that the <code>dashboard.enabled</code> value is set to <code>true</code> in your values.yaml.
-If <code>dashboard.enabled</code> is not set to <code>true</code>, the server will only be accessible though the API, and the dashboard will not be available.</p>
-<h2 id="access-via-onyxia-platform">Access via Onyxia Platform<a class="headerlink" href="#access-via-onyxia-platform" title="Permanent link">&para;</a></h2>
-<p>Users with access to the Onyxia platform can directly execute the dashboard here. In this platform,
-the <code>create</code> variable is activated by default in the dashboard configuration.</p>
+<h1 id="lomas-administration">Lomas Administration<a class="headerlink" href="#lomas-administration" title="Permanent link">&para;</a></h1>
+<h2 id="admin-authorization-and-bootstraping">Admin authorization and bootstraping<a class="headerlink" href="#admin-authorization-and-bootstraping" title="Permanent link">&para;</a></h2>
+<p>As stated in the <a href="../../concepts/auth/">Authentication and Authorization page</a>, the identity provider (IdP) handles authentication while the Lomas server handles authorization itself. In order to manage users, an admin must thus be both registered at the IdP and in Lomas and have the Lomas admin role.</p>
+<p>Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header <code>Authorization: Bearer &lt;bootstrap-credentials&gt;</code> bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in <code>server/lomas_server/administration/scripts/lomas_demo_setup.py</code>) gives an example of how to use bootstrap credentials to add a first admin user.</p>
+<p><strong>Important</strong>: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
+<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">&para;</a></h2>
+<p>The most convenient way for administrators to manage Lomas is via the admin dashboard. It is setup to work with the IdP to authenticate the user and forwards the access token to the server for every API call, thus enabling admin tasks via a UI. Make sure to log in (button in left menu) before trying out the dashboard features. The home page gives general information about the dashboard as well as the server status while the second page offers admin functionalities.</p>
+<p>The dashboard is accessible:</p>
+<ul>
+<li>Local devenv: <a href="http://localhost:8501/admin">http://localhost:8501/admin</a></li>
+<li>Kubernetes deployment: If enabled, the Helm chart notes show the dashboard url.</li>
+<li>Onyxia deployment: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.</li>
+</ul>
+<h3 id="deleting-bootstrap-credentials">Deleting bootstrap credentials<a class="headerlink" href="#deleting-bootstrap-credentials" title="Permanent link">&para;</a></h3>
+<p>Once your first admin user was added to Lomas, make sure to disable bootstrap credentials by clicking the delete bootstrap button on top of admin page.</p>
+<h3 id="dex-integration">Dex integration<a class="headerlink" href="#dex-integration" title="Permanent link">&para;</a></h3>
+<p>If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex. Do not use this in production!</p>
+<p><strong>Note:</strong> By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
+<h2 id="scripting-option">Scripting Option<a class="headerlink" href="#scripting-option" title="Permanent link">&para;</a></h2>
+<p>If you cannot use the admin dashboard for your admin tasks you can write a python script that sends requests to the server API. Make sure to have a user that can programmatically get a token from your IdP, either via client credentials or device authorization flow. We do not provide an example script at the time being.</p>
 
 
 
@@ -1350,7 +1415,7 @@ the <code>create</code> variable is activated by default in the dashboard config
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../kubernetes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Kubernetes">
+          <a href="../deployment/kubernetes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Kubernetes">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1367,13 +1432,13 @@ the <code>create</code> variable is activated by default in the dashboard config
         
         
           
-          <a href="../../concepts/architecture-overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture Overview">
+          <a href="users/" class="md-footer__link md-footer__link--next" aria-label="Next: Users">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Architecture Overview
+                Users
               </div>
             </div>
             <div class="md-footer__button md-icon">

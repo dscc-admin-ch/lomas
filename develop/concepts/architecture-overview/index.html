@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/architecture-overview/">
       
       
-        <link rel="prev" href="../../server/administration/">
+        <link rel="prev" href="../../server/administration/datasets/">
       
       
-        <link rel="next" href="../../server/CONTRIBUTING/">
+        <link rel="next" href="../contributing/">
       
       
         
@@ -402,8 +402,6 @@
       
         
       
-        
-      
     
     
     
@@ -550,34 +548,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../client/errors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Errors
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -594,8 +564,6 @@
   
     
     
-      
-        
       
         
       
@@ -657,34 +625,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/managing_dataset/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Managing Dataset
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
     
     
       
@@ -718,7 +658,7 @@
   
   
   
-    <a href="../../server/" class="md-nav__link">
+    <a href="../../server/deployment/" class="md-nav__link">
       
   
   
@@ -751,9 +691,39 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/administration/" class="md-nav__link">
+    
+    
+      
         
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../server/administration/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
@@ -767,7 +737,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -791,6 +767,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -954,7 +934,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../server/CONTRIBUTING/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         
   
   
@@ -1018,6 +998,62 @@
     
   
     Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dp-packages-datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DP Packages and Dataset Connectors
   
 
     
@@ -1276,8 +1312,8 @@ it enables a seamless interaction with the server.</p>
 <li>Telemetry: All components send metrics and logs to Opentelemetry-collector. The Grafana dashboard can be used to visualize the collected data.</li>
 </ul>
 <p>Lomas is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure (private database in the sketch above). We currently implement adapters to S3 storage, http file download and local files.</p>
-<p>The IdP provider is also not part of the Lomas platform and should be managed externaly. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!</p>
-<p>For more information about the server, see the <a href="../../server/administration/">server administration page</a>. The <a href="../../server/kubernetes/">deployment page</a> goes through how to deploy the platform to a Kubernetes cluster via Helm.</p>
+<p>The IdP provider is also not part of the Lomas platform and should be managed externally. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!</p>
+<p>For more information about the server, see the <a href="../../server/administration/">server administration page</a>. The <a href="../../server/deployment/">deployment section</a> covers how to deploy the server across different environments, including Kubernetes (via Helm).</p>
 <p><strong>Note</strong>: The Lomas Python code is split into a client (<code>lomas-client</code>) and a server (<code>lomas-server</code>) package. The <code>lomas-core</code> package serves as a base for the code that is common to both main packages.</p>
 
 
@@ -1316,7 +1352,7 @@ it enables a seamless interaction with the server.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../server/administration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Administration">
+          <a href="../../server/administration/datasets/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Datasets">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1326,14 +1362,14 @@ it enables a seamless interaction with the server.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Administration
+                Datasets
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../server/CONTRIBUTING/" class="md-footer__link md-footer__link--next" aria-label="Next: Contributing">
+          <a href="../contributing/" class="md-footer__link md-footer__link--next" aria-label="Next: Contributing">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next

@@ -25,10 +25,6 @@
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/client/errors/</loc>
-         <lastmod>1980-01-01</lastmod>
-    </url>
-    <url>
          <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/client/quickstart/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
@@ -38,6 +34,18 @@
     </url>
     <url>
          <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/auth/</loc>
+         <lastmod>1980-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/contributing/</loc>
+         <lastmod>1980-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/dp-packages-datasets/</loc>
+         <lastmod>1980-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/errors/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
@@ -61,31 +69,31 @@
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/</loc>
-         <lastmod>1980-01-01</lastmod>
-    </url>
-    <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/CONTRIBUTING/</loc>
-         <lastmod>1980-01-01</lastmod>
-    </url>
-    <url>
          <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/administration/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/devenv/</loc>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/administration/datasets/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/kubernetes/</loc>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/administration/users/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/managing_dataset/</loc>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
     <url>
-         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/onyxia/</loc>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/devenv/</loc>
+         <lastmod>1980-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/kubernetes/</loc>
+         <lastmod>1980-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/onyxia/</loc>
          <lastmod>1980-01-01</lastmod>
     </url>
 </urlset>

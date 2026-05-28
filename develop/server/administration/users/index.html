@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1410,9 +1474,12 @@
   
 
 
-<h1 id="managing-users-via-the-admin-dashboard">Managing Users via the Admin Dashboard<a class="headerlink" href="#managing-users-via-the-admin-dashboard" title="Permanent link">&para;</a></h1>
-<p><strong>Note if using Dex:</strong> By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
-<h2 id="adding-a-user">Adding a user<a class="headerlink" href="#adding-a-user" title="Permanent link">&para;</a></h2>
+<h1 id="managing-users-via-the-admin-dashboard">Managing Users via the Admin Dashboard<a class="headerlink" href="#managing-users-via-the-admin-dashboard" title="Permanent link">#</a></h1>
+<div class="admonition tip">
+<p class="admonition-title"><strong>If using Dex</strong></p>
+<p>By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
+</div>
+<h2 id="adding-a-user">Adding a user<a class="headerlink" href="#adding-a-user" title="Permanent link">#</a></h2>
 <p>Adding a user works either through the straightforward "Add user" section or via the "Bulk user import" function. The bulk import method requires properly formatted yaml file listing users and the datasets accessible to them. Below is an example of such a file. You can also find the demo user collection in <code>server/data/collections/user_collection.yaml</code> while the pydantic model for users is specified in <code>core/lomas_core/models/collections.py</code>.</p>
 <div class="language-yaml highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Alice</span>
@@ -1431,11 +1498,19 @@
 <span class="w">    </span><span class="nt">total_spent_epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">total_spent_delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 </code></pre></div>
-<h2 id="adding-datasets-to-users-and-setting-dp-budget">Adding datasets to users and setting DP budget<a class="headerlink" href="#adding-datasets-to-users-and-setting-dp-budget" title="Permanent link">&para;</a></h2>
-<p>Once a user has been added, it is listed on top of the "Users" section. Select the tickbox on the leftmost column of the table to edit a user. The \epsilon and \delta fields in the dataset list are editable. You can also add a new dataset to the user from the available dataset list in the box below. For how to add new datasets to Lomas, checkout the <a href="../datasets/">datasets page</a>. Finally, the previous queries button let's you display all previous queries run by that user.</p>
-<h2 id="deletion">Deletion<a class="headerlink" href="#deletion" title="Permanent link">&para;</a></h2>
-<p>Deletions are grouped in the last section of this page. You can select an existing user and a dataset from its authorized list either remove the dataset from the user or delete the user entirely. Make sure you know what you are doing before deleting anything from the admin database!</p>
-<p>There are also bulk delete buttons to remove entire collections from the admin database. Use these with caution!</p>
+<h2 id="adding-datasets-to-users-and-setting-dp-budget">Adding datasets to users and setting DP budget<a class="headerlink" href="#adding-datasets-to-users-and-setting-dp-budget" title="Permanent link">#</a></h2>
+<p>Once a user has been added, it is listed on top of the "Users" section.
+Select the tickbox on the leftmost column of the table to edit a user.
+The ε and δ fields in the dataset list are editable.
+You can also add a new dataset to the user from the available dataset list in the box below.
+For how to add new datasets to Lomas, checkout the <a href="../datasets/">datasets page</a>.
+Finally, the previous queries button let's you display all previous queries run by that user.</p>
+<h2 id="deletion">Deletion<a class="headerlink" href="#deletion" title="Permanent link">#</a></h2>
+<p>Deletions are grouped in the last section of this page.
+You can select an existing user and a dataset from its authorized list either remove the dataset from the user or delete the user entirely.
+Make sure you know what you are doing before deleting anything from the admin database!</p>
+<p>There are also bulk delete buttons to remove entire collections from the admin database.
+Use these with caution!</p>
 
 
 
@@ -1533,7 +1608,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

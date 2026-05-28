@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1331,21 +1395,21 @@
   
 
 
-<h1 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h1>
+<h1 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">#</a></h1>
 <p>They are 4 custom errors describing the reasons why the queries fail and what to do.</p>
-<h2 id="invalidqueryexception"><a href="../../api/core/#lomas_core.error_handler.InvalidQueryException">InvalidQueryException</a><a class="headerlink" href="#invalidqueryexception" title="Permanent link">&para;</a></h2>
+<h2 id="invalidqueryexception"><a href="../../api/core/#lomas_core.error_handler.InvalidQueryException">InvalidQueryException</a><a class="headerlink" href="#invalidqueryexception" title="Permanent link">#</a></h2>
 <ul>
 <li>Happens when: error is due to an an invalid query from the user</li>
 <li>Example: an "opendp" pipeline which is not a measurement, not enough budget for query</li>
 <li>What to do: Based on the specific error message, the user should check and fix their relevant query parameters.</li>
 </ul>
-<h2 id="externallibraryexception"><a href="../../api/core/#lomas_core.error_handler.ExternalLibraryException">ExternalLibraryException</a><a class="headerlink" href="#externallibraryexception" title="Permanent link">&para;</a></h2>
+<h2 id="externallibraryexception"><a href="../../api/core/#lomas_core.error_handler.ExternalLibraryException">ExternalLibraryException</a><a class="headerlink" href="#externallibraryexception" title="Permanent link">#</a></h2>
 <ul>
 <li>Happens when: error comes from an external differential privacy library ("smartnoise-sql" or "opendp").</li>
 <li>Example: invalid values in Smartnoise-SQL <code>mechanisms</code> parameter.</li>
 <li>What to do: Based on the specific error message, the user should check and fix their "smartnoise-sql" <code>query</code> parameter or "opendp" <code>pipeline</code> parameter.</li>
 </ul>
-<h2 id="unauthorizedaccessexception"><a href="../../api/core/#lomas_core.error_handler.UnauthorizedAccessException">UnauthorizedAccessException</a><a class="headerlink" href="#unauthorizedaccessexception" title="Permanent link">&para;</a></h2>
+<h2 id="unauthorizedaccessexception"><a href="../../api/core/#lomas_core.error_handler.UnauthorizedAccessException">UnauthorizedAccessException</a><a class="headerlink" href="#unauthorizedaccessexception" title="Permanent link">#</a></h2>
 <ul>
 <li>Happens when: user tries to query a dataset without sufficient authorisation:<ul>
 <li>when the user does not exist,</li>
@@ -1356,7 +1420,7 @@
 <li>Example: user tries to query a dataframe to which they do not have access</li>
 <li>What to do: The user should decrease the budget parameters and check their access rights.</li>
 </ul>
-<h2 id="internalserverexception"><a href="../../api/core/#lomas_core.error_handler.InternalServerException">InternalServerException</a><a class="headerlink" href="#internalserverexception" title="Permanent link">&para;</a></h2>
+<h2 id="internalserverexception"><a href="../../api/core/#lomas_core.error_handler.InternalServerException">InternalServerException</a><a class="headerlink" href="#internalserverexception" title="Permanent link">#</a></h2>
 <ul>
 <li>Happens when: there are internal issues within the server.</li>
 <li>Example: failed startup of the server</li>
@@ -1460,7 +1524,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

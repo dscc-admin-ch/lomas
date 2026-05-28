@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/server/deployment/kubernetes/">
+        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/client/diffprivlib/">
       
       
-        <link rel="prev" href="../onyxia/">
+        <link rel="prev" href="../smartnoise-sql/">
       
       
-        <link rel="next" href="../../administration/">
+        <link rel="next" href="../">
       
       
         
       
       
-      <link rel="icon" href="../../../images/favicon.svg">
+      <link rel="icon" href="../../images/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Kubernetes - Lomas</title>
+        <title>Diffprivlib - Lomas</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#kubernetes-deployment-via-helm" class="md-skip">
+        <a href="#diffprivlib" class="md-skip">
           Skip to content
         </a>
       
@@ -100,9 +100,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../../../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Kubernetes
+              Diffprivlib
             
           </span>
         </div>
@@ -204,7 +204,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../.." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -226,7 +226,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../api/core/" class="md-tabs__link">
+        <a href="../../api/core/" class="md-tabs__link">
           
   
   
@@ -246,7 +246,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../poster/" class="md-tabs__link">
+      <a href="../../poster/" class="md-tabs__link">
         
   
   
@@ -287,9 +287,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../../../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     Lomas
@@ -352,7 +352,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../.." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -393,6 +393,8 @@
                 
   
   
+    
+  
   
   
     
@@ -418,11 +420,11 @@
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
         
           
           <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="">
@@ -443,7 +445,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -461,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../client/quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -486,219 +488,12 @@
                 
   
   
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../../../client/opendp/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Available DP libraries
-  
-
-    
-  </span>
-  
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../../../client/" class="md-nav__link">
-      
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
-  
-
-      
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
   
     
     
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-      
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Server
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Server
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    
-    
-      
-        
-          
-        
       
         
       
@@ -721,18 +516,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2_2" checked>
         
           
-          <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
-              
+          <label class="md-nav__link" for="__nav_1_2_2" id="__nav_1_2_2_label" tabindex="0">
+            
   
   
   <span class="md-ellipsis">
     
   
-    Deployment
+    Available DP libraries
   
 
     
@@ -740,27 +534,19 @@
   
   
 
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_1_3_1" id="__nav_1_3_1_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
         
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_3_1_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_3_1">
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_2_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Deployment
+    Available DP libraries
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
             
               
                 
@@ -769,14 +555,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../devenv/" class="md-nav__link">
+      <a href="../opendp/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Local Devenv
+    OpenDP
   
 
     
@@ -797,14 +583,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../onyxia/" class="md-nav__link">
+      <a href="../smartnoise-sql/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Onyxia
+    Smartnoise SQL
   
 
     
@@ -841,7 +627,7 @@
   <span class="md-ellipsis">
     
   
-    Kubernetes
+    Diffprivlib
   
 
     
@@ -859,7 +645,7 @@
   <span class="md-ellipsis">
     
   
-    Kubernetes
+    Diffprivlib
   
 
     
@@ -885,10 +671,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Overview
       
     </span>
   </a>
@@ -896,10 +682,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-deployment" class="md-nav__link">
+  <a href="#usage-in-lomas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal deployment
+        Usage in Lomas
       
     </span>
   </a>
@@ -907,10 +693,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kubernetes-secret-management" class="md-nav__link">
+  <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kubernetes Secret Management
+        References
       
     </span>
   </a>
@@ -951,6 +737,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -971,7 +761,208 @@
   
   
   
-    <a href="../../administration/" class="md-nav__link">
+    <a href="../" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Server
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Server
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../server/deployment/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../server/administration/" class="md-nav__link">
       
   
   
@@ -1084,7 +1075,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/architecture-overview/" class="md-nav__link">
+      <a href="../../concepts/architecture-overview/" class="md-nav__link">
         
   
   
@@ -1112,7 +1103,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/contributing/" class="md-nav__link">
+      <a href="../../concepts/contributing/" class="md-nav__link">
         
   
   
@@ -1140,7 +1131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/auth/" class="md-nav__link">
+      <a href="../../concepts/auth/" class="md-nav__link">
         
   
   
@@ -1168,7 +1159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/observability/" class="md-nav__link">
+      <a href="../../concepts/observability/" class="md-nav__link">
         
   
   
@@ -1196,7 +1187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/errors/" class="md-nav__link">
+      <a href="../../concepts/errors/" class="md-nav__link">
         
   
   
@@ -1224,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../concepts/dp-packages-datasets/" class="md-nav__link">
+      <a href="../../concepts/dp-packages-datasets/" class="md-nav__link">
         
   
   
@@ -1295,7 +1286,7 @@
   
   
   
-    <a href="../../../api/core/" class="md-nav__link">
+    <a href="../../api/core/" class="md-nav__link">
       
   
   
@@ -1328,7 +1319,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../poster/" class="md-nav__link">
+      <a href="../../poster/" class="md-nav__link">
         
   
   
@@ -1375,10 +1366,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        Overview
       
     </span>
   </a>
@@ -1386,10 +1377,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-deployment" class="md-nav__link">
+  <a href="#usage-in-lomas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal deployment
+        Usage in Lomas
       
     </span>
   </a>
@@ -1397,10 +1388,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kubernetes-secret-management" class="md-nav__link">
+  <a href="#references" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kubernetes Secret Management
+        References
       
     </span>
   </a>
@@ -1433,7 +1424,7 @@
     
     
       <li class="md-path__item">
-        <a href="../../.." class="md-path__link">
+        <a href="../.." class="md-path__link">
           
   <span class="md-ellipsis">
     Overview
@@ -1450,23 +1441,15 @@
   
     
     
-      
-  
-  
-    
-    
       <li class="md-path__item">
-        <a href="../" class="md-path__link">
+        <a href="../quickstart/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Server
+    Client
   </span>
 
         </a>
       </li>
-    
-  
-
     
   
 
@@ -1477,10 +1460,10 @@
     
     
       <li class="md-path__item">
-        <a href="../" class="md-path__link">
+        <a href="../opendp/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Deployment
+    Available DP libraries
   </span>
 
         </a>
@@ -1502,81 +1485,19 @@
   
 
 
-<h1 id="kubernetes-deployment-via-helm">Kubernetes Deployment via Helm<a class="headerlink" href="#kubernetes-deployment-via-helm" title="Permanent link">#</a></h1>
-<p>We provide a Helm chart for deploying Lomas on a Kubernetes cluster. The chart is mainly developped for vanilla Kubernetes clusters but we also include some adaptations for RedHat Openshift clusters.</p>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
-<p>Before you begin, make sure you have the following:</p>
-<ol>
-<li><strong>Kubernetes Cluster</strong>: A running Kubernetes cluster.
-    If you don't have one, you can set up a local cluster using Minikube
-    or Kind, or use a cloud provider like GKE, EKS, or AKS.</li>
-<li><strong>Helm</strong>: Helm installed on your local machine.
-    Follow the <a href="https://helm.sh/docs/intro/install/">official Helm installation guide</a>
-    if you haven't installed Helm yet.</li>
-<li><strong>kubectl</strong>: Kubernetes command-line tool <code>kubectl</code>
-    installed and configured to communicate with your cluster.
-    You can install <code>kubectl</code> by following the
-    <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">official Kubernetes installation guide</a>.</li>
-</ol>
-<h2 id="minimal-deployment">Minimal deployment<a class="headerlink" href="#minimal-deployment" title="Permanent link">#</a></h2>
-<p>The following outlines the steps required for a basic deployment:</p>
-<ol>
-<li>
-<p><strong>Download the Helm chart:</strong> If deploying a released version of Lomas use
-  <div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>lomas<span class="w"> </span>https://dscc-admin-ch.github.io/helm-charts
-</code></pre></div>
-  The source code for the chart can be found in the project repository under <code>deploy/charts/lomas/</code>.</p>
-</li>
-<li>
-<p><strong>Download the values file:</strong> Download the values file using
-  <div class="language-sh highlight"><pre><span></span><code>helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>lomas/lomas-server<span class="w"> </span>&gt;<span class="w"> </span>values.yaml
-</code></pre></div>
-  Alternatively, copy the file from <code>deploy/charts/lomas/values.yaml</code> in the project repository.</p>
-</li>
-<li><strong>Update the values file:</strong> You need to update at least the following urls for the chart to work:<ul>
-<li><code>server.runtime_args.server.authenticator.oidc_discovery_url</code>, set this to your IdP's discovery url, or Dex's if enabled.</li>
-<li><code>server.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
-<li><code>demoSetupJob.config.serverUrl</code>: Set this to the server hostname.</li>
-<li><code>dashboard.streamlitServerSecrets</code>: Set the <code>redirectUri</code>s address to the dashboard ingress and the <code>serverMetadataUrl</code> to your IdP's discovery endpoint.</li>
-<li><code>dashboard.ingress.hostname</code>: Choose a hostname supported by your cluster.</li>
-<li><code>dex.ingress.hosts.host</code>: Choose a hostname supported by your cluster. Reminder, Dex is only included for testing purposes, do not use in production!</li>
-</ul>
-</li>
-<li><strong>Install the chart:</strong> Run
-    <code>.sh
-  helm install lomas-sever lomas/lomas-server -f values.yaml</code></li>
-<li>The chart's post-installation notes will show the server and dashboard urls. You can continue to the <a href="../../administration/">administration section</a> for how to administer your Lomas instance.</li>
-</ol>
-<h2 id="kubernetes-secret-management">Kubernetes Secret Management<a class="headerlink" href="#kubernetes-secret-management" title="Permanent link">#</a></h2>
-<p>When deploying through the Helm chart, various secret values (e.g. credentials) are injected into Lomas containers at runtime.
-In Kubernetes, secret values are stored separately and managed through a dedicated resource: Secrets.
-Secret values are either provided to the Lomas chart directly via the values.yaml file (for testing purposes) or preferably via existing Kubernetes secrets.
-The secret format is sometimes enforced by the underlying charts Lomas depends on. Here is a list of all secret resources used/created by the Lomas chart.</p>
+<h1 id="diffprivlib">Diffprivlib<a class="headerlink" href="#diffprivlib" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p><a href="https://github.com/IBM/differential-privacy-library">DiffPrivLib</a> is an open-source differential privacy library developed by IBM. It provides some differentially private tools, including DP implementations of common machine learning algorithms and statistical analysis functions, making it familiar to users used to work with scikit-learn.</p>
+<h2 id="usage-in-lomas">Usage in Lomas<a class="headerlink" href="#usage-in-lomas" title="Permanent link">#</a></h2>
+<p>Users can send DiffPrivLib queries directly via the Lomas client package with <code>client.diffprivlib.query()</code> using the <a href="../../api/client/#lomas_client.libraries.diffprivlib">diffprivlib</a> module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p>A worked example demonstrating how to use DiffPrivLib through the Lomas client is available in <a href="../../notebooks/Demo_Client_Notebook_DiffPrivLib/">this notebook</a>.</p>
+</div>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
 <ul>
-<li><strong>Server bootstrap credential</strong><ul>
-<li>Existing secret: <code>server.runtime_args.bootstrap.existingSecret</code> and <code>..existingkey</code>.</li>
-<li>Setting the value: <code>server.runtime_args.bootstrap.value</code>.</li>
-</ul>
-</li>
-<li><strong>Admin dashboard</strong><ul>
-<li>Streamlit requires a secret file in TOML format for getting information related to authentication.</li>
-<li>Existing secret: <code>dashboard.streamlitServerSecrets.existingSecret</code> and <code>..existingSecretKey</code>.</li>
-<li><code>dashboard.streamlitServerSecrets.value</code> is used to set the value directly.</li>
-</ul>
-</li>
-<li><strong>RabbitMQ</strong><ul>
-<li>Lomas relies on Bitnami's RabbitMQ chart. One secret is used for RabbitMQ's password.</li>
-<li>Existing secret: The secret name can be specified with <code>rabbitmq.auth.existingPasswordSecret</code> while the key with <code>rabbitmq.auth.existingSecretPasswordKey</code>.</li>
-<li>Values file: <code>rabbitmq.auth.password</code> is used for setting the password.</li>
-</ul>
-</li>
-<li><strong>Private DB Credentials</strong><ul>
-<li>Credentials for external private databases are read by the Lomas server and worker through their conf*igs and thus also injected as environment variables via Kubernetes secrets.</li>
-<li>For each set of credentials to a private database, one can either specify an existing secret or set the credentials as an element of the list at <code>server.runtime_args.private_db_credentials</code>.</li>
-<li>Existing secret: Add the name of the existing secret as an element of the list by adding <code>existing_secret: &lt;name of your secret&gt;</code> to the <code>private_db_credentials</code> list. The secret key should be <code>private-db-credentials</code> and contain a valid json representation of the private database credentials.</li>
-<li>Values file: Directly add the dictionary representing the credentials as an element of the <code>private_db_credentials</code> list.</li>
-</ul>
-</li>
+<li><a href="https://github.com/IBM/differential-privacy-library">Diffprivlib GitHub</a></li>
+<li><a href="https://diffprivlib.readthedocs.io/en/latest/">Diffprivlib Documentation</a></li>
 </ul>
 
 
@@ -1615,7 +1536,7 @@ The secret format is sometimes enforced by the underlying charts Lomas depends o
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../onyxia/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Onyxia">
+          <a href="../smartnoise-sql/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Smartnoise SQL">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1625,20 +1546,20 @@ The secret format is sometimes enforced by the underlying charts Lomas depends o
                 Previous
               </span>
               <div class="md-ellipsis">
-                Onyxia
+                Smartnoise SQL
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../administration/" class="md-footer__link md-footer__link--next" aria-label="Next: Lomas Administration">
+          <a href="../" class="md-footer__link md-footer__link--next" aria-label="Next: Examples">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Lomas Administration
+                Examples
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1675,12 +1596,12 @@ The secret format is sometimes enforced by the underlying charts Lomas depends o
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../../../assets/_markdown_exec_pyodide.js"></script>
+        <script src="../../assets/_markdown_exec_pyodide.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js"></script>
       

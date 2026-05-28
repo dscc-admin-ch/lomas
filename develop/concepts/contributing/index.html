@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1375,9 +1439,9 @@
   
 
 
-<h1 id="contributing-to-lomas">Contributing to Lomas<a class="headerlink" href="#contributing-to-lomas" title="Permanent link">&para;</a></h1>
+<h1 id="contributing-to-lomas">Contributing to Lomas<a class="headerlink" href="#contributing-to-lomas" title="Permanent link">#</a></h1>
 <p>This page gives general information about developer workflows in the Lomas project.</p>
-<h2 id="git-branches">Git Branches<a class="headerlink" href="#git-branches" title="Permanent link">&para;</a></h2>
+<h2 id="git-branches">Git Branches<a class="headerlink" href="#git-branches" title="Permanent link">#</a></h2>
 <ul>
 <li><strong>master</strong>: This is the stable branch. Release tags are always on this branch and the latest release is always the head of this branch.</li>
 <li><strong>develop</strong>: This is the main development branch and can be ahead of the master branch.
@@ -1388,7 +1452,7 @@
 <li><strong>release/vx.y.z</strong>: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.</li>
 </ul>
-<h2 id="devenv">Devenv<a class="headerlink" href="#devenv" title="Permanent link">&para;</a></h2>
+<h2 id="devenv">Devenv<a class="headerlink" href="#devenv" title="Permanent link">#</a></h2>
 <p>We use <a href="https://devenv.sh/">devenv</a> devenv to setup our development environent. You can run the following steps to install nix and devenv:</p>
 <ol>
 <li><code>./scripts/bootstrap.sh</code></li>
@@ -1415,7 +1479,7 @@ The following utilities are now available in your shell:</p>
 <li><code>build-docs-local</code> builds the local version of the doc (requires <code>uv sync --all-extras</code> first), the htlm will open automatically.</li>
 </ul>
 <p>Note that some of the utilities (fast enough) are integrated as git pre-commit hook (namely ruff/pylint).</p>
-<h2 id="python-package-management">Python package management<a class="headerlink" href="#python-package-management" title="Permanent link">&para;</a></h2>
+<h2 id="python-package-management">Python package management<a class="headerlink" href="#python-package-management" title="Permanent link">#</a></h2>
 <p>We use <a href="https://docs.astral.sh/uv/reference/cli/"><code>uv</code></a> for managing Python dependencies and package builds. The repo is setup using the workspaces layout, see <a href="https://docs.astral.sh/uv/concepts/projects/workspaces/">here for reference</a>.</p>
 <p>Here are some of the more common commands:</p>
 <ul>
@@ -1425,7 +1489,7 @@ The following utilities are now available in your shell:</p>
 <li><code>uv remove &lt;package&gt;</code> removes a package from the project.</li>
 </ul>
 <p>Activating the devenv already activates the python venv with uv.</p>
-<h2 id="linting-and-other-checks">Linting and Other Checks<a class="headerlink" href="#linting-and-other-checks" title="Permanent link">&para;</a></h2>
+<h2 id="linting-and-other-checks">Linting and Other Checks<a class="headerlink" href="#linting-and-other-checks" title="Permanent link">#</a></h2>
 <p>To ensure code quality and consistency, we perform several checks using various tools. Below is a list of the checks that are performed by the <code>run-linter</code> command:</p>
 <ul>
 <li><strong>Code Formatting:</strong> We use ruff to automatically format the code.</li>
@@ -1443,7 +1507,7 @@ The following utilities are now available in your shell:</p>
 <li><code>lomas/client/pyproject.toml</code>.</li>
 </ul>
 <p>As detailed below, we rely on GitHub workflows to automatically run these checks on pull requests, ensuring consistency and quality across all contributions.</p>
-<h2 id="github-workflows">GitHub Workflows<a class="headerlink" href="#github-workflows" title="Permanent link">&para;</a></h2>
+<h2 id="github-workflows">GitHub Workflows<a class="headerlink" href="#github-workflows" title="Permanent link">#</a></h2>
 <p>This project uses a number of GitHub workflows to automate various CI/CD tasks. These tasks can also be manually run in a local environment during development. Please refer to the workflow files in <code>.github/workflows/</code> for further details.
 The table below gives an overview of which workflows are triggered by what events.</p>
 <table>
@@ -1522,7 +1586,7 @@ The table below gives an overview of which workflows are triggered by what event
 <li><strong>Documentation push</strong>: <strong>TODO</strong> Mike setup</li>
 </ul>
 <p>*The Security with CodeQL workflow is also triggered every Monday at 9am.</p>
-<h2 id="release-workflow">Release Workflow<a class="headerlink" href="#release-workflow" title="Permanent link">&para;</a></h2>
+<h2 id="release-workflow">Release Workflow<a class="headerlink" href="#release-workflow" title="Permanent link">#</a></h2>
 <p>The following actions must take place in this order when preparing a new release:</p>
 <ol>
 <li>Create a <code>release/vx.y.z</code> branch from develop.</li>
@@ -1630,7 +1694,7 @@ The table below gives an overview of which workflows are triggered by what event
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

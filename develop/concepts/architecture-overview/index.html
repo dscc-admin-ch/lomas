@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1287,13 +1351,13 @@
   
 
 
-<h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h1>
+<h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">#</a></h1>
 <p>Lomas is a platform for remote data science. Users send their algorithms to the Lomas server API using the Lomas client Python package. The Lomas platform verifies the user has access rights to the dataset and the differential privacy budget is sufficient before executing the algorithm and returning the DP-protected result to the user. The user never gets direct access to sensitive data.</p>
 <p>Below is an architecture sketch for the Lomas platform.</p>
 <p><img alt="Architecture sketch" src="../../static/architecture-sketch.png" /></p>
 <p>The following communicate with the IdP provider:
 <img alt="IdP communication" src="../../static/architecture-idp-communication.png" /></p>
-<h2 id="client">Client<a class="headerlink" href="#client" title="Permanent link">&para;</a></h2>
+<h2 id="client">Client<a class="headerlink" href="#client" title="Permanent link">#</a></h2>
 <p>The <code>lomas-client</code> Python package (available on PyPi) is a dedicated client to interact with the Lomas server.
 Utilizing this client library is strongly advised for querying and interacting with the
 server, as it takes care of all the necessary tasks such as authentication, query serialization and response deserialization,
@@ -1301,7 +1365,7 @@ API calls, and ensures the correct installation of other required libraries. In 
 it enables a seamless interaction with the server.</p>
 <p>For additional informations about the client, please see the
 <a href="../../client/quickstart/">client quickstart page</a> or <a href="../../client/">the example notebooks</a>.</p>
-<h2 id="server">Server<a class="headerlink" href="#server" title="Permanent link">&para;</a></h2>
+<h2 id="server">Server<a class="headerlink" href="#server" title="Permanent link">#</a></h2>
 <p>The server is implemented in a micro-service architecture and is thus split into multiple parts:</p>
 <ul>
 <li>The client-facing HTTP server (which we call server for brevity) handles incoming requests and manages the administration database (Python Shelf).</li>
@@ -1314,7 +1378,11 @@ it enables a seamless interaction with the server.</p>
 <p>Lomas is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure (private database in the sketch above). We currently implement adapters to S3 storage, http file download and local files.</p>
 <p>The IdP provider is also not part of the Lomas platform and should be managed externally. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!</p>
 <p>For more information about the server, see the <a href="../../server/administration/">server administration page</a>. The <a href="../../server/deployment/">deployment section</a> covers how to deploy the server across different environments, including Kubernetes (via Helm).</p>
-<p><strong>Note</strong>: The Lomas Python code is split into a client (<code>lomas-client</code>) and a server (<code>lomas-server</code>) package. The <code>lomas-core</code> package serves as a base for the code that is common to both main packages.</p>
+<div class="admonition note">
+<p class="admonition-title"><strong>Note</strong></p>
+<p>The Lomas Python code is split into a client (<code>lomas-client</code>) and a server (<code>lomas-server</code>) package.
+The <code>lomas-core</code> package serves as a base for the code that is common to both main packages.</p>
+</div>
 
 
 
@@ -1412,7 +1480,7 @@ it enables a seamless interaction with the server.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

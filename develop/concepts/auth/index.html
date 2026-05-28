@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1331,7 +1395,7 @@
   
 
 
-<h1 id="authentication-and-authorization">Authentication and Authorization<a class="headerlink" href="#authentication-and-authorization" title="Permanent link">&para;</a></h1>
+<h1 id="authentication-and-authorization">Authentication and Authorization<a class="headerlink" href="#authentication-and-authorization" title="Permanent link">#</a></h1>
 <p>Lomas separates authentication from authorization. Authentications is outsourced to an OIDC identity provider (IdP) that is externally managed while the Lomas server handles authorization itself. Every call to a protected API endpoint follows the same workflow:</p>
 <ol>
 <li>The client gets a user OIDC access token. The Lomas server is agnostic to how this token is acquired as long as it valid.</li>
@@ -1344,18 +1408,21 @@
 </li>
 </ol>
 <p>We include Dex with local storage as a mock IdP for testing purposes only. Dex as configured in Lomas is not meant for production use!</p>
-<h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">&para;</a></h2>
+<h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">#</a></h2>
 <p>Because no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header <code>Authorization: Bearer &lt;bootstrap-credentials&gt;</code> bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in <code>server/lomas_server/administration/scripts/lomas_demo_setup.py</code>) gives an example of how to use bootstrap credentials to add a first admin user.</p>
-<p><strong>Important</strong>: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
-<h2 id="adding-users">Adding users<a class="headerlink" href="#adding-users" title="Permanent link">&para;</a></h2>
+<div class="admonition danger">
+<p class="admonition-title"><strong>Important</strong></p>
+<p>Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
+</div>
+<h2 id="adding-users">Adding users<a class="headerlink" href="#adding-users" title="Permanent link">#</a></h2>
 <p>Make sure to add users to your IdP before adding them to Lomas. Follow <a href="../../server/administration/users/">the guide</a> for detailed instructions on how to add a user to Lomas.</p>
-<h2 id="client-package">Client package<a class="headerlink" href="#client-package" title="Permanent link">&para;</a></h2>
+<h2 id="client-package">Client package<a class="headerlink" href="#client-package" title="Permanent link">#</a></h2>
 <p>The Lomas client package acts as a public OIDC client and should be registered as such at your IdP. Two flows are supported by the Lomas client package for getting an access token:</p>
 <ul>
 <li><strong>Password flow - testing only:</strong> You can configure the client to use the legacy password flow. Username and credentials are set via environment variables or arguments to the <code>Client</code> constructor. This method is practical to use for testing but your IdP will probably (and rightfully so) not allow it in production.</li>
 <li><strong>Device flow:</strong> By default, the Lomas client chooses the device flow. It prints out a device verification url embedding a unique user code which the user accesses to approve the device after authenticating themselves. This is the preferred method for receiving an access token to pass along to the server.</li>
 </ul>
-<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">&para;</a></h2>
+<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">#</a></h2>
 <p>The admin dashboard acts as a private client and should be registered as such at your IdP. It uses the authorization code flow to get an access token that it forwards to the server for every API request.</p>
 <p><strong>Note if using Dex:</strong> By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
 
@@ -1455,7 +1522,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

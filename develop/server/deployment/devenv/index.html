@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -763,17 +827,6 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
       
         <li class="md-nav__item">
   <a href="#steps-to-deploy-locally" class="md-nav__link">
@@ -1300,17 +1353,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#steps-to-deploy-locally" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1416,21 +1458,33 @@
   
 
 
-<h1 id="devenv-test-deployment">Devenv Test Deployment<a class="headerlink" href="#devenv-test-deployment" title="Permanent link">&para;</a></h1>
+<h1 id="devenv-test-deployment">Devenv Test Deployment<a class="headerlink" href="#devenv-test-deployment" title="Permanent link">#</a></h1>
 <p>This page provides instructions on how to run a local Lomas test instance.</p>
-<p><strong>Note</strong>: This deployment method is meant for testing only and not safe for production!</p>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This deployment method is meant for testing only and not safe for production!</p>
+<div class="admonition warning">
+<p class="admonition-title">Prerequisites</p>
 <p>Ensure you have cloned the repository and set up devenv as described in the <a href="../../../concepts/contributing/">contributor's guide</a>.</p>
-<h2 id="steps-to-deploy-locally">Steps to Deploy Locally<a class="headerlink" href="#steps-to-deploy-locally" title="Permanent link">&para;</a></h2>
-<ul>
+</div>
+</div>
+<h2 id="steps-to-deploy-locally">Steps to Deploy Locally<a class="headerlink" href="#steps-to-deploy-locally" title="Permanent link">#</a></h2>
+<ol>
 <li>To start a local instance, simply run <code>devenv up</code>.</li>
 <li>To run the admin demo script which loads demo users and dataset into the database, run <code>lomas-demo-setup</code>. Make sure the server is ready before running this script.</li>
 <li>Open one of the <a href="../../../client/">example notebooks</a> to test the service. The environment variables for the client configuration are already present in the devenv environment. Parameters specific to the notebook user (e.g. Dr. Antartica) are set in the first few cells of each notebook. By default, demo notebooks use the client credentials flow. An IdP configured for production will not allow this flow, you can switch to the device authorizatoin flow by setting the <code>LOMAS_CLIENT_USER_PASSWORD</code> environment variable to false.</li>
 <li>The server is available at <code>http://localhost:48080</code>. Bootstrap authorization is enabled by default, this allows to test API endpoints via swagger at <code>http://localhost:48080/docs</code>.</li>
 <li>The admin dashboard is available at <code>http://localhost:8501/admin</code>. If the demo admin script was run, you can log in with the demo admin user (email: <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#108;&#111;&#109;&#97;&#115;&#95;&#97;&#100;&#109;&#105;&#110;&#64;&#101;&#120;&#97;&#109;&#112;&#108;&#101;&#46;&#99;&#111;&#109;">&#108;&#111;&#109;&#97;&#115;&#95;&#97;&#100;&#109;&#105;&#110;&#64;&#101;&#120;&#97;&#109;&#112;&#108;&#101;&#46;&#99;&#111;&#109;</a> and password: lomas_admin).</li>
 <li>Logs for all services started by devenv can be observed by navigating the manager started with the <code>devenv up</code> command. In adddition to those described above, they include RabbitMQ, Dex (IdP), Garage as well as two Lomas workers.</li>
-</ul>
-<p><strong>Note for developpers</strong>: A Docker compose file also enables to start a local test environment. However, this method is only meant to test the Lomas OCI container images and some of the services (e.g. Garage) are not started/supported. The docker compose file is parametrized with an .env file via variable interpolation. We generate all configuration files using devenv before checking them into Git. This is specified with a note at the beginning of each of these automatically generated files.</p>
+</ol>
+<div class="admonition info">
+<p class="admonition-title"><strong>Note for Developers</strong></p>
+<p>A Docker compose file also enables to start a local test environment.
+However, this method is only meant to test the Lomas OCI container images and some of the services (e.g. Garage) are not started/supported.
+The docker compose file is parametrized with an .env file via variable interpolation.
+We generate all configuration files using devenv before checking them into Git.
+This is specified with a note at the beginning of each of these automatically generated files.</p>
+</div>
 
 
 
@@ -1528,7 +1582,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>

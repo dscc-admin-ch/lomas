@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1321,8 +1385,8 @@
   
 
 
-<h1 id="adding-a-dp-package-or-a-dataset-connector-to-lomas">Adding a DP package or a Dataset Connector to Lomas<a class="headerlink" href="#adding-a-dp-package-or-a-dataset-connector-to-lomas" title="Permanent link">&para;</a></h1>
-<h2 id="adding-a-dp-package">Adding a DP package<a class="headerlink" href="#adding-a-dp-package" title="Permanent link">&para;</a></h2>
+<h1 id="adding-a-dp-package-or-a-dataset-connector-to-lomas">Adding a DP package or a Dataset Connector to Lomas<a class="headerlink" href="#adding-a-dp-package-or-a-dataset-connector-to-lomas" title="Permanent link">#</a></h1>
+<h2 id="adding-a-dp-package">Adding a DP package<a class="headerlink" href="#adding-a-dp-package" title="Permanent link">#</a></h2>
 <p>Lomas is built on top of existing Python DP packages. Follow these steps to add a new package, let's call it 'NewLibrary':</p>
 <ol>
 <li>Run <code>uv add &lt;new-package&gt;</code> in the core directory to add the package as a dependency.</li>
@@ -1338,13 +1402,13 @@
 <li>Add the associated method in <code>lomas-client</code> library in <code>client/lomas_client/client.py</code>. In this case there should be <code>new_library_query</code> for queries on the private and on the dummy datasets and <code>estimate_new_library_cost</code> to estimate the cost of a query.</li>
 <li>Add a notebook <code>Demo_Client_Notebook_NewLibrary.ipynb</code> in <code>client/notebook/</code> to give example of the use of the library.</li>
 </ol>
-<h3 id="external-loggers">External Loggers<a class="headerlink" href="#external-loggers" title="Permanent link">&para;</a></h3>
+<h3 id="external-loggers">External Loggers<a class="headerlink" href="#external-loggers" title="Permanent link">#</a></h3>
 <p>Some packages have 'custom object' parameters which are not readily serializable.
 In those cases, a <code>logger</code> library can be made to serialise the object in the client (before sending them to the server via FastAPI) and then deserialise them in their <code>DPQuerier</code> class in the server.</p>
 <p>Some examples are avalaible here:
 - <code>diffprivlib_logger</code> for diffprivlib pipelines: <a href="https://github.com/dscc-admin-ch/diffprivlib-logger">https://github.com/dscc-admin-ch/diffprivlib-logger</a></p>
 <p>Do not forget to add these packages as dependencies to the Lomas core package.</p>
-<h2 id="adding-a-data-connector-for-private-dataset-in-various-databases">Adding a Data Connector (for private dataset in various databases)<a class="headerlink" href="#adding-a-data-connector-for-private-dataset-in-various-databases" title="Permanent link">&para;</a></h2>
+<h2 id="adding-a-data-connector-for-private-dataset-in-various-databases">Adding a Data Connector (for private dataset in various databases)<a class="headerlink" href="#adding-a-data-connector-for-private-dataset-in-various-databases" title="Permanent link">#</a></h2>
 <p>Here is the explanation of how to add a new data connector named <code>NewDataConnector</code> for the example.</p>
 <ol>
 <li>Add the new dataset store to the lomas core collection models in <code>core/lomas_core/models/collections.py</code> with the proper discriminator.</li>
@@ -1449,7 +1513,7 @@ In those cases, a <code>logger</code> library can be made to serialise the objec
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

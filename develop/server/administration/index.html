@@ -402,6 +402,8 @@
       
         
       
+        
+      
     
     
     
@@ -475,6 +477,68 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -1358,25 +1422,35 @@
   
 
 
-<h1 id="lomas-administration">Lomas Administration<a class="headerlink" href="#lomas-administration" title="Permanent link">&para;</a></h1>
-<h2 id="admin-authorization-and-bootstraping">Admin authorization and bootstraping<a class="headerlink" href="#admin-authorization-and-bootstraping" title="Permanent link">&para;</a></h2>
+<h1 id="lomas-administration">Lomas Administration<a class="headerlink" href="#lomas-administration" title="Permanent link">#</a></h1>
+<h2 id="admin-authorization-and-bootstraping">Admin authorization and bootstraping<a class="headerlink" href="#admin-authorization-and-bootstraping" title="Permanent link">#</a></h2>
 <p>As stated in the <a href="../../concepts/auth/">Authentication and Authorization page</a>, the identity provider (IdP) handles authentication while the Lomas server handles authorization itself. In order to manage users, an admin must thus be both registered at the IdP and in Lomas and have the Lomas admin role.</p>
 <p>Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header <code>Authorization: Bearer &lt;bootstrap-credentials&gt;</code> bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in <code>server/lomas_server/administration/scripts/lomas_demo_setup.py</code>) gives an example of how to use bootstrap credentials to add a first admin user.</p>
-<p><strong>Important</strong>: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
-<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">&para;</a></h2>
+<div class="admonition danger">
+<p class="admonition-title"><strong>Important</strong></p>
+<p>Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!</p>
+</div>
+<h2 id="admin-dashboard">Admin dashboard<a class="headerlink" href="#admin-dashboard" title="Permanent link">#</a></h2>
 <p>The most convenient way for administrators to manage Lomas is via the admin dashboard. It is setup to work with the IdP to authenticate the user and forwards the access token to the server for every API call, thus enabling admin tasks via a UI. Make sure to log in (button in left menu) before trying out the dashboard features. The home page gives general information about the dashboard as well as the server status while the second page offers admin functionalities.</p>
 <p>The dashboard is accessible:</p>
 <ul>
-<li>Local devenv: <a href="http://localhost:8501/admin">http://localhost:8501/admin</a></li>
-<li>Kubernetes deployment: If enabled, the Helm chart notes show the dashboard url.</li>
-<li>Onyxia deployment: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.</li>
+<li><strong>Local devenv</strong>: <a href="http://localhost:8501/admin">http://localhost:8501/admin</a></li>
+<li><strong>Kubernetes deployment</strong>: If enabled, the Helm chart notes show the dashboard url.</li>
+<li><strong>Onyxia deployment</strong>: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.</li>
 </ul>
-<h3 id="deleting-bootstrap-credentials">Deleting bootstrap credentials<a class="headerlink" href="#deleting-bootstrap-credentials" title="Permanent link">&para;</a></h3>
+<h3 id="deleting-bootstrap-credentials">Deleting bootstrap credentials<a class="headerlink" href="#deleting-bootstrap-credentials" title="Permanent link">#</a></h3>
 <p>Once your first admin user was added to Lomas, make sure to disable bootstrap credentials by clicking the delete bootstrap button on top of admin page.</p>
-<h3 id="dex-integration">Dex integration<a class="headerlink" href="#dex-integration" title="Permanent link">&para;</a></h3>
-<p>If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex. Do not use this in production!</p>
-<p><strong>Note:</strong> By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
-<h2 id="scripting-option">Scripting Option<a class="headerlink" href="#scripting-option" title="Permanent link">&para;</a></h2>
+<h3 id="dex-integration">Dex integration<a class="headerlink" href="#dex-integration" title="Permanent link">#</a></h3>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>Do not use this in production!</p>
+</div>
+<p>If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in <code>devenv/dex.nix</code>) to larger value when testing the dashboard.</p>
+</div>
+<h2 id="scripting-option">Scripting Option<a class="headerlink" href="#scripting-option" title="Permanent link">#</a></h2>
 <p>If you cannot use the admin dashboard for your admin tasks you can write a python script that sends requests to the server API. Make sure to have a user that can programmatically get a token from your IdP, either via client credentials or device authorization flow. We do not provide an example script at the time being.</p>
 
 
@@ -1475,7 +1549,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

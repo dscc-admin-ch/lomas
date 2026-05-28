@@ -4,6 +4,10 @@ This is the quickstart guide for Lomas-client, providing initial setup and usage
 
 ## Client
 
+## Prerequisites
+
+We assume you have a lomas-server already running. If you want to quickly spin one, check [this documentation](../server/deployment/devenv.md) before going to the next step.
+
 ### Installation
 
 To install lomas-client, follow these steps:
@@ -25,13 +29,34 @@ To use FSO lomas client, you can do the following:
 from lomas_client import Client
 
 # Step 2
-APP_URL = "your_deployement_url"
-USER_NAME = "your_name"
-DATASET_NAME = "name_of_dataset_you_want_to_query"
-client = Client(url=APP_URL, user_name = USER_NAME, dataset_name = DATASET_NAME)
+# The following would usually be set in the environment by a system administrator
+# and be tranparent to lomas users.
+# Uncomment them if you are running against a Kubernetes deployment.
+# They have already been set for you if you are running locally within a devenv or the Jupyter lab set up by Docker compose.
+
+import os
+# os.environ["LOMAS_CLIENT_APP_URL"] = "https://lomas.example.com:443"
+# os.environ["LOMAS_CLIENT_OIDC_DISCOVERY_URL"] = "https://dex.example.com:443/.well-known/openid-configuration"
+# os.environ["LOMAS_CLIENT_TELEMETRY__ENABLED"] = "false"
+# os.environ["LOMAS_CLIENT_TELEMETRY__COLLECTOR_ENDPOINT"] = "http://otel.example.com:445"
+# os.environ["LOMAS_CLIENT_TELEMETRY__COLLECTOR_INSECURE"] = "true"
+# os.environ["LOMAS_CLIENT_TELEMETRY__SERVICE_ID"] = "my-app-client"
+# os.environ["LOMAS_CLIENT_REALM"] = "lomas"
+
+# We set these ones because they are specific to this notebook.
+
+os.environ["LOMAS_CLIENT_USER_NAME"] = "dr.antartica@example.com"
+os.environ["LOMAS_CLIENT_USER_PASSWORD"] = "dr.antartica"
+os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
+
+# Note that all client settings can also be passed as keyword arguments to the Client constructor.
+# eg. client = Client(user_name = "Dr.Antartica") takes precedence over setting the "LOMAS_CLIENT_USER_NAME"
+# environment variable.
 
 # Step 3
-res = client.any_query(parameters)
+res = client.available_dp_library.any_query(parameters)
 ```
 
 with `any_query` being one of the function presented below and `parameters` being its associated parameters.
+
+The currently supported methods in `available_dp_library` are documented in [this section](./opendp.md).

@@ -27,7 +27,7 @@ Adding a user works either through the straightforward "Add user" section or via
 
 ## Adding datasets to users and setting DP budget
 
-Once a user has been added, it is listed on top of the "Users" section. Select the tickbox on the leftmost column of the table to edit a user. The \epsilon and \delta fields in the dataset list are editable. You can also add a new dataset to the user from the available dataset list in the box below. For how to add new datasets to Lomas, checkout the [datasets page](datasets.md). Finally, the previous queries button let's you display all previous queries run by that user.
+Once a user has been added, it is listed on top of the "Users" section. Select the tickbox on the leftmost column of the table to edit a user. The ε and δ fields in the dataset list are editable. You can also add a new dataset to the user from the available dataset list in the box below. For how to add new datasets to Lomas, checkout the [datasets page](datasets.md). Finally, the previous queries button let's you display all previous queries run by that user.
 
 
 ## Deletion

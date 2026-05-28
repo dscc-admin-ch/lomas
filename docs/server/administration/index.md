@@ -26,6 +26,8 @@ Once your first admin user was added to Lomas, make sure to disable bootstrap cr
 
 If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex. Do not use this in production!
 
+__Note:__ By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
+
 ## Scripting Option
 
-If you cannot use the admin dashboard for your admin tasks you can write a script that sends requests to the server API. Make sure to have a user that can programmatically get a token from your IdP, either via client credentials or device authorization flow. We do not provide an example script at the time being.
+If you cannot use the admin dashboard for your admin tasks you can write a python script that sends requests to the server API. Make sure to have a user that can programmatically get a token from your IdP, either via client credentials or device authorization flow. We do not provide an example script at the time being.

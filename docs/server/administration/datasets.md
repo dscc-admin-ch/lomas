@@ -1,5 +1,7 @@
 # Managing Datasets via the Admin Dashboard
 
+__Note if using Dex:__ By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
+
 ## Supported storage
 
 Lomas currently supports three options for storing datasets:

@@ -1,5 +1,7 @@
 # Managing Users via the Admin Dashboard
 
+__Note if using Dex:__ By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
+
 ## Adding a user
 
 Adding a user works either through the straightforward "Add user" section or via the "Bulk user import" function. The bulk import method requires properly formatted yaml file listing users and the datasets accessible to them. Below is an example of such a file. You can also find the demo user collection in `server/data/collections/user_collection.yaml` while the pydantic model for users is specified in `core/lomas_core/models/collections.py`.

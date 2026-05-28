@@ -6,7 +6,7 @@
 
 ## Usage in Lomas
 
-Users can send DiffPrivLib queries directly via the Lomas client package with client.diffprivlib.query() using the [diffprivlib](../../api/client/#lomas_client.libraries.diffprivlib) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
+Users can send DiffPrivLib queries directly via the Lomas client package with client.diffprivlib.query() using the [diffprivlib](../api/client.md/#lomas_client.libraries.diffprivlib) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
 
 ## Example
 

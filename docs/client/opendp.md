@@ -7,7 +7,7 @@ OpenDP provides differentially private implementations of common summary statist
 
 ## Usage in Lomas
 
-Users can submit OpenDP measurements directly via the Lomas client package using the [opendp](../../api/client/#lomas_client.libraries.opendp) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
+Users can submit OpenDP measurements directly via the Lomas client package using the [opendp](../api/client.md/#lomas_client.libraries.opendp) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
 
 ## Lomas specificities
 

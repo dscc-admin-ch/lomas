@@ -8,7 +8,7 @@ SmartNoise SQL is particularly well-suited for users already familiar with SQL, 
 
 ## Usage in Lomas
 
-Users can submit SQL queries directly via the Lomas client package using the [smartnoisesql](../../api/client/#lomas_client.libraries.smartnoise_sql) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
+Users can submit SQL queries directly via the Lomas client package using the [smartnoisesql](../api/client.md/#lomas_client.libraries.smartnoise_sql) module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.
 
 ## Example
 

@@ -93,7 +93,7 @@ markdown_extensions:
   - footnotes
   - md_in_html
   - toc:
-      permalink: true
+      permalink: "#"
   - pymdownx.blocks.admonition
   - pymdownx.blocks.details
   - pymdownx.blocks.tab:

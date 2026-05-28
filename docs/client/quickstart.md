@@ -1,19 +1,17 @@
 # Quickstart
 
-This is the quickstart guide for Lomas-client, providing initial setup and usage instructions.
+!!! info "Prerequisites"
 
-## Client
+    We assume you have a lomas-server already running.
 
-## Prerequisites
-
-We assume you have a lomas-server already running. If you want to quickly spin one, check [this documentation](../server/deployment/devenv.md) before going to the next step.
+    If you want to quickly spin one, check [this documentation](../server/deployment/devenv.md) before going to the next step.
 
 ### Installation
 
 To install lomas-client, follow these steps:
 
 1. Open a terminal.
-2. Run the following command: ```pip install lomas-client```
+2. Run the following command: `pip install lomas-client`
 3. You're all set!
 
 ### First steps
@@ -24,7 +22,7 @@ To use FSO lomas client, you can do the following:
 2. Initialise the client with required url, name and dataset.
 3. You can now use any function as long as you have access to the dataset!
 
-```.python
+``` py
 # Step 1
 from lomas_client import Client
 
@@ -44,7 +42,6 @@ import os
 # os.environ["LOMAS_CLIENT_REALM"] = "lomas"
 
 # We set these ones because they are specific to this notebook.
-
 os.environ["LOMAS_CLIENT_USER_NAME"] = "dr.antartica@example.com"
 os.environ["LOMAS_CLIENT_USER_PASSWORD"] = "dr.antartica"
 os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"

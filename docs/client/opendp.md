@@ -27,9 +27,9 @@ The `lomas-client` package provides some useful function allowing users to direc
 
 * Once satisfied with the dummy results, send the query to be performed on the actual data with `dummy=False`.
 
-## Example
+!!! example
 
-A worked example demonstrating how to use OpenDP through the Lomas client is available in [this notebook](../notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb) example.
+    A worked example demonstrating how to use OpenDP through the Lomas client is available in [this notebook](../notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb).
 
 ## References
 

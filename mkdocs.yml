@@ -52,6 +52,10 @@ nav:
       # - Changelog: changelog.md
       - Client:
           - Quickstart: client/quickstart.md
+          - Available DP libraries:
+            - client/opendp.md
+            - client/smartnoise-sql.md
+            - client/diffprivlib.md
           - Examples:
             - client/index.md
             - notebooks/Demo_Client_Notebook.ipynb

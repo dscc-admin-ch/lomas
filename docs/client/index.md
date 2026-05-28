@@ -9,4 +9,4 @@ You can also find additional notebooks and examples in our
 - [Client Demo](../notebooks/Demo_Client_Notebook.ipynb)
 - [Using Smartnoise SQL](../notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb)
 - [Using DiffPrivLib](../notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb)
-- [Data Disclosure](../notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb)
+- [Using OpenDP Polars](../notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb)

@@ -9,7 +9,7 @@ This page gives general information about developer workflows in the Lomas proje
   One should never directly merge and push to develop but perform a pull request on GitHub.
   The PR can only be merged if approved by another developer and all automatic tests pass.
 * **wip_xx**: Feature branches for feature number xx start with wip_xx (one can add a short name to the branch name).
-  They always branch off develop, and as explained above, are merged to develop via GitHub pull requests.
+  They always branch off from develop, and as explained above, are merged to develop via GitHub pull requests.
 * **release/vx.y.z**: These are release branches (for version vx.y.z). They always branch off from develop.
   Once the release process is complete (see below), the release branch is merged to both master and develop via GitHub pull requests.
 
@@ -19,7 +19,7 @@ We use [devenv](https://devenv.sh/) devenv to setup our development environent. 
 
 1. `./scripts/bootstrap.sh`
 2. `nix profile add nixpkgs#{dev,dir}env`
-3. (Optional) [automatic shell activation](https://devenv.sh/automatic-shell-activation/)
+3. (Optional) [automatic shell activation](https://devenv.sh/auto-activation/)
     1. add `echo 'eval "$(direnv hook bash)"' >> ~/.bashrc` [direnv shell hook](https://direnv.net/docs/hook.html)
     2. Approve (once) inside the cloned directory / vscode terminal: `direnv allow`
     3. Install vscode extension: [mkhl.direnv](https://marketplace.visualstudio.com/items?itemName=mkhl.direnv)
@@ -77,7 +77,7 @@ As detailed below, we rely on GitHub workflows to automatically run these checks
 
 ## GitHub Workflows
 
-This project uses a number of GitHub workflows to automate various CI/CD tasks. These task can also be manually run in a local environment during development. Please refer to the workflow files in `.github/workflows/` for further details.
+This project uses a number of GitHub workflows to automate various CI/CD tasks. These tasks can also be manually run in a local environment during development. Please refer to the workflow files in `.github/workflows/` for further details.
 The table below gives an overview of which workflows are triggered by what events.
 
 | Workflow / Trigger     | PR to develop | PR to master | Push to develop | Push to release/** | Push to master | GitHub release |
@@ -91,7 +91,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Python libraries push**: The 'version' and the 'install_requires' must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
+* **Python libraries push**: The `version` and the `install_requires` must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: __TODO__ Mike setup
 
@@ -109,4 +109,4 @@ The following actions must take place in this order when preparing a new release
 
 The workflows listed in the previous section will take care of building and publishing the different items (docker images, pip packages, etc.).
 
-Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that rely on the Chart, you can test it before finishing the release. Then, **do not forget** to update the chart and app versions of your specific deployment.
+Note: Helm charts are updated when there is a push on the `release/vx.y.z` branch. If you have a specific deployment that relies on the Chart, you can test it before finishing the release. Then, **do not forget** to update the chart and app versions of your specific deployment.

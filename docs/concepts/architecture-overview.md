@@ -33,8 +33,8 @@ The server is implemented in a micro-service architecture and is thus split into
 
 Lomas is not responsible for storing and managing private datasets, these are usually already stored on the provider's infrastructure (private database in the sketch above). We currently implement adapters to S3 storage, http file download and local files.
 
-The IdP provider is also not part of the Lomas platform and should be managed externaly. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!
+The IdP provider is also not part of the Lomas platform and should be managed externally. Our examples use Dex as an IdP: this is only for demo purposes and should not be used in production!
 
-For more information about the server, see the [server administration page](../server/administration.md). The [deployment page](../server/kubernetes.md) goes through how to deploy the platform to a Kubernetes cluster via Helm.
+For more information about the server, see the [server administration page](../server/administration/index.md). The [deployment section](../server/deployment/index.md) covers how to deploy the server across different environments, including Kubernetes (via Helm).
 
 __Note__: The Lomas Python code is split into a client (`lomas-client`) and a server (`lomas-server`) package. The `lomas-core` package serves as a base for the code that is common to both main packages.

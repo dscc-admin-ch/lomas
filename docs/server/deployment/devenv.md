@@ -6,13 +6,13 @@ __Note__: This deployment method is meant for testing only and not safe for prod
 
 ## Prerequisites
 
-Ensure you have cloned the repository and set up devenv as described in the [contributor's guide](../concepts/contributing.md).
+Ensure you have cloned the repository and set up devenv as described in the [contributor's guide](../../concepts/contributing.md).
 
 ## Steps to Deploy Locally
 
 - To start a local instance, simply run `devenv up`.
 - To run the admin demo script which loads demo users and dataset into the database, run `lomas-demo-setup`. Make sure the server is ready before running this script.
-- Open one of the [example notebooks](../client/index.md) to test the service. The environment variables for the client configuration are already present in the devenv environment. Parameters specific to the notebook user (e.g. Dr. Antartica) are set in the first few cells of each notebook. By default, demo notebooks use the client credentials flow. An IdP configured for production will not allow this flow, you can switch to the device authorizatoin flow by setting the `LOMAS_CLIENT_USER_PASSWORD` environment variable to false.
+- Open one of the [example notebooks](../../client/index.md) to test the service. The environment variables for the client configuration are already present in the devenv environment. Parameters specific to the notebook user (e.g. Dr. Antartica) are set in the first few cells of each notebook. By default, demo notebooks use the client credentials flow. An IdP configured for production will not allow this flow, you can switch to the device authorizatoin flow by setting the `LOMAS_CLIENT_USER_PASSWORD` environment variable to false.
 - The server is available at `http://localhost:48080`. Bootstrap authorization is enabled by default, this allows to test API endpoints via swagger at `http://localhost:48080/docs`.
 - The admin dashboard is available at `http://localhost:8501/admin`. If the demo admin script was run, you can log in with the demo admin user (email: lomas_admin@example.com and password: lomas_admin).
 - Logs for all services started by devenv can be observed by navigating the manager started with the `devenv up` command. In adddition to those described above, they include RabbitMQ, Dex (IdP), Garage as well as two Lomas workers.

@@ -7,7 +7,7 @@ __Note if using Dex:__ By default, the lifetime of tokens delivered by Dex is se
 Lomas currently supports three options for storing datasets:
 
 1. Local: The dataset is stored as a CSV file on a filesystem mounted on the server machine.
-2. Remote dataset (HTTP): For testing purposes only, you can provide an HTTP download link as dataset path. For example, the test and demo PENGUIN dataset is loaded in this fashion.
+2. Remote dataset (HTTP): For testing purposes only, you can provide a HTTP download link as dataset path. For example, the test and demo PENGUIN dataset is loaded in this fashion.
 3. Remote dataset (S3): The dataset is stored on S3 compatible storage (Garage, AWS, etc.).
 
 ## Preparing metadata

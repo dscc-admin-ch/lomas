@@ -4,7 +4,7 @@
 
 As stated in the [Authentication and Authorization page](../../concepts/auth.md), the identity provider (IdP) handles authentication while the Lomas server handles authorization itself. In order to manage users, an admin must thus be both registered at the IdP and in Lomas and have the Lomas admin role.
 
-Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header `Authorization: Bearer <bootstrap-credentials>` bypasses the standard auth(z) flow and provides admin role priviledges. The Lomas demo setup script (in `server/lomas_server/administration/scripts/lomas_demo_setup.py`) gives an example of how to use bootstrap credentials to add a first admin user.
+Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header `Authorization: Bearer <bootstrap-credentials>` bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in `server/lomas_server/administration/scripts/lomas_demo_setup.py`) gives an example of how to use bootstrap credentials to add a first admin user.
 
 __Important__: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
 

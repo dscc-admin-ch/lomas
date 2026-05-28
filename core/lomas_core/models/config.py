@@ -24,7 +24,7 @@ class TimeAttack(BaseModel):
 class Telemetry(BaseModel):
     """Telemetry config."""
 
-    enabled: bool
+    enabled: Annotated[bool, Field(default=False)]
     service_name: Annotated[str, Field(default="lomas-server-app")]
     service_id: Annotated[str, Field(default="default-host")]
     collector_endpoint: Annotated[HttpUrl, UrlConstraints(default_port=4317)] | None = None

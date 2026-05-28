@@ -118,7 +118,7 @@ class Config(BaseSettings):
 
     opendp_features: OpenDPFeatures
 
-    telemetry: Telemetry
+    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
 
     @computed_field
     def database(self) -> AdminDatabase:

@@ -237,22 +237,10 @@ in
     LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
     LOMAS_SERVICE_authenticator__query_userinfo = "${lib.boolToString config.lomas.oidc.queryUserinfo}";
 
-    LOMAS_SERVICE_telemetry__enabled = "false";
-    LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
-    LOMAS_SERVICE_telemetry__service_id = "default-host";
-    LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
-    LOMAS_SERVICE_telemetry__collector_insecure = "true";
-
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
     LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
     LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
-
-    LOMAS_CLIENT_telemetry__enabled = "false";
-    LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
-    LOMAS_CLIENT_telemetry__service_id = "default-host";
-    LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString config.lomas.telemetry.services.otlp.ports.grpc}";
-    LOMAS_CLIENT_telemetry__collector_insecure = "true";
 
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard

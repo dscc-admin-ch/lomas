@@ -21,4 +21,7 @@ data:
       - job_name: 'loki'
         static_configs:
           - targets: [ '{{ include "lomas.loki.fullname" .}}:{{ .Values.loki.service.port }}' ]
+      - job_name: 'rabbitmq'
+        static_configs:
+          - targets: [ '{{ .Values.rabbitmq.fullnameOverride}}:{{ .Values.rabbitmq.service.ports.metrics }}' ]
 {{- end }}

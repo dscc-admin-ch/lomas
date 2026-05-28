@@ -1,7 +1,8 @@
 from functools import cached_property
+from typing import Annotated
 
 import requests
-from pydantic import HttpUrl, computed_field
+from pydantic import Field, HttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from lomas_core.models.config import OIDCConfig, Telemetry
@@ -29,7 +30,7 @@ class ClientConfig(BaseSettings):
     """User password."""
     oidc_discovery_url: HttpUrl
     """The oidc provier discovery Url."""
-    telemetry: Telemetry
+    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
     """Telemetry Settings."""
 
     @computed_field

@@ -111,7 +111,7 @@
           "disableTextWrap": false,
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum(requests_total{app_name=\"lomas-server-app\"})",
+          "expr": "sum(requests_total{app_name=\"lomas_server_app\"})",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -180,7 +180,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (path) (requests_total{app_name=\"lomas-server-app\"})",
+          "expr": "sum by (path) (requests_total{app_name=\"lomas_server_app\"})",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -253,7 +253,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "requests_in_progress{app_name=\"lomas-server-app\"}",
+          "expr": "requests_in_progress{app_name=\"lomas_server_app\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -300,7 +300,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{service_name=\"lomas-server-app\"} |= `PENGUIN`",
+          "expr": "{service_name=\"lomas_server_app\"} |= `PENGUIN`",
           "queryType": "range",
           "refId": "A"
         }
@@ -342,7 +342,7 @@
             "uid": "loki"
           },
           "editorMode": "builder",
-          "expr": "{service_name=\"lomas-server-app\"}",
+          "expr": "{service_name=\"lomas_server_app\"}",
           "key": "Q-69a3b045-07ca-45e2-b0c4-7ee4be7e447d-0",
           "queryType": "range",
           "refId": "A"
@@ -420,7 +420,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "requests_duration_seconds_sum{app_name=\"lomas-server-app\"}",
+          "expr": "requests_duration_seconds_sum{app_name=\"lomas_server_app\"}",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -470,7 +470,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{service_name=\"lomas-server-app\"} | severity_text=~\"ERROR|WARN|FATAL\"",
+          "expr": "{service_name=\"lomas_server_app\"} | severity_text=~\"ERROR|WARN|FATAL\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -536,13 +536,13 @@
             "uid": "tempo"
           },
           "limit": 20,
-          "query": "{ span.user_name = \"Dr. Antartica\" }",
+          "query": "{ span.user_name = \"Dr.Antartica\" }",
           "queryType": "traceql",
           "refId": "A",
           "tableType": "traces"
         }
       ],
-      "title": "Dr. Antartica Traces",
+      "title": "Dr.Antartica Traces",
       "type": "table"
     },
     {
@@ -701,6 +701,102 @@
       ],
       "title": "Traces of OpenDP Queries",
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "maxHeight": 600,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "lomas_server_admindb_query_count_queries_total",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "AdminDB: Number of queries",
+      "type": "timeseries"
     }
   ],
   "preload": false,

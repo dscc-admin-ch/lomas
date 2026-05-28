@@ -37,4 +37,7 @@ The IdP provider is also not part of the Lomas platform and should be managed ex
 
 For more information about the server, see the [server administration page](../server/administration/index.md). The [deployment section](../server/deployment/index.md) covers how to deploy the server across different environments, including Kubernetes (via Helm).
 
-__Note__: The Lomas Python code is split into a client (`lomas-client`) and a server (`lomas-server`) package. The `lomas-core` package serves as a base for the code that is common to both main packages.
+!!! note "__Note__"
+
+    The Lomas Python code is split into a client (`lomas-client`) and a server (`lomas-server`) package.
+    The `lomas-core` package serves as a base for the code that is common to both main packages.

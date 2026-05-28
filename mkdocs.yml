@@ -14,6 +14,7 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tooltips
+    - content.footnote.tooltips
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.instant.preview

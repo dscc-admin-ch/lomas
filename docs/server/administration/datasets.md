@@ -1,6 +1,8 @@
 # Managing Datasets via the Admin Dashboard
 
-__Note if using Dex:__ By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
+!!! tip "__If using Dex__"
+
+    By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
 
 ## Supported storage
 
@@ -16,7 +18,8 @@ Before adding a dataset to Lomas, you should have its metadata readily available
 to create the dummy dataset and to apply the different DP mechanisms correctly during the processing
 of the queries sent by the user.
 
-The metadata must follow the `csvw-eo` format. See https://github.com/dscc-admin-ch/csvw-eo for more information.
+The metadata must follow the `csvw-eo`[^1] format.
+[^1]: :material-github:[csvw-eo](https://github.com/dscc-admin-ch/csvw-eo) for more information.
 
 ## Private DB credentials
 

@@ -6,7 +6,9 @@ As stated in the [Authentication and Authorization page](../../concepts/auth.md)
 
 Since no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header `Authorization: Bearer <bootstrap-credentials>` bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in `server/lomas_server/administration/scripts/lomas_demo_setup.py`) gives an example of how to use bootstrap credentials to add a first admin user.
 
-__Important__: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
+!!! danger "__Important__"
+
+    Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
 
 ## Admin dashboard
 
@@ -14,9 +16,9 @@ The most convenient way for administrators to manage Lomas is via the admin dash
 
 The dashboard is accessible:
 
-- Local devenv: http://localhost:8501/admin
-- Kubernetes deployment: If enabled, the Helm chart notes show the dashboard url.
-- Onyxia deployment: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.
+- __Local devenv__: http://localhost:8501/admin
+- __Kubernetes deployment__: If enabled, the Helm chart notes show the dashboard url.
+- __Onyxia deployment__: Once started, click on the "Open" button. Alternatively, the dashboard url is also shown in the Helm chart notes.
 
 ### Deleting bootstrap credentials
 
@@ -24,9 +26,15 @@ Once your first admin user was added to Lomas, make sure to disable bootstrap cr
 
 ### Dex integration
 
-If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex. Do not use this in production!
+!!! danger
 
-__Note:__ By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
+    Do not use this in production!
+
+If you deployed Lomas for testing with Dex as an IdP, the dashboard automatically adds/removes users to/from Dex.
+
+!!! tip
+
+    By default, the lifetime of tokens delivered by Dex is set very short to speed up our test runs. Make sure to change the setting (in `devenv/dex.nix`) to larger value when testing the dashboard.
 
 ## Scripting Option
 

@@ -15,7 +15,9 @@ We include Dex with local storage as a mock IdP for testing purposes only. Dex a
 
 Because no users are present in the Lomas admin database at first startup, we provide the bootstrap option. When enabled, a simple authorization header `Authorization: Bearer <bootstrap-credentials>` bypasses the standard auth(z) flow and provides admin role privileges. The Lomas demo setup script (in `server/lomas_server/administration/scripts/lomas_demo_setup.py`) gives an example of how to use bootstrap credentials to add a first admin user.
 
-__Important__: Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
+!!! danger "__Important__"
+
+    Only use the bootstrap credentials for bootstraping and make sure to disable bootstrap before adding sensitive datasets to Lomas!
 
 ## Adding users
 

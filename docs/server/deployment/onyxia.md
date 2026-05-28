@@ -1,15 +1,16 @@
 # Onyxia Deployment
 
-https://datalab.sspcloud.fr is an instance of the Onyxia datalab platform provided by INSEE (France). It is accessible to national statistical offices as a testing ground for data science projects. If you are part of a national statistical office, you can log in to the sspcloud and start a test instance of the Lomas platform.
+https://datalab.sspcloud.fr is an instance of the Onyxia datalab platform provided by INSEE (:flag_fr:). It is accessible to national statistical offices as a testing ground for data science projects. If you are part of a national statistical office, you can log in to the sspcloud and start a test instance of the Lomas platform.
 
-__Note__: This deployment method is meant for testing only and not safe for production!
+!!! warning
+
+    This deployment method is meant for testing only and not safe for production!
 
 To start the lomas-server on Onyxia, folow those steps:
 
 1. __Select the Lomas Service__:
     Within the Onyxia platform, locate the Lomas service.
-    You can find the service following this
-    [link](https://datalab.sspcloud.fr/catalog/divers)
+    You can find the service in the [catalog](https://datalab.sspcloud.fr/catalog/divers)
 
 2. __Customize Parameters (Optional)__:
     Depending on your specific requirements, you may choose to customize the

@@ -37,49 +37,20 @@ Queries can be created within Grafana to visualize the data, track performance, 
 
 ## Useful Links for Debugging and Access
 
-Below are the important endpoints that can be accessed for debugging and visualizing data:
+Below are the important endpoints that can be accessed for debugging and visualizing data.
 
-- **Grafana Dashboard**:
-
-  `http://localhost:3000`:
-  Access the Grafana dashboard where logs, traces, and metrics can be visualized.
-
-- **Prometheus Time-Series Query**:
-
-  `http://localhost:9090/query`:
-  Directly query Prometheus for time-series data.
-
-- **Metrics Endpoints**:
-
-  - `http://localhost:9091/metrics`:
-    Metrics from the Lomas server.
-
-  - `http://localhost:9090/metrics`:
-    Other metrics exposed by Prometheus.
-
-- **Tempo Trace Debugging**:
-
-  `http://localhost:55679/debug/tracez`:
-  Debug trace data from Tempo.
-
-- **Loki Direct Access**:
-
-  - `http://localhost:3100/ready`:
-    Check the readiness of the Loki service.
-
-  - `http://localhost:3100/config`:
-    View the current Loki configuration.
-
-- **OpenTelemetry Collector**:
-
-  - `http://localhost:13133/health`:
-    Health check endpoint for the OpenTelemetry Collector.
-
-  - `http://localhost:1777/debug/pprof/`:
-    Profiling and debugging endpoint for performance analysis.
-
-  - `http://localhost:55679/debug/tracez`:
-    Trace information for debugging traces.
+|Service|Endpoint|Description|
+|-------|--------|-----------|
+|**Grafana**| http://localhost:3000| Logs, traces, and metrics visualization dashboard.
+|**Prometheus**| http://localhost:9090/query| Query expression browser.
+|**Metrics**| http://localhost:9091/metrics | Metrics from the Lomas server.
+||http://localhost:9090/metrics | Other metrics exposed by Prometheus.
+|**Tempo**| http://localhost:55679/debug/tracez | Debug trace & logging data.
+|**Loki**| http://localhost:3100/ready | Loki readiness probe.
+|| http://localhost:3100/config | Loki running configuration.
+|**OpenTelemetry**| http://localhost:13133/health | Health check of the Collector.
+|| http://localhost:1777/debug/pprof | Profiling for performance analysis.
+|| http://localhost:55679/debug/tracez | Trace information for debugging.
 
 ## Configuration Files and Customization
 

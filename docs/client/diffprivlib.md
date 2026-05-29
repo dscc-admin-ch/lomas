@@ -14,5 +14,7 @@ Users can send DiffPrivLib queries directly via the Lomas client package with `c
 
 ## References
 
-* [Diffprivlib GitHub](https://github.com/IBM/differential-privacy-library)
-* [Diffprivlib Documentation](https://diffprivlib.readthedocs.io/en/latest/)
+<div class="grid" markdown>
+[:material-github: DiffPrivLib](https://github.com/IBM/differential-privacy-library){.md-button .card}
+[:material-book: DiffPrivLib](https://diffprivlib.readthedocs.io/en/latest/){.md-button .card}
+</div>

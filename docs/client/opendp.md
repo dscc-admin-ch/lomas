@@ -33,5 +33,7 @@ The `lomas-client` package provides some useful function allowing users to direc
 
 ## References
 
-* [OpenDP GitHub](https://github.com/opendp)
-* [OpenDP documentation](https://docs.opendp.org/en/v0.14.2/getting-started/index.html)
+<div class="grid" markdown>
+[:material-github: OpenDP](https://github.com/opendp){.md-button .card}
+[:material-book: OpenDP](https://docs.opendp.org/en/v0.14.2/getting-started/index.html){.md-button .card}
+</div>

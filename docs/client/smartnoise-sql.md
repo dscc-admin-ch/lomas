@@ -16,6 +16,7 @@ Users can submit SQL queries directly via the Lomas client package using the [sm
 
 ## References
 
-* [Smartnoise SQL GitHub](https://github.com/opendp/smartnoise-sdk/tree/main/sql)
-
-* [Smartnoise SQL documentation](https://docs.smartnoise.org/sql/index.html)
+<div class="grid" markdown>
+[:material-github: SmartnoiseSQL](https://github.com/opendp/smartnoise-sdk/tree/main/sql){.md-button .card}
+[:material-book: SmartnoiseSQL](https://docs.smartnoise.org/sql/index.html){.md-button .card}
+</div>

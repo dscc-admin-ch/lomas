@@ -41,7 +41,7 @@ dependencies = [
   "aio-pika>=9.5",
   "cryptography>=44",
   "sqlglot>=27.8.0",
-  "smartnoise-sql @ git+https://github.com/lancelotmarti/smartnoise-sdk.git@main#subdirectory=sql",
+  "smartnoise-sql>=1.0.10",
 ]
 
 [project.optional-dependencies]

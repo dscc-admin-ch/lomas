@@ -97,6 +97,7 @@ markdown_extensions:
       permalink: "#"
   - pymdownx.blocks.admonition
   - pymdownx.blocks.details
+  - pymdownx.blocks.caption
   - pymdownx.blocks.tab:
       alternate_style: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify

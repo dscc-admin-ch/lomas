@@ -1,5 +1,8 @@
 # Poster
 
-See our poster presented at the Journée Suisse des Statistiques.
+![poster](static/poster.png)
+/// caption
+Presented at the "Journée Suisse des Statistiques."
+///
 
-<embed src="../static/poster.pdf" width="700" height="990" type="application/pdf">
+[Download as PDF](static/poster.pdf){ .md-button }

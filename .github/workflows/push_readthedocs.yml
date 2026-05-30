@@ -5,6 +5,7 @@ on:
     branches: [develop, master]
   push:
     branches: [develop, master]
+    tags: [v*]
   release:
     types: [published]
 
@@ -25,6 +26,10 @@ jobs:
       - name: Build the doc
         run: devenv shell -- build-docs
 
-      - name: Publish doc
+      - name: Publish Develop doc
         if: github.event_name == 'push' || github.event_name == 'release'
         run: devenv shell -- mike deploy develop --push
+
+      - name: Publish Tag doc
+        if: github.ref_type == 'tag'
+        run: devenv shell -- mike deploy ${{ github.ref_name }} latest --update-aliases --push

@@ -8,7 +8,7 @@ where = ["."]
 
 [project]
 name = "lomas-server"
-version = "0.5.0b1"
+version = "0.5.0"
 description = "Lomas server."
 readme = "README.md"
 requires-python = ">=3.11, <3.14"
@@ -32,7 +32,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-  "lomas-core==0.5.0b1",
+  "lomas-core==0.5.0",
   "boto3>=1.34",
   "opentelemetry-instrumentation-fastapi>=0.50b0",
   "opentelemetry-instrumentation-logging>=0.50b0",

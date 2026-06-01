@@ -703,7 +703,7 @@ wheels = [
 
 [[package]]
 name = "csvw-eo"
-version = "0.0.1"
+version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -716,9 +716,8 @@ dependencies = [
     { name = "pyyaml" },
     { name = "rdflib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/85/9b/0009e6068a00efa1df7f54bb27e53985366c3f711b3545c6b0c4eefe90b3/csvw_eo-0.0.1.tar.gz", hash = "sha256:20ff68bffc4d1d49b848b5ef8c1ee611b576c95c4b539188fb716c018a32783f", size = 57371, upload-time = "2026-05-13T14:21:13.91Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/47/8a3c6e1229977f5751867379a6bfec8e57b445bca83be87467c9d1c42325/csvw_eo-0.0.1-py3-none-any.whl", hash = "sha256:ff3865f6726005a13a08bf361e6fd53bfc6aca404277451f17ae143f0b59873b", size = 43103, upload-time = "2026-05-13T14:21:12.149Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/0b/2ab6dd601a549a174fdc798462b51d038b7a1c9b5676405fb318423de433/csvw_eo-0.2.1-py3-none-any.whl", hash = "sha256:5685b76a4284f330b929e2880c1c18a45317e3f76d50db67e3f65125b68ec95d", size = 43086, upload-time = "2026-06-01T15:59:46.114Z" },
 ]
 
 [[package]]
@@ -1879,15 +1878,15 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "csvw-eo", specifier = ">=0.0.1" },
+    { name = "csvw-eo", specifier = ">=0.2.1" },
     { name = "diffprivlib-logger", specifier = "==0.0.4" },
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = ">=0.120" },
-    { name = "opendp", extras = ["mbi"], specifier = "==0.14.1" },
+    { name = "opendp", extras = ["mbi"], specifier = "==0.15.0" },
     { name = "opentelemetry-api", specifier = ">=1.29.0" },
     { name = "opentelemetry-exporter-otlp", specifier = ">=1.29.0" },
     { name = "opentelemetry-sdk", specifier = ">=1.29.0" },
     { name = "pandas", specifier = ">=2.2.2" },
-    { name = "polars", specifier = "==1.32.0" },
+    { name = "polars", specifier = "==1.36.1" },
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pydantic-settings", specifier = ">=2.8" },
     { name = "returns", extras = ["compatible-mypy"], specifier = ">=0.25" },
@@ -1929,7 +1928,7 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.50b0" },
     { name = "opentelemetry-instrumentation-logging", specifier = ">=0.50b0" },
     { name = "pyjwt", specifier = ">=2.10" },
-    { name = "smartnoise-sql", specifier = ">=1.0.10" },
+    { name = "smartnoise-sql", git = "https://github.com/LancelotMarti/smartnoise-sdk.git?subdirectory=sql" },
     { name = "sqlglot", specifier = ">=27.8.0" },
     { name = "streamlit", extras = ["auth"], marker = "extra == 'all'", specifier = ">=1.50" },
 ]
@@ -2084,7 +2083,7 @@ wheels = [
 
 [[package]]
 name = "mbi"
-version = "1.0.0"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -2094,12 +2093,10 @@ dependencies = [
     { name = "networkx" },
     { name = "numpy" },
     { name = "optax" },
-    { name = "pandas" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/71/eb/d228890b16c07e261a5f156323ae3d78d539a7406788ffa8f982ebeb7c6a/mbi-1.0.0.tar.gz", hash = "sha256:6ea38bd242baea404520da55d027890ec61955614ea16d24a1f67901f5b0a360", size = 48823, upload-time = "2025-08-08T05:21:21.995Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/3a/6c036d38034c348eb74ac67d1a2aad26929be09ae4e2a138a4e1411dfb35/mbi-1.0.0-py3-none-any.whl", hash = "sha256:28a07953a8e2995d348b4cc13981de8c95d810e733ae32471c368989913f6cf6", size = 48030, upload-time = "2025-08-08T05:21:20.525Z" },
+    { url = "https://files.pythonhosted.org/packages/52/ff/55c717205dc3020d2c37390686d3b641fc4b491c6d6ee227a2cf164b0bfa/mbi-1.1.0-py3-none-any.whl", hash = "sha256:91ec0780f63682ddc2a4ddc5d5901e89778ee0ccd40d81441149fb62c5068ff3", size = 53207, upload-time = "2026-03-28T17:18:00.059Z" },
 ]
 
 [[package]]
@@ -2621,20 +2618,20 @@ wheels = [
 
 [[package]]
 name = "opendp"
-version = "0.14.1"
+version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "deprecated" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/53/2c/7644571c48bff82d1024be252dc3e4d659e6ab50acb0a0601fecee8968c5/opendp-0.14.1.tar.gz", hash = "sha256:780abb06d6841f4b21d225af3e0dc5a3e4bf1a9ac59ce06b5945f709546f25c4", size = 739184, upload-time = "2025-09-17T02:46:38.502Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/cc/de955ef0bd4a1e7c9c68ea1880375925045623783b8b12addb0b13feabfc/opendp-0.15.0.tar.gz", hash = "sha256:d54e7bd1add5c14a0b73e4e91aebe6f6bedc55b7287b4465d5789dcbc4d441f7", size = 757105, upload-time = "2026-05-19T16:55:23.039Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/c1/47987a2ca6cbdf4a7445b2e4dcdb7595190a6bf87c04e2f6385b88e50da3/opendp-0.14.1-cp310-abi3-macosx_10_13_x86_64.whl", hash = "sha256:53047a60398ded5c87c9c01e10792cb2b9f5dd1a7aa15146576116b3c649fb2f", size = 38330314, upload-time = "2025-09-17T02:46:17.754Z" },
-    { url = "https://files.pythonhosted.org/packages/88/ec/f492ca755a75461b7439b2326b5e3dd148fb6c990a5ce80eec5151723afc/opendp-0.14.1-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:2660bb2a58ac95a5920f98140bc231be6aa9d671e8e36d7fcd231179f00445d2", size = 37108655, upload-time = "2025-09-17T02:46:21.86Z" },
-    { url = "https://files.pythonhosted.org/packages/f5/0e/0bd94623241e272b79d1c044dd5936bd54cb83099a1d0b8e1cd9832f6db3/opendp-0.14.1-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:68313b168ff3621d7eea7c7c1116825cb2c12a195b23191dd182068ba9fa791e", size = 41448864, upload-time = "2025-09-17T02:46:24.791Z" },
-    { url = "https://files.pythonhosted.org/packages/43/2f/7e779345ca04f3a7d065bb97329893537e0f74be8a125ec8037426d82084/opendp-0.14.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:7435a0c547c42efafb431ef5e6cbb7ba87f28b03e664c79b4ffce21fddca9681", size = 41493377, upload-time = "2025-09-17T02:46:27.263Z" },
-    { url = "https://files.pythonhosted.org/packages/a1/5e/b05fce02b3e9249161be88e9f4c03b4fa3b7bc4cc710d32886e107315314/opendp-0.14.1-cp310-abi3-win32.whl", hash = "sha256:c114bf7c7f50b33f0ecc2af243cf1c05a5d4451058c1c633517d27a882fa9e29", size = 30885452, upload-time = "2025-09-17T02:46:29.83Z" },
-    { url = "https://files.pythonhosted.org/packages/f7/8f/d2323dfba27f78a63c3cf4a768ebf9f82d7940506e91d3d2ee4fcea941d2/opendp-0.14.1-cp310-abi3-win_amd64.whl", hash = "sha256:894e93f24b206de229aae4bc403ec7c5fdb81c30b9a140d00b649d13a284dc1a", size = 35502524, upload-time = "2025-09-17T02:46:32.678Z" },
-    { url = "https://files.pythonhosted.org/packages/0c/f5/1b230feebd464904a7af67a3b8e02c1cbd4c12f652ee77c0d5699cc65346/opendp-0.14.1-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:9190b305eea45940ab5da4345add547d15b39fa42af0f289322c0b47e1f93ab6", size = 40426601, upload-time = "2025-09-17T02:46:36.384Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/75/967b6b1cf7a6acd7de3ccdb3d40cb9f15ff62da9434ca7546600ca51240c/opendp-0.15.0-cp310-abi3-macosx_10_13_x86_64.whl", hash = "sha256:56521d69838982915a7fd5d9a4856a0cadc9847d5ef6309ade4a5dc866d28ce8", size = 50286720, upload-time = "2026-05-19T16:55:01.583Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/b0/750f2416da978cc6df1cc99c3cede4e73e9290461b1509c45ad8963ffa19/opendp-0.15.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:a8fda7282a43ae6eabe1427b4b9ade028926d1b85b9bc59112ee1d003fa5edf5", size = 48021374, upload-time = "2026-05-19T16:55:04.505Z" },
+    { url = "https://files.pythonhosted.org/packages/69/05/7c7b7a160c86c5834db90ed68ffcb173fa8e85ce6180d3d142d2059ec97c/opendp-0.15.0-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3ae96a1469cf68f006ceba5884b26b902e62841af5768f0356e7a9ee620ff9a5", size = 51097105, upload-time = "2026-05-19T16:55:07.936Z" },
+    { url = "https://files.pythonhosted.org/packages/23/11/2c1fbff9c83ddd8ed3ea0e2f401c06efecb921d89c198087a93bd92053a3/opendp-0.15.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:f653bbf2ac2b1d1890ef35f4a19eca7e6a985bf5011505e2eea8a169f87cfa34", size = 53992906, upload-time = "2026-05-19T16:55:10.817Z" },
+    { url = "https://files.pythonhosted.org/packages/25/a9/db93031a060d62209542ba7e357e6fc83478de9fb1bbc1f05a66c61ea2c1/opendp-0.15.0-cp310-abi3-win32.whl", hash = "sha256:5bd66fb0c550e9c54f7150720b99986151ed462c72a96ac6ddca0797cd27c81d", size = 39820461, upload-time = "2026-05-19T16:55:13.986Z" },
+    { url = "https://files.pythonhosted.org/packages/88/e8/8db2d0c702ea76e38c502efe91c00be30d1b7011fbe868234871ba7dae94/opendp-0.15.0-cp310-abi3-win_amd64.whl", hash = "sha256:2ca61575ed47970874cdb925ddf8467fa9248506c80ad42d1e49a392494ca7dd", size = 45862494, upload-time = "2026-05-19T16:55:17.184Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/3c/bb38b9f03ee0bf7dd3a4bc9948c72581fd379ea26e6773892734c2541acb/opendp-0.15.0-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:fdc46d8a6866af1e928f6f38945879bc553d29dc0dd98db60ae92629838f93bd", size = 52348373, upload-time = "2026-05-19T16:55:20.174Z" },
 ]
 
 [package.optional-dependencies]
@@ -3092,16 +3089,28 @@ wheels = [
 
 [[package]]
 name = "polars"
-version = "1.32.0"
+version = "1.36.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/67/23/6a5f151981f3ac409bed6dc48a3eaecd0592a03eb382693d4c7e749eda8b/polars-1.32.0.tar.gz", hash = "sha256:b01045981c0f23eeccfbfc870b782f93e73b74b29212fdfc8aae0be9024bc1fb", size = 4761045, upload-time = "2025-08-01T01:43:22.413Z" }
+dependencies = [
+    { name = "polars-runtime-32" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/dc/56f2a90c79a2cb13f9e956eab6385effe54216ae7a2068b3a6406bae4345/polars-1.36.1.tar.gz", hash = "sha256:12c7616a2305559144711ab73eaa18814f7aa898c522e7645014b68f1432d54c", size = 711993, upload-time = "2025-12-10T01:14:53.033Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/40/5b27067d10b5a77ab4094932118e16629ffb20ea9ae5f7d1178e04087891/polars-1.32.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:94f7c6a3b30bc99bc6b682ea42bb1ae983e33a302ca21aacbac50ae19e34fcf2", size = 37479518, upload-time = "2025-08-01T01:42:18.603Z" },
-    { url = "https://files.pythonhosted.org/packages/08/b7/ca28ac10d340fb91bffb2751efd52aebc9799ae161b867214c6299c8f75b/polars-1.32.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:8bf14c16164839e62c741a863942a94a9a463db21e797452fca996c8afaf8827", size = 34214196, upload-time = "2025-08-01T01:42:22.667Z" },
-    { url = "https://files.pythonhosted.org/packages/61/97/fe3797e8e1d4f9eadab32ffe218a841b8874585b6c9bd0f1a26469fb2992/polars-1.32.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f4c15adb97d44766d30c759f5cebbdb64d361e8349ef10b5afc7413f71bf4b72", size = 37985353, upload-time = "2025-08-01T01:42:26.033Z" },
-    { url = "https://files.pythonhosted.org/packages/a0/7e/2baa2858556e970cc6a35c0d8ad34b2f9d982f1766c0a1fec20ca529a947/polars-1.32.0-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:13af55890734f89b76016a395fb2e7460e7d9feecf50ed2f55cf0f05a1c0c991", size = 35183912, upload-time = "2025-08-01T01:42:30.446Z" },
-    { url = "https://files.pythonhosted.org/packages/ef/41/0e6821dccc5871186a9b95af3990404aa283318263918d33ac974b35cb37/polars-1.32.0-cp39-abi3-win_amd64.whl", hash = "sha256:0397fc2501a5d5f1bb3fe8d27e0c26c7a5349b4110157c0fb7833cd3f5921c9e", size = 37747905, upload-time = "2025-08-01T01:42:33.975Z" },
-    { url = "https://files.pythonhosted.org/packages/c2/93/d06df0817da93f922a67e27e9e0f407856991374daa62687e2a45a18935c/polars-1.32.0-cp39-abi3-win_arm64.whl", hash = "sha256:dd84e24422509e1ec9be46f67f758d0bd9944d1ae4eacecee4f53adaa8ecd822", size = 33978543, upload-time = "2025-08-01T01:42:36.779Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/c6/36a1b874036b49893ecae0ac44a2f63d1a76e6212631a5b2f50a86e0e8af/polars-1.36.1-py3-none-any.whl", hash = "sha256:853c1bbb237add6a5f6d133c15094a9b727d66dd6a4eb91dbb07cdb056b2b8ef", size = 802429, upload-time = "2025-12-10T01:13:53.838Z" },
+]
+
+[[package]]
+name = "polars-runtime-32"
+version = "1.36.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/df/597c0ef5eb8d761a16d72327846599b57c5d40d7f9e74306fc154aba8c37/polars_runtime_32-1.36.1.tar.gz", hash = "sha256:201c2cfd80ceb5d5cd7b63085b5fd08d6ae6554f922bcb941035e39638528a09", size = 2788751, upload-time = "2025-12-10T01:14:54.172Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/ea/871129a2d296966c0925b078a9a93c6c5e7facb1c5eebfcd3d5811aeddc1/polars_runtime_32-1.36.1-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:327b621ca82594f277751f7e23d4b939ebd1be18d54b4cdf7a2f8406cecc18b2", size = 43494311, upload-time = "2025-12-10T01:13:56.096Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/76/0038210ad1e526ce5bb2933b13760d6b986b3045eccc1338e661bd656f77/polars_runtime_32-1.36.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:ab0d1f23084afee2b97de8c37aa3e02ec3569749ae39571bd89e7a8b11ae9e83", size = 39300602, upload-time = "2025-12-10T01:13:59.366Z" },
+    { url = "https://files.pythonhosted.org/packages/54/1e/2707bee75a780a953a77a2c59829ee90ef55708f02fc4add761c579bf76e/polars_runtime_32-1.36.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:899b9ad2e47ceb31eb157f27a09dbc2047efbf4969a923a6b1ba7f0412c3e64c", size = 44511780, upload-time = "2025-12-10T01:14:02.285Z" },
+    { url = "https://files.pythonhosted.org/packages/11/b2/3fede95feee441be64b4bcb32444679a8fbb7a453a10251583053f6efe52/polars_runtime_32-1.36.1-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:d9d077bb9df711bc635a86540df48242bb91975b353e53ef261c6fae6cb0948f", size = 40688448, upload-time = "2025-12-10T01:14:05.131Z" },
+    { url = "https://files.pythonhosted.org/packages/05/0f/e629713a72999939b7b4bfdbf030a32794db588b04fdf3dc977dd8ea6c53/polars_runtime_32-1.36.1-cp39-abi3-win_amd64.whl", hash = "sha256:cc17101f28c9a169ff8b5b8d4977a3683cd403621841623825525f440b564cf0", size = 44464898, upload-time = "2025-12-10T01:14:08.296Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/d8/a12e6aa14f63784cead437083319ec7cece0d5bb9a5bfe7678cc6578b52a/polars_runtime_32-1.36.1-cp39-abi3-win_arm64.whl", hash = "sha256:809e73857be71250141225ddd5d2b30c97e6340aeaa0d445f930e01bef6888dc", size = 39798896, upload-time = "2025-12-10T01:14:11.568Z" },
 ]
 
 [[package]]
@@ -4125,7 +4134,7 @@ wheels = [
 [[package]]
 name = "smartnoise-sql"
 version = "1.0.10"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/LancelotMarti/smartnoise-sdk.git?subdirectory=sql#391517b2b0445cff4ef62886d20f97410495c124" }
 dependencies = [
     { name = "antlr4-python3-runtime" },
     { name = "graphviz" },
@@ -4133,10 +4142,6 @@ dependencies = [
     { name = "pandas" },
     { name = "pyyaml" },
     { name = "sqlalchemy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/7e/dc7d25df96fde834c872296fadbcf36ef8680755f1342652f080f49880a9/smartnoise_sql-1.0.10.tar.gz", hash = "sha256:bc9ccf17fee97bf0742c176082052c75fdb676204c6a93eb3bb8054806b301cb", size = 123114, upload-time = "2026-04-14T23:59:35.86Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/16/a2/3fbef3e843595c8e86b9c3f8d25d34fa7ab3a2aeb66718149b7935598aa5/smartnoise_sql-1.0.10-py3-none-any.whl", hash = "sha256:2b920e0ace6280f34e0d7ca66ed914042e9d47f7f36f1a4adfaca6c9079f9043", size = 144545, upload-time = "2026-04-14T23:59:34.632Z" },
 ]
 
 [[package]]

@@ -153,7 +153,7 @@ class LocalAdminDatabase(AdminDatabase):
         on yaml file.
 
         Args:
-            yaml_file Path: path to the YAML file location
+            yaml_file (Path|BinaryIO|SpooledTemporaryFile): path to the YAML file location
             clean (bool): Whether to clean the collection before adding.
             path_prefix (Path, optional): Prefix to add to all file paths. Defaults to empty Path.
 

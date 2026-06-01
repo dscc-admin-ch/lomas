@@ -423,7 +423,7 @@ async def dummy_diffprivlib_query_handler(
     Args:
         user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
-        diffprivlib_query (DiffPrivLibDummyQueryModel): The diffprivlib query body.
+        query_json (DiffPrivLibDummyQueryModel): The diffprivlib query body.
 
     Raises:
         ExternalLibraryException: For exceptions from libraries
@@ -458,16 +458,16 @@ async def estimate_diffprivlib_cost(
     Args:
         user_id (UserId): A UserId object identifying the user.
         request (Request): Raw request object
-        diffprivlib_query (DiffPrivLibRequestModel): The diffprivlib query body.
-        A JSON object containing the following:
-            - pipeline: The DiffPrivLib pipeline for the query.
-            - feature_columns: the list of feature column to train
-            - target_columns: the list of target column to predict
-            - test_size: proportion of the test set
-            - test_train_split_seed: seed for the random train test split,
-            - imputer_strategy: imputation strategy
+        diffprivlib_query (DiffPrivLibRequestModel): The diffprivlib query body.\
+            A JSON object containing the following:
+                - pipeline: The DiffPrivLib pipeline for the query.
+                - feature_columns: the list of feature column to train
+                - target_columns: the list of target column to predict
+                - test_size: proportion of the test set
+                - test_train_split_seed: seed for the random train test split,
+                - imputer_strategy: imputation strategy
 
-            Defaults to Body(example_dummy_diffprivlib).
+                Defaults to Body(example_dummy_diffprivlib).
 
     Raises:
         ExternalLibraryException: For exceptions from libraries

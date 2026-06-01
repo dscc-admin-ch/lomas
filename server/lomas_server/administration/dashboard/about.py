@@ -40,7 +40,7 @@ def about() -> None:
 
     st.title("Welcome!")
 
-    st.header("Lomas Administation Dashboard")
+    st.header("Lomas Administration Dashboard")
     description = """
         The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database.
         Whether you need to monitor server status, manage user accounts, or administer datasets, this dashboard offers a convenient way to do so.

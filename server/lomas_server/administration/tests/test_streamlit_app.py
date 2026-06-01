@@ -54,7 +54,7 @@ def test_about_page(dashbord_dir: Path) -> None:
 
     assert "Welcome!" in at.title[0].value
 
-    assert "Lomas Administation Dashboard" in at.header[0].value
+    assert "Lomas Administration Dashboard" in at.header[0].value
 
     assert "Key Features" in at.header[1].value
     assert "Resources" in at.header[2].value

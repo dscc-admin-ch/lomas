@@ -65,8 +65,8 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
         Perform the query and return the response.
 
         Args:
-            query_json (QueryModelGeneric): The input object of the query.
-              Must be a subclass of QueryModel.
+            query_json (QueryModelGeneric): The input object of the query.\
+                Must be a subclass of QueryModel.
 
         Returns:
             dict | int | float | List[Any] | Any | str:
@@ -86,8 +86,8 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             user_name (str, optional): User name.
 
         Raises:
-            UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+            UnauthorizedAccessException: A query is already ongoing for this user,\
+                the user does not exist or does not have access to the dataset.
             InvalidQueryException: If the query is not valid.
             InternalServerException: For any other unforseen exceptions.
 

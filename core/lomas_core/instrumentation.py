@@ -70,7 +70,7 @@ def init_telemetry(telemetry_config: Telemetry) -> None:
     Initializes all OpenTelemetry exporters with a shared resource.
 
     Args:
-        resource (Resource): The resource to associate with the app and instance.
+        telemetry_config (Telemetry): Telemetry configuration
     """
     resource = Resource.create(
         {"service.name": telemetry_config.service_name, "service.instance.id": telemetry_config.service_id}

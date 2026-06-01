@@ -186,14 +186,12 @@ in
     coverage.module = {
       processes.worker = {
         cwd = lib.mkForce "${config.git.root}";
-        exec = lib.mkForce "exec coverage run --data-file=.coverage.worker -m lomas_server.worker";
+        exec = lib.mkForce "mkdir -p ./logs && exec coverage run --data-file=.coverage.worker -m lomas_server.worker &> ${config.git.root}/logs/worker.log";
       };
 
       # override the UT script to generate coverage
       scripts.ut = wrapScript {
-        exec = ''
-          exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE}
-        '';
+        exec = "mkdir -p ./logs && exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} &> ${config.git.root}/logs/pytest.log";
       };
 
     };
@@ -202,6 +200,7 @@ in
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";
+    NO_MKDOCS_2_WARNING = 1;
 
     # Ensure `coverage` uses our project config
     COVERAGE_RCFILE = config.lomas.hooks.projectConfigFile;
@@ -341,15 +340,12 @@ in
   };
 
   scripts.build-docs = wrapScript {
-    pwd = "docs";
-    exec = "python build_docs.py";
+    exec = "mkdocs build";
   };
 
   scripts.build-docs-local = wrapScript {
-    pwd = "docs";
     exec = ''
-      python build_docs.py -l
-      xdg-open build/html/index.html
+      mkdocs serve -o
     '';
   };
 

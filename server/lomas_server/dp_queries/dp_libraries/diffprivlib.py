@@ -249,7 +249,7 @@ def get_dpl_bounds(feature_columns: list[ColumnMetadata]) -> tuple[list[float], 
     Format metadata bounds of feature columns in format expected by DiffPrivLib.
 
     Args:
-        - feature_columns (list[ColumnMetadata]): list of feature columns
+        feature_columns (list[ColumnMetadata]): list of feature columns
 
     Return:
         tuple of lower and upper bounds as expected by DiffPrivLib

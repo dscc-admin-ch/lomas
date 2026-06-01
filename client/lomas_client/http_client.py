@@ -15,6 +15,7 @@ from lomas_core.models.config import OIDCDeviceCodeResponse
 from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
+from lomas_core.utils import url_append
 
 logger = get_lomas_logger(__name__)
 
@@ -144,10 +145,7 @@ class LomasHttpClient:
 
         Args:
             endpoint (str): The API endpoint to which the request will be sent.
-            body_json (dict, optional): The JSON body to include in the POST request.\
-                Defaults to {}.
-            request_model: (BaseModel, optional): The pydantic model to validate the\
-                body_json against. Must be non-null if body_json contains data.
+            body (LomasRequestModel): The body to include in the POST request.
             read_timeout (int): number of seconds that client wait for the server
                 to send a response.
                 Defaults to DEFAULT_READ_TIMEOUT.
@@ -164,7 +162,7 @@ class LomasHttpClient:
 
         try:
             r = self._oauth2_session.post(
-                f"{self.config.app_url}/{endpoint}",
+                url_append(self.config.app_url, endpoint),
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
@@ -174,7 +172,7 @@ class LomasHttpClient:
             self._authorize()
 
             r = self._oauth2_session.post(
-                f"{self.config.app_url}/{endpoint}",
+                url_append(self.config.app_url, endpoint),
                 json=body.model_dump(),
                 headers=self.headers,
                 timeout=(CONNECT_TIMEOUT, read_timeout),
@@ -186,16 +184,18 @@ class LomasHttpClient:
         for _ in range(n_retry):
             try:
                 job_query = self._oauth2_session.get(
-                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    url_append(self.config.app_url, f"/status/{job_uid}"),
+                    headers=self.headers,
+                    timeout=(CONNECT_TIMEOUT),
                 ).json()
             except OAuth2Error:
                 # Handle expired refresh token
                 self._authorize()
-
                 job_query = self._oauth2_session.get(
-                    f"{self.config.app_url}/status/{job_uid}", headers=self.headers, timeout=(CONNECT_TIMEOUT)
+                    url_append(self.config.app_url, f"/status/{job_uid}"),
+                    headers=self.headers,
+                    timeout=(CONNECT_TIMEOUT),
                 ).json()
-
             # Check for error before accessing "status"
             if "status" in job_query and job_query["status"] in {"complete", "failed"}:
                 return Job.model_validate(job_query)

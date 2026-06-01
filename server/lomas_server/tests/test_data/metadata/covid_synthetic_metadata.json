@@ -1,7 +1,7 @@
 {
   "@context": [
     "http://www.w3.org/ns/csvw",
-    "/home/onyxia/work/csvw-safe/csvw-eo-context.jsonld"
+    "/home/onyxia/work/csvw-eo/csvw-eo-context.jsonld"
   ],
   "@type": "Table",
   "privacyUnit": "id",

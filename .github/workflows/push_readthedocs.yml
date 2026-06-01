@@ -5,6 +5,7 @@ on:
     branches: [develop, master]
   push:
     branches: [develop, master]
+    tags: [v*]
   release:
     types: [published]
 
@@ -17,25 +18,18 @@ jobs:
       - uses: cachix/cachix-action@v17
         with:
           name: lomas
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Install devenv.sh
-        run: nix profile add nixpkgs/d233902339c02a9c334e7e593de68855ad26c4cb#devenv
+        run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
 
-      - name: Build with sphinx
+      - name: Build the doc
         run: devenv shell -- build-docs
 
-      - name: Set TMPDIR for mktemp
-        run: echo "TMPDIR=/tmp" >> $GITHUB_ENV
-
-      - name: Pushes to another repository
+      - name: Publish Develop doc
         if: github.event_name == 'push' || github.event_name == 'release'
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
-        with:
-          source-directory: pages/
-          destination-github-username: 'dscc-admin-ch'
-          destination-repository-name: 'lomas-docs'
-          target-branch: main
-          target-directory: html
+        run: devenv shell -- mike deploy develop --push
+
+      - name: Publish Tag doc
+        if: github.ref_type == 'tag'
+        run: devenv shell -- mike deploy ${{ github.ref_name }} latest --update-aliases --push

@@ -152,7 +152,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Returns the metadata dictionnary of the dataset.
 
-        Wrapped by :py:func:`dataset_must_exist`.
+        Wrapped by [dataset_must_exist][lomas_server.admin_database.admin_database.dataset_must_exist].
 
         Args:
             dataset_name (str): name of the dataset to get the metadata
@@ -181,7 +181,7 @@ class AdminDatabase(ABC, BaseModel):
 
         (Set False before querying and True after updating budget)
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
@@ -197,7 +197,7 @@ class AdminDatabase(ABC, BaseModel):
 
         (Set False before querying and True after updating budget)
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
@@ -213,7 +213,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Checks if a user may access a particular dataset.
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
@@ -242,7 +242,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Get the total spent epsilon and delta spent by user on dataset.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -262,7 +262,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Get the initial epsilon and delta budget.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -282,7 +282,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Get the remaining epsilon and delta budget (initial - total spent).
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -347,7 +347,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Update current epsilon and delta delta spent by user.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -364,7 +364,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Get dataset access info based on dataset_name.
 
-        Wrapped by :py:func:`dataset_must_exist`.
+        Wrapped by [dataset_must_exist][lomas_server.admin_database.admin_database.dataset_must_exist].
 
         Args:
             dataset_name (str): Name of the dataset.
@@ -383,7 +383,7 @@ class AdminDatabase(ABC, BaseModel):
         """
         Retrieves and return the queries already done by a user.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user

@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/client/">
+        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/client/opendp/">
       
       
-        <link rel="prev" href="diffprivlib/">
+        <link rel="prev" href="../quickstart/">
       
       
-        <link rel="next" href="../notebooks/Demo_Client_Notebook/">
+        <link rel="next" href="../smartnoise-sql/">
       
       
         
       
       
-      <link rel="icon" href="../images/favicon.svg">
+      <link rel="icon" href="../../images/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Examples - Lomas</title>
+        <title>OpenDP - Lomas</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#examples" class="md-skip">
+        <a href="#opendp" class="md-skip">
           Skip to content
         </a>
       
@@ -100,9 +100,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Examples
+              OpenDP
             
           </span>
         </div>
@@ -204,7 +204,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href=".." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -226,7 +226,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/core/" class="md-tabs__link">
+        <a href="../../api/core/" class="md-tabs__link">
           
   
   
@@ -246,7 +246,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../poster/" class="md-tabs__link">
+      <a href="../../poster/" class="md-tabs__link">
         
   
   
@@ -287,9 +287,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     Lomas
@@ -352,7 +352,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href=".." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -463,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -488,10 +488,263 @@
                 
   
   
+    
+  
   
   
     
     
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1_2_2" id="__nav_1_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Available DP libraries
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenDP
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-in-lomas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage in Lomas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lomas-specificities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lomas specificities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../smartnoise-sql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Smartnoise SQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diffprivlib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diffprivlib
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
       
         
       
@@ -519,14 +772,14 @@
   
   
   
-    <a href="opendp/" class="md-nav__link">
+    <a href="../" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Available DP libraries
+    Examples
   
 
     
@@ -540,205 +793,6 @@
     </a>
   
 
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-      
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2_3" checked>
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-              
-              <label class="md-nav__link md-nav__link--active" for="__nav_1_2_3" id="__nav_1_2_3_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_2_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Lomas: Client demo
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_Smartnoise-SQL/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using Smartnoise-SQL
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_DiffPrivLib/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using DiffPrivlib
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_OpenDP_Polars/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using OpenDP Polars
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
       
     </li>
   
@@ -855,7 +909,7 @@
   
   
   
-    <a href="../server/deployment/" class="md-nav__link">
+    <a href="../../server/deployment/" class="md-nav__link">
       
   
   
@@ -919,7 +973,7 @@
   
   
   
-    <a href="../server/administration/" class="md-nav__link">
+    <a href="../../server/administration/" class="md-nav__link">
       
   
   
@@ -1032,7 +1086,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/architecture-overview/" class="md-nav__link">
+      <a href="../../concepts/architecture-overview/" class="md-nav__link">
         
   
   
@@ -1060,7 +1114,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/contributing/" class="md-nav__link">
+      <a href="../../concepts/contributing/" class="md-nav__link">
         
   
   
@@ -1088,7 +1142,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/auth/" class="md-nav__link">
+      <a href="../../concepts/auth/" class="md-nav__link">
         
   
   
@@ -1116,7 +1170,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/observability/" class="md-nav__link">
+      <a href="../../concepts/observability/" class="md-nav__link">
         
   
   
@@ -1144,7 +1198,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/errors/" class="md-nav__link">
+      <a href="../../concepts/errors/" class="md-nav__link">
         
   
   
@@ -1172,7 +1226,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/dp-packages-datasets/" class="md-nav__link">
+      <a href="../../concepts/dp-packages-datasets/" class="md-nav__link">
         
   
   
@@ -1243,7 +1297,7 @@
   
   
   
-    <a href="../api/core/" class="md-nav__link">
+    <a href="../../api/core/" class="md-nav__link">
       
   
   
@@ -1276,7 +1330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../poster/" class="md-nav__link">
+      <a href="../../poster/" class="md-nav__link">
         
   
   
@@ -1316,6 +1370,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-in-lomas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage in Lomas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lomas-specificities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lomas specificities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1340,7 +1446,7 @@
     
     
       <li class="md-path__item">
-        <a href=".." class="md-path__link">
+        <a href="../.." class="md-path__link">
           
   <span class="md-ellipsis">
     Overview
@@ -1358,7 +1464,7 @@
     
     
       <li class="md-path__item">
-        <a href="quickstart/" class="md-path__link">
+        <a href="../quickstart/" class="md-path__link">
           
   <span class="md-ellipsis">
     Client
@@ -1379,7 +1485,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    Examples
+    Available DP libraries
   </span>
 
         </a>
@@ -1401,17 +1507,45 @@
   
 
 
-<h1 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h1>
-<p>In this section, you will find various examples demonstrating how to use Lomas-client in different
-scenarios. These examples will help you understand the practical applications and features of lomas.</p>
-<p>You can also find additional notebooks and examples in our
-<a href="https://github.com/dscc-admin-ch/lomas/tree/master/client/notebooks">GitHub repository</a></p>
+<h1 id="opendp">OpenDP<a class="headerlink" href="#opendp" title="Permanent link">#</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p><a href="https://docs.opendp.org/en/v0.14.2/getting-started/index.html">OpenDP</a> is an open-source library for building differentially private computations. It provides a flexible framework for constructing privacy-preserving data analyses.</p>
+<p>OpenDP provides differentially private implementations of common summary statistics through integrations with popular data science packages such as <a href="https://pola.rs/">Polars</a>, allowing users to perform familiar data analysis workflows with built-in privacy guarantees.</p>
+<h2 id="usage-in-lomas">Usage in Lomas<a class="headerlink" href="#usage-in-lomas" title="Permanent link">#</a></h2>
+<p>Users can submit OpenDP measurements directly via the Lomas client package using the <a href="../../api/client/#lomas_client.libraries.opendp">opendp</a> module. The query is sent to the server, which validates and executes it against the private dataset while tracking the consumed DP budget.</p>
+<h2 id="lomas-specificities">Lomas specificities<a class="headerlink" href="#lomas-specificities" title="Permanent link">#</a></h2>
+<p>The <code>lomas-client</code> package provides some useful function allowing users to directly create a DP Context that they can use to build and test their DP pipeline.</p>
+<p><strong>Recommended flow</strong></p>
 <ul>
-<li><a href="../notebooks/Demo_Client_Notebook/">Client Demo</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_Smartnoise-SQL/">Using Smartnoise SQL</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_DiffPrivLib/">Using DiffPrivLib</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_OpenDP_Polars/">Using OpenDP Polars</a></li>
+<li>
+<p>Get a dummy dataset: <code>client.get_dummy_dataset()</code>. This can be used to get used to the data.</p>
+</li>
+<li>
+<p>Create a <code>opendp.Context</code> that will be automatically generated based on the metadata: <code>client.get_context()</code></p>
+</li>
+<li>
+<p>Use this context to build the opendp pipeline: <code>context.query().(&lt;your_query&gt;)</code></p>
+</li>
+<li>
+<p>Test your pipeline:</p>
+<ul>
+<li>locally: <code>&lt;your_pipeline&gt;.release().collect()</code>. This should help you catch potential errors before sending the request to the server.</li>
+<li>on remote AND on the dummy dataset: <code>client.opendp.query(&lt;your_pipeline&gt;, dummy=True)</code></li>
 </ul>
+</li>
+<li>
+<p>Once satisfied with the dummy results, send the query to be performed on the actual data with <code>dummy=False</code>.</p>
+</li>
+</ul>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p>A worked example demonstrating how to use OpenDP through the Lomas client is available in <a href="../../notebooks/Demo_Client_Notebook_OpenDP_Polars/">this notebook</a>.</p>
+</div>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">#</a></h2>
+<div class="grid">
+<p><a class="md-button card" href="https://github.com/opendp"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"/></svg></span> OpenDP</a>
+<a class="md-button card" href="https://docs.opendp.org/en/v0.14.2/getting-started/index.html"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 22a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-6v7L9.5 7.5 7 9V2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2z"/></svg></span> OpenDP</a></p>
+</div>
 
 
 
@@ -1449,7 +1583,7 @@ scenarios. These examples will help you understand the practical applications an
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="diffprivlib/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Diffprivlib">
+          <a href="../quickstart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quickstart">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1459,20 +1593,20 @@ scenarios. These examples will help you understand the practical applications an
                 Previous
               </span>
               <div class="md-ellipsis">
-                Diffprivlib
+                Quickstart
               </div>
             </div>
           </a>
         
         
           
-          <a href="../notebooks/Demo_Client_Notebook/" class="md-footer__link md-footer__link--next" aria-label="Next: Lomas: Client demo">
+          <a href="../smartnoise-sql/" class="md-footer__link md-footer__link--next" aria-label="Next: Smartnoise SQL">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Lomas: Client demo
+                Smartnoise SQL
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1509,12 +1643,12 @@ scenarios. These examples will help you understand the practical applications an
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../assets/_markdown_exec_pyodide.js"></script>
+        <script src="../../assets/_markdown_exec_pyodide.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js"></script>
       

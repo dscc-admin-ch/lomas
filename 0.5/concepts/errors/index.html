@@ -10,31 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/client/">
+        <link rel="canonical" href="https://dscc-admin-ch.github.io/lomas-docs/latest/concepts/errors/">
       
       
-        <link rel="prev" href="diffprivlib/">
+        <link rel="prev" href="../observability/">
       
       
-        <link rel="next" href="../notebooks/Demo_Client_Notebook/">
+        <link rel="next" href="../dp-packages-datasets/">
       
       
         
       
       
-      <link rel="icon" href="../images/favicon.svg">
+      <link rel="icon" href="../../images/favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Examples - Lomas</title>
+        <title>Errors - Lomas</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#examples" class="md-skip">
+        <a href="#errors" class="md-skip">
           Skip to content
         </a>
       
@@ -100,9 +100,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-header__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Examples
+              Errors
             
           </span>
         </div>
@@ -204,7 +204,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href=".." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   
@@ -226,7 +226,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../api/core/" class="md-tabs__link">
+        <a href="../../api/core/" class="md-tabs__link">
           
   
   
@@ -246,7 +246,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../poster/" class="md-tabs__link">
+      <a href="../../poster/" class="md-tabs__link">
         
   
   
@@ -287,9 +287,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
+    <a href="../.." title="Lomas" class="md-nav__button md-logo" aria-label="Lomas" data-md-component="logo">
       
-  <img src="../images/logo.png" alt="logo">
+  <img src="../../images/logo.png" alt="logo">
 
     </a>
     Lomas
@@ -352,7 +352,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href=".." class="md-nav__link ">
+            <a href="../.." class="md-nav__link ">
               
   
   
@@ -393,8 +393,6 @@
                 
   
   
-    
-  
   
   
     
@@ -420,11 +418,11 @@
     
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
         
           
           <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="">
@@ -445,7 +443,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -463,7 +461,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../../client/quickstart/" class="md-nav__link">
         
   
   
@@ -519,7 +517,7 @@
   
   
   
-    <a href="opendp/" class="md-nav__link">
+    <a href="../../client/opendp/" class="md-nav__link">
       
   
   
@@ -550,8 +548,6 @@
                 
   
   
-    
-  
   
   
     
@@ -579,17 +575,18 @@
     
     
       
+        
+        
+      
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2_3" checked>
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
-              
+  
+  
+  
+    <a href="../../client/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
@@ -603,142 +600,12 @@
   
   
 
-            </a>
-            
-              
-              <label class="md-nav__link md-nav__link--active" for="__nav_1_2_3" id="__nav_1_2_3_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_1_2_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Lomas: Client demo
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_Smartnoise-SQL/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using Smartnoise-SQL
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_DiffPrivLib/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using DiffPrivlib
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../notebooks/Demo_Client_Notebook_OpenDP_Polars/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Using OpenDP Polars
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
       
     </li>
   
@@ -855,7 +722,7 @@
   
   
   
-    <a href="../server/deployment/" class="md-nav__link">
+    <a href="../../server/deployment/" class="md-nav__link">
       
   
   
@@ -919,7 +786,7 @@
   
   
   
-    <a href="../server/administration/" class="md-nav__link">
+    <a href="../../server/administration/" class="md-nav__link">
       
   
   
@@ -958,6 +825,8 @@
                 
   
   
+    
+  
   
   
     
@@ -989,11 +858,11 @@
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_4" checked>
         
           
           <label class="md-nav__link" for="__nav_1_4" id="__nav_1_4_label" tabindex="">
@@ -1014,7 +883,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1032,7 +901,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/architecture-overview/" class="md-nav__link">
+      <a href="../architecture-overview/" class="md-nav__link">
         
   
   
@@ -1060,7 +929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/contributing/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         
   
   
@@ -1088,7 +957,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/auth/" class="md-nav__link">
+      <a href="../auth/" class="md-nav__link">
         
   
   
@@ -1116,7 +985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/observability/" class="md-nav__link">
+      <a href="../observability/" class="md-nav__link">
         
   
   
@@ -1141,10 +1010,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../concepts/errors/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1160,6 +1056,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#invalidqueryexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InvalidQueryException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externallibraryexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalLibraryException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unauthorizedaccessexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UnauthorizedAccessException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#internalserverexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InternalServerException
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1172,7 +1132,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../concepts/dp-packages-datasets/" class="md-nav__link">
+      <a href="../dp-packages-datasets/" class="md-nav__link">
         
   
   
@@ -1243,7 +1203,7 @@
   
   
   
-    <a href="../api/core/" class="md-nav__link">
+    <a href="../../api/core/" class="md-nav__link">
       
   
   
@@ -1276,7 +1236,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../poster/" class="md-nav__link">
+      <a href="../../poster/" class="md-nav__link">
         
   
   
@@ -1316,6 +1276,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#invalidqueryexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InvalidQueryException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externallibraryexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalLibraryException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unauthorizedaccessexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UnauthorizedAccessException
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#internalserverexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InternalServerException
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1340,7 +1352,7 @@
     
     
       <li class="md-path__item">
-        <a href=".." class="md-path__link">
+        <a href="../.." class="md-path__link">
           
   <span class="md-ellipsis">
     Overview
@@ -1358,28 +1370,10 @@
     
     
       <li class="md-path__item">
-        <a href="quickstart/" class="md-path__link">
+        <a href="../architecture-overview/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Client
-  </span>
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-    
-    
-      <li class="md-path__item">
-        <a href="./" class="md-path__link">
-          
-  <span class="md-ellipsis">
-    Examples
+    Concepts
   </span>
 
         </a>
@@ -1401,17 +1395,38 @@
   
 
 
-<h1 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h1>
-<p>In this section, you will find various examples demonstrating how to use Lomas-client in different
-scenarios. These examples will help you understand the practical applications and features of lomas.</p>
-<p>You can also find additional notebooks and examples in our
-<a href="https://github.com/dscc-admin-ch/lomas/tree/master/client/notebooks">GitHub repository</a></p>
+<h1 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">#</a></h1>
+<p>They are 4 custom errors describing the reasons why the queries fail and what to do.</p>
+<h2 id="invalidqueryexception"><a href="../../api/core/#lomas_core.error_handler.InvalidQueryException">InvalidQueryException</a><a class="headerlink" href="#invalidqueryexception" title="Permanent link">#</a></h2>
 <ul>
-<li><a href="../notebooks/Demo_Client_Notebook/">Client Demo</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_Smartnoise-SQL/">Using Smartnoise SQL</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_DiffPrivLib/">Using DiffPrivLib</a></li>
-<li><a href="../notebooks/Demo_Client_Notebook_OpenDP_Polars/">Using OpenDP Polars</a></li>
+<li>Happens when: error is due to an an invalid query from the user</li>
+<li>Example: an "opendp" pipeline which is not a measurement, not enough budget for query</li>
+<li>What to do: Based on the specific error message, the user should check and fix their relevant query parameters.</li>
 </ul>
+<h2 id="externallibraryexception"><a href="../../api/core/#lomas_core.error_handler.ExternalLibraryException">ExternalLibraryException</a><a class="headerlink" href="#externallibraryexception" title="Permanent link">#</a></h2>
+<ul>
+<li>Happens when: error comes from an external differential privacy library ("smartnoise-sql" or "opendp").</li>
+<li>Example: invalid values in Smartnoise-SQL <code>mechanisms</code> parameter.</li>
+<li>What to do: Based on the specific error message, the user should check and fix their "smartnoise-sql" <code>query</code> parameter or "opendp" <code>pipeline</code> parameter.</li>
+</ul>
+<h2 id="unauthorizedaccessexception"><a href="../../api/core/#lomas_core.error_handler.UnauthorizedAccessException">UnauthorizedAccessException</a><a class="headerlink" href="#unauthorizedaccessexception" title="Permanent link">#</a></h2>
+<ul>
+<li>Happens when: user tries to query a dataset without sufficient authorisation:<ul>
+<li>when the user does not exist,</li>
+<li>when the user does not have access to the dataset,</li>
+<li>when the user may not query.</li>
+</ul>
+</li>
+<li>Example: user tries to query a dataframe to which they do not have access</li>
+<li>What to do: The user should decrease the budget parameters and check their access rights.</li>
+</ul>
+<h2 id="internalserverexception"><a href="../../api/core/#lomas_core.error_handler.InternalServerException">InternalServerException</a><a class="headerlink" href="#internalserverexception" title="Permanent link">#</a></h2>
+<ul>
+<li>Happens when: there are internal issues within the server.</li>
+<li>Example: failed startup of the server</li>
+<li>What to do: contact the administrative team for help. Users are not responsible for the failure of their request.</li>
+</ul>
+<p>This error should never occur while the server is deployed.</p>
 
 
 
@@ -1449,7 +1464,7 @@ scenarios. These examples will help you understand the practical applications an
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="diffprivlib/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Diffprivlib">
+          <a href="../observability/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Observability">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1459,20 +1474,20 @@ scenarios. These examples will help you understand the practical applications an
                 Previous
               </span>
               <div class="md-ellipsis">
-                Diffprivlib
+                Observability
               </div>
             </div>
           </a>
         
         
           
-          <a href="../notebooks/Demo_Client_Notebook/" class="md-footer__link md-footer__link--next" aria-label="Next: Lomas: Client demo">
+          <a href="../dp-packages-datasets/" class="md-footer__link md-footer__link--next" aria-label="Next: DP Packages and Dataset Connectors">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Lomas: Client demo
+                DP Packages and Dataset Connectors
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1509,12 +1524,12 @@ scenarios. These examples will help you understand the practical applications an
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
-        <script src="../assets/_markdown_exec_pyodide.js"></script>
+        <script src="../../assets/_markdown_exec_pyodide.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js"></script>
       

@@ -16,7 +16,7 @@
         <link rel="prev" href="../auth/">
       
       
-        <link rel="next" href="../../api/core/">
+        <link rel="next" href="../errors/">
       
       
         
@@ -492,6 +492,68 @@
     
       
         
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../client/opendp/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available DP libraries
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
           
         
       
@@ -550,34 +612,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../client/errors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Errors
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -594,8 +628,6 @@
   
     
     
-      
-        
       
         
       
@@ -657,34 +689,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/managing_dataset/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Managing Dataset
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
     
     
       
@@ -718,7 +722,7 @@
   
   
   
-    <a href="../../server/" class="md-nav__link">
+    <a href="../../server/deployment/" class="md-nav__link">
       
   
   
@@ -751,9 +755,39 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../server/administration/" class="md-nav__link">
+    
+    
+      
         
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../server/administration/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
@@ -767,7 +801,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -791,6 +831,10 @@
   
     
     
+      
+        
+      
+        
       
         
       
@@ -885,7 +929,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../server/CONTRIBUTING/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         
   
   
@@ -1070,6 +1114,62 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dp-packages-datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DP Packages and Dataset Connectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1339,7 +1439,7 @@
   
 
 
-<h1 id="observability-with-fastapi-opentelemetry-grafana-loki-tempo-and-prometheus">Observability with FastAPI, OpenTelemetry, Grafana, Loki, Tempo, and Prometheus<a class="headerlink" href="#observability-with-fastapi-opentelemetry-grafana-loki-tempo-and-prometheus" title="Permanent link">&para;</a></h1>
+<h1 id="observability-with-fastapi-opentelemetry-grafana-loki-tempo-and-prometheus">Observability with FastAPI, OpenTelemetry, Grafana, Loki, Tempo, and Prometheus<a class="headerlink" href="#observability-with-fastapi-opentelemetry-grafana-loki-tempo-and-prometheus" title="Permanent link">#</a></h1>
 <p>This documentation explains the setup of observability for a FastAPI application using OpenTelemetry for distributed tracing, logging, and metrics collection. The collected data is then exported to different backends for monitoring and visualization, including:</p>
 <ul>
 <li><strong>Logs</strong> are exported to Loki.</li>
@@ -1347,7 +1447,7 @@
 <li><strong>Metrics</strong> are collected by Prometheus.</li>
 </ul>
 <p>These backends are all integrated with <strong>Grafana</strong> for visualization and querying.</p>
-<h2 id="overview-of-the-flow">Overview of the Flow<a class="headerlink" href="#overview-of-the-flow" title="Permanent link">&para;</a></h2>
+<h2 id="overview-of-the-flow">Overview of the Flow<a class="headerlink" href="#overview-of-the-flow" title="Permanent link">#</a></h2>
 <ol>
 <li><strong>FastAPI Application</strong>: The FastAPI app generates logs, traces, and metrics.</li>
 <li><strong>OpenTelemetry Collector</strong>: OpenTelemetry is responsible for exporting logs, traces, and metrics to the appropriate backends.</li>
@@ -1361,13 +1461,13 @@
 <li><strong>Prometheus</strong>: Collects and stores time-series metrics.</li>
 <li><strong>Grafana</strong>: Connects to all of the above systems and provides a unified dashboard for visualization and querying.</li>
 </ol>
-<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
+<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h2>
 <ul>
 <li><strong>Logs</strong>: FastAPI uses the OpenTelemetry SDK to capture logs and sends them to the OpenTelemetry Collector, which forwards them to <strong>Loki</strong> for storage.</li>
 <li><strong>Traces</strong>: OpenTelemetry also collects trace information from the FastAPI app, which is forwarded to <strong>Tempo</strong> for visualization.</li>
 <li><strong>Metrics</strong>: Metrics are generated by FastAPI and collected by <strong>Prometheus</strong>. These metrics can be customized by modifying the <code>metrics.py</code> file.</li>
 </ul>
-<h2 id="grafana-dashboard-and-integration">Grafana Dashboard and Integration<a class="headerlink" href="#grafana-dashboard-and-integration" title="Permanent link">&para;</a></h2>
+<h2 id="grafana-dashboard-and-integration">Grafana Dashboard and Integration<a class="headerlink" href="#grafana-dashboard-and-integration" title="Permanent link">#</a></h2>
 <p>Grafana is used to visualize all of the observability data (logs, traces, and metrics). It connects to the following backends:</p>
 <ul>
 <li><strong>Loki</strong>: For logs.</li>
@@ -1375,65 +1475,70 @@
 <li><strong>Prometheus</strong>: For metrics.</li>
 </ul>
 <p>Queries can be created within Grafana to visualize the data, track performance, troubleshoot errors, and analyze metrics over time.</p>
-<h2 id="useful-links-for-debugging-and-access">Useful Links for Debugging and Access<a class="headerlink" href="#useful-links-for-debugging-and-access" title="Permanent link">&para;</a></h2>
-<p>Below are the important endpoints that can be accessed for debugging and visualizing data:</p>
-<ul>
-<li><strong>Grafana Dashboard</strong>:</li>
-</ul>
-<p><code>http://localhost:3000</code>:
-  Access the Grafana dashboard where logs, traces, and metrics can be visualized.</p>
-<ul>
-<li><strong>Prometheus Time-Series Query</strong>:</li>
-</ul>
-<p><code>http://localhost:9090/query</code>:
-  Directly query Prometheus for time-series data.</p>
-<ul>
-<li>
-<p><strong>Metrics Endpoints</strong>:</p>
-</li>
-<li>
-<p><code>http://localhost:9091/metrics</code>:
-    Metrics from the Lomas server.</p>
-</li>
-<li>
-<p><code>http://localhost:9090/metrics</code>:
-    Other metrics exposed by Prometheus.</p>
-</li>
-<li>
-<p><strong>Tempo Trace Debugging</strong>:</p>
-</li>
-</ul>
-<p><code>http://localhost:55679/debug/tracez</code>:
-  Debug trace data from Tempo.</p>
-<ul>
-<li>
-<p><strong>Loki Direct Access</strong>:</p>
-</li>
-<li>
-<p><code>http://localhost:3100/ready</code>:
-    Check the readiness of the Loki service.</p>
-</li>
-<li>
-<p><code>http://localhost:3100/config</code>:
-    View the current Loki configuration.</p>
-</li>
-<li>
-<p><strong>OpenTelemetry Collector</strong>:</p>
-</li>
-<li>
-<p><code>http://localhost:13133/health</code>:
-    Health check endpoint for the OpenTelemetry Collector.</p>
-</li>
-<li>
-<p><code>http://localhost:1777/debug/pprof/</code>:
-    Profiling and debugging endpoint for performance analysis.</p>
-</li>
-<li>
-<p><code>http://localhost:55679/debug/tracez</code>:
-    Trace information for debugging traces.</p>
-</li>
-</ul>
-<h2 id="configuration-files-and-customization">Configuration Files and Customization<a class="headerlink" href="#configuration-files-and-customization" title="Permanent link">&para;</a></h2>
+<h2 id="useful-links-for-debugging-and-access">Useful Links for Debugging and Access<a class="headerlink" href="#useful-links-for-debugging-and-access" title="Permanent link">#</a></h2>
+<p>Below are the important endpoints that can be accessed for debugging and visualizing data.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Grafana</strong></td>
+<td><a href="http://localhost:3000">http://localhost:3000</a></td>
+<td>Logs, traces, and metrics visualization dashboard.</td>
+</tr>
+<tr>
+<td><strong>Prometheus</strong></td>
+<td><a href="http://localhost:9090/query">http://localhost:9090/query</a></td>
+<td>Query expression browser.</td>
+</tr>
+<tr>
+<td><strong>Metrics</strong></td>
+<td><a href="http://localhost:9091/metrics">http://localhost:9091/metrics</a></td>
+<td>Metrics from the Lomas server.</td>
+</tr>
+<tr>
+<td></td>
+<td><a href="http://localhost:9090/metrics">http://localhost:9090/metrics</a></td>
+<td>Other metrics exposed by Prometheus.</td>
+</tr>
+<tr>
+<td><strong>Tempo</strong></td>
+<td><a href="http://localhost:55679/debug/tracez">http://localhost:55679/debug/tracez</a></td>
+<td>Debug trace &amp; logging data.</td>
+</tr>
+<tr>
+<td><strong>Loki</strong></td>
+<td><a href="http://localhost:3100/ready">http://localhost:3100/ready</a></td>
+<td>Loki readiness probe.</td>
+</tr>
+<tr>
+<td></td>
+<td><a href="http://localhost:3100/config">http://localhost:3100/config</a></td>
+<td>Loki running configuration.</td>
+</tr>
+<tr>
+<td><strong>OpenTelemetry</strong></td>
+<td><a href="http://localhost:13133/health">http://localhost:13133/health</a></td>
+<td>Health check of the Collector.</td>
+</tr>
+<tr>
+<td></td>
+<td><a href="http://localhost:1777/debug/pprof">http://localhost:1777/debug/pprof</a></td>
+<td>Profiling for performance analysis.</td>
+</tr>
+<tr>
+<td></td>
+<td><a href="http://localhost:55679/debug/tracez">http://localhost:55679/debug/tracez</a></td>
+<td>Trace information for debugging.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration-files-and-customization">Configuration Files and Customization<a class="headerlink" href="#configuration-files-and-customization" title="Permanent link">#</a></h2>
 <ul>
 <li>Prometheus Metrics Configuration</li>
 </ul>
@@ -1456,7 +1561,7 @@
 <li>Modifying Backends (Loki, Prometheus, Tempo)</li>
 </ul>
 <p>Although <strong>Loki</strong>, <strong>Prometheus</strong>, and <strong>Tempo</strong> are the default backends, other systems for logging, metrics, and tracing can be used. No code modification will be required, but the configuration files in the <code>lomas/server/configs/observability/</code> directory need to be modified to integrate new backends. For example, <strong>Loki</strong> can be replaced with <strong>Elasticsearch</strong> for logs or a different metrics exporter could be used.</p>
-<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h2>
 <p>This setup provides a robust observability pipeline for the FastAPI application, integrating logs, metrics, and traces into a centralized system for monitoring and debugging. Using <strong>Grafana</strong>, users can query and visualize data from <strong>Loki</strong>, <strong>Tempo</strong>, and <strong>Prometheus</strong>.</p>
 <p>Key Points:</p>
 <ul>
@@ -1522,13 +1627,13 @@
         
         
           
-          <a href="../../api/core/" class="md-footer__link md-footer__link--next" aria-label="Next: Core">
+          <a href="../errors/" class="md-footer__link md-footer__link--next" aria-label="Next: Errors">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Core
+                Errors
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1565,7 +1670,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["announce.dismiss", "content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "content.footnote.tooltips", "navigation.tabs", "navigation.tabs.sticky", "navigation.instant.preview", "navigation.path", "navigation.sections", "navigation.top", "navigation.indexes", "navigation.footer", "navigation.prune", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

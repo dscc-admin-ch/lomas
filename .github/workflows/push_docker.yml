@@ -38,7 +38,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Image
-        run: devenv build outputs.lomas-oci
+        run: |
+          devenv build outputs.lomas-oci
+          devenv build outputs.lomas-oci-raw
 
       - name: Push Image
         if: github.event_name == 'push' || github.event_name == 'release'

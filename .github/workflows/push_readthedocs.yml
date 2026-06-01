@@ -26,6 +26,11 @@ jobs:
       - name: Build the doc
         run: devenv shell -- build-docs
 
+      - name: Set git credentials
+        run: |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
       - name: Publish Develop doc
         if: github.event_name == 'push' || github.event_name == 'release'
         run: devenv shell -- mike deploy develop --push

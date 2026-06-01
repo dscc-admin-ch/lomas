@@ -1,6 +1,7 @@
 # Onyxia Deployment
 
-https://datalab.sspcloud.fr is an instance of the Onyxia datalab platform provided by INSEE (:flag_fr:). It is accessible to national statistical offices as a testing ground for data science projects. If you are part of a national statistical office, you can log in to the sspcloud and start a test instance of the Lomas platform.
+https://datalab.sspcloud.fr is an instance of the Onyxia datalab platform provided by INSEE[^1]. It is accessible to national statistical offices as a testing ground for data science projects. If you are part of a national statistical office, you can log in to the sspcloud and start a test instance of the Lomas platform.
+[^1]: [Institut national de la statistique et des études économiques](https://www.insee.fr/).
 
 !!! warning
 

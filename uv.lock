@@ -1874,6 +1874,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "returns", extra = ["compatible-mypy"] },
+    { name = "scikit-learn" },
 ]
 
 [package.metadata]
@@ -1890,6 +1891,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pydantic-settings", specifier = ">=2.8" },
     { name = "returns", extras = ["compatible-mypy"], specifier = ">=0.25" },
+    { name = "scikit-learn", specifier = "<1.9" },
 ]
 
 [[package]]

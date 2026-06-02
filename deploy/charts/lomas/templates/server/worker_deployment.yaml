@@ -81,6 +81,10 @@ spec:
             value: "{{ .Values.server.runtime_args.server.time_attack.magnitude }}"
           - name: LOMAS_SERVICE_ADMIN_DATABASE_URL
             value: "/persistent-storage/admin.db"
+          - name: LOMAS_SERVICE_CLEAN_ADMIN_DATABASE
+            value: "{{ .Values.server.runtime_args.clean_admin_database }}"
+          - name: LOMAS_SERVICE_DATA_DIRECTORY
+            value: "/data"
           - name: LOMAS_SERVICE_AUTHENTICATOR__AUTHENTICATION_TYPE
             value: "{{ .Values.server.runtime_args.authenticator.authentication_type }}"
           - name: LOMAS_SERVICE_AUTHENTICATOR__OIDC_DISCOVERY_URL

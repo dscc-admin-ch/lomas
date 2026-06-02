@@ -433,3 +433,33 @@ class AdminDatabase(ABC, BaseModel):
     @abstractmethod
     def wipe(self) -> None:
         """Wipe the entire Database."""
+
+    @abstractmethod
+    def set_bootstrap(self, bootstrap: str) -> None:
+        """Sets the bootstrap value.
+
+        Also sets the bootstrap disabled value to False.
+
+        Args:
+            bootstrap (str): Bootstrap creds to set.
+        """
+
+    @abstractmethod
+    def get_bootstrap(self) -> str | None:
+        """Returns the bootstrap credential value or None if it has not been set.
+
+        Returns:
+            str | None: The bootstrap credential value or None if it has not been set.
+        """
+
+    @abstractmethod
+    def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
+        """Sets the bootstrap disabled value."""
+
+    @abstractmethod
+    def get_bootstrap_disabled(self) -> bool:
+        """Get the bootstrap disabled value.
+
+        Returns:
+            bool: The bootstrap disabled value. False by default if not set in the DB.
+        """

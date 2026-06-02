@@ -186,12 +186,14 @@ in
     coverage.module = {
       processes.worker = {
         cwd = lib.mkForce "${config.git.root}";
-        exec = lib.mkForce "mkdir -p ./logs && exec coverage run --data-file=.coverage.worker -m lomas_server.worker &> ${config.git.root}/logs/worker.log";
+        exec = lib.mkForce "mkdir -p ./logs/ && exec coverage run --data-file=.coverage.worker -m lomas_server.worker &> ./logs/worker.log";
       };
 
       # override the UT script to generate coverage
       scripts.ut = wrapScript {
-        exec = "mkdir -p ./logs && exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} &> ${config.git.root}/logs/pytest.log";
+        exec = ''
+          mkdir -p ./logs/ && exec pytest --cov-append --cov-report term-missing --cov --no-cov-on-fail --cov-config=${config.env.COVERAGE_RCFILE} &> ./logs/pytest.log
+        '';
       };
 
     };
@@ -231,6 +233,7 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
+    LOMAS_SERVICE_clean_admin_database = "false";
     LOMAS_SERVICE_bootstrap = "deadbeef";
     LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
     LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";
@@ -244,7 +247,6 @@ in
     # Lomas demo setup
     LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
     LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
-    LOMAS_ADMIN_database_url = "/tmp/admin.db";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
     LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";

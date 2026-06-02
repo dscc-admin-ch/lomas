@@ -1,4 +1,5 @@
 import os
+import posix as Status
 
 import httpx
 import pytest
@@ -18,19 +19,52 @@ from lomas_server.models.config import AdminConfig, Config
 
 @pytest.fixture
 def demo_setup():
-    lomas_demo_setup()
+    # Make sure bootstrap is enabled
+    config = Config()
+    config.database.set_bootstrap(config.bootstrap)
+
+    assert lomas_demo_setup() == Status.EX_OK
 
     yield
 
-    config = Config()
     admin_config = AdminConfig()
     dex_config = admin_config.dex_config
     assert dex_config is not None
-    del_all_dex_users(dex_config)
-    query_lomas("/collections/users", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"})
     query_lomas(
-        "/collections/datasets", httpx.delete, headers={"Authorization": f"Bearer {config.bootstrap}"}
+        "/collections/users", httpx.delete, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")
     )
+    query_lomas(
+        "/collections/datasets",
+        httpx.delete,
+        headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
+    )
+    del_all_dex_users(dex_config)
+
+
+def test_bootstrap(demo_setup: None) -> None:
+    config = Config()
+
+    # Test bootstrap creds
+    with TestClient(app, headers={"Authorization": f"Bearer {config.bootstrap}"}) as client:
+        response = client.get("/dataset/PENGUIN")
+        assert response.status_code == status.HTTP_200_OK
+
+        response = client.get("/bootstrap")
+        assert response.status_code == status.HTTP_200_OK
+
+        response = client.delete("/bootstrap")
+        assert response.status_code == status.HTTP_200_OK
+
+        response = client.delete("/bootstrap")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # Check response codes with proper admin headers once bootstrap removed
+    with TestClient(app, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")) as client:
+        response = client.delete("/bootstrap")
+        assert response.status_code == status.HTTP_410_GONE
+
+        response = client.get("/bootstrap")
+        assert response.status_code == status.HTTP_410_GONE
 
 
 def get_auth_header(user_name: str, user_password: str) -> dict[str, str]:

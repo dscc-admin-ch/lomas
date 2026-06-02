@@ -9,6 +9,7 @@ try:
     from lomas_server.administration.scripts.lomas_demo_setup import (
         lomas_demo_setup,
     )
+    from lomas_server.models.config import Config as ServerConfig
 except ImportError:
     pass
 
@@ -45,6 +46,10 @@ def run_notebook(
     if run_demo_setup:
         if importlib.util.find_spec("lomas_server") is None:
             raise ImportError("lomas_server library not found, cannot run lomas_demo_setup.")
+
+        config = ServerConfig()
+        config.database.wipe()
+        config.database.set_bootstrap(config.bootstrap)
 
         lomas_demo_setup()
 

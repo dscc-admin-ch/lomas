@@ -50,9 +50,42 @@ def call_if_dex(task: Callable[[DexAdminConfig], IOResultE]) -> IOResultE[Maybe[
     return dex_config_res
 
 
+@st.dialog("Confirm deletion")
+def confirm_delete(
+    message: str, on_confirm: Callable[[], IOResultE[httpx.Response]], success_message: str
+) -> None:
+    st.warning(message)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Yes", type="primary"):
+            match on_confirm():
+                case IOFailure(fail):
+                    st.write(f"Operation failed: {fail}")
+                case _:
+                    st.write(success_message)
+
+            st.rerun()
+
+    with col2:
+        if st.button("No"):
+            st.rerun()
+
+
 @impure_safe
 def parse_if_ok(response: httpx.Response) -> str:
     return response.raise_for_status().json()
+
+
+def recover_if_410(e: Exception, default: Any = None) -> IOResultE:
+    match e:
+        case httpx.HTTPStatusError():
+            if e.response.status_code == 410:
+                return IOSuccess(default)
+        case _:
+            pass
+    return IOFailure(e)
 
 
 def query_lomas(

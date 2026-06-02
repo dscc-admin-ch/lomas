@@ -14,6 +14,7 @@ from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
 from lomas_server.app import app
+from lomas_server.models.config import Config
 from lomas_server.tests.utils import free_pass_env
 
 test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
@@ -21,7 +22,14 @@ test_data_folder = (Path(__file__).parent / "../../tests/test_data").resolve()
 
 @pytest.fixture
 def demo_setup():
+    config = Config()
+    config.database.set_bootstrap(config.bootstrap)
+
     lomas_demo_setup()
+
+    yield
+
+    config.database.wipe()
 
 
 @pytest.fixture
@@ -61,12 +69,13 @@ def test_about_page(dashbord_dir: Path) -> None:
 
     assert "The Lomas Administration Dashboard" in at.markdown[0].value
 
-    assert "**Documentation**: [server documentation]" in at.markdown[-4].value
-    assert "**Support**: If you encounter any issues " in at.markdown[-3].value
+    assert "**Documentation**: [server documentation]" in at.markdown[-5].value
+    assert "**Support**: If you encounter any issues " in at.markdown[-4].value
 
     assert "Server Status" in at.header[3].value
-    assert "localhost:" in at.markdown[-2].value
-    assert "Dex is only supported for demo purposes" in at.markdown[-1].value
+    assert "localhost:" in at.markdown[-3].value
+    assert "Dex is only supported for demo purposes" in at.markdown[-2].value
+    assert "User is not logged" in at.markdown[-1].value
 
 
 def test_admin_page(dashbord_dir: Path, client: TestClient, demo_setup) -> None:

@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from functools import partial
 from pathlib import Path
 
@@ -11,7 +10,7 @@ from returns.io import IO, IOFailure, IOResultE, IOSuccess
 from returns.iterables import Fold
 from returns.maybe import Maybe, Some
 from returns.pipeline import flow
-from returns.pointfree import alt, bind, bind_result, map_
+from returns.pointfree import alt, bind, bind_result, lash, map_
 from returns.result import Failure, ResultE, Success
 
 from lomas_core.models.collections import User, UserCollection, UserId
@@ -20,6 +19,7 @@ from lomas_core.models.requests import LomasBudgetRequest, LomasRequestModel
 from lomas_server.admin_database.constants import TopDBKey as TK
 from lomas_server.administration.dashboard.utils import (
     call_if_dex,
+    confirm_delete,
     ensure_user_has_datasets,
     find_user,
     get_config,
@@ -28,6 +28,7 @@ from lomas_server.administration.dashboard.utils import (
     get_users,
     list_users,
     query_lomas_auth,
+    recover_if_410,
 )
 from lomas_server.administration.dex.dex_admin import (
     add_dex_user,
@@ -43,6 +44,35 @@ DELTA_LIMIT = 0.5
 DELTA_STEP = 0.00001
 
 
+st.title("Bootstrap permissions")
+
+bootstrap_exists = flow(
+    query_lomas_auth("/bootstrap", httpx.get),
+    lash(lambda e: recover_if_410(e, default=False)),
+    alt(lambda e: st.error(f"Error while fetching bootstrap state: {e}")),
+    map_(lambda e: True if e is None else False),  # Define bootstrap_exists
+)
+
+delete_bootstrap = False
+match bootstrap_exists:
+    case IOFailure():
+        pass  # case handled above
+    case IOSuccess(Success(True)):
+        with st.container(horizontal_alignment="center"):
+            delete_bootstrap = st.button(
+                "Delete bootstrap permissions", type="primary", key="del_bootstrap_button"
+            )
+    case IOSuccess(Success(False)):
+        st.success("Bootstrap permissions already removed")
+
+if delete_bootstrap:
+    confirm_delete(
+        "Delete bootstrap permissions permanently?",
+        lambda: query_lomas_auth("/bootstrap", httpx.delete),
+        "Bootstrap has been deleted",
+    )
+
+st.divider()
 st.title("Users")
 
 row_selector = flow(
@@ -196,29 +226,6 @@ def add_lomas_user(new_user: User) -> IOResultE:
 
 def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
     return query_lomas_auth(f"/collections/{collection_name}", httpx.delete)
-
-
-@st.dialog("Confirm deletion")
-def confirm_delete(
-    message: str, on_confirm: Callable[[], IOResultE[httpx.Response]], success_message: str
-) -> None:
-    st.warning(message)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Yes", type="primary"):
-            match on_confirm():
-                case IOFailure(fail):
-                    st.write(f"Operation failed: {fail}")
-                case _:
-                    st.write(success_message)
-
-            st.rerun()
-
-    with col2:
-        if st.button("No"):
-            st.rerun()
 
 
 #############################

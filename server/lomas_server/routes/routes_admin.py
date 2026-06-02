@@ -623,6 +623,19 @@ def set_dataset_metadata_admin(
     db.set_dataset_metadata(dataset_name, file.file)
 
 
+@router.get("/bootstrap")
+def get_bootstrap(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    response: Response,
+) -> None:
+    # Just returns ok if bootstrap still set.
+    if request.app.state.admin_database.get_bootstrap_disabled():
+        response.status_code = status.HTTP_410_GONE
+    else:
+        response.status_code = status.HTTP_200_OK
+
+
 @router.delete("/bootstrap")
 def delete_bootstrap(
     request: Request,
@@ -630,7 +643,7 @@ def delete_bootstrap(
     response: Response,
 ) -> None:
     # Bootstrap never set or already removed -> gone forever
-    if request.app.state.bootstrap is None:
+    if request.app.state.admin_database.get_bootstrap_disabled():
         response.status_code = status.HTTP_410_GONE
     else:
-        request.app.state.bootstrap = None
+        request.app.state.admin_database.set_bootstrap_disabled(True)

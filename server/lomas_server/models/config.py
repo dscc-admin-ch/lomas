@@ -79,7 +79,7 @@ class Server(BaseModel):
 
     time_attack: TimeAttack
     submit_limit: float
-    """A limit on the rate which users can submit answers."""
+    """A limit on the rate which users can submit queries."""
     host_ip: str
     host_port: int
     log_level: str
@@ -109,6 +109,8 @@ class Config(BaseSettings):
     bootstrap: str | None = Field(default=None)
 
     admin_database_url: Path
+
+    clean_admin_database: bool
 
     data_directory: Path = Field(default=Path("../data"))
 

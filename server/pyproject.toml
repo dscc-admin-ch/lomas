@@ -42,6 +42,7 @@ dependencies = [
   "cryptography>=44",
   "sqlglot>=27.8.0",
   "smartnoise-sql>=1.0.10",
+  "filelock>=3.29.0",
 ]
 
 [project.optional-dependencies]

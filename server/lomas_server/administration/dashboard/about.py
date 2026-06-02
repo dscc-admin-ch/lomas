@@ -4,10 +4,10 @@ from returns.converters import maybe_to_result
 from returns.io import IOFailure, IOSuccess
 from returns.maybe import Maybe
 from returns.pipeline import flow
-from returns.pointfree import bind_result, map_
+from returns.pointfree import alt, bind_result, lash, map_
 from returns.result import Failure, Success
 
-from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth
+from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth, recover_if_410
 
 
 def main() -> None:
@@ -99,6 +99,22 @@ def about() -> None:
         lambda _: st.write(
             ":red-badge[Dex is enabled.] Dex is only supported for demo purposes and is not safe for a production environment!"
         )
+    )
+
+    flow(
+        query_lomas_auth("/bootstrap", httpx.get),
+        lash(lambda e: recover_if_410(e, default=False)),
+        alt(lambda e: st.write(f":red-badge[unavailable]: {e}")),
+        map_(lambda e: True if e is None else False),  # Define bootstrap_exists
+        map_(
+            lambda bootstrap_exists: (
+                st.write(
+                    ":red-badge[Bootstrap permissions enabled!] Lomas admin api endpoints are authorized with bootstrap credentials. Disable bootstrap permissions!"
+                )
+                if bootstrap_exists
+                else st.write(":green-badge[Bootstrap permissions disabled]")
+            )
+        ),
     )
 
 

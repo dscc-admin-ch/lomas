@@ -45,7 +45,7 @@ server:
       query_userinfo: true
       authentication_type: oidc
     clean_admin_database: false
-    opendp_features: ["contrib", "floating-point", "honest-but-curious"]
+    opendp_features: ["contrib", "idealized-numerics", "honest-but-curious"]
     private_db_credentials:
       # - existing_secret: "" # Set this if there is an existing secret.
       # - credentials_name: "s3" # Or set the credentials directly.

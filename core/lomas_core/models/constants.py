@@ -21,7 +21,7 @@ DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
 OPENDP_VERSION = metadata.version("opendp")
-OpenDPFeatures = Sequence[Literal["contrib", "floating-point", "honest-but-curious"]]
+OpenDPFeatures = Sequence[Literal["contrib", "idealized-numerics", "honest-but-curious"]]
 DIFFPRIVLIB_VERSION = diffprivlib.__version__
 
 

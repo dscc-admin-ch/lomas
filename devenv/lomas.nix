@@ -159,9 +159,7 @@ in
 
     {
       processes.lomas-server = {
-        exec = ''
-          rm -f ${config.env.LOMAS_SERVICE_admin_database_url} && exec python uvicorn_serve.py
-        '';
+        exec = "exec python uvicorn_serve.py";
         cwd = "${config.git.root}/server/lomas_server";
         ready = {
           http.get = {

@@ -47,6 +47,12 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     try:
         logger.info("Loading admin database")
         lomas_app.state.admin_database = config.database
+        if config.clean_admin_database:
+            logger.warning(
+                "Admin database cleaned at startup. With this option, server restarts will wipe the database!"
+            )
+            lomas_app.state.admin_database.database.wipe()
+
         logger.info("Loading authenticator")
         lomas_app.state.authenticator = config.authenticator
 

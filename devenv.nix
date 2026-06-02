@@ -233,6 +233,7 @@ in
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
+    LOMAS_SERVICE_clean_admin_database = "false";
     LOMAS_SERVICE_bootstrap = "deadbeef";
     LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";
     LOMAS_SERVICE_authenticator__oidc_discovery_url = "${config.lomas.oidc.discoveryUrl}";

@@ -1928,7 +1928,7 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.50b0" },
     { name = "opentelemetry-instrumentation-logging", specifier = ">=0.50b0" },
     { name = "pyjwt", specifier = ">=2.10" },
-    { name = "smartnoise-sql", git = "https://github.com/LancelotMarti/smartnoise-sdk.git?subdirectory=sql" },
+    { name = "smartnoise-sql", git = "https://github.com/LancelotMarti/smartnoise-sdk?subdirectory=sql" },
     { name = "sqlglot", specifier = ">=27.8.0" },
     { name = "streamlit", extras = ["auth"], marker = "extra == 'all'", specifier = ">=1.50" },
 ]
@@ -4134,7 +4134,7 @@ wheels = [
 [[package]]
 name = "smartnoise-sql"
 version = "1.0.10"
-source = { git = "https://github.com/LancelotMarti/smartnoise-sdk.git?subdirectory=sql#391517b2b0445cff4ef62886d20f97410495c124" }
+source = { git = "https://github.com/LancelotMarti/smartnoise-sdk?subdirectory=sql#391517b2b0445cff4ef62886d20f97410495c124" }
 dependencies = [
     { name = "antlr4-python3-runtime" },
     { name = "graphviz" },

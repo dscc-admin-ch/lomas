@@ -10,7 +10,7 @@ from lomas_server.models.config import Config
 INITAL_EPSILON = 10
 INITIAL_DELTA = 0.005
 
-enable_features("floating-point")
+enable_features("idealized-numerics")
 
 
 class TestSetupRootAPIEndpoint(unittest.TestCase):

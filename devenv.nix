@@ -229,7 +229,7 @@ in
     LOMAS_SERVICE_amqp__heartbeat = config.lomas.rabbitmq.heartbeat;
     LOMAS_SERVICE_opendp_features = toPydanticSetting [
       "contrib"
-      "floating-point"
+      "idealized-numerics"
       "honest-but-curious"
     ];
     LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";

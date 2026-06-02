@@ -1,9 +1,0 @@
-dependencies:
-- name: rabbitmq
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 15.5.0
-- name: dex
-  repository: https://charts.dexidp.io
-  version: 0.24.0
-digest: sha256:692d9a637fadef443c4bb9608f116093fab35c3f3fb94a846919556bd846941a
-generated: "2026-04-08T18:19:02.211695927+02:00"

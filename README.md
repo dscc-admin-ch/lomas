@@ -8,7 +8,7 @@
 
 ![GitHub License](https://img.shields.io/github/license/dscc-admin-ch/lomas)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lomas_client)
-[![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas-docs/index.html)
+[![Documentation](https://img.shields.io/badge/docs-Read%20the%20Docs-blue)](https://dscc-admin-ch.github.io/lomas/index.html)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/dscc-admin-ch/lomas/test_and_coverage_server.yml?logo=github&label=Server%20Tests)
 [![Coverage badge](https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/dscc-admin-ch/lomas/python-coverage-comment-action-data/htmlcov/index.html)
 [![CodeQL](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml/badge.svg)](https://github.com/dscc-admin-ch/lomas/actions/workflows/check_security_codeQL.yml)

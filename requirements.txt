@@ -48,6 +48,7 @@ executing==2.2.1          # via stack-data
 fastapi==0.136.3          # via lomas-core
 fastapi-cli==0.0.24       # via fastapi
 fastjsonschema==2.21.2    # via nbformat
+filelock==3.29.0          # via lomas-server
 fonttools==4.63.0         # via matplotlib
 fqdn==1.5.1               # via jsonschema
 ghp-import==2.1.0         # via mkdocs
@@ -122,7 +123,7 @@ ml-dtypes==0.5.4          # via jax, jaxlib
 multidict==6.7.1          # via yarl
 mypy==1.20.2              # via returns, lomas (pyproject.toml)
 mypy-extensions==1.1.0    # via mypy
-narwhals==2.22.0          # via altair
+narwhals==2.22.0          # via altair, scikit-learn
 nbclient==0.10.4          # via nbconvert
 nbconvert==7.17.1         # via jupyter, jupyter-server, mkdocs-jupyter
 nbformat==5.10.4          # via jupyter-server, jupytext, nbclient, nbconvert
@@ -208,7 +209,7 @@ rich-toolkit==0.19.10     # via fastapi-cli
 rpds-py==2026.5.1         # via jsonschema, referencing
 ruff==0.15.15             # via lomas (pyproject.toml)
 s3transfer==0.18.0        # via boto3
-scikit-learn==1.8.0       # via diffprivlib-logger, opendp
+scikit-learn==1.9.0       # via diffprivlib-logger, opendp
 scipy==1.17.1             # via diffprivlib-logger, jax, jaxlib, mbi, scikit-learn
 seaborn==0.13.2           # via lomas-client
 send2trash==2.1.0         # via jupyter-server

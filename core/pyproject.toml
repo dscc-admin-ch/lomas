@@ -34,6 +34,7 @@ classifiers = [
 dependencies = [
     "returns[compatible-mypy]>=0.25",
     "diffprivlib_logger==0.0.4",
+    "scikit-learn<1.9",  # due to diffprivlib
     "fastapi[standard-no-fastapi-cloud-cli]>=0.120",
     "opendp[mbi]==0.15.0",
     "polars==1.36.1",

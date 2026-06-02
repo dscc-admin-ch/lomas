@@ -32,4 +32,12 @@ jobs:
       - name: Publish Packages
         if: github.event_name == 'release' || github.ref_type == 'tag'
         run: |
-          uv publish --check-url https://pypi.org/simple --token ${{ secrets.PYPI_TOKEN }}
+          for pkg in core client; do
+            localVer=$(awk -F' *= *' '/version/{gsub(/"/,"",$2);print $2}' "${pkg}/pyproject.toml")
+            curl -s "https://pypi.org/pypi/lomas-core/${localVer}/json" | jq -e -r '.last_serial'
+            if [ $? -eq 0 ]; then
+              echo "lomas-${pkg} v${localVer} already published"
+            else
+              uv publish --check-url https://pypi.org/simple --token ${{ secrets.PYPI_TOKEN }} "dist/lomas_${pkg}-${localVer}-*"
+            fi
+          done

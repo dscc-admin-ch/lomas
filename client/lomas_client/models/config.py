@@ -1,0 +1,52 @@
+from functools import cached_property
+from typing import Annotated
+
+import requests
+from pydantic import Field, HttpUrl, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from lomas_core.models.config import OIDCConfig, Telemetry
+
+
+class ClientConfig(BaseSettings):
+    """Config model for the HTTP client."""
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_prefix="lomas_client_",
+        env_nested_delimiter="__",
+        case_sensitive=False,
+    )
+
+    app_url: HttpUrl
+    """The base URL for the API server."""
+    dataset_name: str
+    """The name of the dataset to be accessed or manipulated."""
+    use_password_flow: bool = False
+    """If true, uses the legacy password auth flow."""
+    user_name: str | None = None
+    """User name."""
+    user_password: str | None = None
+    """User password."""
+    oidc_discovery_url: HttpUrl
+    """The oidc provier discovery Url."""
+    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
+    """Telemetry Settings."""
+
+    @computed_field
+    def oidc_use_tls(self) -> bool:
+        """Using TLS for OIDC?"""
+        return self.oidc_discovery_url.scheme == "https"
+
+    @computed_field
+    def lomas_service_use_tls(self) -> bool:
+        """Using TLS for lomas service?"""
+        return self.app_url.scheme == "https"
+
+    @cached_property
+    def oidc_config(self) -> OIDCConfig:
+        """Returns the oidc provider config."""
+        response = requests.get(str(self.oidc_discovery_url))
+        response.raise_for_status()
+
+        return OIDCConfig.model_validate(response.json())

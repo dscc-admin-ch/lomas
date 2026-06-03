@@ -1,20 +1,32 @@
-import argparse
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Dict, List
+from typing import Concatenate, TypeVar
+
+from csvw_eo.metadata_structure import TableMetadata
+from pydantic import (
+    BaseModel,
+)
+from typing_extensions import ParamSpec
 
 from lomas_core.error_handler import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
-from lomas_core.models.collections import DSInfo, Metadata
+from lomas_core.models.collections import DSInfo
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
 from lomas_core.models.responses import QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
+P = ParamSpec("P")
+T = TypeVar("T")
+DB = TypeVar("DB", bound="AdminDatabase")
 
-def user_must_exist(func: Callable) -> Callable:  # type: ignore
+
+def user_must_exist(
+    func: Callable[Concatenate[DB, str, P], T],
+) -> Callable[Concatenate[DB, str, P], T]:
     """
     Decorator function to verify that a user exists.
 
@@ -32,18 +44,19 @@ def user_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
-        user_name = args[0]
+    def wrapper_decorator(self: DB, user_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
         if not self.does_user_exist(user_name):
             raise UnauthorizedAccessException(
                 f"User {user_name} does not exist. Please, verify the client object initialisation.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, user_name, *args, **kwargs)
 
     return wrapper_decorator
 
 
-def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
+def dataset_must_exist(
+    func: Callable[Concatenate[DB, str, P], T],
+) -> Callable[Concatenate[DB, str, P], T]:
     """
     Decorator function to verify that a dataset exists.
 
@@ -61,21 +74,20 @@ def dataset_must_exist(func: Callable) -> Callable:  # type: ignore
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
-        dataset_name = args[0]
+    def wrapper_decorator(self: DB, dataset_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
         if not self.does_dataset_exist(dataset_name):
             raise InvalidQueryException(
                 f"Dataset {dataset_name} does not exist. "
                 + "Please, verify the client object initialisation.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, dataset_name, *args, **kwargs)
 
     return wrapper_decorator
 
 
 def user_must_have_access_to_dataset(
-    func: Callable,
-) -> Callable:  # type: ignore
+    func: Callable[Concatenate[DB, str, str, P], T],
+) -> Callable[Concatenate[DB, str, str, P], T]:
     """
     Decorator function to enforce a user has access to a dataset.
 
@@ -95,30 +107,20 @@ def user_must_have_access_to_dataset(
     """
 
     @wraps(func)
-    def wrapper_decorator(self, *args: argparse.Namespace, **kwargs: Dict[str, str]) -> None:
-        user_name = args[0]
-        dataset_name = args[1]
+    def wrapper_decorator(
+        self: DB, user_name: str, dataset_name: str, *args: P.args, **kwargs: P.kwargs
+    ) -> T:
         if not self.has_user_access_to_dataset(user_name, dataset_name):
             raise UnauthorizedAccessException(
                 f"{user_name} does not have access to {dataset_name}.",
             )
-        return func(self, *args, **kwargs)
+        return func(self, user_name, dataset_name, *args, **kwargs)
 
     return wrapper_decorator
 
 
-class AdminDatabase(ABC):
+class AdminDatabase(ABC, BaseModel):
     """Overall database management for server state."""
-
-    @abstractmethod
-    def __init__(self, **connection_parameters: Dict[str, str]) -> None:
-        """
-        Connects to the DB.
-
-        Args:
-            **connection_parameters (Dict[str, str]): parameters required
-                to access the db
-        """
 
     @abstractmethod
     def does_user_exist(self, user_name: str) -> bool:
@@ -146,34 +148,46 @@ class AdminDatabase(ABC):
 
     @abstractmethod
     @dataset_must_exist
-    @user_must_have_access_to_dataset
-    def get_dataset_metadata(self, dataset_name: str) -> Metadata:
+    def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         """
         Returns the metadata dictionnary of the dataset.
 
-        Wrapped by :py:func:`dataset_must_exist`.
+        Wrapped by [dataset_must_exist][lomas_server.admin_database.admin_database.dataset_must_exist].
 
         Args:
             dataset_name (str): name of the dataset to get the metadata
 
         Returns:
-            Metadata: The metadata object.
+            TableMetadata: The metadata object.
         """
 
     @abstractmethod
     @user_must_exist
-    def set_may_user_query(self, user_name: str, may_query: bool) -> bool:
+    def is_user_admin(self, user_name: str) -> bool:
+        """
+        Returns true if the user is an admin.
+
+        Args:
+            user_name (str): name of the user
+
+        Returns:
+            bool: True if the user is a lomas admin.
+        """
+
+    @user_must_exist
+    def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server..
 
         (Set False before querying and True after updating budget)
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
             may_query (bool): flag give or remove access to user
         """
+        _ = self.get_and_set_may_user_query(user_name, may_query)
 
     @abstractmethod
     @user_must_exist
@@ -183,7 +197,7 @@ class AdminDatabase(ABC):
 
         (Set False before querying and True after updating budget)
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
@@ -199,7 +213,7 @@ class AdminDatabase(ABC):
         """
         Checks if a user may access a particular dataset.
 
-        Wrapped by :py:func:`user_must_exist`.
+        Wrapped by [user_must_exist][lomas_server.admin_database.admin_database.user_must_exist].
 
         Args:
             user_name (str): name of the user
@@ -224,11 +238,11 @@ class AdminDatabase(ABC):
         """
 
     @user_must_have_access_to_dataset
-    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_total_spent_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the total spent epsilon and delta spent by user on dataset.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -244,11 +258,11 @@ class AdminDatabase(ABC):
         ]
 
     @user_must_have_access_to_dataset
-    def get_initial_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_initial_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the initial epsilon and delta budget.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -264,11 +278,11 @@ class AdminDatabase(ABC):
         ]
 
     @user_must_have_access_to_dataset
-    def get_remaining_budget(self, user_name: str, dataset_name: str) -> List[float]:
+    def get_remaining_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the remaining epsilon and delta budget (initial - total spent).
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -333,7 +347,7 @@ class AdminDatabase(ABC):
         """
         Update current epsilon and delta delta spent by user.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -350,7 +364,7 @@ class AdminDatabase(ABC):
         """
         Get dataset access info based on dataset_name.
 
-        Wrapped by :py:func:`dataset_must_exist`.
+        Wrapped by [dataset_must_exist][lomas_server.admin_database.admin_database.dataset_must_exist].
 
         Args:
             dataset_name (str): Name of the dataset.
@@ -365,11 +379,11 @@ class AdminDatabase(ABC):
         self,
         user_name: str,
         dataset_name: str,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Retrieves and return the queries already done by a user.
 
-        Wrapped by :py:func:`user_must_have_access_to_dataset`.
+        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
 
         Args:
             user_name (str): name of the user
@@ -397,7 +411,7 @@ class AdminDatabase(ABC):
         to_archive = {
             "user_name": user_name,
             "dataset_name": query.dataset_name,
-            "dp_librairy": model_input_to_lib(query),
+            "dp_library": model_input_to_lib(query),
             "client_input": query.model_dump(),
             "response": response.model_dump(),
             "timestamp": time.time(),
@@ -414,4 +428,38 @@ class AdminDatabase(ABC):
             user_name (str): name of the user
             query (LomasRequestModel): Request object received from client
             response (QueryResponse): Response object sent to client
+        """
+
+    @abstractmethod
+    def wipe(self) -> None:
+        """Wipe the entire Database."""
+
+    @abstractmethod
+    def set_bootstrap(self, bootstrap: str) -> None:
+        """Sets the bootstrap value.
+
+        Also sets the bootstrap disabled value to False.
+
+        Args:
+            bootstrap (str): Bootstrap creds to set.
+        """
+
+    @abstractmethod
+    def get_bootstrap(self) -> str | None:
+        """Returns the bootstrap credential value or None if it has not been set.
+
+        Returns:
+            str | None: The bootstrap credential value or None if it has not been set.
+        """
+
+    @abstractmethod
+    def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
+        """Sets the bootstrap disabled value."""
+
+    @abstractmethod
+    def get_bootstrap_disabled(self) -> bool:
+        """Get the bootstrap disabled value.
+
+        Returns:
+            bool: The bootstrap disabled value. False by default if not set in the DB.
         """

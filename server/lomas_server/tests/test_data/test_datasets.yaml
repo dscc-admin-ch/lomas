@@ -5,25 +5,25 @@ datasets:
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "metadata/penguin_metadata.json"
 - dataset_name: "IRIS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/penguin_metadata.yaml"
+    path: "metadata/penguin_metadata.json"
 - dataset_name: "BIRTHDAYS"
   dataset_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/birthdays.csv"
+    path: "birthdays.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/birthday_metadata.yaml"
+    path: "metadata/birthday_metadata.json"
 - dataset_name: "PUMS"
   dataset_access:
     database_type: "PATH_DB"
     path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
   metadata_access:
     database_type: "PATH_DB"
-    path: "tests/test_data/metadata/pums_metadata.yaml"
+    path: "metadata/pums_metadata.json"

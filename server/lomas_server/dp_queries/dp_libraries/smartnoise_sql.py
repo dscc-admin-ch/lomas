@@ -1,22 +1,17 @@
-from typing import Optional
-
 import pandas as pd
+from aio_pika.patterns.rpc import Proxy
+from csvw_eo.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
 from snsql import Mechanism, Privacy, Stat, from_connection
 from snsql.reader.base import Reader
+from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-)
-from lomas_core.models.collections import Metadata
+from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
 )
 from lomas_core.models.responses import SmartnoiseSQLQueryResult
-from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.constants import SSQL_MAX_ITERATION, SSQL_STATS
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
@@ -30,10 +25,11 @@ class SmartnoiseSQLQuerier(
     def __init__(
         self,
         data_connector: DataConnector,
-        admin_database: AdminDatabase,
+        admin_database: Proxy,
     ) -> None:
         super().__init__(data_connector, admin_database)
-        self.reader: Optional[Reader] = None
+        self.reader: Reader | None = None
+        self.query_columns: list[str] = []
 
     def cost(self, query_json: SmartnoiseSQLRequestModel) -> tuple[float, float]:
         """Estimate cost of query.
@@ -52,22 +48,33 @@ class SmartnoiseSQLQuerier(
         privacy = Privacy(epsilon=query_json.epsilon, delta=query_json.delta)
         privacy = set_mechanisms(privacy, query_json.mechanisms)
 
-        metadata = self.data_connector.get_metadata()
-        smartnoise_metadata = convert_to_smartnoise_metadata(metadata)
+        df = self.data_connector.get_pandas_df()
 
+        # Extract query columns, fallback to the first column if none are found
+        self.query_columns = get_query_columns(query_json.query_str) or [df.columns[0]]
+        missing = [col for col in self.query_columns if col not in df.columns]
+        if missing:
+            raise InvalidQueryException(f"Query requested columns not found in DataFrame: {missing}")
+
+        # Subset DataFrame to only the relevant columns
+        df = df[self.query_columns]
+
+        # Prepare metadata in smartnoise-sql format
+        metadata = self.data_connector.metadata
+        metadata.columns = [col for col in metadata.columns if col.name in self.query_columns]
+
+        smartnoise_metadata = csvw_to_smartnoise_sql(metadata.to_dict())
+        # Only keep self.query_columns
         self.reader = from_connection(
-            self.data_connector.get_pandas_df(),
+            df,
             privacy=privacy,
             metadata=smartnoise_metadata,
         )
-
         try:
             epsilon, delta = self.reader.get_privacy_cost(query_json.query_str)
+
         except Exception as e:
-            raise ExternalLibraryException(
-                DPLibraries.SMARTNOISE_SQL,
-                "Error obtaining cost: " + str(e),
-            ) from e
+            raise ExternalLibraryException(DPLibraries.SMARTNOISE_SQL, f"Error obtaining cost: {e}") from e
 
         return epsilon, delta
 
@@ -76,7 +83,6 @@ class SmartnoiseSQLQuerier(
 
         Args:
             query_json (SmartnoiseSQLQueryModel): The request model object.
-
         Returns:
             dict: The dictionary encoding of the result pd.DataFrame.
         """
@@ -103,7 +109,6 @@ class SmartnoiseSQLQuerier(
                 The dictionary encoding of the resulting pd.DataFrame.
         """
         epsilon, delta = query_json.epsilon, query_json.delta
-
         if self.reader is None:
             raise InternalServerException("Smartnoise SQL `query` method called before `cost` method")
 
@@ -115,11 +120,12 @@ class SmartnoiseSQLQuerier(
                 "Error executing query:" + str(e),
             ) from e
         if not query_json.postprocess:
-            result = list(result)[0]
+            result = next(iter(result))
             cols = [f"res_{i}" for i in range(len(result))]
             result = [result]
         else:
             cols = result.pop(0)
+
         if result == []:
             raise ExternalLibraryException(
                 DPLibraries.SMARTNOISE_SQL,
@@ -130,16 +136,16 @@ class SmartnoiseSQLQuerier(
 
         df_res = pd.DataFrame(result, columns=cols)
 
-        if df_res.isnull().values.any():
-            # Try again up to SSQL_MAX_ITERATION
+        # Check for NaNs in any of the new columns
+        new_columns = [col for col in df_res.columns if col not in self.query_columns]
+        if df_res[new_columns].isna().any().any():
             if nb_iter < SSQL_MAX_ITERATION:
                 nb_iter += 1
                 return self.query_with_iter(query_json, nb_iter)
 
             raise InvalidQueryException(
-                f"SQL Reader generated NAN results. "
-                f"Epsilon: {epsilon} and Delta: {delta} are too small "
-                "to generate output.",
+                f"SQL Reader generated NaN results. "
+                f"Epsilon: {epsilon}, Delta: {delta} — too small to generate valid output."
             )
         return SmartnoiseSQLQueryResult(df=df_res)
 
@@ -158,20 +164,29 @@ def set_mechanisms(privacy: Privacy, mechanisms: dict[str, str]) -> Privacy:
         Privacy: The updated Privacy object.
     """
     for stat in SSQL_STATS:
-        if stat in mechanisms.keys():
+        if stat in mechanisms:
             privacy.mechanisms.map[Stat[stat]] = Mechanism[mechanisms[stat]]
     return privacy
 
 
-def convert_to_smartnoise_metadata(metadata: Metadata) -> dict:
-    """Convert Lomas metadata to smartnoise metadata format (for SQL).
+def get_query_columns(query: str) -> list[str]:
+    """
+    Extract all column names used in a SQL query.
+
+    Traverses the query AST (Abstract Syntax Tree) to find every
+    column reference across SELECT, WHERE, GROUP BY, ORDER BY, etc.
+    Assumes only one table is present in the query.
 
     Args:
-        metadata (Metadata): Dataset metadata from admin database
+        query (str): SQL query string.
+
     Returns:
-        dict: metadata of the dataset in smartnoise-sql format
+        list[str]: List of unique column names used in the query.
     """
-    metadata_dict = metadata.model_dump()
-    metadata_dict.update(metadata_dict["columns"])
-    del metadata_dict["columns"]
-    return {"": {"": {"df": metadata_dict}}}
+    # Parse SQL into an expression tree
+    expression = parse_one(query)
+
+    # Extract all column references from anywhere in the query
+    columns = [col.name for col in expression.find_all(exp.Column)]
+
+    return list(set(columns))

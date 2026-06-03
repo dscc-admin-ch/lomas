@@ -1,33 +1,43 @@
 name: Publish to PyPI.org
+
 on:
+  pull_request:
+    branches: [develop, master]
   release:
     types: [published]
+  push:
+    tags:
+      - v*
 
 jobs:
   pypi:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up Python 3.12
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: 3.12
-      - name: Install dependencies
+          python-version: 3.13
+
+      - name: Build Packages
         run: |
-          uv pip install twine
-      - name: Publish core package
+          uv build --wheel core
+          uv build --wheel client
+
+      - name: Sanity Check
         run: |
-          cd core
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-      - name: Publish client package
+          uv run --isolated --no-project --with dist/lomas_core-* python -c 'import lomas_core'
+          uv run --isolated --no-project --with dist/lomas_core-* --with dist/lomas_client-* python -c 'import lomas_client'
+
+      - name: Publish Packages
+        if: github.event_name == 'release' || github.ref_type == 'tag'
         run: |
-          cd client
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
-      - name: Publish server package
-        run: |
-          cd server
-          uv build --sdist
-          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          for pkg in core client; do
+            localVer=$(awk -F' *= *' '/version/{gsub(/"/,"",$2);print $2}' "${pkg}/pyproject.toml")
+            curl -s "https://pypi.org/pypi/lomas-core/${localVer}/json" | jq -e -r '.last_serial'
+            if [ $? -eq 0 ]; then
+              echo "lomas-${pkg} v${localVer} already published"
+            else
+              uv publish --check-url https://pypi.org/simple --token ${{ secrets.PYPI_TOKEN }} "dist/lomas_${pkg}-${localVer}-*"
+            fi
+          done

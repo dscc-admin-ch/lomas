@@ -28,27 +28,33 @@ FAST_API_REQUESTS_IN_PROGRESS_GAUGE = meter.create_up_down_counter(
     description="Gauge of requests currently being processed",
 )
 
-# MongoDB Metrics
-MONGO_QUERY_COUNTER = meter.create_counter(
-    name="mongodb_query_count",
-    description="Number of MongoDB queries executed",
+# Admin db query
+ADMINDB_QUERY_COUNTER = meter.create_counter(
+    name="admindb_query_count",
+    description="Number of admindb queries executed",
     unit="queries",
 )
 
-MONGO_INSERT_COUNTER = meter.create_counter(
-    name="mongodb_insert_count",
-    description="Number of MongoDB insert operations executed",
+ADMINDB_INSERT_COUNTER = meter.create_counter(
+    name="admindb_insert_count",
+    description="Number of AdminDB insert operations executed",
     unit="inserts",
 )
 
-MONGO_UPDATE_COUNTER = meter.create_counter(
-    name="mongodb_update_count",
-    description="Number of MongoDB update operations executed",
+ADMINDB_UPDATE_COUNTER = meter.create_counter(
+    name="admindb_update_count",
+    description="Number of AdminDB update operations executed",
     unit="updates",
 )
 
-MONGO_ERROR_COUNTER = meter.create_counter(
-    name="mongodb_error_count",
-    description="Number of MongoDB errors encountered",
+ADMINDB_ERROR_COUNTER = meter.create_counter(
+    name="admindb_error_count",
+    description="Number of AdminDB errors encountered",
     unit="errors",
+)
+
+ADMINDB_DELETE_COUNTER = meter.create_counter(
+    name="admindb_delete_count",
+    description="Number of AdminDB deletes encountered",
+    unit="deletes",
 )

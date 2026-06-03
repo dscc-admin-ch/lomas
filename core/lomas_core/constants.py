@@ -1,10 +1,9 @@
-import os
 from enum import StrEnum
-
-OTLP_COLLECTOR_ENDPOINT = os.getenv("OTEL_COLLECTOR_ENDPOINT", "http://localhost:4317")
 
 # Server error messages
 INTERNAL_SERVER_ERROR = "Internal server error. Please contact the administrator of this service."
+
+TRACE_LOG_LEVEL = 5
 
 
 class DPLibraries(StrEnum):
@@ -13,7 +12,11 @@ class DPLibraries(StrEnum):
     SMARTNOISE_SQL = "smartnoise_sql"
     SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
+    OPENDP_POLARS = "opendp_polars"
     DIFFPRIVLIB = "diffprivlib"
+
+
+# OpenDP
 
 
 # Smartnoise synth
@@ -33,3 +36,16 @@ class SSynthGanSynthesizer(StrEnum):
     PATE_CTGAN = "patectgan"
     PATE_GAN = "pategan"
     DP_GAN = "dpgan"
+
+
+# Security
+# ------------------------------------------------
+
+
+class Scopes(StrEnum):
+    """List of security scopes for the server endpoints."""
+
+    ADMIN = "admin"
+
+
+OIDC_LOMAS_CLIENT__CLIENT_ID = "lomas_client"

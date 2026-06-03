@@ -1,23 +1,28 @@
-from typing import Annotated, Dict, List, Literal, Union
+from typing import Annotated, Any, Literal
+from uuid import UUID, uuid4
 
 import pandas as pd
+import polars as pl
 from diffprivlib.validation import DiffprivlibMixin
 from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
+    Field,
     PlainSerializer,
     PlainValidator,
     ValidationInfo,
     field_validator,
 )
-from snsynth import Synthesizer
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.exceptions import LomasServerExceptionType
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
     deserialize_model,
+    polars_df_from_str,
+    polars_df_to_str,
     serialize_model,
 )
 
@@ -58,11 +63,10 @@ class DummyDsResponse(ResponseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    dtypes: Dict[str, str]
+    dtypes: Any
     """The dummy_df column data types."""
-    datetime_columns: List[str]
-    """The list of columns with datetime type."""
-    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict)]
+    dummy_df: Annotated[pd.DataFrame, PlainSerializer(dataframe_to_dict), PlainValidator(dataframe_from_dict)]
+
     """The dummy dataframe."""
 
     @field_validator("dummy_df", mode="before")
@@ -82,11 +86,8 @@ class DummyDsResponse(ResponseModel):
             return v
 
         dtypes = info.data["dtypes"]
-        datetime_columns = info.data["datetime_columns"]
         dummy_df = dataframe_from_dict(v)
         dummy_df = dummy_df.astype(dtypes)
-        for col in datetime_columns:
-            dummy_df[col] = pd.to_datetime(dummy_df[col])
         return dummy_df
 
 
@@ -111,7 +112,7 @@ class DiffPrivLibQueryResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
+    type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
     """Result type description."""
     score: float
     """The trained model score."""
@@ -129,7 +130,7 @@ class SmartnoiseSQLQueryResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
+    type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
     """Result type description."""
     df: Annotated[
         pd.DataFrame,
@@ -145,10 +146,10 @@ class SmartnoiseSynthModel(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
     """Result type description."""
-    model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
+    type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
     """Synthetic data generator model."""
+    # model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
 
 
 class SmartnoiseSynthSamples(BaseModel):
@@ -156,7 +157,7 @@ class SmartnoiseSynthSamples(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    res_type: Literal["sn_synth_samples"] = "sn_synth_samples"
+    type: Literal["sn_synth_samples"] = "sn_synth_samples"
     """Result type description."""
     df_samples: Annotated[
         pd.DataFrame,
@@ -170,19 +171,38 @@ class SmartnoiseSynthSamples(BaseModel):
 class OpenDPQueryResult(BaseModel):
     """Type for opendp result."""
 
-    res_type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
+    type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
     """Result type description."""
-    value: Union[int, float, List[Union[int, float]]]
+    value: int | float | list[int | float]
+    """The result value of the query."""
+
+
+class OpenDPPolarsQueryResult(BaseModel):
+    """Type for opendp Polars result."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
+    """Result type description."""
+    # order of PlainValidator and PlainSerializer matters in that case:
+    # https://github.com/pydantic/pydantic/issues/8512
+    value: Annotated[
+        pl.DataFrame,
+        PlainValidator(polars_df_from_str),
+        PlainSerializer(polars_df_to_str),
+    ]
     """The result value of the query."""
 
 
 # Response object
-QueryResultTypeAlias = Union[
-    DiffPrivLibQueryResult,
-    SmartnoiseSQLQueryResult,
-    SmartnoiseSynthModel,
-    SmartnoiseSynthSamples,
-    OpenDPQueryResult,
+QueryResultT = Annotated[
+    DiffPrivLibQueryResult
+    | SmartnoiseSQLQueryResult
+    | SmartnoiseSynthModel
+    | SmartnoiseSynthSamples
+    | OpenDPQueryResult
+    | OpenDPPolarsQueryResult,
+    Discriminator("type"),
 ]
 
 
@@ -191,8 +211,22 @@ class QueryResponse(CostResponse):
 
     requested_by: str
     """The user that triggered the query."""
-    result: Annotated[
-        QueryResultTypeAlias,
-        Discriminator("res_type"),
-    ]
+    result: QueryResultT
     """The query result object."""
+
+
+class Job(ResponseModel):
+    """Scheduled Job Response."""
+
+    uid: UUID = Field(default_factory=uuid4)
+    """Job unique identifier."""
+    requested_by: str | None = None
+    """Name of the user that requested this job."""
+    status: Literal["in_progress", "failed", "complete"] = "in_progress"
+    """Job status."""
+    result: QueryResponse | CostResponse | None = None
+    """Job result, if available."""
+    error: LomasServerExceptionType | None = None
+    """Job error, if any."""
+    status_code: int = 200
+    """Status code for job response."""

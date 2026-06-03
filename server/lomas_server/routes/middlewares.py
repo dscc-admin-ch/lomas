@@ -1,7 +1,5 @@
 import json
-import logging
 import time
-from typing import Tuple
 
 from fastapi import Request
 from opentelemetry.trace import format_trace_id, get_tracer
@@ -10,8 +8,8 @@ from starlette.responses import Response
 from starlette.routing import Match
 from starlette.types import ASGIApp
 
-from lomas_core.error_handler import KNOWN_EXCEPTIONS
-from lomas_server.constants import SERVER_SERVICE_NAME
+from lomas_core.constants import TRACE_LOG_LEVEL
+from lomas_core.models.constants import get_lomas_logger
 from lomas_server.utils.metrics import (
     FAST_API_EXCEPTION_COUNTER,
     FAST_API_REQUESTS_COUNTER,
@@ -20,6 +18,8 @@ from lomas_server.utils.metrics import (
     FAST_API_RESPONSES_COUNTER,
 )
 
+logger = get_lomas_logger(__name__)
+
 
 class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
     """
@@ -27,11 +27,11 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
 
     This middleware logs the incoming requests, including the user name
     the route being accessed, and any query parameters.
-    Additionally, it creates a trace span to trace the user’s request and
+    Additionally, it creates a trace span to trace the user's request and
     adds attributes to the span related to the user name and query parameters.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """
         Handles the request and performs logging and tracing.
 
@@ -61,17 +61,40 @@ class LoggingAndTracingMiddleware(BaseHTTPMiddleware):
 
         tracer = get_tracer(__name__)
         with tracer.start_as_current_span("user_request_span") as span:
-            span.set_attribute("user_name", user_name)
             for param, value in query_params.items():
                 span.set_attribute(f"query_param.{param}", value)
 
-            logging.info(
-                f"User '{user_name}' is making a request to route '{route}' "
-                + f"with query params: {query_params}. "
-                + f"trace_id={format_trace_id(span.get_span_context().trace_id)}"
+            logger.log(
+                TRACE_LOG_LEVEL,
+                f"User is making a request to route '{route}' "
+                f"with query params: {query_params}. "
+                f"trace_id={format_trace_id(span.get_span_context().trace_id)}",
             )
 
             response = await call_next(request)
+
+            if response.status_code < 400:  # Run only for successful requests.
+                if hasattr(request.state, "user_name"):  # Not all routes extract the user name.
+                    user_name = request.state.user_name
+                    logger.log(
+                        TRACE_LOG_LEVEL,
+                        f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
+                        f" for user '{user_name}' completed.",
+                    )
+                    span.set_attribute("user_name", request.state.user_name)
+
+                logger.log(
+                    TRACE_LOG_LEVEL,
+                    f"Request with trace_id={format_trace_id(span.get_span_context().trace_id)}"
+                    " completed successfully",
+                )
+
+            else:
+                logger.log(
+                    TRACE_LOG_LEVEL,
+                    f"Failed request with trace_id={format_trace_id(span.get_span_context().trace_id)}."
+                    f"Status code: {response.status_code}.",
+                )
 
         return response
 
@@ -91,7 +114,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
     to a metrics collector (e.g., Prometheus or any other OTLP-compatible collector).
     """
 
-    def __init__(self, app: ASGIApp, app_name: str = SERVER_SERVICE_NAME) -> None:
+    def __init__(self, app: ASGIApp, app_name: str) -> None:
         """
         Initializes the MetricMiddleware.
 
@@ -107,27 +130,24 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         Processes HTTP request, records metrics and returns the HTTP response.
 
         This method performs the following steps:
-        1. Tracks the current request in progress using the
-            `fastapi_requests_in_progress` gauge.
-        2. Records the request count with the `fastapi_requests_total` counter.
-        3. Records the time taken to process the request using the
-            `fastapi_requests_duration_seconds` histogram.
-        4. Handles exceptions, if raised, and records the exception details using the
-            `fastapi_exceptions_total` counter.
-        5. Records the response status code with the `fastapi_responses_total` counter.
+        1. Tracks the current request in progress using `fastapi_requests_in_progress` gauge.
+        2. Records the request count with `fastapi_requests_total` counter.
+        3. Records the time taken to process the request using
+        `fastapi_requests_duration_seconds` histogram.
+        4. Handles exceptions, if raised, and records the exception details using
+        `fastapi_exceptions_total` counter.
+        5. Records the response status code with `fastapi_responses_total` counter.
         6. Decrements the in-progress request gauge after processing.
 
         Args:
             request (Request): The incoming HTTP request to be processed.
-            call_next (RequestResponseEndpoint): The endpoint function that processes
-                                                 the request and returns a response.
+            call_next (RequestResponseEndpoint): Endpoint that processes the request and returns a response.
 
         Returns:
             Response: The HTTP response after processing the request.
 
         Raises:
-            BaseException: If an exception occurs during request processing, it is
-                           raised after logging it.
+            BaseException: If an exception occurs during request processing, it is raised after logging it.
         """
         method = request.method
         path, is_handled_path = self.get_path(request)
@@ -143,9 +163,12 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
 
         before_time = time.perf_counter()
 
+        # Initialize status_code
+        status_code = None
+
         try:
             response = await call_next(request)
-        except KNOWN_EXCEPTIONS as e:
+        except Exception as e:
             FAST_API_EXCEPTION_COUNTER.add(
                 1,
                 {
@@ -183,7 +206,7 @@ class FastAPIMetricMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def get_path(request: Request) -> Tuple[str, bool]:
+    def get_path(request: Request) -> tuple[str, bool]:
         """
         Attempts to match the request' route to a defined route.
 

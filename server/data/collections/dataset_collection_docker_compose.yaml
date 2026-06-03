@@ -1,0 +1,50 @@
+datasets:
+- dataset_name: "IRIS"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/iris_metadata.json"
+- dataset_name: "PENGUIN"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/penguin_metadata.json"
+- dataset_name: "PUMS"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "https://raw.githubusercontent.com/opendp/smartnoise-sdk/main/datasets/PUMS.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/pums_metadata.json"
+- dataset_name: "TITANIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "datasets/titanic.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/titanic_metadata.json"
+- dataset_name: "FSO_INCOME_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "datasets/income_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/fso_income_synthetic_metadata.json"
+- dataset_name: "COVID_SYNTHETIC"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "datasets/covid_synthetic_data.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/covid_synthetic_metadata.json"
+- dataset_name: "BIRTHDAYS"
+  dataset_access:
+    database_type: "PATH_DB"
+    path: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/wip_306_snsynth-datetime/server/data/datasets/birthdays.csv"
+  metadata_access:
+    database_type: "PATH_DB"
+    path: "collections/metadata/birthday_metadata.json"

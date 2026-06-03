@@ -1,0 +1,51 @@
+{{- if .Values.loki.create -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.loki.fullname" . }}
+  labels:
+    {{- include "lomas.loki.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.loki.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.loki.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.loki.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.loki.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+      containers:
+      - name: loki-container
+        image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag }}"
+        args:
+          - "-config.file=/etc/loki/loki-config.yaml"
+        ports:
+          - containerPort: {{ .Values.loki.service.port }}
+        resources:
+          {{- toYaml .Values.loki.resources | nindent 10 }}
+        volumeMounts:
+          - name: loki-config
+            readOnly: True
+            mountPath: /etc/loki
+          - name: data
+            mountPath: {{ .Values.loki.config.common.path_prefix }}
+      volumes:
+      {{- $fullname := include "lomas.loki.fullname" . }}
+      - name: loki-config
+        projected:
+          sources:
+            - configMap:
+                name: {{ printf "%s-loki-config" $fullname }}
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ $fullname }}
+{{- end }}

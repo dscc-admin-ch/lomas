@@ -1,0 +1,26 @@
+{{- if .Values.dashboard.enabled -}}
+{{- if .Values.dashboard.route.enabled -}}
+{{- $fullName := include "lomas.dashboard.fullname" . -}}
+{{- $svcPort := .Values.dashboard.service.portName -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "lomas.dashboard.labels" . | nindent 4 }}
+  {{- with .Values.dashboard.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.dashboard.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: {{ $svcPort }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.dashboard.route.tls | nindent 4 }}
+{{- end }}
+{{- end }}

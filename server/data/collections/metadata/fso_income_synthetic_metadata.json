@@ -1,0 +1,113 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    "csvw-eo-context.jsonld"
+  ],
+  "@type": "Table",
+  "maxContributions": 1,
+  "maxLength": 2032543,
+  "publicLength": 2032543,
+  "tableSchema": {
+    "columns": [
+      {
+        "@type": "Column",
+        "name": "region",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 474690,
+        "maxNumPartitions": 7,
+        "minimum": 1,
+        "maximum": 7,
+        "invariantPublicKeys": true,
+        "keyValues": [1, 2, 3, 4, 5, 6, 7]
+      },
+      {
+        "@type": "Column",
+        "name": "eco_branch",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 34330,
+        "maxNumPartitions": 72,
+        "minimum": 8,
+        "maximum": 96,
+        "invariantPublicKeys": true,
+        "keyValues": [8, 10, 11, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27,
+                 28, 29, 30, 31, 32, 33, 35, 37, 38, 41, 42, 43, 45, 46, 47, 49, 50,
+                 52, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64, 65, 66, 68, 69, 70, 71,
+                 72, 73, 74, 75, 77, 78, 79, 80, 81, 82, 85, 86, 87, 88, 90, 91, 92,
+                 93, 94, 95, 96]
+      },
+      {
+        "@type": "Column",
+        "name": "profession",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 78857,
+        "maxNumPartitions": 28,
+        "minimum": 10,
+        "maximum": 94,
+        "invariantPublicKeys": true,
+        "keyValues": [10, 21, 22, 23, 24, 25, 31, 32, 33, 34, 41, 42, 43, 51, 52, 53, 61,
+                 62, 71, 72, 73, 74, 81, 83, 91, 92, 93, 94]
+      },
+      {
+        "@type": "Column",
+        "name": "education",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 268697,
+        "maxNumPartitions": 8,
+        "minimum": 1,
+        "maximum": 8,
+        "invariantPublicKeys": true,
+        "keyValues": [1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      {
+        "@type": "Column",
+        "name": "age",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "minimum": 0,
+        "maximum": 120,
+        "maxLength": 53952
+      },
+      {
+        "@type": "Column",
+        "name": "sex",
+        "datatype": "int",
+        "nullableProportion": 0.0,
+        "maxLength": 1397824,
+        "maxNumPartitions": 2,
+        "invariantPublicKeys": true,
+        "minimum": 0,
+        "maximum": 1,
+        "keyValues": [0, 1]
+      },
+      {
+        "@type": "Column",
+        "name": "income",
+        "datatype": "float",
+        "nullableProportion": 0.0,
+        "minimum": 1000,
+        "maximum": 100000
+      }
+    ]
+  },
+  "additionalInformation": [
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["region", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["education", "sex"],
+      "invariantPublicKeys": true
+    },
+    {
+      "@type": "ColumnGroup",
+      "columnsInGroup": ["profession", "sex"],
+      "invariantPublicKeys": true
+    }
+  ]
+}

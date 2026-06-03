@@ -1,6 +1,6 @@
-from typing import List, Optional, Union
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
@@ -8,14 +8,14 @@ from lomas_core.constants import (
     SSynthMarginalSynthesizer,
 )
 from lomas_core.error_handler import InternalServerException
-from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES
+from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType
 from lomas_core.models.requests_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
     example_dummy_opendp,
     example_dummy_smartnoise_sql,
     example_dummy_smartnoise_synth_query,
-    example_opendp,
+    example_opendp_polars,
     example_smartnoise_sql,
     example_smartnoise_sql_cost,
     example_smartnoise_synth_cost,
@@ -38,13 +38,43 @@ class LomasRequestModel(BaseModel):
     """The name of the dataset the request is aimed at."""
 
 
+class AddDatasetModel(LomasRequestModel):
+    """Model input to add a private dataset with metadata."""
+
+    database_type: PrivateDatabaseType
+    """Type of Private Database for the private data."""
+    metadata_database_type: PrivateDatabaseType
+    """Type of Private Database for the private data."""
+    dataset_path: str
+    """Path to the dataset."""
+    metadata_path: str
+    """Path to the metadata."""
+
+
 class GetDummyDataset(LomasRequestModel):
     """Model input to get a dummy dataset."""
 
-    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_nb_rows: Annotated[int, Field(gt=0)]
     """The number of dummy rows to generate."""
     dummy_seed: int
     """The seed for the random generation of the dummy dataset."""
+
+
+class GetDummyContext(GetDummyDataset):
+    """Model input to get a dummy dataset."""
+
+    epsilon: Annotated[float | None, Field(ge=0.0)]
+    """The epsilon parameter used for pure ε-DP or approximate-DP."""
+    delta: Annotated[float | None, Field(ge=0.0)]
+    """The delta parameter."""
+    rho: Annotated[float | None, Field(ge=0.0)]
+    """
+    Privacy loss paramater for zCDP (or approximate-zCDP).
+
+    Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
+    """
+    approx_zcdp: bool
+    """If False, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
 
 class QueryModel(LomasRequestModel):
@@ -59,10 +89,17 @@ class QueryModel(LomasRequestModel):
     """
 
 
+class LomasBudgetRequest(LomasRequestModel):
+    epsilon: Annotated[float, Field(gt=0)]
+    """Privacy parameter (e.g., 0.1)."""
+    delta: Annotated[float, Field(ge=0)]
+    """Privacy parameter (e.g., 1e-5)."""
+
+
 class DummyQueryModel(QueryModel):
     """Input model for a query on a dummy dataset."""
 
-    dummy_nb_rows: int = Field(..., gt=0)
+    dummy_nb_rows: Annotated[int, Field(gt=0)]
     """The number of rows in the dummy dataset."""
     dummy_seed: int
     """The seed to set at the start of the dummy dataset generation."""
@@ -80,9 +117,9 @@ class SmartnoiseSQLRequestModel(LomasRequestModel):
 
     NOTE: the table name is \"df\", the query must end with \"FROM df\"
     """
-    epsilon: float = Field(..., gt=0)
+    epsilon: Annotated[float, Field(gt=0)]
     """Privacy parameter (e.g., 0.1)."""
-    delta: float = Field(..., ge=0)
+    delta: Annotated[float, Field(ge=0)]
     """Privacy parameter (e.g., 1e-5)."""
     mechanisms: dict
     """
@@ -120,13 +157,13 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
 
     model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]})
 
-    synth_name: Union[SSynthMarginalSynthesizer, SSynthGanSynthesizer]
+    synth_name: SSynthMarginalSynthesizer | SSynthGanSynthesizer
     """Name of the synthesizer model to use."""
-    epsilon: float = Field(..., gt=0)
+    epsilon: Annotated[float, Field(gt=0)]
     """Privacy parameter (e.g., 0.1)."""
-    delta: Optional[float] = Field(..., ge=0)
+    delta: Annotated[float | None, Field(ge=0)]
     """Privacy parameter (e.g., 1e-5)."""
-    select_cols: List
+    select_cols: list
     """List of columns to select."""
     synth_params: dict
     """
@@ -176,26 +213,43 @@ class OpenDPRequestModel(LomasRequestModel):
 
     model_config = ConfigDict(
         use_attribute_docstrings=True,
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]},
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
     )
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
-    fixed_delta: Optional[float] = Field(..., ge=0)
+    epsilon: Annotated[float | None, Field(ge=0)]
+    """The epsilon parameter used for pure ε-DP or approximate-DP."""
+    delta: Annotated[float | None, Field(ge=0)]
     """
     If the pipeline measurement is of type "ZeroConcentratedDivergence".
 
     (e.g. with "make_gaussian") then it is converted to "SmoothedMaxDivergence"
     with "make_zCDP_to_approxDP" (see "opendp measurements documentation at
-    https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP). # noqa # pylint: disable=C0301
-    In that case a "fixed_delta" must be provided by the user.
+    https://docs.opendp.org/en/stable/api/python/opendp.combinators.html#opendp.combinators.make_zCDP_to_approxDP).
+    In that case a "delta" must be provided by the user.
     """
+    rho: Annotated[float | None, Field(ge=0)]
+    """
+    Privacy loss parameter for zCDP (or approximate zCDP).
+
+    Using this parameter instead of `epsilon` switches to a Gaussian mechansim.
+    """
+
+    approx_zcdp: bool
+    """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
+
+    @model_validator(mode="after")
+    def check_epsilon_or_rho(self) -> Self:
+        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
+            raise ValueError("Either `epsilon` or `rho` must be set.")
+        return self
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]})
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
@@ -215,9 +269,9 @@ class DiffPrivLibRequestModel(LomasRequestModel):
     """The DiffPrivLib pipeline for the query (See diffprivlib_logger package.)."""
     feature_columns: list
     """The list of feature columns to train."""
-    target_columns: Optional[list]
+    target_columns: list | None
     """The list of target columns to predict."""
-    test_size: float = Field(..., gt=0.0, lt=1.0)
+    test_size: Annotated[float, Field(gt=0.0, lt=1.0)]
     """The proportion of the test set."""
     test_train_split_seed: int
     """The seed for the random train/test split."""

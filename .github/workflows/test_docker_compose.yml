@@ -1,0 +1,29 @@
+name: Docker Compose Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Run tests on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+    - uses: cachix/cachix-action@v17
+      with:
+        name: lomas
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Install devenv.sh
+      run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+
+    - name: Run a notebook within a container
+      run: |
+        devenv shell
+        devenv build outputs.lomas-oci
+        devenv shell -- docker-load-image
+        devenv shell -- docker-compose-test

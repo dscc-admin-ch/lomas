@@ -1,0 +1,182 @@
+site_name: Lomas
+site_description: Data Oases Hidden Behind the Mist
+site_url: https://dscc-admin-ch.github.io/lomas-docs
+
+theme:
+  logo: images/logo.png
+  favicon: images/favicon.svg
+  palette:
+    primary: teal
+  name: material
+  features:
+    - announce.dismiss
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - content.footnote.tooltips
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.instant.preview
+    - navigation.path
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - navigation.footer
+    - navigation.prune
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+repo_name: dscc-admin-ch/lomas
+repo_url: https://github.com/dscc-admin-ch/lomas
+extra:
+  version:
+    provider: mike
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@11.5.0/dist/mermaid.min.js
+
+nav:
+  - Overview:
+      - Welcome to Lomas: index.md
+      # - Why use Lomas: why.md
+      # - Installation: install.md
+      # - Contributing: contributing.md
+      # - Changelog: changelog.md
+      - Client:
+          - Quickstart: client/quickstart.md
+          - Available DP libraries:
+            - client/opendp.md
+            - client/smartnoise-sql.md
+            - client/diffprivlib.md
+          - Examples:
+            - client/index.md
+            - notebooks/Demo_Client_Notebook.ipynb
+            - notebooks/Demo_Client_Notebook_Smartnoise-SQL.ipynb
+            - notebooks/Demo_Client_Notebook_DiffPrivLib.ipynb
+            - notebooks/Demo_Client_Notebook_OpenDP_Polars.ipynb
+      - Server:
+          - Deployment:
+            - server/deployment/index.md
+            - Local Devenv: server/deployment/devenv.md
+            - Onyxia: server/deployment/onyxia.md
+            - Kubernetes: server/deployment/kubernetes.md
+          - Administration:
+            - server/administration/index.md
+            - Users: server/administration/users.md
+            - Datasets: server/administration/datasets.md
+      - Concepts:
+          - Architecture Overview: concepts/architecture-overview.md
+          - Contributing: concepts/contributing.md
+          - Authentication and Authorization: concepts/auth.md
+          - Observability: concepts/observability.md
+          - Errors: concepts/errors.md
+          - DP Packages and Dataset Connectors: concepts/dp-packages-datasets.md
+
+  - API Reference:
+      - Core: api/core.md
+      - Server: api/server.md
+      - Client: api/client.md
+  - Poster: poster.md
+
+markdown_extensions:
+  - abbr
+  - attr_list
+  - admonition
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: "#"
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.details
+  - pymdownx.blocks.caption
+  - pymdownx.blocks.tab:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.highlight:
+      pygments_lang_class: true
+  - pymdownx.magiclink
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+      - name: mermaid
+        class: mermaid
+        format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+  - autorefs
+  - markdown-exec
+  - mkdocs-jupyter:
+      include: ["*.ipynb"]
+      include_requirejs: true
+      no_prompt: True  # hides In[#] / Out[#]
+  - mike:
+      canonical_version: latest
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - core/lomas_core
+            - server/lomas_server
+            - client/lomas_client
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://mkdocstrings.github.io/objects.inv
+            - https://mkdocstrings.github.io/autorefs/objects.inv
+            - https://mkdocstrings.github.io/griffe/objects.inv
+            - https://python-markdown.github.io/objects.inv
+          options:
+            # General https://mkdocstrings.github.io/python/usage/configuration/general/
+            backlinks: tree
+            show_bases: false
+            show_inheritance_diagram: true # requires mermaid
+            show_source: true
+
+            # Headings https://mkdocstrings.github.io/python/usage/configuration/headings/
+            parameter_headings: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            type_parameter_headings: true
+
+            # Members https://mkdocstrings.github.io/python/usage/configuration/members/
+            inherited_members: true
+            members_order: source
+            filters: ['!^_']
+            summary: true
+
+            # Docstrings https://mkdocstrings.github.io/python/usage/configuration/docstrings/
+            docstring_section_style: list
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            relative_crossrefs: true
+            scoped_crossrefs: true
+
+            # Signatures https://mkdocstrings.github.io/python/usage/configuration/signatures/
+            line_length: 90
+            show_signature_annotations: true
+            show_signature_type_parameters: true
+            separate_signature: true
+            signature_crossrefs: true
+            unwrap_annotated: true

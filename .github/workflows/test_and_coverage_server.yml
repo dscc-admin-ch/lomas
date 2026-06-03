@@ -3,13 +3,95 @@ name: Server Tests
 on:
   pull_request:
   push:
-    branches:
-      - master
+    branches: [master]
   workflow_dispatch:
 
 jobs:
-  tests:
+  client-notebooks:
+    name: Client Notebooks
     runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+    - uses: cachix/cachix-action@v17
+      with:
+        name: lomas
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Install devenv.sh
+      run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+
+    - name: Run all test with coverage
+      run: |
+        PYTEST_ADDOPTS=client/ devenv -P coverage test
+        devenv -P coverage shell -- collectCoverage
+        mv .coverage .coverage.client
+
+    - name: Store coverage file
+      uses: actions/upload-artifact@v6
+      with:
+        name: coverage-client
+        path: .coverage.client
+        include-hidden-files: true
+    - name: Store logs
+      uses: actions/upload-artifact@v6
+      if: success() || failure()
+      with:
+        name: test-logs-notebooks
+        path: logs/*
+        include-hidden-files: true
+
+
+  server-matrix:
+    name: Server CI Py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12, 3.13]
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: cachix/install-nix-action@v31.10.1
+    - uses: cachix/cachix-action@v17
+      with:
+        name: lomas
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Install devenv.sh
+      run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+
+    - name: Set Python package
+      run: |
+        cat > devenv.local.nix <<EOF
+        { pkgs, ... }: { lomas.pyenv.package = pkgs.python$(echo ${{ matrix.python-version }} | tr -d .); }
+        EOF
+
+    - name: Run all test with coverage
+      run: |
+        PYTEST_ADDOPTS=server/ devenv -P coverage test
+        devenv -P coverage shell -- collectCoverage
+        mv .coverage .coverage.${{ matrix.python-version }}
+
+    - name: Store coverage file
+      uses: actions/upload-artifact@v6
+      with:
+        name: coverage-${{ matrix.python-version }}
+        path: .coverage.${{ matrix.python-version }}
+        include-hidden-files: true
+
+    - name: Store logs
+      uses: actions/upload-artifact@v6
+      if: success() || failure()
+      with:
+        name: test-logs-${{ matrix.python-version }}
+        path: logs/*
+        include-hidden-files: true
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: [ client-notebooks, server-matrix ]
     permissions:
       # Gives the action the necessary permissions for publishing new
       # comments in pull requests.
@@ -19,24 +101,26 @@ jobs:
       # comments (to avoid publishing multiple comments in the same PR)
       contents: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Set up Python 12
-      uses: astral-sh/setup-uv@v5
-      with:
-        python-version: 3.12
-    - name: Install dependencies
-      run: |
-        uv pip install -r requirements-test.txt
-    - name: Run test script
-      run: |
-        cd server
-        chmod +x run_tests_and_coverage.sh
-        ./run_tests_and_coverage.sh
-    - name: Coverage comment
-      uses: py-cov-action/python-coverage-comment-action@v3
-      with:
-        GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}
-        COVERAGE_PATH: server/lomas_server/
-        MINIMUM_GREEN: 95
-        MINIMUM_ORANGE: 75
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v6
+        id: download
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.COVERAGE_REPORT }}
+          MINIMUM_GREEN: 95
+          MINIMUM_ORANGE: 75
+          MERGE_COVERAGE_FILES: true
+
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v6
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt

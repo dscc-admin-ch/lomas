@@ -1,7 +1,3 @@
-from typing import List, Optional, Type
-
-from smartnoise_synth_logger import serialise_constraints
-
 from lomas_client.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
@@ -9,10 +5,7 @@ from lomas_client.constants import (
     SNSYNTH_DEFAULT_SAMPLES_NB,
 )
 from lomas_client.http_client import LomasHttpClient
-from lomas_client.utils import (
-    validate_model_response,
-    validate_synthesizer,
-)
+from lomas_client.utils import validate_model_response
 from lomas_core.models.requests import (
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
@@ -24,37 +17,38 @@ from lomas_core.models.responses import CostResponse, QueryResponse
 class SmartnoiseSynthClient:
     """A client for executing and estimating the cost of SmartNoiseSynth queries."""
 
-    def __init__(self, http_client: LomasHttpClient):
+    def __init__(self, http_client: LomasHttpClient) -> None:
         self.http_client = http_client
 
     def cost(
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
-        synth_params: dict = {},
+        delta: float | None = None,
+        select_cols: list[str] | None = None,
+        synth_params: dict | None = None,
         nullable: bool = True,
-        constraints: dict = {},
-    ) -> Optional[CostResponse]:
+        constraints: dict | None = None,
+    ) -> CostResponse:
         """This function estimates the cost of executing a SmartNoise query.
 
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
-                    - "aim",
-                    - "mwem",
-                    - "dpctgan" with `disabled_dp` always forced to False and a
-                    warning due to not cryptographically secure random generator
-                    - "patectgan"
-                    - "dpgan" with a warning due to not cryptographically secure
-                    random generator
+                - "aim",
+                - "mwem",
+                - "dpctgan" with `disabled_dp=False` and warning (cryptographically secure random generator)
+                - "patectgan"
+                - "dpgan" with warning (cryptographically secure random generator)
+
                 Available under certain conditions:
-                    - "mst" if `return_model=False`
-                    - "pategan" if the dataset has enough rows
+                - "mst" if `return_model=False`
+                - "pategan" if the dataset has enough rows
+
                 Not available:
-                    - "pacsynth" due to Rust panic error
-                    - "quail" currently unavailable in Smartnoise Synth
+                - "pacsynth" due to Rust panic error
+                - "quail" currently unavailable in Smartnoise Synth
+
                 For further documentation on models, please see here:
                 https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
@@ -74,61 +68,68 @@ class SmartnoiseSynthClient:
                 For further documentation on constraints, please see here:
                 https://docs.smartnoise.org/synth/transforms/index.html.
                 Note: lambda function in `AnonimizationTransformer` are not supported.
+
         Returns:
-            Optional[dict[str, float]]: A dictionary containing the estimated cost.
+            CostResponse: The estimated cost.
         """
-        validate_synthesizer(synth_name)
-        constraints_str = serialise_constraints(constraints) if constraints else ""
+        if constraints is None:
+            constraints = {}
+        if synth_params is None:
+            synth_params = {}
+        if select_cols is None:
+            select_cols = []
+        # constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "constraints": constraints_str,
+            "constraints": "",
         }
         body = SmartnoiseSynthRequestModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, CostResponse)
+        return validate_model_response(self.http_client, res, CostResponse)
 
     def query(
         self,
         synth_name: str,
         epsilon: float,
-        delta: Optional[float] = None,
-        select_cols: List[str] = [],
-        synth_params: dict = {},
+        delta: float | None = None,
+        select_cols: list[str] | None = None,
+        synth_params: dict | None = None,
         nullable: bool = True,
-        constraints: dict = {},
+        constraints: dict | None = None,
         dummy: bool = False,
         return_model: bool = False,
         condition: str = "",
         nb_samples: int = SNSYNTH_DEFAULT_SAMPLES_NB,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
-    ) -> Optional[QueryResponse]:
+    ) -> QueryResponse:
         """This function executes a SmartNoise Synthetic query.
 
         Args:
             synth_name (str): name of the Synthesizer model to use.
                 Available synthesizer are
-                    - "aim",
-                    - "mwem",
-                    - "dpctgan" with `disabled_dp` always forced to False and a
-                    warning due to not cryptographically secure random generator
-                    - "patectgan"
-                    - "dpgan" with a warning due to not cryptographically secure
-                    random generator
+                - "aim",
+                - "mwem",
+                - "dpctgan" with `disabled_dp=False` and warning (cryptographically secure random generator)
+                - "patectgan"
+                - "dpgan" with warning (cryptographically secure random generator)
+
                 Available under certain conditions:
-                    - "mst" if `return_model=False`
-                    - "pategan" if the dataset has enough rows
+                - "mst" if `return_model=False`
+                - "pategan" if the dataset has enough rows
+
                 Not available:
-                    - "pacsynth" due to Rust panic error
-                    - "quail" currently unavailable in Smartnoise Synth
+                - "pacsynth" due to Rust panic error
+                - "quail" currently unavailable in Smartnoise Synth
+
                 For further documentation on models, please see here:
                 https://docs.smartnoise.org/synth/index.html#synthesizers-reference
             epsilon (float): Privacy parameter (e.g., 0.1).
@@ -162,26 +163,32 @@ class SmartnoiseSynthClient:
                 Defaults to DUMMY_NB_ROWS.
             seed (int, optional): The random seed for generating the dummy dataset.
                 Defaults to DUMMY_SEED.
+
         Returns:
-            Optional[dict]: A Pandas DataFrame containing the query results.
+            QueryResponse: A Pandas DataFrame containing the query results.
         """
-        validate_synthesizer(synth_name, return_model)
-        constraints_str = serialise_constraints(constraints) if constraints else ""
+        if constraints is None:
+            constraints = {}
+        if synth_params is None:
+            synth_params = {}
+        if select_cols is None:
+            select_cols = []
+        # constraints_str = serialise_constraints(constraints) if constraints else ""
 
         body_dict = {
-            "dataset_name": self.http_client.dataset_name,
+            "dataset_name": self.http_client.config.dataset_name,
             "synth_name": synth_name,
             "epsilon": epsilon,
             "delta": delta,
             "select_cols": select_cols,
             "synth_params": synth_params,
             "nullable": nullable,
-            "constraints": constraints_str,
+            "constraints": "",
             "return_model": return_model,
             "condition": condition,
             "nb_samples": nb_samples,
         }
-        request_model: Type[SmartnoiseSynthRequestModel]
+        request_model: type[SmartnoiseSynthRequestModel]
         if dummy:
             endpoint = "dummy_smartnoise_synth_query"
             body_dict["dummy_nb_rows"] = nb_rows
@@ -194,4 +201,4 @@ class SmartnoiseSynthClient:
         body = request_model.model_validate(body_dict)
         res = self.http_client.post(endpoint, body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
-        return validate_model_response(res, QueryResponse)
+        return validate_model_response(self.http_client, res, QueryResponse)

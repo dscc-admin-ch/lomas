@@ -1,41 +1,46 @@
 name: Generate docs and push to dedicated repo for publishing
 
 on:
+  pull_request:
+    branches: [develop, master]
   push:
-    branches:
-      - develop
-      - master
+    branches: [develop, master]
+    tags: [v*]
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Set up Python 12
-      uses: astral-sh/setup-uv@v5
-      with:
-        python-version: 3.12
-    - name: Install dependencies
-      run: |
-        sudo apt-get install pandoc
-        uv pip install -r requirements-docs.txt
-    - name: Build with sphinx
-      run: |
-        cd docs
-        python3.12 build_docs.py
-        ls -l ../pages
-    - name: Pushes to another repository
-      uses: cpina/github-action-push-to-another-repository@main
-      env:
-        SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_DOCS }}
-      with:
-        source-directory: pages/
-        destination-github-username: 'dscc-admin-ch'
-        destination-repository-name: 'lomas-docs'
-        target-branch: main
-        target-directory: html
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31.10.1
+      - uses: cachix/cachix-action@v17
+        with:
+          name: lomas
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install devenv.sh
+        run: nix profile add nixpkgs/64c08a7ca051951c8eae34e3e3cb1e202fe36786#devenv
+
+      - name: Build the doc
+        run: devenv shell -- build-docs
+
+      - name: Set git credentials
+        run: |
+          # Prepare all this to allow deploy --push on mike
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git remote set-url origin https://${{ github.token }}@${GITHUB_DOMAIN:-"github.com"}/${GITHUB_REPOSITORY}.git
+          # sync gh-pages remote
+          git fetch --all --tags --prune
+
+      - name: Publish Develop doc
+        if: github.event_name == 'push' || github.event_name == 'release'
+        run: devenv shell -- mike deploy develop --push
+
+      - name: Publish Tag doc
+        if: github.ref_type == 'tag'
+        run: devenv shell -- mike deploy ${{ github.ref_name }} latest --update-aliases --push

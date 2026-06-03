@@ -1,0 +1,24 @@
+{{- if .Values.server.route.enabled -}}
+{{- $fullName := include "lomas.server.fullname" . -}}
+{{- $svcPort := .Values.server.service.portName -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+  {{- with .Values.server.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.server.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: {{ $svcPort }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.server.route.tls | nindent 8 }}
+{{- end }}

@@ -1,0 +1,26 @@
+{{- if .Values.rabbitmq.create -}}
+{{- if .Values.rabbitmq.route.enabled -}}
+{{- $fullName := include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  {{- $labels := include "common.tplvalues.merge" ( dict "values" ( list .Values.rabbitmq.route.labels .Values.commonLabels ) "context" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq" "Version" "0") "Values" .Values.rabbitmq) ) }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $labels "context" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq" "Version" "0") "Values" .Values.rabbitmq) ) | nindent 4 }}
+    app.kubernetes.io/component: rabbitmq
+  {{- if or .Values.rabbitmq.route.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.ingress.annotations .Values.commonAnnotations ) "context" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq" "Version" "0") "Values" .Values.rabbitmq) ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq" "Version" "0") "Values" .Values.rabbitmq)) | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.rabbitmq.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: {{ .Values.rabbitmq.service.portNames.manager }}
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.rabbitmq.route.tls | nindent 4 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,6 @@
+# linguist-generated: Excluded from stats, hidden in diffs
+**/configs/.env.* linguist-generated
+*api_pb2* linguist-generated -diff
+# set the merge driver for .lock files
+# Ensure that rebasing from <working_branch> to <develop> for instance will always wins in favor of working_branch
+*.lock linguist-generated -diff merge=theirs

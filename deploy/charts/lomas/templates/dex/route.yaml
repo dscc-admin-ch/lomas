@@ -1,0 +1,28 @@
+{{- if .Values.dex.create }}
+{{- if .Values.dex.route.enabled -}}
+{{- $dexContext := (dict "Release" .Release "Chart" (dict "Name" "dex" "Version" "0.24.0") "Values" .Values.dex) -}}
+{{- $fullName := include "dex.fullname" $dexContext -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "dex.labels" $dexContext | nindent 4 }}
+  {{- with .Values.dex.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.dex.route.hostname | quote }}
+  path: /
+  port:
+    targetPort: 5556 # In openshift, this port is the pod target port, not the service target port.
+  to:
+    kind: Service
+    name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.dex.route.tls | nindent 8 }}
+  httpHeaders:
+    forwardedHeaderPolicy: if-none
+{{- end }}
+{{- end }}

@@ -1,28 +1,41 @@
-import logging
+import os
+from base64 import b64decode
 
 import opendp as dp
-from opendp.metrics import metric_distance_type, metric_type
+from aio_pika.patterns.rpc import Proxy
+from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
+from opendp._lib import lib_path
 from opendp.mod import enable_features
-from opendp_logger import make_load_json
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-)
-from lomas_core.models.config import OpenDPConfig
-from lomas_core.models.requests import (
-    OpenDPQueryModel,
-    OpenDPRequestModel,
-)
-from lomas_core.models.responses import OpenDPQueryResult
-from lomas_server.constants import OpenDPDatasetInputMetric, OpenDPMeasurement
+from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
+from lomas_core.models.constants import OpenDPFeatures, get_lomas_logger
+from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
+from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
+from lomas_server.constants import OpenDPMeasurement
+from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
+
+logger = get_lomas_logger(__name__)
 
 
 class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryResult]):
     """Concrete implementation of the DPQuerier ABC for the OpenDP library."""
+
+    def __init__(
+        self,
+        data_connector: DataConnector,
+        admin_database: Proxy,
+    ) -> None:
+        """Initializer.
+
+        Args:
+            data_connector (DataConnector): DataConnector for the dataset to query.
+        """
+        super().__init__(data_connector, admin_database)
+
+        # Get metadata once and for all
+        self.metadata = self.data_connector.metadata
 
     def cost(self, query_json: OpenDPRequestModel) -> tuple[float, float]:
         """
@@ -43,42 +56,47 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
             tuple[float, float]: The tuple of costs, the first value
                 is the epsilon cost, the second value is the delta value.
         """
-        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
+        input_data = self.data_connector.get_polars_lf()
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
 
-        measurement_type = get_output_measure(opendp_pipe)
-        # https://docs.opendp.org/en/stable/user/combinators.html#measure-casting
-        if measurement_type == OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
-            opendp_pipe = dp.combinators.make_zCDP_to_approxDP(opendp_pipe)
-            measurement_type = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
+        meas = context.accountant
+        meas_type = str(meas.output_measure)
+        max_contrib = self.metadata.max_contributions
 
-        max_ids = self.data_connector.get_metadata().max_ids
-        try:
-            # d_in is int as input metric is a dataset metric
-            cost = opendp_pipe.map(d_in=int(max_ids))
-        except Exception as e:
-            logging.exception(e)
-            raise ExternalLibraryException(DPLibraries.OPENDP, "Error obtaining cost:" + str(e)) from e
+        match meas_type:
+            case OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE:
+                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                cost = meas_zcdp.map(d_in=int(max_contrib))
 
-        # Cost interpretation
-        match measurement_type:
-            case OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE:  # Approximate DP with fix delta
-                epsilon, delta = cost
-            case OpenDPMeasurement.MAX_DIVERGENCE:  # Pure DP
-                epsilon, delta = cost, 0
-            case OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE:  # Approximate DP
-                if query_json.fixed_delta is None:
-                    raise InvalidQueryException(
-                        "fixed_delta must be set for smooth max divergence"
-                        + " and zero concentrated divergence."
-                    )
-                epsilon = cost.epsilon(delta=query_json.fixed_delta)
-                delta = query_json.fixed_delta
+                fixed_delta = query_json.delta
+                if fixed_delta is None:
+                    raise InvalidQueryException("Provide a fixed delta for this query.")
+                epsilon, delta = cost.epsilon(fixed_delta), fixed_delta
+
+            case OpenDPMeasurement.APPROX_ZERO_CONCENTRATED_DIVERGENCE:
+                meas_zcdp = dp.combinators.make_zCDP_to_approxDP(meas)
+                cost = meas_zcdp.map(d_in=int(max_contrib))
+
+                epsilon, delta = cost[0].epsilon(cost[1]), cost[1]
+
+            case OpenDPMeasurement.MAX_DIVERGENCE:
+                epsilon, delta = meas.map(d_in=int(max_contrib)), 0
+
+            case OpenDPMeasurement.APPROX_MAX_DIVERGENCE:
+                epsilon, delta = meas.map(d_in=int(max_contrib))
+
             case _:
-                raise InternalServerException(f"Invalid measurement type: {measurement_type}")
-
+                raise InternalServerException(f"Invalid measurement type: {meas_type}")
         return epsilon, delta
 
-    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult:
+    def query(self, query_json: OpenDPQueryModel) -> OpenDPQueryResult | OpenDPPolarsQueryResult:
         """Perform the query and return the response.
 
         Args:
@@ -91,138 +109,45 @@ class OpenDPQuerier(DPQuerier[OpenDPRequestModel, OpenDPQueryModel, OpenDPQueryR
         Returns:
             (Union[List, int, float]) query result
         """
-        opendp_pipe = reconstruct_measurement_pipeline(query_json.opendp_json)
-
-        input_data = self.data_connector.get_pandas_df().to_csv(header=False, index=False)
+        input_data = self.data_connector.get_polars_lf()
+        context = csvw_to_opendp_context(
+            self.metadata.to_dict(),
+            input_data,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
+            rho=query_json.rho,
+            split_evenly_over=1,
+        )
+        serialized_plan = b64decode(query_json.opendp_json.encode("utf-8"))
+        plan = context.deserialize_polars_plan(serialized_plan)
 
         try:
-            release_data = opendp_pipe(input_data)
+            release_data = plan.release()
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             raise ExternalLibraryException(
                 DPLibraries.OPENDP,
                 "Error executing query:" + str(e),
             ) from e
 
+        if isinstance(release_data, dp.extras.polars.OnceFrame):
+            release_data = release_data.collect()
+            return OpenDPPolarsQueryResult(value=release_data)
         return OpenDPQueryResult(value=release_data)
 
 
-def is_measurement(pipeline: dp.Measurement) -> None:
-    """Check if the pipeline is a measurement.
-
-    Args:
-        pipeline (dp.Measurement): The measurement to check.
-
-    Raises:
-        InvalidQueryException: If the pipeline is not a measurement.
-    """
-    if not isinstance(pipeline, dp.Measurement):
-        e = "The pipeline provided is not a measurement. It cannot be processed in this server."
-        logging.exception(e)
-        raise InvalidQueryException(e)
-
-
-def has_dataset_input_metric(pipeline: dp.Measurement) -> None:
-    """Check that the input metric of the pipeline is a dataset metric.
-
-    Args:
-        pipeline (dp.Measurement): The pipeline to check.
-
-    Raises:
-        InvalidQueryException: If the pipeline input metric is not
-                                a dataset input metric.
-    """
-    distance_type = metric_distance_type(pipeline.input_metric)
-    if not distance_type == OpenDPDatasetInputMetric.INT_DISTANCE:
-        e = (
-            f"The input distance type is not {OpenDPDatasetInputMetric.INT_DISTANCE}"
-            + f" but {distance_type} which is not a valid distance type for datasets."
-            + " It cannot be processed in this server."
-        )
-        logging.exception(e)
-        raise InvalidQueryException(e)
-
-    dataset_input_metric = [m.value for m in OpenDPDatasetInputMetric]
-    if not metric_type(pipeline.input_metric) in dataset_input_metric:
-        e = (
-            f"The input distance metric {pipeline.input_metric} is not a dataset"
-            + " input metric. It cannot be processed in this server."
-        )
-        logging.exception(e)
-        raise InvalidQueryException(e)
-
-
-def reconstruct_measurement_pipeline(pipeline: str) -> dp.Measurement:
-    """Reconstruct OpenDP pipeline from json representation.
-
-    Args:
-        pipeline (str): The JSON string encoding of the pipeline.
-
-    Raises:
-        InvalidQueryException: If the pipeline is not a measurement.
-
-    Returns:
-        dp.Measurement: The reconstructed pipeline.
-    """
-    # Reconstruct pipeline
-    opendp_pipe = make_load_json(pipeline)
-
-    # Verify that the pipeline is safe and valid
-    is_measurement(opendp_pipe)
-    has_dataset_input_metric(opendp_pipe)
-
-    return opendp_pipe
-
-
-def get_output_measure(opendp_pipe: dp.Measurement) -> str:
-    """Get output measure type.
-
-    Args:
-        opendp_pipe (dp.Measurement): Pipeline to get measure type.
-
-    Raises:
-        InternalServerException: If the measure type is unknown.
-
-    Returns:
-        str: One of :py:class:`OpenDPMeasurement`.
-    """
-    output_type = opendp_pipe.output_distance_type
-    output_measure = opendp_pipe.output_measure
-
-    if not isinstance(output_type, str):
-        if output_type.origin in ["SMDCurve", "Tuple"]:  # TODO 360 : constant.
-            output_type = output_type.args[0]
-        else:
-            raise InternalServerException(
-                f"Cannot process output measure: {output_measure} with output type {output_type}."
-            )
-
-    if output_measure == dp.measures.fixed_smoothed_max_divergence(T=output_type):
-        measurement = OpenDPMeasurement.FIXED_SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.max_divergence(T=output_type):
-        measurement = OpenDPMeasurement.MAX_DIVERGENCE
-    elif output_measure == dp.measures.smoothed_max_divergence(T=output_type):
-        measurement = OpenDPMeasurement.SMOOTHED_MAX_DIVERGENCE
-    elif output_measure == dp.measures.zero_concentrated_divergence(T=output_type):
-        measurement = OpenDPMeasurement.ZERO_CONCENTRATED_DIVERGENCE
-    else:
-        raise InternalServerException(f"Unknown type of output measure divergence: {output_measure}")
-    return measurement
-
-
-def set_opendp_features_config(opendp_config: OpenDPConfig):
+def set_opendp_features_config(features: OpenDPFeatures) -> None:
     """Enable opendp features based on config.
 
     See https://github.com/opendp/opendp/discussions/304
 
-    Args:
-        opendp_config (OpenDPConfig): OpenDP configurations
+    Also sets the "OPENDP_POLARS_LIB_PATH" environment variable
+    for correctly creating private lazyframes from deserialized
+    polars plans.
     """
-    if opendp_config.contrib:
-        enable_features("contrib")
+    for feat in features:
+        logger.debug(f"OpenDP: enabling feature: {feat}")
+        enable_features(feat)
 
-    if opendp_config.floating_point:
-        enable_features("floating-point")
-
-    if opendp_config.honest_but_curious:
-        enable_features("honest-but-curious")
+    # Set DP Libraries config
+    os.environ["OPENDP_LIB_PATH"] = str(lib_path)

@@ -1,10 +1,15 @@
-from typing import Annotated, List, Literal, Union
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    UrlConstraints,
+    model_validator,
+)
 
 from lomas_core.models.constants import (
-    AdminDBType,
-    PrivateDatabaseType,
     TimeAttackMethod,
 )
 
@@ -16,85 +21,54 @@ class TimeAttack(BaseModel):
     magnitude: float
 
 
-class Server(BaseModel):
-    """BaseModel for uvicorn server configs."""
+class Telemetry(BaseModel):
+    """Telemetry config."""
 
-    time_attack: TimeAttack
-    host_ip: str
-    host_port: int
-    log_level: str
-    reload: bool
-    workers: int
+    enabled: Annotated[bool, Field(default=False)]
+    service_name: Annotated[str, Field(default="lomas-server-app")]
+    service_id: Annotated[str, Field(default="default-host")]
+    collector_endpoint: Annotated[HttpUrl, UrlConstraints(default_port=4317)] | None = None
+    collector_insecure: Annotated[bool, Field(default=False)]
+    collector_log_correlation: Annotated[bool, Field(default=False)]
 
+    @model_validator(mode="after")
+    def options_set_if_enabled(self) -> Self:
+        """Ensures that if enabled is set to True, all other fields are specified.
 
-class DBConfig(BaseModel):
-    """BaseModel for database type config."""
+        Raises:
+            ValueError: If any of the fields is not specified while enabled is True.
+        """
+        if self.enabled:
+            missing = [k for k, v in dict(self).items() if v is None]
+            if len(missing) > 0:
+                raise ValueError(
+                    f"If enabled set to True, all other fields must be specified. Missing fields: {missing}"
+                )
 
-
-class YamlDBConfig(DBConfig):
-    """BaseModel for dataset store configs  in case of a Yaml database."""
-
-    db_type: Literal[AdminDBType.YAML]  # type: ignore
-    db_file: str
-
-
-class MongoDBConfig(DBConfig):
-    """BaseModel for dataset store configs  in case of a  MongoDB database."""
-
-    db_type: Literal[AdminDBType.MONGODB]  # type: ignore
-    address: str
-    port: int
-    username: str
-    password: str
-    db_name: str
-    max_pool_size: int
-    min_pool_size: int
-    max_connecting: int
+        return self
 
 
-class PrivateDBCredentials(BaseModel):
-    """BaseModel for private database credentials."""
+class OIDCConfig(BaseModel):
+    """Base model for oidc config returned from discovery endpoint."""
+
+    # Only useful (to us) fields are present in the model.
+    model_config = ConfigDict(extra="ignore")
+
+    issuer: HttpUrl
+    authorization_endpoint: HttpUrl
+    token_endpoint: HttpUrl
+    jwks_uri: HttpUrl
+    userinfo_endpoint: HttpUrl
+    device_authorization_endpoint: HttpUrl
+    introspection_endpoint: HttpUrl
 
 
-class S3CredentialsConfig(PrivateDBCredentials):
-    """BaseModel for S3 database credentials."""
+class OIDCDeviceCodeResponse(BaseModel):
+    """Base model for oidc device code response."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="ignore")
 
-    db_type: Literal[PrivateDatabaseType.S3]  # type: ignore
-    credentials_name: str
-    access_key_id: str
-    secret_access_key: str
-
-
-class OpenDPConfig(BaseModel):
-    """BaseModel for openDP librairy config."""
-
-    contrib: bool
-    floating_point: bool
-    honest_but_curious: bool
-
-
-class DPLibraryConfig(BaseModel):
-    """BaseModel for DP librairies config."""
-
-    opendp: OpenDPConfig
-
-
-class Config(BaseModel):
-    """Server runtime config."""
-
-    # Develop mode
-    develop_mode: bool
-
-    # Server configs
-    server: Server
-
-    # A limit on the rate which users can submit answers
-    submit_limit: float
-
-    admin_database: Annotated[Union[MongoDBConfig, YamlDBConfig], Field(discriminator="db_type")]
-
-    private_db_credentials: List[Union[S3CredentialsConfig]] = Field(..., discriminator="db_type")
-
-    dp_libraries: DPLibraryConfig
+    user_code: str
+    device_code: str
+    verification_uri: str
+    verification_uri_complete: str | None = None

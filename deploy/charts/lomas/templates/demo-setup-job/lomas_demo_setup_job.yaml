@@ -1,0 +1,67 @@
+{{- if .Values.demoSetupJob.create -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lomas.demoSetupJob.fullname" . }}
+spec:
+  # backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        {{- toYaml .Values.demoSetupJob.podAnnotations | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        {{- toYaml .Values.demoSetupJob.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      initContainers:
+        - name: wait
+          image: {{ .Values.demoSetupJob.image.repository }}:{{ .Values.demoSetupJob.image.tag }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - |
+              #!/usr/local/env bash
+              until [ $(curl -m 0.5 -fso /dev/null -w "%{http_code}" -k http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/live) -eq 200 ]; do
+                echo "waiting for lomas"
+                sleep 2
+              done;
+          resources:
+            {{ toYaml .Values.demoSetupJob.initContainers.resources | nindent 12}}
+      containers:
+        - name: lomas-demo-setup
+          image: {{ .Values.demoSetupJob.image.repository }}:{{ .Values.demoSetupJob.image.tag }}
+          imagePullPolicy: {{ .Values.demoSetupJob.image.pullPolicy }}
+          command: ["lomas-demo-setup"]
+          env:
+            {{- if .Values.dex.create }}
+            # Dex config is optional
+            - name: LOMAS_ADMIN_DEX_CONFIG__URL
+              value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
+            {{- end }}
+            - name: LOMAS_ADMIN_USER_YAML
+              value: {{ .Values.demoSetupJob.config.userYamlPath }}
+              value: "/data/collections/user_collection.yaml"
+            - name: LOMAS_ADMIN_DATASET_YAML
+              value: {{ .Values.demoSetupJob.config.datasetYamlPath }}
+            - name: LOMAS_ADMIN_SERVER_URL
+              value: "https://{{ .Values.demoSetupJob.config.serverUrl }}/"
+            - name: LOMAS_ADMIN_SERVER_SERVICE
+              value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
+            - name: LOMAS_ADMIN_BOOTSTRAP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "lomas.server.secretName" . }}
+                  key: {{ include "lomas.server.bootstrapSecretKey" . }}
+          resources:
+            {{ toYaml .Values.demoSetupJob.resources | nindent 12}}
+      nodeSelector:
+        {{ toYaml .Values.demoSetupJob.nodeSelector | nindent 8 }}
+      affinity:
+        {{ toYaml .Values.demoSetupJob.affinity | nindent 8 }}
+      tolerations:
+        {{ toYaml .Values.demoSetupJob.tolerations | nindent 8}}
+{{- end}}

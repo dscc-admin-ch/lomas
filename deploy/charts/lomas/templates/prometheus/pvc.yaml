@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lomas.prometheus.fullname" . }}
+  labels:
+    {{- include "lomas.prometheus.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.prometheus.pvc.persistence.resourcePolicy }}
+    "helm.sh/resource-policy": {{ .Values.prometheus.pvc.persistence.resourcePolicy }}
+    {{- end }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.prometheus.pvc.storageClassName }}
+  storageClassName: {{ .Values.prometheus.pvc.storageClassName | quote }}
+  {{- end }}
+  resources:
+    limits:
+      storage: {{ .Values.prometheus.pvc.sizeLimit | quote }}
+    requests:
+      storage: {{ .Values.prometheus.pvc.sizeRequest | quote }}

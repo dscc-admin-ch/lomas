@@ -1,18 +1,20 @@
-import logging
-from typing import Any, Type
+from typing import Any, Never
 
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pymongo.errors import WriteConcernError
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.exceptions import (
     ExternalLibraryExceptionModel,
     InternalServerExceptionModel,
     InvalidQueryExceptionModel,
+    LomasServerExceptionType,
     UnauthorizedAccessExceptionModel,
 )
+
+logger = get_lomas_logger(__name__)
 
 
 class InvalidQueryException(Exception):
@@ -70,12 +72,11 @@ class InternalServerException(Exception):
         self.error_message = error_message
 
 
-KNOWN_EXCEPTIONS: tuple[Type[BaseException], ...] = (
+KNOWN_EXCEPTIONS: tuple[type[BaseException], ...] = (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,
     UnauthorizedAccessException,
-    WriteConcernError,
 )
 
 
@@ -90,7 +91,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(InvalidQueryException)
     async def invalid_query_exception_handler(_: Request, exc: InvalidQueryException) -> JSONResponse:
-        logging.info(f"InvalidQueryException raised: {exc.error_message}")
+        logger.debug(f"InvalidQueryException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
@@ -98,9 +99,9 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(ExternalLibraryException)
     async def external_library_exception_handler(_: Request, exc: ExternalLibraryException) -> JSONResponse:
-        logging.info(f"ExternalLibraryException raised: {exc.error_message}")
+        logger.debug(f"ExternalLibraryException raised: {exc.error_message}")
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content=jsonable_encoder(
                 ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
             ),
@@ -110,7 +111,7 @@ def add_exception_handlers(app: FastAPI) -> None:
     async def unauthorized_access_exception_handler(
         _: Request, exc: UnauthorizedAccessException
     ) -> JSONResponse:
-        logging.info(f"UnauthorizedAccessException raised: {exc.error_message}")
+        logger.debug(f"UnauthorizedAccessException raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
@@ -118,7 +119,7 @@ def add_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(InternalServerException)
     async def internal_server_exception_handler(_: Request, exc: InternalServerException) -> JSONResponse:
-        logging.info(f"InternalServerException  raised: {exc.error_message}")
+        logger.debug(f"InternalServerException  raised: {exc.error_message}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(InternalServerExceptionModel()),
@@ -128,7 +129,26 @@ def add_exception_handlers(app: FastAPI) -> None:
 # Server error responses for DP queries
 SERVER_QUERY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_400_BAD_REQUEST: {"model": InvalidQueryExceptionModel},
-    status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ExternalLibraryExceptionModel},
+    status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ExternalLibraryExceptionModel},
     status.HTTP_403_FORBIDDEN: {"model": UnauthorizedAccessExceptionModel},
     status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": InternalServerExceptionModel},
 }
+
+
+def raise_error_from_model(error_model: LomasServerExceptionType) -> Never:
+    """Raise error message based on Server Error Model.
+
+    Args:
+        error_model (LomasServerExceptionType): Server Error
+    Raise:
+        Server Error
+    """
+    match error_model:
+        case InvalidQueryExceptionModel():
+            raise InvalidQueryException(error_model.message)
+        case ExternalLibraryExceptionModel():
+            raise ExternalLibraryException(error_model.library, error_model.message)
+        case UnauthorizedAccessExceptionModel():
+            raise UnauthorizedAccessException(error_model.message)
+        case InternalServerExceptionModel():
+            raise InternalServerException("Internal Server Exception.")

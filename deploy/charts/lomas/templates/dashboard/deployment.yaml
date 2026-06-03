@@ -1,0 +1,110 @@
+{{- if .Values.dashboard.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lomas.dashboard.fullname" . }}
+  labels:
+    {{- include "lomas.dashboard.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "lomas.dashboard.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      {{- with .Values.dashboard.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lomas.dashboard.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lomas.dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.dashboard.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+            {{- toYaml .Values.dashboard.securityContext | nindent 12 }}
+        resources:
+          {{- toYaml .Values.dashboard.resources | nindent 10 }}
+        image: "{{ .Values.dashboard.image.repository }}:{{ .Values.dashboard.image.tag }}"
+        imagePullPolicy: {{ .Values.dashboard.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.dashboard.serverConfig.port }}
+            protocol: TCP
+        command:
+          - lomas-dashboard
+        env:
+          - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+            value: "0"
+          - name: STREAMLIT_SERVER_ADDRESS
+            value: "0.0.0.0"
+          - name: STREAMLIT_SERVER_BASE_URL_PATH
+            value: "{{ .Values.dashboard.serverConfig.baseUrlPath }}"
+          - name: STREAMLIT_SERVER_PORT
+            value: "{{ .Values.dashboard.serverConfig.port }}"
+          - name: STREAMLIT_SERVER_HEADLESS
+            value: "1"
+          - name: STREAMLIT_SECRETS_FILES
+            value: "/config/secrets.toml"
+          {{- if .Values.dex.create }}
+          # Dex config is optional.
+          - name: LOMAS_ADMIN_DEX_CONFIG__URL
+            value: "grpc://{{ include "dex.fullname" (dict "Release" .Release "Chart" (dict "Name" "dex") "Values" .Values.dex) }}:{{ .Values.dex.service.ports.grpc.port }}"
+          {{- end }}
+          - name: LOMAS_ADMIN_USER_YAML
+            value: "/dev/null"
+          - name: LOMAS_ADMIN_DATASET_YAML
+            value: "/dev/null" # dashboard does not need this.
+          - name: LOMAS_ADMIN_SERVER_URL
+            value: "{{ .Values.dashboard.config.serverUrl }}"
+          - name: LOMAS_ADMIN_SERVER_SERVICE
+            value: "http://{{ include "lomas.server.fullname" . }}:{{ .Values.server.service.port }}/"
+          - name: LOMAS_ADMIN_BOOTSTRAP
+            value: "" # dashboard does not need bootstrap
+          {{- if .Values.global.configCABundle.enabled }}
+          - name: REQUESTS_CA_BUNDLE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          - name: SSL_CERT_FILE
+            value: "/etc/ssl/certs/{{ .Values.global.configCABundle.filename }}"
+          {{- end }}
+        volumeMounts:
+          - name: config
+            mountPath: /config
+          {{- if .Values.global.configCABundle.enabled }}
+          - name: trusted-cabundle
+            mountPath: /etc/ssl/certs/{{ .Values.global.configCABundle.filename }}
+            subPath: {{ .Values.global.configCABundle.filename }}
+          {{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "lomas.dashboard.secretName" . }}
+            items:
+              - key: {{ include "lomas.dashboard.secretKey" .}}
+                path: secrets.toml
+        {{- if .Values.global.configCABundle.enabled }}
+        - name: trusted-cabundle
+          configMap:
+            name: {{ .Values.global.configCABundle.name }}
+            items:
+              - key: {{ .Values.global.configCABundle.key }}
+                path: {{ .Values.global.configCABundle.filename }}
+        {{- end }}
+      {{- with .Values.dashboard.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dashboard.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dashboard.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

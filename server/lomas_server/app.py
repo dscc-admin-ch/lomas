@@ -1,39 +1,31 @@
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.error_handler import (
     InternalServerException,
     add_exception_handlers,
 )
-from lomas_core.instrumentation import get_ressource, init_telemetry
-from lomas_core.models.constants import AdminDBType
-from lomas_server.admin_database.factory import admin_database_factory
-from lomas_server.admin_database.utils import add_demo_data_to_mongodb_admin
-from lomas_server.admin_database.yaml_database import AdminYamlDatabase
-from lomas_server.constants import (
-    CONFIG_NOT_LOADED,
-    DB_NOT_LOADED,
-    SERVER_LIVE,
-    SERVER_SERVICE_NAME,
-    SERVICE_ID,
-)
+from lomas_core.instrumentation import init_telemetry
+from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_server.dp_queries.dp_libraries.opendp import (
     set_opendp_features_config,
 )
+from lomas_server.models.config import Config
 from lomas_server.routes import routes_admin, routes_dp
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.utils.config import get_config
+from lomas_server.routes.utils import rabbitmq_ctx
 
 
 @asynccontextmanager
-async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
+async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     """
     Lifespan function for the server.
 
@@ -45,84 +37,64 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator:
     side effects on the return values of the "depends"
     functions, which check the server state.
     """
-    # Startup
-    logging.info("Startup message")
+    # Load Config
+    config = Config()
 
     # Set some app state
-    lomas_app.state.admin_database = None
-
-    # General server state, can add fields if need be.
-    lomas_app.state.server_state = {
-        "state": [],
-        "message": [],
-        "LIVE": False,
-    }
-    lomas_app.state.server_state["state"].append("Startup event")
-
-    status_ok = True
-    # Load config
-    try:
-        logging.info("Loading config")
-        lomas_app.state.server_state["message"].append("Loading config")
-        config = get_config()
-        lomas_app.state.private_credentials = config.private_db_credentials
-    except InternalServerException:
-        logging.info("Config could not loaded")
-        lomas_app.state.server_state["state"].append(CONFIG_NOT_LOADED)
-        lomas_app.state.server_state["message"].append("Server could not be started!")
-        lomas_app.state.server_state["LIVE"] = False
-        status_ok = False
-
-    # Fill up user database if in develop mode ONLY
-    if status_ok and config.develop_mode:
-        logging.info("!! Develop mode ON !!")
-        lomas_app.state.server_state["message"].append("!! Develop mode ON !!")
-        if config.admin_database.db_type == AdminDBType.MONGODB:
-            logging.info("Adding demo data to MongoDB Admin")
-            lomas_app.state.server_state["message"].append("Adding demo data to MongoDB Admin")
-            add_demo_data_to_mongodb_admin()
+    lomas_app.state.jobs = {}
 
     # Load admin database
-    if status_ok:
-        try:
-            logging.info("Loading admin database")
-            lomas_app.state.server_state["message"].append("Loading admin database")
-            lomas_app.state.admin_database = admin_database_factory(config.admin_database)
-        except InternalServerException as e:
-            logging.exception(f"Failed at startup: {str(e)}")
-            lomas_app.state.server_state["state"].append(DB_NOT_LOADED)
-            lomas_app.state.server_state["message"].append(f"Admin database could not be loaded: {str(e)}")
-            lomas_app.state.server_state["LIVE"] = False
-            status_ok = False
+    try:
+        logger.info("Loading admin database")
+        lomas_app.state.admin_database = config.database
+        if config.clean_admin_database:
+            logger.warning(
+                "Admin database cleaned at startup. With this option, server restarts will wipe the database!"
+            )
+            lomas_app.state.admin_database.database.wipe()
 
-        lomas_app.state.server_state["state"].append("Startup completed")
-        lomas_app.state.server_state["message"].append("Startup completed")
+        logger.info("Loading authenticator")
+        lomas_app.state.authenticator = config.authenticator
+
+        if not config.database.get_bootstrap_disabled():
+            logger.info("Setting bootstrap credentials.")
+            config.database.set_bootstrap(config.bootstrap)
+        else:
+            logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
+        lomas_app.state.bootstrap = config.bootstrap
+        lomas_app.state.private_db_credentials = config.private_db_credentials
+    except InternalServerException as e:
+        logger.exception(f"Failed at startup: {e!s}")
 
     # Set DP Libraries config
-    set_opendp_features_config(config.dp_libraries.opendp)
+    set_opendp_features_config(config.opendp_features)
 
-    if status_ok:
-        logging.info("Server start condition OK")
-        lomas_app.state.server_state["state"].append(SERVER_LIVE)
-        lomas_app.state.server_state["message"].append("Server start condition OK")
-        lomas_app.state.server_state["LIVE"] = True
+    async with rabbitmq_ctx(lomas_app):
+        yield  # lomas_app is handling requests
 
-    yield  # lomas_app is handling requests
 
-    # Shutdown event
-    if isinstance(lomas_app.state.admin_database, AdminYamlDatabase):
-        lomas_app.state.admin_database.save_current_database()
+# Init config for logging purposes
+initConfig = Config()
+
+init_logging(
+    name="lomas_server", level=initConfig.server.log_level, lomas_level=initConfig.server.lomas_log_level
+)
+
+logger = get_lomas_logger(__name__)
 
 
 # Initalise telemetry
-resource = get_ressource(SERVER_SERVICE_NAME, SERVICE_ID)
-init_telemetry(resource)
+if initConfig.telemetry.enabled:
+    LoggingInstrumentor().instrument(set_logging_format=True)
+    AioPikaInstrumentor().instrument()
+
+    init_telemetry(initConfig.telemetry)
 
 # This object holds the server object
 app = FastAPI(lifespan=lifespan)
 
 # Setting metrics middleware
-app.add_middleware(FastAPIMetricMiddleware, app_name=SERVER_SERVICE_NAME)
+app.add_middleware(FastAPIMetricMiddleware, app_name=initConfig.telemetry.service_name)
 app.add_middleware(LoggingAndTracingMiddleware)
 
 # Add custom exception handlers

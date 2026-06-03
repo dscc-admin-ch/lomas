@@ -1,0 +1,23 @@
+{{- if .Values.server.pvc.data.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "lomas.server.dataPVCName" . }}
+  labels:
+    {{- include "lomas.server.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.server.pvc.data.persistence.resourcePolicy }}
+    "helm.sh/resource-policy": {{ .Values.server.pvc.data.persistence.resourcePolicy }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.server.pvc.data.accessMode }}
+  {{- if .Values.server.pvc.data.storageClassName }}
+  storageClassName: {{ .Values.server.pvc.data.storageClassName | quote }}
+  {{- end }}
+  resources:
+    limits:
+      storage: {{ .Values.server.pvc.data.sizeLimit | quote }}
+    requests:
+      storage: {{ .Values.server.pvc.data.sizeRequest | quote }}
+{{- end }}

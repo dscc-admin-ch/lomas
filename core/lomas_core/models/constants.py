@@ -1,14 +1,16 @@
-from enum import IntEnum, StrEnum
+import logging
+from collections.abc import Sequence
+from enum import StrEnum
+from importlib import metadata
+from typing import Literal
 
-import pkg_resources
+import diffprivlib
+from rich.logging import RichHandler
 
 # Field names
 # -----------------------------------------------------------------------------
 
 DB_TYPE_FIELD = "database_type"
-TYPE_FIELD = "type"
-CARDINALITY_FIELD = "cardinality"
-
 JSON_SCHEMA_EXAMPLES = "examples"
 
 
@@ -18,51 +20,13 @@ JSON_SCHEMA_EXAMPLES = "examples"
 DUMMY_NB_ROWS = 100
 DUMMY_SEED = 42
 
-OPENDP_VERSION = pkg_resources.get_distribution("opendp").version
-DIFFPRIVLIB_VERSION = pkg_resources.get_distribution("diffprivlib").version
-
-# Metadata
-# -----------------------------------------------------------------------------
-
-
-class MetadataColumnType(StrEnum):
-    """Column types for metadata."""
-
-    STRING = "string"
-    CAT_STRING = "categorical_string"
-    INT = "int"
-    CAT_INT = "categorical_int"
-    FLOAT = "float"
-    BOOLEAN = "boolean"
-    DATETIME = "datetime"
-
-
-CATEGORICAL_TYPE_PREFIX = "categorical_"
-
-
-class Precision(IntEnum):
-    """Precision of integer and float data."""
-
-    SINGLE = 32
-    DOUBLE = 64
+OPENDP_VERSION = metadata.version("opendp")
+OpenDPFeatures = Sequence[Literal["contrib", "idealized-numerics", "honest-but-curious"]]
+DIFFPRIVLIB_VERSION = diffprivlib.__version__
 
 
 # Config / Dataset Connectors
 # -----------------------------------------------------------------------------
-
-
-class ConfigKeys(StrEnum):
-    """Keys of the configuration file."""
-
-    RUNTIME_ARGS = "runtime_args"
-    SETTINGS = "settings"
-
-
-class AdminDBType(StrEnum):
-    """Types of administration databases."""
-
-    YAML = "yaml"
-    MONGODB = "mongodb"
 
 
 class TimeAttackMethod(StrEnum):
@@ -78,6 +42,55 @@ class PrivateDatabaseType(StrEnum):
 
     PATH = "PATH_DB"
     S3 = "S3_DB"
+
+
+class AuthenticationType(StrEnum):
+    """Type of Authenticator to identify users."""
+
+    FREE_PASS = "free_pass"
+    OIDC = "oidc"
+
+
+# Logging
+# -----------------------------------------------------------------------------
+
+
+def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> None:
+    """Sets basic logging config to level and creates a logger named after name with log level lomas_level.
+
+    This function is meant to set a parent logger for the lomas_* module with a different
+    log level than the root logger.
+
+    Args:
+        name (str): Name of the parent logger to create
+        level (str): Log level for the root logger.
+        lomas_level (str): Log level for the parent logger.
+    """
+    logging.basicConfig(
+        format="%(message)s %(name)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
+        level=level,
+    )
+
+    logging.getLogger(name).setLevel(lomas_level)
+
+
+def get_lomas_logger(name: str, level: str = "NOTSET") -> logging.Logger:
+    """Get a logger with set level.
+
+    Default level is always unset (getLogger default is warning).
+
+    Args:
+        name (str): Name of the logger.
+        level (str, optional): Logging level. Defaults to "NOTSET".
+
+    Returns:
+        logging.Logger: Named logger with correct level.
+    """
+    logging.getLogger(name).setLevel(level)
+
+    return logging.getLogger(name)
 
 
 # Exceptions

@@ -1,87 +1,122 @@
-import os
-import sys
-
+import httpx
 import streamlit as st
-from st_pages import Page, show_pages
+from returns.converters import maybe_to_result
+from returns.io import IOFailure, IOSuccess
+from returns.maybe import Maybe
+from returns.pipeline import flow
+from returns.pointfree import alt, bind_result, lash, map_
+from returns.result import Failure, Success
+
+from lomas_server.administration.dashboard.utils import get_config, query_lomas_auth, recover_if_410
 
 
-def main():
-    st.set_page_config(page_title="Lomas Dashboard")
-    FOLDER = "./lomas_server/administration/dashboard"  # TODO 352 move
-    show_pages(
+def main() -> None:
+    """Main function for the streamlit lomas dashboard."""
+    page = st.navigation(
         [
-            Page(f"{FOLDER}/about.py", "Home Page", "🏠"),
-            Page(
-                f"{FOLDER}/pages/a_server_overview.py",
-                "Lomas server overview",
-                ":computer:",
-            ),
-            Page(
-                f"{FOLDER}/pages/b_database_administration.py",
-                "Admin database management",
-                ":file_folder:",
+            st.Page(about, title="Home"),
+            st.Page(
+                "database_administration.py",
+                title="Database",
             ),
         ]
     )
+    # Sidebar common to all page
+    with st.sidebar:
+        if not st.user.get("is_logged_in"):
+            if st.button("Log in"):
+                st.login()
+        else:
+            st.write(f"**{st.user.name}**")
+            if st.button("Log out", type="primary"):
+                st.logout()
+
+    page.run()
+
+
+def about() -> None:
+    """About page."""
+    st.set_page_config(page_title="Lomas Dashboard")
 
     st.title("Welcome!")
 
-    st.header("Lomas Administation Dashboard")
-    st.write(
-        """
-    The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database.
-    Whether you need to monitor server status, manage user accounts, or administer datasets, this dashboard offers a convenient way to do so.
-    """  # noqa: E501
-    )
+    st.header("Lomas Administration Dashboard")
+    description = """
+        The Lomas Administration Dashboard provides a centralized interface for managing various aspects of your server and database.
+        Whether you need to monitor server status, manage user accounts, or administer datasets, this dashboard offers a convenient way to do so.
+    """
+    st.write(description)
 
     st.header("Key Features")
 
-    st.write(
-        """
+    features = """
         - **Server Overview**: Quickly check the status of your server, including live status and configuration details.
         - **Admin Database Management**: Effortlessly manage users and datasets through intuitive interfaces.
         - **User Management**: Add, modify, or delete user accounts, set budget parameters, and control user permissions.
         - **Dataset Management**: Add, remove, or modify datasets and associated metadata with ease.
         - **View Database Content**: Dive deep into the database to view detailed information about users, datasets, metadata, and archives.
         - **Delete Content (DANGEROUS)**: Safely delete users, datasets, metadata, or entire collections when necessary.
-        """  # noqa: E501
-    )
-
-    st.header("Quick Start")
-
-    st.write(
         """
-        1. Navigate through the tabs to access different functionalities:
-            - **Server Overview**: Check server status and configuration.
-            - **Admin Database Management**: Manage users, datasets, and database content.
-
-        2. Use the intuitive interfaces to perform actions such as adding users, modifying datasets, or viewing database content.
-
-        3. Exercise caution when using deletion functionalities, as they can permanently remove data.
-
-        4. Refer to the documentation or tooltips for additional guidance on specific features.
-    """  # noqa: E501
-    )
+    st.write(features)
 
     # Additional resources
     st.header("Resources")
 
-    st.write(
-        "**Documentation**: [server documentation](%s)"
-        % "https://dscc-admin-ch.github.io/lomas-docs/lomas_server.admin_database.html"  # noqa: E501
+    doc = (
+        "**Documentation**: [server documentation]"
+        "(https://dscc-admin-ch.github.io/lomas-docs/lomas_server.admin_database.html)"
     )
-    st.write(
-        "**Support**: If you encounter any issues or have questions, reach out on [Github issues](%s)"  # noqa: E501
-        % "https://github.com/dscc-admin-ch/lomas/issues"
+    st.write(doc)
+    support = (
+        "**Support**: If you encounter any issues or have questions, reach out on [Github issues]"
+        "(https://github.com/dscc-admin-ch/lomas/issues)"
+    )
+
+    st.write(support)
+
+    # Server Status
+    st.header("Server Status")
+
+    match query_lomas_auth("/state", httpx.get):
+        case IOSuccess(Success({"state": state})):
+            status = f":green-badge[{state}]"
+        case IOSuccess(Success(unexpected)):
+            status = f":orange-badge[unexpected state: {unexpected}]"
+        case IOFailure(Failure(e)):
+            status = f":red-badge[unavailable]: {e}"
+
+    match get_config().map(lambda config: config.server_url):
+        case IOSuccess(Success(server_url)):
+            st.write(f"{status} at {server_url}")
+        case IOFailure(Failure(e)):
+            st.error(f"Configuration Error: {e}")
+
+    flow(
+        get_config(),
+        map_(lambda config: Maybe.from_optional(config.dex_config)),
+        bind_result(maybe_to_result),
+    ).map(
+        lambda _: st.write(
+            ":red-badge[Dex is enabled.] Dex is only supported for demo purposes and is not safe for a production environment!"
+        )
+    )
+
+    flow(
+        query_lomas_auth("/bootstrap", httpx.get),
+        lash(lambda e: recover_if_410(e, default=False)),
+        alt(lambda e: st.write(f":red-badge[unavailable]: {e}")),
+        map_(lambda e: True if e is None else False),  # Define bootstrap_exists
+        map_(
+            lambda bootstrap_exists: (
+                st.write(
+                    ":red-badge[Bootstrap permissions enabled!] Lomas admin api endpoints are authorized with bootstrap credentials. Disable bootstrap permissions!"
+                )
+                if bootstrap_exists
+                else st.write(":green-badge[Bootstrap permissions disabled]")
+            )
+        ),
     )
 
 
 if __name__ == "__main__":
-    # We add the src directory to the python search path
-    # Required if the code is not installed as a package via pip/setuptools
-    admin_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
-    sys.path.append(admin_dir)
-    src_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
-    sys.path.append(src_dir)
-
     main()

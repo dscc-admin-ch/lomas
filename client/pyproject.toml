@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["."]
+
+[project]
+name = "lomas-client"
+version = "0.5.1"
+description = "A client to interact with the Lomas server."
+readme = "README.md"
+requires-python = ">=3.11, <3.14"
+authors = [
+    { name = "Data Science Competence Center", email = "dscc@bfs.admin.ch" },
+    { name = "Swiss Federal Statistical Office" },
+]
+license = "MIT"
+keywords = [
+    "DP",
+    "differential privacy",
+    "diffprivlib",
+    "logger",
+    "opendp",
+    "privacy",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "lomas-core==0.5.1",
+    "jupyter>=1.1",
+    "authlib>=1.6.7",
+    "opentelemetry-instrumentation-logging>=0.50b0",
+    "opentelemetry-instrumentation-requests>=0.50b0",
+    "seaborn>=0.13",
+]
+
+[project.optional-dependencies]
+test = [
+  "beautifulsoup4>=4.14.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/dscc-admin/lomas/"

@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import jwt
 import requests
@@ -21,6 +21,27 @@ class FreePassAuthenticator(BaseModel):
     """Authenticator that Bypass Auth."""
 
     authentication_type: Literal[AuthenticationType.FREE_PASS]
+
+    def __init__(self, **data: Any) -> None:
+        logger.warning("Using FreePassAuthenticator, not safe for production!")
+        super().__init__(**data)
+
+    def get_user_id(self, credentials: str) -> UserId:
+        """Extracts user id from bearer token.
+
+        Fails if user does not have scope.
+
+        Args:
+            authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
+            credentials (str): Authorization credentials.
+
+        Returns:
+            UserId: The UserId object containing user infos.
+        """
+        try:
+            return UserId(name=credentials, email="free@pass.com")
+        except Exception as e:
+            raise UnauthorizedAccessException("Failed bearer token verification.") from e
 
 
 class OIDCAuthenticator(BaseModel):
@@ -52,69 +73,51 @@ class OIDCAuthenticator(BaseModel):
             cache_keys=True,
         )
 
+    def get_user_id(self, credentials: str) -> UserId:
+        """Extracts user id from bearer token.
+
+        Fails if user does not have scope.
+
+        Args:
+            authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
+            credentials (str): Authorization credentials.
+
+        Returns:
+            UserId: The UserId object containing user infos.
+        """
+        try:
+            # Get userfinfo from userinfo endpoint or jwt token
+            if self.query_userinfo:
+                response = requests.get(
+                    url=str(self.oidc_config.userinfo_endpoint),
+                    headers={"Authorization": f"Bearer {credentials}"},
+                )
+                response.raise_for_status()
+                userinfo = response.json()
+
+            else:
+                # Extracts kid from JWT and fetches corresponding key from keycloak (or cache).
+                key = self.jwk_client.get_signing_key_from_jwt(credentials)
+                # Decodes and validates JWT
+                # Note: audience is set to lomas client because it receives the token from IdP. Not all IdP support multi-audience.
+                userinfo = jwt.decode(credentials, key=key, audience=OIDC_LOMAS_CLIENT__CLIENT_ID)
+
+            return UserId(
+                name=userinfo[OIDCClaims.USER_NAME],  # TODO make pydantic model or parametrize claim name?
+                email=userinfo[OIDCClaims.USER_EMAIL],
+            )
+
+        except UnauthorizedAccessException as e:
+            raise e
+        except Exception as e:
+            # TODO problematic to add e into error message to client?
+            raise UnauthorizedAccessException("Failed bearer token verification.") from e
+
 
 # Ideally should be at the top of the file with forward type reference but oh well
 AuthenticatorT = Annotated[
     FreePassAuthenticator | OIDCAuthenticator, Field(discriminator="authentication_type")
 ]
-
-
-def get_user_id(
-    authenticator: AuthenticatorT,
-    security_scopes: SecurityScopes,
-    credentials: str,
-) -> UserId:
-    """Extracts user id from bearer token.
-
-    Fails if user does not have scope.
-
-    Args:
-        authenticator (AuthenticatorT): A valid authenticator (FreePassAuthenticator or OIDC Authenticator)
-        security_scopes (SecurityScopes): The required scopes for the endpoint.
-        credentials (str): Authorization credentials.
-
-    Returns:
-        UserId: The UserId object containing user infos.
-    """
-    match authenticator:
-        case FreePassAuthenticator():
-            try:
-                user = UserId(name=credentials, email="free@pass.com")
-            except Exception as e:
-                raise UnauthorizedAccessException("Failed bearer token verification.") from e
-
-        case OIDCAuthenticator():
-            try:
-                # Get userfinfo from userinfo endpoint or jwt token
-                if authenticator.query_userinfo:
-                    response = requests.get(
-                        url=str(authenticator.oidc_config.userinfo_endpoint),
-                        headers={"Authorization": f"Bearer {credentials}"},
-                    )
-                    response.raise_for_status()
-                    userinfo = response.json()
-
-                else:
-                    # Extracts kid from JWT and fetches corresponding key from keycloak (or cache).
-                    key = authenticator.jwk_client.get_signing_key_from_jwt(credentials)
-                    # Decodes and validates JWT
-                    # Note: audience is set to lomas client because it receives the token from IdP. Not all IdP support multi-audience.
-                    userinfo = jwt.decode(credentials, key=key, audience=OIDC_LOMAS_CLIENT__CLIENT_ID)
-
-                user = UserId(
-                    name=userinfo[
-                        OIDCClaims.USER_NAME
-                    ],  # TODO make pydantic model or parametrize claim name?
-                    email=userinfo[OIDCClaims.USER_EMAIL],
-                )
-
-            except UnauthorizedAccessException as e:
-                raise e
-            except Exception as e:
-                # TODO problematic to add e into error message to client?
-                raise UnauthorizedAccessException("Failed bearer token verification.") from e
-
-    return user
 
 
 def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes: SecurityScopes) -> None:

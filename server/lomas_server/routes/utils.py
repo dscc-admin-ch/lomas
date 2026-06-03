@@ -29,7 +29,7 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
-from lomas_server.auth.auth import authorize_user, get_user_id
+from lomas_server.auth.auth import authorize_user
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
@@ -178,7 +178,7 @@ def get_user_id_from_authenticator(
             case _:
                 pass
 
-    user_id = get_user_id(request.app.state.authenticator, security_scopes, auth_creds.credentials)
+    user_id = request.app.state.authenticator.get_user_id(auth_creds.credentials)
     request.state.user_name = user_id.name
     # This raises an exception if authz fails
     authorize_user(user_id, request.app.state.admin_database, security_scopes)

@@ -3,7 +3,7 @@ name: lomas-server
 description: Lomas deployment chart
 type: application
 version: 0.5.1
-appVersion: 0.5.0
+appVersion: 0.5.1
 icon: https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/images/lomas_logo.svg
 
 dependencies:

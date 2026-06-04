@@ -38,9 +38,12 @@ jobs:
           git fetch --all --tags --prune
 
       - name: Publish Develop doc
-        if: github.event_name == 'push' || github.event_name == 'release'
-        run: devenv shell -- mike deploy develop --push
-
-      - name: Publish Tag doc
-        if: github.ref_type == 'tag'
-        run: devenv shell -- mike deploy ${{ github.ref_name }} latest --update-aliases --push
+        if: github.event_name == 'push' || github.event_name == 'release' || github.ref_type == 'tag'
+        run: |
+          REF="${{ github.ref_name }}"
+          if [ "${{ github.ref_type }}" = "tag"]; then
+            MAJMIN=$(echo "${REF#v}" | awk -F. '{print $1"."$2}')
+            devenv shell -- mike deploy "$MAJMIN" latest --update-aliases --push
+          else
+            devenv shell -- mike deploy develop --push
+          fi

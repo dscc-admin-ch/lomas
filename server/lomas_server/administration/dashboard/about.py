@@ -64,7 +64,7 @@ def about() -> None:
 
     doc = (
         "**Documentation**: [server documentation]"
-        "(https://dscc-admin-ch.github.io/lomas-docs/lomas_server.admin_database.html)"
+        "(https://dscc-admin-ch.github.io/lomas/latest/server/administration/)"
     )
     st.write(doc)
     support = (

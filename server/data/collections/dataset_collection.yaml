@@ -23,14 +23,14 @@ datasets:
 - dataset_name: "TITANIC"
   dataset_access:
     database_type: "PATH_DB"
-    path: "../data/datasets/titanic.csv"
+    path: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/server/data/datasets/titanic.csv"
   metadata_access:
     database_type: "PATH_DB"
     path: "../data/collections/metadata/titanic_metadata.json"
 - dataset_name: "FSO_INCOME_SYNTHETIC"
   dataset_access:
     database_type: "PATH_DB"
-    path: "datasets/income_synthetic_data.csv"
+    path: "https://raw.githubusercontent.com/dscc-admin-ch/lomas/refs/heads/master/server/data/datasets/income_synthetic_data.csv"
   metadata_access:
     database_type: "PATH_DB"
     path: "collections/metadata/fso_income_synthetic_metadata.json"

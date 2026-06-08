@@ -11,7 +11,6 @@ services:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
       - ./data/collections:/data/collections
-      - ./data/datasets:/data/datasets/
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${LOMAS_SERVICE_PORT}/live"]
       interval: 10s
@@ -42,7 +41,6 @@ services:
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core
-      - ./data/datasets:/data/datasets/
     depends_on:
       otel-collector:
         condition: service_started

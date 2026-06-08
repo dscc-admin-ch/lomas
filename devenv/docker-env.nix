@@ -156,6 +156,8 @@ in
 
             install -dm 755 data/collections/
             cp -r --no-preserve=all ${../server/data/collections}/metadata data/collections/
+            install -dm 755 data/datasets/
+            cp -r --no-preserve=all ${../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
           '';
           config = {
             Cmd = [ "lomas-serve" ];

@@ -17,7 +17,7 @@ server:
   image:
     repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: 0.5.1
+    tag: latest
 
   initContainers:
     image:
@@ -129,7 +129,7 @@ demoSetupJob:
   image:
     repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: 0.5.1
+    tag: latest
 
   config:
     serverUrl: "https://lomas.example.com"
@@ -153,7 +153,7 @@ dashboard:
   image:
     repository: dsccadminch/lomas-raw
     imagePullPolicy: Always
-    tag: 0.5.1
+    tag: latest
 
   config:
     # Specified here in case server ingress not managed by this chart.

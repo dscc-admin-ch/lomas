@@ -4,7 +4,7 @@ from uuid import UUID
 from csvw_eo.datatypes import to_pandas_dtype
 from csvw_eo.make_dummy_from_metadata import make_dummy_from_metadata
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import APIRouter, Body, HTTPException, Request, Response, Security, UploadFile, status
+from fastapi import APIRouter, Body, Request, Response, Security, UploadFile, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
@@ -80,20 +80,18 @@ async def status_handler(
     Returns:
         Job: The Job model for this uid.
     """
-    jobs = request.app.state.jobs
-    if (job := jobs.get(str(uid))) is not None:
-        if job.requested_by != user_id.name:
-            raise UnauthorizedAccessException(f"{user_id.name} does not have access to job with uid {uid}.")
+    # Handles both exceptional cases
+    job = request.app.state.admin_database.get_job_for_user(user_id.name, uid)
 
-        if job.status == "failed":
-            response.status_code = job.status_code
+    if job.status == "failed":
+        response.status_code = job.status_code
 
-        if job.status == "complete":
-            # Delete completed job from state once returned to user.
-            del jobs[str(uid)]
+    # TODO: keep jobs as new archive collection?
+    # if job.status == "complete":
+    #     # Delete completed job from state once returned to user.
+    #     del jobs[str(uid)]
 
-        return job
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="This job does not exist.")
+    return job
 
 
 # Get server state

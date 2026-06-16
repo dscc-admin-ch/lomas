@@ -5,15 +5,20 @@ import sys
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from typing import Any, BinaryIO, Self
+from uuid import UUID
 
 import boto3
 import yaml
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from filelock import SoftFileLock
 from pydantic import HttpUrl
+from starlette import status
 
-from lomas_core.error_handler import InternalServerException
+from lomas_core.error_handler import (
+    InternalServerException,
+    UnauthorizedAccessException,
+)
 from lomas_core.models.collections import (
     DatasetOfUser,
     DatasetsCollection,
@@ -26,7 +31,7 @@ from lomas_core.models.collections import (
 )
 from lomas_core.models.constants import PrivateDatabaseType, get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
-from lomas_core.models.responses import QueryResponse
+from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
     dataset_must_exist,
@@ -61,17 +66,77 @@ class LocalAdminDatabase(AdminDatabase):
     """Database accepts existing path or new (creatable) path."""
 
     @lock
-    def model_post_init(self, _: Any, /) -> None:
-        # create the file if it doesn't exists yet (makes open with flag='r' safe)
-        shelve.open(self.path).close()
+    def model_post_init(self, _: Any) -> None:
+        self.set_defaults()
 
     @override
     @lock
     def wipe(self) -> None:
         if (p := Path(self.path)).exists():
             p.unlink()
-        # Recreate file to make open with flag="r" safe
-        shelve.open(self.path).close()
+        self.set_defaults()
+
+    def set_defaults(self) -> None:
+        """Sets the default values for all collections in the database."""
+        # create the file if it doesn't exists yet (makes open with flag='r' safe)
+        with shelve.open(self.path, writeback=True) as db:
+            # Initialize to empty dicts by default
+
+            db.setdefault(TK.USERS, {})
+            db.setdefault(TK.DATASETS, {})
+            db.setdefault(TK.METADATA, {})
+            db.setdefault(TK.ARCHIVE, [])  # array
+            db.setdefault(TK.MISC_KEYS, {})
+            db[TK.MISC_KEYS].setdefault(MiscDBKeys.JOBS, {})
+
+    @override
+    @lock
+    def does_job_exist(self, uid: UUID) -> bool:
+        with shelve.open(self.path, flag="r") as db:
+            return uid in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys()
+
+    @override
+    @db_span("db.get_job", table="admin-db")
+    @lock
+    def get_job_for_user(self, user_name: str, uid: UUID) -> Job:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job"})
+
+        with shelve.open(self.path, flag="r") as db:
+            # Check job exists
+            if uid not in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys():
+                message = f"Job {uid} does not exist."
+                logger.debug(f"Error 404 raised: {message}")
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
+
+            job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid]
+
+            # Check user owns job
+            if job.requested_by != user_name:
+                raise UnauthorizedAccessException(
+                    f"User {user_name} does not have access to job with uid {uid}"
+                )
+
+            return job
+
+    @override
+    @db_span("db.put_job", table="admin-db")
+    @lock
+    def put_job(self, job: Job) -> None:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "put_job"})
+        with shelve.open(self.path, writeback=True) as db:
+            db[TK.MISC_KEYS][MiscDBKeys.JOBS][job.uid] = job
+
+    @override
+    @lock
+    def update_job(self, updated_job: Job) -> None:
+        uid = updated_job.uid
+        with shelve.open(self.path, writeback=True) as db:
+            if uid not in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys():
+                raise InternalServerException(f"Cannot update job with uid {uid}: not in db.")
+            merged_job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid].model_copy(
+                update=updated_job.model_dump(exclude_none=True), deep=True
+            )
+            db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid] = merged_job
 
     @lock
     def load_users_collection(self, users: list[User]) -> None:
@@ -590,7 +655,8 @@ class LocalAdminDatabase(AdminDatabase):
     @lock
     def set_bootstrap(self, bootstrap: str) -> None:
         with shelve.open(self.path, writeback=True) as db:
-            db[TK.MISC_KEYS] = {MiscDBKeys.BOOTSTRAP_DISABLED: False, MiscDBKeys.BOOTSTRAP: bootstrap}
+            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = False
+            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP] = bootstrap
 
     @override
     @lock

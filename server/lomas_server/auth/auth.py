@@ -7,7 +7,7 @@ from fastapi.security import SecurityScopes
 from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID, Scopes
-from lomas_core.error_handler import InternalServerException, UnauthorizedAccessException
+from lomas_core.exceptions import InternalServerException, UnauthorizedAccessException
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
 from lomas_core.models.constants import AuthenticationType, get_lomas_logger

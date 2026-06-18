@@ -7,7 +7,7 @@ from fastapi import status
 from pydantic import JsonValue
 
 from lomas_core.models.constants import AuthenticationType
-from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import Job
 
 
@@ -38,7 +38,7 @@ def submit_job_wait(
     query_job_submit = client.post(endpoint, json=json, headers=headers)
 
     if query_job_submit.status_code != status.HTTP_202_ACCEPTED:
-        error = LomasServerExceptionTypeAdapter.validate_json(query_job_submit.content)
+        error = LomasAPIErrorModel.model_validate_json(query_job_submit.content)
         return Job(status="failed", status_code=query_job_submit.status_code, error=error)
 
     job_uid = query_job_submit.json()["uid"]

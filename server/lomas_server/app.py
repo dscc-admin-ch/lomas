@@ -6,10 +6,7 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
-from lomas_core.error_handler import (
-    InternalServerException,
-    add_exception_handlers,
-)
+from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_server.dp_queries.dp_libraries.opendp import (
@@ -17,6 +14,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 )
 from lomas_server.models.config import Config
 from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,

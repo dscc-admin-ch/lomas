@@ -4,7 +4,7 @@ from typing import Literal
 import pandas as pd
 from pydantic import FilePath, HttpUrl
 
-from lomas_core.error_handler import InternalServerException, InvalidQueryException
+from lomas_core.exceptions import InternalServerException, InvalidQueryException
 from lomas_server.data_connector.data_connector import DataConnector
 
 

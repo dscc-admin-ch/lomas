@@ -20,7 +20,7 @@ from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
 from lomas_client.constants import DEFAULT_EPSILON
-from lomas_core.error_handler import UnauthorizedAccessException
+from lomas_core.exceptions import UnauthorizedAccessException
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.dex.dex_admin import (
     add_dex_user,

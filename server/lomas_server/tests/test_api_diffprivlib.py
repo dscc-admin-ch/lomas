@@ -12,11 +12,7 @@ from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InvalidQueryExceptionModel,
-    UnauthorizedAccessExceptionModel,
-)
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests_examples import (
     example_diffprivlib,
     example_dummy_diffprivlib,
@@ -92,7 +88,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             job = test_imputation(example_diffprivlib, "i_do_not_exist")
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Imputation strategy i_do_not_exist not supported."
             )
 
@@ -137,7 +133,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-            assert job.error == ExternalLibraryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="PrivacyLeakWarning: "
                 + "Data norm has not been specified and will be calculated on the data provided.  "
                 + "This will result in additional privacy leakage. "
@@ -166,7 +162,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-            assert job.error == ExternalLibraryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="PrivacyLeakWarning: "
                 + "Bounds have not been specified and will be calculated on the data provided. "
                 + "This will result in additional privacy leakage. "
@@ -297,7 +293,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Columns cannot be both feature and target: bill_length_mm"
             )
 
@@ -460,9 +456,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message=f"{self.user_name} does not have access to IRIS."
-                ).model_dump()
+                == LomasAPIErrorModel(message=f"{self.user_name} does not have access to IRIS.").model_dump()
             )
 
     def test_diffprivlib_cost(self) -> None:
@@ -490,7 +484,5 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message=f"{self.user_name} does not have access to IRIS."
-                ).model_dump()
+                == LomasAPIErrorModel(message=f"{self.user_name} does not have access to IRIS.").model_dump()
             )

@@ -2,9 +2,9 @@
 # from fastapi import status
 # from fastapi.testclient import TestClient
 
-# from lomas_core.models.exceptions import (
-#     ExternalLibraryExceptionModel,
-#     UnauthorizedAccessExceptionModel,
+# from lomas_core.error_handler import (
+#     LomasAPIErrorModel,
+#     LomasAPIErrorModel,
 # )
 # from lomas_core.models.requests_examples import (
 #     example_dummy_smartnoise_synth_query,
@@ -91,7 +91,7 @@
 #             )
 #             assert job.status == "failed"
 #             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-#             assert job.error == ExternalLibraryExceptionModel(
+#             assert job.error == LomasAPIErrorModel(
 #                 message="Error fitting model: "
 #                 + "sample_rate=1.4534883720930232 is not a valid value. "
 #                 + "Please provide a float between 0 and 1. "
@@ -277,7 +277,7 @@
 #             assert response.status_code == status.HTTP_403_FORBIDDEN
 #             assert (
 #                 response.json()
-#                 == UnauthorizedAccessExceptionModel(
+#                 == LomasAPIErrorModel(
 #                     message=f"{self.user_name} does not have access to IRIS."
 #                 ).model_dump()
 #             )
@@ -307,7 +307,7 @@
 #             assert response.status_code == status.HTTP_403_FORBIDDEN
 #             assert (
 #                 response.json()
-#                 == UnauthorizedAccessExceptionModel(
+#                 == LomasAPIErrorModel(
 #                     message=f"{self.user_name} does not have access to IRIS."
 #                 ).model_dump()
 #             )
@@ -397,7 +397,7 @@
 #             )
 #             assert job.status == "failed"
 #             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-#             assert job.error == ExternalLibraryExceptionModel(
+#             assert job.error == LomasAPIErrorModel(
 #                 message="Error creating model: "
 #                 + "MWEMSynthesizer.__init__() got an "
 #                 + "unexpected keyword argument 'delta'",
@@ -515,7 +515,7 @@
 #             )
 #             assert job.status == "failed"
 #             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-#             assert job.error == ExternalLibraryExceptionModel(
+#             assert job.error == LomasAPIErrorModel(
 #                 message="Error fitting model: "
 #                 + "Inputted epsilon parameter is too small to create a private"
 #                 + " dataset. Try increasing epsilon and rerunning.",
@@ -553,7 +553,7 @@
 #             )
 #             assert job.status == "failed"
 #             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-#             assert job.error == ExternalLibraryExceptionModel(
+#             assert job.error == LomasAPIErrorModel(
 #                 message="pategan not reliable with this dataset.",
 #                 library="smartnoise_synth",
 #             )
@@ -573,7 +573,7 @@
 #             )
 #             assert job.status == "failed"
 #             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-#             assert job.error == ExternalLibraryExceptionModel(
+#             assert job.error == LomasAPIErrorModel(
 #                 message="Error fitting model: "
 #                 + "Inputted epsilon and sigma parameters "
 #                 + "are too small to create a private dataset. "

@@ -15,20 +15,9 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
-    ExternalLibraryException,
-    InternalServerException,
-    InvalidQueryException,
-    UnauthorizedAccessException,
-)
+from lomas_core.exceptions import InternalServerException, LomasAPIException
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import get_lomas_logger, init_logging
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InternalServerExceptionModel,
-    InvalidQueryExceptionModel,
-    UnauthorizedAccessExceptionModel,
-)
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
@@ -48,46 +37,30 @@ from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQue
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
+from lomas_server.routes.error_handler import response_from_lomas_exception
 from lomas_server.routes.utils import rabbitmq_connect_queue
 
 logger = get_lomas_logger(__name__)
 
 
 def handle_exceptions(exc: BaseException) -> JSONResponse:
-    """Transform KNOWN_EXCEPTIONS into a status_code and message for serialization.
+    """Transform LomasAPIException into a JSONResponse.
+
+    TODO use already defined handlers instead?
 
     In case of unkown exception, wraps it up as if it were an InternalServerException.
-    In case of internal exception, the error message is forwarded to avoid potentially
+    In case of internal exception, the error message is not forwarded to avoid potentially
     disclosing sensitive information.
     """
-    logger.error(exc)
+    logger.exception(exc)
     match exc:
-        case ExternalLibraryException():
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                content=jsonable_encoder(
-                    ExternalLibraryExceptionModel(message=exc.error_message, library=exc.library)
-                ),
-            )
-        case InternalServerException():
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=jsonable_encoder(InternalServerExceptionModel()),
-            )
-        case InvalidQueryException():
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content=jsonable_encoder(InvalidQueryExceptionModel(message=exc.error_message)),
-            )
-        case UnauthorizedAccessException():
-            return JSONResponse(
-                status_code=status.HTTP_403_FORBIDDEN,
-                content=jsonable_encoder(UnauthorizedAccessExceptionModel(message=exc.error_message)),
-            )
+        case LomasAPIException():
+            # same as exception handler
+            return response_from_lomas_exception(exc)
         case _:
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=jsonable_encoder(InternalServerExceptionModel()),
+                content=jsonable_encoder(InternalServerException()),
             )
 
 

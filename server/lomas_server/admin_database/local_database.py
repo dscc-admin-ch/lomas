@@ -15,7 +15,7 @@ from filelock import SoftFileLock
 from pydantic import HttpUrl
 from starlette import status
 
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     InternalServerException,
     UnauthorizedAccessException,
 )

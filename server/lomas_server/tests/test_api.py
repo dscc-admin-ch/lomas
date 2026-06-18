@@ -7,10 +7,7 @@ from lomas_core.constants import DPLibraries
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
 )
-from lomas_core.models.exceptions import (
-    InvalidQueryExceptionModel,
-    UnauthorizedAccessExceptionModel,
-)
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests_examples import (
     PENGUIN_DATASET,
     QUERY_DELTA,
@@ -80,7 +77,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert (
                 response.json()
-                == InvalidQueryExceptionModel(
+                == LomasAPIErrorModel(
                     message=f"Dataset {fake_dataset} does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
@@ -92,7 +89,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
-                == UnauthorizedAccessExceptionModel(
+                == LomasAPIErrorModel(
                     message=f"{self.user_name} does not have access to {other_dataset}."
                 ).model_dump()
             )
@@ -139,7 +136,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert (
                 response.json()
-                == InvalidQueryExceptionModel(
+                == LomasAPIErrorModel(
                     message=f"Dataset {fake_dataset} does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
@@ -167,7 +164,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
-                == UnauthorizedAccessExceptionModel(
+                == LomasAPIErrorModel(
                     message=f"{self.user_name} does not have access to {other_dataset}."
                 ).model_dump()
             )
@@ -182,7 +179,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_403_FORBIDDEN
             assert (
                 response.json()
-                == UnauthorizedAccessExceptionModel(
+                == LomasAPIErrorModel(
                     message="User fake_user does not "
                     + "exist. Please, verify the client object initialisation."
                 ).model_dump()
@@ -363,7 +360,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Not enough budget for this query "
                 + "epsilon remaining 2.0, "
                 + "delta remaining 0.004970000100000034."

@@ -4,11 +4,7 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InvalidQueryExceptionModel,
-    UnauthorizedAccessExceptionModel,
-)
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests_examples import (
     PENGUIN_DATASET,
     QUERY_DELTA,
@@ -65,7 +61,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-            assert job.error == ExternalLibraryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Error obtaining cost: "
                 + "Noise scale is too large using epsilon=1e-09 "
                 + "and bounds (0, 1) with Mechanism.laplace.  "
@@ -80,7 +76,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Query requested columns not found in DataFrame: ['bill']",
                 library="smartnoise_sql",
             )
@@ -91,9 +87,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
-            assert job.error == UnauthorizedAccessExceptionModel(
-                message="Dr.Antartica does not have access to IRIS."
-            )
+            assert job.error == LomasAPIErrorModel(message="Dr.Antartica does not have access to IRIS.")
 
             # Expect to fail: dataset does not exist
             input_smartnoise = dict(example_smartnoise_sql)
@@ -101,7 +95,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="Dataset I_do_not_exist does not exist."
                 + " Please, verify the client object initialisation."
             )
@@ -113,7 +107,7 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
-            assert job.error == UnauthorizedAccessExceptionModel(
+            assert job.error == LomasAPIErrorModel(
                 message="User I_do_not_exist does not exist. "
                 + "Please, verify the client object initialisation."
             )
@@ -258,6 +252,4 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_403_FORBIDDEN
-            assert job.error == UnauthorizedAccessExceptionModel(
-                message=f"{self.user_name} does not have access to IRIS."
-            )
+            assert job.error == LomasAPIErrorModel(message=f"{self.user_name} does not have access to IRIS.")

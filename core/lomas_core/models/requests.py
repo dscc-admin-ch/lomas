@@ -7,7 +7,7 @@ from lomas_core.constants import (
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
-from lomas_core.error_handler import InternalServerException
+from lomas_core.exceptions import InternalServerException
 from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType
 from lomas_core.models.requests_examples import (
     example_diffprivlib,

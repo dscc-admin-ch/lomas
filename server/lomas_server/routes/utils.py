@@ -16,13 +16,13 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     InternalServerException,
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
-from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -56,7 +56,7 @@ async def process_response(
                             updated_job = Job(
                                 uid=UUID(message.correlation_id),
                                 status="failed",
-                                error=LomasServerExceptionTypeAdapter.validate_json(message_body),
+                                error=LomasAPIErrorModel.model_validate(message_body),
                                 result=None,
                                 status_code=status_code,
                             )

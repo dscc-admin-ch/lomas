@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import APIRouter, Request, Security, status
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import SERVER_QUERY_ERROR_RESPONSES
 from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
     DiffPrivLibDummyQueryModel,
@@ -20,6 +19,7 @@ from lomas_core.models.requests import (
     SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import Job
+from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import (
     get_user_id_from_authenticator,
     handle_query_to_job,
@@ -33,7 +33,7 @@ router = APIRouter()
 
 @router.post(
     "/smartnoise_sql_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -68,7 +68,7 @@ async def smartnoise_sql_handler(
 
 @router.post(
     "/dummy_smartnoise_sql_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -104,7 +104,7 @@ async def dummy_smartnoise_sql_handler(
 
 @router.post(
     "/estimate_smartnoise_sql_cost",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -143,7 +143,7 @@ async def estimate_smartnoise_sql_cost(
 
 @router.post(
     "/smartnoise_synth_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -182,7 +182,7 @@ async def smartnoise_synth_handler(
 
 @router.post(
     "/dummy_smartnoise_synth_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -221,7 +221,7 @@ async def dummy_smartnoise_synth_handler(
 
 @router.post(
     "/estimate_smartnoise_synth_cost",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -263,7 +263,7 @@ async def estimate_smartnoise_synth_cost(
 
 @router.post(
     "/opendp_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -298,7 +298,7 @@ async def opendp_query_handler(
 
 @router.post(
     "/dummy_opendp_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -333,7 +333,7 @@ async def dummy_opendp_query_handler(
 
 @router.post(
     "/estimate_opendp_cost",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -372,7 +372,7 @@ async def estimate_opendp_cost(
 
 @router.post(
     "/diffprivlib_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -407,7 +407,7 @@ async def diffprivlib_query_handler(
 
 @router.post(
     "/dummy_diffprivlib_query",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
     status_code=status.HTTP_202_ACCEPTED,
 )
@@ -442,7 +442,7 @@ async def dummy_diffprivlib_query_handler(
 
 @router.post(
     "/estimate_diffprivlib_cost",
-    responses=SERVER_QUERY_ERROR_RESPONSES,
+    responses=API_ERROR_RESPONSES,
     tags=["USER_QUERY"],
     status_code=status.HTTP_202_ACCEPTED,
 )

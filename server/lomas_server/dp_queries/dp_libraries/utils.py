@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 
-from lomas_core.error_handler import InvalidQueryException
+from lomas_core.exceptions import InvalidQueryException
 from lomas_server.constants import NUMERICAL_DTYPES
 
 

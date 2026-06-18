@@ -8,12 +8,7 @@ from fastapi import APIRouter, Body, Request, Response, Security, UploadFile, st
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
-from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
-    SERVER_QUERY_ERROR_RESPONSES,
-    InternalServerException,
-    UnauthorizedAccessException,
-)
+from lomas_core.exceptions import UnauthorizedAccessException
 from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
@@ -31,6 +26,7 @@ from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
+from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
 router = APIRouter()
@@ -58,7 +54,7 @@ async def health_handler() -> JSONResponse:
     return JSONResponse(content={"status": "alive"})
 
 
-@router.get("/status/{uid}", responses=SERVER_QUERY_ERROR_RESPONSES)
+@router.get("/status/{uid}", responses=API_ERROR_RESPONSES)
 async def status_handler(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
@@ -136,6 +132,7 @@ async def get_server_config(
 # Metadata query
 @router.post(
     "/get_dataset_metadata",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_METADATA"],
 )
 def get_dataset_metadata(
@@ -170,18 +167,15 @@ def get_dataset_metadata(
             f"{user_id.name} does not have access to {dataset_name}.",
         )
 
-    try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
+
     return ds_metadata
 
 
 # Dummy dataset query
 @router.post(
     "/get_dummy_dataset",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_DUMMY"],
 )
 def get_dummy_dataset(
@@ -220,25 +214,20 @@ def get_dummy_dataset(
             f"{user_id.name} does not have access to {dataset_name}.",
         )
 
-    try:
-        ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
-        dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
-        dummy_df = make_dummy_from_metadata(
-            ds_metadata.to_dict(),
-            query_json.dummy_nb_rows,
-            query_json.dummy_seed,
-        )
-
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
+    dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
+    dummy_df = make_dummy_from_metadata(
+        ds_metadata.to_dict(),
+        query_json.dummy_nb_rows,
+        query_json.dummy_seed,
+    )
 
     return DummyDsResponse(dtypes=dtypes, dummy_df=dummy_df)
 
 
 @router.post(
     "/get_initial_budget",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_BUDGET"],
 )
 def get_initial_budget(
@@ -271,21 +260,17 @@ def get_initial_budget(
     """
     app = request.app
 
-    try:
-        (
-            initial_epsilon,
-            initial_delta,
-        ) = app.state.admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    (
+        initial_epsilon,
+        initial_delta,
+    ) = app.state.admin_database.get_initial_budget(user_id.name, query_json.dataset_name)
 
     return InitialBudgetResponse(initial_epsilon=initial_epsilon, initial_delta=initial_delta)
 
 
 @router.post(
     "/get_total_spent_budget",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_BUDGET"],
 )
 def get_total_spent_budget(
@@ -318,21 +303,17 @@ def get_total_spent_budget(
     """
     app = request.app
 
-    try:
-        (
-            total_spent_epsilon,
-            total_spent_delta,
-        ) = app.state.admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    (
+        total_spent_epsilon,
+        total_spent_delta,
+    ) = app.state.admin_database.get_total_spent_budget(user_id.name, query_json.dataset_name)
 
     return SpentBudgetResponse(total_spent_epsilon=total_spent_epsilon, total_spent_delta=total_spent_delta)
 
 
 @router.post(
     "/get_remaining_budget",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_BUDGET"],
 )
 def get_remaining_budget(
@@ -365,20 +346,16 @@ def get_remaining_budget(
     """
     app = request.app
 
-    try:
-        rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
-            user_id.name, query_json.dataset_name
-        )
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    rem_epsilon, rem_delta = app.state.admin_database.get_remaining_budget(
+        user_id.name, query_json.dataset_name
+    )
 
     return RemainingBudgetResponse(remaining_epsilon=rem_epsilon, remaining_delta=rem_delta)
 
 
 @router.post(
     "/get_previous_queries",
+    responses=API_ERROR_RESPONSES,
     tags=["USER_BUDGET"],
 )
 def get_user_previous_queries(
@@ -412,14 +389,10 @@ def get_user_previous_queries(
     """
     app = request.app
 
-    try:
-        previous_queries = app.state.admin_database.get_user_previous_queries(
-            user_id.name, query_json.dataset_name
-        )  # TODO 359 improve on that and return models.
-    except KNOWN_EXCEPTIONS as e:
-        raise e
-    except Exception as e:
-        raise InternalServerException(str(e)) from e
+    previous_queries = app.state.admin_database.get_user_previous_queries(
+        user_id.name, query_json.dataset_name
+    )  # TODO 359 improve on that and return models.
+
     return JSONResponse(content={"previous_queries": previous_queries})
 
 
@@ -428,7 +401,7 @@ def get_user_previous_queries(
 #############################
 
 
-@router.get("/datasets")
+@router.get("/datasets", responses=API_ERROR_RESPONSES)
 def list_datasets(
     request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
 ) -> list[str]:
@@ -436,7 +409,7 @@ def list_datasets(
     return [ds.dataset_name for ds in db.datasets()]
 
 
-@router.get("/users")
+@router.get("/users", responses=API_ERROR_RESPONSES)
 def list_users(
     request: Request, _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])]
 ) -> list[User]:
@@ -444,7 +417,7 @@ def list_users(
     return db.users()
 
 
-@router.post("/users")
+@router.post("/users", responses=API_ERROR_RESPONSES)
 def add_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -459,7 +432,7 @@ def add_user(
     return db.add_user(new_user.id.name, new_user.id.email)
 
 
-@router.post("/usersfile")
+@router.post("/usersfile", responses=API_ERROR_RESPONSES)
 def add_users_yaml(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -478,7 +451,7 @@ def add_users_yaml(
     return db.add_users_via_yaml(file.file, clean=clean)
 
 
-@router.delete("/users/{username}")
+@router.delete("/users/{username}", responses=API_ERROR_RESPONSES)
 def delete_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -493,7 +466,7 @@ def delete_user(
     return db.del_user(username)
 
 
-@router.delete("/collections/{collection_name}")
+@router.delete("/collections/{collection_name}", responses=API_ERROR_RESPONSES)
 def delete_collection(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -508,7 +481,7 @@ def delete_collection(
     return db.drop_collection(collection_name)
 
 
-@router.post("/dataset/bulk")
+@router.post("/dataset/bulk", responses=API_ERROR_RESPONSES)
 def add_dataset_bulk(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -520,7 +493,7 @@ def add_dataset_bulk(
     return db.add_datasets_via_yaml(file.file, clean=clean, path_prefix=config.data_directory)
 
 
-@router.post("/dataset")
+@router.post("/dataset", responses=API_ERROR_RESPONSES)
 def add_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -536,7 +509,7 @@ def add_dataset(
     )
 
 
-@router.delete("/dataset/{dataset_name}")
+@router.delete("/dataset/{dataset_name}", responses=API_ERROR_RESPONSES)
 def delete_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -546,7 +519,7 @@ def delete_dataset(
     return db.del_dataset(dataset_name)
 
 
-@router.patch("/users/{username}/dataset")
+@router.patch("/users/{username}/dataset", responses=API_ERROR_RESPONSES)
 def add_dataset_to_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -557,7 +530,7 @@ def add_dataset_to_user(
     return db.add_dataset_to_user(username, body.dataset_name, 0.0, 0.0)
 
 
-@router.patch("/users/{username}/dataset/del")
+@router.patch("/users/{username}/dataset/del", responses=API_ERROR_RESPONSES)
 def del_dataset_to_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -568,7 +541,7 @@ def del_dataset_to_user(
     return db.del_dataset_to_user(username, body.dataset_name)
 
 
-@router.patch("/users/{username}/dataset/budget")
+@router.patch("/users/{username}/dataset/budget", responses=API_ERROR_RESPONSES)
 def set_epsilon_delta(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -580,7 +553,7 @@ def set_epsilon_delta(
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
 
 
-@router.get("/users/{username}/archive")
+@router.get("/users/{username}/archive", responses=API_ERROR_RESPONSES)
 def get_archives_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -590,7 +563,7 @@ def get_archives_user(
     return db.get_archives_of_user(username)
 
 
-@router.get("/dataset/{dataset_name}")
+@router.get("/dataset/{dataset_name}", responses=API_ERROR_RESPONSES)
 def get_dataset(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -600,7 +573,7 @@ def get_dataset(
     return db.get_dataset(dataset_name)
 
 
-@router.get("/dataset/{dataset_name}/metadata")
+@router.get("/dataset/{dataset_name}/metadata", responses=API_ERROR_RESPONSES)
 def get_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -610,7 +583,7 @@ def get_dataset_metadata_admin(
     return db.get_dataset_metadata(dataset_name)
 
 
-@router.patch("/dataset/{dataset_name}/metadata")
+@router.patch("/dataset/{dataset_name}/metadata", responses=API_ERROR_RESPONSES)
 def set_dataset_metadata_admin(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -621,7 +594,7 @@ def set_dataset_metadata_admin(
     db.set_dataset_metadata(dataset_name, file.file)
 
 
-@router.get("/bootstrap")
+@router.get("/bootstrap", responses=API_ERROR_RESPONSES)
 def get_bootstrap(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
@@ -634,7 +607,7 @@ def get_bootstrap(
         response.status_code = status.HTTP_200_OK
 
 
-@router.delete("/bootstrap")
+@router.delete("/bootstrap", responses=API_ERROR_RESPONSES)
 def delete_bootstrap(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],

@@ -8,7 +8,11 @@ from opendp._lib import lib_path
 from opendp.mod import enable_features
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
+from lomas_core.exceptions import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+)
 from lomas_core.models.constants import OpenDPFeatures, get_lomas_logger
 from lomas_core.models.requests import OpenDPQueryModel, OpenDPRequestModel
 from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult

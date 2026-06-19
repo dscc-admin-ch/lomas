@@ -24,7 +24,6 @@ def wait_for_job(client: httpx.Client, endpoint: str, headers: dict[str, str] | 
     """Periodically query the job endpoint sleeping in between until it completes / times-out."""
     for _ in sleeping_retry(120, error=False):
         job_query = client.get(endpoint, headers=headers).json()
-
         if job_query["status"] in {"complete", "failed"}:
             return Job.model_validate(job_query)
 

@@ -1,6 +1,7 @@
 from json import JSONDecodeError
 from typing import Any, NoReturn, TypeVar
 
+import httpx
 import requests
 from fastapi import status
 from pydantic import ValidationError
@@ -11,7 +12,7 @@ from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response) -> NoReturn:
+def raise_error(response: requests.Response | httpx.Response) -> NoReturn:
     """Raise error message based on the HTTP response.
 
     Args:
@@ -23,7 +24,7 @@ def raise_error(response: requests.Response) -> NoReturn:
     try:
         LomasAPIErrorModel.model_validate_json(response.content.decode("utf8")).raise_exception()
     except (ValidationError, JSONDecodeError) as e:
-        raise InternalServerException(f"Could not parse server error: {response.content}") from e
+        raise InternalServerException(f"Could not parse server error: {response.content!r}") from e
     # For mypy errors
     raise AssertionError("unreachable")
 
@@ -65,7 +66,7 @@ def validate_model_response(
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
     if job.status == "failed":
-        assert job.error is not None, f"job {job_uid} failed without error !"
+        assert job.error is not None, f"job {job_uid!r} failed without error !"
         job.error.raise_exception()
 
     return response_model.model_validate(job.result)

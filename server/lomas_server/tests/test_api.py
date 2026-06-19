@@ -1,9 +1,17 @@
+import re
+
 import numpy as np
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from lomas_client.utils import raise_error
 from lomas_core.constants import DPLibraries
+from lomas_core.exceptions import (
+    InvalidQueryException,
+    LomasAPIException,
+    UnauthorizedAccessException,
+)
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
 )
@@ -75,24 +83,20 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             fake_dataset = "I_do_not_exist"
             response = client.post("/get_dataset_metadata", json={"dataset_name": fake_dataset})
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == LomasAPIErrorModel(
-                    message=f"Dataset {fake_dataset} does not "
-                    + "exist. Please, verify the client object initialisation."
-                ).model_dump()
-            )
+
+            match_string = str(InvalidQueryException(f"Dataset {fake_dataset} does not exist."))
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
             # Expect to fail: user does have access to dataset
             other_dataset = "IRIS"
             response = client.post("/get_dataset_metadata", json={"dataset_name": other_dataset})
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == LomasAPIErrorModel(
-                    message=f"{self.user_name} does not have access to {other_dataset}."
-                ).model_dump()
+            match_string = str(
+                UnauthorizedAccessException(f"{self.user_name} does not have access to {other_dataset}.")
             )
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
     def test_get_dummy_dataset(self) -> None:
         """Test_get_dummy_dataset."""
@@ -134,13 +138,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 },
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert (
-                response.json()
-                == LomasAPIErrorModel(
-                    message=f"Dataset {fake_dataset} does not "
-                    + "exist. Please, verify the client object initialisation."
-                ).model_dump()
-            )
+            match_string = str(InvalidQueryException(f"Dataset {fake_dataset} does not exist."))
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
             # Expect to fail: missing argument dummy_nb_rows
             response = client.post(
@@ -162,12 +162,11 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 },
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == LomasAPIErrorModel(
-                    message=f"{self.user_name} does not have access to {other_dataset}."
-                ).model_dump()
+            match_string = str(
+                UnauthorizedAccessException(f"{self.user_name} does not have access to {other_dataset}.")
             )
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
             # Expect to fail: user does not exist
             new_headers = {**self.headers, "Authorization": "Bearer fake_user"}
@@ -177,13 +176,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 headers=new_headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == LomasAPIErrorModel(
-                    message="User fake_user does not "
-                    + "exist. Please, verify the client object initialisation."
-                ).model_dump()
-            )
+            match_string = str(UnauthorizedAccessException("User fake_user does not exist."))
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
             # Expect to work with datetimes and another user
             new_headers = {**self.headers, "Authorization": "Bearer BirthdayGirl"}

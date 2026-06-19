@@ -20,7 +20,7 @@ from sklearn.pipeline import Pipeline
 
 from lomas_client import Client
 from lomas_client.constants import DEFAULT_EPSILON
-from lomas_core.exceptions import UnauthorizedAccessException
+from lomas_core.exceptions import LomasAPIException
 from lomas_core.models.responses import OpenDPPolarsQueryResult
 from lomas_server.administration.dex.dex_admin import (
     add_dex_user,
@@ -91,7 +91,7 @@ def test_oauth2(aria, dex_config) -> None:
 
     client = aria.as_client()
 
-    with pytest.raises(UnauthorizedAccessException, match=f"User {aria.user_name} does not exist"):
+    with pytest.raises(LomasAPIException, match=f"User {aria.user_name} does not exist"):
         client.get_dataset_metadata()
 
 

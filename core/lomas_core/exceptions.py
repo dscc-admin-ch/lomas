@@ -6,29 +6,28 @@ from lomas_core.constants import DPLibraries
 class LomasAPIException(Exception):
     """Base exception for lomas server exceptions."""
 
-    def __init__(self, message: str):
-        super().__init__(f"Lomas API exception: {message}")
+    pass
 
 
 class UserNotFoundException(LomasAPIException):
     """Custom exception for when the user does not exist in the database."""
 
     def __init__(self, user_name: str):
-        super().__init__(f"User {user_name} does not exist.")
+        super().__init__(f"User {user_name!r} does not exist.")
 
 
 class DatasetNotFoundException(LomasAPIException):
     """Custom exception for when the dataset does not exist in the database."""
 
     def __init__(self, dataset_name: str):
-        super().__init__(f"Dataset {dataset_name} does not exist.")
+        super().__init__(f"Dataset {dataset_name!r} does not exist.")
 
 
 class JobNotFoundException(LomasAPIException):
     """Custom exception for when the job does not exist in the database."""
 
     def __init__(self, uid: UUID):
-        super().__init__(f"Job {uid} does not exist.")
+        super().__init__(f"Job {uid!r} does not exist.")
 
 
 class InvalidQueryException(LomasAPIException):
@@ -45,7 +44,7 @@ class ExternalLibraryException(LomasAPIException):
     """For exceptions from libraries external to the lomas packages."""
 
     def __init__(self, library: DPLibraries, message: str):
-        super().__init__(f"Exception from {library}: {message}")
+        super().__init__(f"Exception from {library!r} library: {message}")
 
 
 class UnauthorizedAccessException(LomasAPIException):

@@ -40,6 +40,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     # Load admin database
     try:
+        # Database
         logger.info("Loading admin database")
 
         lomas_app.state.admin_database = config.database
@@ -49,15 +50,18 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
             )
             lomas_app.state.admin_database.database.wipe()
 
-        logger.info("Loading authenticator")
-        lomas_app.state.authenticator = config.authenticator
-
+        # Bootstrap
         if not config.database.get_bootstrap_disabled():
             logger.info("Setting bootstrap credentials.")
             config.database.set_bootstrap(config.bootstrap)
         else:
             logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
-        lomas_app.state.bootstrap = config.bootstrap
+
+        # Auth/authz
+        logger.info("Loading authenticator")
+        lomas_app.state.authenticator = config.authenticator
+
+        # Private db credentials
         lomas_app.state.private_db_credentials = config.private_db_credentials
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")

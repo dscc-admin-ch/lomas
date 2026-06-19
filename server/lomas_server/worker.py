@@ -67,6 +67,7 @@ def handle_exceptions(exc: BaseException) -> JSONResponse:
 async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse | tuple[bytes, int]:
     """Handle Cost query into CostResponse."""
     start_sec = time.time()
+    logger.debug("Handling cost query.")
     message = body.decode()
     _, dp_library, data_connector_str, request_model_str = message.split("λ", 3)
 
@@ -99,6 +100,7 @@ async def handle_cost_query(admin_database: Proxy, body: bytes) -> CostResponse 
 async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP query into QueryResponse."""
     start_sec = time.time()
+    logger.debug("Handling query.")
     message = body.decode()
     user_name, dp_library, data_connector_str, query_json_str = message.split("λ", 3)
 
@@ -131,6 +133,7 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
 async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryResponse | tuple[bytes, int]:
     """Handle DP-dummy query into QueryResponse."""
     start_sec = time.time()
+    logger.debug("Handling dummy query.")
     message = body.decode()
     user_name, dp_library, data_connector, query_model_str = message.split("λ", 3)
 
@@ -180,6 +183,7 @@ async def process_message(
                 match await message_handler(message.body):
                     case (bytes(exc_body), int(status_code)):
                         headers = {"type": "exception", "status_code": status_code}
+                        logger.debug(headers)
                         body = exc_body
 
                     case query_response:

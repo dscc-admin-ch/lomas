@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import wraps
 from typing import Concatenate, TypeVar
+from uuid import UUID
 
 from csvw_eo.metadata_structure import TableMetadata
 from pydantic import (
@@ -15,9 +16,12 @@ from lomas_core.error_handler import (
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSInfo
+from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
-from lomas_core.models.responses import QueryResponse
+from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
+
+logger = get_lomas_logger(__name__)
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -137,13 +141,57 @@ class AdminDatabase(ABC, BaseModel):
     @abstractmethod
     def does_dataset_exist(self, dataset_name: str) -> bool:
         """
-        Checks if dataset exist in the database.
+        Checks if dataset exists in the database.
 
         Args:
             dataset_name (str): name of the dataset to check
 
         Returns:
             bool: True if the dataset exists, False otherwise.
+        """
+
+    @abstractmethod
+    def does_job_exist(self, uid: UUID) -> bool:
+        """Returns true only if the job exists.
+
+        Args:
+            uid (UUID): The uid of the job.
+
+        Returns:
+            bool: True only if the job exists
+        """
+
+    @abstractmethod
+    def get_job_for_user(self, user_name: str, uid: UUID) -> Job:
+        """
+        Checks if jobs exists and if user owns job before returning the job.
+
+        Args:
+            user_name (str): The name of the user who must own the job.
+            uid (UUID): The uid of the job.
+
+        Returns:
+            Job: The job, only if it exists and the user owns it.
+        """
+
+    @abstractmethod
+    def put_job(self, job: Job) -> None:
+        """
+        Puts the job in the database.
+
+        Args:
+            job (Job): The job to put in the database.
+        """
+
+    @abstractmethod
+    def update_job(self, updated_job: Job) -> None:
+        """
+        Updates the job.
+
+        All fields are taken from updated_job, except those that are None.
+
+        Args:
+            updated_job (Job): The updated job
         """
 
     @abstractmethod

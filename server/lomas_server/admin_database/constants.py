@@ -16,6 +16,7 @@ class MiscDBKeys(StrEnum):
 
     BOOTSTRAP_DISABLED = "bootstrap_disabled"
     BOOTSTRAP = "bootstrap"
+    JOBS = "jobs"
 
 
 class BudgetDBKey(StrEnum):

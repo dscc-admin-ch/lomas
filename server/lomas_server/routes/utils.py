@@ -29,6 +29,7 @@ from lomas_core.models.requests import (
     QueryModel,
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.auth.auth import authorize_user
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
@@ -38,29 +39,35 @@ logger = get_lomas_logger(__name__)
 
 
 async def process_response(
-    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], jobs: dict[UUID, Job]
+    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], admin_database: AdminDatabase
 ) -> None:
     """Process responses queue into Jobs."""
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
             async with message.process(ignore_processed=True):
-                if message.correlation_id not in jobs:
+                if not admin_database.does_job_exist(UUID(message.correlation_id)):
                     await message.reject(requeue=True)
                 else:
                     await message.ack()
 
                     message_body = message.body.decode()
                     match message.headers:
-                        case {"type": "exception", "status_code": status_code}:
-                            jobs[
-                                message.correlation_id
-                            ].error = LomasServerExceptionTypeAdapter.validate_json(message_body)
-                            jobs[message.correlation_id].status = "failed"
-                            jobs[message.correlation_id].result = None
-                            jobs[message.correlation_id].status_code = status_code
+                        case {"type": "exception", "status_code": int() as status_code}:
+                            updated_job = Job(
+                                uid=UUID(message.correlation_id),
+                                status="failed",
+                                error=LomasServerExceptionTypeAdapter.validate_json(message_body),
+                                result=None,
+                                status_code=status_code,
+                            )
+                            admin_database.update_job(updated_job)
                         case _:
-                            jobs[message.correlation_id].result = cls.model_validate_json(message_body)
-                            jobs[message.correlation_id].status = "complete"
+                            updated_job = Job(
+                                uid=UUID(message.correlation_id),
+                                result=cls.model_validate_json(message_body),
+                                status="complete",
+                            )
+                            admin_database.update_job(updated_job)
 
 
 async def rabbitmq_connect_queue(
@@ -92,21 +99,25 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     await channel.declare_queue("task_queue", durable=True)
     app.state.task_queue_channel = channel
     queue = await channel.declare_queue("task_response", durable=True)
-    tasks_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
+    tasks_response_task = asyncio.create_task(
+        process_response(queue, QueryResponse, app.state.admin_database)
+    )
     background_tasks.add(tasks_response_task)
     tasks_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("cost_queue", durable=True)
     app.state.cost_queue_channel = channel
     queue = await channel.declare_queue("cost_response", durable=True)
-    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.jobs))
+    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.admin_database))
     background_tasks.add(cost_response_task)
     cost_response_task.add_done_callback(background_tasks.discard)
 
     await channel.declare_queue("dummy_queue", durable=True)
     app.state.dummy_queue_channel = channel
     queue = await channel.declare_queue("dummy_response", durable=True)
-    dummy_response_task = asyncio.create_task(process_response(queue, QueryResponse, app.state.jobs))
+    dummy_response_task = asyncio.create_task(
+        process_response(queue, QueryResponse, app.state.admin_database)
+    )
     background_tasks.add(dummy_response_task)
     dummy_response_task.add_done_callback(background_tasks.discard)
 
@@ -291,7 +302,8 @@ async def handle_query_to_job(
 
     new_task = Job(requested_by=user_name)
 
-    app.state.jobs[str(new_task.uid)] = new_task
+    # app.state.jobs[str(new_task.uid)] = new_task
+    admin_database.put_job(new_task)
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(

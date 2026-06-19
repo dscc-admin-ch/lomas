@@ -40,12 +40,10 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     # Load Config
     config = Config()
 
-    # Set some app state
-    lomas_app.state.jobs = {}
-
     # Load admin database
     try:
         logger.info("Loading admin database")
+
         lomas_app.state.admin_database = config.database
         if config.clean_admin_database:
             logger.warning(

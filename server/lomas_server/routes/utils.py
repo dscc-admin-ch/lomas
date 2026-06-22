@@ -15,6 +15,7 @@ from aio_pika.abc import AbstractConnection, AbstractQueue
 from aio_pika.patterns import RPC
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
+from starlette import status
 
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
@@ -42,34 +43,54 @@ logger = get_lomas_logger(__name__)
 async def process_response(
     queue: AbstractQueue, cls: type[QueryResponse | CostResponse], admin_database: AdminDatabase
 ) -> None:
-    """Process responses queue into Jobs."""
+    """Process responses from queues into Jobs."""
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
-            async with message.process(ignore_processed=True):
-                if not admin_database.does_job_exist(UUID(message.correlation_id)):
-                    await message.reject(requeue=True)
-                else:
-                    await message.ack()
+            try:
+                async with message.process(ignore_processed=True):
+                    try:
+                        if not admin_database.does_job_exist(UUID(message.correlation_id)):
+                            await message.reject(requeue=True)
+                        else:
+                            await message.ack()
 
-                    message_body = message.body.decode()
-                    match message.headers:
-                        case {"type": "exception", "status_code": int() as status_code}:
-                            logger.debug(message_body)
-                            updated_job = Job(
-                                uid=UUID(message.correlation_id),
-                                status="failed",
-                                error=LomasAPIErrorModel.model_validate_json(message_body),
-                                result=None,
-                                status_code=status_code,
-                            )
-                            admin_database.update_job(updated_job)
-                        case _:
-                            updated_job = Job(
-                                uid=UUID(message.correlation_id),
-                                result=cls.model_validate_json(message_body),
-                                status="complete",
-                            )
-                            admin_database.update_job(updated_job)
+                            message_body = message.body.decode()
+                            match message.headers:
+                                case {"type": "exception", "status_code": int() as status_code}:
+                                    logger.debug(message_body)
+                                    updated_job = Job(
+                                        uid=UUID(message.correlation_id),
+                                        status="failed",
+                                        error=LomasAPIErrorModel.model_validate_json(message_body),
+                                        result=None,
+                                        status_code=status_code,
+                                    )
+                                    admin_database.update_job(updated_job)
+                                case _:
+                                    updated_job = Job(
+                                        uid=UUID(message.correlation_id),
+                                        result=cls.model_validate_json(message_body),
+                                        status="complete",
+                                    )
+                                    admin_database.update_job(updated_job)
+                    except Exception as e:
+                        # Fail the job if we cannot parse worker responses
+                        logger.exception("Could not parse worker response.")
+                        updated_job = Job(
+                            uid=UUID(message.correlation_id),
+                            status="failed",
+                            error=LomasAPIErrorModel(
+                                message="InternalServerException: Could not parse response from worker."
+                            ),
+                            result=None,
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
+                        admin_database.update_job(updated_job)
+                        raise InternalServerException("Could not parse worker response.") from e
+            except Exception as e:
+                # TODO is this right? -> ignore this message and proceed as if nothing happened?
+                logger.exception("Error while handling worker responses, continuuing...")
+                raise InternalServerException from e
 
 
 async def rabbitmq_connect_queue(

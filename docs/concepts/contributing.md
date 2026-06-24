@@ -91,7 +91,7 @@ The table below gives an overview of which workflows are triggered by what event
 
 Of these workflows, three of them need manual intervention to adjust the version number:
 
-* **Python libraries push**: The `version` and the `install_requires` must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the list of library in requirements.txt and the new version of `core`).
+* **Python libraries push**: The `version` and the `install_requires` must be set in `core/pyproject.toml`, `server/pyproject.toml` and `client/pyproject.toml` ('install_requires' should match the new version of `core`).
 * **Helm chart push**: The chart version (`version`) and app version (`AppVersion`) of the server and the client must be updated in `server/deploy/helm/charts/lomas_server/Chart.yml`and `client/deploy/helm/charts/lomas_client/Chart.yaml`.
 * **Documentation push**: __TODO__ Mike setup
 

@@ -4,20 +4,18 @@ import shelve
 import sys
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
-from typing import Any, BinaryIO, Self
+from typing import Any, BinaryIO
 from uuid import UUID
 
 import boto3
 import yaml
 from csvw_eo.metadata_structure import TableMetadata
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 from filelock import SoftFileLock
 from pydantic import HttpUrl
-from starlette import status
 
 from lomas_core.exceptions import (
     InternalServerException,
-    UnauthorizedAccessException,
 )
 from lomas_core.models.collections import (
     DatasetOfUser,
@@ -34,9 +32,6 @@ from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
-    dataset_must_exist,
-    user_must_exist,
-    user_must_have_access_to_dataset,
 )
 from lomas_server.admin_database.constants import BudgetDBKey, MiscDBKeys, TopDBKey as TK
 from lomas_server.utils.metrics import (
@@ -97,23 +92,11 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @db_span("db.get_job", table="admin-db")
     @lock
-    def get_job_for_user(self, user_name: str, uid: UUID) -> Job:
+    def get_job(self, uid: UUID) -> Job:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job"})
 
         with shelve.open(self.path, flag="r") as db:
-            # Check job exists
-            if uid not in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys():
-                message = f"Job {uid} does not exist."
-                logger.debug(f"Error 404 raised: {message}")
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
-
             job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid]
-
-            # Check user owns job
-            if job.requested_by != user_name:
-                raise UnauthorizedAccessException(
-                    f"User {user_name} does not have access to job with uid {uid}"
-                )
 
             return job
 
@@ -151,7 +134,7 @@ class LocalAdminDatabase(AdminDatabase):
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
         with shelve.open(self.path, writeback=True) as db:
             # Step 1: add datasets
-            new_datasets = []
+            new_datasets = {}
             for ds in datasets:
                 # Overwrite path
                 if isinstance(ds.dataset_access, DSPathAccess):
@@ -168,12 +151,11 @@ class LocalAdminDatabase(AdminDatabase):
                             ds.metadata_access.path = path_prefix / ds.metadata_access.path
 
                 # Fill datasets_list
-                new_datasets.append(ds)
+                new_datasets[ds.dataset_name] = ds.model_dump()
 
             # Add dataset collection
             if new_datasets:
-                new_datasets_dicts = [ds.model_dump() for ds in new_datasets]
-                db[TK.DATASETS] = new_datasets_dicts
+                db[TK.DATASETS].update(new_datasets)
 
             db[TK.METADATA] = {}
             # Step 2: add metadata collections (one metadata per dataset)
@@ -214,7 +196,7 @@ class LocalAdminDatabase(AdminDatabase):
     @lock
     def datasets(self) -> list[DSInfo]:
         with shelve.open(self.path, flag="r") as db:
-            return list(map(DSInfo.model_validate, db.get(TK.DATASETS, [])))
+            return list(map(DSInfo.model_validate, db.get(TK.DATASETS, {}).items()))
 
     @db_span("db.add_datasets_via_yaml", table="admin-db")
     @lock
@@ -361,7 +343,7 @@ class LocalAdminDatabase(AdminDatabase):
 
         # Step 4: Insert into db
         with shelve.open(self.path, writeback=True) as db:
-            db[TK.DATASETS] = [*db.get(TK.DATASETS, []), validated_dataset]
+            db[TK.DATASETS][ds_info.dataset_name] = validated_dataset
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
             db.sync()
 
@@ -370,9 +352,7 @@ class LocalAdminDatabase(AdminDatabase):
     def del_dataset(self, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "delete_dataset"})
         with shelve.open(self.path, writeback=True) as db:
-            for ds in db[TK.DATASETS]:
-                if ds["dataset_name"] == dataset_name:
-                    db[TK.DATASETS].remove(ds)
+            del db[TK.DATASETS][dataset_name]
 
     @db_span("db.add_dataset_to_user", table="admin-db")
     @lock
@@ -465,7 +445,6 @@ class LocalAdminDatabase(AdminDatabase):
                 db[TK.USERS] = {}
             db[TK.USERS][username] = validated_user
 
-    @user_must_exist
     @db_span("db.del_user", table="admin-db")
     @lock
     def del_user(self, username: str) -> None:
@@ -488,17 +467,15 @@ class LocalAdminDatabase(AdminDatabase):
         return dataset_name in map(lambda ds: ds.dataset_name, self.datasets())
 
     @override
-    @dataset_must_exist
     @db_span("db.get_dataset", table="admin-db")
     @lock
     def get_dataset(self, dataset_name: str) -> DSInfo:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset"})
         with shelve.open(self.path, flag="r") as db:
-            dataset = next(filter(lambda ds: ds["dataset_name"] == dataset_name, db[TK.DATASETS]))
+            dataset = db[TK.DATASETS][dataset_name]
             return DSInfo.model_validate(dataset)
 
     @override
-    @dataset_must_exist
     @db_span("db.get_dataset_metadata", table="admin-db")
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
@@ -506,7 +483,6 @@ class LocalAdminDatabase(AdminDatabase):
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
             return TableMetadata.model_validate(metadata)
 
-    @dataset_must_exist
     @db_span("db.set_dataset_metadata", table="admin-db")
     @lock
     def set_dataset_metadata(self, dataset_name: str, json_file: UploadFile) -> None:
@@ -521,7 +497,6 @@ class LocalAdminDatabase(AdminDatabase):
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
 
     @override
-    @user_must_exist
     @db_span("db.is_user_admin", table="admin-db")
     @lock
     def is_user_admin(self, user_name: str) -> bool:
@@ -529,7 +504,6 @@ class LocalAdminDatabase(AdminDatabase):
             return db[TK.USERS][user_name]["admin"]
 
     @override
-    @user_must_exist
     @db_span("db.get_and_set_may_user_query", table="admin-db")
     @lock
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
@@ -540,23 +514,14 @@ class LocalAdminDatabase(AdminDatabase):
             return previous_may_query
 
     @override
-    @user_must_exist
     @db_span("db.has_user_access_to_dataset", table="admin-db")
     @lock
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
-        @dataset_must_exist
-        def has_access_to_dataset(self: Self, dataset_name: str) -> bool:
-            ADMINDB_QUERY_COUNTER.add(1, {"operation": "has_user_access_to_dataset"})
-            with shelve.open(self.path, flag="r") as db:
-                return bool(
-                    [
-                        ds
-                        for ds in db[TK.USERS][user_name]["datasets_list"]
-                        if ds["dataset_name"] == dataset_name
-                    ]
-                )
-
-        return has_access_to_dataset(self, dataset_name)
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "has_user_access_to_dataset"})
+        with shelve.open(self.path, flag="r") as db:
+            return bool(
+                [ds for ds in db[TK.USERS][user_name]["datasets_list"] if ds["dataset_name"] == dataset_name]
+            )
 
     @override
     @db_span("db.get_epsilon_or_delta", table="admin-db")
@@ -608,7 +573,6 @@ class LocalAdminDatabase(AdminDatabase):
                     ds[parameter] = value
 
     @override
-    @user_must_have_access_to_dataset
     @db_span("db.get_user_previous_queries", table="admin-db")
     @lock
     def get_user_previous_queries(

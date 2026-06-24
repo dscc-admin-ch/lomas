@@ -162,16 +162,15 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    def get_job_for_user(self, user_name: str, uid: UUID) -> Job:
+    def get_job(self, uid: UUID) -> Job:
         """
-        Checks if jobs exists and if user owns job before returning the job.
+        Gets the job with given uid from the database.
 
         Args:
-            user_name (str): The name of the user who must own the job.
             uid (UUID): The uid of the job.
 
         Returns:
-            Job: The job, only if it exists and the user owns it.
+            Job: The job.
         """
 
     @abstractmethod

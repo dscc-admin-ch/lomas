@@ -8,7 +8,12 @@ from fastapi import APIRouter, Body, Request, Response, Security, UploadFile, st
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from lomas_core.constants import Scopes
-from lomas_core.exceptions import UnauthorizedAccessException
+from lomas_core.exceptions import (
+    DatasetNotFoundException,
+    JobNotFoundException,
+    UnauthorizedAccessException,
+    UserNotFoundException,
+)
 from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
@@ -24,6 +29,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
+from lomas_server.auth.auth import check_dataset_access
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
@@ -76,8 +82,16 @@ async def status_handler(
     Returns:
         Job: The Job model for this uid.
     """
-    # Handles both exceptional cases
-    job = request.app.state.admin_database.get_job_for_user(user_id.name, uid)
+    admin_database = request.app.state.admin_database
+    # Check existence
+    if not admin_database.does_job_exist(uid):
+        raise JobNotFoundException(uid)
+
+    job = admin_database.get_job(uid)
+
+    # Check access rights
+    if job.user != user_id.name:
+        raise UnauthorizedAccessException(f"User {user_id.name} does not have access to job with uid {uid}")
 
     if job.status == "failed":
         response.status_code = job.status_code
@@ -159,13 +173,9 @@ def get_dataset_metadata(
         TableMetadata: The metadata object for the specified dataset_name.
     """
     app = request.app
-
     dataset_name = query_json.dataset_name
 
-    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_id.name} does not have access to {dataset_name}.",
-        )
+    check_dataset_access(user_id, dataset_name, app.state.admin_database)
 
     ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
 
@@ -209,10 +219,7 @@ def get_dummy_dataset(
     """
     app = request.app
     dataset_name = query_json.dataset_name
-    if not app.state.admin_database.has_user_access_to_dataset(user_id.name, dataset_name):
-        raise UnauthorizedAccessException(
-            f"{user_id.name} does not have access to {dataset_name}.",
-        )
+    check_dataset_access(user_id, dataset_name, app.state.admin_database)
 
     ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
     dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
@@ -389,6 +396,8 @@ def get_user_previous_queries(
     """
     app = request.app
 
+    check_dataset_access(user_id, query_json.dataset_name, app.state.admin_database)
+
     previous_queries = app.state.admin_database.get_user_previous_queries(
         user_id.name, query_json.dataset_name
     )  # TODO 359 improve on that and return models.
@@ -463,6 +472,10 @@ def delete_user(
         username (str): The name of the user to be deleted.
     """
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_user_exist(username):
+        raise UserNotFoundException(username)
+
     return db.del_user(username)
 
 
@@ -580,6 +593,10 @@ def get_dataset_metadata_admin(
     dataset_name: str,
 ) -> TableMetadata:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_dataset_exist(dataset_name):
+        raise DatasetNotFoundException(dataset_name)
+
     return db.get_dataset_metadata(dataset_name)
 
 
@@ -591,6 +608,10 @@ def set_dataset_metadata_admin(
     file: UploadFile,
 ) -> None:
     db: LocalAdminDatabase = request.app.state.admin_database
+
+    if not db.does_dataset_exist(dataset_name):
+        raise DatasetNotFoundException(dataset_name)
+
     db.set_dataset_metadata(dataset_name, file.file)
 
 

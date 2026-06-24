@@ -7,7 +7,12 @@ from fastapi.security import SecurityScopes
 from pydantic import BaseModel, Field, HttpUrl
 
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID, Scopes
-from lomas_core.exceptions import InternalServerException, UnauthorizedAccessException
+from lomas_core.exceptions import (
+    DatasetNotFoundException,
+    InternalServerException,
+    UnauthorizedAccessException,
+    UserNotFoundException,
+)
 from lomas_core.models.collections import UserId
 from lomas_core.models.config import OIDCConfig
 from lomas_core.models.constants import AuthenticationType, get_lomas_logger
@@ -130,6 +135,11 @@ def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes:
         admin_database (AdminDatabase): The admin database to get user permissions from.
         security_scopes (SecurityScopes): The required scopes.
     """
+    # First check if user exists
+    if not admin_database.does_user_exist(user.name):
+        raise UserNotFoundException(user.name)
+
+    # Check scopes
     for scope in security_scopes.scopes:
         match scope:
             case Scopes.ADMIN:
@@ -138,3 +148,24 @@ def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes:
             case _:
                 # Raise server exception if scope is unknown
                 raise InternalServerException(f"Unknown security scope {scope}, cannot authorize query.")
+
+
+def check_dataset_access(user: UserId, dataset_name: str, admin_database: AdminDatabase) -> None:
+    """Checks if the dataset exists and if the user has access to it.
+
+    Args:
+        user (UserId): The authenticated user id.
+        dataset_name (str): The name of the dataset to check access for.
+        admin_database (AdminDatabase): The admin database to get access permissions from.
+
+    Raises:
+        DatasetNotFoundException: If the dataset does not exist.
+        UnauthorizedAccessException: If the user does not have access to the dataset.
+    """
+    if not admin_database.does_dataset_exist(dataset_name):
+        raise DatasetNotFoundException(dataset_name)
+
+    if not admin_database.has_user_access_to_dataset(user.name, dataset_name):
+        raise UnauthorizedAccessException(
+            f"{user.name} does not have access to {dataset_name}.",
+        )

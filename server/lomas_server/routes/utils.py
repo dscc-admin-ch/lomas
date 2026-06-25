@@ -182,7 +182,7 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
         yield  # app is handling requests
     finally:
         # Cancel background tasks
-        for task in list(background_tasks):
+        for task in background_tasks:
             task.cancel()
         await asyncio.gather(*background_tasks, return_exceptions=True)
 

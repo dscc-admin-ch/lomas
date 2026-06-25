@@ -1,3 +1,4 @@
+import re
 import warnings
 
 import pytest
@@ -11,11 +12,13 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sklearn.pipeline import Pipeline
 
+from lomas_client.utils import raise_error
 from lomas_core.constants import DPLibraries
-from lomas_core.models.exceptions import (
-    ExternalLibraryExceptionModel,
-    InvalidQueryExceptionModel,
-    UnauthorizedAccessExceptionModel,
+from lomas_core.exceptions import (
+    ExternalLibraryException,
+    InvalidQueryException,
+    LomasAPIException,
+    UnauthorizedAccessException,
 )
 from lomas_core.models.requests_examples import (
     example_diffprivlib,
@@ -92,9 +95,10 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             job = test_imputation(example_diffprivlib, "i_do_not_exist")
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
-                message="Imputation strategy i_do_not_exist not supported."
-            )
+            assert job.error is not None
+            exc = InvalidQueryException("Imputation strategy i_do_not_exist not supported.")
+            with pytest.raises(LomasAPIException, match=rf"{exc!s}"):
+                job.error.raise_exception()
 
     @pytest.mark.long
     def test_diffprivlib_privacy_leak(self) -> None:
@@ -137,16 +141,19 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-            assert job.error == ExternalLibraryExceptionModel(
-                message="PrivacyLeakWarning: "
+            assert job.error is not None
+            message = (
+                "PrivacyLeakWarning: "
                 + "Data norm has not been specified and will be calculated on the data provided.  "
                 + "This will result in additional privacy leakage. "
                 + "To ensure differential privacy and no additional privacy leakage, specify "
                 + "`data_norm` at initialisation. "
                 + "Lomas server cannot fit pipeline on data, "
-                + "PrivacyLeakWarning is a blocker.",
-                library=DPLibraries.DIFFPRIVLIB,
+                + "PrivacyLeakWarning is a blocker."
             )
+            exc = ExternalLibraryException(DPLibraries.DIFFPRIVLIB, message)
+            with pytest.raises(LomasAPIException, match=rf"{exc!s}"):
+                job.error.raise_exception()
 
             # Should not work: Privacy Leak Warning on bounds
             diffprivlib_body = dict(example_diffprivlib)
@@ -166,16 +173,11 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-            assert job.error == ExternalLibraryExceptionModel(
-                message="PrivacyLeakWarning: "
-                + "Bounds have not been specified and will be calculated on the data provided. "
-                + "This will result in additional privacy leakage. "
-                + "To ensure differential privacy and no additional privacy leakage, "
-                + "specify bounds for each dimension. "
-                + "Lomas server cannot fit pipeline on data, "
-                + "PrivacyLeakWarning is a blocker.",
-                library=DPLibraries.DIFFPRIVLIB,
-            )
+            assert job.error is not None
+            message = "PrivacyLeakWarning: Bounds have not been specified and will be calculated on the data provided. This will result in additional privacy leakage. To ensure differential privacy and no additional privacy leakage, specify bounds for each dimension. Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker."
+            exc = ExternalLibraryException(DPLibraries.DIFFPRIVLIB, message)
+            with pytest.raises(LomasAPIException, match=rf"{exc!s}"):
+                job.error.raise_exception()
 
     def test_diffprivlib_compatibility_error(self) -> None:
         """Test diffprivlib compatibility error."""
@@ -297,9 +299,11 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             )
             assert job.status == "failed"
             assert job.status_code == status.HTTP_400_BAD_REQUEST
-            assert job.error == InvalidQueryExceptionModel(
-                message="Columns cannot be both feature and target: bill_length_mm"
-            )
+            assert job.error is not None
+            with pytest.raises(
+                LomasAPIException, match=r"Columns cannot be both feature and target: bill_length_mm"
+            ):
+                job.error.raise_exception()
 
     def test_naives_bayes_model(self) -> None:
         """Test diffprivlib query: Gaussian Naives Bayes."""
@@ -458,12 +462,9 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message=f"{self.user_name} does not have access to IRIS."
-                ).model_dump()
-            )
+            match_string = str(UnauthorizedAccessException(f"{self.user_name} does not have access to IRIS."))
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)
 
     def test_diffprivlib_cost(self) -> None:
         """Test_diffprivlib_cost."""
@@ -488,9 +489,6 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             assert response.status_code == status.HTTP_403_FORBIDDEN
-            assert (
-                response.json()
-                == UnauthorizedAccessExceptionModel(
-                    message=f"{self.user_name} does not have access to IRIS."
-                ).model_dump()
-            )
+            match_string = str(UnauthorizedAccessException(f"{self.user_name} does not have access to IRIS."))
+            with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+                raise_error(response)

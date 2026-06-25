@@ -1,5 +1,5 @@
 ::: lomas_core.instrumentation
-::: lomas_core.error_handler
+::: lomas_core.exceptions
 ::: lomas_core.constants
 ::: lomas_core.models.collections
 ::: lomas_core.models.config

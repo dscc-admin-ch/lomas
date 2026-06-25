@@ -16,7 +16,7 @@ from pydantic import (
 )
 
 from lomas_core.constants import DPLibraries
-from lomas_core.models.exceptions import LomasServerExceptionType
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
@@ -226,7 +226,7 @@ class Job(ResponseModel):
     """Job status."""
     result: QueryResponse | CostResponse | None = None
     """Job result, if available."""
-    error: LomasServerExceptionType | None = None
+    error: LomasAPIErrorModel | None = None
     """Job error, if any."""
     status_code: int = 200
     """Status code for job response."""

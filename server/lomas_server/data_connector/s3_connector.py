@@ -5,7 +5,7 @@ import boto3
 import pandas as pd
 from pydantic import computed_field
 
-from lomas_core.error_handler import InternalServerException
+from lomas_core.exceptions import InternalServerException
 from lomas_core.models.collections import DSS3Access
 from lomas_server.data_connector.data_connector import DataConnector
 

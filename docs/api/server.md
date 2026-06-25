@@ -22,6 +22,7 @@
 :::lomas_server.dp_queries.dummy_dataset
 :::lomas_server.models.config
 :::lomas_server.models.responses
+:::lomas_server.routes.error_handler
 :::lomas_server.routes.middlewares
 :::lomas_server.routes.routes_admin
 :::lomas_server.routes.routes_dp

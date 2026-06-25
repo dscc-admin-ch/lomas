@@ -6,7 +6,7 @@ import polars as pl
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
-from lomas_core.error_handler import InvalidQueryException
+from lomas_core.exceptions import InvalidQueryException
 from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,

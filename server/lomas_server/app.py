@@ -6,10 +6,7 @@ from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 
-from lomas_core.error_handler import (
-    InternalServerException,
-    add_exception_handlers,
-)
+from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
 from lomas_core.models.constants import get_lomas_logger, init_logging
 from lomas_server.dp_queries.dp_libraries.opendp import (
@@ -17,6 +14,7 @@ from lomas_server.dp_queries.dp_libraries.opendp import (
 )
 from lomas_server.models.config import Config
 from lomas_server.routes import routes_admin, routes_dp
+from lomas_server.routes.error_handler import add_exception_handlers
 from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
@@ -42,6 +40,7 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     # Load admin database
     try:
+        # Database
         logger.info("Loading admin database")
 
         lomas_app.state.admin_database = config.database
@@ -51,15 +50,18 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
             )
             lomas_app.state.admin_database.database.wipe()
 
-        logger.info("Loading authenticator")
-        lomas_app.state.authenticator = config.authenticator
-
+        # Bootstrap
         if not config.database.get_bootstrap_disabled():
             logger.info("Setting bootstrap credentials.")
             config.database.set_bootstrap(config.bootstrap)
         else:
             logger.warning("Not setting bootstrap credentials because already disabled in the admin database")
-        lomas_app.state.bootstrap = config.bootstrap
+
+        # Auth/authz
+        logger.info("Loading authenticator")
+        lomas_app.state.authenticator = config.authenticator
+
+        # Private db credentials
         lomas_app.state.private_db_credentials = config.private_db_credentials
     except InternalServerException as e:
         logger.exception(f"Failed at startup: {e!s}")

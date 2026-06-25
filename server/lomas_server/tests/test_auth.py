@@ -1,5 +1,6 @@
 import os
 import posix as Status
+import re
 
 import httpx
 import pytest
@@ -9,6 +10,8 @@ from fastapi.testclient import TestClient
 
 from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
+from lomas_client.utils import raise_error
+from lomas_core.exceptions import LomasAPIException, UnauthorizedAccessException
 from lomas_core.models.requests_examples import example_get_admin_db_data
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
@@ -123,10 +126,9 @@ def test_invalid_token(switch_query_userinfo: None):
     with TestClient(app, headers=headers) as client:
         response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "type": "UnauthorizedAccessException",
-            "message": "Failed bearer token verification.",
-        }
+        match_string = str(UnauthorizedAccessException("Failed bearer token verification"))
+        with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+            raise_error(response)
 
 
 @pytest.mark.parametrize("switch_query_userinfo", [True, False], indirect=True)
@@ -140,17 +142,15 @@ def test_admin_scope(demo_setup: None, switch_query_userinfo: None) -> None:
         response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         # lomas_admin user has no access to Penguin
-        assert response.json() == {
-            "type": "UnauthorizedAccessException",
-            "message": "lomas_admin does not have access to PENGUIN.",
-        }
+        match_string = str(UnauthorizedAccessException("lomas_admin does not have access to PENGUIN."))
+        with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+            raise_error(response)
 
     headers = get_auth_header("dr.antartica@example.com", "dr.antartica")
 
     with TestClient(app, headers=headers) as client:
         response = client.get("/state")
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "type": "UnauthorizedAccessException",
-            "message": "Only admin users can query this endpoint.",
-        }
+        match_string = str(UnauthorizedAccessException("Only admin users can query this endpoint."))
+        with pytest.raises(LomasAPIException, match=re.escape(match_string)):
+            raise_error(response)

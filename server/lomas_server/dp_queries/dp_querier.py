@@ -3,9 +3,7 @@ from typing import Generic, TypeVar
 
 from aio_pika.patterns.rpc import Proxy
 
-from lomas_core.error_handler import (
-    KNOWN_EXCEPTIONS,
-    InternalServerException,
+from lomas_core.exceptions import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )
@@ -109,15 +107,12 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             eps_cost, delta_cost = self.cost(query_json)
 
             # Check that enough budget to do the query
-            try:
-                (
-                    eps_remain,
-                    delta_remain,
-                ) = await self.admin_database.get_remaining_budget(
-                    user_name=user_name, dataset_name=query_json.dataset_name
-                )
-            except UnauthorizedAccessException as e:
-                raise e
+            (
+                eps_remain,
+                delta_remain,
+            ) = await self.admin_database.get_remaining_budget(
+                user_name=user_name, dataset_name=query_json.dataset_name
+            )
 
             if (eps_remain < eps_cost) or (delta_remain < delta_cost):
                 raise InvalidQueryException(
@@ -126,12 +121,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 )
 
             # Query
-            try:
-                query_result = self.query(query_json)
-            except KNOWN_EXCEPTIONS as e:
-                raise e
-            except Exception as e:
-                raise InternalServerException(str(e)) from e
+            query_result = self.query(query_json)
 
             # Deduce budget from user
             await self.admin_database.update_budget(
@@ -153,12 +143,13 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 user_name=user_name, query=query_json, response=response
             )  # TODO 359 here
 
+            # Re-enable user to query
+            await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
+
         except Exception as e:
+            # Response is only sent back if nothing happens in the try catch, otherwise raise.
             await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
             raise e
-
-        # Re-enable user to query
-        await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
 
         # Return response
         return response

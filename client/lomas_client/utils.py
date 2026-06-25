@@ -1,17 +1,18 @@
 from json import JSONDecodeError
-from typing import Any, Never, TypeVar
+from typing import Any, NoReturn, TypeVar
 
+import httpx
 import requests
 from fastapi import status
 from pydantic import ValidationError
 
 from lomas_client.http_client import LomasHttpClient
-from lomas_core.error_handler import InternalServerException, raise_error_from_model
-from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.exceptions import InternalServerException
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response) -> Never:
+def raise_error(response: requests.Response | httpx.Response) -> NoReturn:
     """Raise error message based on the HTTP response.
 
     Args:
@@ -21,11 +22,11 @@ def raise_error(response: requests.Response) -> Never:
         Server Error
     """
     try:
-        error_model = LomasServerExceptionTypeAdapter.validate_python(response.json())
+        LomasAPIErrorModel.model_validate_json(response.content.decode("utf8")).raise_exception()
     except (ValidationError, JSONDecodeError) as e:
-        raise InternalServerException(f"Could not parse server error: {response.content}") from e
-
-    raise_error_from_model(error_model)
+        raise InternalServerException(f"Could not parse server error: {response.content!r}") from e
+    # For mypy errors
+    raise AssertionError("unreachable")
 
 
 def validate_model_response_direct(response: requests.Response, response_model: Any) -> Any:
@@ -65,7 +66,7 @@ def validate_model_response(
     job_uid = response.json()["uid"]
     job = client.wait_for_job(job_uid)
     if job.status == "failed":
-        assert job.error is not None, f"job {job_uid} failed without error !"
-        raise_error_from_model(job.error)
+        assert job.error is not None, f"job {job_uid!r} failed without error !"
+        job.error.raise_exception()
 
     return response_model.model_validate(job.result)

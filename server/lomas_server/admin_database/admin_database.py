@@ -11,7 +11,7 @@ from pydantic import (
 )
 from typing_extensions import ParamSpec
 
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     InvalidQueryException,
     UnauthorizedAccessException,
 )

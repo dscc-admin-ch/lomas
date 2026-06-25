@@ -104,6 +104,9 @@ class ExceptionType(StrEnum):
     """
 
     INVALID_QUERY = "InvalidQueryException"
+    USER_NOT_FOUND = "UserNotFoundException"
+    DATASET_NOT_FOUND = "DatasetNotFoundException"
+    JOB_NOT_FOUND = "JobNotFoundException"
     EXTERNAL_LIBRARY = "ExternalLibraryException"
     UNAUTHORIZED_ACCESS = "UnauthorizedAccessException"
     INTERNAL_SERVER = "InternalServerException"

@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     ExternalLibraryException,
     InternalServerException,
     InvalidQueryException,

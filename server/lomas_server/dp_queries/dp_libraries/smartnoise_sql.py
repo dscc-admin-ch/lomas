@@ -6,7 +6,11 @@ from snsql.reader.base import Reader
 from sqlglot import exp, parse_one
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import ExternalLibraryException, InternalServerException, InvalidQueryException
+from lomas_core.exceptions import (
+    ExternalLibraryException,
+    InternalServerException,
+    InvalidQueryException,
+)
 from lomas_core.models.requests import (
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,

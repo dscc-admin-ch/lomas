@@ -3,7 +3,7 @@ import posix as Status
 import random
 import sys
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Coroutine
 from contextlib import asynccontextmanager
 from functools import wraps
 from pathlib import Path
@@ -11,18 +11,20 @@ from typing import Annotated
 from uuid import UUID
 
 import aio_pika
+from aio_pika.abc import AbstractConnection, AbstractQueue
 from aio_pika.patterns import RPC
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
+from starlette import status
 
 from lomas_core.constants import DPLibraries
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     InternalServerException,
     UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
-from lomas_core.models.exceptions import LomasServerExceptionTypeAdapter
+from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
@@ -39,40 +41,61 @@ logger = get_lomas_logger(__name__)
 
 
 async def process_response(
-    queue: aio_pika.Queue, cls: type[QueryResponse | CostResponse], admin_database: AdminDatabase
+    queue: AbstractQueue, cls: type[QueryResponse | CostResponse], admin_database: AdminDatabase
 ) -> None:
-    """Process responses queue into Jobs."""
+    """Process responses from queues into Jobs."""
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
-            async with message.process(ignore_processed=True):
-                if not admin_database.does_job_exist(UUID(message.correlation_id)):
-                    await message.reject(requeue=True)
-                else:
-                    await message.ack()
+            try:
+                async with message.process(ignore_processed=True):
+                    try:
+                        if not admin_database.does_job_exist(UUID(message.correlation_id)):
+                            await message.reject(requeue=True)
+                        else:
+                            await message.ack()
 
-                    message_body = message.body.decode()
-                    match message.headers:
-                        case {"type": "exception", "status_code": int() as status_code}:
-                            updated_job = Job(
-                                uid=UUID(message.correlation_id),
-                                status="failed",
-                                error=LomasServerExceptionTypeAdapter.validate_json(message_body),
-                                result=None,
-                                status_code=status_code,
-                            )
-                            admin_database.update_job(updated_job)
-                        case _:
-                            updated_job = Job(
-                                uid=UUID(message.correlation_id),
-                                result=cls.model_validate_json(message_body),
-                                status="complete",
-                            )
-                            admin_database.update_job(updated_job)
+                            message_body = message.body.decode()
+                            match message.headers:
+                                case {"type": "exception", "status_code": int() as status_code}:
+                                    logger.debug(message_body)
+                                    updated_job = Job(
+                                        uid=UUID(message.correlation_id),
+                                        status="failed",
+                                        error=LomasAPIErrorModel.model_validate_json(message_body),
+                                        result=None,
+                                        status_code=status_code,
+                                    )
+                                    admin_database.update_job(updated_job)
+                                case _:
+                                    updated_job = Job(
+                                        uid=UUID(message.correlation_id),
+                                        result=cls.model_validate_json(message_body),
+                                        status="complete",
+                                    )
+                                    admin_database.update_job(updated_job)
+                    except Exception as e:
+                        # Fail the job if we cannot parse worker responses
+                        logger.exception("Could not parse worker response.")
+                        updated_job = Job(
+                            uid=UUID(message.correlation_id),
+                            status="failed",
+                            error=LomasAPIErrorModel(
+                                message="InternalServerException: Could not parse response from worker."
+                            ),
+                            result=None,
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
+                        admin_database.update_job(updated_job)
+                        raise InternalServerException("Could not parse worker response.") from e
+            except Exception as e:
+                # TODO is this right? -> ignore this message and proceed as if nothing happened?
+                logger.exception("Error while handling worker responses, continuuing...")
+                raise InternalServerException from e
 
 
 async def rabbitmq_connect_queue(
     config: Config, reconnect_interval: int = 10, timeout: int = 120
-) -> aio_pika.RobustConnection:
+) -> AbstractConnection:
     """Attempt with retries to connect to the queue."""
     try:
         async with asyncio.timeout(timeout):
@@ -91,47 +114,82 @@ async def rabbitmq_connect_queue(
 async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
     """RabbitMQ queue context to connect and register callbacks."""
     config = Config()
-
-    connection = await rabbitmq_connect_queue(config)
-    channel = await connection.channel()
     background_tasks = set()  # Avoid dangling asyncio.Task by storing them here
 
-    await channel.declare_queue("task_queue", durable=True)
-    app.state.task_queue_channel = channel
-    queue = await channel.declare_queue("task_response", durable=True)
-    tasks_response_task = asyncio.create_task(
-        process_response(queue, QueryResponse, app.state.admin_database)
-    )
-    background_tasks.add(tasks_response_task)
-    tasks_response_task.add_done_callback(background_tasks.discard)
+    # Setting things up
+    try:
+        # Rabbit connection and single channel
+        connection = await rabbitmq_connect_queue(config)
+        channel = await connection.channel()
 
-    await channel.declare_queue("cost_queue", durable=True)
-    app.state.cost_queue_channel = channel
-    queue = await channel.declare_queue("cost_response", durable=True)
-    cost_response_task = asyncio.create_task(process_response(queue, CostResponse, app.state.admin_database))
-    background_tasks.add(cost_response_task)
-    cost_response_task.add_done_callback(background_tasks.discard)
+        # Queues
+        await channel.declare_queue("task_queue", durable=True)
+        app.state.task_queue_channel = channel
+        queue = await channel.declare_queue("task_response", durable=True)
 
-    await channel.declare_queue("dummy_queue", durable=True)
-    app.state.dummy_queue_channel = channel
-    queue = await channel.declare_queue("dummy_response", durable=True)
-    dummy_response_task = asyncio.create_task(
-        process_response(queue, QueryResponse, app.state.admin_database)
-    )
-    background_tasks.add(dummy_response_task)
-    dummy_response_task.add_done_callback(background_tasks.discard)
+        await channel.declare_queue("cost_queue", durable=True)
+        app.state.cost_queue_channel = channel
+        cost_queue = await channel.declare_queue("cost_response", durable=True)
 
-    rpc = await RPC.create(channel, durable=True)
-    await rpc.register(
-        "get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query, durable=True
-    )
-    await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query, durable=True)
-    await rpc.register("get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True)
-    await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
-    await rpc.register("save_query", app.state.admin_database.save_query, durable=True)
-    await rpc.register("get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True)
+        await channel.declare_queue("dummy_queue", durable=True)
+        app.state.dummy_queue_channel = channel
+        dummy_queue = await channel.declare_queue("dummy_response", durable=True)
 
-    yield  # app is handling requests
+        # Rpc stuff
+        rpc = await RPC.create(channel, durable=True)
+        await rpc.register(
+            "get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query, durable=True
+        )
+        await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query, durable=True)
+        await rpc.register(
+            "get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True
+        )
+        await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
+        await rpc.register("save_query", app.state.admin_database.save_query, durable=True)
+        await rpc.register(
+            "get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True
+        )
+
+    except Exception as e:
+        logger.exception(f"Failed to setup RabbitMQ context: {e!s}")
+        if connection:
+            await connection.close()
+        raise InternalServerException("Failed to setup RabbitMQ context") from e
+
+    # Utils
+    def on_task_done(task: asyncio.Task) -> None:
+        background_tasks.discard(task)  # drop reference
+
+        # Log and raise (server does not work anymore)
+        if task.cancelled():
+            logger.warning(f"Rabbit task {task.get_name()!r} cancelled")
+        elif exc := task.exception():
+            logger.exception(f"Exception in rabbit task {task.get_name()!r}.", exc_info=exc)
+            raise InternalServerException from exc
+
+    def make_task(coroutine: Coroutine, name: str) -> None:
+        task = asyncio.create_task(coroutine, name=name)
+        # keep reference and add done callback
+        background_tasks.add(task)
+        task.add_done_callback(on_task_done)
+
+    # Handlers
+    make_task(process_response(queue, QueryResponse, app.state.admin_database), "query_response")
+    make_task(process_response(cost_queue, CostResponse, app.state.admin_database), "cost_response")
+    make_task(process_response(dummy_queue, QueryResponse, app.state.admin_database), "dummy_response")
+
+    try:
+        yield  # app is handling requests
+    finally:
+        # Cancel background tasks
+        for task in background_tasks:
+            task.cancel()
+        await asyncio.gather(*background_tasks, return_exceptions=True)
+
+        try:
+            await connection.close()
+        except Exception:
+            logger.exception("Error while closing RabbitMQ connection during shutdown")
 
     await connection.close()
 

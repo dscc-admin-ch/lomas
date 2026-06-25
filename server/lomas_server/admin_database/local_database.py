@@ -15,7 +15,7 @@ from filelock import SoftFileLock
 from pydantic import HttpUrl
 from starlette import status
 
-from lomas_core.error_handler import (
+from lomas_core.exceptions import (
     InternalServerException,
     UnauthorizedAccessException,
 )
@@ -80,8 +80,7 @@ class LocalAdminDatabase(AdminDatabase):
         """Sets the default values for all collections in the database."""
         # create the file if it doesn't exists yet (makes open with flag='r' safe)
         with shelve.open(self.path, writeback=True) as db:
-            # Initialize to empty dicts by default
-
+            # Initialize to empty by default
             db.setdefault(TK.USERS, {})
             db.setdefault(TK.DATASETS, {})
             db.setdefault(TK.METADATA, {})

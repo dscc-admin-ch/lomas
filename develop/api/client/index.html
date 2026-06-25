@@ -9259,7 +9259,7 @@ the file layout is same as in the code repository.</p>
 
 
 <a href="#lomas_client.utils.raise_error" class="headerlink" title="Permanent link">#</a></h2>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">raise_error</span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.utils.raise_error(response)">response</a></span><span class="p">:</span> <span class="n"><span title="requests.Response">Response</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Never&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Never">Never</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span class="nf">raise_error</span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" href="#lomas_client.utils.raise_error(response)">response</a></span><span class="p">:</span> <span class="n"><span title="requests.Response">Response</span></span> <span class="o">|</span> <span class="n"><span title="httpx.Response">Response</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.NoReturn&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.NoReturn">NoReturn</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -9288,8 +9288,7 @@ the file layout is same as in the code repository.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>client/lomas_client/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">14</span>
-<span class="normal">15</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
 <span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
@@ -9302,7 +9301,8 @@ the file layout is same as in the code repository.</p>
 <span class="normal">25</span>
 <span class="normal">26</span>
 <span class="normal">27</span>
-<span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">raise_error</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Never</span><span class="p">:</span>
+<span class="normal">28</span>
+<span class="normal">29</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">raise_error</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="o">|</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise error message based on the HTTP response.</span>
 
 <span class="sd">    Args:</span>
@@ -9312,11 +9312,11 @@ the file layout is same as in the code repository.</p>
 <span class="sd">        Server Error</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">error_model</span> <span class="o">=</span> <span class="n">LomasServerExceptionTypeAdapter</span><span class="o">.</span><span class="n">validate_python</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+        <span class="n">LomasAPIErrorModel</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">JSONDecodeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">InternalServerException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse server error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-
-    <span class="n">raise_error_from_model</span><span class="p">(</span><span class="n">error_model</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">InternalServerException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse server error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="c1"># For mypy errors</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;unreachable&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -9367,8 +9367,7 @@ the file layout is same as in the code repository.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>client/lomas_client/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
-<span class="normal">32</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
 <span class="normal">35</span>
@@ -9381,7 +9380,8 @@ the file layout is same as in the code repository.</p>
 <span class="normal">42</span>
 <span class="normal">43</span>
 <span class="normal">44</span>
-<span class="normal">45</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response_direct</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">response_model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response_direct</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">response_model</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and process a HTTP response.</span>
 
 <span class="sd">    Args:</span>
@@ -9448,8 +9448,7 @@ the file layout is same as in the code repository.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>client/lomas_client/utils.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">51</span>
-<span class="normal">52</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
 <span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
@@ -9468,7 +9467,8 @@ the file layout is same as in the code repository.</p>
 <span class="normal">68</span>
 <span class="normal">69</span>
 <span class="normal">70</span>
-<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response</span><span class="p">(</span>
+<span class="normal">71</span>
+<span class="normal">72</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">validate_model_response</span><span class="p">(</span>
     <span class="n">client</span><span class="p">:</span> <span class="n">LomasHttpClient</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">response_model</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">ResponseT</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResponseT</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and process a HTTP response.</span>
@@ -9485,8 +9485,8 @@ the file layout is same as in the code repository.</p>
     <span class="n">job_uid</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;uid&quot;</span><span class="p">]</span>
     <span class="n">job</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">wait_for_job</span><span class="p">(</span><span class="n">job_uid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">job</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;failed&quot;</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">}</span><span class="s2"> failed without error !&quot;</span>
-        <span class="n">raise_error_from_model</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">job</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;job </span><span class="si">{</span><span class="n">job_uid</span><span class="si">!r}</span><span class="s2"> failed without error !&quot;</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">raise_exception</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">response_model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>

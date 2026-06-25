@@ -3274,9 +3274,9 @@ dummy_response = client.diffprivlib.query(
 
 <span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/core/lomas_core/error_handler.py:150</span>, in <span class="ansi-cyan-fg">raise_error_from_model</span><span class="ansi-blue-fg">(error_model)</span>
 <span class="ansi-green-fg">    148</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> InvalidQueryException(error_model.message)
-<span class="ansi-green-fg">    149</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> ExternalLibraryExceptionModel():
+<span class="ansi-green-fg">    149</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> LomasAPIErrorModel():
 <span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">150</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ExternalLibraryException(error_model.library, error_model.message)
-<span class="ansi-green-fg">    151</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> UnauthorizedAccessExceptionModel():
+<span class="ansi-green-fg">    151</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> LomasAPIErrorModel():
 <span class="ansi-green-fg">    152</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> UnauthorizedAccessException(error_model.message)
 
 <span class="ansi-red-fg">ExternalLibraryException</span>: (&lt;DPLibraries.DIFFPRIVLIB: 'diffprivlib'&gt;, 'PrivacyLeakWarning: Data norm has not been specified and will be calculated on the data provided.  This will result in additional privacy leakage. To ensure differential privacy and no additional privacy leakage, specify `data_norm` at initialisation. Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker.')</pre>
@@ -3443,9 +3443,9 @@ dummy_response = client.diffprivlib.query(
 
 <span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/core/lomas_core/error_handler.py:150</span>, in <span class="ansi-cyan-fg">raise_error_from_model</span><span class="ansi-blue-fg">(error_model)</span>
 <span class="ansi-green-fg">    148</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> InvalidQueryException(error_model.message)
-<span class="ansi-green-fg">    149</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> ExternalLibraryExceptionModel():
+<span class="ansi-green-fg">    149</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> LomasAPIErrorModel():
 <span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">150</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ExternalLibraryException(error_model.library, error_model.message)
-<span class="ansi-green-fg">    151</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> UnauthorizedAccessExceptionModel():
+<span class="ansi-green-fg">    151</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> LomasAPIErrorModel():
 <span class="ansi-green-fg">    152</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> UnauthorizedAccessException(error_model.message)
 
 <span class="ansi-red-fg">ExternalLibraryException</span>: (&lt;DPLibraries.DIFFPRIVLIB: 'diffprivlib'&gt;, 'PrivacyLeakWarning: Data norm has not been specified and will be calculated on the data provided.  This will result in additional privacy leakage. To ensure differential privacy and no additional privacy leakage, specify `data_norm` at initialisation. Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker.')</pre>

@@ -2724,8 +2724,8 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2746,18 +2746,6 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-5">client = Client()</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[09:18:56] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> OIDC IdP or Lomas service configured without TLS -&gt; using insecure transport  <a href="file:///home/pauline/Desktop/lomas/client/lomas_client/http_client.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">http_client.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/pauline/Desktop/lomas/client/lomas_client/http_client.py#35" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">35</span></a>
-</pre>
 </div>
 </div>
 </div>
@@ -2829,7 +2817,8 @@ metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['Adelie', 'Chinstrap', 'Gentoo'],
+    'keyValues': ['Adelie', 'Chinstrap', 'Gentoo'],
+    'invariantPublicKeys': True,
     'maxNumPartitions': 3},
    {'@type': 'Column',
     'name': 'island',
@@ -2837,7 +2826,8 @@ metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['Torgersen', 'Biscoe', 'Dream'],
+    'keyValues': ['Torgersen', 'Biscoe', 'Dream'],
+    'invariantPublicKeys': True,
     'maxNumPartitions': 3},
    {'@type': 'Column',
     'name': 'bill_length_mm',
@@ -2877,8 +2867,21 @@ metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['MALE', 'FEMALE'],
-    'maxNumPartitions': 2}]}}</pre>
+    'keyValues': ['MALE', 'FEMALE'],
+    'invariantPublicKeys': True,
+    'maxNumPartitions': 2}]},
+ 'additionalInformation': [{'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'island'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'sex'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['sex', 'island'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'island', 'sex'],
+   'invariantPublicKeys': True}]}</pre>
 </div>
 </div>
 </div>
@@ -3077,7 +3080,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'Average bill length on dummy: 44.16mm.'</pre>
+<pre>'Average bill length on dummy: 51.07mm.'</pre>
 </div>
 </div>
 </div>
@@ -3271,7 +3274,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'Average bill length on dummy: 50.17mm.'</pre>
+<pre>'Average bill length on dummy: 53.49mm.'</pre>
 </div>
 </div>
 </div>
@@ -3411,7 +3414,7 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Average bill length on private data: 42.36mm.
+<pre>Average bill length on private data: 42.29mm.
 </pre>
 </div>
 </div>
@@ -3495,7 +3498,7 @@ dummy_res</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
 <pre>QueryResponse(epsilon=1.5, delta=1.4999949999983109e-05, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=   avg_bill_length_mm
-0           38.707424))</pre>
+0           48.656781))</pre>
 </div>
 </div>
 </div>
@@ -3548,7 +3551,7 @@ dummy_res</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
 <pre>QueryResponse(epsilon=1.5, delta=1.4999949999983109e-05, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=       res_0        res_1       res_2
-0  93.989285  4920.846654  101.370471))</pre>
+0  103.77021  4610.567968  100.573341))</pre>
 </div>
 </div>
 </div>
@@ -3692,7 +3695,7 @@ f"The dummy standard variation is {dummy_std}."</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'The dummy standard variation is 9.36.'</pre>
+<pre>'The dummy standard variation is 15.56.'</pre>
 </div>
 </div>
 </div>
@@ -3860,7 +3863,7 @@ print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</di
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Standard deviation of bill length: 3.02.
+<pre>Standard deviation of bill length: 8.6.
 </pre>
 </div>
 </div>
@@ -3913,7 +3916,7 @@ print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Standard error of bill length: 0.16.
+<pre>Standard error of bill length: 0.46.
 </pre>
 </div>
 </div>
@@ -3958,7 +3961,7 @@ print(f"The 95% confidence interval of the bill length of all penguins is [{np.r
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>The 95% confidence interval of the bill length of all penguins is [42.04, 42.67].
+<pre>The 95% confidence interval of the bill length of all penguins is [41.39, 43.2].
 </pre>
 </div>
 </div>
@@ -4290,7 +4293,7 @@ dp_query</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>&lt;snsql._ast.ast.Query at 0x7c6c94ab1250&gt;</pre>
+<pre>&lt;snsql._ast.ast.Query at 0x7f903cc94a70&gt;</pre>
 </div>
 </div>
 </div>
@@ -4338,7 +4341,7 @@ dp_query</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'std_bl': &lt;snsql._ast.tokens.Symbol at 0x7c6c94aa8550&gt;}</pre>
+<pre>{'std_bl': &lt;snsql._ast.tokens.Symbol at 0x7f903cc3f070&gt;}</pre>
 </div>
 </div>
 </div>
@@ -4394,10 +4397,10 @@ syms</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'keycount': &lt;snsql._ast.tokens.Symbol at 0x7c6ca85993d0&gt;,
- 'sum_alias_0xf3d7': &lt;snsql._ast.tokens.Symbol at 0x7c6ca87c2990&gt;,
- 'count_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7c6ca87c2d00&gt;,
- 'sum_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7c6c94aa8370&gt;}</pre>
+<pre>{'keycount': &lt;snsql._ast.tokens.Symbol at 0x7f9051633650&gt;,
+ 'sum_alias_0xf3d7': &lt;snsql._ast.tokens.Symbol at 0x7f905171f8b0&gt;,
+ 'count_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7f905171fe30&gt;,
+ 'sum_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7f903cc3ee90&gt;}</pre>
 </div>
 </div>
 </div>
@@ -4704,30 +4707,27 @@ dummy_res</div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
 <pre>
 <span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ExternalLibraryException</span>                  Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[43]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-red-fg">LomasAPIException</span>                         Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[45]</span><span class="ansi-green-fg">, line 1</span>
 <span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = <span class="ansi-green-fg">0.1</span>, delta = <span class="ansi-green-fg">1e-8</span>, dummy = <span class="ansi-bold" style="color: rgb(0,135,0)">True</span>)
 <span class="ansi-green-fg">      2</span> dummy_res
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/Desktop/lomas/client/lomas_client/libraries/smartnoise_sql.py:119</span>, in <span class="ansi-cyan-fg">SmartnoiseSQLClient.query</span><span class="ansi-blue-fg">(self, query, epsilon, delta, mechanisms, postprocess, dummy, nb_rows, seed)</span>
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/client/lomas_client/libraries/smartnoise_sql.py:119</span>, in <span class="ansi-cyan-fg">SmartnoiseSQLClient.query</span><span class="ansi-blue-fg">(self, query, epsilon, delta, mechanisms, postprocess, dummy, nb_rows, seed)</span>
 <span class="ansi-green-fg">    116</span> body = request_model.model_validate(body_dict)
 <span class="ansi-green-fg">    117</span> res = <span style="color: rgb(0,135,0)">self</span>.http_client.post(endpoint, body)
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">119</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg">validate_model_response</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">http_client</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">res</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span><span class="ansi-yellow-bg">QueryResponse</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">119</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">validate_model_response</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">http_client</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">res</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">QueryResponse</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/Desktop/lomas/client/lomas_client/utils.py:69</span>, in <span class="ansi-cyan-fg">validate_model_response</span><span class="ansi-blue-fg">(client, response, response_model)</span>
-<span class="ansi-green-fg">     67</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> job.status == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">failed</span><span class="ansi-yellow-fg">"</span>:
-<span class="ansi-green-fg">     68</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">assert</span> job.error <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">job </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>job_uid<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> failed without error !</span><span class="ansi-yellow-fg">"</span>
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">69</span>     <span class="ansi-yellow-bg">raise_error_from_model</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">job</span><span class="ansi-yellow-bg">.</span><span class="ansi-yellow-bg">error</span><span class="ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">     71</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> response_model.model_validate(job.result)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/client/lomas_client/utils.py:70</span>, in <span class="ansi-cyan-fg">validate_model_response</span><span class="ansi-blue-fg">(client, response, response_model)</span>
+<span class="ansi-green-fg">     68</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> job.status == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">failed</span><span class="ansi-yellow-fg">"</span>:
+<span class="ansi-green-fg">     69</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">assert</span> job.error <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">job </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>job_uid<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> failed without error !</span><span class="ansi-yellow-fg">"</span>
+<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">70</span>     <span class="ansi-black-fg ansi-yellow-bg">job</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">error</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">raise_exception</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+<span class="ansi-green-fg">     72</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> response_model.model_validate(job.result)
 
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/Desktop/lomas/core/lomas_core/error_handler.py:150</span>, in <span class="ansi-cyan-fg">raise_error_from_model</span><span class="ansi-blue-fg">(error_model)</span>
-<span class="ansi-green-fg">    148</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> InvalidQueryException(error_model.message)
-<span class="ansi-green-fg">    149</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> ExternalLibraryExceptionModel():
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">150</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> ExternalLibraryException(error_model.library, error_model.message)
-<span class="ansi-green-fg">    151</span> <span class="ansi-bold" style="color: rgb(0,135,0)">case</span> UnauthorizedAccessExceptionModel():
-<span class="ansi-green-fg">    152</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> UnauthorizedAccessException(error_model.message)
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/core/lomas_core/models/exceptions.py:22</span>, in <span class="ansi-cyan-fg">LomasAPIErrorModel.raise_exception</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-fg">     21</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">raise_exception</span>(<span style="color: rgb(0,135,0)">self</span>) -&gt; NoReturn:
+<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">22</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> LomasAPIException(<span style="color: rgb(0,135,0)">self</span>.message)
 
-<span class="ansi-red-fg">ExternalLibraryException</span>: (&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, 'SQL Reader generated empty results. Epsilon: 0.1 and Delta: 1e-08 are too small to generate output.')</pre>
+<span class="ansi-red-fg">LomasAPIException</span>: Exception from &lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt; library: SQL Reader generated empty results. Epsilon: 0.1 and Delta: 1e-08 are too small to generate output.</pre>
 </div>
 </div>
 </div>
@@ -4780,9 +4780,9 @@ dummy_res</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
 <pre>QueryResponse(epsilon=20.0, delta=0.00014999500000001387, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=     species  nb_penguin  avg_bill_length_mm  std_bill_length_mm
-0     Adelie          26           48.965521            9.278141
-1  Chinstrap          32           47.942201           10.567298
-2     Gentoo          40           46.568333           10.015278))</pre>
+0     Adelie          30           44.047766           12.592844
+1  Chinstrap          30           48.881070           12.955143
+2     Gentoo          40           47.310596           10.959094))</pre>
 </div>
 </div>
 </div>
@@ -4798,8 +4798,8 @@ dummy_res</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=84">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4817,7 +4817,7 @@ dummy_res</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lomas_core.error_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvalidQueryException</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lomas_core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LomasAPIException</span>
 
 <span class="n">flipper_length_response</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -4825,14 +4825,14 @@ dummy_res</div>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">flipper_length_response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span>
         <span class="k">break</span>
-    <span class="k">except</span> <span class="n">InvalidQueryException</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">LomasAPIException</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Attempt number </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed."</span><span class="p">)</span>
         <span class="k">continue</span>
 
 <span class="k">if</span> <span class="n">flipper_length_response</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"10 unsuccessfull query attempts."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-46">from lomas_core.error_handler import InvalidQueryException
+<div class="clipboard-copy-txt" id="cell-46">from lomas_core.exceptions import LomasAPIException
 
 flipper_length_response = None
 
@@ -4840,12 +4840,24 @@ for i in range(0, 10):
     try:
         flipper_length_response = client.smartnoise_sql.query(query = QUERY, epsilon = 5, delta = 1e-4)
         break
-    except InvalidQueryException:
+    except LomasAPIException:
         print(f"Attempt number {i + 1} failed.")
         continue
 
 if flipper_length_response is None:
     print("10 unsuccessfull query attempts.")</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Attempt number 1 failed.
+</pre>
 </div>
 </div>
 </div>
@@ -4933,23 +4945,23 @@ df_flipper</div>
 <tr>
 <th>0</th>
 <td>Adelie</td>
-<td>150</td>
-<td>38.841433</td>
-<td>3.187632</td>
+<td>151</td>
+<td>38.642952</td>
+<td>3.556159</td>
 </tr>
 <tr>
 <th>1</th>
 <td>Chinstrap</td>
-<td>68</td>
-<td>48.653061</td>
-<td>5.506999</td>
+<td>67</td>
+<td>48.835724</td>
+<td>3.875695</td>
 </tr>
 <tr>
 <th>2</th>
 <td>Gentoo</td>
 <td>123</td>
-<td>47.730977</td>
-<td>1.975289</td>
+<td>47.444875</td>
+<td>4.807584</td>
 </tr>
 </tbody>
 </table>
@@ -5075,9 +5087,9 @@ print(f"T test between species 1 and specie 2: {np.round(t_12, 2)}.   Reject nul
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>T test between species 0 and specie 1: -17.18.  Reject null hypothesis: True.
-T test between species 0 and specie 2: -27.66. Reject null hypothesis: True.
-T test between species 1 and specie 2: 1.89.   Reject null hypothesis: True.
+<pre>T test between species 0 and specie 1: -19.0.  Reject null hypothesis: True.
+T test between species 0 and specie 2: -17.6. Reject null hypothesis: True.
+T test between species 1 and specie 2: 2.04.   Reject null hypothesis: True.
 </pre>
 </div>
 </div>
@@ -5175,32 +5187,32 @@ df_flipper</div>
 <tr>
 <th>0</th>
 <td>Adelie</td>
-<td>150</td>
-<td>38.841433</td>
-<td>3.187632</td>
-<td>0.260269</td>
-<td>38.331305</td>
-<td>39.351560</td>
+<td>151</td>
+<td>38.642952</td>
+<td>3.556159</td>
+<td>0.289396</td>
+<td>38.075735</td>
+<td>39.210168</td>
 </tr>
 <tr>
 <th>1</th>
 <td>Chinstrap</td>
-<td>68</td>
-<td>48.653061</td>
-<td>5.506999</td>
-<td>0.667822</td>
-<td>47.344131</td>
-<td>49.961992</td>
+<td>67</td>
+<td>48.835724</td>
+<td>3.875695</td>
+<td>0.473491</td>
+<td>47.907680</td>
+<td>49.763767</td>
 </tr>
 <tr>
 <th>2</th>
 <td>Gentoo</td>
 <td>123</td>
-<td>47.730977</td>
-<td>1.975289</td>
-<td>0.178106</td>
-<td>47.381890</td>
-<td>48.080065</td>
+<td>47.444875</td>
+<td>4.807584</td>
+<td>0.433485</td>
+<td>46.595244</td>
+<td>48.294506</td>
 </tr>
 </tbody>
 </table>

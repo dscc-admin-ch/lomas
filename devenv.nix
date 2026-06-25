@@ -284,12 +284,6 @@ in
   # Python Env #
   ##############
 
-  scripts.pip-fix = wrapScript {
-    exec = ''
-      uv pip compile pyproject.toml --annotation-style line --all-extras $@ | ${pkgs.gnused}/bin/sed -re '/^-e file:/d' > requirements.txt
-    '';
-  };
-
   languages.python = {
     enable = true;
     venv.enable = !config.lomas.pyenv.enable;

@@ -90,7 +90,7 @@ async def status_handler(
     job = admin_database.get_job(uid)
 
     # Check access rights
-    if job.user != user_id.name:
+    if job.requested_by != user_id.name:
         raise UnauthorizedAccessException(f"User {user_id.name} does not have access to job with uid {uid}")
 
     if job.status == "failed":

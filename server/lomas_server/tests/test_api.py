@@ -8,9 +8,10 @@ from fastapi.testclient import TestClient
 from lomas_client.utils import raise_error
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
-    InvalidQueryException,
+    DatasetNotFoundException,
     LomasAPIException,
     UnauthorizedAccessException,
+    UserNotFoundException,
 )
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
@@ -82,9 +83,9 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             # Expect to fail: dataset does not exist
             fake_dataset = "I_do_not_exist"
             response = client.post("/get_dataset_metadata", json={"dataset_name": fake_dataset})
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.status_code == status.HTTP_404_NOT_FOUND
 
-            match_string = str(InvalidQueryException(f"Dataset {fake_dataset} does not exist."))
+            match_string = str(DatasetNotFoundException(fake_dataset))
             with pytest.raises(LomasAPIException, match=re.escape(match_string)):
                 raise_error(response)
 
@@ -137,8 +138,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                     "dummy_seed": 0,
                 },
             )
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            match_string = str(InvalidQueryException(f"Dataset {fake_dataset} does not exist."))
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+            match_string = str(DatasetNotFoundException(fake_dataset))
             with pytest.raises(LomasAPIException, match=re.escape(match_string)):
                 raise_error(response)
 
@@ -175,8 +176,8 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
                 json=example_get_dummy_dataset,
                 headers=new_headers,
             )
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-            match_string = str(UnauthorizedAccessException("User fake_user does not exist."))
+            assert response.status_code == status.HTTP_404_NOT_FOUND
+            match_string = str(UserNotFoundException("fake_user"))
             with pytest.raises(LomasAPIException, match=re.escape(match_string)):
                 raise_error(response)
 

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import operator as op
 import shelve
@@ -75,7 +76,8 @@ class LocalAdminDatabase(AdminDatabase):
     path: Path
     """Database accepts existing path or new (creatable) path."""
 
-    lock: SoftFileLock = Field(exclude=True, default=None)
+    lock: SoftFileLock = Field(exclude=True, default=None)  # Protects inter-process concurrency.
+    asyncio_lock: asyncio.Lock = asyncio.Lock()  # Protects softlock re-entry between concurrent coroutines.
 
     def model_post_init(self, _: Any) -> None:
         self.lock = SoftFileLock(self.path.with_suffix(".lock"), is_singleton=True, timeout=10)
@@ -134,8 +136,6 @@ class LocalAdminDatabase(AdminDatabase):
     def update_job(self, updated_job: Job) -> None:
         uid = updated_job.uid
         with shelve.open(self.path, writeback=True) as db:
-            if uid not in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys():
-                raise InternalServerException(f"Cannot update job with uid {uid}: not in db.")
             merged_job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid].model_copy(
                 update=updated_job.model_dump(exclude_none=True), deep=True
             )
@@ -364,6 +364,7 @@ class LocalAdminDatabase(AdminDatabase):
                 db[TK.ARCHIVE].append(to_archive)
 
     @db_span("db.get_archives_of_user", table="admin-db")
+    @with_lock
     def get_archives_of_user(self, username: str) -> list[dict]:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_archives_of_user"})
         with shelve.open(self.path, flag="r") as db:
@@ -614,6 +615,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.get_dataset_metadata", table="admin-db")
+    @with_lock
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
         with shelve.open(self.path, flag="r") as db:
@@ -643,7 +645,7 @@ class LocalAdminDatabase(AdminDatabase):
         with shelve.open(self.path, writeback=True) as db:
             if collection in db:
                 del db[collection]
-                self.set_defaults()
+        self.set_defaults()
 
     @override
     @with_lock

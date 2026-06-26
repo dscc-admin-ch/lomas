@@ -2,10 +2,11 @@ import json
 import operator as op
 import shelve
 import sys
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, Concatenate, ParamSpec, TypeVar
 from uuid import UUID
 
 import boto3
@@ -52,10 +53,14 @@ else:
 
 logger = get_lomas_logger(__name__)
 
+P = ParamSpec("P")
+T = TypeVar("T")
+DB = TypeVar("DB", bound="LocalAdminDatabase")
 
-def with_lock(fn):
+
+def with_lock(fn: Callable[Concatenate[DB, P], T]) -> Callable[Concatenate[DB, P], T]:
     @wraps(fn)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: DB, *args: P.args, **kwargs: P.kwargs) -> T:
         with self.lock:
             return fn(self, *args, **kwargs)
 

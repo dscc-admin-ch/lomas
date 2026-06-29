@@ -91,7 +91,7 @@ def test_oauth2(aria, dex_config) -> None:
 
     client = aria.as_client()
 
-    with pytest.raises(LomasAPIException, match=f"User {aria.user_name} does not exist"):
+    with pytest.raises(LomasAPIException, match=f"User {aria.user_name!r} does not exist."):
         client.get_dataset_metadata()
 
 

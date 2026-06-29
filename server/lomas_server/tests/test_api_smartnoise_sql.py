@@ -7,10 +7,12 @@ from fastapi.testclient import TestClient
 
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
+    DatasetNotFoundException,
     ExternalLibraryException,
     InvalidQueryException,
     LomasAPIException,
     UnauthorizedAccessException,
+    UserNotFoundException,
 )
 from lomas_core.models.requests_examples import (
     PENGUIN_DATASET,
@@ -109,9 +111,9 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
             input_smartnoise["dataset_name"] = "I_do_not_exist"
             job = submit_job_wait(client, "/smartnoise_sql_query", json=input_smartnoise)
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_400_BAD_REQUEST
+            assert job.status_code == status.HTTP_404_NOT_FOUND
             assert job.error is not None
-            exc = InvalidQueryException("Dataset I_do_not_exist does not exist.")
+            exc = DatasetNotFoundException("I_do_not_exist")
             with pytest.raises(LomasAPIException, match=re.escape(f"{exc!s}")):
                 job.error.raise_exception()
 
@@ -121,11 +123,9 @@ class TestSmartnoiseSqlEndpoint(TestSetupRootAPIEndpoint):
                 client, "/smartnoise_sql_query", json=example_smartnoise_sql, headers=new_headers
             )
             assert job.status == "failed"
-            assert job.status_code == status.HTTP_403_FORBIDDEN
+            assert job.status_code == status.HTTP_404_NOT_FOUND
             assert job.error is not None
-            exc = UnauthorizedAccessException(
-                "User I_do_not_exist does not exist. Please, verify the client object initialisation."
-            )
+            exc = UserNotFoundException("I_do_not_exist")
             with pytest.raises(LomasAPIException, match=re.escape(f"{exc!s}")):
                 job.error.raise_exception()
 

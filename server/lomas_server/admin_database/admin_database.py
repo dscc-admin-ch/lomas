@@ -1,20 +1,12 @@
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Callable
-from functools import wraps
-from typing import Concatenate, TypeVar
 from uuid import UUID
 
 from csvw_eo.metadata_structure import TableMetadata
 from pydantic import (
     BaseModel,
 )
-from typing_extensions import ParamSpec
 
-from lomas_core.exceptions import (
-    InvalidQueryException,
-    UnauthorizedAccessException,
-)
 from lomas_core.models.collections import DSInfo
 from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
@@ -22,105 +14,6 @@ from lomas_core.models.responses import Job, QueryResponse
 from lomas_server.admin_database.constants import BudgetDBKey
 
 logger = get_lomas_logger(__name__)
-
-P = ParamSpec("P")
-T = TypeVar("T")
-DB = TypeVar("DB", bound="AdminDatabase")
-
-
-def user_must_exist(
-    func: Callable[Concatenate[DB, str, P], T],
-) -> Callable[Concatenate[DB, str, P], T]:
-    """
-    Decorator function to verify that a user exists.
-
-    Args:
-        func (Callable): Function to be decorated.
-            Wrapped function arguments must include:
-            - args[0] (str): username
-
-    Raises:
-        UnauthorizedAccessException: If the user does not exist.
-
-    Returns:
-        Callable: Wrapper function that verifies the user exists
-            before calling func.
-    """
-
-    @wraps(func)
-    def wrapper_decorator(self: DB, user_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
-        if not self.does_user_exist(user_name):
-            raise UnauthorizedAccessException(
-                f"User {user_name} does not exist. Please, verify the client object initialisation.",
-            )
-        return func(self, user_name, *args, **kwargs)
-
-    return wrapper_decorator
-
-
-def dataset_must_exist(
-    func: Callable[Concatenate[DB, str, P], T],
-) -> Callable[Concatenate[DB, str, P], T]:
-    """
-    Decorator function to verify that a dataset exists.
-
-    Args:
-        func (Callable): Function to be decorated.
-            Wrapped function arguments must include:
-            - args[0] (str): dataset name
-
-    Raises:
-        InvalidQueryException: If the dataset does not exist.
-
-    Returns:
-        Callable: Wrapper function that checks if the dataset exists
-            before calling the wrapped function.
-    """
-
-    @wraps(func)
-    def wrapper_decorator(self: DB, dataset_name: str, *args: P.args, **kwargs: P.kwargs) -> T:
-        if not self.does_dataset_exist(dataset_name):
-            raise InvalidQueryException(
-                f"Dataset {dataset_name} does not exist. "
-                + "Please, verify the client object initialisation.",
-            )
-        return func(self, dataset_name, *args, **kwargs)
-
-    return wrapper_decorator
-
-
-def user_must_have_access_to_dataset(
-    func: Callable[Concatenate[DB, str, str, P], T],
-) -> Callable[Concatenate[DB, str, str, P], T]:
-    """
-    Decorator function to enforce a user has access to a dataset.
-
-    Args:
-        func (Callable): Function to be decorated.
-            Wrapped function arguments must include:
-            - args[0] (str): user name
-            - args[1] (str): dataset name
-
-    Raises:
-        UnauthorizedAccessException: If the user does not have
-            access to the dataset.
-
-    Returns:
-        Callable: Wrapper function that checks if the user has access
-            to the dataset before calling the wrapped function.
-    """
-
-    @wraps(func)
-    def wrapper_decorator(
-        self: DB, user_name: str, dataset_name: str, *args: P.args, **kwargs: P.kwargs
-    ) -> T:
-        if not self.has_user_access_to_dataset(user_name, dataset_name):
-            raise UnauthorizedAccessException(
-                f"{user_name} does not have access to {dataset_name}.",
-            )
-        return func(self, user_name, dataset_name, *args, **kwargs)
-
-    return wrapper_decorator
 
 
 class AdminDatabase(ABC, BaseModel):
@@ -162,16 +55,15 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    def get_job_for_user(self, user_name: str, uid: UUID) -> Job:
+    def get_job(self, uid: UUID) -> Job:
         """
-        Checks if jobs exists and if user owns job before returning the job.
+        Gets the job with given uid from the database.
 
         Args:
-            user_name (str): The name of the user who must own the job.
             uid (UUID): The uid of the job.
 
         Returns:
-            Job: The job, only if it exists and the user owns it.
+            Job: The job.
         """
 
     @abstractmethod
@@ -195,7 +87,6 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    @dataset_must_exist
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         """
         Returns the metadata dictionnary of the dataset.
@@ -210,7 +101,6 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    @user_must_exist
     def is_user_admin(self, user_name: str) -> bool:
         """
         Returns true if the user is an admin.
@@ -222,7 +112,6 @@ class AdminDatabase(ABC, BaseModel):
             bool: True if the user is a lomas admin.
         """
 
-    @user_must_exist
     def set_may_user_query(self, user_name: str, may_query: bool) -> None:
         """
         Sets if a user may query the server..
@@ -238,7 +127,6 @@ class AdminDatabase(ABC, BaseModel):
         _ = self.get_and_set_may_user_query(user_name, may_query)
 
     @abstractmethod
-    @user_must_exist
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         """
         Atomic operation to check and set if the user may query the server.
@@ -256,7 +144,6 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    @user_must_exist
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         """
         Checks if a user may access a particular dataset.
@@ -285,7 +172,6 @@ class AdminDatabase(ABC, BaseModel):
             float: The requested budget value.
         """
 
-    @user_must_have_access_to_dataset
     def get_total_spent_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the total spent epsilon and delta spent by user on dataset.
@@ -305,7 +191,6 @@ class AdminDatabase(ABC, BaseModel):
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT),
         ]
 
-    @user_must_have_access_to_dataset
     def get_initial_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the initial epsilon and delta budget.
@@ -325,7 +210,6 @@ class AdminDatabase(ABC, BaseModel):
             self.get_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_INIT),
         ]
 
-    @user_must_have_access_to_dataset
     def get_remaining_budget(self, user_name: str, dataset_name: str) -> list[float]:
         """
         Get the remaining epsilon and delta budget (initial - total spent).
@@ -384,7 +268,6 @@ class AdminDatabase(ABC, BaseModel):
         """
         self.update_epsilon_or_delta(user_name, dataset_name, BudgetDBKey.DELTA_SPENT, spent_delta)
 
-    @user_must_have_access_to_dataset
     def update_budget(
         self,
         user_name: str,
@@ -407,7 +290,6 @@ class AdminDatabase(ABC, BaseModel):
         self.update_delta(user_name, dataset_name, spent_delta)
 
     @abstractmethod
-    @dataset_must_exist
     def get_dataset(self, dataset_name: str) -> DSInfo:
         """
         Get dataset access info based on dataset_name.
@@ -422,7 +304,6 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    @user_must_have_access_to_dataset
     def get_user_previous_queries(
         self,
         user_name: str,

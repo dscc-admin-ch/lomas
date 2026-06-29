@@ -57,13 +57,14 @@ async def smartnoise_sql_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -93,13 +94,14 @@ async def dummy_smartnoise_sql_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSQLQueryResult.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 @router.post(
@@ -128,13 +130,14 @@ async def estimate_smartnoise_sql_cost(
             external to this package.
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: The dataset does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, smartnoise_sql_query, user_id.name, DPLibraries.SMARTNOISE_SQL)
+    return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
 
 
 # Smartnoise Synth
@@ -168,16 +171,15 @@ async def smartnoise_synth_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(
-        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
 
 
 @router.post(
@@ -207,16 +209,15 @@ async def dummy_smartnoise_synth_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
         or SmartnoiseSynthSamples.
     """
-    return await handle_query_to_job(
-        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
 
 
 @router.post(
@@ -246,15 +247,14 @@ async def estimate_smartnoise_synth_cost(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(
-        request, smartnoise_synth_query, user_id.name, DPLibraries.SMARTNOISE_SYNTH
-    )
+    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP
@@ -287,13 +287,14 @@ async def opendp_query_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: The pipeline does not contain a "measurement",
             there is not enough budget or the dataset does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -322,13 +323,14 @@ async def dummy_opendp_query_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: The pipeline does not contain a "measurement",
             there is not enough budget or the dataset does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing an OpenDPQueryResult.
     """
-    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 @router.post(
@@ -357,13 +359,14 @@ async def estimate_opendp_cost(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: The pipeline does not contain a "measurement",
             there is not enough budget or the dataset does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, opendp_query, user_id.name, DPLibraries.OPENDP)
+    return await handle_query_to_job(request, opendp_query, user_id, DPLibraries.OPENDP)
 
 
 # DiffPrivLib
@@ -396,13 +399,14 @@ async def diffprivlib_query_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -431,13 +435,14 @@ async def dummy_diffprivlib_query_handler(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a QueryResponse containing a DiffPrivLibQueryResult.
     """
-    return await handle_query_to_job(request, query_json, user_id.name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, query_json, user_id, DPLibraries.DIFFPRIVLIB)
 
 
 @router.post(
@@ -475,10 +480,11 @@ async def estimate_diffprivlib_cost(
         InternalServerException: For any other unforseen exceptions.
         InvalidQueryException: If there is not enough budget or the dataset
             does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user,
-            the user does not exist or does not have access to the dataset.
+        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
+        DatasetNotFoundException: If the dataset does not exist.
+        UserNotFoundException: If the user does not exist.
 
     Returns:
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
-    return await handle_query_to_job(request, diffprivlib_query, user_id.name, DPLibraries.DIFFPRIVLIB)
+    return await handle_query_to_job(request, diffprivlib_query, user_id, DPLibraries.DIFFPRIVLIB)

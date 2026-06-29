@@ -20,7 +20,6 @@ from starlette import status
 from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
     InternalServerException,
-    UnauthorizedAccessException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
 from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
@@ -32,7 +31,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.auth.auth import authorize_user
+from lomas_server.auth.auth import authorize_user, ensure_dataset_access
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
@@ -291,7 +290,7 @@ def get_dataset_credentials(
 async def handle_query_to_job(
     request: Request,
     query: DummyQueryModel | QueryModel | LomasRequestModel,
-    user_name: str,
+    user: UserId,
     dp_library: DPLibraries,
 ) -> Job:
     """
@@ -318,8 +317,7 @@ async def handle_query_to_job(
 
     dataset_name = query.dataset_name
 
-    if not admin_database.has_user_access_to_dataset(user_name, dataset_name):
-        raise UnauthorizedAccessException(f"{user_name} does not have access to {dataset_name}.")
+    ensure_dataset_access(user, dataset_name, admin_database)
 
     ds_access = admin_database.get_dataset(dataset_name).dataset_access
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)
@@ -358,14 +356,14 @@ async def handle_query_to_job(
         case LomasRequestModel():
             queue_name = "cost_queue"
 
-    new_task = Job(requested_by=user_name)
+    new_task = Job(requested_by=user.name)
 
     # app.state.jobs[str(new_task.uid)] = new_task
     admin_database.put_job(new_task)
 
     await app.state.cost_queue_channel.default_exchange.publish(
         aio_pika.Message(
-            body=f"{user_name}λ{dp_library}λ{data_connector.model_dump_json()}λ{query.model_dump_json()}".encode(),
+            body=f"{user.name}λ{dp_library}λ{data_connector.model_dump_json()}λ{query.model_dump_json()}".encode(),
             correlation_id=new_task.uid,
         ),
         routing_key=queue_name,

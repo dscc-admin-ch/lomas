@@ -31,7 +31,7 @@ from lomas_core.models.requests import (
 )
 from lomas_core.models.responses import CostResponse, Job, QueryResponse
 from lomas_server.admin_database.admin_database import AdminDatabase
-from lomas_server.auth.auth import authorize_user, check_dataset_access
+from lomas_server.auth.auth import authorize_user, ensure_dataset_access
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
@@ -317,7 +317,7 @@ async def handle_query_to_job(
 
     dataset_name = query.dataset_name
 
-    check_dataset_access(user, dataset_name, admin_database)
+    ensure_dataset_access(user, dataset_name, admin_database)
 
     ds_access = admin_database.get_dataset(dataset_name).dataset_access
     ds_metadata = admin_database.get_dataset_metadata(dataset_name)

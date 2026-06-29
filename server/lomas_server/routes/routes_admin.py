@@ -29,7 +29,7 @@ from lomas_core.models.responses import (
 )
 from lomas_server.admin_database.constants import BudgetDBKey
 from lomas_server.admin_database.local_database import LocalAdminDatabase
-from lomas_server.auth.auth import check_dataset_access
+from lomas_server.auth.auth import ensure_dataset_access
 from lomas_server.models.config import Config
 from lomas_server.models.responses import ConfigResponse
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
@@ -175,7 +175,7 @@ def get_dataset_metadata(
     app = request.app
     dataset_name = query_json.dataset_name
 
-    check_dataset_access(user_id, dataset_name, app.state.admin_database)
+    ensure_dataset_access(user_id, dataset_name, app.state.admin_database)
 
     ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
 
@@ -219,7 +219,7 @@ def get_dummy_dataset(
     """
     app = request.app
     dataset_name = query_json.dataset_name
-    check_dataset_access(user_id, dataset_name, app.state.admin_database)
+    ensure_dataset_access(user_id, dataset_name, app.state.admin_database)
 
     ds_metadata = app.state.admin_database.get_dataset_metadata(dataset_name)
     dtypes = {col.name: to_pandas_dtype(col.datatype) for col in ds_metadata.columns}
@@ -396,7 +396,7 @@ def get_user_previous_queries(
     """
     app = request.app
 
-    check_dataset_access(user_id, query_json.dataset_name, app.state.admin_database)
+    ensure_dataset_access(user_id, query_json.dataset_name, app.state.admin_database)
 
     previous_queries = app.state.admin_database.get_user_previous_queries(
         user_id.name, query_json.dataset_name

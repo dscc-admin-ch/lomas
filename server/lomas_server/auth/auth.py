@@ -150,7 +150,7 @@ def authorize_user(user: UserId, admin_database: AdminDatabase, security_scopes:
                 raise InternalServerException(f"Unknown security scope {scope}, cannot authorize query.")
 
 
-def check_dataset_access(user: UserId, dataset_name: str, admin_database: AdminDatabase) -> None:
+def ensure_dataset_access(user: UserId, dataset_name: str, admin_database: AdminDatabase) -> None:
     """Checks if the dataset exists and if the user has access to it.
 
     Args:

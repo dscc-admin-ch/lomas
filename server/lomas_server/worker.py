@@ -25,6 +25,8 @@ from lomas_core.models.requests import (
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
+    OpenDPSynthDataDummyQueryModel,
+    OpenDPSynthDataQueryModel,
     SmartnoiseSQLDummyQueryModel,
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -33,6 +35,7 @@ from lomas_core.models.responses import CostResponse, QueryResponse
 from lomas_server.data_connector import ConnectorUnionTA
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
+from lomas_server.dp_queries.dp_libraries.opendp_synth import OpenDPSynthQuerier
 from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
 from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
@@ -112,6 +115,10 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
             query_json = SmartnoiseSQLQueryModel.model_validate_json(query_json_str)
             dp_querier = SmartnoiseSQLQuerier(data_connector, admin_database)
 
+        case DPLibraries.OPENDP_SYNTH:
+            query_json = OpenDPSynthDataQueryModel.model_validate_json(query_json_str)
+            dp_querier = OpenDPSynthQuerier(data_connector, admin_database)
+
         case DPLibraries.OPENDP:
             query_json = OpenDPQueryModel.model_validate_json(query_json_str)
             dp_querier = OpenDPQuerier(data_connector, admin_database)
@@ -121,6 +128,8 @@ async def handle_query(admin_database: Proxy, body: bytes) -> QueryResponse | tu
             dp_querier = DiffPrivLibQuerier(data_connector, admin_database)
 
     try:
+        print(type(dp_querier))
+        dp_querier = OpenDPSynthQuerier(data_connector, admin_database)
         query_response = await dp_querier.handle_query(query_json, user_name)
         elapsed = time.time() - start_sec
         logger.debug(f"Done ({elapsed:.2f})")
@@ -148,6 +157,11 @@ async def handle_dummy_query(admin_database: Proxy, body: bytes) -> QueryRespons
             query_model = OpenDPDummyQueryModel.model_validate_json(query_model_str)
             data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
             dp_querier = OpenDPQuerier(data_connector, admin_database)
+
+        case DPLibraries.OPENDP_SYNTH:
+            query_model = OpenDPSynthDataDummyQueryModel.model_validate_json(query_model_str)
+            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            dp_querier = OpenDPSynthQuerier(data_connector, admin_database)
 
         case DPLibraries.DIFFPRIVLIB:
             query_model = DiffPrivLibDummyQueryModel.model_validate_json(query_model_str)

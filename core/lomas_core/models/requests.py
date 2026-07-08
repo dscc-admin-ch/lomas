@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
+    OpenDPSynthAlgorithm,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
@@ -258,6 +259,27 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
     model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]})
 
 
+# OpenDP Synth
+
+
+class OpenDPSynthDataRequestModel(OpenDPRequestModel):
+    """TODO"""
+
+    columns: list[str]
+    algorithm: OpenDPSynthAlgorithm = OpenDPSynthAlgorithm.MST
+    oneway_split: float | None = None
+    # only used when algorithm == FIXED — column groups, not values/bounds
+    fixed_queries: list[list[str]] | None = None
+
+
+class OpenDPSynthDataQueryModel(OpenDPSynthDataRequestModel, QueryModel):
+    """TODO"""
+
+
+class OpenDPSynthDataDummyQueryModel(OpenDPSynthDataRequestModel, DummyQueryModel):
+    """TODO"""
+
+
 # DiffPrivLib
 # ----------------------------------------------------------------------------
 class DiffPrivLibRequestModel(LomasRequestModel):
@@ -312,6 +334,8 @@ def model_input_to_lib(request: LomasRequestModel) -> DPLibraries:
             return DPLibraries.SMARTNOISE_SQL
         case SmartnoiseSynthRequestModel():
             return DPLibraries.SMARTNOISE_SYNTH
+        case OpenDPSynthDataRequestModel():
+            return DPLibraries.OPENDP_SYNTH
         case OpenDPRequestModel():
             return DPLibraries.OPENDP
         case DiffPrivLibRequestModel():

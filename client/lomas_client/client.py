@@ -21,6 +21,7 @@ from lomas_client.constants import (
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.libraries.diffprivlib import DiffPrivLibClient
 from lomas_client.libraries.opendp import OpenDPClient
+from lomas_client.libraries.opendp_synth import OpenDPSynthClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
@@ -73,6 +74,7 @@ class Client:
         self.http_client = LomasHttpClient(self.config)
         self.smartnoise_sql = SmartnoiseSQLClient(self.http_client)
         self.opendp = OpenDPClient(self.http_client)
+        self.opendp_synth = OpenDPSynthClient(self.http_client)
         self.diffprivlib = DiffPrivLibClient(self.http_client)
 
         self.metadata: dict[str, Any] | None = None

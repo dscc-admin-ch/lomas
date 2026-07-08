@@ -13,6 +13,7 @@ class DPLibraries(StrEnum):
     SMARTNOISE_SYNTH = "smartnoise_synth"
     OPENDP = "opendp"
     OPENDP_POLARS = "opendp_polars"
+    OPENDP_SYNTH = "opendp_synth"
     DIFFPRIVLIB = "diffprivlib"
 
 
@@ -36,6 +37,12 @@ class SSynthGanSynthesizer(StrEnum):
     PATE_CTGAN = "patectgan"
     PATE_GAN = "pategan"
     DP_GAN = "dpgan"
+
+
+class OpenDPSynthAlgorithm(StrEnum):
+    AIM = "aim"
+    MST = "mst"
+    FIXED = "fixed"
 
 
 # Security

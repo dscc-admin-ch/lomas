@@ -240,7 +240,6 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert tot_spent.total_spent_epsilon == 0
 
     # True Query
-    res = client.opendp_synth.query(epsilon=DEFAULT_EPSILON)
     res = client.opendp.query(plan, epsilon=DEFAULT_EPSILON)
     assert isinstance(res.result.value, pl.DataFrame)
 

@@ -1,4 +1,5 @@
 import opendp.prelude as dp
+import polars as pl
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.csvw_to_opendp_context import csvw_to_opendp_context
 from csvw_eo.datatypes import DataTypes
@@ -10,15 +11,18 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.constants import get_lomas_logger
 from lomas_core.models.requests import OpenDPSynthDataQueryModel, OpenDPSynthDataRequestModel
-from lomas_core.models.responses import OpenDPQueryResult
+from lomas_core.models.responses import OpenDPPolarsQueryResult, OpenDPQueryResult
 from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.dp_queries.dp_querier import DPQuerier
 
 logger = get_lomas_logger(__name__)
 
-# TODO, investigate this
-DEFAULT_SYNTH_BINS = 20
-MAX_INT_KEYS = 100
+# TODO: Move this to constants
+# Idea is to reduce size of contigency_table
+# Investigate if we want something dynaminc ? user can decide? etc.
+#
+DEFAULT_SYNTH_BINS = 10
+MAX_INT_KEYS = 10
 
 
 class OpenDPSynthQuerier(
@@ -48,21 +52,26 @@ class OpenDPSynthQuerier(
         """TODO"""
         keys: dict[str, list] = {}
         cuts: dict[str, list[float]] = {}
-        # breakpoint()
 
         for col_meta in self.metadata.columns:
-            # col_meta = [col for col in self.metadata.columns if col.name == col_name][0]
             col_name = col_meta.name
-            if col_meta.datatype == DataTypes.BOOLEAN:
-                # keys[col_name] = [True, False]
+            if (columns is not None) and (col_name not in columns):
+                # We skip if the columns is not specifically given by the user
                 continue
 
+            if col_meta.datatype == DataTypes.BOOLEAN:
+                keys[col_name] = [True, False]
+                continue
+
+            # If categorical and keys are publically known, we can create keys using the metadata
             if col_meta.public_keys_values:
                 keys[col_name] = [k.predicate.partition_value for k in col_meta.public_keys_values]
                 continue
 
+            # For int, if size of integer is not too big, we can create a list of integer
+            # with full range of possibilites, otherwise we use bins
             if (
-                col_meta.datatype == DataTypes.INT
+                col_meta.datatype in (DataTypes.INT, DataTypes.POSITIVE_INTEGER)
                 and col_meta.minimum is not None
                 and col_meta.maximum is not None
             ):
@@ -71,10 +80,21 @@ class OpenDPSynthQuerier(
                 if n_values <= MAX_INT_KEYS:
                     keys[col_name] = list(range(lo, hi + 1))
                     continue
+
+            n_bins = getattr(col_meta, "synth_bins", DEFAULT_SYNTH_BINS)
+            if col_meta.datatype in (DataTypes.DATE, DataTypes.DATETIME):
+                # For now, not sure how to treat datetime with MST()
+                continue
+
             if col_meta.minimum is not None and col_meta.maximum is not None:
-                n_bins = getattr(col_meta, "synth_bins", DEFAULT_SYNTH_BINS)
-                step = (col_meta.maximum - col_meta.minimum) / n_bins
-                cuts[col_name] = [col_meta.minimum + i * step for i in range(1, n_bins)]
+                lo, hi = col_meta.minimum, col_meta.maximum
+                step = (hi - lo) / n_bins
+
+                if col_meta.datatype in (DataTypes.INT, DataTypes.POSITIVE_INTEGER):
+                    raw_edges = [round(lo + i * step) for i in range(1, n_bins)]
+                    cuts[col_name] = sorted(set(raw_edges))
+                else:
+                    cuts[col_name] = [lo + i * step for i in range(1, n_bins)]
                 # Bin edges built from declared min/max, so exhaustive by construction.
                 continue
 
@@ -96,8 +116,8 @@ class OpenDPSynthQuerier(
         context = csvw_to_opendp_context(
             self.metadata.to_dict(),
             input_data,
-            epsilon=10,
-            delta=0.001,
+            epsilon=query_json.epsilon,
+            delta=query_json.delta,
             rho=query_json.rho,
             split_evenly_over=1,
         )
@@ -105,20 +125,21 @@ class OpenDPSynthQuerier(
         keys, cuts = self._derive_keys_and_cuts(query_json.columns)
 
         try:
-            query = context.query().contingency_table(
-                keys=keys,
-                cuts=cuts,
-                algorithm=algorithm,
-            )
-            table = query.release()
+            query = context.query()
+            if query_json.columns is not None:
+                query = query.select(query_json.columns)
+
+            contingency_table = query.contingency_table(keys=keys, cuts=cuts, algorithm=algorithm)
+            table = contingency_table.release()
             synth_df = table.synthesize()
-            breakpoint()
         except Exception as e:
             logger.exception(e)
             raise ExternalLibraryException(
                 DPLibraries.OPENDP_SYNTH, "Error releasing synthetic data:" + str(e)
             ) from e
 
+        if isinstance(synth_df, pl.DataFrame):
+            return OpenDPPolarsQueryResult(value=synth_df)
         return OpenDPQueryResult(value=synth_df)
 
     def cost(self, query):

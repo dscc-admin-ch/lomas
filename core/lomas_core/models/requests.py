@@ -1,6 +1,6 @@
-from typing import Annotated, Self
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from lomas_core.constants import (
     DPLibraries,
@@ -209,16 +209,9 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 
 # OpenDP
 # ----------------------------------------------------------------------------
-class OpenDPRequestModel(LomasRequestModel):
+class OpenDPBasedModel(LomasBudgetRequest):
     """Base input model for an opendp request."""
 
-    model_config = ConfigDict(
-        use_attribute_docstrings=True,
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
-    )
-
-    opendp_json: str
-    """The OpenDP pipeline for the query."""
     epsilon: Annotated[float | None, Field(ge=0)]
     """The epsilon parameter used for pure ε-DP or approximate-DP."""
     delta: Annotated[float | None, Field(ge=0)]
@@ -240,11 +233,17 @@ class OpenDPRequestModel(LomasRequestModel):
     approx_zcdp: bool
     """If false, delta is used to compute the epsilon consumption equivalent when user wants to use zCDP."""
 
-    @model_validator(mode="after")
-    def check_epsilon_or_rho(self) -> Self:
-        if (self.epsilon is None and self.rho is None) or (self.epsilon and self.rho):
-            raise ValueError("Either `epsilon` or `rho` must be set.")
-        return self
+
+class OpenDPRequestModel(OpenDPBasedModel):
+    """Base input model for an opendp request."""
+
+    model_config = ConfigDict(
+        use_attribute_docstrings=True,
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
+    )
+
+    opendp_json: str
+    """The OpenDP pipeline for the query."""
 
 
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
@@ -262,14 +261,11 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 # OpenDP Synth
 
 
-class OpenDPSynthDataRequestModel(OpenDPRequestModel):
+class OpenDPSynthDataRequestModel(OpenDPBasedModel):
     """TODO"""
 
-    columns: list[str]
+    columns: list[str] | None = None
     algorithm: OpenDPSynthAlgorithm = OpenDPSynthAlgorithm.MST
-    oneway_split: float | None = None
-    # only used when algorithm == FIXED — column groups, not values/bounds
-    fixed_queries: list[list[str]] | None = None
 
 
 class OpenDPSynthDataQueryModel(OpenDPSynthDataRequestModel, QueryModel):

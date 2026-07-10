@@ -1,6 +1,7 @@
 from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
+from lomas_core.constants import OpenDPSynthAlgorithm
 from lomas_core.models.requests import (
     OpenDPSynthDataDummyQueryModel,
     OpenDPSynthDataQueryModel,
@@ -17,7 +18,8 @@ class OpenDPSynthClient:
 
     def _get_opendp_request_body(
         self,
-        # opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
+        algorithm: str = OpenDPSynthAlgorithm.MST,
+        columns: list | None = None,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
@@ -49,6 +51,8 @@ class OpenDPSynthClient:
         """
         body_json = {
             "dataset_name": self.http_client.config.dataset_name,
+            "algorithm": algorithm,
+            "columns": columns,
             "epsilon": epsilon,
             "delta": delta,
             "rho": rho,
@@ -102,11 +106,12 @@ class OpenDPSynthClient:
 
     def query(
         self,
-        # opendp_pipeline: dp.extras.polars.LazyFrameQuery | pl.LazyFrame,
         epsilon: float | None = None,
         delta: float | None = None,
         rho: float | None = None,
         approx_zcdp: bool = True,
+        algorithm: str = OpenDPSynthAlgorithm.MST,
+        columns: list | None = None,
         dummy: bool = False,
         nb_rows: int = DUMMY_NB_ROWS,
         seed: int = DUMMY_SEED,
@@ -114,9 +119,6 @@ class OpenDPSynthClient:
         """This function executes an OpenDP query.
 
         Args:
-            opendp_pipeline (dp.Measurement): The OpenDP pipeline for the query. \
-                Can be a dp.Measurement or a polars LazyFrame (plan) for opendp.polars\
-                pipelines.
             epsilon (float): Privacy parameter that will be spent. For pure-DP or approximate DP\
                  this must be set. (Laplace mechanism)
             delta (Optional[float], optional): If the pipeline measurement is of\
@@ -143,11 +145,12 @@ class OpenDPSynthClient:
             QueryResponse: A dictionary of the response body containing the deserialized pipeline result.
         """
         body_json = self._get_opendp_request_body(
-            # opendp_pipeline,
             epsilon=epsilon,
             delta=delta,
             rho=rho,
             approx_zcdp=approx_zcdp,
+            algorithm=algorithm,
+            columns=columns,
         )
 
         request_model: type[OpenDPSynthDataRequestModel]
@@ -159,10 +162,8 @@ class OpenDPSynthClient:
         else:
             endpoint = "opendp_synth_query"
             request_model = OpenDPSynthDataQueryModel
-        body_json["opendp_json"] = "{}"
-        body_json["columns"] = list()
         body = request_model.model_validate(body_json)
-        breakpoint()
+        # breakpoint()
         res = self.http_client.post(endpoint, body)
 
         return validate_model_response(self.http_client, res, QueryResponse)

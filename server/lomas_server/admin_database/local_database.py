@@ -1,9 +1,12 @@
 import asyncio
+import datetime
 import json
 import operator as op
 import shelve
+import sqlite3
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
@@ -15,7 +18,7 @@ import yaml
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi import UploadFile
 from filelock import SoftFileLock
-from pydantic import ConfigDict, Field, HttpUrl
+from pydantic import Field, HttpUrl
 
 from lomas_core.exceptions import (
     InternalServerException,
@@ -30,9 +33,8 @@ from lomas_core.models.collections import (
     UserCollection,
     UserId,
 )
-from lomas_core.models.constants import PrivateDatabaseType, get_lomas_logger
-from lomas_core.models.requests import LomasRequestModel
-from lomas_core.models.responses import Job, QueryResponse
+from lomas_core.models.constants import PrivateDatabaseType, QueryTypes, get_lomas_logger
+from lomas_core.models.responses import Job
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
 )
@@ -69,48 +71,162 @@ def with_lock(fn: Callable[Concatenate[DB, P], T]) -> Callable[Concatenate[DB, P
 
 
 class LocalAdminDatabase(AdminDatabase):
-    """Local Admin database in a single file."""
+    """Local Admin database in a single file.
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    Database creates three files:
+        - admin: shelve database
+        - admin.lock: SoftFileLock guarding shelve db
+        - jobs.sqlite3: SQLite database for jobs.
+    """
 
-    path: Path
-    """Database accepts existing path or new (creatable) path."""
+    directory: Path
 
     lock: SoftFileLock = Field(exclude=True, default=None)  # Protects inter-process concurrency.
     asyncio_lock: asyncio.Lock = asyncio.Lock()  # Protects softlock re-entry between concurrent coroutines.
 
-    def model_post_init(self, _: Any) -> None:
-        self.lock = SoftFileLock(self.path.with_suffix(".lock"), is_singleton=True, timeout=10)
-        self.set_defaults()
+    def __init__(self, directory: Path) -> None:
+        self.directory = directory
+        if self.directory.exists() and not self.directory.is_dir():
+            raise NotADirectoryError(f"{self.directory} exists and is not a directory.")
+        self.directory.mkdir(parents=True, exist_ok=True)
+
+        self._shelve_path = self.directory / "admin"
+        self._lock_path = self.directory / "admin.lock"
+        self._jobs_db_path = self.directory / "jobs.sqlite3"
+        self._archives_db_path = self.directory / "archives.sqlite3"
+
+        self.lock = SoftFileLock(self._lock_path, is_singleton=True, timeout=10)
+
+        self._set_defaults()
+
+    @contextmanager
+    def _sqlite_connection(self, path: Path) -> Iterator[sqlite3.Connection]:
+        """Creates connection context to sqlite database.
+
+        Returns:
+            Iterator[sqlite3.Connection]: The connection context.
+        """
+        conn = sqlite3.connect(path, timeout=30)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
+        try:
+            with conn:  # commits on success, rolls back on exception
+                yield conn
+        finally:
+            conn.close()
 
     @override
     @with_lock
     def wipe(self) -> None:
-        if (p := Path(self.path)).exists():
-            p.unlink()
-        self.set_defaults()
+        """Wipe database to empty."""
+        for f in self.directory.iterdir():
+            if f == self._lock_path:
+                continue
+            if f.is_file():
+                f.unlink()
+
+        self._set_defaults()
 
     @with_lock
-    def set_defaults(self) -> None:
+    def _set_defaults(self) -> None:
         """Sets the default values for all collections in the database."""
         # create the file if it doesn't exists yet (makes open with flag='r' safe)
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             # Initialize to empty by default
             db.setdefault(TK.USERS, {})
             db.setdefault(TK.DATASETS, {})
             db.setdefault(TK.METADATA, {})
-            db.setdefault(TK.ARCHIVE, [])  # array
             db.setdefault(TK.MISC_KEYS, {})
-            db[TK.MISC_KEYS].setdefault(MiscDBKeys.JOBS, {})
+
+        self._init_sqlite_dbs()
+
+    def _init_sqlite_dbs(self) -> None:
+        """Set defaults for jobs db."""
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS jobs (
+                    uid TEXT PRIMARY KEY,
+                    user_name TEXT NOT NULL,
+                    dataset_name TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    job_json TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_user_name ON jobs(user_name)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON jobs(status)")
+            # Make sure there are no more than 200 jobs in the db (except for those in progress).
+            # Enforce at insertion
+            conn.execute("DROP TRIGGER IF EXISTS enforce_num_jobs_on_insert")
+            conn.execute(
+                """
+                CREATE TRIGGER enforce_num_jobs_on_insert
+                AFTER INSERT ON jobs
+                WHEN NEW.status != 'in_progress'
+                BEGIN
+                    DELETE FROM jobs
+                    WHERE status != 'in_progress'
+                    AND started_at IN (
+                        SELECT started_at FROM jobs
+                        WHERE status != 'in_progress'
+                        ORDER BY started_at DESC
+                        LIMIT -1 OFFSET 200 -- Keep the 200 newest completed jobs
+                    );
+                END;
+                """
+            )
+            # Enforce at update
+            conn.execute("DROP TRIGGER IF EXISTS enforce_num_jobs_on_update")
+            conn.execute(
+                """
+                CREATE TRIGGER enforce_num_jobs_on_update
+                AFTER UPDATE OF status ON jobs
+                WHEN NEW.status != 'in_progress'
+                BEGIN
+                    DELETE FROM jobs
+                    WHERE status != 'in_progress'
+                    AND started_at IN (
+                        SELECT started_at FROM jobs
+                        WHERE status != 'in_progress'
+                        ORDER BY started_at DESC
+                        LIMIT -1 OFFSET 200
+                    );
+                END;
+                """
+            )
+
+        with self._sqlite_connection(self._archives_db_path) as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS archives (
+                    uid TEXT PRIMARY KEY,
+                    user_name TEXT NOT NULL,
+                    dataset_name TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    archived_at TEXT,
+                    job_json TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_user_name ON archives(user_name)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_dataset_name ON archives(dataset_name)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_user_dataset ON archives(user_name, dataset_name)"
+            )
 
     # Jobs
     ###########################################################################
 
     @override
+    @db_span("db.does_job_exist", table="admin-db")
     @with_lock
     def does_job_exist(self, uid: UUID) -> bool:
-        with shelve.open(self.path, flag="r") as db:
-            return uid in db[TK.MISC_KEYS][MiscDBKeys.JOBS].keys()
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_job_exist"})
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            row = conn.execute("SELECT 1 FROM jobs WHERE uid = ?", (str(uid),)).fetchone()
+        return row is not None
 
     @override
     @db_span("db.get_job", table="admin-db")
@@ -118,46 +234,129 @@ class LocalAdminDatabase(AdminDatabase):
     def get_job(self, uid: UUID) -> Job:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job"})
 
-        with shelve.open(self.path, flag="r") as db:
-            job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid]
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            row = conn.execute("SELECT job_json FROM jobs WHERE uid = ?", (str(uid),)).fetchone()
 
-            return job
+        if row is None:
+            raise KeyError(f"No job with uid {uid}")
+
+        return Job.model_validate_json(row[0])
 
     @override
     @db_span("db.put_job", table="admin-db")
     @with_lock
     def put_job(self, job: Job) -> None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "put_job"})
-        with shelve.open(self.path, writeback=True) as db:
-            db[TK.MISC_KEYS][MiscDBKeys.JOBS][job.uid] = job
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            conn.execute(
+                "INSERT INTO jobs "
+                "(uid, user_name, dataset_name, status, started_at, job_json) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    str(job.uid),
+                    job.requested_by,
+                    job.dataset_name,
+                    job.status,
+                    datetime.datetime.now(datetime.UTC),
+                    job.model_dump_json(),
+                ),
+            )
 
     @override
     @with_lock
-    def update_job(self, updated_job: Job) -> None:
-        uid = updated_job.uid
-        updates = {k: getattr(updated_job, k) for k, v in updated_job.__dict__.items() if v is not None}
-        with shelve.open(self.path, writeback=True) as db:
-            merged_job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid].model_copy(update=updates, deep=True)
-            db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid] = merged_job
+    def update_job(self, job_update: Job) -> None:
+        uid = job_update.uid
+        job = self.get_job(uid)
+
+        # Does not perform a deep merge, but not required here.
+        merged_data = {**job.model_dump(), **job_update.model_dump(exclude_unset=True)}
+        merged_job = Job.model_validate(merged_data)
+
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            conn.execute(
+                """
+                UPDATE jobs
+                SET
+                    status = ?,
+                    job_json = ?
+                WHERE uid = ?;
+                """,
+                (merged_job.status, merged_job.model_dump_json(), str(merged_job.uid)),
+            )
+
+    # Archives
+    ###########################################################################
+
+    @override
+    def archive_job(self, uid: UUID) -> None:
+        job = self.get_job(uid)
+
+        # Ignore cost and dummy queries
+        if job.query is not None and job.query.request_type == QueryTypes.QUERY:
+            logger.debug(job)
+            with self._sqlite_connection(self._archives_db_path) as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO archives "
+                    "(uid, user_name, dataset_name, status, archived_at, job_json) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (
+                        str(job.uid),
+                        job.requested_by,
+                        job.dataset_name,
+                        job.status,
+                        datetime.datetime.now(datetime.UTC),
+                        job.model_dump_json(),
+                    ),
+                )
+
+    @override
+    @db_span("db.get_user_queries", table="admin-db")
+    @with_lock
+    def get_user_queries(self, username: str) -> list[Job]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user_queries"})
+        with self._sqlite_connection(self._archives_db_path) as conn:
+            rows = conn.execute(
+                "SELECT job_json FROM archives WHERE user_name = ? ORDER BY archived_at", (username,)
+            ).fetchall()
+
+        return [Job.model_validate_json(row[0]) for row in rows]
+
+    @override
+    @db_span("db.get_user_dataset_queries", table="admin-db")
+    @with_lock
+    def get_user_dataset_queries(
+        self,
+        user_name: str,
+        dataset_name: str,
+    ) -> list[Job]:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user_dataset_queries"})
+
+        with self._sqlite_connection(self._archives_db_path) as conn:
+            rows = conn.execute(
+                "SELECT job_json FROM archives WHERE user_name = ? AND dataset_name = ? ORDER BY archived_at",
+                (user_name, dataset_name),
+            ).fetchall()
+
+        return [Job.model_validate_json(row[0]) for row in rows]
 
     # Users
     ###########################################################################
 
     @with_lock
     def load_users_collection(self, users: list[User]) -> None:
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             db[TK.USERS].update({user.id.name: user.model_dump() for user in users})
 
     @with_lock
     def users(self) -> list[User]:
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             return list(map(User.model_validate, db.get(TK.USERS, {}).values()))
 
     @db_span("db.add_dataset_to_user", table="admin-db")
     @with_lock
     def add_dataset_to_user(self, username: str, dataset_name: str, epsilon: float, delta: float) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "add_dataset_to_user"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             user = User.model_validate(db[TK.USERS][username])
             ds = DatasetOfUser(dataset_name=dataset_name, initial_epsilon=epsilon, initial_delta=delta)
             user_updated = User(
@@ -171,7 +370,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def del_dataset_to_user(self, username: str, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_dataset_to_user"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             user = User.model_validate(db[TK.USERS][username])
             user_updated = User(
                 id=user.id,
@@ -239,7 +438,7 @@ class LocalAdminDatabase(AdminDatabase):
             ),
         ).model_dump()
 
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             if "users" not in db:
                 db[TK.USERS] = {}
             db[TK.USERS][username] = validated_user
@@ -248,7 +447,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def del_user(self, username: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "del_user"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             del db[TK.USERS][username]
 
     @override
@@ -262,7 +461,7 @@ class LocalAdminDatabase(AdminDatabase):
     @db_span("db.is_user_admin", table="admin-db")
     @with_lock
     def is_user_admin(self, user_name: str) -> bool:
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             return db[TK.USERS][user_name]["admin"]
 
     @override
@@ -270,7 +469,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def get_and_set_may_user_query(self, user_name: str, may_query: bool) -> bool:
         ADMINDB_UPDATE_COUNTER.add(1, {"operation": "get_and_set_may_user_query"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             previous_may_query = db[TK.USERS][user_name]["may_query"]
             db[TK.USERS][user_name]["may_query"] = may_query
             return previous_may_query
@@ -280,7 +479,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def has_user_access_to_dataset(self, user_name: str, dataset_name: str) -> bool:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "has_user_access_to_dataset"})
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             return bool(
                 [ds for ds in db[TK.USERS][user_name]["datasets_list"] if ds["dataset_name"] == dataset_name]
             )
@@ -290,7 +489,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def get_epsilon_or_delta(self, user_name: str, dataset_name: str, parameter: BudgetDBKey) -> float:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_epsilon_or_delta"})
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             return sum(
                 map(
                     op.itemgetter(parameter),
@@ -312,7 +511,7 @@ class LocalAdminDatabase(AdminDatabase):
         spent_value: float,
     ) -> None:
         ADMINDB_UPDATE_COUNTER.add(1, {"operation": "update_epsilon_or_delta"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             datasets = db[TK.USERS][user_name]["datasets_list"]
             for ds in datasets:
                 if ds["dataset_name"] == dataset_name:
@@ -328,53 +527,18 @@ class LocalAdminDatabase(AdminDatabase):
         value: float,
     ) -> None:
         ADMINDB_INSERT_COUNTER.add(1, {"operation": "set_epsilon_or_delta"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             datasets = db[TK.USERS][user_name]["datasets_list"]
             for ds in datasets:
                 if ds["dataset_name"] == dataset_name:
                     ds[parameter] = value
-
-    @override
-    @db_span("db.get_user_previous_queries", table="admin-db")
-    @with_lock
-    def get_user_previous_queries(
-        self,
-        user_name: str,
-        dataset_name: str,
-    ) -> list[dict]:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user_previous_queries"})
-
-        def match(archive: dict[str, str]) -> bool:
-            return (user_name, dataset_name) == op.itemgetter("user_name", "dataset_name")(archive)
-
-        with shelve.open(self.path, flag="r") as db:
-            return list(filter(match, db.get(TK.ARCHIVE, [])))
-
-    @override
-    @db_span("db.save_query", table="admin-db")
-    @with_lock
-    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
-        ADMINDB_INSERT_COUNTER.add(1, {"operation": "save_query"})
-        with shelve.open(self.path, writeback=True) as db:
-            to_archive = self.prepare_save_query(user_name, query, response)
-            if TK.ARCHIVE not in db:
-                db[TK.ARCHIVE] = [to_archive]
-            else:
-                db[TK.ARCHIVE].append(to_archive)
-
-    @db_span("db.get_archives_of_user", table="admin-db")
-    @with_lock
-    def get_archives_of_user(self, username: str) -> list[dict]:
-        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_archives_of_user"})
-        with shelve.open(self.path, flag="r") as db:
-            return [archive for archive in db.get(TK.ARCHIVE, []) if archive["user_name"] == username]
 
     # Datasets
     ###########################################################################
 
     @with_lock
     def load_dataset_collection(self, datasets: list[DSInfo], path_prefix: Path) -> None:
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             # Step 1: add datasets
             new_datasets = {}
             for ds in datasets:
@@ -437,7 +601,7 @@ class LocalAdminDatabase(AdminDatabase):
 
     @with_lock
     def datasets(self) -> list[DSInfo]:
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             return list(map(DSInfo.model_validate, db.get(TK.DATASETS, {}).values()))
 
     @db_span("db.add_datasets_via_yaml", table="admin-db")
@@ -584,7 +748,7 @@ class LocalAdminDatabase(AdminDatabase):
         validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
 
         # Step 4: Insert into db
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             db[TK.DATASETS][ds_info.dataset_name] = validated_dataset
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
             db.sync()
@@ -593,7 +757,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def del_dataset(self, dataset_name: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "delete_dataset"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             del db[TK.DATASETS][dataset_name]
 
     @override
@@ -608,7 +772,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def get_dataset(self, dataset_name: str) -> DSInfo:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset"})
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             dataset = db[TK.DATASETS][dataset_name]
             return DSInfo.model_validate(dataset)
 
@@ -617,7 +781,7 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def get_dataset_metadata(self, dataset_name: str) -> TableMetadata:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_dataset_metadata"})
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             metadata = db.get(TK.METADATA, {}).get(dataset_name)
             return TableMetadata.model_validate(metadata)
 
@@ -631,7 +795,7 @@ class LocalAdminDatabase(AdminDatabase):
             content = content.decode("utf-8")
         metadata_dict = json.loads(content)
         validated_metadata = TableMetadata.from_dict(metadata_dict).model_dump()
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             db[TK.METADATA] = db.get(TK.METADATA, {}) | {dataset_name: validated_metadata}
 
     # Other
@@ -641,22 +805,22 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def drop_collection(self, collection: str) -> None:
         ADMINDB_DELETE_COUNTER.add(1, {"operation": "drop_collection"})
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             if collection in db:
                 del db[collection]
-        self.set_defaults()
+        self._set_defaults()
 
     @override
     @with_lock
     def set_bootstrap(self, bootstrap: str) -> None:
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = False
             db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP] = bootstrap
 
     @override
     @with_lock
     def get_bootstrap(self) -> str | None:
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             if TK.MISC_KEYS in db:
                 return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP, None)
         return None
@@ -664,13 +828,13 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @with_lock
     def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
-        with shelve.open(self.path, writeback=True) as db:
+        with shelve.open(self._shelve_path, writeback=True) as db:
             db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap_disabled
 
     @override
     @with_lock
     def get_bootstrap_disabled(self) -> bool:
-        with shelve.open(self.path, flag="r") as db:
+        with shelve.open(self._shelve_path, flag="r") as db:
             if TK.MISC_KEYS in db:
                 return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP_DISABLED, False)
         return False

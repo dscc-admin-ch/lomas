@@ -108,7 +108,7 @@ class Config(BaseSettings):
 
     bootstrap: str | None = Field(default=None)
 
-    admin_database_url: Path = Field(default=Path("/tmp/admin.db"))
+    database_directory: Path = Field(default=Path("/tmp/lomas-db"))
 
     clean_admin_database: bool = Field(default=False)
 
@@ -124,7 +124,7 @@ class Config(BaseSettings):
 
     @computed_field
     def database(self) -> AdminDatabase:
-        return LocalAdminDatabase(path=self.admin_database_url)
+        return LocalAdminDatabase(directory=self.database_directory)
 
 
 class AdminConfig(BaseSettings):

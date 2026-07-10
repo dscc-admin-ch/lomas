@@ -5,6 +5,7 @@ import polars as pl
 from pydantic import JsonValue
 
 from lomas_core.constants import (
+    DPLibraries,
     SSynthGanSynthesizer,
 )
 from lomas_core.models.constants import (
@@ -12,6 +13,7 @@ from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
     DUMMY_SEED,
     OPENDP_VERSION,
+    QueryTypes,
 )
 
 # Query constants
@@ -38,6 +40,7 @@ SNSYNTH_NB_SAMPLES: int = 200
 def make_dummy(example_query: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """Make dummy example dummy query based on example query."""
     example_query_dummy = dict(example_query)
+    example_query_dummy["request_type"] = QueryTypes.DUMMY
     example_query_dummy["dummy_nb_rows"] = DUMMY_NB_ROWS
     example_query_dummy["dummy_seed"] = DUMMY_SEED
     return example_query_dummy
@@ -60,6 +63,8 @@ example_get_dummy_dataset: dict[str, JsonValue] = {
 # -----------------------------------------------------------------------------
 
 example_smartnoise_sql_cost: dict[str, JsonValue] = {
+    "library": DPLibraries.SMARTNOISE_SQL,
+    "request_type": QueryTypes.COST,
     "query_str": SQL_QUERY,
     "dataset_name": PENGUIN_DATASET,
     "epsilon": QUERY_EPSILON,
@@ -69,6 +74,7 @@ example_smartnoise_sql_cost: dict[str, JsonValue] = {
 
 example_smartnoise_sql: dict[str, JsonValue] = dict(example_smartnoise_sql_cost)
 example_smartnoise_sql["postprocess"] = True
+example_smartnoise_sql["request_type"] = QueryTypes.QUERY
 
 example_dummy_smartnoise_sql: dict[str, JsonValue] = make_dummy(example_smartnoise_sql)
 
@@ -76,6 +82,8 @@ example_dummy_smartnoise_sql: dict[str, JsonValue] = make_dummy(example_smartnoi
 # -----------------------------------------------------------------------------
 
 example_smartnoise_synth_cost: dict[str, JsonValue] = {
+    "library": DPLibraries.SMARTNOISE_SYNTH,
+    "request_type": QueryTypes.COST,
     "dataset_name": PENGUIN_DATASET,
     "synth_name": SSynthGanSynthesizer.DP_CTGAN,
     "epsilon": QUERY_EPSILON,
@@ -93,6 +101,8 @@ example_smartnoise_synth_query: dict[str, JsonValue] = dict(example_smartnoise_s
 example_smartnoise_synth_query["return_model"] = True
 example_smartnoise_synth_query["condition"] = ""
 example_smartnoise_synth_query["nb_samples"] = SNSYNTH_NB_SAMPLES
+example_smartnoise_synth_query["request_type"] = QueryTypes.QUERY
+
 
 example_dummy_smartnoise_synth_query: dict[str, JsonValue] = make_dummy(example_smartnoise_synth_query)
 
@@ -157,6 +167,8 @@ OPENDP_PIPELINE: str = (
 )
 
 example_opendp: dict[str, JsonValue] = {
+    "library": DPLibraries.OPENDP,
+    "request_type": QueryTypes.QUERY,
     "dataset_name": PENGUIN_DATASET,
     "opendp_json": b64encode(OPENDP_PIPELINE.encode("utf-8")).decode("utf-8"),
     "epsilon": QUERY_EPSILON,
@@ -254,6 +266,8 @@ OPENDP_POLARS_PIPELINE_COVID_DICTS: list[dict] = [
 OPENDP_POLARS_PIPELINE_COVID: bytes = pl.from_dicts(OPENDP_POLARS_PIPELINE_COVID_DICTS).lazy().serialize()
 
 example_opendp_polars: dict[str, JsonValue] = {
+    "library": DPLibraries.OPENDP,
+    "request_type": QueryTypes.QUERY,
     "dataset_name": FSO_INCOME_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE).decode("utf-8"),
     "epsilon": QUERY_EPSILON,
@@ -261,7 +275,8 @@ example_opendp_polars: dict[str, JsonValue] = {
     "rho": None,
     "approx_zcdp": False,
 }
-
+example_opendp_polars_cost = {**example_opendp_polars}
+example_opendp_polars_cost["request_type"] = QueryTypes.COST
 
 example_opendp_polars_plan = {**example_opendp_polars}
 example_opendp_polars_plan["opendp_json"] = b64encode(
@@ -272,6 +287,8 @@ example_opendp_polars_plan["opendp_json"] = b64encode(
 ).decode("utf-8")
 
 example_opendp_polars_datetime: dict[str, JsonValue] = {
+    "library": DPLibraries.OPENDP,
+    "request_type": QueryTypes.QUERY,
     "dataset_name": COVID_DATASET,
     "opendp_json": b64encode(OPENDP_POLARS_PIPELINE_COVID).decode("utf-8"),
     "epsilon": QUERY_EPSILON,
@@ -326,6 +343,8 @@ DIFFPRIVLIB_PIPELINE: str = (
 )
 
 example_diffprivlib: dict[str, JsonValue] = {
+    "library": DPLibraries.DIFFPRIVLIB,
+    "request_type": QueryTypes.QUERY,
     "dataset_name": PENGUIN_DATASET,
     "diffprivlib_json": DIFFPRIVLIB_PIPELINE,
     "feature_columns": FEATURE_COLUMNS,
@@ -334,4 +353,6 @@ example_diffprivlib: dict[str, JsonValue] = {
     "test_train_split_seed": SPLIT_SEED,
     "imputer_strategy": IMPUTER_STRATEGY,
 }
+example_diffprivlib_cost = {**example_diffprivlib}
+example_diffprivlib_cost["request_type"] = QueryTypes.COST
 example_dummy_diffprivlib: dict[str, JsonValue] = make_dummy(example_diffprivlib)

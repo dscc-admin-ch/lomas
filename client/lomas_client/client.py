@@ -1,7 +1,3 @@
-import base64
-import io
-import json
-import pickle
 from typing import Any, Protocol, TypeVar
 
 import opendp.prelude as dp
@@ -24,12 +20,12 @@ from lomas_client.libraries.opendp import OpenDPClient
 from lomas_client.libraries.smartnoise_sql import SmartnoiseSQLClient
 from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error, validate_model_response_direct
-from lomas_core.constants import DPLibraries
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.requests import GetDummyDataset, LomasRequestModel, OpenDPQueryModel
+from lomas_core.models.requests import GetDummyDataset, LomasRequestModel
 from lomas_core.models.responses import (
     DummyDsResponse,
     InitialBudgetResponse,
+    Job,
     RemainingBudgetResponse,
     SpentBudgetResponse,
 )
@@ -260,7 +256,7 @@ class Client:
 
         return validate_model_response_direct(res, RemainingBudgetResponse)
 
-    def get_previous_queries(self) -> list[dict]:
+    def get_previous_queries(self) -> list[Job]:
         """This function retrieves the previous queries of the user.
 
         Raises:
@@ -268,8 +264,7 @@ class Client:
                 during deserialization.
 
         Returns:
-            List[dict]: A list of dictionary containing
-            the different queries on the private dataset.
+            List[Job]: A list of all archived jobs for this user and dataset.
         """
         body_dict = {"dataset_name": self.config.dataset_name}
 
@@ -277,30 +272,7 @@ class Client:
         res = self.http_client.post("get_previous_queries", body)
 
         if res.status_code == status.HTTP_200_OK:
-            queries = json.loads(res.content.decode("utf8"))["previous_queries"]
-
-            if not queries:
-                return queries
-
-            deserialised_queries = []
-            for query in queries:
-                match query["dp_library"]:
-                    case DPLibraries.SMARTNOISE_SQL:
-                        pass
-                    case DPLibraries.OPENDP:
-                        query_json = OpenDPQueryModel.model_validate(query["client_input"])
-                        serialized_bytes = base64.b64decode(query_json.opendp_json)
-                        query["client_input"]["opendp_json"] = pl.LazyFrame.deserialize(
-                            io.BytesIO(serialized_bytes)
-                        )
-                    case DPLibraries.DIFFPRIVLIB:
-                        model = base64.b64decode(query["response"]["result"]["model"])
-                        query["response"]["result"]["model"] = pickle.loads(model)
-                    case _:
-                        raise ValueError(f"Cannot deserialise unknown query type: {query['dp_library']}")
-
-                deserialised_queries.append(query)
-
-            return deserialised_queries
+            jobs = [Job.model_validate(item) for item in res.json()]
+            return jobs
 
         raise_error(res)

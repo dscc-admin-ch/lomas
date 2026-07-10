@@ -8,6 +8,7 @@ from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
 from lomas_core.exceptions import InvalidQueryException
 from lomas_core.models.requests import (
+    OpenDPCostQueryModel,
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
     OpenDPRequestModel,
@@ -108,7 +109,7 @@ class OpenDPClient:
             rho=rho,
             approx_zcdp=approx_zcdp,
         )
-        body = OpenDPRequestModel.model_validate(body_json)
+        body = OpenDPCostQueryModel.model_validate(body_json)
         res = self.http_client.post("estimate_opendp_cost", body)
 
         return validate_model_response(self.http_client, res, CostResponse)

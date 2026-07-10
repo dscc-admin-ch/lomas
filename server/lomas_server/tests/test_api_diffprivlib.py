@@ -20,8 +20,10 @@ from lomas_core.exceptions import (
     LomasAPIException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.constants import JobStatus
 from lomas_core.models.requests_examples import (
     example_diffprivlib,
+    example_diffprivlib_cost,
     example_dummy_diffprivlib,
 )
 from lomas_core.models.responses import (
@@ -83,17 +85,17 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 return job
 
             job = test_imputation(example_diffprivlib, "mean")
-            assert job.status == "complete"
+            assert job.status == JobStatus.COMPLETE
 
             job = test_imputation(example_diffprivlib, "median")
-            assert job.status == "complete"
+            assert job.status == JobStatus.COMPLETE
 
             job = test_imputation(example_diffprivlib, "most_frequent")
-            assert job.status == "complete"
+            assert job.status == JobStatus.COMPLETE
 
             # Should not work unknow imputation strategy
             job = test_imputation(example_diffprivlib, "i_do_not_exist")
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error is not None
             exc = InvalidQueryException("Imputation strategy i_do_not_exist not supported.")
@@ -139,7 +141,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error is not None
             message = (
@@ -171,7 +173,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error is not None
             message = "PrivacyLeakWarning: Bounds have not been specified and will be calculated on the data provided. This will result in additional privacy leakage. To ensure differential privacy and no additional privacy leakage, specify bounds for each dimension. Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker."
@@ -297,7 +299,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error is not None
             with pytest.raises(
@@ -473,7 +475,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(
                 client,
                 "/estimate_diffprivlib_cost",
-                json=example_diffprivlib,
+                json=example_diffprivlib_cost,
                 headers=self.headers,
             )
             r_model = CostResponse.model_validate(job.result)
@@ -481,7 +483,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.delta == 0
 
             # Expect to fail: user does have access to dataset
-            body = dict(example_diffprivlib)
+            body = dict(example_diffprivlib_cost)
             body["dataset_name"] = "IRIS"
             response = client.post(
                 "/estimate_diffprivlib_cost",

@@ -2,6 +2,7 @@ from lomas_client.constants import DUMMY_NB_ROWS, DUMMY_SEED
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
 from lomas_core.models.requests import (
+    SmartnoiseSQLCostQueryModel,
     SmartnoiseSQLDummyQueryModel,
     SmartnoiseSQLQueryModel,
     SmartnoiseSQLRequestModel,
@@ -46,7 +47,7 @@ class SmartnoiseSQLClient:
             "delta": delta,
             "mechanisms": mechanisms,
         }
-        body = SmartnoiseSQLRequestModel.model_validate(body_dict)
+        body = SmartnoiseSQLCostQueryModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_sql_cost", body)
 
         return validate_model_response(self.http_client, res, CostResponse)

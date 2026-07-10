@@ -5,18 +5,18 @@ from fastapi import APIRouter, Request, Security, status
 from lomas_core.constants import DPLibraries
 from lomas_core.models.collections import UserId
 from lomas_core.models.requests import (
+    DiffPrivLibCostQueryModel,
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
-    DiffPrivLibRequestModel,
+    OpenDPCostQueryModel,
     OpenDPDummyQueryModel,
     OpenDPQueryModel,
-    OpenDPRequestModel,
+    SmartnoiseSQLCostQueryModel,
     SmartnoiseSQLDummyQueryModel,
     SmartnoiseSQLQueryModel,
-    SmartnoiseSQLRequestModel,
+    SmartnoiseSynthCostQueryModel,
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
-    SmartnoiseSynthRequestModel,
 )
 from lomas_core.models.responses import Job
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
@@ -113,7 +113,7 @@ async def dummy_smartnoise_sql_handler(
 async def estimate_smartnoise_sql_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
-    smartnoise_sql_query: SmartnoiseSQLRequestModel,
+    smartnoise_sql_query: SmartnoiseSQLCostQueryModel,
 ) -> Job:
     """
     Estimates the privacy loss budget cost of a SmartNoiseSQL query.
@@ -229,7 +229,7 @@ async def dummy_smartnoise_synth_handler(
 async def estimate_smartnoise_synth_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
-    smartnoise_synth_query: SmartnoiseSynthRequestModel,
+    smartnoise_synth_query: SmartnoiseSynthCostQueryModel,
 ) -> Job:
     """
     Computes the privacy loss budget cost of a SmartNoiseSynth query.
@@ -342,7 +342,7 @@ async def dummy_opendp_query_handler(
 async def estimate_opendp_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
-    opendp_query: OpenDPRequestModel,
+    opendp_query: OpenDPCostQueryModel,
 ) -> Job:
     """
     Estimates the privacy loss budget cost of an OpenDP query.
@@ -454,7 +454,7 @@ async def dummy_diffprivlib_query_handler(
 async def estimate_diffprivlib_cost(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     request: Request,
-    diffprivlib_query: DiffPrivLibRequestModel,
+    diffprivlib_query: DiffPrivLibCostQueryModel,
 ) -> Job:
     """
     Estimates the privacy loss budget cost of an DiffPrivLib query.

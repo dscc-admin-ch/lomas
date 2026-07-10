@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
@@ -11,12 +12,15 @@ from pydantic import (
     Field,
     PlainSerializer,
     PlainValidator,
+    TypeAdapter,
     ValidationInfo,
     field_validator,
 )
 
 from lomas_core.constants import DPLibraries
+from lomas_core.models.constants import JobStatus, QueryResponseTypes
 from lomas_core.models.exceptions import LomasAPIErrorModel
+from lomas_core.models.requests import AnyLomasRequest
 from lomas_core.models.utils import (
     dataframe_from_dict,
     dataframe_to_dict,
@@ -96,6 +100,13 @@ class CostResponse(ResponseModel):
 
     model_config = ConfigDict(use_attribute_docstrings=True)
 
+    def model_post_init(self, _) -> None:
+        # This makes sure the discriminator field is dumped even with exclude_unset=True
+        if "response_type" in self.__class__.model_fields:
+            self.model_fields_set.add("response_type")
+
+    response_type: Literal[QueryResponseTypes.COST] = QueryResponseTypes.COST
+
     epsilon: float
     """The epsilon cost of the query."""
     delta: float
@@ -106,11 +117,20 @@ class CostResponse(ResponseModel):
 # -----------------------------------------------------------------------------
 
 
-# DiffPrivLib
-class DiffPrivLibQueryResult(BaseModel):
-    """Model for diffprivlib query result."""
+class QueryResult(BaseModel):
+    """Base class for query results."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def model_post_init(self, _) -> None:
+        # This makes sure the discriminator field is dumped even with exclude_unset=True
+        if "type" in self.__class__.model_fields:
+            self.model_fields_set.add("type")
+
+
+# DiffPrivLib
+class DiffPrivLibQueryResult(QueryResult):
+    """Model for diffprivlib query result."""
 
     type: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
     """Result type description."""
@@ -125,10 +145,8 @@ class DiffPrivLibQueryResult(BaseModel):
 
 
 # SmartnoiseSQL
-class SmartnoiseSQLQueryResult(BaseModel):
+class SmartnoiseSQLQueryResult(QueryResult):
     """Type for smartnoise_sql result type."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     type: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
     """Result type description."""
@@ -141,10 +159,8 @@ class SmartnoiseSQLQueryResult(BaseModel):
 
 
 # SmartnoiseSynth
-class SmartnoiseSynthModel(BaseModel):
+class SmartnoiseSynthModel(QueryResult):
     """Type for smartnoise_synth result when it is a pickled model."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     """Result type description."""
     type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
@@ -152,10 +168,8 @@ class SmartnoiseSynthModel(BaseModel):
     # model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
 
 
-class SmartnoiseSynthSamples(BaseModel):
+class SmartnoiseSynthSamples(QueryResult):
     """Type for smartnoise_synth result when it is a dataframe of samples."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     type: Literal["sn_synth_samples"] = "sn_synth_samples"
     """Result type description."""
@@ -168,7 +182,7 @@ class SmartnoiseSynthSamples(BaseModel):
 
 
 # OpenDP
-class OpenDPQueryResult(BaseModel):
+class OpenDPQueryResult(QueryResult):
     """Type for opendp result."""
 
     type: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
@@ -177,10 +191,8 @@ class OpenDPQueryResult(BaseModel):
     """The result value of the query."""
 
 
-class OpenDPPolarsQueryResult(BaseModel):
+class OpenDPPolarsQueryResult(QueryResult):
     """Type for opendp Polars result."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     type: Literal[DPLibraries.OPENDP_POLARS] = DPLibraries.OPENDP_POLARS
     """Result type description."""
@@ -209,24 +221,40 @@ QueryResultT = Annotated[
 class QueryResponse(CostResponse):
     """Response to Lomas queries."""
 
+    response_type: Literal[QueryResponseTypes.QUERY] = QueryResponseTypes.QUERY  # type: ignore[assignment]
+
     requested_by: str
     """The user that triggered the query."""
     result: QueryResultT
     """The query result object."""
 
 
+AnyLomasQueryResponse = Annotated[
+    CostResponse | QueryResponse,
+    Field(discriminator="response_type"),
+]
+
+LomasQueryResponseAdapter: TypeAdapter[AnyLomasQueryResponse] = TypeAdapter(AnyLomasQueryResponse)
+
+
 class Job(ResponseModel):
-    """Scheduled Job Response."""
+    """Scheduled Job."""
 
     uid: UUID = Field(default_factory=uuid4)
     """Job unique identifier."""
     requested_by: str | None = None
     """Name of the user that requested this job."""
-    status: Literal["in_progress", "failed", "complete"] = "in_progress"
+    dataset_name: str | None = None
+    """Name of the dataset targetted by this job."""
+    status: Literal[JobStatus.IN_PROGRESS, JobStatus.FAILED, JobStatus.COMPLETE] = JobStatus.IN_PROGRESS
     """Job status."""
-    result: QueryResponse | CostResponse | None = None
+    query: AnyLomasRequest | None = None
+    """Job query."""
+    result: AnyLomasQueryResponse | None = None
     """Job result, if available."""
     error: LomasAPIErrorModel | None = None
     """Job error, if any."""
     status_code: int = 200
     """Status code for job response."""
+    archived_at: datetime | None = None
+    """Time of archive."""

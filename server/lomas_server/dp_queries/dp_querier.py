@@ -138,11 +138,6 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 delta=delta_cost,
             )
 
-            # Add query to db (for archive)
-            await self.admin_database.save_query(
-                user_name=user_name, query=query_json, response=response
-            )  # TODO 359 here
-
             # Re-enable user to query
             await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
 

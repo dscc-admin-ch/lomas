@@ -9,7 +9,6 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from lomas_client.utils import raise_error
-from lomas_core.constants import DPLibraries
 from lomas_core.exceptions import (
     DatasetNotFoundException,
     LomasAPIException,
@@ -18,6 +17,7 @@ from lomas_core.exceptions import (
 )
 from lomas_core.models.constants import (
     DUMMY_NB_ROWS,
+    JobStatus,
 )
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests_examples import (
@@ -318,7 +318,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response.status_code == status.HTTP_200_OK
 
             response_dict = response.json()
-            assert response_dict["previous_queries"] == []
+            assert response_dict == []
 
             # Query to archive 1 (smartnoise)
             # job_smnoise = submit_job_wait(client, "/smartnoise_sql_query", json=example_smartnoise_sql)
@@ -348,13 +348,10 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_3.status_code == status.HTTP_200_OK
             response_dict_3 = response_3.json()
 
-            assert len(response_dict_3["previous_queries"]) == 1
-            # assert response_dict_3["previous_queries"][0] == response_dict_2["previous_queries"][0]
-            assert response_dict_3["previous_queries"][0]["dp_library"] == DPLibraries.OPENDP
-            assert response_dict_3["previous_queries"][0]["client_input"] == example_opendp_polars_plan
-            assert response_dict_3["previous_queries"][0]["response"] == job_opendp.result.model_dump(
-                mode="json"
-            )
+            assert len(response_dict_3) == 1
+            assert response_dict_3[0]["uid"] == str(job_opendp.uid)
+            assert response_dict_3[0]["query"] == example_opendp_polars_plan
+            assert response_dict_3[0]["result"] == job_opendp.result.model_dump()
 
     @pytest.mark.long
     @pytest.mark.skip
@@ -367,21 +364,21 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == "complete"
+            assert job.status == JobStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 2*4.0 (total_spent = 8.0 <= INTIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == "complete"
+            assert job.status == JobStatus.COMPLETE
             assert job.status_code == status.HTTP_200_OK
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.requested_by == self.user_name
 
             # spend 3*4.0 (total_spent = 12.0 > INITIAL_BUDGET = 10.0)
             job = submit_job_wait(client, "/smartnoise_sql_query", json=smartnoise_body)
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error == LomasAPIErrorModel(
                 message="Not enough budget for this query "

@@ -2561,9 +2561,27 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># !pip install lomas_client</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">rich.jupyter</span><span class="w"> </span><span class="kn">import</span> <span class="nb">print</span>
+<span class="o">%</span><span class="n">reload_ext</span> <span class="n">rich</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">opendp.prelude</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">csvw_eo.csvw_to_smartnoise_sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">csvw_to_smartnoise_sql</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">lomas_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">lomas_client</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-1"># !pip install lomas_client</div>
+<div class="clipboard-copy-txt" id="cell-1">from rich.jupyter import print
+%reload_ext rich
+
+import numpy as np
+import opendp.prelude as dp
+from csvw_eo.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
+try:
+    from lomas_client import Client
+except ModuleNotFoundError:
+    !pip install lomas_client</div>
 </div>
 </div>
 </div>
@@ -2575,7 +2593,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Or using a local version of the client</p>
+<h2 id="step-2-initialise-the-client">Step 2: Initialise the client<a class="anchor-link" href="#step-2-initialise-the-client">¶</a></h2><p>Once the library is installed, a Client object must be created. It is responsible for sending sending requests to the server and processing responses in the local environment. It enables a seamless interaction with the server.</p>
+<p>The client needs a few parameters to be created. Usually, these would be set in the environment by the system administrator (queen Icebergina) and be transparent to lomas users. In this instance, the following code snippet sets a few of these parameters that are specific to this notebook.</p>
+<p>She will only be able to query on the real dataset if the administrator has previously made her an account in the database, given her access to the PENGUIN dataset and has given her some $\epsilon$, $\delta$ privacy loss budget.</p>
 </div>
 </div>
 </div>
@@ -2589,80 +2609,6 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'..'</span><span class="p">)))</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-2">import sys
-import os
-sys.path.append(os.path.abspath(os.path.join('..')))</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-3">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lomas_client.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">csvw_eo.csvw_to_smartnoise_sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">csvw_to_smartnoise_sql</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-3">from lomas_client.client import Client
-from csvw_eo.csvw_to_smartnoise_sql import csvw_to_smartnoise_sql
-import numpy as np</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="step-2-initialise-the-client">Step 2: Initialise the client<a class="anchor-link" href="#step-2-initialise-the-client">¶</a></h2><p>Once the library is installed, a Client object must be created. It is responsible for sending sending requests to the server and processing responses in the local environment. It enables a seamless interaction with the server.</p>
-<p>The client needs a few parameters to be created. Usually, these would be set in the environment by the system administrator (queen Icebergina) and be transparent to lomas users. In this instance, the following code snippet sets a few of these parameters that are specific to this notebook.</p>
-<p>She will only be able to query on the real dataset if the administrator has previously made her an account in the database, given her access to the PENGUIN dataset and has given her some $\epsilon$, $\delta$ privacy loss budget.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-4">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -2696,7 +2642,7 @@ import numpy as np</div>
 <span class="c1"># eg. client = Client(user_name = "Dr.Antartica") takes precedence over setting the "LOMAS_CLIENT_USER_NAME"</span>
 <span class="c1"># environment variable.</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-4"># The following would usually be set in the environment by a system administrator
+<div class="clipboard-copy-txt" id="cell-2"># The following would usually be set in the environment by a system administrator
 # and be tranparent to lomas users.
 # Uncomment them if you are running against a Kubernetes deployment.
 # They have already been set for you if you are running locally within a devenv or the Jupyter lab set up by Docker compose.
@@ -2725,7 +2671,198 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-3">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-3">client = Client()</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>And that's it for the preparation. She is now ready to use the various functionnalities offered by <code>lomas-client</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="step-3-getting-dataset-metadata">Step 3: Getting dataset metadata<a class="anchor-link" href="#step-3-getting-dataset-metadata">¶</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=10">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-4">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">metadata</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_dataset_metadata</span><span class="p">()</span>
+<span class="n">metadata</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-4">metadata = client.get_dataset_metadata()
+metadata</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre>
+<span class="ansi-bold">{</span>
+    <span class="ansi-green-fg">'@context'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'http://www.w3.org/ns/csvw'</span>, <span class="ansi-green-fg">'csvw-eo-context.jsonld'</span><span class="ansi-bold">]</span>,
+    <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Table'</span>,
+    <span class="ansi-green-fg">'privacyUnit'</span>: <span class="ansi-magenta-fg">None</span>,
+    <span class="ansi-green-fg">'maxContributions'</span>: <span class="ansi-cyan-intense-fg ansi-bold">1</span>,
+    <span class="ansi-green-fg">'maxLength'</span>: <span class="ansi-cyan-intense-fg ansi-bold">344</span>,
+    <span class="ansi-green-fg">'publicLength'</span>: <span class="ansi-cyan-intense-fg ansi-bold">344</span>,
+    <span class="ansi-green-fg">'tableSchema'</span>: <span class="ansi-bold">{</span>
+        <span class="ansi-green-fg">'columns'</span>: <span class="ansi-bold">[</span>
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'species'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: <span class="ansi-bold">&lt;</span><span class="ansi-magenta-intense-fg ansi-bold">DataTypes.STRING:</span> <span class="ansi-green-fg">'string'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'keyValues'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'Adelie'</span>, <span class="ansi-green-fg">'Chinstrap'</span>, <span class="ansi-green-fg">'Gentoo'</span><span class="ansi-bold">]</span>,
+                <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span>,
+                <span class="ansi-green-fg">'maxNumPartitions'</span>: <span class="ansi-cyan-intense-fg ansi-bold">3</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'island'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.STRING: <span class="ansi-green-fg">'string'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'keyValues'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'Torgersen'</span>, <span class="ansi-green-fg">'Biscoe'</span>, <span class="ansi-green-fg">'Dream'</span><span class="ansi-bold">]</span>,
+                <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span>,
+                <span class="ansi-green-fg">'maxNumPartitions'</span>: <span class="ansi-cyan-intense-fg ansi-bold">3</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'bill_length_mm'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.FLOAT: <span class="ansi-green-fg">'float'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'minimum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">30.0</span>,
+                <span class="ansi-green-fg">'maximum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">65.0</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'bill_depth_mm'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.FLOAT: <span class="ansi-green-fg">'float'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'minimum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">13.0</span>,
+                <span class="ansi-green-fg">'maximum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">23.0</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'flipper_length_mm'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.FLOAT: <span class="ansi-green-fg">'float'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'minimum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">150.0</span>,
+                <span class="ansi-green-fg">'maximum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">250.0</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'body_mass_g'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.FLOAT: <span class="ansi-green-fg">'float'</span>&gt;,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'minimum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">2000.0</span>,
+                <span class="ansi-green-fg">'maximum'</span>: <span class="ansi-cyan-intense-fg ansi-bold">7000.0</span>
+            <span class="ansi-bold">}</span>,
+            <span class="ansi-bold">{</span>
+                <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'Column'</span>,
+                <span class="ansi-green-fg">'name'</span>: <span class="ansi-green-fg">'sex'</span>,
+                <span class="ansi-green-fg">'datatype'</span>: &lt;DataTypes.STRING: <span class="ansi-green-fg">'string'</span><span class="ansi-bold">&gt;</span>,
+                <span class="ansi-green-fg">'required'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'privacyId'</span>: <span class="ansi-magenta-fg">None</span>,
+                <span class="ansi-green-fg">'nullableProportion'</span>: <span class="ansi-cyan-intense-fg ansi-bold">0.0</span>,
+                <span class="ansi-green-fg">'keyValues'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'MALE'</span>, <span class="ansi-green-fg">'FEMALE'</span><span class="ansi-bold">]</span>,
+                <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span>,
+                <span class="ansi-green-fg">'maxNumPartitions'</span>: <span class="ansi-cyan-intense-fg ansi-bold">2</span>
+            <span class="ansi-bold">}</span>
+        <span class="ansi-bold">]</span>
+    <span class="ansi-bold">}</span>,
+    <span class="ansi-green-fg">'additionalInformation'</span>: <span class="ansi-bold">[</span>
+        <span class="ansi-bold">{</span>
+            <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'ColumnGroup'</span>,
+            <span class="ansi-green-fg">'columnsInGroup'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'species'</span>, <span class="ansi-green-fg">'island'</span><span class="ansi-bold">]</span>,
+            <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span>
+        <span class="ansi-bold">}</span>,
+        <span class="ansi-bold">{</span><span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'ColumnGroup'</span>, <span class="ansi-green-fg">'columnsInGroup'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'species'</span>, <span class="ansi-green-fg">'sex'</span><span class="ansi-bold">]</span>, <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span><span class="ansi-bold">}</span>,
+        <span class="ansi-bold">{</span><span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'ColumnGroup'</span>, <span class="ansi-green-fg">'columnsInGroup'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'sex'</span>, <span class="ansi-green-fg">'island'</span><span class="ansi-bold">]</span>, <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span><span class="ansi-bold">}</span>,
+        <span class="ansi-bold">{</span>
+            <span class="ansi-green-fg">'@type'</span>: <span class="ansi-green-fg">'ColumnGroup'</span>,
+            <span class="ansi-green-fg">'columnsInGroup'</span>: <span class="ansi-bold">[</span><span class="ansi-green-fg">'species'</span>, <span class="ansi-green-fg">'island'</span>, <span class="ansi-green-fg">'sex'</span><span class="ansi-bold">]</span>,
+            <span class="ansi-green-fg">'invariantPublicKeys'</span>: <span class="ansi-green-intense-fg">True</span>
+        <span class="ansi-bold">}</span>
+    <span class="ansi-bold">]</span>
+<span class="ansi-bold">}</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=11">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2743,21 +2880,25 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">nb_penguin</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">'publicLength'</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Number of penguins: </span><span class="si">{</span><span class="n">nb_penguin</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-5">client = Client()</div>
+<div class="clipboard-copy-txt" id="cell-5">nb_penguin = metadata['publicLength']
+print(f"Number of penguins: {nb_penguin}.")</div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Number of penguins: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">344</span>.
+</pre>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=11">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>And that's it for the preparation. She is now ready to use the various functionnalities offered by <code>lomas-client</code>.</p>
 </div>
 </div>
 </div>
@@ -2767,12 +2908,23 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="step-3-getting-dataset-metadata">Step 3: Getting dataset metadata<a class="anchor-link" href="#step-3-getting-dataset-metadata">¶</a></h2>
+<h2 id="step-4-average-bill-length-with-smartnoise-sql">Step 4: Average bill length with Smartnoise-SQL<a class="anchor-link" href="#step-4-average-bill-length-with-smartnoise-sql">¶</a></h2>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=13">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=13">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="query-dummy-dataset">Query dummy dataset<a class="anchor-link" href="#query-dummy-dataset">¶</a></h3><p>Now that she has an idea of what the data looks like, she wants to start querying the real dataset to for her research. However, before this, other tools are at her disposal to reduce potential error risks and avoid spending budget on irrelevant queries. Of course, this does not have any impact on the budget.</p>
+<p>It is possible to specify the flag <code>dummy=True</code> in the various queries to perform the query on the dummy dataset instead of the real dataset and ensure that the queries are doing what is expected of them.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2790,105 +2942,18 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">metadata</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_dataset_metadata</span><span class="p">()</span>
-<span class="n">metadata</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Average bill length in mm</span>
+<span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-6">metadata = client.get_dataset_metadata()
-metadata</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'@context': ['http://www.w3.org/ns/csvw', 'csvw-eo-context.jsonld'],
- '@type': 'Table',
- 'privacyUnit': None,
- 'maxContributions': 1,
- 'maxLength': 344,
- 'publicLength': 344,
- 'tableSchema': {'columns': [{'@type': 'Column',
-    'name': 'species',
-    'datatype': &lt;DataTypes.STRING: 'string'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'keyValues': ['Adelie', 'Chinstrap', 'Gentoo'],
-    'invariantPublicKeys': True,
-    'maxNumPartitions': 3},
-   {'@type': 'Column',
-    'name': 'island',
-    'datatype': &lt;DataTypes.STRING: 'string'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'keyValues': ['Torgersen', 'Biscoe', 'Dream'],
-    'invariantPublicKeys': True,
-    'maxNumPartitions': 3},
-   {'@type': 'Column',
-    'name': 'bill_length_mm',
-    'datatype': &lt;DataTypes.FLOAT: 'float'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'minimum': 30.0,
-    'maximum': 65.0},
-   {'@type': 'Column',
-    'name': 'bill_depth_mm',
-    'datatype': &lt;DataTypes.FLOAT: 'float'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'minimum': 13.0,
-    'maximum': 23.0},
-   {'@type': 'Column',
-    'name': 'flipper_length_mm',
-    'datatype': &lt;DataTypes.FLOAT: 'float'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'minimum': 150.0,
-    'maximum': 250.0},
-   {'@type': 'Column',
-    'name': 'body_mass_g',
-    'datatype': &lt;DataTypes.FLOAT: 'float'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'minimum': 2000.0,
-    'maximum': 7000.0},
-   {'@type': 'Column',
-    'name': 'sex',
-    'datatype': &lt;DataTypes.STRING: 'string'&gt;,
-    'required': None,
-    'privacyId': None,
-    'nullableProportion': 0.0,
-    'keyValues': ['MALE', 'FEMALE'],
-    'invariantPublicKeys': True,
-    'maxNumPartitions': 2}]},
- 'additionalInformation': [{'@type': 'ColumnGroup',
-   'columnsInGroup': ['species', 'island'],
-   'invariantPublicKeys': True},
-  {'@type': 'ColumnGroup',
-   'columnsInGroup': ['species', 'sex'],
-   'invariantPublicKeys': True},
-  {'@type': 'ColumnGroup',
-   'columnsInGroup': ['sex', 'island'],
-   'invariantPublicKeys': True},
-  {'@type': 'ColumnGroup',
-   'columnsInGroup': ['species', 'island', 'sex'],
-   'invariantPublicKeys': True}]}</pre>
+<div class="clipboard-copy-txt" id="cell-6"># Average bill length in mm
+QUERY = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=14">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=15">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2906,51 +2971,18 @@ metadata</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">nb_penguin</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">'publicLength'</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Number of penguins: </span><span class="si">{</span><span class="n">nb_penguin</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">EPSILON</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">DELTA</span> <span class="o">=</span> <span class="mf">1e-5</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-7">nb_penguin = metadata['publicLength']
-print(f"Number of penguins: {nb_penguin}.")</div>
+<div class="clipboard-copy-txt" id="cell-7">EPSILON = 0.5
+DELTA = 1e-5</div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Number of penguins: 344.
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="step-4-average-bill-length-with-smartnoise-sql">Step 4: Average bill length with Smartnoise-SQL<a class="anchor-link" href="#step-4-average-bill-length-with-smartnoise-sql">¶</a></h2>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=16">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="query-dummy-dataset">Query dummy dataset<a class="anchor-link" href="#query-dummy-dataset">¶</a></h3><p>Now that she has an idea of what the data looks like, she wants to start querying the real dataset to for her research. However, before this, other tools are at her disposal to reduce potential error risks and avoid spending budget on irrelevant queries. Of course, this does not have any impact on the budget.</p>
-<p>It is possible to specify the flag <code>dummy=True</code> in the various queries to perform the query on the dummy dataset instead of the real dataset and ensure that the queries are doing what is expected of them.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=17">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=16">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2968,18 +3000,28 @@ print(f"Number of penguins: {nb_penguin}.")</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Average bill length in mm</span>
-<span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># On the remote server dummy dataframe</span>
+<span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span>  
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">EPSILON</span><span class="p">,</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">DELTA</span><span class="p">,</span>
+    <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-8"># Average bill length in mm
-QUERY = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"</div>
+<div class="clipboard-copy-txt" id="cell-8"># On the remote server dummy dataframe
+dummy_res = client.smartnoise_sql.query(
+    query = QUERY,  
+    epsilon = EPSILON,
+    delta = DELTA,
+    dummy = True,
+)</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=18">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=17">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2997,13 +3039,39 @@ QUERY = "SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df"</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">EPSILON</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="n">DELTA</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">avg_bl_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dummy_res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">"avg_bill_length_mm"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+<span class="sa">f</span><span class="s2">"Average bill length on dummy: </span><span class="si">{</span><span class="n">avg_bl_dummy</span><span class="si">}</span><span class="s2">mm."</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-9">EPSILON = 0.5
-DELTA = 1e-5</div>
+<div class="clipboard-copy-txt" id="cell-9">avg_bl_dummy = np.round(dummy_res.result.df["avg_bill_length_mm"][0], 2)
+f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 </div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
+<pre><span class="ansi-green-fg">'Average bill length on dummy: 41.78mm.'</span></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=18">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="estimate-cost-of-a-query">Estimate cost of a query<a class="anchor-link" href="#estimate-cost-of-a-query">¶</a></h3><p>Dr. Antartica checks the budget that computing the average bill length will really cost her if she asks the query with an <code>epsilon</code> and a <code>delta</code>.</p>
 </div>
 </div>
 </div>
@@ -3026,20 +3094,16 @@ DELTA = 1e-5</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># On the remote server dummy dataframe</span>
-<span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span>  
-    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">EPSILON</span><span class="p">,</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> 
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">EPSILON</span><span class="p">,</span> 
     <span class="n">delta</span> <span class="o">=</span> <span class="n">DELTA</span><span class="p">,</span>
-    <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-10"># On the remote server dummy dataframe
-dummy_res = client.smartnoise_sql.query(
-    query = QUERY,  
-    epsilon = EPSILON,
+<div class="clipboard-copy-txt" id="cell-10">cost = client.smartnoise_sql.cost(
+    query = QUERY, 
+    epsilon = EPSILON, 
     delta = DELTA,
-    dummy = True,
 )</div>
 </div>
 </div>
@@ -3065,11 +3129,9 @@ dummy_res = client.smartnoise_sql.query(
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">avg_bl_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dummy_res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">"avg_bill_length_mm"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
-<span class="sa">f</span><span class="s2">"Average bill length on dummy: </span><span class="si">{</span><span class="n">avg_bl_dummy</span><span class="si">}</span><span class="s2">mm."</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="sa">f</span><span class="s1">'This query would actually cost her </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s1"> epsilon and </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s1"> delta.'</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-11">avg_bl_dummy = np.round(dummy_res.result.df["avg_bill_length_mm"][0], 2)
-f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
+<div class="clipboard-copy-txt" id="cell-11">f'This query would actually cost her {cost.epsilon} epsilon and {cost.delta} delta.'</div>
 </div>
 </div>
 </div>
@@ -3078,9 +3140,14 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'Average bill length on dummy: 51.07mm.'</pre>
+<pre><span class="ansi-green-fg">'This query would actually cost her 1.5 epsilon and 1.4999949999983109e-05 delta.'</span></pre>
 </div>
 </div>
 </div>
@@ -3092,95 +3159,12 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="estimate-cost-of-a-query">Estimate cost of a query<a class="anchor-link" href="#estimate-cost-of-a-query">¶</a></h3><p>Dr. Antartica checks the budget that computing the average bill length will really cost her if she asks the query with an <code>epsilon</code> and a <code>delta</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=22">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-12">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span>
-    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> 
-    <span class="n">epsilon</span> <span class="o">=</span> <span class="n">EPSILON</span><span class="p">,</span> 
-    <span class="n">delta</span> <span class="o">=</span> <span class="n">DELTA</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-12">cost = client.smartnoise_sql.cost(
-    query = QUERY, 
-    epsilon = EPSILON, 
-    delta = DELTA,
-)</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=23">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-13">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="sa">f</span><span class="s1">'This query would actually cost her </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s1"> epsilon and </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s1"> delta.'</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-13">f'This query would actually cost her {cost.epsilon} epsilon and {cost.delta} delta.'</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'This query would actually cost her 1.5 epsilon and 1.4999949999983109e-05 delta.'</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>This is actually twice as much as what she initially put in. In the background, Smartnoise-SQL decomposes the DP query in multiple other queries and the budget given as input is spent on each of these sub-queries. Here for the average, we need a sum divided by a count, hence <code>EPSILON</code> is spent once for the sum and then once more for the count. (see NOTE below for tips and explanation).</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3190,7 +3174,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=23">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3200,7 +3184,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=27">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=24">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3208,7 +3192,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-14">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-12">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3227,7 +3211,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
     <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-14"># On the remote server dummy dataframe
+<div class="clipboard-copy-txt" id="cell-12"># On the remote server dummy dataframe
 dummy_res = client.smartnoise_sql.query(
     query = QUERY,  
     epsilon = EPSILON,
@@ -3241,7 +3225,7 @@ dummy_res = client.smartnoise_sql.query(
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=28">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=25">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3249,7 +3233,7 @@ dummy_res = client.smartnoise_sql.query(
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-15">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-13">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3262,7 +3246,7 @@ dummy_res = client.smartnoise_sql.query(
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">avg_bl_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dummy_res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">"avg_bill_length_mm"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
 <span class="sa">f</span><span class="s2">"Average bill length on dummy: </span><span class="si">{</span><span class="n">avg_bl_dummy</span><span class="si">}</span><span class="s2">mm."</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-15">avg_bl_dummy = np.round(dummy_res.result.df["avg_bill_length_mm"][0], 2)
+<div class="clipboard-copy-txt" id="cell-13">avg_bl_dummy = np.round(dummy_res.result.df["avg_bill_length_mm"][0], 2)
 f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 </div>
 </div>
@@ -3272,16 +3256,21 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre>
+</div>
+</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'Average bill length on dummy: 53.49mm.'</pre>
+<pre><span class="ansi-green-fg">'Average bill length on dummy: 49.13mm.'</span></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=29">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3289,7 +3278,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-16">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-14">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3307,7 +3296,7 @@ f"Average bill length on dummy: {avg_bl_dummy}mm."</div>
 <span class="p">)</span>
 <span class="n">cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-16">cost = client.smartnoise_sql.cost(
+<div class="clipboard-copy-txt" id="cell-14">cost = client.smartnoise_sql.cost(
     query = QUERY, 
     epsilon = EPSILON, 
     delta = DELTA,
@@ -3318,20 +3307,9 @@ cost</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=1.5, delta=2.49998000004803e-05)</pre>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3342,7 +3320,7 @@ cost</div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=31">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=28">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3350,7 +3328,7 @@ cost</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-17">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-15">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3368,7 +3346,7 @@ cost</div>
     <span class="n">dummy</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-17">avg_bill_length_response = client.smartnoise_sql.query(
+<div class="clipboard-copy-txt" id="cell-15">avg_bill_length_response = client.smartnoise_sql.query(
     query = QUERY,  
     epsilon = EPSILON, 
     delta = DELTA,
@@ -3380,8 +3358,8 @@ cost</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=32">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=29">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3389,7 +3367,7 @@ cost</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-18">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-16">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3402,27 +3380,15 @@ cost</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">avg_bill_length</span> <span class="o">=</span> <span class="n">avg_bill_length_response</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">'avg_bill_length_mm'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Average bill length on private data: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">avg_bill_length</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">mm."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-18">avg_bill_length = avg_bill_length_response.result.df['avg_bill_length_mm'].iloc[0]
+<div class="clipboard-copy-txt" id="cell-16">avg_bill_length = avg_bill_length_response.result.df['avg_bill_length_mm'].iloc[0]
 print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")</div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Average bill length on private data: 42.29mm.
-</pre>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=30">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3432,7 +3398,7 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=31">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3442,7 +3408,7 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3451,8 +3417,8 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=36">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=33">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3460,7 +3426,7 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-19">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-17">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3479,7 +3445,7 @@ print(f"Average bill length on private data: {np.round(avg_bill_length, 2)}mm.")
 <span class="p">)</span>
 <span class="n">dummy_res</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-19">dummy_res = client.smartnoise_sql.query(
+<div class="clipboard-copy-txt" id="cell-17">dummy_res = client.smartnoise_sql.query(
     query = QUERY,  
     epsilon = EPSILON,
     delta = DELTA,
@@ -3491,21 +3457,9 @@ dummy_res</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>QueryResponse(epsilon=1.5, delta=1.4999949999983109e-05, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=   avg_bill_length_mm
-0           48.656781))</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=37">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3513,7 +3467,7 @@ dummy_res</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-20">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-18">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3532,7 +3486,7 @@ dummy_res</div>
 <span class="p">)</span>
 <span class="n">dummy_res</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-20">dummy_res = client.smartnoise_sql.query(
+<div class="clipboard-copy-txt" id="cell-18">dummy_res = client.smartnoise_sql.query(
     query = QUERY,  
     epsilon = EPSILON,
     delta = DELTA,
@@ -3544,21 +3498,9 @@ dummy_res</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>QueryResponse(epsilon=1.5, delta=1.4999949999983109e-05, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=       res_0        res_1       res_2
-0  103.77021  4610.567968  100.573341))</pre>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=38">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=35">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3568,7 +3510,7 @@ dummy_res</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=36">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3578,12 +3520,86 @@ dummy_res</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>She is first interested to have a better idea of the distribution of bill length of all species. She already has the number of penguins (=number of rows as <code>max_ids=1</code>) from the metadata and the average bill length from step 3, so she just needs to compute the standard deviation. As it is just an exploration step, she uses very little budget values.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=38">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-19">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-19">QUERY = "SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>She again first verifies that her query works on the dummy dataset:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=40">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-20">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> 
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> 
+    <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> 
+    <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-20">dummy_res = client.smartnoise_sql.query(
+    query = QUERY, 
+    epsilon = 0.5, 
+    delta = 1e-5, 
+    dummy = True
+)</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -3606,9 +3622,11 @@ dummy_res</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dummy_res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">'std_bill_length_mm'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+<span class="sa">f</span><span class="s2">"The dummy standard variation is </span><span class="si">{</span><span class="n">dummy_std</span><span class="si">}</span><span class="s2">."</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-21">QUERY = "SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</div>
+<div class="clipboard-copy-txt" id="cell-21">dummy_std = np.round(dummy_res.result.df['std_bill_length_mm'].iloc[0], 2)
+f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </div>
 </div>
@@ -3620,7 +3638,7 @@ dummy_res</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She again first verifies that her query works on the dummy dataset:</p>
+<p>The syntax of the query works, now she checks the budget:</p>
 </div>
 </div>
 </div>
@@ -3643,26 +3661,24 @@ dummy_res</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span>
     <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> 
     <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> 
-    <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> 
-    <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
 <span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-22">dummy_res = client.smartnoise_sql.query(
+<div class="clipboard-copy-txt" id="cell-22">cost = client.smartnoise_sql.cost(
     query = QUERY, 
     epsilon = 0.5, 
-    delta = 1e-5, 
-    dummy = True
+    delta = 1e-5
 )</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=44">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=44">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3680,22 +3696,9 @@ dummy_res</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">dummy_res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">'std_bill_length_mm'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
-<span class="sa">f</span><span class="s2">"The dummy standard variation is </span><span class="si">{</span><span class="n">dummy_std</span><span class="si">}</span><span class="s2">."</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="sa">f</span><span class="s1">'This query would actually cost her </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s1"> epsilon and </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s1"> delta.'</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-23">dummy_std = np.round(dummy_res.result.df['std_bill_length_mm'].iloc[0], 2)
-f"The dummy standard variation is {dummy_std}."</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'The dummy standard variation is 15.56.'</pre>
+<div class="clipboard-copy-txt" id="cell-23">f'This query would actually cost her {cost.epsilon} epsilon and {cost.delta} delta.'</div>
 </div>
 </div>
 </div>
@@ -3707,7 +3710,7 @@ f"The dummy standard variation is {dummy_std}."</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The syntax of the query works, now she checks the budget:</p>
+<p>This time it is three times the budget because the standard deviation needs the average, then a difference and a count again.</p>
 </div>
 </div>
 </div>
@@ -3730,15 +3733,15 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span>
-    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> 
-    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> 
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span>
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
     <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
 <span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-24">cost = client.smartnoise_sql.cost(
-    query = QUERY, 
-    epsilon = 0.5, 
+<div class="clipboard-copy-txt" id="cell-24">response = client.smartnoise_sql.query(
+    query = QUERY,
+    epsilon = 0.5,
     delta = 1e-5
 )</div>
 </div>
@@ -3746,8 +3749,8 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=47">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=47">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3765,20 +3768,11 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="sa">f</span><span class="s1">'This query would actually cost her </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">epsilon</span><span class="si">}</span><span class="s1"> epsilon and </span><span class="si">{</span><span class="n">cost</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s1"> delta.'</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">std_bill_length</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">'std_bill_length_mm'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Standard deviation of bill length: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">std_bill_length</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-25">f'This query would actually cost her {cost.epsilon} epsilon and {cost.delta} delta.'</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>'This query would actually cost her 2.0 epsilon and 1.4999949999983109e-05 delta.'</pre>
+<div class="clipboard-copy-txt" id="cell-25">std_bill_length = response.result.df['std_bill_length_mm'].iloc[0]
+print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</div>
 </div>
 </div>
 </div>
@@ -3790,7 +3784,7 @@ f"The dummy standard variation is {dummy_std}."</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>This time it is three times the budget because the standard deviation needs the average, then a difference and a count again.</p>
+<p>She can now do all the postprocessing that she wants with the returned data without increasing the privacy risk.</p>
 </div>
 </div>
 </div>
@@ -3813,24 +3807,20 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-    <span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span>
-    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-    <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
-<span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get standard error</span>
+<span class="n">standard_error</span> <span class="o">=</span> <span class="n">std_bill_length</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nb_penguin</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Standard error of bill length: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">standard_error</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-26">response = client.smartnoise_sql.query(
-    query = QUERY,
-    epsilon = 0.5,
-    delta = 1e-5
-)</div>
+<div class="clipboard-copy-txt" id="cell-26"># Get standard error
+standard_error = std_bill_length/np.sqrt(nb_penguin)
+print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=50">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3848,23 +3838,15 @@ f"The dummy standard variation is {dummy_std}."</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">std_bill_length</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s1">'std_bill_length_mm'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Standard deviation of bill length: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">std_bill_length</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span> <span class="c1"># Compute the 95% confidence interval</span>
+<span class="n">ZSCORE</span> <span class="o">=</span> <span class="mf">1.96</span>
+<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">avg_bill_length</span> <span class="o">-</span> <span class="n">ZSCORE</span><span class="o">*</span><span class="n">standard_error</span><span class="p">,</span> <span class="n">avg_bill_length</span> <span class="o">+</span> <span class="n">ZSCORE</span><span class="o">*</span><span class="n">standard_error</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The 95% confidence interval of the bill length of all penguins is [</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">]."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-27">std_bill_length = response.result.df['std_bill_length_mm'].iloc[0]
-print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Standard deviation of bill length: 8.6.
-</pre>
+<div class="clipboard-copy-txt" id="cell-27"> # Compute the 95% confidence interval
+ZSCORE = 1.96
+lower_bound, upper_bound = avg_bill_length - ZSCORE*standard_error, avg_bill_length + ZSCORE*standard_error
+print(f"The 95% confidence interval of the bill length of all penguins is [{np.round(lower_bound, 2)}, {np.round(upper_bound, 2)}].")</div>
 </div>
 </div>
 </div>
@@ -3876,12 +3858,22 @@ print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</di
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She can now do all the postprocessing that she wants with the returned data without increasing the privacy risk.</p>
+<h2 id="note-on-budget-with-smartnoise-sql-advanced">Note on budget with Smartnoise-SQL (Advanced)<a class="anchor-link" href="#note-on-budget-with-smartnoise-sql-advanced">¶</a></h2>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=52">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=52">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>All of these queries will cost the same budget in Smartnoise-SQL. The reason is that the smartnoise-sql translates the input query in sub queries, finds the answer for each sub query for the budget in input and then assembles the results. For the first 'standard deviation' query, it requires a count, an average, and only then the computation for the standard deviation. Hence, to save budget it is better to make a general query directly and retrieve all the 'sub-answers'.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3899,32 +3891,18 @@ print(f"Standard deviation of bill length: {np.round(std_bill_length, 2)}.")</di
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get standard error</span>
-<span class="n">standard_error</span> <span class="o">=</span> <span class="n">std_bill_length</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nb_penguin</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Standard error of bill length: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">standard_error</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-28"># Get standard error
-standard_error = std_bill_length/np.sqrt(nb_penguin)
-print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Standard error of bill length: 0.46.
-</pre>
+<div class="clipboard-copy-txt" id="cell-28">epsilon = 1.0
+delta = 1e-5</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=53">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=54">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3942,54 +3920,20 @@ print(f"Standard error of bill length: {np.round(standard_error, 2)}.")</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span> <span class="c1"># Compute the 95% confidence interval</span>
-<span class="n">ZSCORE</span> <span class="o">=</span> <span class="mf">1.96</span>
-<span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">avg_bill_length</span> <span class="o">-</span> <span class="n">ZSCORE</span><span class="o">*</span><span class="n">standard_error</span><span class="p">,</span> <span class="n">avg_bill_length</span> <span class="o">+</span> <span class="n">ZSCORE</span><span class="o">*</span><span class="n">standard_error</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The 95% confidence interval of the bill length of all penguins is [</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">]."</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
+<span class="n">cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-29"> # Compute the 95% confidence interval
-ZSCORE = 1.96
-lower_bound, upper_bound = avg_bill_length - ZSCORE*standard_error, avg_bill_length + ZSCORE*standard_error
-print(f"The 95% confidence interval of the bill length of all penguins is [{np.round(lower_bound, 2)}, {np.round(upper_bound, 2)}].")</div>
+<div class="clipboard-copy-txt" id="cell-29">QUERY = "SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"
+cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
+cost</div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>The 95% confidence interval of the bill length of all penguins is [41.39, 43.2].
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=54">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="note-on-budget-with-smartnoise-sql-advanced">Note on budget with Smartnoise-SQL (Advanced)<a class="anchor-link" href="#note-on-budget-with-smartnoise-sql-advanced">¶</a></h2>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=55">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>All of these queries will cost the same budget in Smartnoise-SQL. The reason is that the smartnoise-sql translates the input query in sub queries, finds the answer for each sub query for the budget in input and then assembles the results. For the first 'standard deviation' query, it requires a count, an average, and only then the computation for the standard deviation. Hence, to save budget it is better to make a general query directly and retrieve all the 'sub-answers'.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=55">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4007,18 +3951,20 @@ print(f"The 95% confidence interval of the bill length of all penguins is [{np.r
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1.0</span>
-<span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
+<span class="n">cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-30">epsilon = 1.0
-delta = 1e-5</div>
+<div class="clipboard-copy-txt" id="cell-30">QUERY = "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
+cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
+cost</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=57">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=56">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4036,31 +3982,30 @@ delta = 1e-5</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"</span>
 <span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
 <span class="n">cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-31">QUERY = "SELECT STD(bill_length_mm) AS std_bill_length_mm FROM df"
+<div class="clipboard-copy-txt" id="cell-31">QUERY = "SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
 cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
 cost</div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=4.0, delta=1.4999949999983109e-05)</pre>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=57">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>A way to know the sub-queries of a query is to use the following Smartnoise-SQL code:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=58">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4078,31 +4023,20 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"</span>
-<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
-<span class="n">cost</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Convert metadata to Smartnoise-SQL compliant metadata</span>
+<span class="n">snsql_metadata</span> <span class="o">=</span> <span class="n">csvw_to_smartnoise_sql</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+<span class="n">snsql_metadata</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-32">QUERY = "SELECT AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
-cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
-cost</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=4.0, delta=1.4999949999983109e-05)</pre>
+<div class="clipboard-copy-txt" id="cell-32"># Convert metadata to Smartnoise-SQL compliant metadata
+snsql_metadata = csvw_to_smartnoise_sql(metadata)
+snsql_metadata</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=59">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=59">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4120,41 +4054,20 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"</span>
-<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
-<span class="n">cost</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Write the query to inspect</span>
+<span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) as std_bl FROM df"</span>
+<span class="c1">#QUERY = "SELECT COUNT(*) as nb_row FROM df"</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-33">QUERY = "SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df"
-cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
-cost</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=4.0, delta=1.4999949999983109e-05)</pre>
+<div class="clipboard-copy-txt" id="cell-33"># Write the query to inspect
+QUERY = "SELECT STD(bill_length_mm) as std_bl FROM df"
+#QUERY = "SELECT COUNT(*) as nb_row FROM df"</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>A way to know the sub-queries of a query is to use the following Smartnoise-SQL code:</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=61">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4172,51 +4085,31 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Convert metadata to Smartnoise-SQL compliant metadata</span>
-<span class="n">snsql_metadata</span> <span class="o">=</span> <span class="n">csvw_to_smartnoise_sql</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
-<span class="n">snsql_metadata</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">snsql.sql.private_rewriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rewriter</span>
+<span class="n">rewriter</span> <span class="o">=</span> <span class="n">Rewriter</span><span class="p">(</span><span class="n">snsql_metadata</span><span class="p">)</span>
+<span class="n">rewriter</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">row_privacy</span> <span class="o">=</span> <span class="n">snsql_metadata</span><span class="p">[</span><span class="s2">""</span><span class="p">][</span><span class="s2">""</span><span class="p">][</span><span class="s2">"df"</span><span class="p">][</span><span class="s2">"row_privacy"</span><span class="p">]</span>
+<span class="n">rewriter</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">max_contrib</span> <span class="o">=</span> <span class="n">snsql_metadata</span><span class="p">[</span><span class="s2">""</span><span class="p">][</span><span class="s2">""</span><span class="p">][</span><span class="s2">"df"</span><span class="p">][</span><span class="s2">"max_ids"</span><span class="p">]</span>
+<span class="n">dp_query</span> <span class="o">=</span> <span class="n">rewriter</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">QUERY</span><span class="p">)</span>
+<span class="n">dp_query</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-34"># Convert metadata to Smartnoise-SQL compliant metadata
-snsql_metadata = csvw_to_smartnoise_sql(metadata)
-snsql_metadata</div>
+<div class="clipboard-copy-txt" id="cell-34">from snsql.sql.private_rewriter import Rewriter
+rewriter = Rewriter(snsql_metadata)
+rewriter.options.row_privacy = snsql_metadata[""][""]["df"]["row_privacy"]
+rewriter.options.max_contrib = snsql_metadata[""][""]["df"]["max_ids"]
+dp_query = rewriter.query(QUERY)
+dp_query</div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'': {'': {'df': {'max_ids': 1,
-    'rows': 344,
-    'species': {'name': 'species', 'type': 'string', 'nullable': True},
-    'island': {'name': 'island', 'type': 'string', 'nullable': True},
-    'bill_length_mm': {'name': 'bill_length_mm',
-     'type': 'float',
-     'nullable': True,
-     'lower': 30.0,
-     'upper': 65.0},
-    'bill_depth_mm': {'name': 'bill_depth_mm',
-     'type': 'float',
-     'nullable': True,
-     'lower': 13.0,
-     'upper': 23.0},
-    'flipper_length_mm': {'name': 'flipper_length_mm',
-     'type': 'float',
-     'nullable': True,
-     'lower': 150.0,
-     'upper': 250.0},
-    'body_mass_g': {'name': 'body_mass_g',
-     'type': 'float',
-     'nullable': True,
-     'lower': 2000.0,
-     'upper': 7000.0},
-    'sex': {'name': 'sex', 'type': 'string', 'nullable': True},
-    'row_privacy': True}}}}</pre>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>The original dp query is represented as one query:</p>
 </div>
 </div>
 </div>
@@ -4239,20 +4132,30 @@ snsql_metadata</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Write the query to inspect</span>
-<span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT STD(bill_length_mm) as std_bl FROM df"</span>
-<span class="c1">#QUERY = "SELECT COUNT(*) as nb_row FROM df"</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dp_query</span><span class="o">.</span><span class="n">_named_symbols</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-35"># Write the query to inspect
-QUERY = "SELECT STD(bill_length_mm) as std_bl FROM df"
-#QUERY = "SELECT COUNT(*) as nb_row FROM df"</div>
+<div class="clipboard-copy-txt" id="cell-35">dp_query._named_symbols</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=63">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>But has 4 named symbols inside: 2 alias for the 2 SQL subqueries</p>
+<ul>
+<li>'keycount' for 'count_bill_length_mm',</li>
+<li>'sum_alias_0xxxx' for 'sum_bill_length_mm'</li>
+</ul>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4270,47 +4173,30 @@ QUERY = "SELECT STD(bill_length_mm) as std_bl FROM df"
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">snsql.sql.private_rewriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Rewriter</span>
-<span class="n">rewriter</span> <span class="o">=</span> <span class="n">Rewriter</span><span class="p">(</span><span class="n">snsql_metadata</span><span class="p">)</span>
-<span class="n">rewriter</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">row_privacy</span> <span class="o">=</span> <span class="n">snsql_metadata</span><span class="p">[</span><span class="s2">""</span><span class="p">][</span><span class="s2">""</span><span class="p">][</span><span class="s2">"df"</span><span class="p">][</span><span class="s2">"row_privacy"</span><span class="p">]</span>
-<span class="n">rewriter</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">max_contrib</span> <span class="o">=</span> <span class="n">snsql_metadata</span><span class="p">[</span><span class="s2">""</span><span class="p">][</span><span class="s2">""</span><span class="p">][</span><span class="s2">"df"</span><span class="p">][</span><span class="s2">"max_ids"</span><span class="p">]</span>
-<span class="n">dp_query</span> <span class="o">=</span> <span class="n">rewriter</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">QUERY</span><span class="p">)</span>
-<span class="n">dp_query</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">subquery</span> <span class="o">=</span> <span class="n">dp_query</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">relations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">primary</span><span class="o">.</span><span class="n">query</span>
+<span class="n">syms</span> <span class="o">=</span> <span class="n">subquery</span><span class="o">.</span><span class="n">_named_symbols</span>
+<span class="n">syms</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-36">from snsql.sql.private_rewriter import Rewriter
-rewriter = Rewriter(snsql_metadata)
-rewriter.options.row_privacy = snsql_metadata[""][""]["df"]["row_privacy"]
-rewriter.options.max_contrib = snsql_metadata[""][""]["df"]["max_ids"]
-dp_query = rewriter.query(QUERY)
-dp_query</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>&lt;snsql._ast.ast.Query at 0x7f903cc94a70&gt;</pre>
+<div class="clipboard-copy-txt" id="cell-36">subquery = dp_query.source.relations[0].primary.query
+syms = subquery._named_symbols
+syms</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=64">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=65">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The original dp query is represented as one query:</p>
+<p>This last query with <code>group_by</code> will cost the same because <code>max_ids=1</code> (a penguin appears in the dataset at most once) and so the <code>group_by</code> is applied on different partitions of the population.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=65">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=66">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4328,41 +4214,56 @@ dp_query</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dp_query</span><span class="o">.</span><span class="n">_named_symbols</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df GROUP BY species"</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
+<span class="n">cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-37">dp_query._named_symbols</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'std_bl': &lt;snsql._ast.tokens.Symbol at 0x7f903cc3f070&gt;}</pre>
+<div class="clipboard-copy-txt" id="cell-37">QUERY = "SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df GROUP BY species"
+cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
+cost</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=66">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=67">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>But has 4 named symbols inside: 2 alias for the 2 SQL subqueries</p>
+<p>NOTE: in the current code of Smartnoise-SQL, there is no odometer. Meaning all queries are independant. If someone first queries the private dataset for a count, then a second time for the average and then for the standard deviation then the total cost will be added: 3 count + 2 average + 1 std. That's why it is better to do everything in one query.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="hypothesis-testing">Hypothesis testing<a class="anchor-link" href="#hypothesis-testing">¶</a></h3>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=69">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>So, Dr. Antartica has now the opportunity to study the various penguins dimensions and will do an hypotheses testing analysis to discover if flipper length differ between the penguins species.</p>
+<p>She will do a two-tailed two-sample $t$ test.</p>
 <ul>
-<li>'keycount' for 'count_bill_length_mm',</li>
-<li>'sum_alias_0xxxx' for 'sum_bill_length_mm'</li>
+<li>The null hypothese $H_0$ is flipper length does not differ between species.</li>
+<li>The alternative hypothesis $H_a$ is flipper length does differ between species.</li>
 </ul>
+<p>She set the level of significance at 0.05.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=67">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4380,44 +4281,16 @@ dp_query</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">subquery</span> <span class="o">=</span> <span class="n">dp_query</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">relations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">primary</span><span class="o">.</span><span class="n">query</span>
-<span class="n">syms</span> <span class="o">=</span> <span class="n">subquery</span><span class="o">.</span><span class="n">_named_symbols</span>
-<span class="n">syms</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">CRITICAL_VALUE</span> <span class="o">=</span> <span class="mf">0.05</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-38">subquery = dp_query.source.relations[0].primary.query
-syms = subquery._named_symbols
-syms</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'keycount': &lt;snsql._ast.tokens.Symbol at 0x7f9051633650&gt;,
- 'sum_alias_0xf3d7': &lt;snsql._ast.tokens.Symbol at 0x7f905171f8b0&gt;,
- 'count_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7f905171fe30&gt;,
- 'sum_bill_length_mm': &lt;snsql._ast.tokens.Symbol at 0x7f903cc3ee90&gt;}</pre>
+<div class="clipboard-copy-txt" id="cell-38">CRITICAL_VALUE = 0.05</div>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=68">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>This last query with <code>group_by</code> will cost the same because <code>max_ids=1</code> (a penguin appears in the dataset at most once) and so the <code>group_by</code> is applied on different partitions of the population.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=69">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=71">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4435,46 +4308,21 @@ syms</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df GROUP BY species"</span>
-<span class="n">cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span><span class="p">)</span>
-<span class="n">cost</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT </span><span class="se">\</span>
+<span class="s2">        species AS species, </span><span class="se">\</span>
+<span class="s2">        COUNT(bill_length_mm) AS nb_penguin,  </span><span class="se">\</span>
+<span class="s2">        AVG(bill_length_mm) AS avg_bill_length_mm, </span><span class="se">\</span>
+<span class="s2">        STD(bill_length_mm) AS std_bill_length_mm </span><span class="se">\</span>
+<span class="s2">        FROM df GROUP BY species"</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-39">QUERY = "SELECT COUNT(bill_length_mm) AS count_bl, AVG(bill_length_mm) AS avg_bl, STD(bill_length_mm) as std_bl FROM df GROUP BY species"
-cost = client.smartnoise_sql.cost(query = QUERY, epsilon = epsilon, delta = delta)
-cost</div>
+<div class="clipboard-copy-txt" id="cell-39">QUERY = "SELECT \
+        species AS species, \
+        COUNT(bill_length_mm) AS nb_penguin,  \
+        AVG(bill_length_mm) AS avg_bill_length_mm, \
+        STD(bill_length_mm) AS std_bill_length_mm \
+        FROM df GROUP BY species"</div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=4.0, delta=1.4999949999983109e-05)</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=70">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>NOTE: in the current code of Smartnoise-SQL, there is no odometer. Meaning all queries are independant. If someone first queries the private dataset for a count, then a second time for the average and then for the standard deviation then the total cost will be added: 3 count + 2 average + 1 std. That's why it is better to do everything in one query.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="hypothesis-testing">Hypothesis testing<a class="anchor-link" href="#hypothesis-testing">¶</a></h3>
 </div>
 </div>
 </div>
@@ -4484,13 +4332,7 @@ cost</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>So, Dr. Antartica has now the opportunity to study the various penguins dimensions and will do an hypotheses testing analysis to discover if flipper length differ between the penguins species.</p>
-<p>She will do a two-tailed two-sample $t$ test.</p>
-<ul>
-<li>The null hypothese $H_0$ is flipper length does not differ between species.</li>
-<li>The alternative hypothesis $H_a$ is flipper length does differ between species.</li>
-</ul>
-<p>She set the level of significance at 0.05.</p>
+<p>She checks the remaining budget:</p>
 </div>
 </div>
 </div>
@@ -4513,16 +4355,26 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">CRITICAL_VALUE</span> <span class="o">=</span> <span class="mf">0.05</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">get_remaining_budget</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-40">CRITICAL_VALUE = 0.05</div>
+<div class="clipboard-copy-txt" id="cell-40">client.get_remaining_budget()</div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=74">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>She estimates how much budget it would really cost:</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=74">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4540,41 +4392,38 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">QUERY</span> <span class="o">=</span> <span class="s2">"SELECT </span><span class="se">\</span>
-<span class="s2">        species AS species, </span><span class="se">\</span>
-<span class="s2">        COUNT(bill_length_mm) AS nb_penguin,  </span><span class="se">\</span>
-<span class="s2">        AVG(bill_length_mm) AS avg_bill_length_mm, </span><span class="se">\</span>
-<span class="s2">        STD(bill_length_mm) AS std_bill_length_mm </span><span class="se">\</span>
-<span class="s2">        FROM df GROUP BY species"</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-41">QUERY = "SELECT \
-        species AS species, \
-        COUNT(bill_length_mm) AS nb_penguin,  \
-        AVG(bill_length_mm) AS avg_bill_length_mm, \
-        STD(bill_length_mm) AS std_bill_length_mm \
-        FROM df GROUP BY species"</div>
+<div class="clipboard-copy-txt" id="cell-41">client.smartnoise_sql.cost(query = QUERY, epsilon = 1.0, delta = 1e-4)</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She checks the remaining budget:</p>
+<p>The real cost seems to be 3 times the epsilon that she sets. It is a lot but she tries on the dummy dataset to verify all is working properly.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=76">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_raises-exception">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_raises-exception" id="cell-id=77">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="celltoolbar">
+<div class="button_container tags_button_container">
+<span class="tag-container">
+<span class="cell-tag">raises-exception</span>
+</span>
+</div>
+</div>
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-42">
@@ -4587,37 +4436,28 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">get_remaining_budget</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">dummy_res</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-42">client.get_remaining_budget()</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>RemainingBudgetResponse(remaining_epsilon=46.5, remaining_delta=0.004960000249999537)</pre>
+<div class="clipboard-copy-txt" id="cell-42">dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = 0.1, delta = 1e-8, dummy = True)
+dummy_res</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=77">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She estimates how much budget it would really cost:</p>
+<p>She did not give enough budget for the query to work. This is why there are 'NANs' in the output. She has to spend more budget for the query to work.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=78">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=79">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4635,161 +4475,20 @@ cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">)</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-43">client.smartnoise_sql.cost(query = QUERY, epsilon = 1.0, delta = 1e-4)</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=4.0, delta=0.00014999500000001387)</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=79">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The real cost seems to be 3 times the epsilon that she sets. It is a lot but she tries on the dummy dataset to verify all is working properly.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_raises-exception">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_raises-exception" id="cell-id=80">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="celltoolbar">
-<div class="button_container tags_button_container">
-<span class="tag-container">
-<span class="cell-tag">raises-exception</span>
-</span>
-</div>
-</div>
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-44">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_res</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-44">dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = 0.1, delta = 1e-8, dummy = True)
-dummy_res</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">LomasAPIException</span>                         Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[45]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = <span class="ansi-green-fg">0.1</span>, delta = <span class="ansi-green-fg">1e-8</span>, dummy = <span class="ansi-bold" style="color: rgb(0,135,0)">True</span>)
-<span class="ansi-green-fg">      2</span> dummy_res
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/client/lomas_client/libraries/smartnoise_sql.py:119</span>, in <span class="ansi-cyan-fg">SmartnoiseSQLClient.query</span><span class="ansi-blue-fg">(self, query, epsilon, delta, mechanisms, postprocess, dummy, nb_rows, seed)</span>
-<span class="ansi-green-fg">    116</span> body = request_model.model_validate(body_dict)
-<span class="ansi-green-fg">    117</span> res = <span style="color: rgb(0,135,0)">self</span>.http_client.post(endpoint, body)
-<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">119</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">validate_model_response</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">http_client</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">res</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">QueryResponse</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/client/lomas_client/utils.py:70</span>, in <span class="ansi-cyan-fg">validate_model_response</span><span class="ansi-blue-fg">(client, response, response_model)</span>
-<span class="ansi-green-fg">     68</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> job.status == <span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">failed</span><span class="ansi-yellow-fg">"</span>:
-<span class="ansi-green-fg">     69</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">assert</span> job.error <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">"</span><span class="ansi-yellow-fg">job </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>job_uid<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> failed without error !</span><span class="ansi-yellow-fg">"</span>
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">70</span>     <span class="ansi-black-fg ansi-yellow-bg">job</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">error</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">raise_exception</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
-<span class="ansi-green-fg">     72</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> response_model.model_validate(job.result)
-
-<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">~/work/lomas/lomas/core/lomas_core/models/exceptions.py:22</span>, in <span class="ansi-cyan-fg">LomasAPIErrorModel.raise_exception</span><span class="ansi-blue-fg">(self)</span>
-<span class="ansi-green-fg">     21</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">raise_exception</span>(<span style="color: rgb(0,135,0)">self</span>) -&gt; NoReturn:
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">22</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> LomasAPIException(<span style="color: rgb(0,135,0)">self</span>.message)
-
-<span class="ansi-red-fg">LomasAPIException</span>: Exception from &lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt; library: SQL Reader generated empty results. Epsilon: 0.1 and Delta: 1e-08 are too small to generate output.</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=81">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She did not give enough budget for the query to work. This is why there are 'NANs' in the output. She has to spend more budget for the query to work.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=82">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-45">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_sql</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">query</span> <span class="o">=</span> <span class="n">QUERY</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 
 <span class="n">dummy_res</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-45">dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = 5, delta = 1e-4, dummy = True)
+<div class="clipboard-copy-txt" id="cell-43">dummy_res = client.smartnoise_sql.query(query = QUERY, epsilon = 5, delta = 1e-4, dummy = True)
 
 dummy_res</div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>QueryResponse(epsilon=20.0, delta=0.00014999500000001387, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=     species  nb_penguin  avg_bill_length_mm  std_bill_length_mm
-0     Adelie          30           44.047766           12.592844
-1  Chinstrap          30           48.881070           12.955143
-2     Gentoo          40           47.310596           10.959094))</pre>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=80">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4798,8 +4497,8 @@ dummy_res</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=84">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=81">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4807,7 +4506,7 @@ dummy_res</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-46">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-44">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -4832,7 +4531,7 @@ dummy_res</div>
 <span class="k">if</span> <span class="n">flipper_length_response</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">"10 unsuccessfull query attempts."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-46">from lomas_core.exceptions import LomasAPIException
+<div class="clipboard-copy-txt" id="cell-44">from lomas_core.exceptions import LomasAPIException
 
 flipper_length_response = None
 
@@ -4850,14 +4549,51 @@ if flipper_length_response is None:
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Attempt number 1 failed.
-</pre>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=82">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>And now she should not have any remaining budget:</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>But she can do her post-processing and hypothesis analysis.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=84">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-45">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">df_flipper</span> <span class="o">=</span> <span class="n">flipper_length_response</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span>
+<span class="n">df_flipper</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-45">df_flipper = flipper_length_response.result.df
+df_flipper</div>
 </div>
 </div>
 </div>
@@ -4869,22 +4605,43 @@ if flipper_length_response is None:
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>And now she should not have any remaining budget:</p>
+<p>And finally the $t$-test:</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>But she can do her post-processing and hypothesis analysis.</p>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-46">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">t_test</span><span class="p">(</span><span class="n">avg_1</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">):</span>
+    <span class="n">standard_error</span> <span class="o">=</span> <span class="p">(</span><span class="n">std_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">std_2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">nb_1</span> <span class="o">+</span> <span class="n">nb_2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">avg_1</span> <span class="o">-</span> <span class="n">avg_2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">standard_error</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">nb_1</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span><span class="n">nb_2</span><span class="p">))</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-46">def t_test(avg_1, avg_2, std_1, std_2, nb_1, nb_2):
+    standard_error = (std_1 * (nb_1 - 1) + std_2 * (nb_2 - 1))/(nb_1 + nb_2 - 2)
+    return (avg_1 - avg_2)/np.sqrt(standard_error**2*(1/nb_1 + 1 /nb_2))</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=87">
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=87">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4902,87 +4659,20 @@ if flipper_length_response is None:
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">df_flipper</span> <span class="o">=</span> <span class="n">flipper_length_response</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df</span>
-<span class="n">df_flipper</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">nb_0</span><span class="p">,</span> <span class="n">avg_0</span><span class="p">,</span> <span class="n">std_0</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">nb_1</span><span class="p">,</span> <span class="n">avg_1</span><span class="p">,</span> <span class="n">std_1</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">nb_2</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_2</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-47">df_flipper = flipper_length_response.result.df
-df_flipper</div>
+<div class="clipboard-copy-txt" id="cell-47">nb_0, avg_0, std_0 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[0]
+nb_1, avg_1, std_1 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[1]
+nb_2, avg_2, std_2 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[2]</div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th>species</th>
-<th>nb_penguin</th>
-<th>avg_bill_length_mm</th>
-<th>std_bill_length_mm</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>0</th>
-<td>Adelie</td>
-<td>151</td>
-<td>38.642952</td>
-<td>3.556159</td>
-</tr>
-<tr>
-<th>1</th>
-<td>Chinstrap</td>
-<td>67</td>
-<td>48.835724</td>
-<td>3.875695</td>
-</tr>
-<tr>
-<th>2</th>
-<td>Gentoo</td>
-<td>123</td>
-<td>47.444875</td>
-<td>4.807584</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=88">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>And finally the $t$-test:</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=89">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=88">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -5000,20 +4690,48 @@ df_flipper</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">t_test</span><span class="p">(</span><span class="n">avg_1</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">):</span>
-    <span class="n">standard_error</span> <span class="o">=</span> <span class="p">(</span><span class="n">std_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">std_2</span> <span class="o">*</span> <span class="p">(</span><span class="n">nb_2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">nb_1</span> <span class="o">+</span> <span class="n">nb_2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">avg_1</span> <span class="o">-</span> <span class="n">avg_2</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">standard_error</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">nb_1</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span><span class="n">nb_2</span><span class="p">))</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">t_01</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_0</span><span class="p">,</span> <span class="n">avg_1</span><span class="p">,</span> <span class="n">std_0</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">nb_0</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">)</span>
+<span class="n">t_02</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_0</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_0</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_0</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">)</span>
+<span class="n">t_12</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_1</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 0 and specie 1: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_01</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">.  Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_01</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 0 and specie 2: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_02</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">. Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_02</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 1 and specie 2: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_12</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">.   Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_12</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-48">def t_test(avg_1, avg_2, std_1, std_2, nb_1, nb_2):
-    standard_error = (std_1 * (nb_1 - 1) + std_2 * (nb_2 - 1))/(nb_1 + nb_2 - 2)
-    return (avg_1 - avg_2)/np.sqrt(standard_error**2*(1/nb_1 + 1 /nb_2))</div>
+<div class="clipboard-copy-txt" id="cell-48">t_01 = t_test(avg_0, avg_1, std_0, std_1, nb_0, nb_1)
+t_02 = t_test(avg_0, avg_2, std_0, std_2, nb_0, nb_2)
+t_12 = t_test(avg_1, avg_2, std_1, std_2, nb_1, nb_2)
+
+print(f"T test between species 0 and specie 1: {np.round(t_01, 2)}.  Reject null hypothesis: {abs(t_01) &gt; CRITICAL_VALUE}.")
+print(f"T test between species 0 and specie 2: {np.round(t_02, 2)}. Reject null hypothesis: {abs(t_02) &gt; CRITICAL_VALUE}.")
+print(f"T test between species 1 and specie 2: {np.round(t_12, 2)}.   Reject null hypothesis: {abs(t_12) &gt; CRITICAL_VALUE}.")</div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=89">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>All t-tests are above the critical value of 0.5. She can reject the null hypothesis.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>She finally computes the confidence intervals for the flipper length of each species</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=90">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -5031,192 +4749,17 @@ df_flipper</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">nb_0</span><span class="p">,</span> <span class="n">avg_0</span><span class="p">,</span> <span class="n">std_0</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">nb_1</span><span class="p">,</span> <span class="n">avg_1</span><span class="p">,</span> <span class="n">std_1</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">nb_2</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_2</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[[</span><span class="s1">'nb_penguin'</span><span class="p">,</span> <span class="s1">'avg_bill_length_mm'</span><span class="p">,</span> <span class="s1">'std_bill_length_mm'</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-49">nb_0, avg_0, std_0 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[0]
-nb_1, avg_1, std_1 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[1]
-nb_2, avg_2, std_2 = df_flipper[['nb_penguin', 'avg_bill_length_mm', 'std_bill_length_mm']].iloc[2]</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=91">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-50">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">t_01</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_0</span><span class="p">,</span> <span class="n">avg_1</span><span class="p">,</span> <span class="n">std_0</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">nb_0</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">)</span>
-<span class="n">t_02</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_0</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_0</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_0</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">)</span>
-<span class="n">t_12</span> <span class="o">=</span> <span class="n">t_test</span><span class="p">(</span><span class="n">avg_1</span><span class="p">,</span> <span class="n">avg_2</span><span class="p">,</span> <span class="n">std_1</span><span class="p">,</span> <span class="n">std_2</span><span class="p">,</span> <span class="n">nb_1</span><span class="p">,</span> <span class="n">nb_2</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 0 and specie 1: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_01</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">.  Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_01</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 0 and specie 2: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_02</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">. Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_02</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"T test between species 1 and specie 2: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">t_12</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">.   Reject null hypothesis: </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">t_12</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">CRITICAL_VALUE</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-50">t_01 = t_test(avg_0, avg_1, std_0, std_1, nb_0, nb_1)
-t_02 = t_test(avg_0, avg_2, std_0, std_2, nb_0, nb_2)
-t_12 = t_test(avg_1, avg_2, std_1, std_2, nb_1, nb_2)
-
-print(f"T test between species 0 and specie 1: {np.round(t_01, 2)}.  Reject null hypothesis: {abs(t_01) &gt; CRITICAL_VALUE}.")
-print(f"T test between species 0 and specie 2: {np.round(t_02, 2)}. Reject null hypothesis: {abs(t_02) &gt; CRITICAL_VALUE}.")
-print(f"T test between species 1 and specie 2: {np.round(t_12, 2)}.   Reject null hypothesis: {abs(t_12) &gt; CRITICAL_VALUE}.")</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>T test between species 0 and specie 1: -19.0.  Reject null hypothesis: True.
-T test between species 0 and specie 2: -17.6. Reject null hypothesis: True.
-T test between species 1 and specie 2: 2.04.   Reject null hypothesis: True.
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=92">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>All t-tests are above the critical value of 0.5. She can reject the null hypothesis.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=93">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>She finally computes the confidence intervals for the flipper length of each species</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=94">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="CodeMirror cm-s-jupyter">
-<div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-51">
-<div>
-<span class="notice" hidden="">Copied!</span>
-<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
-<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-</clipboard-copy>
-</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">ZSCORE</span> <span class="o">=</span> <span class="mf">1.96</span>
 <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'standard_error'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'std_bill_length_mm'</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">df_flipper</span><span class="p">[</span><span class="s1">'nb_penguin'</span><span class="p">])</span>
 <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'ci_95_lower_bound'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'avg_bill_length_mm'</span><span class="p">]</span> <span class="o">-</span> <span class="n">ZSCORE</span> <span class="o">*</span> <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'standard_error'</span><span class="p">]</span>
 <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'ci_95_upper_bound'</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'avg_bill_length_mm'</span><span class="p">]</span> <span class="o">+</span> <span class="n">ZSCORE</span> <span class="o">*</span> <span class="n">df_flipper</span><span class="p">[</span><span class="s1">'standard_error'</span><span class="p">]</span>
 <span class="n">df_flipper</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-51">ZSCORE = 1.96
+<div class="clipboard-copy-txt" id="cell-49">ZSCORE = 1.96
 df_flipper['standard_error'] = df_flipper['std_bill_length_mm']/np.sqrt(df_flipper['nb_penguin'])
 df_flipper['ci_95_lower_bound'] = df_flipper['avg_bill_length_mm'] - ZSCORE * df_flipper['standard_error']
 df_flipper['ci_95_upper_bound'] = df_flipper['avg_bill_length_mm'] + ZSCORE * df_flipper['standard_error']
 df_flipper</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<div>
-<style scoped="">
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-<thead>
-<tr style="text-align: right;">
-<th></th>
-<th>species</th>
-<th>nb_penguin</th>
-<th>avg_bill_length_mm</th>
-<th>std_bill_length_mm</th>
-<th>standard_error</th>
-<th>ci_95_lower_bound</th>
-<th>ci_95_upper_bound</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>0</th>
-<td>Adelie</td>
-<td>151</td>
-<td>38.642952</td>
-<td>3.556159</td>
-<td>0.289396</td>
-<td>38.075735</td>
-<td>39.210168</td>
-</tr>
-<tr>
-<th>1</th>
-<td>Chinstrap</td>
-<td>67</td>
-<td>48.835724</td>
-<td>3.875695</td>
-<td>0.473491</td>
-<td>47.907680</td>
-<td>49.763767</td>
-</tr>
-<tr>
-<th>2</th>
-<td>Gentoo</td>
-<td>123</td>
-<td>47.444875</td>
-<td>4.807584</td>
-<td>0.433485</td>
-<td>46.595244</td>
-<td>48.294506</td>
-</tr>
-</tbody>
-</table>
-</div>
 </div>
 </div>
 </div>

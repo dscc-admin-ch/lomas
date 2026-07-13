@@ -178,4 +178,5 @@ exclude_also = [
   "def __repr__",
   # Don't complain if non-runnable code isn't run:
   "if __name__ == .__main__.:",
+  'def run\(\)',
 ]

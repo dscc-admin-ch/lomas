@@ -43,6 +43,17 @@ logger = get_lomas_logger(__name__)
 
 
 def notify(message: bytes) -> None:
+    """
+    Implement the systemd notify protocol without external dependencies.
+
+    According to the protocol defined at:
+    https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html
+
+    Args:
+        message (bytes): well-known assignements:
+            - READY=1
+            - STOPPING=1
+    """
     socket_path = os.environ.get("NOTIFY_SOCKET")
     if socket_path is None or len(socket_path) == 0:
         return

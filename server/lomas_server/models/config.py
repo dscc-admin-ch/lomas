@@ -9,7 +9,7 @@ from pydantic import (
     computed_field,
 )
 from pydantic_core import Url
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import CLI_SUPPRESS, BaseSettings, SettingsConfigDict
 
 from lomas_core.models.config import Telemetry, TimeAttack
 from lomas_core.models.constants import (
@@ -39,7 +39,7 @@ class AmqpConfig(BaseModel):
     url: AmqpDsn
     username: str
     password: str
-    heartbeat: str
+    heartbeat: str = Field(default="60")
 
     @computed_field
     def dsn(self) -> str:
@@ -66,7 +66,7 @@ class AmqpConfig(BaseModel):
 
 
 class DexAdminConfig(BaseModel):
-    url: Url
+    url: Url = Field(description="Dex OIDC server addresse")
 
     @computed_field
     def use_mtls(self) -> bool:
@@ -77,13 +77,13 @@ class DexAdminConfig(BaseModel):
 class Server(BaseModel):
     """BaseModel for uvicorn server configs."""
 
-    time_attack: TimeAttack
-    submit_limit: float
+    time_attack: TimeAttack = Field(default=TimeAttack(method="jitter", magnitude=1.0))
+    submit_limit: float = Field(default=300.0)
     """A limit on the rate which users can submit queries."""
-    host_ip: str
-    host_port: int
-    log_level: str
-    lomas_log_level: str
+    host_ip: str = Field(default="localhost")
+    host_port: int = Field(default=48080)
+    log_level: str = Field(default="INFO")
+    lomas_log_level: str = Field(default="INFO")
     reload: bool = Field(default=False)
     forwarded_allow_ips: list[str] | str = Field(default="*")
     root_path: str = Field(default="/api")
@@ -100,7 +100,7 @@ class Config(BaseSettings):
     )
 
     # Server configs
-    server: Server
+    server: Server = Field(default_factory=Server)
 
     authenticator: AuthenticatorT
 
@@ -108,9 +108,9 @@ class Config(BaseSettings):
 
     bootstrap: str | None = Field(default=None)
 
-    admin_database_url: Path
+    admin_database_url: Path = Field(default=Path("/tmp/admin.db"))
 
-    clean_admin_database: bool
+    clean_admin_database: bool = Field(default=False)
 
     data_directory: Path = Field(default=Path("../data"))
 
@@ -118,9 +118,9 @@ class Config(BaseSettings):
 
     amqp: AmqpConfig
 
-    opendp_features: OpenDPFeatures
+    opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 
-    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
+    telemetry: Telemetry = Field(default_factory=Telemetry)
 
     @computed_field
     def database(self) -> AdminDatabase:
@@ -143,6 +143,6 @@ class AdminConfig(BaseSettings):
     #   - service is the address to reach the server from the dashboard/admin job
     # These two can sometimes differ, e.g. if the user is not in the same K8 cluster,
     # or if Lomas is deployed with its own docker network (docker compose case).
-    server_url: HttpUrl
-    server_service: HttpUrl
-    dex_config: Annotated[DexAdminConfig | None, Field(default=None)]
+    server_url: HttpUrl = Field(description="Lomas server addresse reacheable from the client")
+    server_service: HttpUrl = Field(default_factory=lambda data: data["server_url"], description=CLI_SUPPRESS)
+    dex_config: DexAdminConfig | None = Field(default=None)

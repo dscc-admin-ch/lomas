@@ -149,8 +149,13 @@ in
           procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
         in
         genAttrs procNames (name: {
-          exec = "exec ${lib.getExe pkgs.watchexec} --watch=${config.git.root} -e py --restart --no-meta lomas-work";
+          exec = "exec lomas-work";
           cwd = "${config.git.root}/server/lomas_server";
+          ready.notify = true;
+          watch = {
+            paths = [ config.git.root ];
+            extensions = [ "py" ];
+          };
           after = [
             "devenv:processes:rabbitmq"
           ];
@@ -162,6 +167,7 @@ in
         exec = "exec python uvicorn_serve.py";
         cwd = "${config.git.root}/server/lomas_server";
         ready = {
+          notify = true;
           http.get = {
             inherit (cfg) host port;
             path = "/live";

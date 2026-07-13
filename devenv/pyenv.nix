@@ -10,14 +10,8 @@
 let
   cfg = config.lomas.pyenv;
 
-  pyEnv = import ./lib.nix {
-    inherit
-      pkgs
-      lib
-      uv2nix
-      pyproject-nix
-      pyproject-build-systems
-      ;
+  pyEnv = pkgs.callPackage ./lib.nix {
+    inherit pyproject-nix pyproject-build-systems uv2nix;
     python = cfg.package;
     workspaceRoot = ../.;
   };

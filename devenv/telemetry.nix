@@ -337,7 +337,7 @@ in
         extraFlags = [ ];
       in
       {
-        exec = "${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+        exec = "exec ${pkgs.tempo}/bin/tempo --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
       };
 
     processes.loki =
@@ -373,7 +373,7 @@ in
         extraFlags = [ ];
       in
       {
-        exec = "${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
+        exec = "exec ${pkgs.grafana-loki}/bin/loki --config.file=${conf} ${lib.escapeShellArgs extraFlags}";
       };
 
   };

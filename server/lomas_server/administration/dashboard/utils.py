@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-import httpx
+import httpx2
 import pandas as pd
 import streamlit as st
 from returns.io import IO, IOFailure, IOResultE, IOSuccess, impure_safe
@@ -52,7 +52,7 @@ def call_if_dex(task: Callable[[DexAdminConfig], IOResultE]) -> IOResultE[Maybe[
 
 @st.dialog("Confirm deletion")
 def confirm_delete(
-    message: str, on_confirm: Callable[[], IOResultE[httpx.Response]], success_message: str
+    message: str, on_confirm: Callable[[], IOResultE[httpx2.Response]], success_message: str
 ) -> None:
     st.warning(message)
 
@@ -74,13 +74,13 @@ def confirm_delete(
 
 
 @impure_safe
-def parse_if_ok(response: httpx.Response) -> str:
+def parse_if_ok(response: httpx2.Response) -> str:
     return response.raise_for_status().json()
 
 
 def recover_if_410(e: Exception, default: Any = None) -> IOResultE:
     match e:
-        case httpx.HTTPStatusError():
+        case httpx2.HTTPStatusError():
             if e.response.status_code == 410:
                 return IOSuccess(default)
         case _:
@@ -89,8 +89,8 @@ def recover_if_410(e: Exception, default: Any = None) -> IOResultE:
 
 
 def query_lomas(
-    endpoint: str, verb: Callable[..., httpx.Response], **kwargs: dict[str, Any]
-) -> IOResultE[httpx.Response]:
+    endpoint: str, verb: Callable[..., httpx2.Response], **kwargs: dict[str, Any]
+) -> IOResultE[httpx2.Response]:
     return flow(
         # get/parse our config from environment/files
         get_config(),
@@ -118,9 +118,9 @@ def get_access_token() -> IOResultE[str]:
 
 def query_lomas_auth(
     endpoint: str,
-    verb: Callable[..., httpx.Response],
+    verb: Callable[..., httpx2.Response],
     **kwargs: dict[str, Any],
-) -> IOResultE[httpx.Response]:
+) -> IOResultE[httpx2.Response]:
     return flow(
         get_access_token(),
         # transform a bare token into usable HTTP header
@@ -132,12 +132,12 @@ def query_lomas_auth(
 
 def get_datasets() -> IOResultE[list[str]]:
     """List all datasets available on the server."""
-    return query_lomas_auth("/datasets", httpx.get)
+    return query_lomas_auth("/datasets", httpx2.get)
 
 
 def get_users() -> IOResultE[list[User]]:
     """List all users available on the server."""
-    return query_lomas_auth("/users", httpx.get).map(
+    return query_lomas_auth("/users", httpx2.get).map(
         lambda user_list: list(map(User.model_validate, user_list))
     )
 

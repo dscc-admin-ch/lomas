@@ -2,7 +2,7 @@ import os
 import posix as Status
 import re
 
-import httpx
+import httpx2
 import pytest
 from authlib.integrations.requests_client import OAuth2Session
 from fastapi import status
@@ -34,11 +34,11 @@ def demo_setup():
     dex_config = admin_config.dex_config
     assert dex_config is not None
     query_lomas(
-        "/collections/users", httpx.delete, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")
+        "/collections/users", httpx2.delete, headers=get_auth_header("lomas_admin@example.com", "lomas_admin")
     )
     query_lomas(
         "/collections/datasets",
-        httpx.delete,
+        httpx2.delete,
         headers=get_auth_header("lomas_admin@example.com", "lomas_admin"),
     )
     del_all_dex_users(dex_config)

@@ -5,10 +5,11 @@
   pyproject-nix,
   pyproject-build-systems,
   workspaceRoot,
-  python ? pkgs.python3,
+  python3,
   ...
 }:
 let
+  inherit (pkgs.callPackages pyproject-nix.build.util { }) mkApplication;
   fs = lib.fileset;
   # unfortunately devenv currently pull the fileset dependency recursively
   # .devenv/input-paths.txt contains
@@ -130,12 +131,12 @@ rec {
   sslOverlay = final: prev: {
     certifi = hacks.nixpkgsPrebuilt {
       # nixpkgs certifi respect the ca-bundle from pkgs.cacert as well as NIX_SSL_CERT_FILE if set
-      from = python.pkgs.certifi;
+      from = python3.pkgs.certifi;
       prev = prev.certifi;
     };
   };
 
-  pythonSets = (pkgs.callPackage pyproject-nix.build.packages { inherit python; }).overrideScope (
+  pythonSets = (pkgs.callPackage pyproject-nix.build.packages { python = python3; }).overrideScope (
     lib.composeManyExtensions [
       pyproject-build-systems.overlays.wheel
       uvOverlay
@@ -199,4 +200,11 @@ rec {
   virtualenv = pythonSet.mkVirtualEnv "lomas-dev-env" workspace.deps.all;
 
   lomasEnv = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-env" workspace.deps.default;
+
+  lomasServerApp = mkApplication {
+    venv = lomasEnv;
+    package = pythonSet.lomas-server;
+  };
+
+  lomasClient = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-client" { lomas-client = [ ]; };
 }

@@ -1,4 +1,7 @@
+import os
 import re
+import socket
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -53,6 +56,30 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             response_state = client.get("/state")
             assert response_root.status_code == response_state.status_code
             assert response_root.json() == response_state.json()
+
+    def test_notify(self) -> None:
+        os.environ["NOTIFY_SOCKET"] = ""
+        with TestClient(app, headers=self.headers):
+            pass
+
+        del os.environ["NOTIFY_SOCKET"]
+        with TestClient(app, headers=self.headers):
+            pass
+
+        os.environ["NOTIFY_SOCKET"] = "invalidSocket"
+        with pytest.raises(OSError):
+            with TestClient(app, headers=self.headers):
+                pass
+
+        os.environ["NOTIFY_SOCKET"] = "/tmp/valid.sock"
+        Path(os.environ["NOTIFY_SOCKET"]).unlink(missing_ok=True)
+        with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM | socket.SOCK_CLOEXEC) as sock:
+            sock.bind(os.environ["NOTIFY_SOCKET"])
+            with TestClient(app, headers=self.headers):
+                pass
+
+        # cleanup
+        del os.environ["NOTIFY_SOCKET"]
 
     def test_state(self) -> None:
         """Test state endpoint."""

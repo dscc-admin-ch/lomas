@@ -2,9 +2,9 @@ import posix as Status
 from functools import partial
 from pathlib import Path
 
-import httpx
+import httpx2
 from pydantic import Field
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import CliApp, SettingsConfigDict
 from returns.io import IOFailure, IOResultE, IOSuccess
 from returns.iterables import Fold
 from returns.maybe import Maybe
@@ -28,11 +28,19 @@ class DemoAdminConfig(AdminConfig):
         env_file=".env.lomas_admin",
         env_nested_delimiter="__",
         case_sensitive=False,
+        cli_kebab_case=True,
+        cli_avoid_json=True,
+        cli_implicit_flags="toggle",
+        cli_shortcuts={
+            "server-url": "s",
+            "user-yaml": "u",
+            "dataset-yaml": "d",
+        },
     )
 
     user_yaml: Path = Field(default=Path("../data/collections/user_collection.yaml"))
     dataset_yaml: Path = Field(default=Path("../data/collections/dataset_collection.yaml"))
-    bootstrap: str
+    bootstrap: str = Field(description="Bootstrap secret to bypass auth during initial setup")
 
 
 def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
@@ -49,7 +57,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
 
     add_users: IOResultE = query_lomas(
         "/usersfile",
-        httpx.post,
+        httpx2.post,
         json={"clean": True},
         files={"file": config.user_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
@@ -68,7 +76,7 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     pprint("Creating datasets and metadata collection")
     add_datasets: IOResultE = query_lomas(
         "/dataset/bulk",
-        httpx.post,
+        httpx2.post,
         json={"clean": True},
         files={"file": config.dataset_yaml.open(mode="rb")},
         headers={"Authorization": f"Bearer {config.bootstrap}"},
@@ -77,20 +85,22 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     pprint("Empty archives")
     delete_archives: IOResultE = query_lomas(
         f"/collections/{TK.ARCHIVE}",
-        httpx.delete,
+        httpx2.delete,
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
     return Fold.collect([add_users, add_dex_users, add_datasets, delete_archives], IOSuccess(()))
 
 
-def lomas_demo_setup() -> int:
+def lomas_demo_setup(demo_config: DemoAdminConfig | None = None) -> int:
     """Script for setting up demo users and dataset.
 
     Returns:
         int: the return code used by sys.exit (0 for success 1 or other for failure)
     """
-    demo_config = DemoAdminConfig()
+    if demo_config is None:
+        demo_config = DemoAdminConfig()
+
     match add_lomas_demo_data(demo_config):
         case IOSuccess(_):
             return Status.EX_OK
@@ -99,5 +109,10 @@ def lomas_demo_setup() -> int:
     return Status.EX_IOERR
 
 
+def run() -> int:
+    demo_config = CliApp.run(DemoAdminConfig)
+    return lomas_demo_setup(demo_config)
+
+
 if __name__ == "__main__":
-    lomas_demo_setup()
+    run()

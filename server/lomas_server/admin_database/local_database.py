@@ -135,10 +135,9 @@ class LocalAdminDatabase(AdminDatabase):
     @with_lock
     def update_job(self, updated_job: Job) -> None:
         uid = updated_job.uid
+        updates = {k: getattr(updated_job, k) for k, v in updated_job.__dict__.items() if v is not None}
         with shelve.open(self.path, writeback=True) as db:
-            merged_job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid].model_copy(
-                update=updated_job.model_dump(exclude_none=True), deep=True
-            )
+            merged_job = db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid].model_copy(update=updates, deep=True)
             db[TK.MISC_KEYS][MiscDBKeys.JOBS][uid] = merged_job
 
     # Users

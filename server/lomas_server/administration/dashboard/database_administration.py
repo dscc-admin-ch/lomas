@@ -1,7 +1,7 @@
 from functools import partial
 from pathlib import Path
 
-import httpx
+import httpx2
 import pandas as pd
 import streamlit as st
 import yaml
@@ -47,7 +47,7 @@ DELTA_STEP = 0.00001
 st.title("Bootstrap permissions")
 
 bootstrap_exists = flow(
-    query_lomas_auth("/bootstrap", httpx.get),
+    query_lomas_auth("/bootstrap", httpx2.get),
     lash(lambda e: recover_if_410(e, default=False)),
     alt(lambda e: st.error(f"Error while fetching bootstrap state: {e}")),
     map_(lambda e: True if e is None else False),  # Define bootstrap_exists
@@ -68,7 +68,7 @@ match bootstrap_exists:
 if delete_bootstrap:
     confirm_delete(
         "Delete bootstrap permissions permanently?",
-        lambda: query_lomas_auth("/bootstrap", httpx.delete),
+        lambda: query_lomas_auth("/bootstrap", httpx2.delete),
         "Bootstrap has been deleted",
     )
 
@@ -152,7 +152,7 @@ def update_budget(row: IOResultE[pd.DataFrame], edited_row: pd.DataFrame) -> Non
             )
             query_lomas_auth(
                 f"/users/{user_select}/dataset/budget",
-                httpx.patch,
+                httpx2.patch,
                 json=budgetReq.model_dump(),
             )
 
@@ -181,7 +181,7 @@ def ds_multi_select(row: IOResultE[pd.DataFrame], datasets_list: list[str]) -> N
         for selected in ds_multi_select_pill:
             query_lomas_auth(
                 f"/users/{user_select}/dataset",
-                httpx.patch,
+                httpx2.patch,
                 json=LomasRequestModel(dataset_name=selected).model_dump(),
             )
             st.toast(f":green[{selected} added to {user_select}]")
@@ -195,10 +195,10 @@ update_user_ds_from_row = flow(
 ds_user_editor = get_datasets().apply(update_user_ds_from_row)
 
 
-def prev_query_btn(row: IOResultE[pd.DataFrame]) -> IOResultE[httpx.Response]:
+def prev_query_btn(row: IOResultE[pd.DataFrame]) -> IOResultE[httpx2.Response]:
     user_select = row.Name
     if st.button("Previous queries"):
-        return query_lomas_auth(f"/users/{user_select}/archive", httpx.get)
+        return query_lomas_auth(f"/users/{user_select}/archive", httpx2.get)
     return IOFailure(None)
 
 
@@ -210,7 +210,7 @@ flow(
 
 
 def add_lomas_user(new_user: User) -> IOResultE:
-    add_lomas_user_res: IOResultE = query_lomas_auth("/users", httpx.post, json=new_user.model_dump())
+    add_lomas_user_res: IOResultE = query_lomas_auth("/users", httpx2.post, json=new_user.model_dump())
 
     add_dex_user_res: IOResultE = call_if_dex(  # We keep the Maybe so that we only add dex user if DexConfig
         partial(
@@ -224,8 +224,8 @@ def add_lomas_user(new_user: User) -> IOResultE:
     return Fold.collect([add_lomas_user_res, add_dex_user_res], IOSuccess("Success"))
 
 
-def drop_lomas_collection(collection_name: str) -> IOResultE[httpx.Response]:
-    return query_lomas_auth(f"/collections/{collection_name}", httpx.delete)
+def drop_lomas_collection(collection_name: str) -> IOResultE[httpx2.Response]:
+    return query_lomas_auth(f"/collections/{collection_name}", httpx2.delete)
 
 
 #############################
@@ -280,7 +280,7 @@ u_file = st.file_uploader("User collection (YAML)", type="yaml")
 u_clean = st.toggle("Overwrite all current users & collection")
 
 if u_file and st.button("Import"):
-    query_lomas_auth("/usersfile", httpx.post, json={"clean": u_clean}, files={"file": u_file}).alt(
+    query_lomas_auth("/usersfile", httpx2.post, json={"clean": u_clean}, files={"file": u_file}).alt(
         lambda e: st.error(f"Failed to import collection because {e}")
     )
 
@@ -319,7 +319,7 @@ match ds_select_io:
         cols = st.columns(2)
         with cols[0]:
             if st.button("Show", key="btn_show_ds"):
-                match query_lomas_auth(f"/dataset/{ds_select}", httpx.get):
+                match query_lomas_auth(f"/dataset/{ds_select}", httpx2.get):
                     case IOSuccess(Success(dataset_info)):
                         st.json(dataset_info, expanded=2)
                     case IOFailure(fail):
@@ -327,7 +327,7 @@ match ds_select_io:
 
         with cols[1]:
             if st.button("Metadata"):
-                match query_lomas_auth(f"/dataset/{ds_select}/metadata", httpx.get):
+                match query_lomas_auth(f"/dataset/{ds_select}/metadata", httpx2.get):
                     case IOSuccess(Success(dataset_metadata)):
                         st.json(dataset_metadata, expanded=2)
                     case IOFailure(fail):
@@ -338,7 +338,7 @@ match ds_select_io:
         uploaded_metadata = st.file_uploader("File", key="uploaded_metadata_ds")
         if st.button("Submit", key="set_metadata", disabled=(uploaded_metadata is None)):
             match query_lomas_auth(
-                f"/dataset/{ds_select}/metadata", httpx.patch, files={"file": uploaded_metadata}
+                f"/dataset/{ds_select}/metadata", httpx2.patch, files={"file": uploaded_metadata}
             ):
                 case IOSuccess(Success(_)):
                     st.success(f"Metadata added to {ds_select}.")
@@ -368,7 +368,7 @@ if st.button("Submit", key="add_dataset", disabled=(uploaded_metadata is None)) 
 ):
     match query_lomas_auth(
         "/dataset",
-        httpx.post,
+        httpx2.post,
         json={
             "dataset_name": ad_dataset,
             "database_type": PrivateDatabaseType.PATH,
@@ -390,7 +390,7 @@ ds_clean = st.toggle("Overwrite all current datasets")
 
 if st.button("Import", key="btn_import_ds", disabled=(not dataset_collection)):
 
-    def on_success(arg: httpx.Response) -> IOResultE[list[str]]:
+    def on_success(arg: httpx2.Response) -> IOResultE[list[str]]:
         st.success("Datasets imported")
         return get_datasets()
 
@@ -399,7 +399,7 @@ if st.button("Import", key="btn_import_ds", disabled=(not dataset_collection)):
             st.toast(f"(+) **{ds}**")
 
     query_lomas_auth(
-        "/dataset/bulk", httpx.post, json={"clean": ds_clean}, files={"file": dataset_collection}
+        "/dataset/bulk", httpx2.post, json={"clean": ds_clean}, files={"file": dataset_collection}
     ).alt(lambda e: st.error(f"Failed to import datasets: {e}")).bind(on_success).map(toast_ds)
 
 
@@ -439,7 +439,7 @@ def delete_username_menu(username: str) -> None:
     if submit:
 
         def delete_lomas_user() -> IOResultE:
-            delete_lomas_user_res: IOResultE = query_lomas_auth(f"/users/{username}", httpx.delete)
+            delete_lomas_user_res: IOResultE = query_lomas_auth(f"/users/{username}", httpx2.delete)
             delete_dex_user_res: IOResultE = call_if_dex(
                 partial(
                     del_dex_user,
@@ -470,7 +470,7 @@ def delete_dataset_menu(username: str, ds_name: str) -> None:
                 f"Remove dataset **{ds_name}** from user **{username}**?",
                 lambda: query_lomas_auth(
                     f"/users/{username}/dataset/del",
-                    httpx.patch,
+                    httpx2.patch,
                     json=LomasRequestModel(dataset_name=ds_name).model_dump(),
                 ),
                 f"**{ds_name}** has been removed from user **{username}**",
@@ -484,7 +484,7 @@ def confirm_delete_dataset(ds_name: str) -> None:
     if st.button("Delete", key="btn_delete_ds"):
         confirm_delete(
             f"Delete dataset **{ds_name}** permanently?",
-            lambda: query_lomas_auth(f"/dataset/{ds_name}", httpx.delete),
+            lambda: query_lomas_auth(f"/dataset/{ds_name}", httpx2.delete),
             f"**{ds_name}** has been removed.",
         )
 

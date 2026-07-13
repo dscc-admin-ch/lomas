@@ -59,7 +59,7 @@ class OIDCAuthenticator(BaseModel):
 
     If false, access token is parsed as jwt.
     """
-    query_userinfo: bool
+    query_userinfo: bool = True
 
     # TODO add ttl to cache?
     @cached_property

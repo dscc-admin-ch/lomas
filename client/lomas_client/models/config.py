@@ -3,7 +3,7 @@ from typing import Annotated
 
 import requests
 from pydantic import Field, HttpUrl, computed_field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import CLI_SUPPRESS, BaseSettings, SettingsConfigDict
 
 from lomas_core.models.config import OIDCConfig, Telemetry
 
@@ -16,6 +16,7 @@ class ClientConfig(BaseSettings):
         env_prefix="lomas_client_",
         env_nested_delimiter="__",
         case_sensitive=False,
+        use_attribute_docstrings=True,
     )
 
     app_url: HttpUrl
@@ -30,7 +31,7 @@ class ClientConfig(BaseSettings):
     """User password."""
     oidc_discovery_url: HttpUrl
     """The oidc provier discovery Url."""
-    telemetry: Annotated[Telemetry, Field(default=Telemetry())]
+    telemetry: Annotated[Telemetry, Field(default=Telemetry(), description=CLI_SUPPRESS)]
     """Telemetry Settings."""
 
     @computed_field

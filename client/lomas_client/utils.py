@@ -1,7 +1,7 @@
 from json import JSONDecodeError
 from typing import Any, NoReturn, TypeVar
 
-import httpx
+import httpx2
 import requests
 from fastapi import status
 from pydantic import ValidationError
@@ -12,7 +12,7 @@ from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.responses import ResponseModel
 
 
-def raise_error(response: requests.Response | httpx.Response) -> NoReturn:
+def raise_error(response: requests.Response | httpx2.Response) -> NoReturn:
     """Raise error message based on the HTTP response.
 
     Args:

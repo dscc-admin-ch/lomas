@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 import streamlit as st
 from returns.converters import maybe_to_result
 from returns.io import IOFailure, IOSuccess
@@ -77,7 +77,7 @@ def about() -> None:
     # Server Status
     st.header("Server Status")
 
-    match query_lomas_auth("/state", httpx.get):
+    match query_lomas_auth("/state", httpx2.get):
         case IOSuccess(Success({"state": state})):
             status = f":green-badge[{state}]"
         case IOSuccess(Success(unexpected)):
@@ -102,7 +102,7 @@ def about() -> None:
     )
 
     flow(
-        query_lomas_auth("/bootstrap", httpx.get),
+        query_lomas_auth("/bootstrap", httpx2.get),
         lash(lambda e: recover_if_410(e, default=False)),
         alt(lambda e: st.write(f":red-badge[unavailable]: {e}")),
         map_(lambda e: True if e is None else False),  # Define bootstrap_exists

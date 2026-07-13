@@ -2,7 +2,7 @@ import os
 from contextlib import contextmanager
 from test.support import sleeping_retry
 
-import httpx
+import httpx2
 from fastapi import status
 from pydantic import JsonValue
 
@@ -20,7 +20,7 @@ def free_pass_env(*, auth_env_key="LOMAS_SERVICE_authenticator__authentication_t
     os.environ[auth_env_key] = previous_auth
 
 
-def wait_for_job(client: httpx.Client, endpoint: str, headers: dict[str, str] | None = None) -> Job:
+def wait_for_job(client: httpx2.Client, endpoint: str, headers: dict[str, str] | None = None) -> Job:
     """Periodically query the job endpoint sleeping in between until it completes / times-out."""
     for _ in sleeping_retry(120, error=False):
         job_query = client.get(endpoint, headers=headers).json()
@@ -31,7 +31,7 @@ def wait_for_job(client: httpx.Client, endpoint: str, headers: dict[str, str] | 
 
 
 def submit_job_wait(
-    client: httpx.Client, endpoint: str, json: dict[str, JsonValue], headers: dict[str, str] | None = None
+    client: httpx2.Client, endpoint: str, json: dict[str, JsonValue], headers: dict[str, str] | None = None
 ) -> Job:
     """Post to a Job-type endpoint and periodically wait for result."""
     query_job_submit = client.post(endpoint, json=json, headers=headers)

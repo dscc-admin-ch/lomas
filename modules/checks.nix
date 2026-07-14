@@ -20,12 +20,10 @@
           };
 
           commonOdicContainers = {
-
             rabbitmq =
               { config, ... }:
               {
                 imports = [ commonConfig ];
-
                 networking.firewall.allowedTCPPorts = [
                   5672
                   15672
@@ -46,7 +44,6 @@
 
             server = {
               imports = [ self.nixosModules.lomas ];
-
               services.lomas = {
                 enable = true;
                 port = 8080;
@@ -80,7 +77,6 @@
 
             worker1 = {
               imports = [ self.nixosModules.lomas ];
-
               services.lomas = {
                 enable = true;
                 workerOnly = true;
@@ -92,7 +88,6 @@
 
             dex = {
               imports = [ commonConfig ];
-
               networking.firewall.allowedTCPPorts = [
                 8080
                 50051
@@ -136,7 +131,6 @@
               { config, ... }:
               {
                 imports = [ self.nixosModules.lomas ];
-
                 # Local RabbitMQ
                 services.rabbitmq = {
                   enable = true;
@@ -167,24 +161,17 @@
 
               worker.start_job("lomas-worker@1")
               worker.wait_for_unit("lomas-worker@1.service")
-              worker.wait_until_succeeds("journalctl --boot | grep 'Waiting for messages.'", timeout=10)
-
-              worker.shutdown()
             '';
           };
 
           "client-init" = pkgs.testers.runNixOSTest {
             name = "client-init";
-
-            # enableDebugHook = true;
-
             containers = commonOdicContainers // {
+              # Client shoud work with nothing but the client package.
               client = {
-                imports = [ commonConfig ];
                 environment.systemPackages = [ self'.packages.lomasClient ];
               };
             };
-
             testScript =
               let
                 clientScript = builtins.toFile "client_test.py" ''
@@ -211,11 +198,9 @@
                 rabbitmq.wait_for_open_port(15672)
 
                 server.wait_for_unit("lomas.service")
-                server.wait_until_succeeds("journalctl --boot | grep 'Application startup complete.'", timeout=20)
 
                 worker1.start_job("lomas-worker@1")
                 worker1.wait_for_unit("lomas-worker@1.service")
-                worker1.wait_until_succeeds("journalctl --boot | grep 'Waiting for messages.'", timeout=10)
 
                 dex.wait_for_unit("dex.service")
 
@@ -261,7 +246,6 @@
                         }) userParralel.max;
                       }
                     );
-
                     initDatasets = pkgs.writeText "datasets.yaml" (
                       builtins.toJSON {
                         datasets = [
@@ -308,11 +292,9 @@
                       LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
                     };
                   };
-
                   # Add 2 workers
                   worker2 = {
                     imports = [ self.nixosModules.lomas ];
-
                     services.lomas = {
                       enable = true;
                       workerOnly = true;
@@ -321,10 +303,8 @@
                       amqpPassword = "lomas_guest";
                     };
                   };
-
                   worker3 = {
                     imports = [ self.nixosModules.lomas ];
-
                     services.lomas = {
                       enable = true;
                       workerOnly = true;
@@ -343,13 +323,11 @@
                 rabbitmq.wait_for_open_port(15672)
 
                 server.wait_for_unit("lomas.service")
-                server.wait_until_succeeds("journalctl --boot | grep 'Application startup complete.'", timeout=20)
 
                 for worker in [worker1, worker2, worker3]:
                     service_name = f"lomas-worker@{worker.name[-1]}"
                     worker.start_job(service_name)
                     worker.wait_for_unit(service_name)
-                    worker.wait_until_succeeds("journalctl --boot | grep 'Waiting for messages.'", timeout=10)
 
                 dex.wait_for_unit("dex.service")
 

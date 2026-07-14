@@ -164,7 +164,8 @@ omit = [
   "uvicorn_serve.py",
   "api_pb2*.py",
   # FIXME: remove on opendb.mbi switch
-  "*smartnoise_synth.py"
+  "*smartnoise_synth.py",
+  "bench.py",
 ]
 
 [tool.coverage.report]

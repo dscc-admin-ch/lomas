@@ -1,0 +1,67 @@
+import logging
+
+import uvicorn
+from pydantic_settings import BaseSettings, CliApp, CliSubCommand, SettingsConfigDict
+from uvicorn.config import LOGGING_CONFIG
+
+from lomas_server.models.config import Config
+from lomas_server.worker import WorkerConfig
+
+
+class FilterOutLiveSuccess:
+    """Filter out INFO logs: GET /api/live HTTP/1.1 200 OK."""
+
+    def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
+        (_, _, full_path, _, status_code) = record.args  # type: ignore[misc]
+        return not ((full_path == "/api/live") and (int(status_code) == 200))  # type: ignore[arg-type]
+
+
+class ServiceConfig(Config):
+    def cli_cmd(self) -> None:
+        """Start the ASGI server for lomas."""
+        log_config = LOGGING_CONFIG
+        log_config["handlers"]["access"]["filters"] = [FilterOutLiveSuccess()]
+
+        uvicorn.run(
+            "lomas_server.app:app",
+            host=self.server.host_ip,
+            port=self.server.host_port,
+            log_config=log_config,
+            log_level=self.server.log_level,
+            workers=1,
+            reload=self.server.reload,
+            forwarded_allow_ips=self.server.forwarded_allow_ips,
+            root_path=self.server.root_path.removeprefix("/"),
+            use_colors=True,
+        )
+
+
+class LomasCli(BaseSettings):
+    """Lomas Root Cli"""
+
+    model_config = SettingsConfigDict(
+        case_sensitive=False,
+        use_attribute_docstrings=True,
+        cli_parse_args=True,
+        cli_kebab_case=True,
+        cli_avoid_json=True,
+        cli_hide_none_type=True,
+        cli_implicit_flags="toggle",
+    )
+
+    start: CliSubCommand[ServiceConfig]
+    "Starts the Lomas Service"
+
+    work: CliSubCommand[WorkerConfig]
+    "Starts a Lomas Worker"
+
+    def cli_cmd(self) -> None:
+        CliApp.run_subcommand(self)
+
+
+def run() -> None:
+    CliApp.run(LomasCli)
+
+
+if __name__ == "__main__":
+    run()

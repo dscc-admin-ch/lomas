@@ -175,9 +175,15 @@ async def process_queue(config: Config) -> None:
             await connection.close()
 
 
-def run() -> None:
+class WorkerConfig(Config):
+    def cli_cmd(self) -> None:
+        run(self)
+
+
+def run(config: Config | None = None) -> None:
     """Start the Worker loop."""
-    config = Config()
+    if config is None:
+        config = Config()
     init_logging(
         name="lomas_server", level=config.server.log_level, lomas_level=config.server.lomas_log_level
     )

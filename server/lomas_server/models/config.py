@@ -97,10 +97,14 @@ class Config(BaseSettings):
         env_prefix="lomas_service_",
         env_nested_delimiter="__",
         case_sensitive=False,
+        cli_kebab_case=True,
+        cli_avoid_json=True,
+        cli_hide_none_type=True,
+        cli_implicit_flags="toggle",
     )
 
     # Server configs
-    server: Server = Field(default_factory=Server)
+    server: Server = Field(default=Server())
 
     authenticator: AuthenticatorT
 
@@ -120,7 +124,7 @@ class Config(BaseSettings):
 
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 
-    telemetry: Telemetry = Field(default_factory=Telemetry)
+    telemetry: Telemetry = Field(default_factory=Telemetry, description=CLI_SUPPRESS)
 
     @computed_field
     def database(self) -> AdminDatabase:

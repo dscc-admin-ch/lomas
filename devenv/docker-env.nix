@@ -160,7 +160,10 @@ in
             cp -r --no-preserve=all ${../server/data/datasets/covid_synthetic_data.csv} data/datasets/covid_synthetic_data.csv
           '';
           config = {
-            Cmd = [ "lomas-serve" ];
+            Cmd = [
+              "lomas"
+              "start"
+            ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
               inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
             };
@@ -177,7 +180,10 @@ in
           tag = "latest";
           fromImage = lomas-oci-raw;
           config = with config.lomas; {
-            Cmd = [ "lomas-serve" ];
+            Cmd = [
+              "lomas"
+              "start"
+            ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") (
               (filterEnvPrefix "LOMAS_SERVICE_")
               // (filterEnvPrefix "LOMAS_CLIENT_")

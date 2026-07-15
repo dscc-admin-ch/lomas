@@ -136,7 +136,10 @@ in
             containers.lomas = {
               image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
-              command = [ "lomas-serve" ];
+              command = [
+                "lomas"
+                "start"
+              ];
               # volumeMounts = {
               #   "/persistent-storage".name = "data";
               # };
@@ -170,7 +173,10 @@ in
             containers.lomas = {
               image = "dsccadminch/lomas:sha-4c90599";
               imagePullPolicy = "IfNotPresent";
-              command = [ "lomas-work" ];
+              command = [
+                "lomas"
+                "work"
+              ];
             };
           };
         };

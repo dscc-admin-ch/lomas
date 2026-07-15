@@ -44,8 +44,7 @@ spec:
         resources:
           {{- toYaml .Values.server.resources | nindent 10}}
         image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
-        command:
-          - lomas-serve
+        command: ["lomas" "start"]
         imagePullPolicy: {{ .Values.server.image.pullPolicy }}
         ports:
           - name: http

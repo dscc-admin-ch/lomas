@@ -52,8 +52,7 @@ all = [
 ]
 
 [project.scripts]
-lomas-serve = "lomas_server.uvicorn_serve:uvicorn_serve"
-lomas-work  = "lomas_server.worker:run"
+lomas = "lomas_server.cli:run"
 lomas-demo-setup = "lomas_server.administration.scripts.lomas_demo_setup:run"
 lomas-bench = "lomas_server.administration.scripts.bench:run"
 

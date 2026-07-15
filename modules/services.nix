@@ -148,7 +148,7 @@
 
           serviceConfig = {
             Type = "notify";
-            ExecStart = "@${cfg.package}/bin/lomas-serve lomas-serve";
+            ExecStart = "@${cfg.package}/bin/lomas lomas start";
             ExecStartPost = mkIf cfg.initDemoSetup "${cfg.package}/bin/lomas-demo-setup";
             User = "lomas";
             Group = "lomas";
@@ -210,7 +210,7 @@
 
           serviceConfig = {
             Type = "notify";
-            ExecStart = "@${cfg.package}/bin/lomas-work worker-%i";
+            ExecStart = "@${cfg.package}/bin/lomas lomas work";
             User = "lomas";
             Group = "lomas";
             LogsDirectory = "lomas";

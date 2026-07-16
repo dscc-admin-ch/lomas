@@ -47,6 +47,12 @@
             type = types.bool;
           };
 
+          externalUrl = mkOption {
+            default = if cfg.workerOnly then "worker.local" else "http://server:${toString cfg.port}";
+            description = "Hostname on which Lomas can be found";
+            type = types.str;
+          };
+
           port = mkOption {
             default = 8080;
             description = "Port on which Lomas will listen for API calls.";
@@ -99,6 +105,16 @@
             type = types.bool;
           };
 
+          idpIssuer = mkOption {
+            default = "http://dex:8080/dex";
+            type = types.nullOr types.str;
+          };
+
+          dexGrpc = mkOption {
+            default = "grpc://dex:50051";
+            type = types.nullOr types.str;
+          };
+
         };
       };
 
@@ -134,11 +150,11 @@
             LOMAS_SERVICE_server__host_ip = cfg.listenAddress;
             # Demo Setup
             LOMAS_SERVICE_bootstrap = cfg.bootstrap;
-            LOMAS_SERVICE_authenticator__authentication_type = "oidc";
-            LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:8080/dex/.well-known/openid-configuration";
+            LOMAS_SERVICE_authenticator__authentication_type = if (cfg.idpIssuer != null) then "oidc" else "free_pass";
+            LOMAS_SERVICE_authenticator__oidc_discovery_url = "${cfg.idpIssuer}/.well-known/openid-configuration";
             LOMAS_ADMIN_bootstrap = cfg.bootstrap;
-            LOMAS_ADMIN_server_url = "http://server:8080";
-            LOMAS_ADMIN_dex_config__url = "grpc://dex:50051";
+            LOMAS_ADMIN_server_url = cfg.externalUrl;
+            LOMAS_ADMIN_dex_config__url = cfg.dexGrpc;
             LOMAS_ADMIN_user_yaml = cfg.initUsers;
             LOMAS_ADMIN_dataset_yaml = cfg.initDatasets;
             LOMAS_SERVICE_amqp__url = cfg.amqpUrl;

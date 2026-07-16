@@ -18,8 +18,8 @@ from lomas_core.models.collections import DSInfo, User, UserId
 from lomas_core.models.constants import JobStatus
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
-    example_get_admin_db_data,
-    example_get_dummy_dataset,
+    EXAMPLE_GET_ADMIN_DB_DATA,
+    EXAMPLE_GET_DUMMY_DATASET,
 )
 from lomas_core.models.responses import (
     DummyDsResponse,
@@ -37,8 +37,8 @@ from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
 router = APIRouter()
-example_get_admin_db_data_body = Body(example_get_admin_db_data)
-example_get_dummy_dataset_body = Body(example_get_dummy_dataset)
+example_get_admin_db_data_body = Body(EXAMPLE_GET_ADMIN_DB_DATA)
+example_get_dummy_dataset_body = Body(EXAMPLE_GET_DUMMY_DATASET)
 
 
 @router.get("/")

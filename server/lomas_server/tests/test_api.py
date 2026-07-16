@@ -21,14 +21,14 @@ from lomas_core.models.constants import (
 )
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests_examples import (
+    EXAMPLE_GET_ADMIN_DB_DATA,
+    EXAMPLE_GET_DUMMY_DATASET,
+    EXAMPLE_OPENDP_POLARS,
+    EXAMPLE_OPENDP_POLARS_PLAN,
+    EXAMPLE_SMARTNOISE_SQL,
     PENGUIN_DATASET,
     QUERY_DELTA,
     QUERY_EPSILON,
-    example_get_admin_db_data,
-    example_get_dummy_dataset,
-    example_opendp_polars,
-    example_opendp_polars_plan,
-    example_smartnoise_sql,
 )
 from lomas_core.models.responses import (
     DummyDsResponse,
@@ -99,7 +99,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         """Test_get_dataset_metadata."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
+            response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
 
             metadata = response.json()
@@ -132,7 +132,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             # Expect to work
             response = client.post(
                 "/get_dummy_dataset",
-                json=example_get_dummy_dataset,
+                json=EXAMPLE_GET_DUMMY_DATASET,
             )
             assert response.status_code == status.HTTP_200_OK
             response_dict = response.json()
@@ -200,7 +200,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             new_headers = {**self.headers, "Authorization": "Bearer fake_user"}
             response = client.post(
                 "/get_dummy_dataset",
-                json=example_get_dummy_dataset,
+                json=EXAMPLE_GET_DUMMY_DATASET,
                 headers=new_headers,
             )
             assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -233,7 +233,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         """Test_get_initial_budget."""
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
-            response = client.post("/get_initial_budget", json=example_get_admin_db_data)
+            response = client.post("/get_initial_budget", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response.status_code == status.HTTP_200_OK
 
             response_model = InitialBudgetResponse.model_validate(response.json())
@@ -241,10 +241,10 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.initial_delta == INITIAL_DELTA
 
             # Query to spend budget
-            submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
+            submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
 
             # Response should stay the same
-            response_2 = client.post("/get_initial_budget", json=example_get_admin_db_data)
+            response_2 = client.post("/get_initial_budget", json=EXAMPLE_GET_ADMIN_DB_DATA)
             assert response_2.status_code == status.HTTP_200_OK
             assert response_2.json() == response.json()
 
@@ -253,7 +253,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
-                "/get_total_spent_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_total_spent_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -263,11 +263,11 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.total_spent_delta == 0
 
             # Query to spend budget
-            submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
+            submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
 
             # Response should have updated spent budget
             response_2 = client.post(
-                "/get_total_spent_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_total_spent_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response_2.status_code == status.HTTP_200_OK
 
@@ -283,7 +283,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
-                "/get_remaining_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_remaining_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -294,11 +294,11 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             assert response_model.remaining_delta == INITIAL_DELTA
 
             # Query to spend budget
-            submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
+            submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
 
             # Response should have removed spent budget
             response_2 = client.post(
-                "/get_remaining_budget", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_remaining_budget", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response_2.status_code == status.HTTP_200_OK
 
@@ -313,7 +313,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Expect to work
             response = client.post(
-                "/get_previous_queries", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_previous_queries", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response.status_code == status.HTTP_200_OK
 
@@ -337,20 +337,20 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
             # assert previous_query["response"] == job_smnoise.result.model_dump(mode="json")
 
             # Query to archive 2 (opendp)
-            job_opendp = submit_job_wait(client, "/opendp_query", json=example_opendp_polars_plan)
+            job_opendp = submit_job_wait(client, "/opendp_query", json=EXAMPLE_OPENDP_POLARS_PLAN)
             assert job_opendp is not None
             assert job_opendp.result is not None
 
             # Response should have two elements in list
             response_3 = client.post(
-                "/get_previous_queries", json={"dataset_name": example_opendp_polars["dataset_name"]}
+                "/get_previous_queries", json={"dataset_name": EXAMPLE_OPENDP_POLARS["dataset_name"]}
             )
             assert response_3.status_code == status.HTTP_200_OK
             response_dict_3 = response_3.json()
 
             assert len(response_dict_3) == 1
             assert response_dict_3[0]["uid"] == str(job_opendp.uid)
-            assert response_dict_3[0]["query"] == example_opendp_polars_plan
+            assert response_dict_3[0]["query"] == EXAMPLE_OPENDP_POLARS_PLAN
             assert response_dict_3[0]["result"] == job_opendp.result.model_dump()
 
     @pytest.mark.long
@@ -359,7 +359,7 @@ class TestRootAPIEndpoint(TestSetupRootAPIEndpoint):
         """Test_subsequent_budget_limit_logic."""
         with TestClient(app, headers=self.headers) as client:
             # Should fail: too much budget after three queries
-            smartnoise_body = dict(example_smartnoise_sql)
+            smartnoise_body = dict(EXAMPLE_SMARTNOISE_SQL)
             smartnoise_body["epsilon"] = 4.0
 
             # spend 4.0 (total_spent = 4.0 <= INTIAL_BUDGET = 10.0)

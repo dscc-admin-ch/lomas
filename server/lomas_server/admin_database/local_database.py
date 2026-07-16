@@ -293,7 +293,6 @@ class LocalAdminDatabase(AdminDatabase):
 
         # Ignore cost and dummy queries
         if job.query is not None and job.query.request_type == QueryTypes.QUERY:
-            logger.debug(job)
             with self._sqlite_connection(self._archives_db_path) as conn:
                 conn.execute(
                     "INSERT OR REPLACE INTO archives "

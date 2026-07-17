@@ -1,39 +1,40 @@
-from typing import Annotated, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
     SSynthGanSynthesizer,
     SSynthMarginalSynthesizer,
 )
-from lomas_core.exceptions import InternalServerException
-from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType
+from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType, QueryTypes
 from lomas_core.models.requests_examples import (
-    example_diffprivlib,
-    example_dummy_diffprivlib,
-    example_dummy_opendp,
-    example_dummy_smartnoise_sql,
-    example_dummy_smartnoise_synth_query,
-    example_opendp_polars,
-    example_smartnoise_sql,
-    example_smartnoise_sql_cost,
-    example_smartnoise_synth_cost,
-    example_smartnoise_synth_query,
+    EXAMPLE_DIFFPRIVLIB,
+    EXAMPLE_DUMMY_DIFFPRIVLIB,
+    EXAMPLE_DUMMY_OPENDP,
+    EXAMPLE_DUMMY_SMARTNOISE_SQL,
+    EXAMPLE_DUMMY_SMARTNOISE_SYNTH_QUERY,
+    EXAMPLE_OPENDP_POLARS,
+    EXAMPLE_SMARTNOISE_SQL,
+    EXAMPLE_SMARTNOISE_SQL_COST,
+    EXAMPLE_SMARTNOISE_SYNTH_COST,
+    EXAMPLE_SMARTNOISE_SYNTH_QUERY,
 )
 
 
 class LomasRequestModel(BaseModel):
-    """Base class for all types of requests to the lomas server.
-
-    We differentiate between requests and queries:
-        - a request does not necessarily require an algorithm
-          to be executed on the private dataset (e.g. some cost requests).
-        - a query requires executing an algorithm on a private
-          dataset (or a potentially a dummy).
-    """
+    """Base class for all types of requests to the lomas server."""
 
     model_config = ConfigDict(use_attribute_docstrings=True)
+
+    def model_post_init(self, _: Any) -> None:
+        # This makes sure the discriminator field is dumped even with exclude_unset=True
+        if "request_type" in self.__class__.model_fields:
+            self.model_fields_set.add("response_type")
+
+        if "library" in self.__class__.model_fields:
+            self.model_fields_set.add("librray")
+
     dataset_name: str
     """The name of the dataset the request is aimed at."""
 
@@ -78,15 +79,15 @@ class GetDummyContext(GetDummyDataset):
 
 
 class QueryModel(LomasRequestModel):
-    """
-    Base input model for any query on a dataset.
+    """Base input model for any query on a dataset."""
 
-    We differentiate between requests and queries:
-        - a request does not necessarily require an algorithm
-          to be executed on the private dataset (e.g. some cost requests).
-        - a query requires executing an algorithm on a private
-          dataset (or a potentially a dummy).
-    """
+    request_type: Literal[QueryTypes.QUERY] = QueryTypes.QUERY
+
+
+class CostQueryModel(LomasRequestModel):
+    """Base input model for a cost query."""
+
+    request_type: Literal[QueryTypes.COST] = QueryTypes.COST
 
 
 class LomasBudgetRequest(LomasRequestModel):
@@ -97,7 +98,7 @@ class LomasBudgetRequest(LomasRequestModel):
 
 
 class DummyQueryModel(QueryModel):
-    """Input model for a query on a dummy dataset."""
+    """Base input model for a query on a dummy dataset."""
 
     dummy_nb_rows: Annotated[int, Field(gt=0)]
     """The number of rows in the dummy dataset."""
@@ -110,7 +111,7 @@ class DummyQueryModel(QueryModel):
 class SmartnoiseSQLRequestModel(LomasRequestModel):
     """Base input model for a smarnoise-sql request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql_cost]})
+    library: Literal[DPLibraries.SMARTNOISE_SQL] = DPLibraries.SMARTNOISE_SQL
 
     query_str: str
     """The SQL query to execute.
@@ -130,10 +131,16 @@ class SmartnoiseSQLRequestModel(LomasRequestModel):
     """
 
 
+class SmartnoiseSQLCostQueryModel(SmartnoiseSQLRequestModel, CostQueryModel):
+    """Base input model for a smartnoise-sql cost query."""
+
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SQL_COST]})
+
+
 class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
     """Base input model for a smartnoise-sql query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_sql]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SQL]})
 
     postprocess: bool
     """
@@ -147,7 +154,10 @@ class SmartnoiseSQLQueryModel(SmartnoiseSQLRequestModel, QueryModel):
 class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
     """Input model for a smartnoise-sql query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_sql]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DUMMY_SMARTNOISE_SQL]})
+
+    # Avoid conflict between QueryModel and DummyQueryMdoel
+    request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
 
 
 # SmartnoiseSynth
@@ -155,7 +165,7 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
 class SmartnoiseSynthRequestModel(LomasRequestModel):
     """Base input model for a SmartnoiseSynth request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_cost]})
+    library: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
 
     synth_name: SSynthMarginalSynthesizer | SSynthGanSynthesizer
     """Name of the synthesizer model to use."""
@@ -182,10 +192,16 @@ class SmartnoiseSynthRequestModel(LomasRequestModel):
     """
 
 
+class SmartnoiseSynthCostQueryModel(SmartnoiseSynthRequestModel, CostQueryModel):
+    """Base input model for a smartnoise-synth cost query."""
+
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SYNTH_COST]})
+
+
 class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
     """Base input model for a smarnoise-synth query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_smartnoise_synth_query]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SYNTH_QUERY]})
 
     return_model: bool
     """True to get Synthesizer model, False to get samples."""
@@ -202,8 +218,11 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
     """Input model for a smarnoise-synth query on a dummy dataset."""
 
     model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_smartnoise_synth_query]}
+        json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DUMMY_SMARTNOISE_SYNTH_QUERY]}
     )
+
+    # Avoid conflict between QueryModel and DummyQueryMdoel
+    request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
 
 
 # OpenDP
@@ -211,10 +230,9 @@ class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel)
 class OpenDPRequestModel(LomasRequestModel):
     """Base input model for an opendp request."""
 
-    model_config = ConfigDict(
-        use_attribute_docstrings=True,
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]},
-    )
+    model_config = ConfigDict(use_attribute_docstrings=True)
+
+    library: Literal[DPLibraries.OPENDP] = DPLibraries.OPENDP
 
     opendp_json: str
     """The OpenDP pipeline for the query."""
@@ -246,16 +264,25 @@ class OpenDPRequestModel(LomasRequestModel):
         return self
 
 
+class OpenDPCostQueryModel(OpenDPRequestModel, CostQueryModel):
+    """Base input model for an opendp cost query."""
+
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_OPENDP_POLARS]})
+
+
 class OpenDPQueryModel(OpenDPRequestModel, QueryModel):
     """Base input model for an opendp query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_opendp_polars]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_OPENDP_POLARS]})
 
 
 class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
     """Input model for an opendp query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_opendp]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DUMMY_OPENDP]})
+
+    # Avoid conflict between QueryModel and DummyQueryMdoel
+    request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
 
 
 # DiffPrivLib
@@ -263,7 +290,7 @@ class OpenDPDummyQueryModel(OpenDPRequestModel, DummyQueryModel):
 class DiffPrivLibRequestModel(LomasRequestModel):
     """Base input model for a diffprivlib request."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
+    library: Literal[DPLibraries.DIFFPRIVLIB] = DPLibraries.DIFFPRIVLIB
 
     diffprivlib_json: str
     """The DiffPrivLib pipeline for the query (See diffprivlib_logger package.)."""
@@ -279,42 +306,53 @@ class DiffPrivLibRequestModel(LomasRequestModel):
     """The imputation strategy."""
 
 
+class DiffPrivLibCostQueryModel(DiffPrivLibRequestModel, CostQueryModel):
+    """Base input model for a diffprivlib cost query."""
+
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DIFFPRIVLIB]})
+
+
 class DiffPrivLibQueryModel(DiffPrivLibRequestModel, QueryModel):
     """Base input model for a diffprivlib query."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_diffprivlib]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DIFFPRIVLIB]})
 
 
 class DiffPrivLibDummyQueryModel(DiffPrivLibQueryModel, DummyQueryModel):
     """Input model for a DiffPrivLib query on a dummy dataset."""
 
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [example_dummy_diffprivlib]})
+    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DUMMY_DIFFPRIVLIB]})
+
+    # Avoid conflict between QueryModel and DummyQueryMdoel
+    request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
 
 
 # Utils
 # ----------------------------------------------------------------------------
 
+SmartnoiseSQLAnyModel = Annotated[
+    SmartnoiseSQLCostQueryModel | SmartnoiseSQLQueryModel | SmartnoiseSQLDummyQueryModel,
+    Field(discriminator="request_type"),
+]
 
-def model_input_to_lib(request: LomasRequestModel) -> DPLibraries:
-    """Return the type of DP library given a LomasRequestModel.
+SmartnoiseSynthAnyModel = Annotated[
+    SmartnoiseSynthCostQueryModel | SmartnoiseSynthQueryModel | SmartnoiseSynthDummyQueryModel,
+    Field(discriminator="request_type"),
+]
 
-    Args:
-        request (LomasRequestModel): The user request
+OpenDPAnyModel = Annotated[
+    OpenDPCostQueryModel | OpenDPQueryModel | OpenDPDummyQueryModel,
+    Field(discriminator="request_type"),
+]
 
-    Raises:
-        InternalServerException: If the library type cannot be determined.
+DiffPrivLibAnyModel = Annotated[
+    DiffPrivLibCostQueryModel | DiffPrivLibQueryModel | DiffPrivLibDummyQueryModel,
+    Field(discriminator="request_type"),
+]
 
-    Returns:
-        DPLibraries: The type of library for the request.
-    """
-    match request:
-        case SmartnoiseSQLRequestModel():
-            return DPLibraries.SMARTNOISE_SQL
-        case SmartnoiseSynthRequestModel():
-            return DPLibraries.SMARTNOISE_SYNTH
-        case OpenDPRequestModel():
-            return DPLibraries.OPENDP
-        case DiffPrivLibRequestModel():
-            return DPLibraries.DIFFPRIVLIB
-        case _:
-            raise InternalServerException("Cannot find library type for given model.")
+AnyLomasRequest = Annotated[
+    SmartnoiseSQLAnyModel | SmartnoiseSynthAnyModel | OpenDPAnyModel | DiffPrivLibAnyModel,
+    Field(discriminator="library"),
+]
+
+LomasRequestAdapter: TypeAdapter[AnyLomasRequest] = TypeAdapter(AnyLomasRequest)

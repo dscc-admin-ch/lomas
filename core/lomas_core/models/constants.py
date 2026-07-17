@@ -5,6 +5,7 @@ from importlib import metadata
 from typing import Literal
 
 import diffprivlib
+from rich.console import Console
 from rich.logging import RichHandler
 
 # Field names
@@ -14,7 +15,7 @@ DB_TYPE_FIELD = "database_type"
 JSON_SCHEMA_EXAMPLES = "examples"
 
 
-# Requests
+# Request / Responses
 # -----------------------------------------------------------------------------
 
 DUMMY_NB_ROWS = 100
@@ -23,6 +24,29 @@ DUMMY_SEED = 42
 OPENDP_VERSION = metadata.version("opendp")
 OpenDPFeatures = Sequence[Literal["contrib", "idealized-numerics", "honest-but-curious"]]
 DIFFPRIVLIB_VERSION = diffprivlib.__version__
+
+
+class QueryTypes(StrEnum):
+    """Type of Lomas dataset query."""
+
+    QUERY = "query"
+    COST = "cost"
+    DUMMY = "dummy"
+
+
+class QueryResponseTypes(StrEnum):
+    """Type of Lomas dataset query response."""
+
+    COST = "cost"
+    QUERY = "query"
+
+
+class JobStatus(StrEnum):
+    """Possible jobs status."""
+
+    IN_PROGRESS = "in_progress"
+    FAILED = "failed"
+    COMPLETE = "complete"
 
 
 # Config / Dataset Connectors
@@ -66,10 +90,11 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level (str): Log level for the root logger.
         lomas_level (str): Log level for the parent logger.
     """
+    console = Console(width=250)
     logging.basicConfig(
         format="%(message)s %(name)s",
         datefmt="[%X]",
-        handlers=[RichHandler(rich_tracebacks=True, tracebacks_show_locals=True)],
+        handlers=[RichHandler(console=console, rich_tracebacks=False, tracebacks_show_locals=True)],
         level=level,
     )
 

@@ -15,10 +15,11 @@ from lomas_core.exceptions import (
     UserNotFoundException,
 )
 from lomas_core.models.collections import DSInfo, User, UserId
+from lomas_core.models.constants import JobStatus
 from lomas_core.models.requests import AddDatasetModel, GetDummyDataset, LomasBudgetRequest, LomasRequestModel
 from lomas_core.models.requests_examples import (
-    example_get_admin_db_data,
-    example_get_dummy_dataset,
+    EXAMPLE_GET_ADMIN_DB_DATA,
+    EXAMPLE_GET_DUMMY_DATASET,
 )
 from lomas_core.models.responses import (
     DummyDsResponse,
@@ -36,8 +37,8 @@ from lomas_server.routes.error_handler import API_ERROR_RESPONSES
 from lomas_server.routes.utils import get_user_id_from_authenticator
 
 router = APIRouter()
-example_get_admin_db_data_body = Body(example_get_admin_db_data)
-example_get_dummy_dataset_body = Body(example_get_dummy_dataset)
+example_get_admin_db_data_body = Body(EXAMPLE_GET_ADMIN_DB_DATA)
+example_get_dummy_dataset_body = Body(EXAMPLE_GET_DUMMY_DATASET)
 
 
 @router.get("/")
@@ -93,13 +94,8 @@ async def status_handler(
     if job.requested_by != user_id.name:
         raise UnauthorizedAccessException(f"User {user_id.name} does not have access to job with uid {uid}")
 
-    if job.status == "failed":
+    if job.status == JobStatus.FAILED:
         response.status_code = job.status_code
-
-    # TODO: keep jobs as new archive collection?
-    # if job.status == "complete":
-    #     # Delete completed job from state once returned to user.
-    #     del jobs[str(uid)]
 
     return job
 
@@ -365,11 +361,11 @@ def get_remaining_budget(
     responses=API_ERROR_RESPONSES,
     tags=["USER_BUDGET"],
 )
-def get_user_previous_queries(
+def get_user_dataset_queries(
     request: Request,
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
     query_json: LomasRequestModel = example_get_admin_db_data_body,
-) -> JSONResponse:
+) -> list[Job]:
     """
     Returns the query history of a user on a specific dataset.
 
@@ -390,19 +386,17 @@ def get_user_previous_queries(
             the user does not have access to the dataset.
 
     Returns:
-        JSONResponse: A JSON object containing:
-            - previous_queries (list[dict]): a list of dictionaries
-              containing the previous queries.
+        The list of previous jobs for this dataset..
     """
     app = request.app
 
     ensure_dataset_access(user_id, query_json.dataset_name, app.state.admin_database)
 
-    previous_queries = app.state.admin_database.get_user_previous_queries(
+    previous_queries = app.state.admin_database.get_user_dataset_queries(
         user_id.name, query_json.dataset_name
-    )  # TODO 359 improve on that and return models.
+    )
 
-    return JSONResponse(content={"previous_queries": previous_queries})
+    return previous_queries
 
 
 #############################
@@ -571,9 +565,9 @@ def get_archives_user(
     request: Request,
     _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
     username: str,
-) -> list[dict]:
+) -> list[Job]:
     db: LocalAdminDatabase = request.app.state.admin_database
-    return db.get_archives_of_user(username)
+    return db.get_user_queries(username)
 
 
 @router.get("/dataset/{dataset_name}", responses=API_ERROR_RESPONSES)

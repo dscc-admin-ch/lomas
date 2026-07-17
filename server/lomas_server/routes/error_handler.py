@@ -29,22 +29,19 @@ def add_exception_handlers(app: FastAPI) -> None:
         app (FastAPI): A fastapi App.
     """
 
-    # Order matters: registered first, checked last.
-    @app.exception_handler(Exception)
-    async def lomas_generic_exception_handler(_: Request, exc: Exception) -> JSONResponse:
-        logger.exception(f"Unforseen exception occured: {exc}")
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=jsonable_encoder(InternalServerException()),
-        )
-
     @app.exception_handler(LomasAPIException)
-    async def lomas_api_exception_handler(_: Request, exc: LomasAPIException) -> JSONResponse:
+    async def lomas_exception_handler(_: Request, exc: LomasAPIException) -> JSONResponse:
+        model, status_code = model_from_lomas_exception(exc)
+        return JSONResponse(status_code=status_code, content=jsonable_encoder(model))
+
+
+def model_from_lomas_exception(exc: Exception) -> tuple[LomasAPIErrorModel, int]:
+    # Log exception
+    if not isinstance(exc, LomasAPIException):
+        logger.exception(f"Unforseen exception occured: {exc}")
+    else:
         logger.exception(exc)
-        return response_from_lomas_exception(exc)
 
-
-def response_from_lomas_exception(exc: LomasAPIException) -> JSONResponse:
     # Attribute status code
     match exc:
         case UserNotFoundException() | DatasetNotFoundException() | JobNotFoundException():
@@ -59,10 +56,12 @@ def response_from_lomas_exception(exc: LomasAPIException) -> JSONResponse:
             status_code = status.HTTP_403_FORBIDDEN
         case _:
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            # Hide source exception message from client.
+            exc = InternalServerException("Unforseen exception occured.")
 
     model = LomasAPIErrorModel(message=str(exc))
 
-    return JSONResponse(status_code=status_code, content=jsonable_encoder(model))
+    return (model, status_code)
 
 
 # Server error responses for API queries (can only put one model per status code)

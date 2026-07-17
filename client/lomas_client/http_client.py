@@ -12,7 +12,7 @@ from lomas_client.constants import CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, OIDC_R
 from lomas_client.models.config import ClientConfig
 from lomas_core.constants import OIDC_LOMAS_CLIENT__CLIENT_ID
 from lomas_core.models.config import OIDCDeviceCodeResponse
-from lomas_core.models.constants import get_lomas_logger
+from lomas_core.models.constants import JobStatus, get_lomas_logger
 from lomas_core.models.requests import LomasRequestModel
 from lomas_core.models.responses import Job
 from lomas_core.utils import url_append
@@ -197,7 +197,7 @@ class LomasHttpClient:
                     timeout=(CONNECT_TIMEOUT),
                 ).json()
             # Check for error before accessing "status"
-            if "status" in job_query and job_query["status"] in {"complete", "failed"}:
+            if "status" in job_query and job_query["status"] in {JobStatus.COMPLETE, JobStatus.FAILED}:
                 return Job.model_validate(job_query)
 
             time.sleep(sleep_sec)

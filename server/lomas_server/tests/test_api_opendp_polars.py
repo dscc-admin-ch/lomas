@@ -1,3 +1,4 @@
+import copy
 import io
 import re
 from base64 import b64encode
@@ -8,12 +9,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from lomas_core.exceptions import InvalidQueryException, LomasAPIException
-from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED
+from lomas_core.models.constants import DUMMY_NB_ROWS, DUMMY_SEED, JobStatus
 from lomas_core.models.requests_examples import (
+    EXAMPLE_OPENDP_POLARS,
+    EXAMPLE_OPENDP_POLARS_COST,
+    EXAMPLE_OPENDP_POLARS_DATETIME,
     OPENDP_POLARS_PIPELINE,
     OPENDP_POLARS_PIPELINE_COVID,
-    example_opendp_polars,
-    example_opendp_polars_datetime,
 )
 from lomas_core.models.responses import (
     CostResponse,
@@ -97,18 +99,19 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
+            example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             # Laplace
             example_opendp_polars["epsilon"] = 1
             example_opendp_polars["rho"] = None
             example_opendp_polars["delta"] = 1e-6
+
             job = submit_job_wait(
                 client,
                 "/opendp_query",
                 json=example_opendp_polars,
             )
-
             response_model = QueryResponse.model_validate(job.result)
             # print(response_model.result)
             assert response_model.epsilon > 0.0
@@ -124,6 +127,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 "/opendp_query",
                 json=example_opendp_polars,
             )
+
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.epsilon > 0.5
             assert response_model.delta == 0.000001
@@ -141,6 +145,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 .agg(dp.len())
             ).serialize()
 
+            example_opendp_polars_datetime = copy.deepcopy(EXAMPLE_OPENDP_POLARS_DATETIME)
             example_opendp_polars_datetime["opendp_json"] = b64encode(datetime_plan).decode("utf-8")
             example_opendp_polars_datetime["epsilon"] = 10  # enough budget to get results
 
@@ -166,54 +171,55 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
                 "/opendp_query",
                 json=example_opendp_polars_datetime,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
 
     def test_opendp_polars_cost(self) -> None:
         """Test_opendp_polars_cost."""
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
-            example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
+            ex_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS_COST)
+            ex_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             # Laplace (MaxDivergence)
-            example_opendp_polars["epsilon"] = 1
-            example_opendp_polars["delta"] = None
-            example_opendp_polars["rho"] = None
-            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            ex_opendp_polars["epsilon"] = 1
+            ex_opendp_polars["delta"] = None
+            ex_opendp_polars["rho"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon == 1
             assert response_model.delta == 0
 
             # Laplace (Approx MaxDivergence)
-            example_opendp_polars["epsilon"] = 1
-            example_opendp_polars["delta"] = 1e-6
-            example_opendp_polars["rho"] = None
-            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            ex_opendp_polars["epsilon"] = 1
+            ex_opendp_polars["delta"] = 1e-6
+            ex_opendp_polars["rho"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon == 1
             assert response_model.delta == 1e-6
 
             # Gaussian (Approx zCDP)
-            example_opendp_polars["epsilon"] = None
-            example_opendp_polars["rho"] = 2
-            example_opendp_polars["delta"] = 0.000001
-            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            ex_opendp_polars["epsilon"] = None
+            ex_opendp_polars["rho"] = 2
+            ex_opendp_polars["delta"] = 0.000001
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 2
             assert response_model.delta == 0.000001
 
             # Gaussian (zCDP)
-            example_opendp_polars["epsilon"] = None
-            example_opendp_polars["rho"] = 2
-            example_opendp_polars["delta"] = 1e-6
-            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            ex_opendp_polars["epsilon"] = None
+            ex_opendp_polars["rho"] = 2
+            ex_opendp_polars["delta"] = 1e-6
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 2
             assert response_model.delta == 1e-6
 
             # zCDP without specifying a user-defined delta should fail
-            example_opendp_polars["delta"] = None
-            job = submit_job_wait(client, "/estimate_opendp_cost", json=example_opendp_polars)
+            ex_opendp_polars["delta"] = None
+            job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             assert job.error is not None
             match_string = str(InvalidQueryException("Provide a fixed delta for this query."))
             with pytest.raises(LomasAPIException, match=re.escape(match_string)):
@@ -224,11 +230,13 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = mean_query_serialized(lf)
+            example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             # Expect to work
             example_opendp_polars["dummy_nb_rows"] = DUMMY_NB_ROWS
             example_opendp_polars["dummy_seed"] = DUMMY_SEED
+            example_opendp_polars["request_type"] = "dummy"
             job = submit_job_wait(
                 client,
                 "/dummy_opendp_query",
@@ -242,6 +250,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = group_query_serialized(lf)
+            example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             job = submit_job_wait(
@@ -257,6 +266,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         """Test_opendp_polars_query with different polars features (cut, filter, n_unique)."""
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
+            example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["epsilon"] = 1
             example_opendp_polars["delta"] = 1e-6
             example_opendp_polars["rho"] = None
@@ -324,6 +334,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             lf = deserialize_bytes_plan(OPENDP_POLARS_PIPELINE)
             plan_bytes = multiple_group_query_serialized(lf)
+            example_opendp_polars = copy.deepcopy(EXAMPLE_OPENDP_POLARS)
             example_opendp_polars["opendp_json"] = b64encode(plan_bytes).decode("utf-8")
 
             job = submit_job_wait(

@@ -8,6 +8,7 @@ from lomas_client.constants import (
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
 from lomas_core.models.requests import (
+    DiffPrivLibCostQueryModel,
     DiffPrivLibDummyQueryModel,
     DiffPrivLibQueryModel,
     DiffPrivLibRequestModel,
@@ -73,7 +74,7 @@ class DiffPrivLibClient:
             "imputer_strategy": imputer_strategy,
         }
 
-        body = DiffPrivLibRequestModel.model_validate(body_dict)
+        body = DiffPrivLibCostQueryModel.model_validate(body_dict)
         res = self.http_client.post("estimate_diffprivlib_cost", body)
 
         return validate_model_response(self.http_client, res, CostResponse)

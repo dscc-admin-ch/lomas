@@ -16,9 +16,6 @@ class DPLibraries(StrEnum):
     DIFFPRIVLIB = "diffprivlib"
 
 
-# OpenDP
-
-
 # Smartnoise synth
 class SSynthMarginalSynthesizer(StrEnum):
     """Marginal Synthesizer models for smartnoise synth."""

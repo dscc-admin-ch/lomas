@@ -1,9 +1,6 @@
 import asyncio
-import errno
-import os
 import posix as Status
 import random
-import socket
 import sys
 import time
 from collections.abc import AsyncIterator, Coroutine
@@ -15,7 +12,7 @@ from uuid import UUID
 
 import aio_pika
 from aio_pika.abc import AbstractConnection, AbstractQueue
-from aio_pika.patterns import RPC
+from aio_pika.patterns.rpc import RPC, Proxy
 from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from starlette import status
@@ -25,16 +22,17 @@ from lomas_core.exceptions import (
     InternalServerException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
-from lomas_core.models.constants import PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
+from lomas_core.models.constants import JobStatus, PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests import (
     DummyQueryModel,
     LomasRequestModel,
     QueryModel,
 )
-from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_core.models.responses import Job
 from lomas_server.admin_database.admin_database import AdminDatabase
 from lomas_server.auth.auth import authorize_user, ensure_dataset_access
+from lomas_server.data_connector.data_connector import DataConnector
 from lomas_server.data_connector.path_connector import PathConnector
 from lomas_server.data_connector.s3_connector import S3Connector
 from lomas_server.models.config import Config, PrivateDBCredentials, S3CredentialsConfig
@@ -42,37 +40,7 @@ from lomas_server.models.config import Config, PrivateDBCredentials, S3Credentia
 logger = get_lomas_logger(__name__)
 
 
-def notify(message: bytes) -> None:
-    """
-    Implement the systemd notify protocol without external dependencies.
-
-    According to the protocol defined at:
-    https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html
-
-    Args:
-        message (bytes): well-known assignements:
-            - READY=1
-            - STOPPING=1
-    """
-    socket_path = os.environ.get("NOTIFY_SOCKET")
-    if socket_path is None or len(socket_path) == 0:
-        return
-
-    if socket_path[0] not in ("/", "@"):
-        raise OSError(errno.EAFNOSUPPORT, "Unsupported socket type")
-
-    # Handle abstract socket.
-    if socket_path[0] == "@":
-        socket_path = "\0" + socket_path[1:]
-
-    with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM | socket.SOCK_CLOEXEC) as sock:
-        sock.connect(socket_path)
-        sock.sendall(message)
-
-
-async def process_response(
-    queue: AbstractQueue, cls: type[QueryResponse | CostResponse], admin_database: AdminDatabase
-) -> None:
+async def process_response(queue: AbstractQueue, admin_database: AdminDatabase) -> None:
     """Process responses from queues into Jobs."""
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
@@ -85,42 +53,29 @@ async def process_response(
                             await message.ack()
 
                             message_body = message.body.decode()
-                            match message.headers:
-                                case {"type": "exception", "status_code": int() as status_code}:
-                                    logger.debug(message_body)
-                                    updated_job = Job(
-                                        uid=UUID(message.correlation_id),
-                                        status="failed",
-                                        error=LomasAPIErrorModel.model_validate_json(message_body),
-                                        result=None,
-                                        status_code=status_code,
-                                    )
-                                    admin_database.update_job(updated_job)
-                                case _:
-                                    updated_job = Job(
-                                        uid=UUID(message.correlation_id),
-                                        result=cls.model_validate_json(message_body),
-                                        status="complete",
-                                    )
-                                    admin_database.update_job(updated_job)
+                            job_update = Job.model_validate_json(message_body)
+                            admin_database.update_job(job_update)
+                            admin_database.archive_job(job_update.uid)
+
                     except Exception as e:
                         # Fail the job if we cannot parse worker responses
-                        logger.exception("Could not parse worker response.")
-                        updated_job = Job(
+                        job_update = Job(
                             uid=UUID(message.correlation_id),
-                            status="failed",
+                            status=JobStatus.FAILED,
                             error=LomasAPIErrorModel(
                                 message="InternalServerException: Could not parse response from worker."
                             ),
                             result=None,
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         )
-                        admin_database.update_job(updated_job)
-                        raise InternalServerException("Could not parse worker response.") from e
-            except Exception as e:
+                        logger.exception(e)
+
+                        admin_database.update_job(job_update)
+                        admin_database.archive_job(job_update.uid)
+            except Exception:
                 # TODO is this right? -> ignore this message and proceed as if nothing happened?
                 logger.exception("Error while handling worker responses, continuuing...")
-                raise InternalServerException from e
+                # raise InternalServerException from e
 
 
 async def rabbitmq_connect_queue(
@@ -152,18 +107,10 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
         connection = await rabbitmq_connect_queue(config)
         channel = await connection.channel()
 
-        # Queues
+        # Queue
         await channel.declare_queue("task_queue", durable=True)
         app.state.task_queue_channel = channel
         queue = await channel.declare_queue("task_response", durable=True)
-
-        await channel.declare_queue("cost_queue", durable=True)
-        app.state.cost_queue_channel = channel
-        cost_queue = await channel.declare_queue("cost_response", durable=True)
-
-        await channel.declare_queue("dummy_queue", durable=True)
-        app.state.dummy_queue_channel = channel
-        dummy_queue = await channel.declare_queue("dummy_response", durable=True)
 
         # Rpc stuff
         rpc = await RPC.create(channel, durable=True)
@@ -175,10 +122,10 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
             "get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True
         )
         await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
-        await rpc.register("save_query", app.state.admin_database.save_query, durable=True)
         await rpc.register(
             "get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True
         )
+        await rpc.register("get_dataset", app.state.admin_database.get_dataset, durable=True)
 
     except Exception as e:
         logger.exception(f"Failed to setup RabbitMQ context: {e!s}")
@@ -204,9 +151,7 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
         task.add_done_callback(on_task_done)
 
     # Handlers
-    make_task(process_response(queue, QueryResponse, app.state.admin_database), "query_response")
-    make_task(process_response(cost_queue, CostResponse, app.state.admin_database), "cost_response")
-    make_task(process_response(dummy_queue, QueryResponse, app.state.admin_database), "dummy_response")
+    make_task(process_response(queue, app.state.admin_database), "query_response")
 
     try:
         yield  # app is handling requests
@@ -344,14 +289,43 @@ async def handle_query_to_job(
     """
     app = request.app
     admin_database = app.state.admin_database
-    private_db_credentials = app.state.private_db_credentials
 
     dataset_name = query.dataset_name
 
     ensure_dataset_access(user, dataset_name, admin_database)
 
-    ds_access = admin_database.get_dataset(dataset_name).dataset_access
-    ds_metadata = admin_database.get_dataset_metadata(dataset_name)
+    new_task = Job(requested_by=user.name, dataset_name=dataset_name, query=query)
+
+    # app.state.jobs[str(new_task.uid)] = new_task
+    admin_database.put_job(new_task)
+
+    await app.state.task_queue_channel.default_exchange.publish(
+        aio_pika.Message(
+            body=f"{new_task.model_dump_json()}".encode(),
+            correlation_id=new_task.uid,
+        ),
+        routing_key="task_queue",
+    )
+
+    return new_task
+
+
+async def get_dataset_connector(
+    admin_database: Proxy, dataset_name: str, private_db_credentials: dict[int, PrivateDBCredentials]
+) -> DataConnector:
+    """Returns the proper dataset connector.
+
+    Args:
+        admin_database (AdminDatabase): An AdminDatabase instance to get dataset information from.
+        dataset_name (str): The name of the dataset.
+        private_db_credentials (dict[int, PrivateDBCredentials]): The dict of all dataset credentials.
+
+    Raises:
+        InternalServerException: In case the dataset type does not exist.
+    """
+    ds_info = await admin_database.get_dataset(dataset_name=dataset_name)
+    ds_access = ds_info.dataset_access
+    ds_metadata = await admin_database.get_dataset_metadata(dataset_name=dataset_name)
     data_connector = None
 
     match ds_access:
@@ -379,25 +353,4 @@ async def handle_query_to_job(
         case _:
             raise InternalServerException(f"Unknown database type: {ds_access.database_type}")
 
-    match query:
-        case DummyQueryModel():
-            queue_name = "dummy_queue"
-        case QueryModel():
-            queue_name = "task_queue"
-        case LomasRequestModel():
-            queue_name = "cost_queue"
-
-    new_task = Job(requested_by=user.name)
-
-    # app.state.jobs[str(new_task.uid)] = new_task
-    admin_database.put_job(new_task)
-
-    await app.state.cost_queue_channel.default_exchange.publish(
-        aio_pika.Message(
-            body=f"{user.name}λ{dp_library}λ{data_connector.model_dump_json()}λ{query.model_dump_json()}".encode(),
-            correlation_id=new_task.uid,
-        ),
-        routing_key=queue_name,
-    )
-
-    return new_task
+    return data_connector

@@ -1,22 +1,17 @@
-import time
 from abc import ABC, abstractmethod
 from uuid import UUID
 
 from csvw_eo.metadata_structure import TableMetadata
-from pydantic import (
-    BaseModel,
-)
 
 from lomas_core.models.collections import DSInfo
 from lomas_core.models.constants import get_lomas_logger
-from lomas_core.models.requests import LomasRequestModel, model_input_to_lib
-from lomas_core.models.responses import Job, QueryResponse
+from lomas_core.models.responses import Job
 from lomas_server.admin_database.constants import BudgetDBKey
 
 logger = get_lomas_logger(__name__)
 
 
-class AdminDatabase(ABC, BaseModel):
+class AdminDatabase(ABC):
     """Overall database management for server state."""
 
     @abstractmethod
@@ -84,6 +79,15 @@ class AdminDatabase(ABC, BaseModel):
 
         Args:
             updated_job (Job): The updated job
+        """
+
+    @abstractmethod
+    def archive_job(self, uid: UUID) -> None:
+        """
+        Adds the job into the archives, ignores dummy and cost queries.
+
+        Args:
+            uid (UUID): The job uid to archive
         """
 
     @abstractmethod
@@ -304,15 +308,13 @@ class AdminDatabase(ABC, BaseModel):
         """
 
     @abstractmethod
-    def get_user_previous_queries(
+    def get_user_dataset_queries(
         self,
         user_name: str,
         dataset_name: str,
     ) -> list[dict]:
         """
-        Retrieves and return the queries already done by a user.
-
-        Wrapped by [user_must_have_access_to_dataset][lomas_server.admin_database.admin_database.user_must_have_access_to_dataset].
+        Retrieves and return the queries already done by a user for a particular dataset.
 
         Args:
             user_name (str): name of the user
@@ -322,41 +324,16 @@ class AdminDatabase(ABC, BaseModel):
             List[dict]: List of previous queries.
         """
 
-    def prepare_save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> dict:
+    @abstractmethod
+    def get_user_queries(self, username: str) -> list[Job]:
         """
-        Prepare the query to save in archives.
+        Retrieves and return the queries already done by a user.
 
         Args:
             user_name (str): name of the user
-            query (LomasRequestModel): Request object received from client
-            response (QueryResponse): Response object sent to client
-
-        Raises:
-            InternalServerException: If the type of query is unknown.
 
         Returns:
-            dict: The query archive dictionary.
-        """
-        to_archive = {
-            "user_name": user_name,
-            "dataset_name": query.dataset_name,
-            "dp_library": model_input_to_lib(query),
-            "client_input": query.model_dump(),
-            "response": response.model_dump(),
-            "timestamp": time.time(),
-        }  # TODO 359 use model for that one too.
-
-        return to_archive
-
-    @abstractmethod
-    def save_query(self, user_name: str, query: LomasRequestModel, response: QueryResponse) -> None:
-        """
-        Save queries of user on datasets in a separate collection (table).
-
-        Args:
-            user_name (str): name of the user
-            query (LomasRequestModel): Request object received from client
-            response (QueryResponse): Response object sent to client
+            List[dict]: List of previous queries.
         """
 
     @abstractmethod

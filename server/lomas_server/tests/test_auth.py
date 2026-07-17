@@ -12,7 +12,7 @@ from lomas_client.constants import OIDC_REQUIRED_SCOPES
 from lomas_client.models.config import ClientConfig
 from lomas_client.utils import raise_error
 from lomas_core.exceptions import LomasAPIException, UnauthorizedAccessException
-from lomas_core.models.requests_examples import example_get_admin_db_data
+from lomas_core.models.requests_examples import EXAMPLE_GET_ADMIN_DB_DATA
 from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.administration.dex.dex_admin import del_all_dex_users
 from lomas_server.administration.scripts.lomas_demo_setup import lomas_demo_setup
@@ -115,7 +115,7 @@ def test_valid_token(demo_setup: None, switch_query_userinfo: None):
     headers = get_auth_header("dr.antartica@example.com", "dr.antartica")
 
     with TestClient(app, headers=headers) as client:
-        response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
+        response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_200_OK
 
 
@@ -124,7 +124,7 @@ def test_invalid_token(switch_query_userinfo: None):
     headers = {"Authorization": "Bearer abc"}
 
     with TestClient(app, headers=headers) as client:
-        response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
+        response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         match_string = str(UnauthorizedAccessException("Failed bearer token verification"))
         with pytest.raises(LomasAPIException, match=re.escape(match_string)):
@@ -139,7 +139,7 @@ def test_admin_scope(demo_setup: None, switch_query_userinfo: None) -> None:
         response = client.get("/state")
         assert response.status_code == status.HTTP_200_OK
 
-        response = client.post("/get_dataset_metadata", json=example_get_admin_db_data)
+        response = client.post("/get_dataset_metadata", json=EXAMPLE_GET_ADMIN_DB_DATA)
         assert response.status_code == status.HTTP_403_FORBIDDEN
         # lomas_admin user has no access to Penguin
         match_string = str(UnauthorizedAccessException("lomas_admin does not have access to PENGUIN."))

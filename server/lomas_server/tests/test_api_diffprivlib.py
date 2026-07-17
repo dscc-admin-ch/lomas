@@ -20,9 +20,11 @@ from lomas_core.exceptions import (
     LomasAPIException,
     UnauthorizedAccessException,
 )
+from lomas_core.models.constants import JobStatus
 from lomas_core.models.requests_examples import (
-    example_diffprivlib,
-    example_dummy_diffprivlib,
+    EXAMPLE_DIFFPRIVLIB,
+    EXAMPLE_DIFFPRIVLIB_COST,
+    EXAMPLE_DUMMY_DIFFPRIVLIB,
 )
 from lomas_core.models.responses import (
     CostResponse,
@@ -60,7 +62,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             # Expect to work
             response = client.post(
                 "/diffprivlib_query",
-                json=example_diffprivlib,
+                json=EXAMPLE_DIFFPRIVLIB,
                 headers=self.headers,
             )
             r_model = validate_pipeline(client, response)
@@ -82,18 +84,18 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 assert response.status_code == status.HTTP_202_ACCEPTED
                 return job
 
-            job = test_imputation(example_diffprivlib, "mean")
-            assert job.status == "complete"
+            job = test_imputation(EXAMPLE_DIFFPRIVLIB, "mean")
+            assert job.status == JobStatus.COMPLETE
 
-            job = test_imputation(example_diffprivlib, "median")
-            assert job.status == "complete"
+            job = test_imputation(EXAMPLE_DIFFPRIVLIB, "median")
+            assert job.status == JobStatus.COMPLETE
 
-            job = test_imputation(example_diffprivlib, "most_frequent")
-            assert job.status == "complete"
+            job = test_imputation(EXAMPLE_DIFFPRIVLIB, "most_frequent")
+            assert job.status == JobStatus.COMPLETE
 
             # Should not work unknow imputation strategy
-            job = test_imputation(example_diffprivlib, "i_do_not_exist")
-            assert job.status == "failed"
+            job = test_imputation(EXAMPLE_DIFFPRIVLIB, "i_do_not_exist")
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error is not None
             exc = InvalidQueryException("Imputation strategy i_do_not_exist not supported.")
@@ -106,7 +108,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
         with TestClient(app, headers=self.headers) as client:
             # Should still work: automatically added for first step
             warnings.simplefilter("error", PrivacyLeakWarning)
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             dpl_pipeline = Pipeline(
                 [
                     ("scaler", models.StandardScaler(epsilon=0.5)),
@@ -124,7 +126,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
 
             # Should not work: Privacy Leak Warning on data norm
             warnings.simplefilter("error", PrivacyLeakWarning)
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             dpl_pipeline = Pipeline(
                 [
                     ("scaler", models.StandardScaler(epsilon=0.5)),
@@ -139,7 +141,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error is not None
             message = (
@@ -156,7 +158,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 job.error.raise_exception()
 
             # Should not work: Privacy Leak Warning on bounds
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             dpl_pipeline = Pipeline(
                 [
                     ("scaler", models.StandardScaler(epsilon=0.5)),
@@ -171,7 +173,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
             assert job.error is not None
             message = "PrivacyLeakWarning: Bounds have not been specified and will be calculated on the data provided. This will result in additional privacy leakage. To ensure differential privacy and no additional privacy leakage, specify bounds for each dimension. Lomas server cannot fit pipeline on data, PrivacyLeakWarning is a blocker."
@@ -212,7 +214,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -237,7 +239,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             diffprivlib_body["feature_columns"] = ["bill_length_mm"]
             diffprivlib_body["target_columns"] = ["flipper_length_mm"]
@@ -259,7 +261,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             diffprivlib_body["feature_columns"] = ["bill_length_mm"]
             diffprivlib_body["target_columns"] = ["flipper_length_mm"]
@@ -286,7 +288,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             # Should fail (same column in target and feature)
             diffprivlib_body["feature_columns"] = ["bill_length_mm"]
@@ -297,7 +299,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 json=diffprivlib_body,
                 headers=self.headers,
             )
-            assert job.status == "failed"
+            assert job.status == JobStatus.FAILED
             assert job.status_code == status.HTTP_400_BAD_REQUEST
             assert job.error is not None
             with pytest.raises(
@@ -322,7 +324,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -350,7 +352,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -372,7 +374,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -395,7 +397,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -430,7 +432,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                     ),
                 ]
             )
-            diffprivlib_body = dict(example_diffprivlib)
+            diffprivlib_body = dict(EXAMPLE_DIFFPRIVLIB)
             diffprivlib_body["diffprivlib_json"] = serialise_pipeline(pipeline)
             response = client.post(
                 "/diffprivlib_query",
@@ -446,7 +448,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(
                 client,
                 "/dummy_diffprivlib_query",
-                json=example_dummy_diffprivlib,
+                json=EXAMPLE_DUMMY_DIFFPRIVLIB,
                 headers=self.headers,
             )
             r_model = QueryResponse.model_validate(job.result)
@@ -454,7 +456,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.result.score >= 0
 
             # Expect to fail: user does not have access to dataset
-            body = dict(example_dummy_diffprivlib)
+            body = dict(EXAMPLE_DUMMY_DIFFPRIVLIB)
             body["dataset_name"] = "IRIS"
             response = client.post(
                 "/dummy_diffprivlib_query",
@@ -473,7 +475,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(
                 client,
                 "/estimate_diffprivlib_cost",
-                json=example_diffprivlib,
+                json=EXAMPLE_DIFFPRIVLIB_COST,
                 headers=self.headers,
             )
             r_model = CostResponse.model_validate(job.result)
@@ -481,7 +483,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
             assert r_model.delta == 0
 
             # Expect to fail: user does have access to dataset
-            body = dict(example_diffprivlib)
+            body = dict(EXAMPLE_DIFFPRIVLIB_COST)
             body["dataset_name"] = "IRIS"
             response = client.post(
                 "/estimate_diffprivlib_cost",

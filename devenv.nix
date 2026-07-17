@@ -232,7 +232,8 @@ in
       "idealized-numerics"
       "honest-but-curious"
     ];
-    LOMAS_SERVICE_admin_database_url = "/tmp/admin.db";
+    LOMAS_SERVICE_database_directory = "/tmp/lomas-db/";
+    LOMAS_SERVICE_data_directory = "${config.git.root}/server/data/";
     LOMAS_SERVICE_clean_admin_database = "false";
     LOMAS_SERVICE_bootstrap = "deadbeef";
     LOMAS_SERVICE_authenticator__authentication_type = if config.lomas.oidc.enable then "oidc" else "free_pass";

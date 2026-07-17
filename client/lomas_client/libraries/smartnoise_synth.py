@@ -7,6 +7,7 @@ from lomas_client.constants import (
 from lomas_client.http_client import LomasHttpClient
 from lomas_client.utils import validate_model_response
 from lomas_core.models.requests import (
+    SmartnoiseSynthCostQueryModel,
     SmartnoiseSynthDummyQueryModel,
     SmartnoiseSynthQueryModel,
     SmartnoiseSynthRequestModel,
@@ -90,7 +91,7 @@ class SmartnoiseSynthClient:
             "nullable": nullable,
             "constraints": "",
         }
-        body = SmartnoiseSynthRequestModel.model_validate(body_dict)
+        body = SmartnoiseSynthCostQueryModel.model_validate(body_dict)
         res = self.http_client.post("estimate_smartnoise_synth_cost", body, SMARTNOISE_SYNTH_READ_TIMEOUT)
 
         return validate_model_response(self.http_client, res, CostResponse)

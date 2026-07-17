@@ -255,8 +255,9 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "TITANIC"
-    assert prev_queries[0]["dp_library"] == "opendp"
+    assert prev_queries[0].dataset_name == "TITANIC"
+    assert prev_queries[0].query is not None
+    assert prev_queries[0].query.library == "opendp"
 
     # Smartnoise #####################################
 
@@ -289,8 +290,9 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 2
-    assert prev_queries[1]["dataset_name"] == "TITANIC"
-    assert prev_queries[1]["dp_library"] == "smartnoise_sql"
+    assert prev_queries[1].dataset_name == "TITANIC"
+    assert prev_queries[1].query is not None
+    assert prev_queries[1].query.library == "smartnoise_sql"
 
 
 def test_demo_diffprivlib(dex_config, demo_setup) -> None:
@@ -332,6 +334,7 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
             ),
         ]
     )
+
     cost_res = client.diffprivlib.cost(
         dpl_pipeline,
         feature_columns=feature_columns,
@@ -357,9 +360,12 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "PENGUIN"
-    assert prev_queries[0]["dp_library"] == "diffprivlib"
-    returned_model = prev_queries[0]["response"]["result"]["model"]
+    assert prev_queries[0].dataset_name == "PENGUIN"
+    assert prev_queries[0].query is not None
+    assert prev_queries[0].query.library == "diffprivlib"
+
+    assert prev_queries[0].result is not None
+    returned_model = prev_queries[0].result.result.model
     predictions = returned_model.predict(
         pd.DataFrame(
             {
@@ -438,8 +444,10 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 1
-    assert prev_queries[0]["dataset_name"] == "FSO_INCOME_SYNTHETIC"
-    assert prev_queries[0]["dp_library"] == "opendp"
-    response_archives = prev_queries[0]["response"]
-    assert response_archives["epsilon"] == DEFAULT_EPSILON
-    assert response_archives["delta"] == 0.0
+    assert prev_queries[0].dataset_name == "FSO_INCOME_SYNTHETIC"
+    assert prev_queries[0].query is not None
+    assert prev_queries[0].query.library == "opendp"
+    response_archives = prev_queries[0].result
+    assert response_archives is not None
+    assert response_archives.epsilon == DEFAULT_EPSILON
+    assert response_archives.delta == 0.0

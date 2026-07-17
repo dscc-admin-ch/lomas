@@ -1394,7 +1394,7 @@
 <li>Create a file for your querier in the folder <code>server/lomas_server/dp_queries/dp_libraries/new_library.py</code>. Inside, create a class <code>NewLibraryQuerier</code> that inherits from <code>DPQuerier</code> (<code>lomas/lomas_server/dp_queries/dp_querier.py</code>), your class must contain a <code>cost</code> method that return the cost of a query and a <code>query</code> method that return a result of a DP query.</li>
 <li>Add the three associated API endpoints .<ul>
 <li>a. Add the endpoint handlers in <code>server/lomas_server/routes/routes_dp.py</code>: <code>/new_library_query</code> (for queries on the real dataset), <code>/dummy_new_library_query</code> (for queries on the dummy dataset) and <code>/estimate_new_library_cost</code> (for estimating the privacy budget cost of a query).</li>
-<li>b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input <code>NewLibraryModel</code>, <code>DummyNewLibraryModel</code>, <code>NewLibraryCostModel</code> in  <code>server/lomas_server/utils/query_models.py</code> and add the request case in the function <code>model_input_to_lib()</code>.</li>
+<li>b. The endpoints should have predefined pydantic BaselModel types. Add BaseModel classes of expected input <code>NewLibraryRequestModel</code>, <code>NewLibraryCostQueryModel</code>, <code>NewLibraryQueryModel</code> <code>NewLibraryDummyQueryModel</code> in  <code>server/lomas_server/utils/query_models.py</code> and update the type adapters at the bottom of the file.</li>
 <li>c. The endpoints should have predefined default values <code>example_new_library</code>, <code>example_dummy_new_library</code> in  <code>server/lomas_server/utils/query_examples.py</code>.</li>
 </ul>
 </li>

@@ -3031,8 +3031,8 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -3053,18 +3053,6 @@ os.environ["LOMAS_CLIENT_DATASET_NAME"] = "PENGUIN"
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-5">client = Client()</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[09:20:11] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> OIDC IdP or Lomas service configured without TLS -&gt; using insecure transport  <a href="file:///home/pauline/Desktop/lomas/client/lomas_client/http_client.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">http_client.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/pauline/Desktop/lomas/client/lomas_client/http_client.py#35" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">35</span></a>
-</pre>
 </div>
 </div>
 </div>
@@ -3147,7 +3135,8 @@ penguin_metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['Adelie', 'Chinstrap', 'Gentoo'],
+    'keyValues': ['Adelie', 'Chinstrap', 'Gentoo'],
+    'invariantPublicKeys': True,
     'maxNumPartitions': 3},
    {'@type': 'Column',
     'name': 'island',
@@ -3155,7 +3144,8 @@ penguin_metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['Torgersen', 'Biscoe', 'Dream'],
+    'keyValues': ['Torgersen', 'Biscoe', 'Dream'],
+    'invariantPublicKeys': True,
     'maxNumPartitions': 3},
    {'@type': 'Column',
     'name': 'bill_length_mm',
@@ -3195,8 +3185,21 @@ penguin_metadata</div>
     'required': None,
     'privacyId': None,
     'nullableProportion': 0.0,
-    'keys': ['MALE', 'FEMALE'],
-    'maxNumPartitions': 2}]}}</pre>
+    'keyValues': ['MALE', 'FEMALE'],
+    'invariantPublicKeys': True,
+    'maxNumPartitions': 2}]},
+ 'additionalInformation': [{'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'island'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'sex'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['sex', 'island'],
+   'invariantPublicKeys': True},
+  {'@type': 'ColumnGroup',
+   'columnsInGroup': ['species', 'island', 'sex'],
+   'invariantPublicKeys': True}]}</pre>
 </div>
 </div>
 </div>
@@ -3374,12 +3377,12 @@ df_dummy.head()</div>
 <tbody>
 <tr>
 <th>0</th>
-<td>Chinstrap</td>
+<td>Adelie</td>
 <td>Biscoe</td>
 <td>61.084141</td>
-<td>17.965717</td>
+<td>22.972099</td>
 <td>167.540975</td>
-<td>5359.514017</td>
+<td>4482.858469</td>
 <td>MALE</td>
 </tr>
 <tr>
@@ -3387,40 +3390,40 @@ df_dummy.head()</div>
 <td>Chinstrap</td>
 <td>Torgersen</td>
 <td>43.844505</td>
-<td>15.939243</td>
+<td>20.111429</td>
 <td>189.129376</td>
-<td>4791.394740</td>
-<td>MALE</td>
+<td>3469.621280</td>
+<td>FEMALE</td>
 </tr>
 <tr>
 <th>2</th>
-<td>Chinstrap</td>
-<td>Torgersen</td>
+<td>Adelie</td>
+<td>Biscoe</td>
 <td>58.065820</td>
-<td>19.725266</td>
+<td>13.409735</td>
 <td>154.021822</td>
-<td>2473.883392</td>
-<td>MALE</td>
+<td>5362.633170</td>
+<td>FEMALE</td>
 </tr>
 <tr>
 <th>3</th>
-<td>Gentoo</td>
+<td>Adelie</td>
 <td>Dream</td>
 <td>54.592822</td>
-<td>17.226284</td>
+<td>14.502795</td>
 <td>181.259565</td>
-<td>4817.062368</td>
+<td>4113.141982</td>
 <td>MALE</td>
 </tr>
 <tr>
 <th>4</th>
-<td>Gentoo</td>
-<td>Dream</td>
+<td>Chinstrap</td>
+<td>Torgersen</td>
 <td>58.431739</td>
-<td>22.818283</td>
+<td>17.252286</td>
 <td>222.575769</td>
-<td>5866.322990</td>
-<td>FEMALE</td>
+<td>6909.141614</td>
+<td>MALE</td>
 </tr>
 </tbody>
 </table>
@@ -3532,7 +3535,7 @@ Therefore, she calls the fonction <code>get_initial_budget</code>.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>SpentBudgetResponse(total_spent_epsilon=23.5, total_spent_delta=0.00018999475000047727)</pre>
+<pre>SpentBudgetResponse(total_spent_epsilon=0.0, total_spent_delta=0.0)</pre>
 </div>
 </div>
 </div>
@@ -3580,7 +3583,7 @@ Therefore, she calls the fonction <code>get_initial_budget</code>.</p>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>RemainingBudgetResponse(remaining_epsilon=26.5, remaining_delta=0.004810005249999523)</pre>
+<pre>RemainingBudgetResponse(remaining_epsilon=50.0, remaining_delta=0.005)</pre>
 </div>
 </div>
 </div>
@@ -3759,7 +3762,7 @@ cost</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>CostResponse(epsilon=1.5, delta=0.00014999500000001387)</pre>
+<pre>CostResponse(response_type=&lt;QueryResponseTypes.COST: 'cost'&gt;, epsilon=1.5, delta=0.00014999500000001387)</pre>
 </div>
 </div>
 </div>
@@ -3923,7 +3926,7 @@ dummy_res = client.smartnoise_sql.query(
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Average bill length in remote dummy: 48.56mm.
+<pre>Average bill length in remote dummy: 48.58mm.
 </pre>
 </div>
 </div>
@@ -3983,7 +3986,7 @@ dummy_res = client.smartnoise_sql.query(
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>RemainingBudgetResponse(remaining_epsilon=26.5, remaining_delta=0.004810005249999523)</pre>
+<pre>RemainingBudgetResponse(remaining_epsilon=50.0, remaining_delta=0.005)</pre>
 </div>
 </div>
 </div>
@@ -4060,7 +4063,7 @@ print(f"Average bill length of penguins in real data: {avg_bill_length}mm.")</di
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Average bill length of penguins in real data: 44.0mm.
+<pre>Average bill length of penguins in real data: 44.59mm.
 </pre>
 </div>
 </div>
@@ -4109,7 +4112,7 @@ print(f"Average bill length of penguins in real data: {avg_bill_length}mm.")</di
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>RemainingBudgetResponse(remaining_epsilon=25.0, remaining_delta=0.004660010249999509)</pre>
+<pre>RemainingBudgetResponse(remaining_epsilon=48.5, remaining_delta=0.004850004999999986)</pre>
 </div>
 </div>
 </div>
@@ -4157,7 +4160,7 @@ print(f"Average bill length of penguins in real data: {avg_bill_length}mm.")</di
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>SpentBudgetResponse(total_spent_epsilon=25.0, total_spent_delta=0.00033998975000049114)</pre>
+<pre>SpentBudgetResponse(total_spent_epsilon=1.5, total_spent_delta=0.00014999500000001387)</pre>
 </div>
 </div>
 </div>
@@ -4263,7 +4266,8 @@ import opendp.measurements as meas</div>
   'required': None,
   'privacyId': None,
   'nullableProportion': 0.0,
-  'keys': ['Adelie', 'Chinstrap', 'Gentoo'],
+  'keyValues': ['Adelie', 'Chinstrap', 'Gentoo'],
+  'invariantPublicKeys': True,
   'maxNumPartitions': 3},
  {'@type': 'Column',
   'name': 'island',
@@ -4271,7 +4275,8 @@ import opendp.measurements as meas</div>
   'required': None,
   'privacyId': None,
   'nullableProportion': 0.0,
-  'keys': ['Torgersen', 'Biscoe', 'Dream'],
+  'keyValues': ['Torgersen', 'Biscoe', 'Dream'],
+  'invariantPublicKeys': True,
   'maxNumPartitions': 3},
  {'@type': 'Column',
   'name': 'bill_length_mm',
@@ -4311,7 +4316,8 @@ import opendp.measurements as meas</div>
   'required': None,
   'privacyId': None,
   'nullableProportion': 0.0,
-  'keys': ['MALE', 'FEMALE'],
+  'keyValues': ['MALE', 'FEMALE'],
+  'invariantPublicKeys': True,
   'maxNumPartitions': 2}]</pre>
 </div>
 </div>
@@ -4471,8 +4477,8 @@ bill_length_min, bill_length_max</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=60">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=60">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4495,8 +4501,8 @@ bill_length_min, bill_length_max</div>
     <span class="n">trans</span><span class="o">.</span><span class="n">make_select_column</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">"bill_length_mm"</span><span class="p">,</span> <span class="n">TOA</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
     <span class="n">trans</span><span class="o">.</span><span class="n">then_cast_default</span><span class="p">(</span><span class="n">TOA</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
     <span class="n">trans</span><span class="o">.</span><span class="n">then_clamp</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">bill_length_min</span><span class="p">,</span> <span class="n">bill_length_max</span><span class="p">))</span> <span class="o">&gt;&gt;</span>
-    <span class="n">trans</span><span class="o">.</span><span class="n">then_resize</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">NB_PENGUINS</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="n">avg_bill_length</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
-    <span class="n">trans</span><span class="o">.</span><span class="n">then_variance</span><span class="p">()</span>
+    <span class="c1">#trans.then_resize(size=NB_PENGUINS, constant=avg_bill_length)</span>
+    <span class="c1">#trans.then_variance() &gt;&gt;</span>
 <span class="p">)</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-29">bill_length_transformation_pipeline = (
@@ -4504,9 +4510,89 @@ bill_length_min, bill_length_max</div>
     trans.make_select_column(key="bill_length_mm", TOA=str) &gt;&gt;
     trans.then_cast_default(TOA=float) &gt;&gt;
     trans.then_clamp(bounds=(bill_length_min, bill_length_max)) &gt;&gt;
-    trans.then_resize(size=NB_PENGUINS, constant=avg_bill_length) &gt;&gt;
-    trans.then_variance()
-)</div>
+    #trans.then_resize(size=NB_PENGUINS, constant=avg_bill_length)
+    #trans.then_variance() &gt;&gt;
+)
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>/tmp/ipykernel_192509/3288060349.py:2: DeprecationWarning: Call to deprecated function (or staticmethod) make_split_dataframe. (Use Polars instead.) -- Deprecated since version 0.12.0.
+  trans.make_split_dataframe(separator=",", col_names=column_names) &gt;&gt;
+/tmp/ipykernel_192509/3288060349.py:3: DeprecationWarning: Call to deprecated function (or staticmethod) make_select_column. (Use Polars instead.) -- Deprecated since version 0.12.0.
+  trans.make_select_column(key="bill_length_mm", TOA=str) &gt;&gt;
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">OpenDPException</span>                           Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[39]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> bill_length_transformation_pipeline = (
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     trans.make_split_dataframe(separator=<span class="ansi-yellow-fg">","</span>, col_names=column_names) &gt;&gt;
+<span class="ansi-green-fg">      3</span>     trans.make_select_column(key=<span class="ansi-yellow-fg">"bill_length_mm"</span>, TOA=str) &gt;&gt;
+<span class="ansi-green-fg">      4</span>     trans.then_cast_default(TOA=float) &gt;&gt;
+<span class="ansi-green-fg">      5</span>     trans.then_clamp(bounds=(bill_length_min, bill_length_max)) &gt;&gt;
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/nix/store/i8z9wa0a4xaii3nsgrwg54k9hbixw6xa-lomas-dev-env/lib/python3.13/site-packages/opendp/mod.py:526</span>, in <span class="ansi-cyan-fg">Transformation.__rshift__</span><span class="ansi-blue-fg">(self, other)</span>
+<span class="ansi-green-fg">    523</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> make_chain_tt(other, <span style="color: rgb(0,135,0)">self</span>)
+<span class="ansi-green-fg">    525</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">isinstance</span>(other, _PartialConstructor):
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">526</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span> &gt;&gt; <span class="ansi-black-fg ansi-yellow-bg">other</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">output_domain</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">output_metric</span><span class="ansi-black-fg ansi-yellow-bg">)</span> <span style="color: rgb(95,135,135)"># type: ignore[call-arg]</span>
+<span class="ansi-green-fg">    528</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">opendp</span><span class="ansi-blue-intense-fg ansi-bold">.</span><span class="ansi-blue-intense-fg ansi-bold">context</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> PartialChain
+<span class="ansi-green-fg">    529</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">isinstance</span>(other, PartialChain):
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/nix/store/i8z9wa0a4xaii3nsgrwg54k9hbixw6xa-lomas-dev-env/lib/python3.13/site-packages/opendp/mod.py:1187</span>, in <span class="ansi-cyan-fg">_PartialConstructor.__call__</span><span class="ansi-blue-fg">(self, input_domain, input_metric)</span>
+<span class="ansi-green-fg">   1186</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">__call__</span>(<span style="color: rgb(0,135,0)">self</span>, input_domain: Domain, input_metric: Metric):
+<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1187</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-black-fg ansi-yellow-bg">self</span><span class="ansi-black-fg ansi-yellow-bg">.</span><span class="ansi-black-fg ansi-yellow-bg">constructor</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">input_domain</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">input_metric</span><span class="ansi-black-fg ansi-yellow-bg">)</span>
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/nix/store/i8z9wa0a4xaii3nsgrwg54k9hbixw6xa-lomas-dev-env/lib/python3.13/site-packages/opendp/transformations.py:1018</span>, in <span class="ansi-cyan-fg">then_clamp.&lt;locals&gt;.&lt;lambda&gt;</span><span class="ansi-blue-fg">(input_domain, input_metric)</span>
+<span class="ansi-green-fg">   1005</span> <span class="ansi-bold" style="color: rgb(0,135,0)">def</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-fg">then_clamp</span>(
+<span class="ansi-green-fg">   1006</span>     bounds: <span style="color: rgb(0,135,0)">tuple</span>[Any, Any]
+<span class="ansi-green-fg">   1007</span> ):  
+<span class="ansi-green-fg">   1008</span> <span style="color: rgb(188,188,188)">    </span><span class="ansi-yellow-fg">r</span><span class="ansi-yellow-fg">"""Partial constructor of `make_clamp`.</span>
+<span class="ansi-green-fg">   1009</span> 
+<span class="ansi-green-fg">   1010</span> <span class="ansi-yellow-fg">    .. end-markdown</span>
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">   1016</span> <span class="ansi-yellow-fg">    :type bounds: tuple[Any, Any]</span>
+<span class="ansi-green-fg">   1017</span> <span class="ansi-yellow-fg">    """</span>
+<span class="ansi-green-fg">-&gt; </span><span class="ansi-green-fg">1018</span>     output = _PartialConstructor(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> input_domain, input_metric: <span class="ansi-black-fg ansi-yellow-bg">make_clamp</span><span class="ansi-black-fg ansi-yellow-bg">(</span>
+<span class="ansi-green-fg">   1019</span> <span class="ansi-black-fg ansi-yellow-bg">        </span><span class="ansi-black-fg ansi-yellow-bg">input_domain</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">input_domain</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">   1020</span> <span class="ansi-black-fg ansi-yellow-bg">        </span><span class="ansi-black-fg ansi-yellow-bg">input_metric</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">input_metric</span><span class="ansi-black-fg ansi-yellow-bg">,</span>
+<span class="ansi-green-fg">   1021</span> <span class="ansi-black-fg ansi-yellow-bg">        </span><span class="ansi-black-fg ansi-yellow-bg">bounds</span><span class="ansi-black-fg ansi-yellow-bg">=</span><span class="ansi-black-fg ansi-yellow-bg">bounds</span><span class="ansi-black-fg ansi-yellow-bg">)</span>)
+<span class="ansi-green-fg">   1022</span>     output.__opendp_dict__ = {
+<span class="ansi-green-fg">   1023</span>             <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">__function__</span><span class="ansi-yellow-fg">'</span>: <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">then_clamp</span><span class="ansi-yellow-fg">'</span>,
+<span class="ansi-green-fg">   1024</span>             <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">__module__</span><span class="ansi-yellow-fg">'</span>: <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">transformations</span><span class="ansi-yellow-fg">'</span>,
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">   1027</span>             },
+<span class="ansi-green-fg">   1028</span>         }
+<span class="ansi-green-fg">   1029</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> output
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/nix/store/i8z9wa0a4xaii3nsgrwg54k9hbixw6xa-lomas-dev-env/lib/python3.13/site-packages/opendp/transformations.py:992</span>, in <span class="ansi-cyan-fg">make_clamp</span><span class="ansi-blue-fg">(input_domain, input_metric, bounds)</span>
+<span class="ansi-green-fg">    989</span> lib_function.argtypes = [Domain, Metric, AnyObjectPtr]
+<span class="ansi-green-fg">    990</span> lib_function.restype = FfiResult
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">992</span> output = c_to_py(<span class="ansi-black-fg ansi-yellow-bg">unwrap</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">lib_function</span><span class="ansi-black-fg ansi-yellow-bg">(</span><span class="ansi-black-fg ansi-yellow-bg">c_input_domain</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">c_input_metric</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">c_bounds</span><span class="ansi-black-fg ansi-yellow-bg">)</span><span class="ansi-black-fg ansi-yellow-bg">,</span><span class="ansi-black-fg ansi-yellow-bg"> </span><span class="ansi-black-fg ansi-yellow-bg">Transformation</span><span class="ansi-black-fg ansi-yellow-bg">)</span>)
+<span class="ansi-green-fg">    993</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">    994</span>     output.__opendp_dict__ = {
+<span class="ansi-green-fg">    995</span>         <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">__function__</span><span class="ansi-yellow-fg">'</span>: <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">make_clamp</span><span class="ansi-yellow-fg">'</span>,
+<span class="ansi-green-fg">    996</span>         <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">__module__</span><span class="ansi-yellow-fg">'</span>: <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">transformations</span><span class="ansi-yellow-fg">'</span>,
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">    999</span>         },
+<span class="ansi-green-fg">   1000</span>     }
+
+<span class="ansi-cyan-fg">File </span><span class="ansi-green-fg">/nix/store/i8z9wa0a4xaii3nsgrwg54k9hbixw6xa-lomas-dev-env/lib/python3.13/site-packages/opendp/_lib.py:337</span>, in <span class="ansi-cyan-fg">unwrap</span><span class="ansi-blue-fg">(result, type_)</span>
+<span class="ansi-green-fg">    335</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">polars</span><span class="ansi-yellow-fg">'</span> <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">str</span>(message).lower() <span class="ansi-bold" style="color: rgb(175,0,255)">and</span> pl.__version__ != _EXPECTED_POLARS_VERSION:
+<span class="ansi-green-fg">    336</span>         message = <span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">'</span><span class="ansi-yellow-fg">Installed python polars version (</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>pl.__version__<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">) != expected version (</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>_EXPECTED_POLARS_VERSION<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">). </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>message<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">'</span> <span style="color: rgb(95,135,135)"># pragma: no cover</span>
+<span class="ansi-green-fg">--&gt; </span><span class="ansi-green-fg">337</span> <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> OpenDPException(variant, message, backtrace)
+
+<span class="ansi-red-fg">OpenDPException</span>: 
+  FailedFunction("Domain contains nan")</pre>
 </div>
 </div>
 </div>
@@ -4522,8 +4608,8 @@ bill_length_min, bill_length_max</div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_raises-exception">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_raises-exception" id="cell-id=62">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_raises-exception">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_raises-exception" id="cell-id=62">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4563,6 +4649,27 @@ client.opendp.query(
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[34]</span><span class="ansi-green-fg">, line 3</span>
+<span class="ansi-green-fg">      1</span> <span style="color: rgb(95,135,135)"># No instruction for noise addition mechanism: Expect to fail !!!</span>
+<span class="ansi-green-fg">      2</span> client.opendp.query(
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span>     opendp_pipeline = bill_length_transformation_pipeline,
+<span class="ansi-green-fg">      4</span>     dummy=<span class="ansi-bold" style="color: rgb(0,135,0)">True</span>
+<span class="ansi-green-fg">      5</span> )
+
+<span class="ansi-red-fg">NameError</span>: name 'bill_length_transformation_pipeline' is not defined</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=63">
@@ -4574,8 +4681,8 @@ client.opendp.query(
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=64">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=64">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -4602,6 +4709,26 @@ client.opendp.query(
     bill_length_transformation_pipeline &gt;&gt;
     meas.then_laplace(scale=5.0) # Noise addition mechanism instructions
 )</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[37]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> var_bill_length_measurement_pipeline = (
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     bill_length_transformation_pipeline &gt;&gt;
+<span class="ansi-green-fg">      3</span>     meas.then_laplace(scale=<span class="ansi-green-fg">5.0</span>) <span style="color: rgb(95,135,135)"># Noise addition mechanism instructions</span>
+<span class="ansi-green-fg">      4</span> )
+
+<span class="ansi-red-fg">NameError</span>: name 'bill_length_transformation_pipeline' is not defined</pre>
 </div>
 </div>
 </div>
@@ -5190,15 +5317,16 @@ species_metadata</div>
  'required': None,
  'privacyId': None,
  'nullableProportion': 0.0,
- 'keys': ['Adelie', 'Chinstrap', 'Gentoo'],
+ 'keyValues': ['Adelie', 'Chinstrap', 'Gentoo'],
+ 'invariantPublicKeys': True,
  'maxNumPartitions': 3}</pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=85">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=85">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -5233,6 +5361,29 @@ species_metadata</div>
         classes=species_metadata['keys'])
     ),
 ])</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">KeyError</span>                                  Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[42]</span><span class="ansi-green-fg">, line 6</span>
+<span class="ansi-green-fg">      2</span>     ('rf', models.RandomForestClassifier(
+<span class="ansi-green-fg">      3</span>         n_estimators=<span class="ansi-green-fg">10</span>,
+<span class="ansi-green-fg">      4</span>         epsilon = <span class="ansi-green-fg">2.0</span>,
+<span class="ansi-green-fg">      5</span>         bounds=bounds,
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">6</span>         classes=species_metadata[<span class="ansi-yellow-fg">'keys'</span>])
+<span class="ansi-green-fg">      7</span>     ),
+<span class="ansi-green-fg">      8</span> ])
+
+<span class="ansi-red-fg">KeyError</span>: 'keys'</pre>
 </div>
 </div>
 </div>
@@ -5286,810 +5437,19 @@ model</div>
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<style>#sk-container-id-2 {
-  /* Definition of color scheme common for light and dark mode */
-  --sklearn-color-text: #000;
-  --sklearn-color-text-muted: #666;
-  --sklearn-color-line: gray;
-  /* Definition of color scheme for unfitted estimators */
-  --sklearn-color-unfitted-level-0: #fff5e6;
-  --sklearn-color-unfitted-level-1: #f6e4d2;
-  --sklearn-color-unfitted-level-2: #ffe0b3;
-  --sklearn-color-unfitted-level-3: chocolate;
-  /* Definition of color scheme for fitted estimators */
-  --sklearn-color-fitted-level-0: #f0f8ff;
-  --sklearn-color-fitted-level-1: #d4ebff;
-  --sklearn-color-fitted-level-2: #b3dbfd;
-  --sklearn-color-fitted-level-3: cornflowerblue;
-}
-
-#sk-container-id-2.light {
-  /* Specific color for light theme */
-  --sklearn-color-text-on-default-background: black;
-  --sklearn-color-background: white;
-  --sklearn-color-border-box: black;
-  --sklearn-color-icon: #696969;
-}
-
-#sk-container-id-2.dark {
-  --sklearn-color-text-on-default-background: white;
-  --sklearn-color-background: #111;
-  --sklearn-color-border-box: white;
-  --sklearn-color-icon: #878787;
-}
-
-#sk-container-id-2 {
-  color: var(--sklearn-color-text);
-}
-
-#sk-container-id-2 pre {
-  padding: 0;
-}
-
-#sk-container-id-2 input.sk-hidden--visually {
-  border: 0;
-  clip: rect(1px 1px 1px 1px);
-  clip: rect(1px, 1px, 1px, 1px);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
-}
-
-#sk-container-id-2 div.sk-dashed-wrapped {
-  border: 1px dashed var(--sklearn-color-line);
-  margin: 0 0.4em 0.5em 0.4em;
-  box-sizing: border-box;
-  padding-bottom: 0.4em;
-  background-color: var(--sklearn-color-background);
-}
-
-#sk-container-id-2 div.sk-container {
-  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
-     but bootstrap.min.css set `[hidden] { display: none !important; }`
-     so we also need the `!important` here to be able to override the
-     default hidden behavior on the sphinx rendered scikit-learn.org.
-     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
-  display: inline-block !important;
-  position: relative;
-}
-
-#sk-container-id-2 div.sk-text-repr-fallback {
-  display: none;
-}
-
-div.sk-parallel-item,
-div.sk-serial,
-div.sk-item {
-  /* draw centered vertical line to link estimators */
-  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
-  background-size: 2px 100%;
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-/* Parallel-specific style estimator block */
-
-#sk-container-id-2 div.sk-parallel-item::after {
-  content: "";
-  width: 100%;
-  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
-  flex-grow: 1;
-}
-
-#sk-container-id-2 div.sk-parallel {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  background-color: var(--sklearn-color-background);
-  position: relative;
-}
-
-#sk-container-id-2 div.sk-parallel-item {
-  display: flex;
-  flex-direction: column;
-}
-
-#sk-container-id-2 div.sk-parallel-item:first-child::after {
-  align-self: flex-end;
-  width: 50%;
-}
-
-#sk-container-id-2 div.sk-parallel-item:last-child::after {
-  align-self: flex-start;
-  width: 50%;
-}
-
-#sk-container-id-2 div.sk-parallel-item:only-child::after {
-  width: 0;
-}
-
-/* Serial-specific style estimator block */
-
-#sk-container-id-2 div.sk-serial {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: var(--sklearn-color-background);
-  padding-right: 1em;
-  padding-left: 1em;
-}
-
-
-/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
-clickable and can be expanded/collapsed.
-- Pipeline and ColumnTransformer use this feature and define the default style
-- Estimators will overwrite some part of the style using the `sk-estimator` class
-*/
-
-/* Pipeline and ColumnTransformer style (default) */
-
-#sk-container-id-2 div.sk-toggleable {
-  /* Default theme specific background. It is overwritten whether we have a
-  specific estimator or a Pipeline/ColumnTransformer */
-  background-color: var(--sklearn-color-background);
-}
-
-/* Toggleable label */
-#sk-container-id-2 label.sk-toggleable__label {
-  cursor: pointer;
-  display: flex;
-  width: 100%;
-  margin-bottom: 0;
-  padding: 0.5em;
-  box-sizing: border-box;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5em;
-}
-
-#sk-container-id-2 label.sk-toggleable__label .caption {
-  font-size: 0.6rem;
-  font-weight: lighter;
-  color: var(--sklearn-color-text-muted);
-}
-
-#sk-container-id-2 label.sk-toggleable__label-arrow:before {
-  /* Arrow on the left of the label */
-  content: "▸";
-  float: left;
-  margin-right: 0.25em;
-  color: var(--sklearn-color-icon);
-}
-
-#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {
-  color: var(--sklearn-color-text);
-}
-
-/* Toggleable content - dropdown */
-
-#sk-container-id-2 div.sk-toggleable__content {
-  display: none;
-  text-align: left;
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-0);
-}
-
-#sk-container-id-2 div.sk-toggleable__content.fitted {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-0);
-}
-
-#sk-container-id-2 div.sk-toggleable__content pre {
-  margin: 0.2em;
-  border-radius: 0.25em;
-  color: var(--sklearn-color-text);
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-0);
-}
-
-#sk-container-id-2 div.sk-toggleable__content.fitted pre {
-  /* unfitted */
-  background-color: var(--sklearn-color-fitted-level-0);
-}
-
-#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {
-  /* Expand drop-down */
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-
-#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
-  content: "▾";
-}
-
-/* Pipeline/ColumnTransformer-specific style */
-
-#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
-  color: var(--sklearn-color-text);
-  background-color: var(--sklearn-color-unfitted-level-2);
-}
-
-#sk-container-id-2 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
-  background-color: var(--sklearn-color-fitted-level-2);
-}
-
-/* Estimator-specific style */
-
-/* Colorize estimator box */
-#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-2);
-}
-
-#sk-container-id-2 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-2);
-}
-
-#sk-container-id-2 div.sk-label label.sk-toggleable__label,
-#sk-container-id-2 div.sk-label label {
-  /* The background is the default theme color */
-  color: var(--sklearn-color-text-on-default-background);
-}
-
-/* On hover, darken the color of the background */
-#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {
-  color: var(--sklearn-color-text);
-  background-color: var(--sklearn-color-unfitted-level-2);
-}
-
-/* Label box, darken color on hover, fitted */
-#sk-container-id-2 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
-  color: var(--sklearn-color-text);
-  background-color: var(--sklearn-color-fitted-level-2);
-}
-
-/* Estimator label */
-
-#sk-container-id-2 div.sk-label label {
-  font-family: monospace;
-  font-weight: bold;
-  line-height: 1.2em;
-}
-
-#sk-container-id-2 div.sk-label-container {
-  text-align: center;
-}
-
-/* Estimator-specific */
-#sk-container-id-2 div.sk-estimator {
-  font-family: monospace;
-  border: 1px dotted var(--sklearn-color-border-box);
-  border-radius: 0.25em;
-  box-sizing: border-box;
-  margin-bottom: 0.5em;
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-0);
-}
-
-#sk-container-id-2 div.sk-estimator.fitted {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-0);
-}
-
-/* on hover */
-#sk-container-id-2 div.sk-estimator:hover {
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-2);
-}
-
-#sk-container-id-2 div.sk-estimator.fitted:hover {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-2);
-}
-
-/* Specification for estimator info (e.g. "i" and "?") */
-
-/* Common style for "i" and "?" */
-
-.sk-estimator-doc-link,
-a:link.sk-estimator-doc-link,
-a:visited.sk-estimator-doc-link {
-  float: right;
-  font-size: smaller;
-  line-height: 1em;
-  font-family: monospace;
-  background-color: var(--sklearn-color-unfitted-level-0);
-  border-radius: 1em;
-  height: 1em;
-  width: 1em;
-  text-decoration: none !important;
-  margin-left: 0.5em;
-  text-align: center;
-  /* unfitted */
-  border: var(--sklearn-color-unfitted-level-3) 1pt solid;
-  color: var(--sklearn-color-unfitted-level-3);
-}
-
-.sk-estimator-doc-link.fitted,
-a:link.sk-estimator-doc-link.fitted,
-a:visited.sk-estimator-doc-link.fitted {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-0);
-  border: var(--sklearn-color-fitted-level-3) 1pt solid;
-  color: var(--sklearn-color-fitted-level-3);
-}
-
-/* On hover */
-div.sk-estimator:hover .sk-estimator-doc-link:hover,
-.sk-estimator-doc-link:hover,
-div.sk-label-container:hover .sk-estimator-doc-link:hover,
-.sk-estimator-doc-link:hover {
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-3);
-  border: var(--sklearn-color-fitted-level-0) 1pt solid;
-  color: var(--sklearn-color-unfitted-level-0);
-  text-decoration: none;
-}
-
-div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
-.sk-estimator-doc-link.fitted:hover,
-div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
-.sk-estimator-doc-link.fitted:hover {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-3);
-  border: var(--sklearn-color-fitted-level-0) 1pt solid;
-  color: var(--sklearn-color-fitted-level-0);
-  text-decoration: none;
-}
-
-/* Span, style for the box shown on hovering the info icon */
-.sk-estimator-doc-link span {
-  display: none;
-  z-index: 9999;
-  position: relative;
-  font-weight: normal;
-  right: .2ex;
-  padding: .5ex;
-  margin: .5ex;
-  width: min-content;
-  min-width: 20ex;
-  max-width: 50ex;
-  color: var(--sklearn-color-text);
-  box-shadow: 2pt 2pt 4pt #999;
-  /* unfitted */
-  background: var(--sklearn-color-unfitted-level-0);
-  border: .5pt solid var(--sklearn-color-unfitted-level-3);
-}
-
-.sk-estimator-doc-link.fitted span {
-  /* fitted */
-  background: var(--sklearn-color-fitted-level-0);
-  border: var(--sklearn-color-fitted-level-3);
-}
-
-.sk-estimator-doc-link:hover span {
-  display: block;
-}
-
-/* "?"-specific style due to the `<a>` HTML tag */
-
-#sk-container-id-2 a.estimator_doc_link {
-  float: right;
-  font-size: 1rem;
-  line-height: 1em;
-  font-family: monospace;
-  background-color: var(--sklearn-color-unfitted-level-0);
-  border-radius: 1rem;
-  height: 1rem;
-  width: 1rem;
-  text-decoration: none;
-  /* unfitted */
-  color: var(--sklearn-color-unfitted-level-1);
-  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
-}
-
-#sk-container-id-2 a.estimator_doc_link.fitted {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-0);
-  border: var(--sklearn-color-fitted-level-1) 1pt solid;
-  color: var(--sklearn-color-fitted-level-1);
-}
-
-/* On hover */
-#sk-container-id-2 a.estimator_doc_link:hover {
-  /* unfitted */
-  background-color: var(--sklearn-color-unfitted-level-3);
-  color: var(--sklearn-color-background);
-  text-decoration: none;
-}
-
-#sk-container-id-2 a.estimator_doc_link.fitted:hover {
-  /* fitted */
-  background-color: var(--sklearn-color-fitted-level-3);
-}
-
-.estimator-table {
-    font-family: monospace;
-}
-
-.estimator-table summary {
-    padding: .5rem;
-    cursor: pointer;
-}
-
-.estimator-table summary::marker {
-    font-size: 0.7rem;
-}
-
-.estimator-table details[open] {
-    padding-left: 0.1rem;
-    padding-right: 0.1rem;
-    padding-bottom: 0.3rem;
-}
-
-.estimator-table .parameters-table {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: 0;
-}
-
-.estimator-table .parameters-table tr:nth-child(odd) {
-    background-color: #fff;
-}
-
-.estimator-table .parameters-table tr:nth-child(even) {
-    background-color: #f6f6f6;
-}
-
-.estimator-table .parameters-table tr:hover {
-    background-color: #e0e0e0;
-}
-
-.estimator-table table td {
-    border: 1px solid rgba(106, 105, 104, 0.232);
-}
-
-/*
-    `table td`is set in notebook with right text-align.
-    We need to overwrite it.
-*/
-.estimator-table table td.param {
-    text-align: left;
-    position: relative;
-    padding: 0;
-}
-
-.user-set td {
-    color:rgb(255, 94, 0);
-    text-align: left !important;
-}
-
-.user-set td.value {
-    color:rgb(255, 94, 0);
-    background-color: transparent;
-}
-
-.default td {
-    color: black;
-    text-align: left !important;
-}
-
-.user-set td i,
-.default td i {
-    color: black;
-}
-
-/*
-    Styles for parameter documentation links
-    We need styling for visited so jupyter doesn't overwrite it
-*/
-a.param-doc-link,
-a.param-doc-link:link,
-a.param-doc-link:visited {
-    text-decoration: underline dashed;
-    text-underline-offset: .3em;
-    color: inherit;
-    display: block;
-    padding: .5em;
-}
-
-/* "hack" to make the entire area of the cell containing the link clickable */
-a.param-doc-link::before {
-    position: absolute;
-    content: "";
-    inset: 0;
-}
-
-.param-doc-description {
-    display: none;
-    position: absolute;
-    z-index: 9999;
-    left: 0;
-    padding: .5ex;
-    margin-left: 1.5em;
-    color: var(--sklearn-color-text);
-    box-shadow: .3em .3em .4em #999;
-    width: max-content;
-    text-align: left;
-    max-height: 10em;
-    overflow-y: auto;
-
-    /* unfitted */
-    background: var(--sklearn-color-unfitted-level-0);
-    border: thin solid var(--sklearn-color-unfitted-level-3);
-}
-
-/* Fitted state for parameter tooltips */
-.fitted .param-doc-description {
-    /* fitted */
-    background: var(--sklearn-color-fitted-level-0);
-    border: thin solid var(--sklearn-color-fitted-level-3);
-}
-
-.param-doc-link:hover .param-doc-description {
-    display: block;
-}
-
-.copy-paste-icon {
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZD0iTTIwOCAwTDMzMi4xIDBjMTIuNyAwIDI0LjkgNS4xIDMzLjkgMTQuMWw2Ny45IDY3LjljOSA5IDE0LjEgMjEuMiAxNC4xIDMzLjlMNDQ4IDMzNmMwIDI2LjUtMjEuNSA0OC00OCA0OGwtMTkyIDBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMjg4YzAtMjYuNSAyMS41LTQ4IDQ4LTQ4ek00OCAxMjhsODAgMCAwIDY0LTY0IDAgMCAyNTYgMTkyIDAgMC0zMiA2NCAwIDAgNDhjMCAyNi41LTIxLjUgNDgtNDggNDhMNDggNTEyYy0yNi41IDAtNDgtMjEuNS00OC00OEwwIDE3NmMwLTI2LjUgMjEuNS00OCA0OC00OHoiLz48L3N2Zz4=);
-    background-repeat: no-repeat;
-    background-size: 14px 14px;
-    background-position: 0;
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    cursor: pointer;
-}
-</style><body><div class="sk-top-container" id="sk-container-id-2"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[('rf',
-                 RandomForestClassifier(accountant=BudgetAccountant(spent_budget=[(2.0, 0)]),
-                                        bounds=(array([  30.,   13.,  150., 2000.]),
-                                                array([  30.,   13.,  150., 2000.])),
-                                        classes=['Adelie', 'Chinstrap',
-                                                 'Gentoo'],
-                                        epsilon=2.0))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br/>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"/><label class="sk-toggleable__label fitted sk-toggleable__label-arrow" for="sk-estimator-id-3"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link fitted" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html" rel="noreferrer" target="_blank">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
-<div class="estimator-table">
-<details>
-<summary>Parameters</summary>
-<table class="parameters-table">
-<tbody>
-<tr class="user-set">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('steps',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">
-<a class="param-doc-link" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=steps,-list%20of%20tuples" rel="noreferrer" target="_blank">
-            steps
-            <span class="param-doc-description">steps: list of tuples<br/><br/>List of (name of step, estimator) tuples that are to be chained in<br/>sequential order. To be compatible with the scikit-learn API, all steps<br/>must define `fit`. All non-last steps must also define `transform`. See<br/>:ref:`Combining Estimators <combining_estimators>` for more details.</combining_estimators></span>
-</a>
-</td>
-<td class="value">[('rf', ...)]</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('transform_input',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">
-<a class="param-doc-link" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=transform_input,-list%20of%20str%2C%20default%3DNone" rel="noreferrer" target="_blank">
-            transform_input
-            <span class="param-doc-description">transform_input: list of str, default=None<br/><br/>The names of the :term:`metadata` parameters that should be transformed by the<br/>pipeline before passing it to the step consuming it.<br/><br/>This enables transforming some input arguments to ``fit`` (other than ``X``)<br/>to be transformed by the steps of the pipeline up to the step which requires<br/>them. Requirement is defined via :ref:`metadata routing <metadata_routing>`.<br/>For instance, this can be used to pass a validation set through the pipeline.<br/><br/>You can only set this if metadata routing is enabled, which you<br/>can enable using ``sklearn.set_config(enable_metadata_routing=True)``.<br/><br/>.. versionadded:: 1.6</metadata_routing></span>
-</a>
-</td>
-<td class="value">None</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('memory',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">
-<a class="param-doc-link" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=memory,-str%20or%20object%20with%20the%20joblib.Memory%20interface%2C%20default%3DNone" rel="noreferrer" target="_blank">
-            memory
-            <span class="param-doc-description">memory: str or object with the joblib.Memory interface, default=None<br/><br/>Used to cache the fitted transformers of the pipeline. The last step<br/>will never be cached, even if it is a transformer. By default, no<br/>caching is performed. If a string is given, it is the path to the<br/>caching directory. Enabling caching triggers a clone of the transformers<br/>before fitting. Therefore, the transformer instance given to the<br/>pipeline cannot be inspected directly. Use the attribute ``named_steps``<br/>or ``steps`` to inspect estimators within the pipeline. Caching the<br/>transformers is advantageous when fitting is time consuming. See<br/>:ref:`sphx_glr_auto_examples_neighbors_plot_caching_nearest_neighbors.py`<br/>for an example on how to enable caching.</span>
-</a>
-</td>
-<td class="value">None</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('verbose',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">
-<a class="param-doc-link" href="https://scikit-learn.org/1.8/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=verbose,-bool%2C%20default%3DFalse" rel="noreferrer" target="_blank">
-            verbose
-            <span class="param-doc-description">verbose: bool, default=False<br/><br/>If True, the time elapsed while fitting each step will be printed as it<br/>is completed.</span>
-</a>
-</td>
-<td class="value">False</td>
-</tr>
-</tbody>
-</table>
-</details>
-</div>
-</div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"/><label class="sk-toggleable__label fitted sk-toggleable__label-arrow" for="sk-estimator-id-4"><div><div>RandomForestClassifier</div></div></label><div class="sk-toggleable__content fitted" data-param-prefix="rf__">
-<div class="estimator-table">
-<details>
-<summary>Parameters</summary>
-<table class="parameters-table">
-<tbody>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('n_estimators',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">n_estimators</td>
-<td class="value">10</td>
-</tr>
-<tr class="user-set">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('epsilon',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">epsilon</td>
-<td class="value">2.0</td>
-</tr>
-<tr class="user-set">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('bounds',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">bounds</td>
-<td class="value">(array([  30.,... 150., 2000.]), ...)</td>
-</tr>
-<tr class="user-set">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('classes',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">classes</td>
-<td class="value">['Adelie', 'Chinstrap', ...]</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('n_jobs',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">n_jobs</td>
-<td class="value">1</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('verbose',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">verbose</td>
-<td class="value">0</td>
-</tr>
-<tr class="user-set">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('accountant',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">accountant</td>
-<td class="value">BudgetAccount...et=[(2.0, 0)])</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('random_state',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">random_state</td>
-<td class="value">None</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('max_depth',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">max_depth</td>
-<td class="value">5</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('warm_start',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">warm_start</td>
-<td class="value">False</td>
-</tr>
-<tr class="default">
-<td><i class="copy-paste-icon" onclick="copyToClipboard('shuffle',
-                          this.parentElement.nextElementSibling)"></i></td>
-<td class="param">shuffle</td>
-<td class="value">False</td>
-</tr>
-</tbody>
-</table>
-</details>
-</div>
-</div></div></div></div></div></div></div><script>function copyToClipboard(text, element) {
-    // Get the parameter prefix from the closest toggleable content
-    const toggleableContent = element.closest('.sk-toggleable__content');
-    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
-    const fullParamName = paramPrefix ? `${paramPrefix}${text}` : text;
-
-    const originalStyle = element.style;
-    const computedStyle = window.getComputedStyle(element);
-    const originalWidth = computedStyle.width;
-    const originalHTML = element.innerHTML.replace('Copied!', '');
-
-    navigator.clipboard.writeText(fullParamName)
-        .then(() => {
-            element.style.width = originalWidth;
-            element.style.color = 'green';
-            element.innerHTML = "Copied!";
-
-            setTimeout(() => {
-                element.innerHTML = originalHTML;
-                element.style = originalStyle;
-            }, 2000);
-        })
-        .catch(err => {
-            console.error('Failed to copy:', err);
-            element.style.color = 'red';
-            element.innerHTML = "Failed!";
-            setTimeout(() => {
-                element.innerHTML = originalHTML;
-                element.style = originalStyle;
-            }, 2000);
-        });
-    return false;
-}
-
-document.querySelectorAll('.copy-paste-icon').forEach(function(element) {
-    const toggleableContent = element.closest('.sk-toggleable__content');
-    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
-    const paramName = element.parentElement.nextElementSibling
-        .textContent.trim().split(' ')[0];
-    const fullParamName = paramPrefix ? `${paramPrefix}${paramName}` : paramName;
-
-    element.setAttribute('title', fullParamName);
-});
-
-
-/**
- * Adapted from Skrub
- * https://github.com/skrub-data/skrub/blob/403466d1d5d4dc76a7ef569b3f8228db59a31dc3/skrub/_reporting/_data/templates/report.js#L789
- * @returns "light" or "dark"
- */
-function detectTheme(element) {
-    const body = document.querySelector('body');
-
-    // Check VSCode theme
-    const themeKindAttr = body.getAttribute('data-vscode-theme-kind');
-    const themeNameAttr = body.getAttribute('data-vscode-theme-name');
-
-    if (themeKindAttr && themeNameAttr) {
-        const themeKind = themeKindAttr.toLowerCase();
-        const themeName = themeNameAttr.toLowerCase();
-
-        if (themeKind.includes("dark") || themeName.includes("dark")) {
-            return "dark";
-        }
-        if (themeKind.includes("light") || themeName.includes("light")) {
-            return "light";
-        }
-    }
-
-    // Check Jupyter theme
-    if (body.getAttribute('data-jp-theme-light') === 'false') {
-        return 'dark';
-    } else if (body.getAttribute('data-jp-theme-light') === 'true') {
-        return 'light';
-    }
-
-    // Guess based on a parent element's color
-    const color = window.getComputedStyle(element.parentNode, null).getPropertyValue('color');
-    const match = color.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i);
-    if (match) {
-        const [r, g, b] = [
-            parseFloat(match[1]),
-            parseFloat(match[2]),
-            parseFloat(match[3])
-        ];
-
-        // https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
-        const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-
-        if (luma > 180) {
-            // If the text is very bright we have a dark theme
-            return 'dark';
-        }
-        if (luma < 75) {
-            // If the text is very dark we have a light theme
-            return 'light';
-        }
-        // Otherwise fall back to the next heuristic.
-    }
-
-    // Fallback to system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-
-function forceTheme(elementId) {
-    const estimatorElement = document.querySelector(`#${elementId}`);
-    if (estimatorElement === null) {
-        console.error(`Element with id ${elementId} not found.`);
-    } else {
-        const theme = detectTheme(estimatorElement);
-        estimatorElement.classList.add(theme);
-    }
-}
-
-forceTheme('sk-container-id-2');</script></body>
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[43]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> dummy_response = client.diffprivlib.query(
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     pipeline = dpl_pipeline,
+<span class="ansi-green-fg">      3</span>     feature_columns = feature_columns,
+<span class="ansi-green-fg">      4</span>     target_columns = target_columns,
+<span class="ansi-green-fg">      5</span>     test_size = <span class="ansi-green-fg">0.2</span>,
+
+<span class="ansi-red-fg">NameError</span>: name 'dpl_pipeline' is not defined</pre>
 </div>
 </div>
 </div>
@@ -7739,25 +7099,9 @@ len(previous_queries)</div>
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:28:24] </span><span style="color: #008000; text-decoration-color: #008000">DEBUG   </span> User <span style="color: #008000; text-decoration-color: #008000">'dr.antartica@example.com'</span><span style="font-weight: bold">)</span> is making a request to url                   <a href="file:///home/aymond/work/lomas/lomas/client/lomas_client/http_client.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">http_client.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/aymond/work/lomas/lomas/client/lomas_client/http_client.py#77" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">77</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="color: #008000; text-decoration-color: #008000">'http://localhost:48080/'</span> at the endpoint <span style="color: #008000; text-decoration-color: #008000">'get_previous_queries'</span> with query   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         params: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'dataset_name'</span>: <span style="color: #008000; text-decoration-color: #008000">'PENGUIN'</span><span style="font-weight: bold">}</span>.                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #008000; text-decoration-color: #008000">DEBUG   </span> User <span style="color: #008000; text-decoration-color: #008000">'dr.antartica@example.com'</span><span style="font-weight: bold">)</span> is making a request to url                   <a href="file:///home/aymond/work/lomas/lomas/client/lomas_client/http_client.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">http_client.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///home/aymond/work/lomas/lomas/client/lomas_client/http_client.py#77" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">77</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="color: #008000; text-decoration-color: #008000">'http://localhost:48080/'</span> at the endpoint <span style="color: #008000; text-decoration-color: #008000">'get_dataset_metadata'</span> with query   <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         params: <span style="font-weight: bold">{</span><span style="color: #008000; text-decoration-color: #008000">'dataset_name'</span>: <span style="color: #008000; text-decoration-color: #008000">'PENGUIN'</span><span style="font-weight: bold">}</span>.                                          <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                 </span>
-</pre>
-</div>
-</div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>4</pre>
+<pre>1</pre>
 </div>
 </div>
 </div>
@@ -7799,25 +7143,8 @@ avg_bill_length_query</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>{'user_name': 'Dr.Antartica',
- 'dataset_name': 'PENGUIN',
- 'dp_library': 'smartnoise_sql',
- 'client_input': {'dataset_name': 'PENGUIN',
-  'query_str': 'SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df',
-  'epsilon': 0.5,
-  'delta': 0.0001,
-  'mechanisms': {},
-  'postprocess': True},
- 'response': {'epsilon': 1.0,
-  'delta': 4.999999999999449e-05,
-  'requested_by': 'Dr.Antartica',
-  'result': {'type': 'smartnoise_sql',
-   'df': {'index': [0],
-    'columns': ['avg_bill_length_mm'],
-    'data': [[44.28515045992143]],
-    'index_names': [None],
-    'column_names': [None]}}},
- 'timestamp': 1770301686.8726397}</pre>
+<pre>Job(uid=UUID('871736d0-35e3-4207-afa4-8e9f11b76c85'), requested_by='Dr.Antartica', dataset_name='PENGUIN', status=&lt;JobStatus.COMPLETE: 'complete'&gt;, query=SmartnoiseSQLQueryModel(dataset_name='PENGUIN', request_type=&lt;QueryTypes.QUERY: 'query'&gt;, library=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, query_str='SELECT AVG(bill_length_mm) AS avg_bill_length_mm FROM df', epsilon=0.5, delta=0.0001, mechanisms={}, postprocess=True), result=QueryResponse(response_type=&lt;QueryResponseTypes.QUERY: 'query'&gt;, epsilon=1.5, delta=0.00014999500000001387, requested_by='Dr.Antartica', result=SmartnoiseSQLQueryResult(type=&lt;DPLibraries.SMARTNOISE_SQL: 'smartnoise_sql'&gt;, df=   avg_bill_length_mm
+0           44.742615)), error=None, status_code=200, archived_at=None)</pre>
 </div>
 </div>
 </div>

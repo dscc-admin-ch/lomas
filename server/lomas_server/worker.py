@@ -32,7 +32,8 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.error_handler import model_from_lomas_exception
-from lomas_server.routes.utils import get_dataset_connector, notify, rabbitmq_connect_queue
+from lomas_server.routes.utils import get_dataset_connector, rabbitmq_connect_queue
+from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
 

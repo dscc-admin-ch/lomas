@@ -9,7 +9,9 @@ from lomas_client.scripts.run_notebook import get_client_notebook_files, run_not
 def mark_notebook(notebooks: list[Path]) -> list[NamedTuple]:
     marks = {
         "Demo_Client_Notebook_DiffPrivLib.ipynb": pytest.mark.long,  # ~33s
-        "Demo_Client_Notebook.ipynb": pytest.mark.skip(reason="Smartnoise broken with opendp>0.12"),  # ~33s
+        "Demo_Client_Notebook.ipynb": pytest.mark.skip(
+            reason="Smartnoise broken with opendp>0.12, legacy opendp code broken."
+        ),  # ~33s
         "Demo_Client_Notebook_OpenDP_Polars.ipynb": pytest.mark.long,  # ~33s
         "Demo_Client_Notebook_OpenDP_Polars_features.ipynb": pytest.mark.long,
         "Demo_Client_Notebook_Smartnoise-SQL.ipynb": pytest.mark.long,  # ~36s

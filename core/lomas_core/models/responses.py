@@ -100,7 +100,7 @@ class CostResponse(ResponseModel):
 
     model_config = ConfigDict(use_attribute_docstrings=True)
 
-    def model_post_init(self, _) -> None:
+    def model_post_init(self, _: Any) -> None:
         # This makes sure the discriminator field is dumped even with exclude_unset=True
         if "response_type" in self.__class__.model_fields:
             self.model_fields_set.add("response_type")
@@ -122,7 +122,7 @@ class QueryResult(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def model_post_init(self, _) -> None:
+    def model_post_init(self, _: Any) -> None:
         # This makes sure the discriminator field is dumped even with exclude_unset=True
         if "type" in self.__class__.model_fields:
             self.model_fields_set.add("type")

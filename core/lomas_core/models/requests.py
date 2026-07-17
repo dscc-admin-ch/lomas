@@ -1,4 +1,4 @@
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
@@ -27,7 +27,7 @@ class LomasRequestModel(BaseModel):
 
     model_config = ConfigDict(use_attribute_docstrings=True)
 
-    def model_post_init(self, _) -> None:
+    def model_post_init(self, _: Any) -> None:
         # This makes sure the discriminator field is dumped even with exclude_unset=True
         if "request_type" in self.__class__.model_fields:
             self.model_fields_set.add("response_type")

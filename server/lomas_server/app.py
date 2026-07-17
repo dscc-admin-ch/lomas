@@ -19,7 +19,8 @@ from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.routes.utils import notify, rabbitmq_ctx
+from lomas_server.routes.utils import rabbitmq_ctx
+from lomas_server.utils.notify import notify
 
 
 @asynccontextmanager

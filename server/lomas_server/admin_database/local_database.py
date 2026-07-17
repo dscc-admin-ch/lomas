@@ -221,7 +221,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.does_job_exist", table="admin-db")
-    @with_lock
     def does_job_exist(self, uid: UUID) -> bool:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "does_job_exist"})
         with self._sqlite_connection(self._jobs_db_path) as conn:
@@ -230,7 +229,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.get_job", table="admin-db")
-    @with_lock
     def get_job(self, uid: UUID) -> Job:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job"})
 
@@ -244,7 +242,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.put_job", table="admin-db")
-    @with_lock
     def put_job(self, job: Job) -> None:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "put_job"})
         with self._sqlite_connection(self._jobs_db_path) as conn:
@@ -263,8 +260,9 @@ class LocalAdminDatabase(AdminDatabase):
             )
 
     @override
-    @with_lock
+    @db_span("db.update_job", table="admin-db")
     def update_job(self, job_update: Job) -> None:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "update_job"})
         uid = job_update.uid
         job = self.get_job(uid)
 
@@ -288,7 +286,9 @@ class LocalAdminDatabase(AdminDatabase):
     ###########################################################################
 
     @override
+    @db_span("db.archive_job", table="admin-db")
     def archive_job(self, uid: UUID) -> None:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "archive_job"})
         job = self.get_job(uid)
 
         # Ignore cost and dummy queries
@@ -310,7 +310,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.get_user_queries", table="admin-db")
-    @with_lock
     def get_user_queries(self, username: str) -> list[Job]:
         ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_user_queries"})
         with self._sqlite_connection(self._archives_db_path) as conn:
@@ -322,7 +321,6 @@ class LocalAdminDatabase(AdminDatabase):
 
     @override
     @db_span("db.get_user_dataset_queries", table="admin-db")
-    @with_lock
     def get_user_dataset_queries(
         self,
         user_name: str,

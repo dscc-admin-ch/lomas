@@ -12,7 +12,7 @@ let
 
   pyEnv = pkgs.callPackage ./lib.nix {
     inherit pyproject-nix pyproject-build-systems uv2nix;
-    python = cfg.package;
+    python3 = cfg.package;
     workspaceRoot = ../.;
   };
 in

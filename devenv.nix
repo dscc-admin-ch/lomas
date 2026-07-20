@@ -199,6 +199,9 @@ in
     };
   };
 
+  process.manager.implementation = "process-compose";
+  process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
+
   # Environment variable available inside devenv
   env = {
     GREET = "Lomas env";

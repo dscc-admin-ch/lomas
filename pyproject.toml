@@ -161,10 +161,11 @@ relative_files = true
 # > A pattern with no directory separators matches the file name in any directory.
 omit = [
   "*/administration/dashboard/*.py",
-  "uvicorn_serve.py",
+  "cli.py",
   "api_pb2*.py",
   # FIXME: remove on opendb.mbi switch
-  "*smartnoise_synth.py"
+  "*smartnoise_synth.py",
+  "bench.py",
 ]
 
 [tool.coverage.report]

@@ -352,12 +352,12 @@ in
 
   scripts.run-fastapi = wrapScript {
     pwd = "server/lomas_server";
-    exec = "python -m pdb uvicorn_serve.py";
+    exec = "python -m pdb cli.py start";
   };
 
   scripts.run-worker-debug = wrapScript {
     exec = ''
-      ${pkgs.procps}/bin/pkill -f lomas-work
+      ${pkgs.procps}/bin/pkill -f 'lomas work'
       python -m pdb -m lomas_server.worker
     '';
   };
@@ -365,7 +365,7 @@ in
   scripts.run-lomas-dev = wrapScript {
     pwd = "server/lomas_server";
     exec = ''
-      python uvicorn_server.py &
+      python cli.py start &
       ${config.scripts.run-worker-debug.exec}
     '';
   };

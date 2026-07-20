@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.11, 3.12, 3.13]
+        python-version: [3.11, 3.12, 3.13, 3.14]
 
     steps:
     - uses: actions/checkout@v5
@@ -103,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         id: download
         with:
           pattern: coverage-*

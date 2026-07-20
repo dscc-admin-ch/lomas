@@ -149,7 +149,7 @@ in
           procNames = genList (i: "worker-${toString i}") cfg.worker.replicas;
         in
         genAttrs procNames (name: {
-          exec = "exec lomas-work";
+          exec = "exec lomas work";
           cwd = "${config.git.root}/server/lomas_server";
           ready.notify = true;
           watch = {
@@ -164,7 +164,7 @@ in
 
     {
       processes.lomas-server = {
-        exec = "exec python uvicorn_serve.py";
+        exec = "exec python cli.py start";
         cwd = "${config.git.root}/server/lomas_server";
         ready = {
           notify = true;

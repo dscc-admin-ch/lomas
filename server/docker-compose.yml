@@ -37,7 +37,7 @@ services:
     image: lomas-oci:latest
     container_name: lomas_worker_dev
     restart: always
-    command: lomas-work
+    command: lomas work
     volumes:
       - ./lomas_server:/code/server/lomas_server
       - ../core/lomas_core:/code/core/lomas_core

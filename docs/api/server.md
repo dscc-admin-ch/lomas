@@ -28,5 +28,5 @@
 :::lomas_server.routes.routes_dp
 :::lomas_server.routes.utils
 :::lomas_server.utils.metrics
-:::lomas_server.uvicorn_serve
+:::lomas_server.cli
 :::lomas_server.worker

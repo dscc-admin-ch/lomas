@@ -236,7 +236,10 @@ def add_dex_users_via_yaml(
         clean (bool): Whether to remove existing users and start with a clean state.
         overwrite(bool): Whether to overwrite existing users.
     """
-    user_list = UserCollection(**yaml.safe_load(yaml_file.resolve().open(encoding="utf-8")))
+    # process substitution pipes don't like being resolved...
+    # although zsh =(...) solve the issue it won't help <(...)
+    user_file = yaml_file if yaml_file.is_absolute() else yaml_file.resolve()
+    user_list = UserCollection(**yaml.safe_load(user_file.open(encoding="utf-8")))
     return add_dex_users(dex_config, user_list, clean, overwrite)
 
 

@@ -275,6 +275,7 @@ in
   ]
   # Additional useful packages
   ++ lib.optionals (!config.container.isBuilding) [
+    pkgs.nix-output-monitor
     pkgs.jq
     pkgs.yq-go
     pkgs.watchexec
@@ -382,9 +383,9 @@ in
   scripts.docker-load-image = wrapScript {
     exec = ''
       echo "building lomas OCI"
-      out=$(devenv build outputs.lomas-oci | jq -r '.["outputs.lomas-oci"]')
+      nom build ''${DEVENV_ROOT:=.}#lomas-oci -o oci_archive
       echo "loading into docker"
-      TMPDIR=/tmp docker load -i $out
+      TMPDIR=/tmp docker load -i oci_archive
     '';
   };
 

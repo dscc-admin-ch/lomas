@@ -6,6 +6,10 @@ services:
     container_name: lomas_server_dev
     ports:
       - ${LOMAS_SERVICE_PORT}:${LOMAS_SERVICE_PORT}
+    environment:
+      - LOMAS_SERVICE_server__host_port=${LOMAS_SERVICE_PORT}
+      - LOMAS_CLIENT_APP_URL=http://lomas_server:${LOMAS_SERVICE_PORT}
+      - LOMAS_ADMIN_server_url=http://lomas_server:${LOMAS_SERVICE_PORT}
     restart: always
     volumes:
       - ./lomas_server:/code/server/lomas_server

@@ -12113,7 +12113,7 @@ log level than the root logger.</p>
 <span class="sd">        level (str): Log level for the root logger.</span>
 <span class="sd">        lomas_level (str): Log level for the parent logger.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">250</span><span class="p">)</span>
+    <span class="n">console</span> <span class="o">=</span> <span class="n">Console</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">force_terminal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
         <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;[</span><span class="si">%X</span><span class="s2">]&quot;</span><span class="p">,</span>

@@ -316,7 +316,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
             assert response_model.result.value.shape[0] > 0
 
-            ## Polars plan with n_unique
+            # Polars plan with n_unique
             plan_nunique = lf.select(pl.col.eco_branch.dp.n_unique()).serialize()
             example_opendp_polars["opendp_json"] = b64encode(plan_nunique).decode("utf-8")
 

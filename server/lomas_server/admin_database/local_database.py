@@ -94,6 +94,7 @@ class LocalAdminDatabase(AdminDatabase):
         self._lock_path = self.directory / "admin.lock"
         self._jobs_db_path = self.directory / "jobs.sqlite3"
         self._archives_db_path = self.directory / "archives.sqlite3"
+        self._misc_db_path = self.directory / "misc.sqlite3"
 
         self.lock = SoftFileLock(self._lock_path, is_singleton=True, timeout=10)
 
@@ -136,15 +137,16 @@ class LocalAdminDatabase(AdminDatabase):
             db.setdefault(TK.USERS, {})
             db.setdefault(TK.DATASETS, {})
             db.setdefault(TK.METADATA, {})
-            db.setdefault(TK.MISC_KEYS, {})
 
         self._init_sqlite_dbs()
 
     def _init_sqlite_dbs(self) -> None:
         """Set defaults for jobs db."""
         with self._sqlite_connection(self._jobs_db_path) as conn:
-            conn.execute(
+            conn.executescript(
                 """
+                BEGIN;
+
                 CREATE TABLE IF NOT EXISTS jobs (
                     uid TEXT PRIMARY KEY,
                     user_name TEXT NOT NULL,
@@ -152,16 +154,15 @@ class LocalAdminDatabase(AdminDatabase):
                     status TEXT NOT NULL,
                     started_at TEXT NOT NULL,
                     job_json TEXT NOT NULL
-                )
+                );
+                CREATE INDEX IF NOT EXISTS idx_job_user_name ON jobs(user_name);
+                CREATE INDEX IF NOT EXISTS idx_status ON jobs(status);
+
                 """
-            )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_user_name ON jobs(user_name)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON jobs(status)")
-            # Make sure there are no more than 200 jobs in the db (except for those in progress).
-            # Enforce at insertion
-            conn.execute("DROP TRIGGER IF EXISTS enforce_num_jobs_on_insert")
-            conn.execute(
+                # Make sure there are no more than 200 jobs in the db (except for those in progress).
+                # Enforce at insertion
                 """
+                DROP TRIGGER IF EXISTS enforce_num_jobs_on_insert;
                 CREATE TRIGGER enforce_num_jobs_on_insert
                 AFTER INSERT ON jobs
                 WHEN NEW.status != 'in_progress'
@@ -175,12 +176,11 @@ class LocalAdminDatabase(AdminDatabase):
                         LIMIT -1 OFFSET 200 -- Keep the 200 newest completed jobs
                     );
                 END;
+
                 """
-            )
-            # Enforce at update
-            conn.execute("DROP TRIGGER IF EXISTS enforce_num_jobs_on_update")
-            conn.execute(
+                # Enforce at update
                 """
+                DROP TRIGGER IF EXISTS enforce_num_jobs_on_update;
                 CREATE TRIGGER enforce_num_jobs_on_update
                 AFTER UPDATE OF status ON jobs
                 WHEN NEW.status != 'in_progress'
@@ -194,12 +194,15 @@ class LocalAdminDatabase(AdminDatabase):
                         LIMIT -1 OFFSET 200
                     );
                 END;
+
+                COMMIT;
                 """
             )
 
         with self._sqlite_connection(self._archives_db_path) as conn:
-            conn.execute(
+            conn.executescript(
                 """
+                BEGIN;
                 CREATE TABLE IF NOT EXISTS archives (
                     uid TEXT PRIMARY KEY,
                     user_name TEXT NOT NULL,
@@ -207,13 +210,26 @@ class LocalAdminDatabase(AdminDatabase):
                     status TEXT NOT NULL,
                     archived_at TEXT,
                     job_json TEXT NOT NULL
-                )
+                );
+                CREATE INDEX IF NOT EXISTS idx_job_user_name ON archives(user_name);
+                CREATE INDEX IF NOT EXISTS idx_job_dataset_name ON archives(dataset_name);
+                CREATE INDEX IF NOT EXISTS idx_jobs_user_dataset ON archives(user_name, dataset_name);
+                COMMIT;
                 """
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_user_name ON archives(user_name)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_job_dataset_name ON archives(dataset_name)")
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_jobs_user_dataset ON archives(user_name, dataset_name)"
+
+        with self._sqlite_connection(self._misc_db_path) as conn:
+            conn.executescript(
+                f"""
+                BEGIN;
+                CREATE TABLE IF NOT EXISTS misc (
+                    name TEXT PRIMARY KEY,
+                    value TEXT NULL,
+                    disabled INTEGER NOT NULL
+                );
+                INSERT OR IGNORE INTO misc (name, value, disabled) VALUES ('{MiscDBKeys.BOOTSTRAP:s}', NULL, 0);
+                COMMIT;
+                """
             )
 
     # Jobs
@@ -810,28 +826,43 @@ class LocalAdminDatabase(AdminDatabase):
     @override
     @with_lock
     def set_bootstrap(self, bootstrap: str) -> None:
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = False
-            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP] = bootstrap
+        with self._sqlite_connection(self._misc_db_path) as conn:
+            conn.execute(
+                "UPDATE misc SET value = ?, disabled = ? WHERE name = ?",
+                (bootstrap, int(False), MiscDBKeys.BOOTSTRAP),
+            )
 
     @override
     @with_lock
     def get_bootstrap(self) -> str | None:
-        with shelve.open(self._shelve_path, flag="r") as db:
-            if TK.MISC_KEYS in db:
-                return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP, None)
-        return None
+        with self._sqlite_connection(self._misc_db_path) as conn:
+            row = conn.execute("SELECT value FROM misc WHERE name = ?", (MiscDBKeys.BOOTSTRAP,)).fetchone()
+            match row:
+                case (bootstrap_key, *_):
+                    return bootstrap_key
+                case None:
+                    return None
+                case _:
+                    raise InternalServerException("Invalid Query Returns")
 
     @override
     @with_lock
     def set_bootstrap_disabled(self, bootstrap_disabled: bool = True) -> None:
-        with shelve.open(self._shelve_path, writeback=True) as db:
-            db[TK.MISC_KEYS][MiscDBKeys.BOOTSTRAP_DISABLED] = bootstrap_disabled
+        with self._sqlite_connection(self._misc_db_path) as conn:
+            conn.execute(
+                "UPDATE misc SET disabled = ? WHERE name = ?",
+                (int(bootstrap_disabled), MiscDBKeys.BOOTSTRAP),
+            )
 
     @override
     @with_lock
     def get_bootstrap_disabled(self) -> bool:
-        with shelve.open(self._shelve_path, flag="r") as db:
-            if TK.MISC_KEYS in db:
-                return db[TK.MISC_KEYS].get(MiscDBKeys.BOOTSTRAP_DISABLED, False)
-        return False
+        with self._sqlite_connection(self._misc_db_path) as conn:
+            row = conn.execute("SELECT disabled FROM misc WHERE name = ?", (MiscDBKeys.BOOTSTRAP,)).fetchone()
+            match row:
+                case (disabled_int, *_):
+                    return bool(disabled_int)
+                case None:
+                    return False
+                case _:
+                    raise InternalServerException("Invalid Query Returns")

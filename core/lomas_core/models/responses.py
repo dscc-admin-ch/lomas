@@ -158,29 +158,6 @@ class SmartnoiseSQLQueryResult(QueryResult):
     """Dataframe containing the query result."""
 
 
-# SmartnoiseSynth
-class SmartnoiseSynthModel(QueryResult):
-    """Type for smartnoise_synth result when it is a pickled model."""
-
-    """Result type description."""
-    type: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
-    """Synthetic data generator model."""
-    # model: Annotated[Synthesizer, PlainSerializer(serialize_model), PlainValidator(deserialize_model)]
-
-
-class SmartnoiseSynthSamples(QueryResult):
-    """Type for smartnoise_synth result when it is a dataframe of samples."""
-
-    type: Literal["sn_synth_samples"] = "sn_synth_samples"
-    """Result type description."""
-    df_samples: Annotated[
-        pd.DataFrame,
-        PlainSerializer(dataframe_to_dict),
-        PlainValidator(dataframe_from_dict),
-    ]
-    """Dataframe containing the generated synthetic samples."""
-
-
 # OpenDP
 class OpenDPQueryResult(QueryResult):
     """Type for opendp result."""
@@ -208,12 +185,7 @@ class OpenDPPolarsQueryResult(QueryResult):
 
 # Response object
 QueryResultT = Annotated[
-    DiffPrivLibQueryResult
-    | SmartnoiseSQLQueryResult
-    | SmartnoiseSynthModel
-    | SmartnoiseSynthSamples
-    | OpenDPQueryResult
-    | OpenDPPolarsQueryResult,
+    DiffPrivLibQueryResult | SmartnoiseSQLQueryResult | OpenDPQueryResult | OpenDPPolarsQueryResult,
     Discriminator("type"),
 ]
 

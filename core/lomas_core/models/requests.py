@@ -4,8 +4,6 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from lomas_core.constants import (
     DPLibraries,
-    SSynthGanSynthesizer,
-    SSynthMarginalSynthesizer,
 )
 from lomas_core.models.constants import JSON_SCHEMA_EXAMPLES, PrivateDatabaseType, QueryTypes
 from lomas_core.models.requests_examples import (
@@ -13,12 +11,9 @@ from lomas_core.models.requests_examples import (
     EXAMPLE_DUMMY_DIFFPRIVLIB,
     EXAMPLE_DUMMY_OPENDP,
     EXAMPLE_DUMMY_SMARTNOISE_SQL,
-    EXAMPLE_DUMMY_SMARTNOISE_SYNTH_QUERY,
     EXAMPLE_OPENDP_POLARS,
     EXAMPLE_SMARTNOISE_SQL,
     EXAMPLE_SMARTNOISE_SQL_COST,
-    EXAMPLE_SMARTNOISE_SYNTH_COST,
-    EXAMPLE_SMARTNOISE_SYNTH_QUERY,
 )
 
 
@@ -160,71 +155,6 @@ class SmartnoiseSQLDummyQueryModel(SmartnoiseSQLQueryModel, DummyQueryModel):
     request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
 
 
-# SmartnoiseSynth
-# ----------------------------------------------------------------------------
-class SmartnoiseSynthRequestModel(LomasRequestModel):
-    """Base input model for a SmartnoiseSynth request."""
-
-    library: Literal[DPLibraries.SMARTNOISE_SYNTH] = DPLibraries.SMARTNOISE_SYNTH
-
-    synth_name: SSynthMarginalSynthesizer | SSynthGanSynthesizer
-    """Name of the synthesizer model to use."""
-    epsilon: Annotated[float, Field(gt=0)]
-    """Privacy parameter (e.g., 0.1)."""
-    delta: Annotated[float | None, Field(ge=0)]
-    """Privacy parameter (e.g., 1e-5)."""
-    select_cols: list
-    """List of columns to select."""
-    synth_params: dict
-    """
-    Keyword arguments to pass to the synthesizer constructor.
-
-    See https://docs.smartnoise.org/synth/synthesizers/index.html#, provide
-    all parameters of the model except `epsilon` and `delta`.
-    """
-    nullable: bool
-    """True if some data cells may be null."""
-    constraints: str
-    """
-    Dictionnary for custom table transformer constraints.
-
-    Column that are not specified will be inferred based on metadata.
-    """
-
-
-class SmartnoiseSynthCostQueryModel(SmartnoiseSynthRequestModel, CostQueryModel):
-    """Base input model for a smartnoise-synth cost query."""
-
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SYNTH_COST]})
-
-
-class SmartnoiseSynthQueryModel(SmartnoiseSynthRequestModel, QueryModel):
-    """Base input model for a smarnoise-synth query."""
-
-    model_config = ConfigDict(json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_SMARTNOISE_SYNTH_QUERY]})
-
-    return_model: bool
-    """True to get Synthesizer model, False to get samples."""
-    condition: str
-    """Sampling condition in `model.sample` (only relevant if return_model is False)."""
-    nb_samples: int
-    """Number of samples to generate.
-
-    (only relevant if return_model is False)
-    """
-
-
-class SmartnoiseSynthDummyQueryModel(SmartnoiseSynthQueryModel, DummyQueryModel):
-    """Input model for a smarnoise-synth query on a dummy dataset."""
-
-    model_config = ConfigDict(
-        json_schema_extra={JSON_SCHEMA_EXAMPLES: [EXAMPLE_DUMMY_SMARTNOISE_SYNTH_QUERY]}
-    )
-
-    # Avoid conflict between QueryModel and DummyQueryMdoel
-    request_type: Literal[QueryTypes.DUMMY] = QueryTypes.DUMMY  # type: ignore[assignment]
-
-
 # OpenDP
 # ----------------------------------------------------------------------------
 class OpenDPRequestModel(LomasRequestModel):
@@ -335,11 +265,6 @@ SmartnoiseSQLAnyModel = Annotated[
     Field(discriminator="request_type"),
 ]
 
-SmartnoiseSynthAnyModel = Annotated[
-    SmartnoiseSynthCostQueryModel | SmartnoiseSynthQueryModel | SmartnoiseSynthDummyQueryModel,
-    Field(discriminator="request_type"),
-]
-
 OpenDPAnyModel = Annotated[
     OpenDPCostQueryModel | OpenDPQueryModel | OpenDPDummyQueryModel,
     Field(discriminator="request_type"),
@@ -351,7 +276,7 @@ DiffPrivLibAnyModel = Annotated[
 ]
 
 AnyLomasRequest = Annotated[
-    SmartnoiseSQLAnyModel | SmartnoiseSynthAnyModel | OpenDPAnyModel | DiffPrivLibAnyModel,
+    SmartnoiseSQLAnyModel | OpenDPAnyModel | DiffPrivLibAnyModel,
     Field(discriminator="library"),
 ]
 

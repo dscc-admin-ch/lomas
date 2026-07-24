@@ -90,11 +90,14 @@ def init_logging(name: str, level: str = "INFO", lomas_level: str = "INFO") -> N
         level (str): Log level for the root logger.
         lomas_level (str): Log level for the parent logger.
     """
-    console = Console(width=250, force_terminal=True)
+    console = Console(width=200, force_terminal=True)
     logging.basicConfig(
-        format="%(message)s %(name)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(console=console, rich_tracebacks=False, tracebacks_show_locals=True)],
+        format="%(asctime)s - %(message)s - %(name)s",
+        # datefmt="[%X]",
+        datefmt="[%H:%M:%S.%f]",
+        handlers=[
+            RichHandler(console=console, show_time=True, rich_tracebacks=False, tracebacks_show_locals=True)
+        ],
         level=level,
     )
 

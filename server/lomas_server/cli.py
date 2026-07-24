@@ -22,6 +22,10 @@ class ServiceConfig(Config):
         log_config = LOGGING_CONFIG
         log_config["handlers"]["access"]["filters"] = [FilterOutLiveSuccess()]
 
+        fmt = log_config["formatters"]["default"]["fmt"]
+        log_config["formatters"]["default"]["fmt"] = f"%(asctime)s | {fmt}"
+        log_config["formatters"]["default"]["datefmt"] = "%H:%M:%S"
+
         uvicorn.run(
             "lomas_server.app:app",
             host=self.server.host_ip,

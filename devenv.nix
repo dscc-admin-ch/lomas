@@ -420,6 +420,7 @@ in
   enterTest = ''
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
+    grep -m 1 Ready <(process-compose process monitor lomas-server)
     ${config.scripts.ut.exec}
   '';
 

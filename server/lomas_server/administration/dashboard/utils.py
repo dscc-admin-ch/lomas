@@ -75,10 +75,10 @@ def confirm_delete(
 
 @impure_safe
 def parse_if_ok(response: httpx2.Response) -> str:
-    from lomas_core.models.constants import get_lomas_logger
+    # from lomas_core.models.constants import get_lomas_logger
 
-    logger = get_lomas_logger(__name__)
-    logger.info(response)
+    # logger = get_lomas_logger(__name__)
+    # logger.info(response)
     return response.raise_for_status().json()
 
 

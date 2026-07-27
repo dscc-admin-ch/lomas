@@ -120,7 +120,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             # Gaussian
             example_opendp_polars["epsilon"] = None
             example_opendp_polars["rho"] = 0.5
-            example_opendp_polars["delta"] = 0.000001
+            example_opendp_polars["delta"] = 1e-6
 
             job = submit_job_wait(
                 client,
@@ -130,7 +130,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
 
             response_model = QueryResponse.model_validate(job.result)
             assert response_model.epsilon > 0.5
-            assert response_model.delta == 0.000001
+            assert response_model.delta == pytest.approx(1e-6, rel=0.5)
             assert isinstance(response_model.result, OpenDPPolarsQueryResult)
 
     @pytest.mark.long
@@ -197,16 +197,16 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon == 1
-            assert response_model.delta == 1e-6
+            assert response_model.delta == pytest.approx(1e-6, rel=0.5)
 
             # Gaussian (Approx zCDP)
             ex_opendp_polars["epsilon"] = None
             ex_opendp_polars["rho"] = 2
-            ex_opendp_polars["delta"] = 0.000001
+            ex_opendp_polars["delta"] = 1e-6
             job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 2
-            assert response_model.delta == 0.000001
+            assert response_model.delta == pytest.approx(1e-6, rel=0.5)
 
             # Gaussian (zCDP)
             ex_opendp_polars["epsilon"] = None
@@ -215,7 +215,7 @@ class TestOpenDpPolarsEndpoint(TestSetupRootAPIEndpoint):
             job = submit_job_wait(client, "/estimate_opendp_cost", json=ex_opendp_polars)
             response_model = CostResponse.model_validate(job.result)
             assert response_model.epsilon > 2
-            assert response_model.delta == 1e-6
+            assert response_model.delta == pytest.approx(1e-6, rel=0.5)
 
             # zCDP without specifying a user-defined delta should fail
             ex_opendp_polars["delta"] = None

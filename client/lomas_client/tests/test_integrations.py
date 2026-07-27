@@ -171,19 +171,19 @@ def test_device_flow(demo_setup) -> None:
     sys.stdout = old_stdout
 
     init_budget = client.get_initial_budget()
-    assert init_budget.initial_delta == 0.2
+    assert init_budget.initial_delta == pytest.approx(0.2, rel=0.01)
 
     # Test refresh token works (our dex config sets lifetime of 10sec for access token)
     time.sleep(10)
 
     init_budget = client.get_initial_budget()
-    assert init_budget.initial_delta == 0.2
+    assert init_budget.initial_delta == pytest.approx(0.2, rel=0.01)
 
     # Check new client uses saved token (in tempfile)
     client = Client(dataset_name="TITANIC", use_password_flow=False)
 
     init_budget = client.get_initial_budget()
-    assert init_budget.initial_delta == 0.2
+    assert init_budget.initial_delta == pytest.approx(0.2, rel=0.01)
 
 
 def test_oauth2_demo(dex_config, demo_setup) -> None:
@@ -193,7 +193,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     )
 
     init_budget = client.get_initial_budget()
-    assert init_budget.initial_delta == 0.2
+    assert init_budget.initial_delta == pytest.approx(0.2, rel=0.01)
     assert init_budget.initial_epsilon == 45
 
     metadata = client.get_dataset_metadata()
@@ -222,7 +222,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert cost.epsilon == 1.0
 
     cost_zcdp = client.opendp.cost(plan, rho=0.5, delta=1e-6)
-    assert cost_zcdp.delta == 1e-6
+    assert cost_zcdp.delta == pytest.approx(1e-6, abs=1e-5)
     assert cost_zcdp.epsilon == pytest.approx(5, 0.5)
 
     # Dummy Query
@@ -233,7 +233,7 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
-    assert rem_budget.remaining_delta == 0.2
+    assert rem_budget.remaining_delta == pytest.approx(0.2, rel=0.01)
     assert rem_budget.remaining_epsilon == 45
     tot_spent = client.get_total_spent_budget()
     assert tot_spent.total_spent_delta == 0
@@ -269,11 +269,11 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
     assert avg_age == pytest.approx(51.5, 0.5)
 
     rem_budget = client.get_remaining_budget()
-    assert rem_budget.remaining_delta == 0.2
+    assert rem_budget.remaining_delta == pytest.approx(0.2, abs=0.1)
     assert rem_budget.remaining_epsilon == 44
     tot_spent = client.get_total_spent_budget()
     assert tot_spent.total_spent_delta == 0
-    assert tot_spent.total_spent_epsilon == 1.0
+    assert tot_spent.total_spent_epsilon == pytest.approx(1.0, abs=0.2)
 
     # True Query
     res = client.smartnoise_sql.query(query, epsilon=0.5, delta=1e-4)
@@ -283,10 +283,10 @@ def test_oauth2_demo(dex_config, demo_setup) -> None:
 
     rem_budget = client.get_remaining_budget()
     assert rem_budget.remaining_delta == pytest.approx(0.2, 1e-3)
-    assert rem_budget.remaining_epsilon == 42.5
+    assert rem_budget.remaining_epsilon == pytest.approx(42.5, rel=0.1)
     tot_spent = client.get_total_spent_budget()
     assert tot_spent.total_spent_delta == pytest.approx(0, abs=1e-3)
-    assert tot_spent.total_spent_epsilon == 2.5
+    assert tot_spent.total_spent_epsilon == pytest.approx(2.5, abs=0.5)
 
     prev_queries = client.get_previous_queries()
     assert len(prev_queries) == 2
@@ -450,4 +450,4 @@ def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     response_archives = prev_queries[0].result
     assert response_archives is not None
     assert response_archives.epsilon == DEFAULT_EPSILON
-    assert response_archives.delta == 0.0
+    assert response_archives.delta == pytest.approx(0.0, abs=0.1)

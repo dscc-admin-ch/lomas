@@ -16,8 +16,10 @@ def free_pass_env(*, auth_env_key="LOMAS_SERVICE_authenticator__authentication_t
     """Enter a context with modified os environment using free_pass authentication."""
     previous_auth = os.getenv(auth_env_key, "")
     os.environ[auth_env_key] = AuthenticationType.FREE_PASS
-    yield
-    os.environ[auth_env_key] = previous_auth
+    try:
+        yield
+    finally:
+        os.environ[auth_env_key] = previous_auth
 
 
 def wait_for_job(client: httpx2.Client, endpoint: str, headers: dict[str, str] | None = None) -> Job:

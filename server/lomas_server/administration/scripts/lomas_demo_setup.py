@@ -6,10 +6,9 @@ import httpx2
 from pydantic import Field
 from pydantic_settings import CliApp, SettingsConfigDict
 from returns.io import IOFailure, IOResultE, IOSuccess
-from returns.iterables import Fold
 from returns.maybe import Maybe
 from returns.pipeline import flow
-from returns.pointfree import map_
+from returns.pointfree import bind, map_
 from returns.result import Failure
 from rich.pretty import pprint
 
@@ -52,7 +51,6 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
     Args:
         config (AdminConfig): The administration config.
     """
-    pprint("Creating user collection from Config")
     pprint(config)
 
     add_users: IOResultE = query_lomas(
@@ -75,7 +73,6 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         ),
     ).value_or(IOSuccess("No Dex config"))
 
-    pprint("Creating datasets and metadata collection")
     add_datasets: IOResultE = query_lomas(
         "/dataset/bulk",
         httpx2.post,
@@ -84,14 +81,24 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
-    pprint("Empty archives")
     delete_archives: IOResultE = query_lomas(
         f"/collections/{TK.ARCHIVE}",
         httpx2.delete,
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
-    return Fold.collect([add_users, add_dex_users, add_datasets, delete_archives], IOSuccess(()))
+    result = flow(
+        IOSuccess(()),
+        map_(lambda _: pprint("Creating user collection from Config")),
+        bind(lambda _: add_users),
+        map_(lambda _: pprint("Adding Dex Users")),
+        bind(lambda _: add_dex_users),
+        map_(lambda _: pprint("Creating datasets and metadata collection")),
+        bind(lambda _: add_datasets),
+        map_(lambda _: pprint("Empty archives")),
+        bind(lambda _: delete_archives),
+    )
+    return result
 
 
 def lomas_demo_setup(demo_config: DemoAdminConfig | None = None) -> int:

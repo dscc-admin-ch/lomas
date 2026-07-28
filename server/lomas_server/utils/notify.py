@@ -19,7 +19,7 @@ def notify(message: bytes) -> None:
     if socket_path is None or len(socket_path) == 0:
         return
 
-    if socket_path[0] not in ("/", "@"):
+    if socket_path[0] not in {"/", "@"}:
         raise OSError(errno.EAFNOSUPPORT, "Unsupported socket type")
 
     # Handle abstract socket.

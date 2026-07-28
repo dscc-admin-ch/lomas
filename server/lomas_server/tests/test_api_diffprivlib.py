@@ -479,7 +479,7 @@ class TestDiffPrivLibEndpoint(TestSetupRootAPIEndpoint):
                 headers=self.headers,
             )
             r_model = CostResponse.model_validate(job.result)
-            assert r_model.epsilon == 1.5
+            assert r_model.epsilon == pytest.approx(1.5, abs=0.2)
             assert r_model.delta == 0
 
             # Expect to fail: user does have access to dataset

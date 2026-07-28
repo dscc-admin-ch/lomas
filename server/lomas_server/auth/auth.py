@@ -64,7 +64,7 @@ class OIDCAuthenticator(BaseModel):
     # TODO add ttl to cache?
     @cached_property
     def oidc_config(self) -> OIDCConfig:
-        """Returns the oidc provider config."""
+        """The oidc provider config."""
         response = requests.get(str(self.oidc_discovery_url))
         response.raise_for_status()
 

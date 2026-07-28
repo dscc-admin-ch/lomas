@@ -141,7 +141,7 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
         if task.cancelled():
             logger.warning(f"Rabbit task {task.get_name()!r} cancelled")
         elif exc := task.exception():
-            logger.exception(f"Exception in rabbit task {task.get_name()!r}.", exc_info=exc)
+            logger.error(f"Exception in rabbit task {task.get_name()!r}.", exc_info=exc)
             raise InternalServerException from exc
 
     def make_task(coroutine: Coroutine, name: str) -> None:

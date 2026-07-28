@@ -72,8 +72,10 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
 
     async with rabbitmq_ctx(lomas_app):
         notify(b"READY=1")
-        yield  # lomas_app is handling requests
-        notify(b"STOPPING=1")
+        try:
+            yield  # lomas_app is handling requests
+        finally:
+            notify(b"STOPPING=1")
 
 
 # Init config for logging purposes

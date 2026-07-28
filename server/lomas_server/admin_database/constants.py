@@ -14,7 +14,6 @@ class TopDBKey(StrEnum):
 class MiscDBKeys(StrEnum):
     """Key for selecting sub elements in misc collection."""
 
-    BOOTSTRAP_DISABLED = "bootstrap_disabled"
     BOOTSTRAP = "bootstrap"
 
 

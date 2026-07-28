@@ -61,8 +61,6 @@ def add_lomas_demo_data(config: DemoAdminConfig) -> IOResultE:
         headers={"Authorization": f"Bearer {config.bootstrap}"},
     )
 
-    pprint(add_users)
-
     add_dex_users: IOResultE = flow(
         config.dex_config,  # DexAdminConfig | None
         Maybe.from_optional,  # Maybe[DexAdminConfig]

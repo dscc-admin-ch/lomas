@@ -139,8 +139,8 @@ exclude = [ ".devenv/**/*.py", "**/api_pb2*" ] # pydocstringformatter uses a wie
 
 [tool.pytest.ini_options]
 log_cli_level = "INFO" # can be overridden in pytest --log-cli-level=DEBUG ...
-log_format = "%(asctime)s %(levelname)s %(message)s"
-log_cli = false # Change to true for live logs (even for successfull tests)
+log_format = "%(asctime)s %(levelname)s %(message)s" # Make sure log timestamps are shown
+log_cli = false # Change to true for live logs (no equivalent cli option)
 #syntax = action:message:category:module:line (@docs.python.org/3/library/warnings.html)
 filterwarnings = [
   "ignore::DeprecationWarning:(jupyter_client|aio_pika).*:",

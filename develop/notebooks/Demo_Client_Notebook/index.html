@@ -6572,21 +6572,23 @@ She also decides to use the <code>patectgan</code> synthesizer and keep all othe
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">res_dummy</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_synth</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-    <span class="n">synth_name</span><span class="o">=</span><span class="s2">"patectgan"</span><span class="p">,</span>
-    <span class="n">select_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"island"</span><span class="p">,</span> <span class="s2">"bill_length_mm"</span><span class="p">,</span> <span class="s2">"bill_depth_mm"</span><span class="p">],</span>
-    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">dummy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">dummy_synth_df</span> <span class="o">=</span> <span class="n">res_dummy</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df_samples</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># TODO replace with opendp synth once supported</span>
+<span class="c1"># res_dummy = client.smartnoise_synth.query(</span>
+<span class="c1">#     synth_name="patectgan",</span>
+<span class="c1">#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],</span>
+<span class="c1">#     epsilon=1.0,</span>
+<span class="c1">#     dummy=True,</span>
+<span class="c1"># )</span>
+<span class="c1"># dummy_synth_df = res_dummy.result.df_samples</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-50">res_dummy = client.smartnoise_synth.query(
-    synth_name="patectgan",
-    select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
-    epsilon=1.0,
-    dummy=True,
-)
-dummy_synth_df = res_dummy.result.df_samples</div>
+<div class="clipboard-copy-txt" id="cell-50"># TODO replace with opendp synth once supported
+# res_dummy = client.smartnoise_synth.query(
+#     synth_name="patectgan",
+#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
+#     epsilon=1.0,
+#     dummy=True,
+# )
+# dummy_synth_df = res_dummy.result.df_samples</div>
 </div>
 </div>
 </div>
@@ -6611,9 +6613,9 @@ dummy_synth_df = res_dummy.result.df_samples</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">dummy_synth_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># dummy_synth_df.head()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-51">dummy_synth_df.head()</div>
+<div class="clipboard-copy-txt" id="cell-51"># dummy_synth_df.head()</div>
 </div>
 </div>
 </div>
@@ -6715,19 +6717,19 @@ dummy_synth_df = res_dummy.result.df_samples</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">res_cost</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_synth</span><span class="o">.</span><span class="n">cost</span><span class="p">(</span>
-    <span class="n">synth_name</span><span class="o">=</span><span class="s2">"patectgan"</span><span class="p">,</span>
-    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">select_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"island"</span><span class="p">,</span> <span class="s2">"bill_length_mm"</span><span class="p">,</span> <span class="s2">"bill_depth_mm"</span><span class="p">],</span>
-<span class="p">)</span>
-<span class="n">res_cost</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># res_cost = client.smartnoise_synth.cost(</span>
+<span class="c1">#     synth_name="patectgan",</span>
+<span class="c1">#     epsilon=1.0,</span>
+<span class="c1">#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],</span>
+<span class="c1"># )</span>
+<span class="c1"># res_cost</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-52">res_cost = client.smartnoise_synth.cost(
-    synth_name="patectgan",
-    epsilon=1.0,
-    select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
-)
-res_cost</div>
+<div class="clipboard-copy-txt" id="cell-52"># res_cost = client.smartnoise_synth.cost(
+#     synth_name="patectgan",
+#     epsilon=1.0,
+#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
+# )
+# res_cost</div>
 </div>
 </div>
 </div>
@@ -6784,21 +6786,21 @@ res_cost</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">smartnoise_synth</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
-    <span class="n">synth_name</span><span class="o">=</span><span class="s2">"patectgan"</span><span class="p">,</span>
-    <span class="n">select_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"island"</span><span class="p">,</span> <span class="s2">"bill_length_mm"</span><span class="p">,</span> <span class="s2">"bill_depth_mm"</span><span class="p">],</span>
-    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">dummy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">synth_df</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">df_samples</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># res = client.smartnoise_synth.query(</span>
+<span class="c1">#     synth_name="patectgan",</span>
+<span class="c1">#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],</span>
+<span class="c1">#     epsilon=1.0,</span>
+<span class="c1">#     dummy=False,</span>
+<span class="c1"># )</span>
+<span class="c1"># synth_df = res.result.df_samples</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-53">res = client.smartnoise_synth.query(
-    synth_name="patectgan",
-    select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
-    epsilon=1.0,
-    dummy=False,
-)
-synth_df = res.result.df_samples</div>
+<div class="clipboard-copy-txt" id="cell-53"># res = client.smartnoise_synth.query(
+#     synth_name="patectgan",
+#     select_cols = ["island", "bill_length_mm", "bill_depth_mm"],
+#     epsilon=1.0,
+#     dummy=False,
+# )
+# synth_df = res.result.df_samples</div>
 </div>
 </div>
 </div>
@@ -6841,9 +6843,9 @@ synth_df = res.result.df_samples</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">synth_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># synth_df.head()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-54">synth_df.head()</div>
+<div class="clipboard-copy-txt" id="cell-54"># synth_df.head()</div>
 </div>
 </div>
 </div>
@@ -6945,11 +6947,11 @@ synth_df = res.result.df_samples</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">synth_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">synth_df</span><span class="p">[</span><span class="s2">"bill_length_mm"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">synth_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">synth_df</span><span class="p">[</span><span class="s2">"bill_length_mm"</span><span class="p">]</span><span class="o">.</span><span class="n">var</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># synth_mean = np.round(synth_df["bill_length_mm"].mean(), 2)</span>
+<span class="c1"># synth_variance = np.round(synth_df["bill_length_mm"].var(), 2)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-55">synth_mean = np.round(synth_df["bill_length_mm"].mean(), 2)
-synth_variance = np.round(synth_df["bill_length_mm"].var(), 2)</div>
+<div class="clipboard-copy-txt" id="cell-55"># synth_mean = np.round(synth_df["bill_length_mm"].mean(), 2)
+# synth_variance = np.round(synth_df["bill_length_mm"].var(), 2)</div>
 </div>
 </div>
 </div>
@@ -6974,15 +6976,15 @@ synth_variance = np.round(synth_df["bill_length_mm"].var(), 2)</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"The average with Smartnoise-SQL on private data was </span><span class="si">{</span><span class="n">avg_bill_length</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">"</span>
-    <span class="o">+</span> <span class="sa">f</span><span class="s2">"The average with Smartnoise-Synth on synthetic data is </span><span class="si">{</span><span class="n">synth_mean</span><span class="si">}</span><span class="s2">."</span>
-<span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># print(</span>
+<span class="c1">#     f"The average with Smartnoise-SQL on private data was {avg_bill_length}.\n"</span>
+<span class="c1">#     + f"The average with Smartnoise-Synth on synthetic data is {synth_mean}."</span>
+<span class="c1"># )</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-56">print(
-    f"The average with Smartnoise-SQL on private data was {avg_bill_length}.\n"
-    + f"The average with Smartnoise-Synth on synthetic data is {synth_mean}."
-)</div>
+<div class="clipboard-copy-txt" id="cell-56"># print(
+#     f"The average with Smartnoise-SQL on private data was {avg_bill_length}.\n"
+#     + f"The average with Smartnoise-Synth on synthetic data is {synth_mean}."
+# )</div>
 </div>
 </div>
 </div>
@@ -7020,15 +7022,15 @@ The average with Smartnoise-Synth on synthetic data is 48.04.
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="nb">print</span><span class="p">(</span>
-    <span class="sa">f</span><span class="s2">"The variance with opendp on private data was </span><span class="si">{</span><span class="n">var_bill_length</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">"</span>
-    <span class="o">+</span> <span class="sa">f</span><span class="s2">"The variance with Smartnoise-Synth on synthetic data is </span><span class="si">{</span><span class="n">synth_variance</span><span class="si">}</span><span class="s2">."</span>
-<span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># print(</span>
+<span class="c1">#     f"The variance with opendp on private data was {var_bill_length}.\n"</span>
+<span class="c1">#     + f"The variance with Smartnoise-Synth on synthetic data is {synth_variance}."</span>
+<span class="c1"># )</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-57">print(
-    f"The variance with opendp on private data was {var_bill_length}.\n"
-    + f"The variance with Smartnoise-Synth on synthetic data is {synth_variance}."
-)</div>
+<div class="clipboard-copy-txt" id="cell-57"># print(
+#     f"The variance with opendp on private data was {var_bill_length}.\n"
+#     + f"The variance with Smartnoise-Synth on synthetic data is {synth_variance}."
+# )</div>
 </div>
 </div>
 </div>
@@ -7294,12 +7296,12 @@ reg_bill_length_query</div>
 </clipboard-copy>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Smartnoise-Synth</span>
-<span class="n">sysynth_query</span> <span class="o">=</span> <span class="n">previous_queries</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">sysynth_query</span>
+<span class="c1"># sysynth_query = previous_queries[3]</span>
+<span class="c1"># sysynth_query</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-62"># Smartnoise-Synth
-sysynth_query = previous_queries[3]
-sysynth_query</div>
+# sysynth_query = previous_queries[3]
+# sysynth_query</div>
 </div>
 </div>
 </div>

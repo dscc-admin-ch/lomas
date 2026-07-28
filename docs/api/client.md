@@ -4,7 +4,6 @@
 :::lomas_client.libraries.diffprivlib
 :::lomas_client.libraries.opendp
 :::lomas_client.libraries.smartnoise_sql
-:::lomas_client.libraries.smartnoise_synth
 :::lomas_client.models.config
 :::lomas_client.scripts.run_notebook
 :::lomas_client.tests.test_integrations

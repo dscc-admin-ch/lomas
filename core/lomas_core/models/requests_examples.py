@@ -6,7 +6,6 @@ from pydantic import JsonValue
 
 from lomas_core.constants import (
     DPLibraries,
-    SSynthGanSynthesizer,
 )
 from lomas_core.models.constants import (
     DIFFPRIVLIB_VERSION,
@@ -77,34 +76,6 @@ EXAMPLE_SMARTNOISE_SQL["postprocess"] = True
 EXAMPLE_SMARTNOISE_SQL["request_type"] = QueryTypes.QUERY
 
 EXAMPLE_DUMMY_SMARTNOISE_SQL: dict[str, JsonValue] = make_dummy(EXAMPLE_SMARTNOISE_SQL)
-
-# Smartnoise-Synth
-# -----------------------------------------------------------------------------
-
-EXAMPLE_SMARTNOISE_SYNTH_COST: dict[str, JsonValue] = {
-    "library": DPLibraries.SMARTNOISE_SYNTH,
-    "request_type": QueryTypes.COST,
-    "dataset_name": PENGUIN_DATASET,
-    "synth_name": SSynthGanSynthesizer.DP_CTGAN,
-    "epsilon": QUERY_EPSILON,
-    "delta": QUERY_DELTA,
-    "select_cols": [],
-    "synth_params": {
-        "embedding_dim": 128,
-        "batch_size": 50,
-        "epochs": 5,
-    },
-    "nullable": True,
-    "constraints": "",
-}
-EXAMPLE_SMARTNOISE_SYNTH_QUERY: dict[str, JsonValue] = dict(EXAMPLE_SMARTNOISE_SYNTH_COST)
-EXAMPLE_SMARTNOISE_SYNTH_QUERY["return_model"] = True
-EXAMPLE_SMARTNOISE_SYNTH_QUERY["condition"] = ""
-EXAMPLE_SMARTNOISE_SYNTH_QUERY["nb_samples"] = SNSYNTH_NB_SAMPLES
-EXAMPLE_SMARTNOISE_SYNTH_QUERY["request_type"] = QueryTypes.QUERY
-
-
-EXAMPLE_DUMMY_SMARTNOISE_SYNTH_QUERY: dict[str, JsonValue] = make_dummy(EXAMPLE_SMARTNOISE_SYNTH_QUERY)
 
 # OpenDP
 # -----------------------------------------------------------------------------

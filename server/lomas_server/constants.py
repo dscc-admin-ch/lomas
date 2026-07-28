@@ -23,28 +23,6 @@ SSQL_STATS = ["count", "sum_int", "sum_large_int", "sum_float", "threshold"]
 SSQL_MAX_ITERATION = 5
 
 
-# Smartnoise synth
-class SSynthTableTransStyle(StrEnum):
-    """Transformer style for smartnoise synth."""
-
-    GAN = "gan"  # for SSynthGanSynthesizer
-    CUBE = "cube"  # for SSynthMarginalSynthesizer
-
-
-class SSynthColumnType(StrEnum):
-    """Type of columns for SmartnoiseSynth transformer pre-processing."""
-
-    PRIVATE_ID = "private_id"
-    CATEGORICAL = "categorical"
-    CONTINUOUS = "continuous"
-    DATETIME = "datetime"
-
-
-SSYNTH_PRIVATE_COLUMN = "uuid4"
-SSYNTH_DEFAULT_BINS = 10
-SSYNTH_MIN_ROWS_PATE_GAN = 1000
-
-
 # OpenDP
 class OpenDPMeasurement(StrEnum):
     """Type of divergence for opendp measurement.

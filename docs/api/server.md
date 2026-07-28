@@ -16,7 +16,6 @@
 :::lomas_server.dp_queries.dp_libraries.diffprivlib
 :::lomas_server.dp_queries.dp_libraries.opendp
 :::lomas_server.dp_queries.dp_libraries.smartnoise_sql
-:::lomas_server.dp_queries.dp_libraries.smartnoise_synth
 :::lomas_server.dp_queries.dp_libraries.utils
 :::lomas_server.dp_queries.dp_querier
 :::lomas_server.dp_queries.dummy_dataset

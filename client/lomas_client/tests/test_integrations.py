@@ -378,44 +378,6 @@ def test_demo_diffprivlib(dex_config, demo_setup) -> None:
     assert predictions == pytest.approx([20, 20], abs=20)
 
 
-# @pytest.mark.long
-# @pytest.mark.skip(reason="waiting on OpenDP 0.14 synth")
-# def test_demo_smartnoise_synth(dex_config, demo_setup) -> None:
-#     user_name = "Dr.Antartica"
-#     client = Client(
-#         user_name=f"{user_name.lower()}@example.com", user_password=user_name.lower(), dataset_name="PENGUIN"
-#     )
-
-#     cost_res = client.smartnoise_synth.cost(
-#         synth_name="aim",
-#         epsilon=1.0,
-#         delta=0.0001,
-#         select_cols=["species", "island"],
-#     )
-#     assert cost_res.epsilon == pytest.approx(1, 0.05)
-#     assert cost_res.delta == pytest.approx(1e-4, abs=5e-5)
-
-#     for dummy in [True, False]:
-#         res = client.smartnoise_synth.query(
-#             synth_name="dpgan",
-#             epsilon=1.0,
-#             condition="body_mass_g > 5000",
-#             nb_samples=10,
-#             dummy=dummy,
-#         )
-#         res_df = res.result.df_samples
-#         assert res_df.flipper_length_mm.mean() == pytest.approx(200, 0.25)
-#         assert res_df.body_mass_g.min() >= 5000
-
-#     prev_queries = client.get_previous_queries()
-#     assert len(prev_queries) == 1
-#     assert prev_queries[0]["dataset_name"] == "PENGUIN"
-#     assert prev_queries[0]["dp_library"] == "smartnoise_synth"
-#     response_archives = prev_queries[0]["response"]
-#     assert response_archives["epsilon"] == 1.0
-#     assert response_archives["delta"] >= 0.0
-
-
 def test_demo_opendp_polars(dex_config, demo_setup) -> None:
     user_name = "Dr.FSO"
     client = Client(

@@ -14,9 +14,6 @@ from lomas_core.models.requests import (
     SmartnoiseSQLCostQueryModel,
     SmartnoiseSQLDummyQueryModel,
     SmartnoiseSQLQueryModel,
-    SmartnoiseSynthCostQueryModel,
-    SmartnoiseSynthDummyQueryModel,
-    SmartnoiseSynthQueryModel,
 )
 from lomas_core.models.responses import Job
 from lomas_server.routes.error_handler import API_ERROR_RESPONSES
@@ -138,123 +135,6 @@ async def estimate_smartnoise_sql_cost(
         Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
     """
     return await handle_query_to_job(request, smartnoise_sql_query, user_id, DPLibraries.SMARTNOISE_SQL)
-
-
-# Smartnoise Synth
-# -----------------------------------------------------------------------------
-
-
-@router.post(
-    "/smartnoise_synth_query",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_QUERY"],
-    status_code=status.HTTP_202_ACCEPTED,
-)
-async def smartnoise_synth_handler(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    request: Request,
-    smartnoise_synth_query: SmartnoiseSynthQueryModel,
-) -> Job:
-    """
-    Handles queries for the SmartNoiseSynth library.
-
-    \f
-    Args:
-        user_id (UserId): A UserId object identifying the user.
-        request (Request): Raw request object
-        smartnoise_synth_query (SmartnoiseSynthQueryModel):
-            The smartnoise_synth query body.
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
-        DatasetNotFoundException: If the dataset does not exist.
-        UserNotFoundException: If the user does not exist.
-
-    Returns:
-        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
-        or SmartnoiseSynthSamples.
-    """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
-
-
-@router.post(
-    "/dummy_smartnoise_synth_query",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_QUERY"],
-    status_code=status.HTTP_202_ACCEPTED,
-)
-async def dummy_smartnoise_synth_handler(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    request: Request,
-    smartnoise_synth_query: SmartnoiseSynthDummyQueryModel,
-) -> Job:
-    """
-    Handles queries on dummy datasets for the SmartNoiseSynth library.
-
-    \f
-    Args:
-        user_id (UserId): A UserId object identifying the user.
-        request (Request): Raw request object
-        smartnoise_synth_query (SmartnoiseSynthDummyQueryModel):
-            The smartnoise_synth query body.
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
-        DatasetNotFoundException: If the dataset does not exist.
-        UserNotFoundException: If the user does not exist.
-
-    Returns:
-        Job: a scheduled Job resulting in a QueryResponse containing a SmartnoiseSynthModel
-        or SmartnoiseSynthSamples.
-    """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
-
-
-@router.post(
-    "/estimate_smartnoise_synth_cost",
-    responses=API_ERROR_RESPONSES,
-    tags=["USER_QUERY"],
-    status_code=status.HTTP_202_ACCEPTED,
-)
-async def estimate_smartnoise_synth_cost(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    request: Request,
-    smartnoise_synth_query: SmartnoiseSynthCostQueryModel,
-) -> Job:
-    """
-    Computes the privacy loss budget cost of a SmartNoiseSynth query.
-
-    \f
-    Args:
-        user_id (UserId): A UserId object identifying the user.
-        request (Request): Raw request object
-        smartnoise_synth_query (SmartnoiseSynthRequestModel):
-            The smartnoise_synth query body.
-
-    Raises:
-        ExternalLibraryException: For exceptions from libraries
-            external to this package.
-        InternalServerException: For any other unforseen exceptions.
-        InvalidQueryException: If there is not enough budget or the dataset
-            does not exist.
-        UnauthorizedAccessException: A query is already ongoing for this user  or the user does not have access to the dataset.
-        DatasetNotFoundException: If the dataset does not exist.
-        UserNotFoundException: If the user does not exist.
-
-    Returns:
-        Job: a scheduled Job resulting in a CostResponse containing the privacy loss cost of the input query.
-    """
-    return await handle_query_to_job(request, smartnoise_synth_query, user_id, DPLibraries.SMARTNOISE_SYNTH)
 
 
 # OpenDP

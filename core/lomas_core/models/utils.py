@@ -57,7 +57,7 @@ def serialize_model(model: Any) -> str:
     """
     Serialise a python object into an utf-8 string.
 
-    Fitted Smartnoise Synth synthesizer or fitted DiffPrivLib pipeline.
+    Usually for fitted DiffPrivLib pipeline.
 
     Args:
         model (Any): An object to serialise

@@ -28,7 +28,7 @@ class BenchConfig(BaseSettings):
     )
 
     idx: int = 0
-    "bench user number for parralel load (1 user may have only 1 query at time)"
+    """Bench user number for parralel load (1 user may have only 1 query at time)."""
     app_url: HttpUrl = "http://localhost:48080"
     """The base URL for the API server."""
     dataset_name: str = "FSO_INCOME_SYNTHETIC"

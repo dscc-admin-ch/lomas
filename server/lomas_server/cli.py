@@ -9,18 +9,24 @@ from lomas_server.worker import WorkerConfig
 
 
 class FilterOutLiveSuccess:
-    """Filter out INFO logs: GET /api/live HTTP/1.1 200 OK."""
+    """Filter out INFO logs: GET /live HTTP/1.1 200 OK."""
 
     def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
         (_, _, full_path, _, status_code) = record.args  # type: ignore[misc]
-        return not ((full_path == "/api/live") and (int(status_code) == 200))  # type: ignore[arg-type]
+        return not (("/live" in full_path) and (int(status_code) == 200))  # type: ignore[arg-type, operator]
 
 
 class ServiceConfig(Config):
     def cli_cmd(self) -> None:
         """Start the ASGI server for lomas."""
         log_config = LOGGING_CONFIG
+        # Remove logs for successfull live calls
         log_config["handlers"]["access"]["filters"] = [FilterOutLiveSuccess()]
+        # Add timestamp to log outputs
+        for formatter in ["default", "access"]:
+            fmt = log_config["formatters"][formatter].get("fmt", "")
+            log_config["formatters"][formatter]["fmt"] = f"%(asctime)s {fmt}"
+            log_config["formatters"][formatter]["datefmt"] = "[%H:%M:%S]"
 
         uvicorn.run(
             "lomas_server.app:app",
@@ -37,7 +43,7 @@ class ServiceConfig(Config):
 
 
 class LomasCli(BaseSettings):
-    """Lomas Root Cli"""
+    """Lomas Root Cli."""
 
     model_config = SettingsConfigDict(
         case_sensitive=False,
@@ -50,10 +56,10 @@ class LomasCli(BaseSettings):
     )
 
     start: CliSubCommand[ServiceConfig]
-    "Starts the Lomas Service"
+    """Starts the Lomas Service."""
 
     work: CliSubCommand[WorkerConfig]
-    "Starts a Lomas Worker"
+    """Starts a Lomas Worker."""
 
     def cli_cmd(self) -> None:
         CliApp.run_subcommand(self)

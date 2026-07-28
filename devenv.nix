@@ -184,6 +184,7 @@ in
     };
 
     coverage.module = {
+      process.manager.implementation = "native";
       processes.worker = {
         cwd = lib.mkForce "${config.git.root}";
         exec = lib.mkForce "mkdir -p ./logs/ && exec coverage run --data-file=.coverage.worker -m lomas_server.worker &> ./logs/worker.log";
@@ -199,7 +200,7 @@ in
     };
   };
 
-  process.manager.implementation = "process-compose";
+  process.manager.implementation = lib.mkDefault "process-compose";
   process.managers.process-compose.settings.environment = [ "TTY_COMPATIBLE=1" ];
 
   # Environment variable available inside devenv
@@ -420,7 +421,6 @@ in
   enterTest = ''
     echo "Running tests"
     git --version | grep --color=auto "${pkgs.git.version}"
-    ${lib.getExe pkgs.ripgrep} -m 1 'health\s+Ready' <(${lib.getExe pkgs.process-compose} process monitor lomas-server)
     ${config.scripts.ut.exec}
   '';
 

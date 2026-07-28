@@ -19,7 +19,7 @@
             };
           };
 
-          commonOdicContainers = {
+          commonOidcContainers = {
             rabbitmq =
               { config, ... }:
               {
@@ -166,7 +166,7 @@
 
           "client-init" = pkgs.testers.runNixOSTest {
             name = "client-init";
-            containers = commonOdicContainers // {
+            containers = commonOidcContainers // {
               # Client shoud work with nothing but the client package.
               client = {
                 environment.systemPackages = [ self'.packages.lomasClient ];
@@ -219,7 +219,7 @@
               name = "load test";
 
               containers = lib.mkMerge [
-                commonOdicContainers
+                commonOidcContainers
                 ({
                   server.services.lomas = {
                     initUsers = pkgs.writeText "users.yaml" (
@@ -284,7 +284,7 @@
                   bencher = {
                     imports = [ commonConfig ];
                     environment.systemPackages = [
-                      self'.packages.lomasServerApp
+                      self'.packages.lomasService
                       self'.packages.lomasClient
                     ];
                     environment.sessionVariables = {

@@ -197,14 +197,11 @@ rec {
     ]
   );
 
-  virtualenv = pythonSet.mkVirtualEnv "lomas-dev-env" workspace.deps.all;
-
   lomasEnv = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-env" workspace.deps.default;
-
-  lomasServerApp = mkApplication {
+  lomasEnvDev = pythonSet.mkVirtualEnv "lomas-dev-env" workspace.deps.all;
+  lomasClient = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-client" { lomas-client = [ ]; };
+  lomasService = mkApplication {
     venv = lomasEnv;
     package = pythonSet.lomas-server;
   };
-
-  lomasClient = pythonSets.pythonPkgsHostHost.mkVirtualEnv "lomas-client" { lomas-client = [ ]; };
 }

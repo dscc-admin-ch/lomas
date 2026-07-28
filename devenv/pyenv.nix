@@ -24,7 +24,7 @@ in
 
   config = lib.mkIf cfg.enable {
     packages = [
-      pyEnv.virtualenv
+      pyEnv.lomasEnvDev
       pkgs.uv
     ];
 

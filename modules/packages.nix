@@ -25,8 +25,8 @@
         # make loams python packages available
         inherit (pyEnv)
           lomasEnv
-          virtualenv
-          lomasServerApp
+          lomasEnvDev
+          lomasService
           lomasClient
           ;
 

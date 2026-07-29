@@ -119,7 +119,7 @@
               STREAMLIT_SERVER_HEADLESS = 1;
             };
             ExposedPorts = {
-              servicePort = { };
+              "${servicePort}" = { };
               "8888" = { };
               "8501" = { };
             };

@@ -383,7 +383,7 @@ in
   scripts.docker-load-image = wrapScript {
     exec = ''
       echo "building lomas OCI"
-      nom build ''${DEVENV_ROOT:=.}#lomas-oci -o oci_archive
+      nix build ''${DEVENV_ROOT:=.}#lomas-oci -o oci_archive
       echo "loading into docker"
       TMPDIR=/tmp docker load -i oci_archive
     '';

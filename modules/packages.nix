@@ -8,15 +8,16 @@
       ...
     }:
     let
-      inherit (lib.strings) removePrefix;
+      # Eval our defaults (as options) and get the resulting config
+      inherit ((lib.evalModules { modules = [ ./_defaults.nix ]; }).config) ports;
 
+      # Build our python package & environments from local root (uv.lock)
       pyEnv = pkgs.callPackage ../devenv/lib.nix {
         inherit (inputs) pyproject-nix pyproject-build-systems uv2nix;
         workspaceRoot = ../.;
       };
 
       workingDir = "/data";
-      servicePort = "8080";
       LOMAS_ADMIN_USER_YAML = "${workingDir}/collections/user_collection.yaml";
       LOMAS_ADMIN_DATASET_YAML = "${workingDir}/collections/dataset_collection.yaml";
     in
@@ -60,8 +61,8 @@
           };
           extraCommands = ''
             install -dm 1777 tmp
-            install -Dm 644 ${../server/data/collections/user_collection.yaml} ${removePrefix "/" LOMAS_ADMIN_USER_YAML}
-            install -Dm 644 ${../server/data/collections/dataset_collection.yaml} ${removePrefix "/" LOMAS_ADMIN_DATASET_YAML}
+            install -Dm 644 ${../server/data/collections/user_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_USER_YAML}
+            install -Dm 644 ${../server/data/collections/dataset_collection.yaml} ${lib.removePrefix "/" LOMAS_ADMIN_DATASET_YAML}
 
             install -dm 755 data/collections/
             cp -r --no-preserve=all ${../server/data/collections}/metadata data/collections/
@@ -95,34 +96,34 @@
             ];
             Env = lib.mapAttrsToList (name: value: "${name}=${toString value}") {
               LOMAS_SERVICE_server__host_ip = "0.0.0.0";
-              LOMAS_SERVICE_server__host_port = servicePort;
+              LOMAS_SERVICE_server__host_port = ports.lomas.apiService;
               LOMAS_SERVICE_bootstrap = "deadbeef";
               LOMAS_SERVICE_data_directory = workingDir;
               # LOMAS_SERVICE_database_directory="/tmp/lomas-db/";
-              LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:5672";
+              LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${ports.rabbitmq.amqp}";
               LOMAS_SERVICE_amqp__username = "lomas_guest";
               LOMAS_SERVICE_amqp__password = "lomas_guest";
               LOMAS_SERVICE_authenticator__authentication_type = "oidc";
-              LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:4445/dex/.well-known/openid-configuration";
-              LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:4317";
-              LOMAS_CLIENT_APP_URL = "http://lomas_server:${servicePort}";
-              LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:4445/dex/.well-known/openid-configuration";
+              LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
+              LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
+              LOMAS_CLIENT_APP_URL = "http://lomas_server:${ports.lomas.apiService}";
+              LOMAS_CLIENT_OIDC_DISCOVERY_URL = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
               LOMAS_CLIENT_USE_PASSWORD_FLOW = true;
-              LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:4317";
+              LOMAS_CLIENT_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";
               inherit LOMAS_ADMIN_USER_YAML LOMAS_ADMIN_DATASET_YAML;
-              LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:4446";
-              LOMAS_ADMIN_server_url = "http://lomas_server:${servicePort}";
+              LOMAS_ADMIN_DEX_CONFIG__URL = "http://dex:${ports.lomas.dex.admin}";
+              LOMAS_ADMIN_server_url = "http://lomas_server:${ports.lomas.apiService}";
               LOMAS_ADMIN_BOOTSTRAP = "deadbeef";
               STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
-              STREAMLIT_SERVER_PORT = 8501;
+              STREAMLIT_SERVER_PORT = ports.streamlit;
               STREAMLIT_SERVER_BASE_URL_PATH = "/admin";
               STREAMLIT_SERVER_HEADLESS = 1;
             };
-            ExposedPorts = {
-              "${servicePort}" = { };
-              "8888" = { };
-              "8501" = { };
-            };
+            ExposedPorts = lib.genAttrs [
+              ports.lomas.apiService
+              ports.streamlit
+              ports.jupyter
+            ] (lib.const { });
             Volumes = {
               "${workingDir}/collections" = { };
               "${workingDir}/datasets" = { };

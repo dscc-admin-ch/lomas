@@ -75,9 +75,9 @@ in
     host = "localhost";
     port = 5672;
     nodeName = "rabbit@localhost";
-    # spin the management interface http://localhost:15672 guest/guest
-    user = "guest";
-    password = "guest";
+    # spin the management interface http://localhost:15672
+    user = "lomas_guest";
+    password = "lomas_guest";
     heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 

@@ -3,18 +3,26 @@ let
   portStr = with lib.types; coercedTo port toString str;
 in
 {
+  # Option which (can) have farther reaching implications than local dev environment
+  # like public/service port needed to build/package CI-test / infra
+
   options = {
-    # As per OTLP Spec. 1.11.0 (https://opentelemetry.io/docs/specs/otlp/)
     ports.otlp = {
       grpc = lib.mkOption {
         type = portStr;
         default = 4317;
-        description = "Default port for OTLP/gRPC";
+        description = ''
+          Default port for OTLP/gRPC
+          (As per OTLP Spec. 1.11.0 @ https://opentelemetry.io/docs/specs/otlp/ )
+        '';
       };
       http = lib.mkOption {
         type = portStr;
         default = 4318;
-        description = "Default port for OTLP/HTTP";
+        description = ''
+          Default port for OTLP/HTTP
+          (As per OTLP Spec. 1.11.0 @ https://opentelemetry.io/docs/specs/otlp/ )
+        '';
       };
     };
 

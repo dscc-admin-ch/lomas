@@ -64,13 +64,13 @@ in
       LOMAS_SERVICE_telemetry__enabled = "true";
       LOMAS_SERVICE_telemetry__service_name = "lomas-server-app";
       LOMAS_SERVICE_telemetry__service_id = "default-host";
-      LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${toString cfg.services.otlp.ports.grpc}";
+      LOMAS_SERVICE_telemetry__collector_endpoint = "http://localhost:${config.ports.otlp.grpc}";
       LOMAS_SERVICE_telemetry__collector_insecure = "true";
 
       LOMAS_CLIENT_telemetry__enabled = "true";
       LOMAS_CLIENT_telemetry__service_name = "lomas-server-app";
       LOMAS_CLIENT_telemetry__service_id = "default-host";
-      LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${toString cfg.services.otlp.ports.grpc}";
+      LOMAS_CLIENT_telemetry__collector_endpoint = "http://localhost:${config.ports.otlp.grpc}";
       LOMAS_CLIENT_telemetry__collector_insecure = "true";
     };
 
@@ -78,8 +78,8 @@ in
       enable = true;
       settings = {
         receivers.otlp.protocols = {
-          grpc.endpoint = "localhost:${toString cfg.services.otlp.ports.grpc}";
-          http.endpoint = "localhost:${toString cfg.services.otlp.ports.http}";
+          grpc.endpoint = "localhost:${config.ports.otlp.grpc}";
+          http.endpoint = "localhost:${config.ports.otlp.http}";
         };
 
         processors.batch.timeout = "5s";

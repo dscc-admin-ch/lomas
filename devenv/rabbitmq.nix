@@ -41,12 +41,6 @@ in
       description = "RabbitMQ Erlang server binding IP";
     };
 
-    port = mkOption {
-      type = types.int;
-      default = 5672;
-      description = "RabbitMQ port";
-    };
-
     prometheusPort = mkOption {
       type = types.int;
       default = 15692;
@@ -87,7 +81,7 @@ in
       enable = true;
       plugins = [ "rabbitmq_prometheus" ];
       listenAddress = cfg.bindAddr;
-      port = cfg.port;
+      port = lib.toInt config.ports.rabbitmq.amqp;
       nodeName = cfg.nodeName;
       managementPlugin = {
         enable = true;
@@ -107,7 +101,7 @@ in
     # a TCP port check on the AMQP port as the readinessProbe and no livenessProbe at all.
     # This should be considered the best practice.
     processes.rabbitmq.ready = {
-      exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${toString cfg.port}";
+      exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${config.ports.rabbitmq.amqp}";
     };
 
     env.ERL_CRASH_DUMP_BYTES = 0;

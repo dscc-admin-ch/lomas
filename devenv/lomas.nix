@@ -51,11 +51,6 @@ in
       description = "Lomas Server address";
     };
 
-    port = mkOption {
-      type = types.int;
-      description = "Lomas Server port";
-    };
-
     baseUrl = mkOption {
       type = types.str;
       default = "/";
@@ -74,11 +69,6 @@ in
       default = "localhost";
       example = "lomas-dashboard.domain";
       description = "Lomas Dashboard address";
-    };
-
-    dashboard.port = mkOption {
-      type = types.int;
-      description = "Lomas Dashboard port";
     };
 
     dashboard.baseUrl = mkOption {
@@ -127,11 +117,6 @@ in
       description = "OIDC client for grafana dashboard";
     };
 
-    client.jupyter.port = mkOption {
-      type = types.int;
-      description = "Lomas Client's Jupyter port";
-    };
-
     client.jupyter.password = mkOption {
       type = types.nullOr types.str;
       description = "Lomas Client's Jupyter password";
@@ -169,7 +154,8 @@ in
         ready = {
           notify = true;
           http.get = {
-            inherit (cfg) host port;
+            inherit (cfg) host;
+            port = lib.toInt config.ports.lomas.apiService;
             path = "/live";
           };
           failure_threshold = if (config.env.LOMAS_SERVICE_server__reload == "true") then 100 else 3;
@@ -181,7 +167,7 @@ in
       #############
 
       env = {
-        STREAMLIT_SERVER_PORT = cfg.dashboard.port;
+        STREAMLIT_SERVER_PORT = config.ports.streamlit;
         STREAMLIT_SERVER_BASE_URL_PATH = cfg.dashboard.baseUrl;
         STREAMLIT_SERVER_HEADLESS = true;
         STREAMLIT_BROWSER_GATHER_USAGE_STATS = 0;
@@ -209,7 +195,8 @@ in
             STREAMLIT_SECRETS_FILES = secretFile;
           };
           ready.http.get = {
-            inherit (cfg.dashboard) host port;
+            inherit (cfg.dashboard) host;
+            port = lib.toInt config.ports.streamlit;
             path = "${cfg.dashboard.baseUrl}/ping";
           };
         };
@@ -225,7 +212,7 @@ in
 
           args = [
             "--ServerApp.ip=0.0.0.0"
-            "--ServerApp.port=${toString cfg.client.jupyter.port}"
+            "--ServerApp.port=${config.ports.jupyter}"
             "--ServerApp.allow_root=True"
             "--ServerApp.open_browser=False"
             "--ExtensionApp.open_browser=False"

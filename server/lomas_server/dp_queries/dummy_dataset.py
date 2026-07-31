@@ -5,9 +5,7 @@ from lomas_core.models.requests import DummyQueryModel
 from lomas_server.data_connector.in_memory_connector import InMemoryConnector
 
 
-async def get_dummy_dataset_for_query(
-    admin_database: Proxy, query_json: DummyQueryModel
-) -> InMemoryConnector:
+def get_dummy_dataset_for_query(admin_database: Proxy, query_json: DummyQueryModel) -> InMemoryConnector:
     """Get a dummy dataset for a given query.
 
     Args:
@@ -18,7 +16,7 @@ async def get_dummy_dataset_for_query(
         InMemoryConnector: An in memory dummy dataset instance.
     """
     # Create dummy dataset based on seed and number of rows
-    metadata = await admin_database.get_dataset_metadata(dataset_name=query_json.dataset_name)
+    metadata = admin_database.get_dataset_metadata(dataset_name=query_json.dataset_name)
     df = make_dummy_from_metadata(
         metadata.to_dict(),
         query_json.dummy_nb_rows,

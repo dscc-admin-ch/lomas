@@ -560,6 +560,17 @@ def set_epsilon_delta(
     db.set_epsilon_or_delta(username, body.dataset_name, BudgetDBKey.DELTA_INIT, body.delta)
 
 
+@router.put("/users/{username}/dataset/budget", responses=API_ERROR_RESPONSES)
+def update_epsilon_delta(
+    request: Request,
+    _: Annotated[UserId, Security(get_user_id_from_authenticator, scopes=[Scopes.ADMIN])],
+    username: str,
+    body: LomasBudgetRequest,
+) -> None:
+    db: LocalAdminDatabase = request.app.state.admin_database
+    db.update_budget(username, body.dataset_name, body.epsilon, body.delta)
+
+
 @router.get("/users/{username}/archive", responses=API_ERROR_RESPONSES)
 def get_archives_user(
     request: Request,

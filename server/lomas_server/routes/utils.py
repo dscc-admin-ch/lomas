@@ -12,9 +12,10 @@ from uuid import UUID
 
 import aio_pika
 from aio_pika.abc import AbstractConnection, AbstractQueue
-from aio_pika.patterns.rpc import RPC, Proxy
+from aio_pika.patterns.rpc import Proxy
 from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
+from fastapi.exceptions import HTTPException
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 from starlette import status
 
 from lomas_core.constants import DPLibraries
@@ -22,7 +23,13 @@ from lomas_core.exceptions import (
     InternalServerException,
 )
 from lomas_core.models.collections import DSPathAccess, DSS3Access, UserId
-from lomas_core.models.constants import JobStatus, PrivateDatabaseType, TimeAttackMethod, get_lomas_logger
+from lomas_core.models.constants import (
+    JobStatus,
+    LomasHeaders,
+    PrivateDatabaseType,
+    TimeAttackMethod,
+    get_lomas_logger,
+)
 from lomas_core.models.exceptions import LomasAPIErrorModel
 from lomas_core.models.requests import (
     DummyQueryModel,
@@ -112,21 +119,6 @@ async def rabbitmq_ctx(app: FastAPI) -> AsyncIterator[None]:
         app.state.task_queue_channel = channel
         queue = await channel.declare_queue("task_response", durable=True)
 
-        # Rpc stuff
-        rpc = await RPC.create(channel, durable=True)
-        await rpc.register(
-            "get_and_set_may_user_query", app.state.admin_database.get_and_set_may_user_query, durable=True
-        )
-        await rpc.register("set_may_user_query", app.state.admin_database.set_may_user_query, durable=True)
-        await rpc.register(
-            "get_remaining_budget", app.state.admin_database.get_remaining_budget, durable=True
-        )
-        await rpc.register("update_budget", app.state.admin_database.update_budget, durable=True)
-        await rpc.register(
-            "get_dataset_metadata", app.state.admin_database.get_dataset_metadata, durable=True
-        )
-        await rpc.register("get_dataset", app.state.admin_database.get_dataset, durable=True)
-
     except Exception as e:
         logger.exception(f"Failed to setup RabbitMQ context: {e!s}")
         if connection:
@@ -196,7 +188,8 @@ def timing_protection(func):  # type: ignore[no-untyped-def]
 def get_user_id_from_authenticator(
     request: Request,
     security_scopes: SecurityScopes,
-    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())],
+    auth_creds: Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer(auto_error=False))],
+    api_key: Annotated[str, Depends(APIKeyHeader(name=LomasHeaders.APIKEY, auto_error=False))],
 ) -> UserId:
     """Extracts the authenticator from the app state and calls its get_user_id method.
 
@@ -210,6 +203,14 @@ def get_user_id_from_authenticator(
     Returns:
         UserId: A UserId instance extracted from the token.
     """
+    if auth_creds is None:
+        if api_key is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        # TODO: validate api_key
+        # Allow worker to impersonate Users Id for db queries
+        name = request.headers.get(LomasHeaders.FORUSER, LomasHeaders.WORKERUSER)
+        return UserId(name=name, email="api@noreply.com")
+
     # Bootstrap initialization
     if not request.app.state.admin_database.get_bootstrap_disabled():
         bootstrap_cred = request.app.state.admin_database.get_bootstrap()
@@ -310,7 +311,7 @@ async def handle_query_to_job(
     return new_task
 
 
-async def get_dataset_connector(
+def get_dataset_connector(
     admin_database: Proxy, dataset_name: str, private_db_credentials: dict[int, PrivateDBCredentials]
 ) -> DataConnector:
     """Returns the proper dataset connector.
@@ -323,9 +324,9 @@ async def get_dataset_connector(
     Raises:
         InternalServerException: In case the dataset type does not exist.
     """
-    ds_info = await admin_database.get_dataset(dataset_name=dataset_name)
+    ds_info = admin_database.get_dataset(dataset_name=dataset_name)
     ds_access = ds_info.dataset_access
-    ds_metadata = await admin_database.get_dataset_metadata(dataset_name=dataset_name)
+    ds_metadata = admin_database.get_dataset_metadata(dataset_name=dataset_name)
     data_connector = None
 
     match ds_access:

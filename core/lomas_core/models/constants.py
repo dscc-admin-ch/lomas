@@ -49,6 +49,12 @@ class JobStatus(StrEnum):
     COMPLETE = "complete"
 
 
+class LomasHeaders(StrEnum):
+    APIKEY = "x-api-key"
+    FORUSER = "x-for-user"
+    WORKERUSER = "x-worker-api"
+
+
 # Config / Dataset Connectors
 # -----------------------------------------------------------------------------
 

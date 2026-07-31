@@ -71,7 +71,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 The query result, to be added to the response dict.
         """
 
-    async def handle_query(
+    def handle_query(
         self,
         query_json: QueryModel,
         user_name: str,
@@ -97,7 +97,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
                 - spent_delta (float): The amount of delta budget spent for the query.
         """
         # Block access to other queries to user
-        if not await self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
+        if not self.admin_database.get_and_set_may_user_query(user_name=user_name, may_query=False):
             raise UnauthorizedAccessException(
                 f"User {user_name} is trying to query before end of previous query."
             )
@@ -110,7 +110,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             (
                 eps_remain,
                 delta_remain,
-            ) = await self.admin_database.get_remaining_budget(
+            ) = self.admin_database.get_remaining_budget(
                 user_name=user_name, dataset_name=query_json.dataset_name
             )
 
@@ -124,7 +124,7 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             query_result = self.query(query_json)
 
             # Deduce budget from user
-            await self.admin_database.update_budget(
+            self.admin_database.update_budget(
                 user_name=user_name,
                 dataset_name=query_json.dataset_name,
                 spent_epsilon=eps_cost,
@@ -139,11 +139,11 @@ class DPQuerier(ABC, Generic[RequestModelGeneric, QueryModelGeneric, QueryResult
             )
 
             # Re-enable user to query
-            await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
+            self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
 
         except Exception as e:
             # Response is only sent back if nothing happens in the try catch, otherwise raise.
-            await self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
+            self.admin_database.set_may_user_query(user_name=user_name, may_query=True)
             raise e
 
         # Return response

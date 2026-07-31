@@ -8,23 +8,37 @@ from typing import Any, Never
 from uuid import UUID
 
 import aio_pika
-from aio_pika.patterns.rpc import RPC, Proxy
+import httpx2
+from aio_pika.patterns.rpc import Proxy
+from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from returns.unsafe import unsafe_perform_io
+from rich.pretty import pprint
 
 from lomas_core.exceptions import InternalServerException
 from lomas_core.instrumentation import init_telemetry
-from lomas_core.models.constants import JobStatus, get_lomas_logger, init_logging
+from lomas_core.models.collections import (
+    DSInfo,
+)
+from lomas_core.models.constants import JobStatus, LomasHeaders, get_lomas_logger, init_logging
 from lomas_core.models.requests import (
     CostQueryModel,
     DiffPrivLibRequestModel,
     DummyQueryModel,
+    LomasBudgetRequest,
     OpenDPRequestModel,
     QueryModel,
     SmartnoiseSQLRequestModel,
 )
-from lomas_core.models.responses import CostResponse, Job, QueryResponse
+from lomas_core.models.responses import (
+    CostResponse,
+    Job,
+    QueryResponse,
+    RemainingBudgetResponse,
+)
+from lomas_server.administration.dashboard.utils import query_lomas
 from lomas_server.dp_queries.dp_libraries.diffprivlib import DiffPrivLibQuerier
 from lomas_server.dp_queries.dp_libraries.opendp import OpenDPQuerier, set_opendp_features_config
 from lomas_server.dp_queries.dp_libraries.smartnoise_sql import SmartnoiseSQLQuerier
@@ -37,8 +51,77 @@ from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
 
+# TODO: deployment key & fun
+TEST_APIKEY = "worker-api-key"
 
-async def handle_query(config: Config, admin_database: Proxy, message: aio_pika.IncomingMessage) -> Job:
+
+def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
+    match (method_name, kwargs):
+        case ("get_remaining_budget", {"user_name": user_name, "dataset_name": dataset_name}):
+            res = (
+                query_lomas(
+                    "/get_remaining_budget",
+                    httpx2.post,
+                    headers={LomasHeaders.APIKEY: TEST_APIKEY, LomasHeaders.FORUSER: user_name},
+                    json={"dataset_name": dataset_name},
+                )
+                .map(RemainingBudgetResponse.model_validate)
+                .map(lambda resp: (resp.remaining_epsilon, resp.remaining_delta))
+            )
+            pprint(res)
+            return unsafe_perform_io(res.value_or(None))
+
+        case ("get_dataset_metadata", {"dataset_name": dataset_name}):
+            res = query_lomas(
+                "/get_dataset_metadata",
+                httpx2.post,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                json={"dataset_name": dataset_name},
+            ).map(TableMetadata.model_validate)
+            pprint(res)
+            return unsafe_perform_io(res.value_or(None))
+
+        case ("get_dataset", {"dataset_name": dataset_name}):
+            res = query_lomas(
+                f"/dataset/{dataset_name}", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY}
+            ).map(DSInfo.model_validate)
+            pprint(res)
+            return unsafe_perform_io(res.value_or(None))
+
+        case ("get_and_set_may_user_query" | "set_may_user_query", _):
+            # TODO: should this mechanic be changed ? do we even want to attempt Semaphore over network ?
+            return True
+
+        case (
+            "update_budget",
+            {
+                "user_name": user_name,
+                "dataset_name": dataset_name,
+                "spent_epsilon": spent_epsilon,
+                "spent_delta": spent_delta,
+            },
+        ):
+            # Should we change handle query to: not update the budget, packit in the server JobResultResponse
+            # and server will handle atomic budget update (and check) ?
+            budgetReq = LomasBudgetRequest(
+                dataset_name=dataset_name,
+                epsilon=spent_epsilon,
+                delta=spent_delta,
+            )
+            res = query_lomas(
+                f"/users/{user_name}/dataset/budget",
+                httpx2.put,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                json=budgetReq.model_dump(),
+            )
+            pprint(res)
+            return unsafe_perform_io(res.value_or(None))
+
+        case _:
+            raise ValueError(f"Invalid Proxy method: {method_name}")
+
+
+def handle_query(config: Config, admin_database: Proxy, message: aio_pika.IncomingMessage) -> Job:
     """Handle queries."""
     start_sec = time.time()
     logger.debug("Handling query.")
@@ -53,9 +136,9 @@ async def handle_query(config: Config, admin_database: Proxy, message: aio_pika.
         assert user_name is not None
 
         if isinstance(query_model, DummyQueryModel):
-            data_connector = await get_dummy_dataset_for_query(admin_database, query_model)
+            data_connector = get_dummy_dataset_for_query(admin_database, query_model)
         else:
-            data_connector = await get_dataset_connector(
+            data_connector = get_dataset_connector(
                 admin_database, query_model.dataset_name, config.private_db_credentials
             )
 
@@ -81,7 +164,7 @@ async def handle_query(config: Config, admin_database: Proxy, message: aio_pika.
                     requested_by=user_name, result=result, epsilon=eps_cost, delta=delta_cost
                 )
             case QueryModel():
-                query_response = await dp_querier.handle_query(query_model, user_name)
+                query_response = dp_querier.handle_query(query_model, user_name)
 
         job.result = query_response
         job.status = JobStatus.COMPLETE
@@ -118,7 +201,7 @@ async def process_message(
             async with message.process():
                 headers = None
                 body = b""
-                job = await message_handler(message)
+                job = message_handler(message)
                 body = job.model_dump_json(exclude_unset=True).encode()
 
                 await channel.default_exchange.publish(
@@ -150,13 +233,15 @@ async def process_queue(config: Config) -> None:
     async with connection:
         channel = await connection.channel()
         await channel.set_qos(prefetch_count=1)
-        rpc = await RPC.create(channel, durable=True)
 
         try:
             async with asyncio.TaskGroup() as tg:
                 tg.create_task(
                     process_message(
-                        channel, "task_queue", "task_response", partial(handle_query, config, rpc.proxy)
+                        channel,
+                        "task_queue",
+                        "task_response",
+                        partial(handle_query, config, Proxy(admin_database_proxy)),
                     )
                 )
 

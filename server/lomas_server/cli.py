@@ -13,7 +13,9 @@ class FilterOutLiveSuccess:
 
     def filter(self, record: logging.LogRecord) -> bool:  # pylint: disable=missing-function-docstring
         (_, _, full_path, _, status_code) = record.args  # type: ignore[misc]
-        return not (("/live" in full_path) and (int(status_code) == 200))  # type: ignore[arg-type, operator]
+        return (not (("/live" in full_path) and (int(status_code) == 200))) and (
+            not (("/job/pending" in full_path) and (int(status_code) == 204))
+        )  # type: ignore[arg-type, operator]
 
 
 class ServiceConfig(Config):

@@ -106,6 +106,7 @@ async def update_job(
     user_id: Annotated[UserId, Security(get_user_id_from_authenticator)], request: Request, job_update: Job
 ):
     admin_database = request.app.state.admin_database
+    print(job_update)
     if not admin_database.does_job_exist(job_update.uid):
         raise JobNotFoundException(job_update.uid)
 
@@ -117,13 +118,13 @@ async def update_job(
 
 @router.get("/job/pending", responses=API_ERROR_RESPONSES)
 async def get_next_pending(
-    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)],
-    request: Request,
+    user_id: Annotated[UserId, Security(get_user_id_from_authenticator)], request: Request, response: Response
 ) -> Job | None:
     admin_database = request.app.state.admin_database
     next_pending = admin_database.get_job_pending()
 
     if next_pending is None:
+        response.status_code = status.HTTP_204_NO_CONTENT
         return None
 
     update_job = deepcopy(next_pending)

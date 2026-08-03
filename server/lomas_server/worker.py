@@ -190,21 +190,23 @@ async def process_message(config: Config) -> None:
         if res == IOSuccess(None):
             logger.debug("No pending Jobs - Waiting")
         else:
-            pprint(res)
+            # pprint(res)
             job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
             if job is None:
                 continue
 
             job_done = handle_query(config, Proxy(admin_database_proxy), job)
 
-            pprint(job_done)
+            # pprint(job_done)
 
             pprint(job_done.model_dump_json())
             res = query_lomas(
                 "/job",
                 httpx2.put,
                 headers={LomasHeaders.APIKEY: TEST_APIKEY},
-                json={"job_update": job_done.model_dump_json()},
+                json=job_done.model_dump(
+                    mode="json"
+                ),  # Requires json mode to make UUID (not json serializable) into str.
             )
             pprint(res)
 

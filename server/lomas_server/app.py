@@ -19,7 +19,6 @@ from lomas_server.routes.middlewares import (
     FastAPIMetricMiddleware,
     LoggingAndTracingMiddleware,
 )
-from lomas_server.routes.utils import rabbitmq_ctx
 from lomas_server.utils.notify import notify
 
 
@@ -70,12 +69,11 @@ async def lifespan(lomas_app: FastAPI) -> AsyncGenerator[None]:
     # Set DP Libraries config
     set_opendp_features_config(config.opendp_features)
 
-    async with rabbitmq_ctx(lomas_app):
-        notify(b"READY=1")
-        try:
-            yield  # lomas_app is handling requests
-        finally:
-            notify(b"STOPPING=1")
+    notify(b"READY=1")
+    try:
+        yield  # lomas_app is handling requests
+    finally:
+        notify(b"STOPPING=1")
 
 
 # Init config for logging purposes

@@ -2,18 +2,16 @@ import asyncio
 import functools
 import signal
 import time
-from collections.abc import Callable
-from functools import partial
 from typing import Any, Never
 from uuid import UUID
 
-import aio_pika
 import httpx2
 from aio_pika.patterns.rpc import Proxy
 from csvw_eo.metadata_structure import TableMetadata
 from fastapi import status
 from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from returns.io import IOSuccess
 from returns.unsafe import unsafe_perform_io
 from rich.pretty import pprint
 
@@ -46,7 +44,7 @@ from lomas_server.dp_queries.dp_querier import DPQuerier
 from lomas_server.dp_queries.dummy_dataset import get_dummy_dataset_for_query
 from lomas_server.models.config import Config
 from lomas_server.routes.error_handler import model_from_lomas_exception
-from lomas_server.routes.utils import get_dataset_connector, rabbitmq_connect_queue
+from lomas_server.routes.utils import get_dataset_connector
 from lomas_server.utils.notify import notify
 
 logger = get_lomas_logger(__name__)
@@ -121,15 +119,12 @@ def admin_database_proxy(method_name: str, kwargs: dict[str, Any]) -> Any:
             raise ValueError(f"Invalid Proxy method: {method_name}")
 
 
-def handle_query(config: Config, admin_database: Proxy, message: aio_pika.IncomingMessage) -> Job:
+def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
     """Handle queries."""
     start_sec = time.time()
     logger.debug("Handling query.")
 
     try:
-        body = message.body.decode()
-        job = Job.model_validate_json(body)
-
         query_model = job.query
         assert query_model is not None
         user_name = job.requested_by
@@ -179,35 +174,39 @@ def handle_query(config: Config, admin_database: Proxy, message: aio_pika.Incomi
         error_model, status_code = model_from_lomas_exception(exc)
 
         return Job(
-            uid=UUID(message.correlation_id),
+            uid=UUID(job.uid),
             status=JobStatus.FAILED,
             error=error_model,
             status_code=status_code,
         )
 
 
-async def process_message(
-    channel: aio_pika.Channel,
-    in_queue: str,
-    out_queue: str,
-    message_handler: Callable[[aio_pika.IncomingMessage], Any],
-) -> None:
+async def process_message(config: Config) -> None:
     """General RabbitMQ Message handler -> processing -> response."""
-    queue = await channel.declare_queue(in_queue, durable=True)
-    await channel.declare_queue(out_queue, durable=True)
+    while True:
+        await asyncio.sleep(2)
 
-    async with queue.iterator() as queue_iter:
-        async for message in queue_iter:
-            async with message.process():
-                headers = None
-                body = b""
-                job = message_handler(message)
-                body = job.model_dump_json(exclude_unset=True).encode()
+        res = query_lomas("/job/pending", httpx2.get, headers={LomasHeaders.APIKEY: TEST_APIKEY})
+        if res == IOSuccess(None):
+            logger.debug("No pending Jobs - Waiting")
+        else:
+            pprint(res)
+            job = unsafe_perform_io(res.map(Job.model_validate).value_or(None))
+            if job is None:
+                continue
 
-                await channel.default_exchange.publish(
-                    aio_pika.Message(headers=headers, body=body, correlation_id=message.correlation_id),
-                    routing_key=out_queue,
-                )
+            job_done = handle_query(config, Proxy(admin_database_proxy), job)
+
+            pprint(job_done)
+
+            pprint(job_done.model_dump_json())
+            res = query_lomas(
+                "/job",
+                httpx2.put,
+                headers={LomasHeaders.APIKEY: TEST_APIKEY},
+                json={"job_update": job_done.model_dump_json()},
+            )
+            pprint(res)
 
 
 class TerminateTaskGroup(Exception):
@@ -228,36 +227,18 @@ def ask_exit(signame: str, tg: asyncio.TaskGroup) -> None:
 async def process_queue(config: Config) -> None:
     """Handle & await all pika processing queues."""
     loop = asyncio.get_running_loop()
-    connection = await rabbitmq_connect_queue(config)
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(process_message(config))
 
-    async with connection:
-        channel = await connection.channel()
-        await channel.set_qos(prefetch_count=1)
-
-        try:
-            async with asyncio.TaskGroup() as tg:
-                tg.create_task(
-                    process_message(
-                        channel,
-                        "task_queue",
-                        "task_response",
-                        partial(handle_query, config, Proxy(admin_database_proxy)),
-                    )
-                )
-
-                # register signal for polite TaskGroup termination
-                for signame in ["SIGINT", "SIGTERM"]:
-                    loop.add_signal_handler(
-                        getattr(signal, signame), functools.partial(ask_exit, signame, tg)
-                    )
-                notify(b"READY=1")
-            # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
-        except* TerminateTaskGroup:
-            logger.info("Terminated")
-            notify(b"STOPPING=1")
-        finally:
-            await channel.close()
-            await connection.close()
+            # register signal for polite TaskGroup termination
+            for signame in ["SIGINT", "SIGTERM"]:
+                loop.add_signal_handler(getattr(signal, signame), functools.partial(ask_exit, signame, tg))
+            notify(b"READY=1")
+        # All tasks in Taskgroup are awaited here (aexit of TaskGroup context)
+    except* TerminateTaskGroup:
+        logger.info("Terminated")
+        notify(b"STOPPING=1")
 
 
 class WorkerConfig(Config):

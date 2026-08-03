@@ -76,35 +76,4 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-    services.rabbitmq = {
-      enable = true;
-      plugins = [ "rabbitmq_prometheus" ];
-      listenAddress = cfg.bindAddr;
-      port = lib.toInt config.ports.rabbitmq.amqp;
-      nodeName = cfg.nodeName;
-      managementPlugin = {
-        enable = true;
-        port = cfg.portManagement;
-      };
-      configItems = {
-        default_user = cfg.user;
-        default_pass = cfg.password;
-        "prometheus.tcp.port" = toString cfg.prometheusPort;
-        heartbeat = toString cfg.heartbeat;
-        "deprecated_features.permit.transient_nonexcl_queues" = "false";
-        "deprecated_features.permit.management_metrics_collection" = "false";
-      };
-    };
-
-    # official documentation
-    # a TCP port check on the AMQP port as the readinessProbe and no livenessProbe at all.
-    # This should be considered the best practice.
-    processes.rabbitmq.ready = {
-      exec = lib.mkForce "${pkgs.netcat}/bin/nc -z -v -w 5 ${cfg.host} ${config.ports.rabbitmq.amqp}";
-    };
-
-    env.ERL_CRASH_DUMP_BYTES = 0;
-  };
-
 }

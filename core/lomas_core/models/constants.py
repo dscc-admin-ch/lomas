@@ -44,6 +44,7 @@ class QueryResponseTypes(StrEnum):
 class JobStatus(StrEnum):
     """Possible jobs status."""
 
+    PENDING = "pending"
     IN_PROGRESS = "in_progress"
     FAILED = "failed"
     COMPLETE = "complete"

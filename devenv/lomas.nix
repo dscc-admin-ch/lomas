@@ -141,9 +141,6 @@ in
             paths = [ config.git.root ];
             extensions = [ "py" ];
           };
-          after = [
-            "devenv:processes:rabbitmq"
-          ];
         });
     }
 

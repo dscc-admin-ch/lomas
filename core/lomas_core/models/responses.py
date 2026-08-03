@@ -218,7 +218,7 @@ class Job(ResponseModel):
     """Name of the user that requested this job."""
     dataset_name: str | None = None
     """Name of the dataset targetted by this job."""
-    status: Literal[JobStatus.IN_PROGRESS, JobStatus.FAILED, JobStatus.COMPLETE] = JobStatus.IN_PROGRESS
+    status: JobStatus = JobStatus.PENDING
     """Job status."""
     query: AnyLomasRequest | None = None
     """Job query."""

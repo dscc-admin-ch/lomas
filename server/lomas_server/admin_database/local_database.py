@@ -33,7 +33,12 @@ from lomas_core.models.collections import (
     UserCollection,
     UserId,
 )
-from lomas_core.models.constants import PrivateDatabaseType, QueryTypes, get_lomas_logger
+from lomas_core.models.constants import (
+    JobStatus,
+    PrivateDatabaseType,
+    QueryTypes,
+    get_lomas_logger,
+)
 from lomas_core.models.responses import Job
 from lomas_server.admin_database.admin_database import (
     AdminDatabase,
@@ -253,6 +258,21 @@ class LocalAdminDatabase(AdminDatabase):
 
         if row is None:
             raise KeyError(f"No job with uid {uid}")
+
+        return Job.model_validate_json(row[0])
+
+    @override
+    @db_span("db.get_job_pending", table="admin-db")
+    def get_job_pending(self) -> Job | None:
+        ADMINDB_QUERY_COUNTER.add(1, {"operation": "get_job_pending"})
+
+        with self._sqlite_connection(self._jobs_db_path) as conn:
+            row = conn.execute(
+                "SELECT job_json FROM jobs WHERE status = ?", (str(JobStatus.PENDING),)
+            ).fetchone()
+
+        if row is None:
+            return None
 
         return Job.model_validate_json(row[0])
 

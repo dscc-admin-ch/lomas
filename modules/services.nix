@@ -28,7 +28,7 @@
         services.lomas = {
           enable = mkEnableOption "Whether to enable Lomas Server.";
 
-          package = mkPackageOption perSystem.config.packages "lomasServerApp" { };
+          package = mkPackageOption perSystem.config.packages "lomasService" { };
 
           workerOnly = mkOption {
             default = false;

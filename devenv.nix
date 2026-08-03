@@ -25,6 +25,7 @@ in
 {
   # import our modules
   imports = [
+    ./modules/_defaults.nix
     ./devenv/lomas.nix
     ./devenv/rabbitmq.nix
     ./devenv/garage.nix
@@ -35,21 +36,21 @@ in
     ./devenv/pyenv.nix
   ];
 
+  # Actually don't use the default for the dev env
+  ports.lomas.apiService = 48080;
+
   lomas = {
     enable = true;
     host = "localhost";
-    port = 48080;
     dashboard.host = "localhost";
-    dashboard.port = 8501;
     client.jupyter = {
-      port = 8888;
       password = null; # "dprocks";
     };
   };
 
   lomas.oidc = {
     enable = true;
-    providerUrl = "http://localhost:4445/dex";
+    providerUrl = "http://localhost:${config.ports.lomas.dex.api}/dex";
     queryUserinfo = true;
     clients = {
       apiServer = {
@@ -60,7 +61,7 @@ in
       adminDashboard = {
         client_id = "lomas_dashboard";
         client_secret = "lomas_dashboard";
-        redirect_uri = with config.lomas.dashboard; "http://${host}:${toString port}${baseUrl}/oauth2callback";
+        redirect_uri = with config.lomas.dashboard; "http://${host}:${config.ports.streamlit}${baseUrl}/oauth2callback";
       };
       grafanaDashboard = {
         client_id = "lomas_grafana";
@@ -73,20 +74,17 @@ in
   lomas.rabbitmq = {
     enable = true;
     host = "localhost";
-    port = 5672;
     nodeName = "rabbit@localhost";
-    # spin the management interface http://localhost:15672 guest/guest
-    user = "guest";
-    password = "guest";
+    # spin the management interface http://localhost:15672
+    user = "lomas_guest";
+    password = "lomas_guest";
     heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 
   lomas.dex = {
     enable = true;
-    port = 4445;
     host = "localhost";
     address = "127.0.0.1";
-    adminPort = 4446;
     adminAddress = "127.0.0.1";
   };
 
@@ -158,8 +156,6 @@ in
       otlp = {
         host = "localhost";
         ports = {
-          grpc = 4317; # Must keep this value
-          http = 4318; # Must keep this value
           metrics = 29090;
         };
       };
@@ -218,7 +214,7 @@ in
 
     # Lomas Server Runtime
     LOMAS_SERVICE_server__host_ip = config.lomas.host;
-    LOMAS_SERVICE_server__host_port = config.lomas.port;
+    LOMAS_SERVICE_server__host_port = config.ports.lomas.apiService;
     LOMAS_SERVICE_server__log_level = "INFO";
     LOMAS_SERVICE_server__lomas_log_level = "DEBUG";
     LOMAS_SERVICE_server__reload = "true";
@@ -227,7 +223,7 @@ in
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
 
-    LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${toString config.lomas.rabbitmq.port}";
+    LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${config.ports.rabbitmq.amqp}";
     LOMAS_SERVICE_amqp__username = config.lomas.rabbitmq.user;
     LOMAS_SERVICE_amqp__password = config.lomas.rabbitmq.password;
     LOMAS_SERVICE_amqp__heartbeat = config.lomas.rabbitmq.heartbeat;
@@ -247,14 +243,14 @@ in
     # Lomas client environment
     LOMAS_CLIENT_OIDC_DISCOVERY_URL = config.lomas.oidc.discoveryUrl;
     LOMAS_CLIENT_USE_PASSWORD_FLOW = "true";
-    LOMAS_CLIENT_APP_URL = "http://localhost:${toString config.lomas.port}";
+    LOMAS_CLIENT_APP_URL = "http://localhost:${config.ports.lomas.apiService}";
 
     # Lomas demo setup
-    LOMAS_ADMIN_server_url = "http://localhost:${toString config.lomas.port}"; # public lomas service url from dashboard
-    LOMAS_ADMIN_server_service = "http://localhost:${toString config.lomas.port}";
+    LOMAS_ADMIN_server_url = "http://localhost:${config.ports.lomas.apiService}"; # public lomas service url from dashboard
+    LOMAS_ADMIN_server_service = "http://localhost:${config.ports.lomas.apiService}";
     LOMAS_ADMIN_USER_YAML = user_yaml_path;
     LOMAS_ADMIN_DATASET_YAML = dataset_yaml_path;
-    LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${toString config.lomas.dex.adminPort}";
+    LOMAS_ADMIN_DEX_CONFIG__URL = "grpc://${config.lomas.dex.adminAddress}:${config.ports.lomas.dex.admin}";
     LOMAS_ADMIN_BOOTSTRAP = config.env.LOMAS_SERVICE_bootstrap;
   }
   // (listToPydanticEnvVar "LOMAS_SERVICE_private_db_credentials" [
@@ -275,6 +271,7 @@ in
   ]
   # Additional useful packages
   ++ lib.optionals (!config.container.isBuilding) [
+    pkgs.nix-output-monitor
     pkgs.jq
     pkgs.yq-go
     pkgs.watchexec
@@ -382,9 +379,9 @@ in
   scripts.docker-load-image = wrapScript {
     exec = ''
       echo "building lomas OCI"
-      out=$(devenv build outputs.lomas-oci | jq -r '.["outputs.lomas-oci"]')
+      nix build ''${DEVENV_ROOT:=.}#lomas-oci -o oci_archive
       echo "loading into docker"
-      TMPDIR=/tmp docker load -i $out
+      TMPDIR=/tmp docker load -i oci_archive
     '';
   };
 

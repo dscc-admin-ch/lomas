@@ -24,9 +24,9 @@ let
 
   # Write config as file
   confFile = pkgs.writeText "dex-config.yaml" (''
-    issuer: http://${cfg.host}:${toString cfg.port}${cfg.path}
+    issuer: http://${cfg.host}:${config.ports.lomas.dex.api}${cfg.path}
     web:
-      http: ${cfg.address}:${toString cfg.port}
+      http: ${cfg.address}:${config.ports.lomas.dex.api}
 
     storage:
       type: memory
@@ -35,7 +35,7 @@ let
       #   file: $XDG_RUNTIME_DIR/dex.db
 
     grpc:
-      addr: ${cfg.adminAddress}:${toString cfg.adminPort}
+      addr: ${cfg.adminAddress}:${config.ports.lomas.dex.admin}
 
     # Enable local users
     enablePasswordDB: true
@@ -134,11 +134,6 @@ in
       });
     };
 
-    port = mkOption {
-      type = types.port;
-      description = "Dex http port";
-    };
-
     host = mkOption {
       type = types.str;
       default = "localhost";
@@ -157,11 +152,6 @@ in
       type = types.str;
       default = "127.0.0.1";
       description = "Dex bind address";
-    };
-
-    adminPort = mkOption {
-      type = types.port;
-      description = "Dex admin http port";
     };
 
     adminAddress = mkOption {
@@ -186,7 +176,8 @@ in
     processes.dex = {
       exec = "exec ${lib.getExe cfg.package} serve ${confFile}";
       ready.http.get = {
-        inherit (cfg) host port path;
+        inherit (cfg) host path;
+        port = lib.toInt config.ports.lomas.dex.api;
       };
     };
 

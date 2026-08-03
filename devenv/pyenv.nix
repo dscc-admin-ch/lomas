@@ -24,7 +24,7 @@ in
 
   config = lib.mkIf cfg.enable {
     packages = [
-      pyEnv.virtualenv
+      pyEnv.lomasEnvDev
       pkgs.uv
     ];
 
@@ -40,12 +40,5 @@ in
       unset PYTHONPATH
       export REPO_ROOT=$(git rev-parse --show-toplevel)
     '';
-
-    # make it available to devenv build, bzw:
-    # devenv build outputs.lomas-env | jq -r '.[]' | cachix push lomas
-    outputs = {
-      lomas-dev-env = pyEnv.virtualenv;
-      lomas-env = pyEnv.lomasEnv;
-    };
   };
 }

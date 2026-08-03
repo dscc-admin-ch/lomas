@@ -59,12 +59,5 @@ in
       description = "Default (local) Jupyter Server port";
     };
 
-    ports.rabbitmq = {
-      amqp = lib.mkOption {
-        type = portStr;
-        default = 5672;
-        description = "Default Plain AMQP port";
-      };
-    };
   };
 }

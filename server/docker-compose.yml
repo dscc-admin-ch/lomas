@@ -21,8 +21,6 @@ services:
       retries: 10
       timeout: 5s
     depends_on:
-      rabbitmq:
-        condition: service_started
       otel-collector:
         condition: service_started
       tempo:
@@ -51,22 +49,6 @@ services:
       dex:
         condition: service_started
         restart: true
-      rabbitmq:
-        condition: service_started
-        restart: true
-    networks:
-      - lomas-network
-
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:4.0-management
-    ports:
-      - ${LOMAS_RABBIT_MQ_PORT}:${LOMAS_RABBIT_MQ_PORT}
-      - ${LOMAS_RABBIT_MQ_MGMT_PORT}:${LOMAS_RABBIT_MQ_MGMT_PORT}
-    environment:
-      - RABBITMQ_DEFAULT_USER=${LOMAS_RABBIT_MQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${LOMAS_RABBIT_MQ_PASS}
-      - RABBITMQ_NODE_PORT=${LOMAS_RABBIT_MQ_PORT}
     networks:
       - lomas-network
 

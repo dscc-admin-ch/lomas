@@ -23,20 +23,6 @@ spec:
         {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
       imagePullSecrets:
         {{- toYaml .Values.global.imagePullSecrets | nindent 8}}
-      initContainers:
-        - name: wait-for-rabbitmq
-          image: "{{ .Values.server.initContainers.image.repository }}:{{ .Values.server.initContainers.image.tag }}"
-          command:
-            - sh
-            - -c
-            - |
-              until nc -z {{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }} {{ .Values.rabbitmq.service.ports.amqp }}; do
-                echo "Waiting for RabbitMQ..."
-                sleep 2
-              done
-              echo "RabbitMQ is ready!"
-          resources:
-            {{- toYaml .Values.server.initContainers.resources | nindent 12}}
       containers:
       - name: {{ include "lomas.server.fullname" . }}
         securityContext:
@@ -115,17 +101,6 @@ spec:
             value: "http://{{ include "lomas.otel.fullname" . }}:{{ .Values.otel.service.port }}"
           - name: LOMAS_SERVICE_TELEMETRY__COLLECTOR_INSECURE
             value: "true"
-          - name: LOMAS_SERVICE_AMQP__URL
-            value: "amqp://{{ include "common.names.fullname" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}:{{ .Values.rabbitmq.service.ports.amqp }}"
-          - name: LOMAS_SERVICE_AMQP__HEARTBEAT
-            value: "{{ .Values.rabbitmq.heartbeat_client }}"
-          - name: LOMAS_SERVICE_AMQP__USERNAME
-            value: "{{ .Values.rabbitmq.auth.username }}"
-          - name: LOMAS_SERVICE_AMQP__PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ template "rabbitmq.secretPasswordName" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
-                key: {{ template "rabbitmq.secretPasswordKey" (dict "Release" .Release "Chart" (dict "Name" "rabbitmq") "Values" .Values.rabbitmq) }}
           - name: LOMAS_SERVICE_OPENDP_FEATURES
             value: '{{ toJson .Values.server.runtime_args.opendp_features }}'
           {{- if .Values.global.configCABundle.enabled }}

@@ -100,9 +100,6 @@
               LOMAS_SERVICE_bootstrap = "deadbeef";
               LOMAS_SERVICE_data_directory = workingDir;
               # LOMAS_SERVICE_database_directory="/tmp/lomas-db/";
-              LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:${ports.rabbitmq.amqp}";
-              LOMAS_SERVICE_amqp__username = "lomas_guest";
-              LOMAS_SERVICE_amqp__password = "lomas_guest";
               LOMAS_SERVICE_authenticator__authentication_type = "oidc";
               LOMAS_SERVICE_authenticator__oidc_discovery_url = "http://dex:${ports.lomas.dex.api}/dex/.well-known/openid-configuration";
               LOMAS_SERVICE_telemetry__collector_endpoint = "http://otel-collector:${ports.otlp.grpc}";

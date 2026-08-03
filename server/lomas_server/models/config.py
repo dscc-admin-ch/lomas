@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import (
-    AmqpDsn,
     BaseModel,
     Field,
     HttpUrl,
@@ -31,38 +30,6 @@ class S3CredentialsConfig(PrivateDBCredentials):
     credentials_name: str
     access_key_id: str
     secret_access_key: str
-
-
-class AmqpConfig(BaseModel):
-    """BaseSettings for Advanced Message Queuing Protocol (AMQP)."""
-
-    url: AmqpDsn
-    username: str
-    password: str
-    heartbeat: str = Field(default="60")
-
-    @computed_field
-    def dsn(self) -> str:
-        """Construct full DSN including credentials."""
-        dsn = Url.build(
-            scheme=self.url.scheme,
-            username=self.username,
-            password=self.password,
-            host=self.url.host,
-            port=self.url.port,
-            query=f"heartbeat={self.heartbeat}",
-        )
-        return str(dsn)
-
-    @computed_field
-    def base_url(self) -> str:
-        """Queue base URL."""
-        base_url = Url.build(
-            scheme=self.url.scheme,
-            host=self.url.host,
-            port=self.url.port,
-        )
-        return str(base_url)
 
 
 class DexAdminConfig(BaseModel):
@@ -119,8 +86,6 @@ class Config(BaseSettings):
     data_directory: Path = Field(default=Path("../data"))
 
     private_db_credentials: dict[int, Annotated[S3CredentialsConfig, Field(discriminator="db_type")]] = {}
-
-    amqp: AmqpConfig
 
     opendp_features: OpenDPFeatures = Field(default=["contrib", "idealized-numerics", "honest-but-curious"])
 

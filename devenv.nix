@@ -27,7 +27,6 @@ in
   imports = [
     ./modules/_defaults.nix
     ./devenv/lomas.nix
-    ./devenv/rabbitmq.nix
     ./devenv/garage.nix
     ./devenv/telemetry.nix
     ./devenv/hooks.nix
@@ -69,16 +68,6 @@ in
         redirect_uri = with config.lomas.telemetry.services.grafana; "http://${host}:${toString port}/login/generic_oauth";
       };
     };
-  };
-
-  lomas.rabbitmq = {
-    enable = true;
-    host = "localhost";
-    nodeName = "rabbit@localhost";
-    # spin the management interface http://localhost:15672
-    user = "lomas_guest";
-    password = "lomas_guest";
-    heartbeat = 1800; # Extra super duper long hearbeat timeout for long running tasks in workersss
   };
 
   lomas.dex = {
@@ -223,10 +212,6 @@ in
     LOMAS_SERVICE_server__time_attack__method = "jitter";
     LOMAS_SERVICE_server__time_attack__magnitude = 1;
 
-    LOMAS_SERVICE_amqp__url = "amqp://${config.lomas.rabbitmq.host}:${config.ports.rabbitmq.amqp}";
-    LOMAS_SERVICE_amqp__username = config.lomas.rabbitmq.user;
-    LOMAS_SERVICE_amqp__password = config.lomas.rabbitmq.password;
-    LOMAS_SERVICE_amqp__heartbeat = config.lomas.rabbitmq.heartbeat;
     LOMAS_SERVICE_opendp_features = toPydanticSetting [
       "contrib"
       "idealized-numerics"

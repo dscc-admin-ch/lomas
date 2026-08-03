@@ -66,21 +66,6 @@
             type = types.str;
           };
 
-          amqpUrl = mkOption {
-            default = "amqp://rabbitmq:5672";
-            type = types.str;
-          };
-
-          amqpUsername = mkOption {
-            default = "";
-            type = types.str;
-          };
-
-          amqpPassword = mkOption {
-            default = "";
-            type = types.str;
-          };
-
           dataDir = mkOption {
             type = types.path;
             default = "/var/lib/lomas";
@@ -157,9 +142,6 @@
             LOMAS_ADMIN_dex_config__url = cfg.dexGrpc;
             LOMAS_ADMIN_user_yaml = cfg.initUsers;
             LOMAS_ADMIN_dataset_yaml = cfg.initDatasets;
-            LOMAS_SERVICE_amqp__url = cfg.amqpUrl;
-            LOMAS_SERVICE_amqp__username = cfg.amqpUsername;
-            LOMAS_SERVICE_amqp__password = cfg.amqpPassword;
           };
 
           serviceConfig = {
@@ -219,9 +201,6 @@
 
           environment = {
             LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
-            LOMAS_SERVICE_amqp__url = cfg.amqpUrl;
-            LOMAS_SERVICE_amqp__username = cfg.amqpUsername;
-            LOMAS_SERVICE_amqp__password = cfg.amqpPassword;
           };
 
           serviceConfig = {

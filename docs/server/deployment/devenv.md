@@ -17,7 +17,7 @@ This page provides instructions on how to run a local Lomas test instance.
 3. Open one of the [example notebooks](../../client/index.md) to test the service. The environment variables for the client configuration are already present in the devenv environment. Parameters specific to the notebook user (e.g. Dr. Antartica) are set in the first few cells of each notebook. By default, demo notebooks use the client credentials flow. An IdP configured for production will not allow this flow, you can switch to the device authorizatoin flow by setting the `LOMAS_CLIENT_USER_PASSWORD` environment variable to false.
 4. The server is available at `http://localhost:48080`. Bootstrap authorization is enabled by default, this allows to test API endpoints via swagger at `http://localhost:48080/docs`.
 5. The admin dashboard is available at `http://localhost:8501/admin`. If the demo admin script was run, you can log in with the demo admin user (email: lomas_admin@example.com and password: lomas_admin).
-6. Logs for all services started by devenv can be observed by navigating the manager started with the `devenv up` command. In adddition to those described above, they include RabbitMQ, Dex (IdP), Garage as well as two Lomas workers.
+6. Logs for all services started by devenv can be observed by navigating the manager started with the `devenv up` command. In adddition to those described above, they include Dex (IdP), Garage as well as two Lomas workers.
 
 
 !!! info "__Note for Developers__"

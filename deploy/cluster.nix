@@ -7,13 +7,11 @@
 let
   inherit (lib) mkOption types;
   inherit (config.kubernetes.helm.releases) lomas-dex;
-  inherit (config.kubernetes.helm.releases) rabbitmq;
 in
 {
   imports = [
     kubenix.modules.k8s
     kubenix.modules.helm
-    ./rabbit.nix
     ./dex.nix
     ./objstore.nix
   ];
@@ -147,10 +145,6 @@ in
                 lib.mapAttrs (_: toString) {
                   LOMAS_SERVICE_PORT = 48080;
                   LOMAS_DEX_PORT = lomas-dex.values.service.ports.http.port; # 4445
-                  LOMAS_RABBIT_MQ_PORT = rabbitmq.values.containerPorts.amqp; # 5672
-                  LOMAS_RABBIT_MQ_MGMT_PORT = rabbitmq.values.containerPorts.manager; # 15672
-                  LOMAS_RABBIT_MQ_USER = rabbitmq.values.auth.username; # "guest"
-                  LOMAS_RABBIT_MQ_PASS = rabbitmq.values.auth.password; # "guest"
                   LOMAS_DASHBOARD_PORT = 8501;
                   LOMAS_OTEL_PORT = 4317;
                   LOMAS_CLIENT_PORT = 8888;

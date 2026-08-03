@@ -12,36 +12,11 @@
         let
           commonConfig = {
             environment.sessionVariables = {
-              LOMAS_SERVICE_amqp__url = "amqp://rabbitmq:5672";
-              LOMAS_SERVICE_amqp__username = "lomas_guest";
-              LOMAS_SERVICE_amqp__password = "lomas_guest";
               LOMAS_SERVICE_authenticator__authentication_type = lib.mkDefault "free_pass";
             };
           };
 
           commonOidcContainers = {
-            rabbitmq =
-              { config, ... }:
-              {
-                imports = [ commonConfig ];
-                networking.firewall.allowedTCPPorts = [
-                  5672
-                  15672
-                ];
-                services.rabbitmq = {
-                  enable = true;
-                  listenAddress = "0.0.0.0";
-                  managementPlugin.enable = true;
-                  configItems = {
-                    default_user = config.environment.sessionVariables.LOMAS_SERVICE_amqp__username;
-                    default_pass = config.environment.sessionVariables.LOMAS_SERVICE_amqp__password;
-                    "deprecated_features.permit.transient_nonexcl_queues" = "false";
-                    "deprecated_features.permit.management_metrics_collection" = "false";
-                  };
-                };
-                systemd.services.rabbitmq.serviceConfig.Restart = lib.mkForce "no";
-              };
-
             server = {
               imports = [ self.nixosModules.lomas ];
               services.lomas = {
@@ -69,9 +44,6 @@
                     }
                   )
                 );
-                amqpUrl = "amqp://rabbitmq:5672";
-                amqpUsername = "lomas_guest";
-                amqpPassword = "lomas_guest";
               };
             };
 
@@ -80,9 +52,6 @@
               services.lomas = {
                 enable = true;
                 workerOnly = true;
-                amqpUrl = "amqp://rabbitmq:5672";
-                amqpUsername = "lomas_guest";
-                amqpPassword = "lomas_guest";
               };
             };
 
@@ -131,33 +100,14 @@
               { config, ... }:
               {
                 imports = [ self.nixosModules.lomas ];
-                # Local RabbitMQ
-                services.rabbitmq = {
-                  enable = true;
-                  managementPlugin.enable = true;
-                  configItems = {
-                    default_user = "guest";
-                    default_pass = "guest";
-                    "deprecated_features.permit.transient_nonexcl_queues" = "false";
-                    "deprecated_features.permit.management_metrics_collection" = "false";
-                  };
-                };
-                systemd.services.rabbitmq.serviceConfig.Restart = lib.mkForce "no";
-
                 services.lomas = {
                   enable = true;
                   workerOnly = true;
-                  amqpUrl = "amqp://localhost:${toString config.services.rabbitmq.port}";
-                  amqpUsername = config.services.rabbitmq.configItems.default_user;
-                  amqpPassword = config.services.rabbitmq.configItems.default_pass;
                 };
               };
             # https://nixos.org/manual/nixos/stable/index.html#ssec-machine-objects
             testScript = ''
               worker.start()
-
-              worker.wait_for_unit("rabbitmq.service")
-              worker.wait_for_open_port(15672)
 
               worker.start_job("lomas-worker@1")
               worker.wait_for_unit("lomas-worker@1.service")
@@ -193,9 +143,6 @@
               in
               ''
                 start_all()
-
-                rabbitmq.wait_for_unit("rabbitmq.service")
-                rabbitmq.wait_for_open_port(15672)
 
                 server.wait_for_unit("lomas.service")
 
@@ -298,9 +245,6 @@
                     services.lomas = {
                       enable = true;
                       workerOnly = true;
-                      amqpUrl = "amqp://rabbitmq:5672";
-                      amqpUsername = "lomas_guest";
-                      amqpPassword = "lomas_guest";
                     };
                   };
                   worker3 = {
@@ -308,9 +252,6 @@
                     services.lomas = {
                       enable = true;
                       workerOnly = true;
-                      amqpUrl = "amqp://rabbitmq:5672";
-                      amqpUsername = "lomas_guest";
-                      amqpPassword = "lomas_guest";
                     };
                   };
                 })
@@ -318,9 +259,6 @@
 
               testScript = ''
                 start_all()
-
-                rabbitmq.wait_for_unit("rabbitmq.service")
-                rabbitmq.wait_for_open_port(15672)
 
                 server.wait_for_unit("lomas.service")
 

@@ -31,12 +31,6 @@ in
           # Dex
           LOMAS_DEX_PORT=${config.ports.lomas.dex.api}
 
-          # RabbitMQ
-          LOMAS_RABBIT_MQ_PORT=${config.ports.rabbitmq.amqp}
-          LOMAS_RABBIT_MQ_MGMT_PORT=${toString config.lomas.rabbitmq.portManagement}
-          LOMAS_RABBIT_MQ_USER=${config.lomas.rabbitmq.user}
-          LOMAS_RABBIT_MQ_PASS=${config.lomas.rabbitmq.password}
-
           # Dashboard
           LOMAS_DASHBOARD_PORT=${config.ports.streamlit}
 

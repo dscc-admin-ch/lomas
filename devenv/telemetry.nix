@@ -179,10 +179,6 @@ in
           job_name = "loki";
           static_configs = [ { targets = [ "localhost:${toString cfg.services.loki.port}" ]; } ];
         }
-        {
-          job_name = "rabbitmq";
-          static_configs = [ { targets = [ "localhost:${toString config.lomas.rabbitmq.prometheusPort}" ]; } ];
-        }
       ];
     };
 

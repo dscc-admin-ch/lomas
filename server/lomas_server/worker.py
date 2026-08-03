@@ -182,7 +182,7 @@ def handle_query(config: Config, admin_database: Proxy, job: Job) -> Job:
 
 
 async def process_message(config: Config) -> None:
-    """General RabbitMQ Message handler -> processing -> response."""
+    """General Job processing loop."""
     while True:
         await asyncio.sleep(2)
 
